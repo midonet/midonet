@@ -16,24 +16,6 @@
     <name>MidoNet Java/Scala utilities</name>
     <packaging>jar</packaging>
 
-    <build>
-       <plugins>
-           <plugin>
-                <!-- Share the test classes of this project with others -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <!-- phase>package</phase -->
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
     <dependencies>
         <dependency> <!-- needed by ServletConfigProvider used in api-server -->
             <groupId>javax.servlet</groupId>
@@ -48,11 +30,6 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-        </dependency>
-
-        <dependency>
-           <groupId>org.apache.commons</groupId>
-           <artifactId>commons-lang3</artifactId>
         </dependency>
 
         <dependency> <!-- needed by version checker -->
@@ -94,11 +71,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
         </dependency>
@@ -116,7 +88,6 @@
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.10</artifactId>
-            <scope>test</scope>
         </dependency>
 
     </dependencies>
