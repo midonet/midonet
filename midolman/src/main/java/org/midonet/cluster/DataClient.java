@@ -898,4 +898,19 @@ public interface DataClient {
     public VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
             throws StateAccessException, SerializationException;
+
+    /**
+     * Given a bridge port that is expected to be exterior and bound to a given
+     * host's interface, this method will figure out what's the IP that should
+     * be used as vxlan tunnel end point given the bridge's configuration.
+     *
+     * If the bridge contains a vxlan port, we will fetch the VTEP's configured
+     * tunnel zone, and use the host's IP in that tunnel zone. If the bridge
+     * does not contain a vxlan port, then we'll simply return null, which
+     * should be understood as "there is no vxlan tunnel end point relevant for
+     * this bridge".
+     */
+    public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
+        throws SerializationException, StateAccessException;
+
 }
