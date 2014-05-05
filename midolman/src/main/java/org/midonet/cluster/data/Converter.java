@@ -3,6 +3,12 @@
  */
 package org.midonet.cluster.data;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+
 import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Opt121;
@@ -49,12 +55,6 @@ import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IntIPv4;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
 
 
 /**
@@ -789,12 +789,14 @@ public class Converter {
     public static VTEP fromVtepConfig(VtepZkManager.VtepConfig config) {
         VTEP vtep = new VTEP();
         vtep.setMgmtPort(config.mgmtPort);
+        vtep.setTunnelZone(config.tunnelZone);
         return vtep;
     }
 
     public static VtepZkManager.VtepConfig toVtepConfig(VTEP vtep) {
         VtepZkManager.VtepConfig vtepConfig = new VtepZkManager.VtepConfig();
         vtepConfig.mgmtPort = vtep.getMgmtPort();
+        vtepConfig.tunnelZone = vtep.getTunnelZoneId();
         return vtepConfig;
     }
 }

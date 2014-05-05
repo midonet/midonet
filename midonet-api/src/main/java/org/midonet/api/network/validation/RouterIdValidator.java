@@ -4,13 +4,13 @@
 
 package org.midonet.api.network.validation;
 
-import com.google.inject.Inject;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-
+import java.util.UUID;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-import java.util.UUID;
+
+import com.google.inject.Inject;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.state.StateAccessException;
 
 public class RouterIdValidator implements
         ConstraintValidator<IsValidPortId, UUID> {
