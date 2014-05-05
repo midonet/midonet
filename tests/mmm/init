@@ -19,7 +19,7 @@ sudo apt-get install iproute -y
 # curl -L https://www.opscode.com/chef/install.sh | sudo bash
 
 # add midokura apt source
-echo 'deb [arch=amd64] http://suzuki:ironchef@apt.midokura.com/midonet/v1.4/test precise main non-free test' |sudo tee /etc/apt/sources.list.d/midokura.list
+echo 'deb [arch=amd64] http://suzuki:ironchef@apt.midokura.com/midonet/v1.5/test precise main non-free test' |sudo tee /etc/apt/sources.list.d/midokura.list
 curl -k http://suzuki:ironchef@apt.midokura.com/packages.midokura.key | sudo apt-key add -
 
 # add cloud archive for grizzly
