@@ -235,8 +235,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     @Override
     public UUID addLogicalSwitch(String name, int vni) {
         log.debug("Add logical switch {} with vni {}", name, vni);
-        StatusWithUuid st = cfgSrv.vtepAddLogicalSwitch(name,
-                                                        Integer.toString(vni));
+        StatusWithUuid st = cfgSrv.vtepAddLogicalSwitch(name, vni);
         if (!st.isSuccess()) {
             log.warn("Add logical switch failed: {} - {}", st.getCode(),
                                                            st.getDescription());
@@ -251,7 +250,7 @@ public class VtepDataClientImpl implements VtepDataClient {
                 + "and adding ips: {}",
                   new Object[]{lsName, portName, vlan, vni, floodIps});
         Status st = cfgSrv.vtepBindVlan(lsName, portName,
-                                        Integer.toString(vlan), vni, floodIps);
+                                        vlan, vni, floodIps);
         if (!st.isSuccess()) {
             log.warn("Bind vlan failed: {} - {}", st.getCode(),
                                                   st.getDescription());
