@@ -6,8 +6,10 @@ package org.midonet.brain.southbound.vtep.model;
 
 import java.math.BigInteger;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
+import org.opendaylight.ovsdb.lib.notation.OvsDBMap;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.vtep.Logical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Mcast_Macs_Local;
@@ -57,8 +59,8 @@ public class VtepModelTranslator {
         return new PhysicalPort(
             ovsdbPort.getDescription(),
             ovsdbPort.getName(),
-            ovsdbPort.getVlan_bindings(),
-            ovsdbPort.getVlan_stats(),
+            bigIntToInteger(ovsdbPort.getVlan_bindings()),
+            bigIntToInteger(ovsdbPort.getVlan_stats()),
             ovsdbPort.getPort_fault_status()
         );
     }
@@ -66,8 +68,10 @@ public class VtepModelTranslator {
     public static UcastMac toMido(Ucast_Macs_Remote ovsdbMac) {
         return new UcastMac(
             ovsdbMac.getMac(),
-            ovsdbMac.getLogical_switch().isEmpty() ? null : ovsdbMac.getLogical_switch().iterator().next(),
-            ovsdbMac.getLocator().isEmpty() ? null : ovsdbMac.getLocator().iterator().next(),
+            ovsdbMac.getLogical_switch().isEmpty()
+                ? null : ovsdbMac.getLogical_switch().iterator().next(),
+            ovsdbMac.getLocator().isEmpty()
+                ? null : ovsdbMac.getLocator().iterator().next(),
             ovsdbMac.getIpaddr()
         );
     }
@@ -75,8 +79,10 @@ public class VtepModelTranslator {
     public static UcastMac toMido(Ucast_Macs_Local ovsdbMac) {
         return new UcastMac(
             ovsdbMac.getMac(),
-            ovsdbMac.getLogical_switch().isEmpty() ? null : ovsdbMac.getLogical_switch().iterator().next(),
-            ovsdbMac.getLocator().isEmpty() ? null : ovsdbMac.getLocator().iterator().next(),
+            ovsdbMac.getLogical_switch().isEmpty()
+                ? null : ovsdbMac.getLogical_switch().iterator().next(),
+            ovsdbMac.getLocator().isEmpty()
+                ? null : ovsdbMac.getLocator().iterator().next(),
             ovsdbMac.getIpaddr()
         );
     }
@@ -84,8 +90,10 @@ public class VtepModelTranslator {
     public static McastMac toMido(Mcast_Macs_Local ovsdbMac) {
         return new McastMac(
             ovsdbMac.getMac(),
-            ovsdbMac.getLogical_switch().isEmpty() ? null : ovsdbMac.getLogical_switch().iterator().next(),
-            ovsdbMac.getLocator_set().isEmpty() ? null : ovsdbMac.getLocator_set().iterator().next(),
+            ovsdbMac.getLogical_switch().isEmpty()
+                ? null : ovsdbMac.getLogical_switch().iterator().next(),
+            ovsdbMac.getLocator_set().isEmpty()
+                ? null : ovsdbMac.getLocator_set().iterator().next(),
             ovsdbMac.getIpaddr()
         );
     }
@@ -93,11 +101,21 @@ public class VtepModelTranslator {
     public static McastMac toMido(Mcast_Macs_Remote ovsdbMac) {
         return new McastMac(
             ovsdbMac.getMac(),
-            ovsdbMac.getLogical_switch().isEmpty() ? null : ovsdbMac.getLogical_switch().iterator().next(),
-            ovsdbMac.getLocator_set().isEmpty() ? null : ovsdbMac.getLocator_set().iterator().next(),
+            ovsdbMac.getLogical_switch().isEmpty()
+                ? null : ovsdbMac.getLogical_switch().iterator().next(),
+            ovsdbMac.getLocator_set().isEmpty()
+                ? null : ovsdbMac.getLocator_set().iterator().next(),
             ovsdbMac.getIpaddr()
         );
     }
 
+    private static <T> OvsDBMap<Integer, T>
+    bigIntToInteger(OvsDBMap<BigInteger, T> map) {
+        OvsDBMap<Integer, T> intMap = new OvsDBMap<>();
+        for(Map.Entry<BigInteger, T> e : map.entrySet()) {
+            intMap.put(e.getKey().intValue(), e.getValue());
+        }
+        return intMap;
+    }
 }
 
