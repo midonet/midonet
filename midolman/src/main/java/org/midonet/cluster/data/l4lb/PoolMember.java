@@ -5,7 +5,7 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;

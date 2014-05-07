@@ -61,7 +61,6 @@ public class HealthMonitorResource extends AbstractResource {
     private final static HealthMonitorEvent healthMonitorEvent
             = new HealthMonitorEvent();
 
-    private final Validator validator;
     private final DataClient dataClient;
 
     @Inject
@@ -69,8 +68,7 @@ public class HealthMonitorResource extends AbstractResource {
                           SecurityContext context,
                           Validator validator, DataClient dataClient,
                           ResourceFactory factory) {
-        super(config, uriInfo, context);
-        this.validator = validator;
+        super(config, uriInfo, context, validator);
         this.dataClient = dataClient;
     }
 
@@ -141,13 +139,7 @@ public class HealthMonitorResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public Response create(HealthMonitor healthMonitor)
             throws StateAccessException, SerializationException {
-
-        Set<ConstraintViolation<HealthMonitor>> violations =
-                validator.validate(healthMonitor);
-        if (!violations.isEmpty()) {
-            throw new BadRequestHttpException(violations);
-        }
-
+        validate(healthMonitor);
         try {
             UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
             healthMonitorEvent.create(id, dataClient.healthMonitorGet(id));
@@ -169,6 +161,7 @@ public class HealthMonitorResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         healthMonitor.setId(id);
+        validate(healthMonitor);
 
         try {
             dataClient.healthMonitorUpdate(healthMonitor.toData());

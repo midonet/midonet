@@ -32,12 +32,14 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Subnet;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -129,8 +131,8 @@ public class LocalDataClientImplTestBase {
 
     protected Pool getStockPool(UUID loadBalancerId) {
         return new Pool().setLoadBalancerId(loadBalancerId)
-                .setLbMethod("ROUND_ROBIN")
-                .setProtocol("TCP");
+                .setLbMethod(PoolLBMethod.ROUND_ROBIN)
+                .setProtocol(PoolProtocol.TCP);
     }
 
     protected UUID createStockPool(UUID loadBalancerId)
@@ -158,7 +160,7 @@ public class LocalDataClientImplTestBase {
                 .setAddress("192.168.100.1")
                 .setPoolId(poolId)
                 .setProtocolPort(80)
-                .setSessionPersistence("SOURCE_IP");
+                .setSessionPersistence(VipSessionPersistence.SOURCE_IP);
     }
 
     protected UUID createStockVip(UUID poolId)

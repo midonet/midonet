@@ -22,7 +22,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.event.topology.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -136,7 +136,7 @@ public class PoolMemberResource extends AbstractResource {
     public Response create(PoolMember poolMember)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        poolMember.setStatus(LBStatus.ACTIVE);
+        poolMember.setStatus(LBStatus.ACTIVE.toString());
         validate(poolMember);
 
         if (poolMember.getWeight() == 0) {
@@ -183,7 +183,7 @@ public class PoolMemberResource extends AbstractResource {
                         dataClient.poolMemberGet(id);
                 poolMember.setAddress(oldPoolMember.getAddress());
                 poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
-                poolMember.setStatus(oldPoolMember.getStatus());
+                poolMember.setStatus(oldPoolMember.getStatus().toString());
             }
 
             dataClient.poolMemberUpdate(poolMember.toData());
@@ -248,7 +248,7 @@ public class PoolMemberResource extends AbstractResource {
                 InvalidStateOperationException, SerializationException {
             poolMember.setPoolId(poolId);
             // `status` defaults to UP and users can't change it through the API.
-            poolMember.setStatus(LBStatus.ACTIVE);
+            poolMember.setStatus(LBStatus.ACTIVE.toString());
             try {
                 UUID id = dataClient.poolMemberCreate(poolMember.toData());
                 return Response.created(

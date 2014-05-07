@@ -22,7 +22,8 @@ import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
 import org.midonet.midolman.services.MessageAccumulator
-import org.midonet.midolman.state.{LBStatus, PoolHealthMonitorMappingStatus}
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
@@ -528,6 +529,7 @@ with OneInstancePerTest {
             Given("a pool with members of weights 1, 2, and 4")
             for (i <- 0 until numBackends) {
                 updatePoolMember(poolMembers(i), adminStateUp = Some(true),
+                                 status = Some(LBStatus.ACTIVE),
                                  weight = Some(math.pow(2, i).toInt))
             }
 

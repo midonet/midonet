@@ -13,11 +13,13 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.DirectoryCallbackFactory;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
@@ -25,7 +27,6 @@ import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,8 +47,8 @@ public class PoolZkManager
 
         public UUID loadBalancerId;
         public UUID healthMonitorId;
-        public String protocol;
-        public String lbMethod;
+        public PoolProtocol protocol = PoolProtocol.TCP;
+        public PoolLBMethod lbMethod = PoolLBMethod.ROUND_ROBIN;
         public boolean adminStateUp;
         public LBStatus status;
         public PoolHealthMonitorMappingStatus mappingStatus;
@@ -58,8 +59,8 @@ public class PoolZkManager
 
         public PoolConfig(UUID loadBalancerId,
                           UUID healthMonitorId,
-                          String protocol,
-                          String lbMethod,
+                          PoolProtocol protocol,
+                          PoolLBMethod lbMethod,
                           boolean adminStateUp,
                           LBStatus status,
                           PoolHealthMonitorMappingStatus mappingStatus) {
@@ -83,8 +84,8 @@ public class PoolZkManager
 
             return Objects.equal(loadBalancerId, that.loadBalancerId) &&
                     Objects.equal(healthMonitorId, that.healthMonitorId) &&
-                    Objects.equal(protocol, that.protocol) &&
-                    Objects.equal(lbMethod, that.lbMethod) &&
+                    protocol == that.protocol &&
+                    lbMethod == that.lbMethod &&
                     adminStateUp == that.adminStateUp &&
                     status == that.status &&
                     mappingStatus == that.mappingStatus;
