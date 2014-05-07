@@ -145,7 +145,7 @@ class HealthMonitorTest extends FeatureSpec
     }
 
     def createFakePoolConfig(adminState: Boolean) = {
-        val vip = new VipConfig(true, UUID.randomUUID(), "9.9.9.9", 89, "")
+        val vip = new VipConfig(true, UUID.randomUUID(), "9.9.9.9", 89, null)
         val healthMonitor = new HealthMonitorConfig(true, 5, 10, 7)
         val member1  = new PoolMemberConfig(true, UUID.randomUUID(),
                                             10, "10.11.12.13", 81)

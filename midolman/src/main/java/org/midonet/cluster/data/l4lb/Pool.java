@@ -5,7 +5,9 @@ package org.midonet.cluster.data.l4lb;
 
 import com.google.common.base.Objects;
 import org.midonet.cluster.data.Entity;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 
 import java.util.UUID;
@@ -59,21 +61,21 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
         return getData().healthMonitorId;
     }
 
-    public Pool setProtocol(String protocol) {
+    public Pool setProtocol(PoolProtocol protocol) {
         getData().protocol = protocol;
         return self();
     }
 
-    public String getProtocol() {
+    public PoolProtocol getProtocol() {
         return getData().protocol;
     }
 
-    public Pool setLbMethod(String lbMethod) {
+    public Pool setLbMethod(PoolLBMethod lbMethod) {
         getData().lbMethod = lbMethod;
         return self();
     }
 
-    public String getLbMethod() {
+    public PoolLBMethod getLbMethod() {
         return getData().lbMethod;
     }
 
@@ -108,8 +110,8 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
     public static class Data {
         private UUID loadBalancerId;
         private UUID healthMonitorId;
-        private String protocol;
-        private String lbMethod;
+        private PoolProtocol protocol = PoolProtocol.TCP;
+        private PoolLBMethod lbMethod = PoolLBMethod.ROUND_ROBIN;
         private boolean adminStateUp = true;
         private LBStatus status = LBStatus.ACTIVE;
         private PoolHealthMonitorMappingStatus mappingStatus =
@@ -124,8 +126,8 @@ public class Pool extends Entity.Base<UUID, Pool.Data, Pool>{
 
             return Objects.equal(loadBalancerId, data.loadBalancerId) &&
                     Objects.equal(healthMonitorId, data.healthMonitorId) &&
-                    Objects.equal(protocol, data.protocol) &&
-                    Objects.equal(lbMethod, data.lbMethod) &&
+                    protocol == data.protocol &&
+                    lbMethod == data.lbMethod &&
                     adminStateUp == data.adminStateUp &&
                     status == data.status &&
                     mappingStatus == data.mappingStatus;
