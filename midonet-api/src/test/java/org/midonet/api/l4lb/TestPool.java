@@ -12,13 +12,14 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
-import org.midonet.client.dto.LBStatus;
+import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;
@@ -182,6 +183,15 @@ public class TestPool {
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolsUri, APPLICATION_POOL_JSON, pool2, CONFLICT);
             assertErrorMatches(error, RESOURCE_EXISTS, "pool", pool2.getId());
+        }
+
+        @Test
+        public void testCreateWithoutLbMethod() {
+            DtoPool pool = getStockPool(loadBalancer.getId());
+            pool.setLbMethod(null);
+            // `lbMethod` property of Pool is mandatory.
+            dtoResource.postAndVerifyBadRequest(
+                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool);
         }
 
         @Test

@@ -5,6 +5,9 @@
 package org.midonet.client.dto;
 
 import com.google.common.base.Objects;
+import org.midonet.client.dto.l4lb.PoolLBMethod;
+import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.client.dto.l4lb.PoolProtocol;
 
 import java.net.URI;
 import java.util.UUID;
@@ -20,8 +23,8 @@ public class DtoPool {
     private URI healthMonitor;
     private URI vips;
     private URI poolMembers;
-    private String protocol;
-    private String lbMethod;
+    private PoolProtocol protocol = PoolProtocol.TCP;
+    private PoolLBMethod lbMethod = PoolLBMethod.ROUND_ROBIN;
     private boolean adminStateUp = true;
     private LBStatus status = LBStatus.ACTIVE;
     private PoolHealthMonitorMappingStatus mappingStatus =
@@ -91,19 +94,19 @@ public class DtoPool {
         this.poolMembers = poolMembers;
     }
 
-    public String getProtocol() {
+    public PoolProtocol getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) {
+    public void setProtocol(PoolProtocol protocol) {
         this.protocol = protocol;
     }
 
-    public String getLbMethod() {
+    public PoolLBMethod getLbMethod() {
         return lbMethod;
     }
 
-    public void setLbMethod(String lbMethod) {
+    public void setLbMethod(PoolLBMethod lbMethod) {
         this.lbMethod = lbMethod;
     }
 

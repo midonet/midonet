@@ -14,7 +14,9 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
-import org.midonet.client.dto.LBStatus;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPool;
+import org.midonet.client.dto.l4lb.LBStatus;
 
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
 
 @RunWith(Enclosed.class)
 public class TestHealthMonitor {
@@ -79,6 +82,15 @@ public class TestHealthMonitor {
             verifyNumberOfHealthMonitors(--counter);
             deleteHealthMonitor(healthMonitor2.getUri());
             verifyNumberOfHealthMonitors(--counter);
+        }
+
+        @Test
+        public void testCreateWithoutType() {
+            DtoHealthMonitor hm = getStockHealthMonitor();
+            hm.setType(null);
+            // `type` property of Health Monitor is mandatory.
+            dtoResource.postAndVerifyBadRequest(topLevelHealthMonitorsUri,
+                    APPLICATION_HEALTH_MONITOR_JSON, hm);
         }
 
         @Test

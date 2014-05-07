@@ -6,32 +6,29 @@ package org.midonet.api.l4lb;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.midolman.state.LBStatus;
+import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
+import org.midonet.midolman.state.l4lb.LBStatus;
 
 import java.net.URI;
 import java.util.UUID;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /* Class representing health monitor info */
 @XmlRootElement
 public class HealthMonitor extends UriResource {
 
-    public final String TYPE_PATTERN = "TCP";
-
     private UUID id;
-    @Pattern(regexp = TYPE_PATTERN,
-             message = "is not in the pattern (" + TYPE_PATTERN + ")")
+    @NotNull
+    @VerifyEnumValue(HealthMonitorType.class)
     private String type;
-    @NotNull
     private int delay;
-    @NotNull
     private int timeout;
-    @NotNull
     private int maxRetries;
     private boolean adminStateUp = true;
-    private LBStatus status;
+    @VerifyEnumValue(LBStatus.class)
+    private String status = LBStatus.ACTIVE.toString();
 
     public UUID getId() {
         return id;
@@ -81,12 +78,12 @@ public class HealthMonitor extends UriResource {
         this.adminStateUp = adminStateUp;
     }
 
-    public LBStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
     @JsonIgnore
-    public void setStatus(LBStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -98,23 +95,23 @@ public class HealthMonitor extends UriResource {
             org.midonet.cluster.data.l4lb.HealthMonitor healthMonitor) {
         super();
         this.id = healthMonitor.getId();
-        this.type = healthMonitor.getType();
+        this.type = healthMonitor.getType().toString();
         this.delay = healthMonitor.getDelay();
         this.timeout = healthMonitor.getTimeout();
         this.maxRetries = healthMonitor.getMaxRetries();
         this.adminStateUp = healthMonitor.isAdminStateUp();
-        this.status = healthMonitor.getStatus();
+        this.status = healthMonitor.getStatus().toString();
     }
 
     public org.midonet.cluster.data.l4lb.HealthMonitor toData() {
         return new org.midonet.cluster.data.l4lb.HealthMonitor()
                 .setId(this.id)
-                .setType(this.type)
+                .setType(HealthMonitorType.valueOf(this.type))
                 .setDelay(this.delay)
                 .setTimeout(this.timeout)
                 .setMaxRetries(this.maxRetries)
                 .setAdminStateUp(this.adminStateUp)
-                .setStatus(this.status);
+                .setStatus(Enum.valueOf(LBStatus.class, this.status));
     }
 
     /**

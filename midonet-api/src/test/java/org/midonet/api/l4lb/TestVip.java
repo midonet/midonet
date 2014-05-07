@@ -3,10 +3,6 @@
  */
 package org.midonet.api.l4lb;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.UUID;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,8 +13,13 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
+import org.midonet.client.dto.l4lb.VipSessionPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
@@ -29,7 +30,6 @@ import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.cluster.data.l4lb.VIP.VIP_SOURCE_IP;
 
 @RunWith(Enclosed.class)
 public class TestVip {
@@ -166,15 +166,17 @@ public class TestVip {
             verifyNumberOfVips(vipCounter);
 
             // PUT with the populated `sessionPersistence`.
-            newVip2.setSessionPersistence(VIP_SOURCE_IP);
+            newVip2.setSessionPersistence(VipSessionPersistence.SOURCE_IP);
             newVip2 = updateVip(newVip2);
-            assertEquals(newVip2.getSessionPersistence(), VIP_SOURCE_IP);
+            assertEquals(VipSessionPersistence.SOURCE_IP,
+                    newVip2.getSessionPersistence());
             verifyNumberOfVips(vipCounter);
 
             // POST with the populated `sessionPersistence`.
             DtoVip sessionPersistenceVip = getVip(newVip2.getUri());
             sessionPersistenceVip.setId(UUID.randomUUID());
-            sessionPersistenceVip.setSessionPersistence(VIP_SOURCE_IP);
+            sessionPersistenceVip.setSessionPersistence(
+                    VipSessionPersistence.SOURCE_IP);
             postVip(sessionPersistenceVip);
             vipCounter++;
             verifyNumberOfVips(vipCounter);
@@ -266,6 +268,15 @@ public class TestVip {
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     vip.getUri(), APPLICATION_VIP_JSON, vip);
             assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", vip.getPoolId());
+        }
+
+
+        @Test
+        public void testCreateWithoutSessionPersistence() {
+            DtoVip vip = getStockVip(pool.getId());
+            vip.setSessionPersistence(null);
+            dtoResource.postAndVerifyCreated(pool.getVips(),
+                    APPLICATION_VIP_JSON, vip, DtoVip.class);
         }
 
         @Test
