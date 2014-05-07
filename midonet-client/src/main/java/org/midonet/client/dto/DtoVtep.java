@@ -7,7 +7,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
 public class DtoVtep {
     private String managementIp;
     private int managementPort;
@@ -16,8 +18,8 @@ public class DtoVtep {
     private String connectionState;
     private UUID tunnelZoneId;
     private List<String> tunnelIpAddrs;
-    private URI uri;
     private URI bindings;
+    private URI uri;
 
     public String getManagementIp() {
         return managementIp;

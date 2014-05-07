@@ -3,26 +3,23 @@
  */
 package org.midonet.api.rest_api;
 
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPAddr$;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Addr$;
-
+import java.net.URI;
+import java.util.Set;
+import java.util.UUID;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.util.Set;
-import java.util.UUID;
 
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
@@ -98,15 +95,6 @@ public abstract class AbstractResource {
                 validator.validate(apiObj, groups);
         if (!violations.isEmpty()) {
             throw new BadRequestHttpException(violations);
-        }
-    }
-
-    protected IPAddr parseIPAddr(String ipAddrStr) {
-        try {
-            return IPAddr$.MODULE$.fromString(ipAddrStr);
-        } catch (Exception ex) {
-            throw new BadRequestHttpException(
-                    getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
         }
     }
 

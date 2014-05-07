@@ -3,17 +3,19 @@ package org.midonet.brain.southbound.vtep;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
+
+import com.google.common.collect.Sets;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
@@ -164,6 +166,36 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
+    public Status deleteLogicalSwitch(String name) {
+
+        LogicalSwitch ls = logicalSwitches.remove(name);
+        if (ls == null) {
+            return new Status(StatusCode.NOTFOUND,
+                              "Logical switch doesn't exist: " + name);
+        }
+
+        UUID lsId = logicalSwitchUuids.remove(name);
+        if (lsId == null) {
+            throw new IllegalStateException("Logical switch found, but not in "+
+                                            "the ids map: most likely a bug in"+
+                                            "VtepDataClientMock");
+        }
+
+        // Remove all bindings to the given logical switch
+        for (Map.Entry<String, PhysicalPort> pport : physicalPorts.entrySet()) {
+            Iterator<Map.Entry<Integer, UUID>> it =
+                pport.getValue().vlanBindings.entrySet().iterator();
+            while (it.hasNext()) {
+                if (lsId.equals(it.next().getValue()))
+                    it.remove();
+            }
+        }
+
+        return new Status(StatusCode.SUCCESS);
+    }
+
+
+    @Override
     public Status addUcastMacRemote(String lsName, String mac, String ip) {
         if (!connected)
             throw new IllegalStateException("VTEP client not connected.");
@@ -200,6 +232,18 @@ public class VtepDataClientMock implements VtepDataClient {
     @Override
     public Observable<TableUpdates> observableLocalMacTable() {
         return Observable.never(); // No tests use this for now.
+    }
+
+    public Status deleteBinding(String portName, int vlanId) {
+        PhysicalPort pport = physicalPorts.get(portName);
+        if (pport == null) {
+            return new Status(StatusCode.NOTFOUND, "Port not found");
+        }
+        if (pport.vlanBindings.remove(vlanId) == null) {
+            return new Status(StatusCode.NOTFOUND);
+        } else {
+            return new Status(StatusCode.SUCCESS);
+        }
     }
 
     private UUID getLocatorUuid(String ip) {

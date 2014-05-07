@@ -29,6 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_COLLECTION_JSON;
@@ -196,17 +197,15 @@ public class TestVtep extends RestApiTestBase {
         assertThat(actualVteps, arrayContainingInAnyOrder(expectedVteps));
     }
 
-    @Test
-    public void testAddBinding() {
-        DtoBridge bridge = postBridge("network1");
-        DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
-        DtoVtepBinding binding = postBinding(vtep,
-                                             makeBinding(
-                                                 MOCK_VTEP_PORT_NAMES[0],
-                                                 (short) 1, bridge.getId()));
+    private DtoVtepBinding addAndVerifyBinding(DtoVtep vtep,
+                                               String networkName,
+                                               String portName, short vlan) {
+        DtoBridge bridge = postBridge(networkName);
+        DtoVtepBinding binding = postBinding(vtep, makeBinding(portName, vlan,
+                                                               bridge.getId()));
         assertEquals(bridge.getId(), binding.getNetworkId());
-        assertEquals(MOCK_VTEP_PORT_NAMES[0], binding.getPortName());
-        assertEquals((short)1, binding.getVlanId());
+        assertEquals(portName, binding.getPortName());
+        assertEquals(vlan, binding.getVlanId());
 
         // Should create a VXLAN port on the specified bridge.
         bridge = getBridge(bridge.getId());
@@ -216,7 +215,68 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(MOCK_VTEP_MGMT_IP, port.getMgmtIpAddr());
         assertEquals(MOCK_VTEP_MGMT_PORT, port.getMgmtPort());
 
-        // TODO: Check that the port has the binding, once that is implemented.
+        return binding;
+    }
+
+    // Tests both add and remove, so no need to bother having a separate one for
+    // just adding
+    @Test
+    public void testAddRemoveBindings() {
+        DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
+
+        assertEquals(0, listBindings(vtep).length);
+
+        DtoVtepBinding binding1 = addAndVerifyBinding(
+            vtep, "network1", MOCK_VTEP_PORT_NAMES[0], (short) 1);
+        DtoVtepBinding binding2 = addAndVerifyBinding(
+            vtep, "network2", MOCK_VTEP_PORT_NAMES[1], (short) 2);
+
+        DtoBridge br1 = getBridge(binding1.getNetworkId());
+        DtoBridge br2 = getBridge(binding2.getNetworkId());
+        DtoVxLanPort vxlanPort1 = getVxLanPort(br1.getVxLanPortId());
+        DtoVxLanPort vxlanPort2 = getVxLanPort(br2.getVxLanPortId());
+
+        DtoVtepBinding[] bindings = listBindings(vtep);
+        assertEquals(2, bindings.length);
+        assertThat(bindings, arrayContainingInAnyOrder(binding1, binding2));
+
+        dtoResource.deleteAndVerifyNoContent(binding1.getUri(),
+                              APPLICATION_VTEP_BINDING_JSON);
+
+        bindings = listBindings(vtep);
+        assertEquals(1, bindings.length);
+        assertThat(bindings, arrayContainingInAnyOrder(binding2));
+        dtoResource.getAndVerifyNotFound(vxlanPort1.getUri(),
+                                         APPLICATION_PORT_JSON);
+        dtoResource.getAndVerifyOk(vxlanPort2.getUri(),
+                                   APPLICATION_PORT_JSON, DtoVxLanPort.class);
+        br1 = getBridge(br1.getId());
+        assertNull(br1.getVxLanPortId());
+
+        br2 = getBridge(br2.getId());
+        assertEquals(vxlanPort2.getId(), br2.getVxLanPortId());
+
+        dtoResource.deleteAndVerifyNoContent(binding2.getUri(),
+                                  APPLICATION_VTEP_BINDING_JSON);
+        dtoResource.getAndVerifyNotFound(vxlanPort2.getUri(),
+                                         APPLICATION_PORT_JSON);
+
+        br2 = getBridge(br2.getId());
+        assertNull(br2.getVxLanPortId());
+
+        bindings = listBindings(vtep);
+        assertEquals(0, bindings.length);
+    }
+
+    @Test
+    public void testDeleteNonExistentBinding() {
+        DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
+        DtoVtepBinding binding = addAndVerifyBinding(
+            vtep, "network1", MOCK_VTEP_PORT_NAMES[0], (short) 1);
+        dtoResource.deleteAndVerifyNoContent(binding.getUri(),
+                                      APPLICATION_VTEP_BINDING_JSON);
+        dtoResource.deleteAndVerifyNotFound(binding.getUri(),
+                                      APPLICATION_VTEP_BINDING_JSON);
     }
 
     @Test

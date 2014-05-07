@@ -4,19 +4,19 @@
  */
 package org.midonet.api;
 
-import org.midonet.api.network.IP4MacPair;
-import org.midonet.api.network.MacPort;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
-import org.midonet.packets.MAC;
-import org.midonet.packets.IPv6Subnet;
-
-import javax.ws.rs.core.UriBuilder;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+
+import org.midonet.api.network.IP4MacPair;
+import org.midonet.api.network.MacPort;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv6Subnet;
+import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
 
 public class ResourceUriBuilder {
 
@@ -58,9 +58,9 @@ public class ResourceUriBuilder {
     public static final String VIPS = "/vips";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String VTEPS = "/vteps";
-    public static final String BINDINGS = "/bindings";
-    public static final String VXLAN_PORT = "/vxlan_port";
+    public static final String VTEP_BINDINGS = "/bindings";
     public static final String VTEP_PORT_AND_VLAN = "/{portName}_{vlanId}";
+    public static final String VXLAN_PORT = "/vxlan_port";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
@@ -488,7 +488,7 @@ public class ResourceUriBuilder {
 
     public static URI getVtepBindings(URI baseUri, String ipAddr) {
         return UriBuilder.fromUri(getVtep(baseUri, ipAddr))
-                .path(BINDINGS).build();
+                .path(VTEP_BINDINGS).build();
     }
 
     public static URI getVtepBinding(URI baseUri, String ipAddr,
@@ -646,7 +646,7 @@ public class ResourceUriBuilder {
     }
 
     public static String getVtepBindingsTemplate(URI baseUri) {
-        return getVtepTemplate(baseUri) + BINDINGS;
+        return getVtepTemplate(baseUri) + VTEP_BINDINGS;
     }
 
     public static String getVtepBindingTemplate(URI baseUri) {

@@ -70,7 +70,7 @@ public interface VtepDataClient {
      *
      * @param name the name of the new logical switch
      * @param vni the VNI associated to the new logical switch
-     * @return the UUID of the new logical switch
+     * @return the result, with UUID of the new logical switch if success
      */
     public StatusWithUuid addLogicalSwitch(String name, int vni);
 
@@ -84,7 +84,7 @@ public interface VtepDataClient {
      * @param floodIps ips of the vtep peers that will get a remote Mcast and
      *                 Ucast entry for unknown-dst.
      *
-     * @return true when the binding was created successfully, false otherwise
+     * @return true if success, false otherwise
      */
     public Status bindVlan(String lsName, String portName, int vlan,
                            Integer vni, List<String> floodIps);
@@ -97,7 +97,7 @@ public interface VtepDataClient {
      *            VtepConstants.UNKNOWN-DST
      * @param ip the ip of the vxlan tunnel peer where packets addressed to
      *           mac should be tunnelled to
-     * @return true if success, false otherwise
+     * @return the result of the operation
      */
     public Status addUcastMacRemote(String lsName, String mac, String ip);
 
@@ -109,7 +109,7 @@ public interface VtepDataClient {
      *            VtepConstants.UNKNOWN-DST
      * @param ip the ip of the vxlan tunnel peer where packets addressed to
      *           mac should be tunnelled to
-     * @return true if success, false otherwise
+     * @return the result of the operation
      */
     public Status addMcastMacRemote(String lsName, String mac, String ip);
 
@@ -119,4 +119,20 @@ public interface VtepDataClient {
      */
     public Observable<TableUpdates> observableLocalMacTable();
 
+    /**
+     * Deletes a binding between the given port and vlan.
+     *
+     * @param portName the of the physical port
+     * @param vlanId the vlan id
+     * @return the result of the operation
+     */
+    public Status deleteBinding(String portName, int vlanId);
+
+    /**
+     * Deletes the logical switch, with all its bindings and associated
+     * ucast / mcast remote macs.
+     * @param name of the logical switch
+     * @return the result of the operation
+     */
+    public Status deleteLogicalSwitch(String name);
 }
