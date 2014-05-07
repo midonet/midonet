@@ -169,7 +169,7 @@ def _send_udp(sender, receiver, target_hw, target_ipv4, parms, payload,
     time.sleep(1)
 
     f3 = sender.send_packet(target_hw, target_ipv4, 'udp', parms, payload,
-                            3, 1, False)
+                            1, 3, False)
 
     wait_on_futures([f1, f2, f3])
 
