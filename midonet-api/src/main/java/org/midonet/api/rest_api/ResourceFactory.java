@@ -3,6 +3,8 @@
  */
 package org.midonet.api.rest_api;
 
+import java.util.UUID;
+
 import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
@@ -13,16 +15,34 @@ import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.filter.rest_api.IpAddrGroupResource;
 import org.midonet.api.filter.rest_api.RuleResource;
-import org.midonet.api.host.rest_api.*;
-import org.midonet.api.l4lb.rest_api.*;
-import org.midonet.api.network.rest_api.*;
+import org.midonet.api.host.rest_api.HostCommandResource;
+import org.midonet.api.host.rest_api.HostInterfacePortResource;
+import org.midonet.api.host.rest_api.HostResource;
+import org.midonet.api.host.rest_api.InterfaceResource;
+import org.midonet.api.host.rest_api.TunnelZoneHostResource;
+import org.midonet.api.host.rest_api.TunnelZoneResource;
+import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
+import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
+import org.midonet.api.l4lb.rest_api.PoolMemberResource;
+import org.midonet.api.l4lb.rest_api.PoolResource;
+import org.midonet.api.l4lb.rest_api.VipResource;
+import org.midonet.api.network.rest_api.BridgeResource;
+import org.midonet.api.network.rest_api.PortGroupResource;
+import org.midonet.api.network.rest_api.PortResource;
+import org.midonet.api.network.rest_api.RouteResource;
+import org.midonet.api.network.rest_api.RouterResource;
+import org.midonet.api.network.rest_api.VtepBindingResource;
+import org.midonet.api.network.rest_api.VtepResource;
+import org.midonet.api.neutron.NetworkResource;
+import org.midonet.api.neutron.NeutronResource;
+import org.midonet.api.neutron.SecurityGroupResource;
+import org.midonet.api.neutron.SecurityGroupRuleResource;
+import org.midonet.api.neutron.SubnetResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
-
-import java.util.UUID;
 
 /**
  * Resource factory used by Guice to inject resource classes.
@@ -122,4 +142,22 @@ public interface ResourceFactory {
     VipResource.PoolVipResource getPoolVipResource(UUID id);
 
     VtepResource getVtepResource();
+
+    VtepBindingResource getVtepBindingResource(String ipAddrStr);
+
+    // Neutron Resource factory methods
+    NeutronResource getNeutronResource();
+
+    NetworkResource getNeutronNetworkResource();
+
+    SubnetResource getNeutronSubnetResource();
+
+    org.midonet.api.neutron.PortResource getNeutronPortResource();
+
+    org.midonet.api.neutron.RouterResource getNeutronRouterResource();
+
+    SecurityGroupResource getNeutronSecurityGroupResource();
+
+    SecurityGroupRuleResource getNeutronSecurityGroupRuleResource();
+
 }

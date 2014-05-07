@@ -21,6 +21,7 @@ import org.midonet.packets.MAC;
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.internal.Table;
@@ -308,5 +309,40 @@ public class VtepDataClientImpl implements VtepDataClient {
                    return null;
                }
        });
+    }
+
+    // TODO: this assumes that we have a single VTEP in the Physical_Switch
+    // table, which may not be true.
+    @Override
+    public Status deleteBinding(String portName, int vlanId) {
+        log.debug("Removing binding of port {} and vlan {}", portName, vlanId);
+        Map<String, Table<?>> psCache =
+            this.getTableCache(Physical_Switch.NAME.getName());
+        if (psCache == null || psCache.isEmpty()) {
+            log.error("Cannot find any physical switches in database");
+            return new Status(StatusCode.NOTFOUND);
+        } else if (psCache.size() > 1) {
+            log.warn("Physical_Switch table contains more than one entry, " +
+                     "this is still not supported, and may have unexpected " +
+                     "results");
+        }
+        Physical_Switch ps = (Physical_Switch)psCache.values().iterator().next();
+        Status st = cfgSrv.vtepDelBinding(ps.getName(), portName, vlanId);
+        if (!st.isSuccess()) {
+            log.error("Could not delete vtep binding, {}: {}",
+                      st.getCode(), st.getDescription());
+        }
+        return st;
+    }
+
+    @Override
+    public Status deleteLogicalSwitch(String name) {
+        log.debug("Removing logical switch {}", name);
+        Status st = cfgSrv.vtepDelLogicalSwitch(name);
+        if (!st.isSuccess()) {
+            log.error("Could not delete logical switch, {}: {}",
+                      st.getCode(), st.getDescription());
+        }
+        return st;
     }
 }

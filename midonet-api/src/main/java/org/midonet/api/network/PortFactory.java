@@ -6,7 +6,6 @@ package org.midonet.api.network;
 
 import org.midonet.cluster.Client;
 import org.midonet.cluster.data.Port.Property;
-import org.midonet.cluster.data.ports.*;
 
 public class PortFactory {
 
@@ -36,6 +35,9 @@ public class PortFactory {
                 return new InteriorBridgePort(
                         (org.midonet.cluster.data.ports.BridgePort)data);
             }
+        } else if (data instanceof org.midonet.cluster.data.ports.VxLanPort) {
+            return new VxLanPort(
+                (org.midonet.cluster.data.ports.VxLanPort)data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this port type.");

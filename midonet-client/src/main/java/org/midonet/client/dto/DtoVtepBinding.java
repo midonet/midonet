@@ -11,6 +11,7 @@ public class DtoVtepBinding {
     private String portName;
     private short vlanId;
     private UUID networkId;
+
     private URI uri;
 
     public String getPortName() {
@@ -60,5 +61,15 @@ public class DtoVtepBinding {
     @Override
     public int hashCode() {
         return Objects.hash(portName, vlanId, networkId);
+    }
+
+    @Override
+    public String toString() {
+        return "DtoVtepBinding{" +
+            "portName='" + portName + '\'' +
+            ", vlanId=" + vlanId +
+            ", networkId=" + networkId +
+            ", uri=" + uri +
+            '}';
     }
 }

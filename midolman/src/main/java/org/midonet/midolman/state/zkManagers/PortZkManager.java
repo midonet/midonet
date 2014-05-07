@@ -3,15 +3,22 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import com.google.common.base.Function;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
@@ -174,8 +181,16 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     private List<Op> prepareCreate(UUID id,
             PortDirectory.VxLanPortConfig config)
             throws StateAccessException, SerializationException {
-        // TODO: Is there more to do here?
-        return Arrays.asList(simpleCreateOp(id, config));
+
+        List<Op> ops = new ArrayList<>();
+        ops.add(simpleCreateOp(id, config));
+        ops.addAll(filterZkManager.prepareCreate(id));
+
+        // TODO: do we put it here? Or in exterior?
+        ops.add(Op.create(paths.getBridgePortPath(config.device_id, id),
+                          null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+
+        return ops;
     }
 
     public List<Op> prepareCreate(UUID id,
@@ -620,6 +635,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
+
     private List<Op> prepareBridgePortDelete(UUID id,
             PortDirectory.BridgePortConfig config) throws StateAccessException {
 
@@ -692,11 +708,25 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
+    public List<Op> prepareDelete(UUID id, PortDirectory.VxLanPortConfig cfg)
+        throws StateAccessException, SerializationException
+    {
+        List<Op> ops = new ArrayList<>();
+        // TODO: I'm not 100% sure that we will indeed add a binding, check with
+        // Hugo if this is necessary, so far LocalDataClientImpl does not create
+        // that binding by itself.
+        // String path = paths.getHostVrnPortMappingPath(cfg.getHostId(), id);
+        // ops.add(Op.delete(path, -1));
+        ops.add(Op.delete(paths.getBridgePortPath(cfg.device_id, id), -1));
+        ops.add(Op.delete(paths.getPortPath(id), -1));
+        return ops;
+    }
+
     public List<Op> prepareDelete(UUID id,
         PortDirectory.BridgePortConfig config)
         throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         if(config.isExterior()) {
             // Remove the reference from the port interface mapping
@@ -752,6 +782,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         } else if (config instanceof PortDirectory.BridgePortConfig) {
             ops.addAll(prepareDelete(id,
                     (PortDirectory.BridgePortConfig) config));
+        } else if (config instanceof PortDirectory.VxLanPortConfig) {
+            ops.addAll(prepareDelete(id,
+                                     (PortDirectory.VxLanPortConfig) config));
         } else {
             throw new IllegalArgumentException("Unknown port type found.");
         }

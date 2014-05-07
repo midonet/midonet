@@ -3,21 +3,30 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+
 import org.apache.zookeeper.Op;
-import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.neutron.Network;
-import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.serialization.Serializer;
+import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.neutron.Network;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 
-import java.util.*;
 
 /**
  * Class to manage the bridge ZooKeeper data.
@@ -239,8 +248,11 @@ public class BridgeZkManager
         }
 
         if (!Objects.equals(config.vxLanPortId, oldConfig.vxLanPortId)) {
-            if (userUpdate)
+            // Allows only vxlan port deletion (when the new value = null)
+            if (userUpdate &&
+               !(oldConfig.vxLanPortId != null && config.vxLanPortId == null)) {
                 throw new VxLanPortIdUpdateException();
+            }
             log.debug("The vxLanPortId of bridge{} changed from {} to {}",
                     new Object[]{id, oldConfig.vxLanPortId, config.vxLanPortId});
             dataChanged = true;
