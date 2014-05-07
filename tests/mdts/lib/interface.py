@@ -80,7 +80,7 @@ class Interface:
         fmt += ' 2> /dev/null'
         cmdline = fmt.format(target_hw, target_ipv4,
                              pkt_type, pkt_parms,
-                             hex_payload_file, count, delay)
+                             hex_payload_file, delay, count)
         LOG.debug("cmdline: %s" % cmdline)
         return self.execute(cmdline, sync=sync)
 
@@ -94,7 +94,7 @@ class Interface:
 
     def send_udp(self, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
-                 src_port=9, dst_port=9, extra_params=None, delay=3, count=1,
+                 src_port=9, dst_port=9, extra_params=None, delay=1, count=3,
                  sync=False):
         """ Sends UDP packets to target mac addr / ip address.
 
@@ -132,7 +132,7 @@ class Interface:
 
     def send_tcp(self, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
-                 src_port=9, dst_port=9, extra_params=None, delay=3, count=1,
+                 src_port=9, dst_port=9, extra_params=None, delay=1, count=3,
                  sync=False):
 
         return self.send_protocol('tcp', target_hw, target_ipv4, iplen,
@@ -141,7 +141,7 @@ class Interface:
 
     def send_protocol(self, protocol_name, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
-                 src_port=9, dst_port=9, extra_params=None, delay=3, count=1,
+                 src_port=9, dst_port=9, extra_params=None, delay=1, count=3,
                  sync=False):
         params = []
         if src_port: params.append('sp=%d' % src_port)
