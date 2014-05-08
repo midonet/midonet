@@ -362,7 +362,7 @@ public class Ethernet extends BasePacket {
         eth.destinationMACAddress = new byte[6];
         eth.sourceMACAddress = new byte[6];
         eth.priorityCode = (byte) 1;
-        eth.etherType = (short) 0x0800;
+        eth.etherType = ARP.ETHERTYPE;
         ARP arp = new ARP();
         arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
         arp.setProtocolType(ARP.PROTO_TYPE_IP);
