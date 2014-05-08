@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 
 . ../mmmrc
@@ -21,10 +21,22 @@ fi
 
 # Checking Cassandra status
 sleep 5
-echo Cassandra 1
-sudo ip netns exec ns005 nodetool ring -h 10.0.0.5
-echo Cassandra 2
-sudo ip netns exec ns006 nodetool ring -h 10.0.0.6
-echo Cassandra 3
-sudo ip netns exec ns007 nodetool ring -h 10.0.0.7
+retries=0
+for i in 5 6 7
+do
+  echo "Cassandra at ns00$i"
+  until sudo ip netns exec ns00$i nodetool ring -h 10.0.0.$i
+  do
+    echo "Waiting for Cassandra ns00$i to start"
+    sleep 5
+    ((retries++))
+    if [ $retries -gt 10 ]
+    then
+      echo "Could not start Cassandra at ns00$i"
+      exit 1
+    fi
+  done
+  retries=0
+done
+
 
