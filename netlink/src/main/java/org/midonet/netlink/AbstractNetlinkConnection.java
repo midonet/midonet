@@ -403,9 +403,10 @@ public abstract class AbstractNetlinkConnection {
 
                     if (seq == 0) {
                         // if the seq number is zero we are handling a PacketIn.
-                        if (tb == null || tb.tryGet(1) == 1) {
+                        if (tb == null || tb.tryGet(1) == 1)
                             handleNotification(type, cmd, seq, pid, payload);
-                        }
+                        else
+                            log.debug("Failed to get token; dropping packet");
                     } else  {
                         // otherwise we are processing an answer to a request.
                         processRequestAnswer(seq, flags, payload);
