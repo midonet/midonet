@@ -18,7 +18,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>midonet-brain-deps</module>
+        <module>odl-ovsdb</module>
         <module>midonet-brain</module>
     </modules>
 
