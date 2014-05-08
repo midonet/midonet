@@ -18,12 +18,13 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static junit.framework.Assert.fail;
 
-import org.midonet.netlink.AbstractNetlinkConnection;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.util.Bucket;
+
+import static junit.framework.Assert.fail;
 
 public abstract class AbstractNetlinkProtocolTest {
 
@@ -122,8 +123,8 @@ public abstract class AbstractNetlinkProtocolTest {
     }
 
     protected void fireReply(int amount) throws IOException {
-        while ( amount-- > 0 ) {
-            connection.handleReadEvent(null);
+        while (amount-- > 0) {
+            connection.handleReadEvent(Bucket.BOTTOMLESS);
         }
     }
 
