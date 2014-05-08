@@ -57,6 +57,10 @@ EOF
         mkdir -p /var/lib/midolman.$n
     fi
 
+    if test -d /var/log/midolman.$n; then
+        rm -rf /var/log/midolman.$n/*
+    fi
+
     if test ! -d /var/log/midolman.$n; then
         mkdir -p /var/log/midolman.$n
     fi
