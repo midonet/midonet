@@ -1,0 +1,9 @@
+#
+# Configuration for MMM/MDTS functional test setup
+#
+
+ZK_NODES=${ZK_NODES:-10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181}
+
+ZK_NETNSs="ns002 ns003 ns004"
+CASS_NETNSs="ns005 ns006 ns007"
+MIDOLMAN_NETNSs="ns008 ns009 ns010"
