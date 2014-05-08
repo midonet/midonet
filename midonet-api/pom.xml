@@ -65,6 +65,8 @@
                     <docsDir>${project.build.directory}/docs</docsDir>
                     <excludes><exclude>Rule.java</exclude></excludes>
                     <javacCheck>false</javacCheck>
+                    <enunciateArtifactId/>
+                    <moduleName/>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -85,6 +87,8 @@
                     <webApp>
                         <contextPath>/midonet-api</contextPath>
                     </webApp>
+                    <stopKey/>
+                    <stopPort/>
                 </configuration>
             </plugin>
 
@@ -145,6 +149,7 @@
                             </sources>
                         </mapping>
                     </mappings>
+                    <group/>
                 </configuration>
             </plugin>
 

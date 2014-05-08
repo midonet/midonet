@@ -250,8 +250,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Bind vlan {} on phys. port {} to logical switch {}, vni {}, "
                 + "and adding ips: {}",
                   new Object[]{lsName, portName, vlan, vni, floodIps});
-        Status st = cfgSrv.vtepBindVlan(lsName, portName,
-                                        vlan, vni, floodIps);
+        Status st = cfgSrv.vtepBindVlan(lsName, portName, vlan, vni, floodIps);
         if (!st.isSuccess()) {
             log.warn("Bind vlan failed: {} - {}", st.getCode(),
                                                   st.getDescription());

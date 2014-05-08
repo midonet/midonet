@@ -5,6 +5,7 @@
 package org.midonet.brain.southbound.vtep.model;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -119,5 +120,6 @@ public class VtepModelTranslator {
         }
         return intMap;
     }
+
 }
 
