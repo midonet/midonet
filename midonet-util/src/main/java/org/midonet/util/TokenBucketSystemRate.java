@@ -6,17 +6,27 @@ package org.midonet.util;
 
 public class TokenBucketSystemRate implements TokenBucketFillRate {
     private final StatisticalCounter packetsOut;
-    private final PaddedAtomicLong lastCount;
+    private final int multiplier;
+    private long lastCount;
 
     public TokenBucketSystemRate(StatisticalCounter packetsOut) {
+        this(packetsOut, 1);
+    }
+
+    public TokenBucketSystemRate(StatisticalCounter packetsOut, int multiplier) {
         this.packetsOut = packetsOut;
-        lastCount = new PaddedAtomicLong(0);
+        this.multiplier = multiplier;
     }
 
     @Override
     public int getNewTokens() {
-        long c = lastCount.get();
-        long nc = packetsOut.getValue();
-        return nc > c && lastCount.compareAndSet(c, nc) ? (int) (nc - c) : 0;
+        long c = lastCount;
+        long nc = packetsOut.getValue() / multiplier;
+
+        if (nc > c) {
+            lastCount = nc;
+            return (int)(nc - c);
+        }
+        return 0;
     }
 }

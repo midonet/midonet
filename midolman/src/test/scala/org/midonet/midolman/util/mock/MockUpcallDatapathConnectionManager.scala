@@ -11,15 +11,16 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.io._
-import org.midonet.midolman.toActorRef
-import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.midolman.io.{ManagedDatapathConnection, MockManagedDatapathConnection,
+                                UpcallDatapathConnectionManagerBase, TokenBucketPolicy}
 import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
-import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
+import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.util._
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         extends UpcallDatapathConnectionManagerBase(config,
-            new TokenBucketPolicy(config, new TokenBucketTestRate)) {
+            new TokenBucketPolicy(config, new TokenBucketTestRate, 1,
+                                  _ => Bucket.BOTTOMLESS)) {
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
     val conn = new MockManagedDatapathConnection()
@@ -33,7 +34,7 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         }
     }
 
-    override def makeConnection(name: String, tb: TokenBucket) = null
+    override def makeConnection(name: String, bucket: Bucket) = null
 
     override def stopConnection(conn: ManagedDatapathConnection) {}
 

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.TimeUnit;
 
+import org.midonet.util.Bucket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public abstract class DatapathClient {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        ovsConnection.handleReadEvent(null);
+                        ovsConnection.handleReadEvent(Bucket.BOTTOMLESS);
                     }
                 });
 
