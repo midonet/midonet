@@ -5,10 +5,8 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.TimeoutException
-import scala.collection.concurrent
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.{immutable, mutable}
-import scala.compat.Platform
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -18,6 +16,7 @@ import scala.util.Failure
 import akka.actor._
 import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
+import org.apache.zookeeper.KeeperException.{NodeExistsException, NoNodeException}
 import org.slf4j.LoggerFactory
 import com.google.inject.Inject
 
@@ -27,7 +26,6 @@ import org.midonet.cluster.data.zones._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
@@ -420,12 +418,11 @@ trait ZkConnectionWatcherLink {
         err match {
             case None => // Timeout
                 connectionWatcher.handleTimeout(retry)
-            case Some(e) => // TODO(pino): handle errors not due to disconnect
+            case Some(e) =>
                 connectionWatcher.handleError("Add/del host in PortSet " + id,
                                               retry, e)
         }
     }
-
 }
 
 trait DeviceManagement {
@@ -668,11 +665,13 @@ abstract class VirtualToPhysicalMapperBase
                       if (success) "None"
                       else if (errorOp.isDefined) errorOp
                       else "Timeout")
-            if(success) {
+            if (success) {
                 // Is the last op still in sync with our internals?
                 if (subscribe != psetIdToLocalVports.contains(psetID)) {
-                    if (subscribe) unsubscribePortSet(psetID)
-                    else subscribePortSet(psetID)
+                    if (subscribe)
+                        unsubscribePortSet(psetID)
+                    else
+                        subscribePortSet(psetID)
                 } else {
                     val vportID = inFlightPortSetMods.remove(psetID).get
                     context.system.eventStream.publish(
@@ -736,7 +735,16 @@ abstract class VirtualToPhysicalMapperBase
                 self ! _PortSetOpResult(true, psetID, false, None)
             }
             override def onError(e: KeeperException) {
-                self ! _PortSetOpResult(true, psetID, false, Some(e))
+                val success = e match {
+                    case exists: NodeExistsException =>
+                        log.info("PortSet subscription return NodeExists, " +
+                            "likely due to a zookeeper disconnection while " +
+                            "the request was in flight.")
+                        true
+                    case _ =>
+                        false
+                }
+                self ! _PortSetOpResult(true, psetID, success, Some(e))
             }
         }
 
@@ -748,8 +756,18 @@ abstract class VirtualToPhysicalMapperBase
             override def onTimeout() {
                 self ! _PortSetOpResult(false, psetID, false, None)
             }
+
             override def onError(e: KeeperException) {
-                self ! _PortSetOpResult(false, psetID, false, Some(e))
+                val success = e match {
+                    case noNode: NoNodeException =>
+                        log.info("PortSet unsubscription return NoNode, " +
+                            "likely due to a zookeeper disconnection while " +
+                            "the request was in flight.")
+                        true
+                    case _ =>
+                        false
+                }
+                self ! _PortSetOpResult(false, psetID, success, Some(e))
             }
         }
 
