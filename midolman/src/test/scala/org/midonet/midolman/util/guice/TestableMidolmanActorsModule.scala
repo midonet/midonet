@@ -3,27 +3,27 @@
 */
 package org.midonet.midolman.util.guice
 
-import scala.collection.mutable
 import java.util.concurrent.LinkedBlockingDeque
-import akka.actor._
+import scala.collection.mutable
+import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
+
+import akka.actor._
 import akka.event.Logging
 import akka.testkit.TestActor
 import akka.testkit.TestActor.{AutoPilot, Message}
 import akka.testkit.TestActorRef
 import akka.testkit.TestKit
 import akka.util.Timeout
-import org.midonet.midolman.guice.MidolmanActorsModule
-import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman._
-import scala.reflect.ClassTag
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.routingprotocols.RoutingManagerActor
-import org.midonet.midolman.DeduplicationActor.HandlePackets
+
 import org.midonet.midolman.DatapathController
+import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NetlinkCallbackDispatcher
+import org.midonet.midolman._
+import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
@@ -48,7 +48,8 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
     }
 
     class TestableMidolmanActorsService extends MidolmanActorsService {
-        protected override def startActor(actorProps: Props, actorName: String): ActorRef = {
+        protected override def startActor(specs: (Props, String)) = {
+            val (actorProps, actorName) = specs
             val testKit = new ProbingTestKit(system, actorName)
 
             val targetActor = TestActorRef[Actor](actorProps, testKit.testActor, "real")
@@ -86,7 +87,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
             probes.put(actorName, testKit)
             actors.put(actorName, targetActor)
 
-            testKit.testActor
+            Future successful testKit.testActor
         }
 
         protected override def actorSpecs = List(
