@@ -3,31 +3,9 @@
  */
 package org.midonet.api.network;
 
+import org.junit.Test;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.client.dto.DtoBridge;
-import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoPort;
-import org.midonet.client.dto.DtoVtep;
-import org.midonet.client.dto.DtoVtepBinding;
-import org.midonet.client.dto.DtoVxLanPort;
-
-import com.sun.jersey.api.client.ClientResponse;
-import java.util.UUID;
-import javax.ws.rs.core.Response.Status;
-import org.junit.Test;
-
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_JSON;
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class TestVtep extends RestApiTestBase {
 
@@ -46,10 +24,13 @@ public class TestVtep extends RestApiTestBase {
 
     // These tests run against a live VTEP. Disabling them until I (bberg)
     // can replace it with a mock VTEP client.
+    // (Galo) - I added the tunnel zone id to the method calls, but using a
+    // random uuid so these tests will probably break because the tunnel zone
+    // doesn't actually exist. Will need fixing when tests are reenabled
     /*
     @Test
     public void testCreate() {
-        postVtep(MGMT_IP, MGMT_PORT);
+        postVtep(MGMT_IP, MGMT_PORT, UUID.randomUUID());
     }
 
     @Test
@@ -68,7 +49,7 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testCreateWithDuplicateIPAddr() {
         String ipAddr = MGMT_IP;
-        postVtep(ipAddr, MGMT_PORT);
+        postVtep(ipAddr, MGMT_PORT, UUID.randomUUID());
         DtoError error =
                 postVtepWithError(ipAddr, MGMT_PORT + 1, Status.CONFLICT);
         assertErrorMatches(error, MessageProperty.VTEP_EXISTS, ipAddr);
@@ -76,7 +57,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGet() {
-        postVtep(MGMT_IP, MGMT_PORT);
+        postVtep(MGMT_IP, MGMT_PORT, UUID.randomUUID());
         DtoVtep vtep = getVtep(MGMT_IP);
         assertEquals(MGMT_IP, vtep.getManagementIp());
         assertEquals(MGMT_PORT, vtep.getManagementPort());
@@ -91,7 +72,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGetWithUnrecognizedIP() {
-        postVtep(MGMT_IP, MGMT_PORT);
+        postVtep(MGMT_IP, MGMT_PORT, UUID.randomUUID());
         DtoError error = getVtepWithError("10.0.0.1", Status.NOT_FOUND);
         assertErrorMatches(error, VTEP_NOT_FOUND, "10.0.0.1");
     }
@@ -106,7 +87,8 @@ public class TestVtep extends RestApiTestBase {
     public void testListVtepsWithThreeVteps() {
         DtoVtep[] expectedVteps = new DtoVtep[3];
         for (int i = 0; i < 3; i++)
-            expectedVteps[i] = postVtep("10.0.0." + i, 10000 + i);
+            expectedVteps[i] = postVtep("10.0.0." + i, 10000 + i,
+                                        UUID.randomUUID());
 
         DtoVtep[] actualVteps = listVteps();
         assertEquals(3, actualVteps.length);
@@ -116,7 +98,7 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testAddBindingCreatesPort() {
         DtoBridge bridge = postBridge("network1");
-        DtoVtep vtep = postVtep(MGMT_IP, MGMT_PORT);
+        DtoVtep vtep = postVtep(MGMT_IP, MGMT_PORT, UUID.randomUUID());
         DtoVtepBinding binding = postBinding(vtep,
                 makeBinding(VTEP_PORT_1, (short)1, bridge.getId()));
 
@@ -128,15 +110,18 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(MGMT_PORT, port.getMgmtPort());
     }
 
-    private DtoVtep makeVtep(String mgmtIpAddr, int mgmtPort) {
+    private DtoVtep makeVtep(String mgmtIpAddr, int mgmtPort,
+                             UUID tunnelZoneId) {
         DtoVtep vtep = new DtoVtep();
         vtep.setManagementIp(mgmtIpAddr);
         vtep.setManagementPort(mgmtPort);
+        vtep.setTunnelZone(tunnelZoneId);
         return vtep;
     }
 
-    private DtoVtep postVtep(String mgmtIpAddr, int mgmtPort) {
-        return postVtep(makeVtep(mgmtIpAddr, mgmtPort));
+    private DtoVtep postVtep(String mgmtIpAddr, int mgmtPort,
+                             UUID tunnelZoneId) {
+        return postVtep(makeVtep(mgmtIpAddr, mgmtPort, tunnelZoneId));
     }
 
     private DtoVtep postVtep(DtoVtep vtep) {
@@ -146,7 +131,7 @@ public class TestVtep extends RestApiTestBase {
 
     private DtoError postVtepWithError(
             String mgmtIpAddr, int mgmtPort, Status status) {
-        DtoVtep vtep = makeVtep(mgmtIpAddr, mgmtPort);
+        DtoVtep vtep = makeVtep(mgmtIpAddr, mgmtPort, UUID.randomUUID());
         return dtoResource.postAndVerifyError(
                 app.getVteps(), APPLICATION_VTEP_JSON, vtep, status);
     }

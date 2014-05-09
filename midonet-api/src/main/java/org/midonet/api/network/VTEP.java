@@ -3,19 +3,21 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.midolman.state.VtepConnectionState;
-import org.midonet.packets.IPv4Addr$;
-import org.midonet.util.StringUtil;
-
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.net.URI;
-import java.util.List;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.api.host.validation.IsValidTunnelZoneId;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.midolman.state.VtepConnectionState;
+import org.midonet.packets.IPv4Addr$;
+import org.midonet.util.StringUtil;
 
 public class VTEP extends UriResource {
 
@@ -32,6 +34,9 @@ public class VTEP extends UriResource {
     private String description;
     private VtepConnectionState connectionState;
 
+    @IsValidTunnelZoneId
+    private UUID tunnelZoneId;
+
     private List<String> tunnelIpAddrs;
 
     public VTEP() {}
@@ -39,12 +44,14 @@ public class VTEP extends UriResource {
     public VTEP(org.midonet.cluster.data.VTEP vtep) {
         managementIp = vtep.getId().toString();
         managementPort = vtep.getMgmtPort();
+        tunnelZoneId = vtep.getTunnelZoneId();
     }
 
     public org.midonet.cluster.data.VTEP toData() {
         return new org.midonet.cluster.data.VTEP()
                 .setId(IPv4Addr$.MODULE$.fromString(managementIp))
-                .setMgmtPort(managementPort);
+                .setMgmtPort(managementPort)
+                .setTunnelZone(tunnelZoneId);
     }
 
     public String getManagementIp() {
@@ -93,6 +100,14 @@ public class VTEP extends UriResource {
 
     public void setTunnelIpAddrs(List<String> tunnelIpAddrs) {
         this.tunnelIpAddrs = tunnelIpAddrs;
+    }
+
+    public UUID getTunnelZoneId() {
+        return this.tunnelZoneId;
+    }
+
+    public void setTunnelZoneId(UUID tunnelZoneId) {
+        this.tunnelZoneId = tunnelZoneId;
     }
 
     public URI getUri() {
