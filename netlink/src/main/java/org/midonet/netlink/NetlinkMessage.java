@@ -418,6 +418,26 @@ public class NetlinkMessage {
         return buf.position() - startPos;
     }
 
+    public static <V> void write(ByteBuffer buffer, short id,
+                                 V value, Translator<V> translator) {
+
+        int start = buffer.position();      // save position
+
+        NetlinkMessage.setAttrHeader(buffer, id, 4); // space for nl_attr header
+
+        int advertisedLen = translator.serializeInto(buffer, value);
+        int len = buffer.position() - start;
+
+        assert len == 4 + advertisedLen;
+        buffer.putShort(start, (short) len); // write nl_attr length field
+
+        int padLen = NetlinkMessage.pad(len);
+        while (padLen != len) {
+            buffer.put((byte)0);
+            padLen--;
+        }
+    }
+
     public static void writeIntAttr(ByteBuffer buf, short id, int value) {
         NetlinkMessage.setAttrHeader(buf, id, 8);
         buf.putInt(value);

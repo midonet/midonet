@@ -8,10 +8,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Objects;
+import java.util.Random;
+import java.math.BigInteger;
 
 import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
@@ -79,6 +82,11 @@ public abstract class DpPort {
         if (getPortNo() != null) {
             short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
             NetlinkMessage.writeIntAttr(buf, portNoAttrId, getPortNo());
+        }
+
+        if (stats != null) {
+            short statsAttrId = (short) OpenVSwitch.Port.Attr.Stats;
+            NetlinkMessage.write(buf, statsAttrId, stats, Stats.trans);
         }
     }
 
@@ -238,14 +246,14 @@ public abstract class DpPort {
         long rxErrors, txErrors;
         long rxDropped, txDropped;
 
-        public long getRxPackets() {return rxPackets;}
-        public long getTxPackets() {return txPackets;}
-        public long getRxBytes() {return rxBytes;}
-        public long getTxBytes() {return txBytes;}
-        public long getRxErrors() {return rxErrors;}
-        public long getTxErrors() {return txErrors;}
-        public long getRxDropped() {return rxDropped;}
-        public long getTxDropped() {return txDropped;}
+        public long getRxPackets() { return rxPackets; }
+        public long getTxPackets() { return txPackets; }
+        public long getRxBytes() { return rxBytes; }
+        public long getTxBytes() { return txBytes; }
+        public long getRxErrors() { return rxErrors; }
+        public long getTxErrors() { return txErrors; }
+        public long getRxDropped() { return rxDropped; }
+        public long getTxDropped() { return txDropped; }
 
         @Override
         public void serialize(Builder builder) {
@@ -325,6 +333,40 @@ public abstract class DpPort {
         public static Stats buildFrom(NetlinkMessage msg) {
             return msg.getAttrValue(PortFamily.Attr.STATS, new Stats());
         }
+
+        public static final Translator<Stats> trans = new Translator<Stats>() {
+            public int serializeInto(ByteBuffer receiver, Stats value) {
+                  receiver.putLong(value.rxPackets)
+                          .putLong(value.txPackets)
+                          .putLong(value.rxBytes)
+                          .putLong(value.txBytes)
+                          .putLong(value.rxErrors)
+                          .putLong(value.txErrors)
+                          .putLong(value.rxDropped)
+                          .putLong(value.txDropped);
+                  return 8 * 8;
+            }
+            public Stats deserializeFrom(ByteBuffer source) {
+                  Stats s = new Stats();
+                  s.rxPackets = source.getLong();
+                  s.txPackets = source.getLong();
+                  s.rxBytes = source.getLong();
+                  s.txBytes = source.getLong();
+                  s.rxErrors = source.getLong();
+                  s.txErrors = source.getLong();
+                  s.rxDropped = source.getLong();
+                  s.txDropped = source.getLong();
+                  return s;
+            }
+        };
+
+        public static Stats random() {
+            ByteBuffer buf = ByteBuffer.allocate(8 * 8);
+            r.nextBytes(buf.array());
+            Stats s = new Stats();
+            s.deserialize(new NetlinkMessage(buf));
+            return s;
+        }
     }
 
     /** mock method used in MockOvsDatapathConnection. */
@@ -335,4 +377,20 @@ public abstract class DpPort {
         return fake;
     }
 
+    public static DpPort random() {
+        int[] types = new int[]{
+            OpenVSwitch.Port.Type.Netdev,
+            OpenVSwitch.Port.Type.Internal,
+            OpenVSwitch.Port.Type.Gre,
+            OpenVSwitch.Port.Type.VXLan
+        };
+        int type = types[r.nextInt(types.length)];
+        String name = new BigInteger(100, r).toString(32);
+        DpPort port = newPortByTypeId(type, name);
+        port.portNo = r.nextInt(100);
+        port.stats = Stats.random();
+        return port;
+    }
+
+    private static final Random r = new Random();
 }
