@@ -10,6 +10,10 @@ public class GatewayTimeoutHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
     public GatewayTimeoutHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(504, message));
+        this(message, null);
+    }
+
+    public GatewayTimeoutHttpException(String message, Throwable cause) {
+        super(cause, ResponseUtils.buildErrorResponse(504, message));
     }
 }
