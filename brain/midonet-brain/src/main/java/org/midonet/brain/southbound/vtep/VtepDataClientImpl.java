@@ -72,8 +72,6 @@ public class VtepDataClientImpl implements VtepDataClient {
         cfgSrv.setConnectionServiceInternal(cnxnSrv);
         cfgSrv.setDefaultNode(node);
 
-        // TODO there must be a better way to detect when the connection is
-        // completed, investigate inside the plugin.
         long timeoutAt = System.currentTimeMillis() + CNXN_TIMEOUT_MILLIS;
         while (!this.isReady() && System.currentTimeMillis() < timeoutAt) {
             log.info("Waiting for inventory service initialization");
@@ -277,13 +275,13 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     @Override
     public boolean addMcastMacRemote(String lsName, String mac, String ip) {
-        log.debug("Adding Ucast Mac Remote: {} {} {}",
+        log.debug("Adding Mcast Mac Remote: {} {} {}",
                   new Object[]{lsName, mac, ip});
         assert(IPv4Addr.fromString(ip) != null);
         assert (UNKNOWN_DST.equals(mac) || (MAC.fromString(mac) != null));
         StatusWithUuid st = cfgSrv.vtepAddMcastRemote(lsName, mac, ip);
         if (!st.isSuccess()) {
-            log.error("Could not add Ucast Mac Remote: {} - {}",
+            log.error("Could not add Mcast Mac Remote: {} - {}",
                       st.getCode(), st.getDescription());
         }
         return st.isSuccess();
