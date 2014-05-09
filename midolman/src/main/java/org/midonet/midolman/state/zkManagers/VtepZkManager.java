@@ -3,6 +3,11 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.UUID;
+import static java.util.Arrays.asList;
+
+import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -10,16 +15,12 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPv4Addr;
 
-import java.util.List;
-import org.apache.zookeeper.Op;
-
-import static java.util.Arrays.asList;
-
 public class VtepZkManager
         extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
 
     public static class VtepConfig {
         public int mgmtPort;
+        public UUID tunnelZone;
     }
 
     public VtepZkManager(ZkManager zk, PathBuilder paths,

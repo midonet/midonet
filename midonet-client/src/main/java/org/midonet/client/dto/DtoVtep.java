@@ -6,6 +6,7 @@ package org.midonet.client.dto;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class DtoVtep {
     private String managementIp;
@@ -13,6 +14,7 @@ public class DtoVtep {
     private String name;
     private String description;
     private String connectionState;
+    private UUID tunnelZoneId;
     private List<String> tunnelIpAddrs;
     private URI uri;
     private URI bindings;
@@ -65,6 +67,14 @@ public class DtoVtep {
         this.tunnelIpAddrs = tunnelIpAddrs;
     }
 
+    public void setTunnelZoneId(UUID tunnelZoneId) {
+        this.tunnelZoneId = tunnelZoneId;
+    }
+
+    public UUID getTunnelZoneId() {
+        return this.tunnelZoneId;
+    }
+
     public URI getUri() {
         return uri;
     }
@@ -92,12 +102,13 @@ public class DtoVtep {
                 Objects.equals(description, dtoVtep.description) &&
                 Objects.equals(managementIp, dtoVtep.managementIp) &&
                 Objects.equals(name, dtoVtep.name) &&
+                Objects.equals(tunnelZoneId, dtoVtep.tunnelZoneId) &&
                 Objects.equals(tunnelIpAddrs, dtoVtep.tunnelIpAddrs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(managementIp, managementPort, name, description,
-                            connectionState, tunnelIpAddrs);
+        return Objects.hash(managementIp, managementPort, name, tunnelZoneId,
+                            description, connectionState, tunnelIpAddrs);
     }
 }
