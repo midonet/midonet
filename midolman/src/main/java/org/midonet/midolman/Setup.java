@@ -98,6 +98,12 @@ public class Setup {
         paths.add(pathMgr.getHealthMonitorLeaderDirPath());
         paths.add(pathMgr.getVtepsPath());
         paths.add(pathMgr.getLocksPath());
+
+        // Neutron paths
+        paths.add(pathMgr.getNeutronPath());
+        paths.add(pathMgr.getNeutronNetworksPath());
+        paths.add(pathMgr.getNeutronSubnetsPath());
+
         return paths;
     }
 
