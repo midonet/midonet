@@ -12,4 +12,10 @@ public class NeutronMediaType {
             "application/vnd.org.midonet.neutron.Network-v1+json";
     public final static String NETWORKS_JSON_V1 =
             "application/vnd.org.midonet.neutron.Networks-v1+json";
+
+    public final static String SUBNET_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Subnet-v1+json";
+    public final static String SUBNETS_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Subnets-v1+json";
+
 }

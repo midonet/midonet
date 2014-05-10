@@ -257,25 +257,39 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         super(zk, paths, serializer);
     }
 
-    public void createSubnet(UUID bridgeId, Subnet subnet)
-            throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+    public void prepareCreateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
+            throws SerializationException {
         ops.add(Op.create(paths.getBridgeDhcpSubnetPath(
-                bridgeId, subnet.getSubnetAddr()),
+                        bridgeId, subnet.getSubnetAddr()),
                 serializer.serialize(subnet),
                 ZooDefs.Ids.OPEN_ACL_UNSAFE,
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeDhcpHostsPath(
-            bridgeId, subnet.getSubnetAddr()), null,
-                          ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                        bridgeId, subnet.getSubnetAddr()), null,
+                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+    }
+
+    public void createSubnet(UUID bridgeId, Subnet subnet)
+            throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<>();
+        prepareCreateSubnet(ops, bridgeId, subnet);
         zk.multi(ops);
+    }
+
+    public void prepareUpdateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
+            throws StateAccessException, SerializationException {
+        ops.add(zk.getSetDataOp(
+                paths.getBridgeDhcpSubnetPath(
+                        bridgeId, subnet.getSubnetAddr()),
+                serializer.serialize(subnet)));
     }
 
     public void updateSubnet(UUID bridgeId, Subnet subnet)
             throws StateAccessException, SerializationException {
-        zk.update(paths.getBridgeDhcpSubnetPath(bridgeId,
-                subnet.getSubnetAddr()), serializer.serialize(subnet));
+        List<Op> ops = new ArrayList<>();
+        prepareUpdateSubnet(ops, bridgeId, subnet);
+        zk.multi(ops);
     }
 
     public Subnet getSubnet(UUID bridgeId, IntIPv4 subnetAddr)
@@ -291,9 +305,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                 subnetAddr));
     }
 
-    public void deleteSubnet(UUID bridgeId, IntIPv4 subnetAddr)
+    public void prepareDeleteSubnet(List<Op> ops, UUID bridgeId,
+                                    IntIPv4 subnetAddr)
             throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
+
         // Delete the hostAssignments
         List<MAC> hosts = listHosts(bridgeId, subnetAddr);
         for (MAC mac : hosts)
@@ -305,6 +320,12 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         // Delete the subnet's root directory.
         ops.add(Op.delete(
                 paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr), -1));
+    }
+
+    public void deleteSubnet(UUID bridgeId, IntIPv4 subnetAddr)
+            throws StateAccessException {
+        List<Op> ops = new ArrayList<>();
+        prepareDeleteSubnet(ops, bridgeId, subnetAddr);
         zk.multi(ops);
     }
 

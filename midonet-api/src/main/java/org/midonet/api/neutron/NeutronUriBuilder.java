@@ -13,6 +13,7 @@ import java.util.UUID;
 public class NeutronUriBuilder {
 
     public final static String NETWORKS = "/networks";
+    public final static String SUBNETS = "/subnets";
 
     public static URI getNeutron(URI baseUri) {
         return UriBuilder.fromUri(ResourceUriBuilder.getRoot(
@@ -32,6 +33,21 @@ public class NeutronUriBuilder {
 
     public static String getNetworkTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getNetworks(baseUri));
+    }
+
+    // Subnet
+
+    public static URI getSubnets(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(SUBNETS).build();
+    }
+
+    public static URI getSubnet(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getSubnets(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getSubnetTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getSubnets(baseUri));
     }
 
 }
