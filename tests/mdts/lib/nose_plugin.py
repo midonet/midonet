@@ -1,5 +1,5 @@
 import os
-
+import xml.etree.ElementTree as ET
 
 from nose.plugins import Plugin
 from nose.inspector import inspect_traceback
@@ -30,15 +30,16 @@ class Mdts(Plugin):
         """
         self.conf = conf
         self.enabled = options.mdtsLogs
+        self.xunit_file = options.xunit_file
 
     def beforeTest(self, test):
         """Inserts merker to the MM logs"""
-        marker = self._get_markers_for_test(test)['start']
+        marker = self._get_markers_for_test(test.id())['start']
         self._mark_mm_logs(marker)
 
     def afterTest(self, test):
         """Inserts merker to the MM logs"""
-        marker = self._get_markers_for_test(test)['end']
+        marker = self._get_markers_for_test(test.id())['end']
         self._mark_mm_logs(marker)
 
     def formatFailure(self, test, err):
@@ -49,7 +50,7 @@ class Mdts(Plugin):
         tbinfo = inspect_traceback(tb)
         test.tbinfo = tbinfo
 
-        mmm_log = self._get_mmm_log_for_test(test)
+        mmm_log = self._get_per_test_logs(test)
 
         return (ec, '\n'.join([str(ev), tbinfo, mmm_log]), tb)
 
@@ -61,23 +62,66 @@ class Mdts(Plugin):
         tbinfo = inspect_traceback(tb)
         test.tbinfo = tbinfo
 
-        mmm_log = self._get_mmm_log_for_test(test)
+        mmm_log = self._get_per_test_logs(test)
 
         return (ec, '\n'.join([str(ev), tbinfo, mmm_log]), tb)
 
-    def _get_mmm_log_for_test(self, test):
+
+    def report(self, stream):
+        """Add per suite logs right at the end of a test run"""
+
+        cmd = self.tools_path + '/' +  'dump_per_suite_logs.sh'
+        out = subprocess_compat.check_output(cmd)
+        stream.writeln(out)
+
+    def finalize(self, result):
+        """Finally modify xunit xml file by adding only relevant
+        midolmlan logs for failed or errored tests"""
+
+        if os.path.exists(self.xunit_file):
+            tree = ET.parse(self.xunit_file)
+            root = tree.getroot()
+
+            for test_case in root:
+                test_id = test_case.get(
+                    'classname') + '.' + test_case.get('name')
+
+                failure = test_case.find('failure')
+                if failure is not None:
+                    failure.text += '\n'
+                    failure.text += self._get_midolman_logs_for_test(test_id)
+
+                error = test_case.find('error')
+                if error is not None:
+                    error.text += '\n'
+                    error.text += self._get_midolman_logs_for_test(test_id)
+
+            tree.write(self.xunit_file)
+
+    def _get_per_test_logs(self, test):
         """Returns mmm log in string"""
-        markers = self._get_markers_for_test(test)
-        cmd = self.tools_path + '/' +  'dump_logs_on_mmm.sh'
-        return subprocess_compat.check_output([cmd, markers['start'], markers['end']])
+        cmd = self.tools_path + '/' +  'dump_per_test_logs.sh'
+        return subprocess_compat.check_output(cmd)
 
     def _mark_mm_logs(self, marker_text):
         cmdline = self.tools_path + '/' +  'mark_mm_logs.sh ' + marker_text
         subprocess_compat.check_output(cmdline, shell=True)
 
-    def _get_markers_for_test(self, test):
+    def _get_markers_for_test(self, test_id):
         """Returns a dict for log markers, keyed by 'start' and 'end'"""
 
-        start = '\">>>> %s started\"' % test.id()
-        end = '\"<<<< %s ended\"' % test.id()
+        start = '\">>>> %s started\"' % test_id
+        end = '\"<<<< %s ended\"' % test_id
         return {'start': start, 'end': end}
+
+    def _get_midolman_logs_for_test(self, test_id):
+        """Returns a string that contains midolman logs relevant
+           to the test"""
+        markers = self._get_markers_for_test(test_id)
+
+        cmdline = self.tools_path + '/' +  \
+            "dump_midolman_logs_for_test.sh '%s' '%s'" % (
+            markers['start'], markers['end'])
+
+        return subprocess_compat.check_output(cmdline, shell=True)
+
