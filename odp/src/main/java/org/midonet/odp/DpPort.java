@@ -12,6 +12,7 @@ import java.util.Random;
 import java.math.BigInteger;
 
 import com.google.common.base.Function;
+import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
@@ -289,31 +290,29 @@ public abstract class DpPort {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Stats stats = (Stats) o;
+            @SuppressWarnings("unchecked") // safe cast
+            Stats that = (Stats) o;
 
-            if (rxBytes != stats.rxBytes) return false;
-            if (rxDropped != stats.rxDropped) return false;
-            if (rxErrors != stats.rxErrors) return false;
-            if (rxPackets != stats.rxPackets) return false;
-            if (txBytes != stats.txBytes) return false;
-            if (txDropped != stats.txDropped) return false;
-            if (txErrors != stats.txErrors) return false;
-            if (txPackets != stats.txPackets) return false;
-
-            return true;
+            return (this.rxBytes == that.rxBytes)
+                && (this.rxDropped == that.rxDropped)
+                && (this.rxErrors == that.rxErrors)
+                && (this.rxPackets == that.rxPackets)
+                && (this.txBytes == that.txBytes)
+                && (this.txDropped == that.txDropped)
+                && (this.txErrors == that.txErrors)
+                && (this.txPackets == that.txPackets);
         }
 
         @Override
         public int hashCode() {
-            int result = (int) (rxPackets ^ (rxPackets >>> 32));
-            result = 31 * result + (int) (txPackets ^ (txPackets >>> 32));
-            result = 31 * result + (int) (rxBytes ^ (rxBytes >>> 32));
-            result = 31 * result + (int) (txBytes ^ (txBytes >>> 32));
-            result = 31 * result + (int) (rxErrors ^ (rxErrors >>> 32));
-            result = 31 * result + (int) (txErrors ^ (txErrors >>> 32));
-            result = 31 * result + (int) (rxDropped ^ (rxDropped >>> 32));
-            result = 31 * result + (int) (txDropped ^ (txDropped >>> 32));
-            return result;
+            int result = Longs.hashCode(rxPackets);
+            result = 31 * result + Longs.hashCode(txPackets);
+            result = 31 * result + Longs.hashCode(rxBytes);
+            result = 31 * result + Longs.hashCode(txBytes);
+            result = 31 * result + Longs.hashCode(rxErrors);
+            result = 31 * result + Longs.hashCode(txErrors);
+            result = 31 * result + Longs.hashCode(rxDropped);
+            return 31 * result + Longs.hashCode(txDropped);
         }
 
         @Override
@@ -336,27 +335,27 @@ public abstract class DpPort {
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
             public int serializeInto(ByteBuffer receiver, Stats value) {
-                  receiver.putLong(value.rxPackets)
-                          .putLong(value.txPackets)
-                          .putLong(value.rxBytes)
-                          .putLong(value.txBytes)
-                          .putLong(value.rxErrors)
-                          .putLong(value.txErrors)
-                          .putLong(value.rxDropped)
-                          .putLong(value.txDropped);
-                  return 8 * 8;
+                receiver.putLong(value.rxPackets)
+                        .putLong(value.txPackets)
+                        .putLong(value.rxBytes)
+                        .putLong(value.txBytes)
+                        .putLong(value.rxErrors)
+                        .putLong(value.txErrors)
+                        .putLong(value.rxDropped)
+                        .putLong(value.txDropped);
+                return 8 * 8;
             }
             public Stats deserializeFrom(ByteBuffer source) {
-                  Stats s = new Stats();
-                  s.rxPackets = source.getLong();
-                  s.txPackets = source.getLong();
-                  s.rxBytes = source.getLong();
-                  s.txBytes = source.getLong();
-                  s.rxErrors = source.getLong();
-                  s.txErrors = source.getLong();
-                  s.rxDropped = source.getLong();
-                  s.txDropped = source.getLong();
-                  return s;
+                Stats s = new Stats();
+                s.rxPackets = source.getLong();
+                s.txPackets = source.getLong();
+                s.rxBytes = source.getLong();
+                s.txBytes = source.getLong();
+                s.rxErrors = source.getLong();
+                s.txErrors = source.getLong();
+                s.rxDropped = source.getLong();
+                s.txDropped = source.getLong();
+                return s;
             }
         };
 

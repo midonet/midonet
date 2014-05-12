@@ -108,15 +108,9 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsDelete(Integer datapathId, String name, @Nonnull Callback<Datapath> callback, long timeoutMillis) {
+    protected void _doDatapathsDelete(String name, @Nonnull Callback<Datapath> callback, long timeoutMillis) {
         for (Datapath datapath : datapaths) {
-            if (datapathId != null && datapath.getIndex().equals(datapathId)) {
-                deleteDatapath(datapath);
-                callback.onSuccess(datapath);
-                return;
-            }
-
-            if (name != null && datapath.getName().equals(name)) {
+            if (datapath.getName().equals(name)) {
                 deleteDatapath(datapath);
                 callback.onSuccess(datapath);
                 return;
@@ -127,14 +121,34 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsGet(Integer datapathId, String name, Callback<Datapath> callback, long defReplyTimeout) {
+    protected void _doDatapathsDelete(int datapathId, @Nonnull Callback<Datapath> callback, long timeoutMillis) {
         for (Datapath datapath : datapaths) {
-            if (datapathId != null && datapath.getIndex().equals(datapathId)) {
+            if (datapath.getIndex() == datapathId) {
+                deleteDatapath(datapath);
                 callback.onSuccess(datapath);
                 return;
             }
+        }
 
-            if (name != null && datapath.getName().equals(name)) {
+        fireDeviceNotFound(callback);
+    }
+
+    @Override
+    protected void _doDatapathsGet(String name, Callback<Datapath> callback, long defReplyTimeout) {
+        for (Datapath datapath : datapaths) {
+            if (datapath.getName().equals(name)) {
+                callback.onSuccess(datapath);
+                return;
+            }
+        }
+
+        fireDeviceNotFound(callback);
+    }
+
+    @Override
+    protected void _doDatapathsGet(int datapathId, Callback<Datapath> callback, long defReplyTimeout) {
+        for (Datapath datapath : datapaths) {
+            if (datapath.getIndex() == datapathId) {
                 callback.onSuccess(datapath);
                 return;
             }

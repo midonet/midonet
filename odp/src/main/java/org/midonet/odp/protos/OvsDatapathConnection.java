@@ -141,6 +141,58 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                                long timeoutMillis);
 
     /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name     the name of the datapath
+     * @param callback the callback that will receive information.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback) {
+        datapathsGet(name, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name          the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback,
+                             long timeoutMillis) {
+        _doDatapathsGet(name, callback, timeoutMillis);
+    }
+
+    protected abstract void _doDatapathsGet(String name,
+                                            Callback<Datapath> callback,
+                                            long defReplyTimeout);
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId the name of the datapath
+     * @param callback   the callback that will receive information.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback) {
+        datapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId    the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback,
+                             long timeoutMillis) {
+        _doDatapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    protected abstract void _doDatapathsGet(int datapathId,
+                                            Callback<Datapath> callback,
+                                            long defReplyTimeout);
+
+    /**
      * Callback based api for creating a datapath by name (with default timeout).
      *
      * @param datapathId the id of the datapath
@@ -162,8 +214,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public void datapathsDelete(int datapathId,
                                 @Nonnull Callback<Datapath> callback,
                                 long timeoutMillis) {
-        _doDatapathsDelete(datapathId, null, callback, timeoutMillis);
+        _doDatapathsDelete(datapathId, callback, timeoutMillis);
     }
+
+    protected abstract void _doDatapathsDelete(int datapathId,
+                                               @Nonnull Callback<Datapath> callback,
+                                               long timeoutMillis);
 
     /**
      * Callback based api for creating a datapath by name (with default timeout).
@@ -187,10 +243,10 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public void datapathsDelete(@Nonnull String name,
                                 @Nonnull Callback<Datapath> callback,
                                 long timeoutMillis) {
-        _doDatapathsDelete(null, name, callback, timeoutMillis);
+        _doDatapathsDelete(name, callback, timeoutMillis);
     }
 
-    protected abstract void _doDatapathsDelete(Integer datapathId, String name,
+    protected abstract void _doDatapathsDelete(String name,
                                                @Nonnull Callback<Datapath> callback,
                                                long timeoutMillis);
 
@@ -382,55 +438,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull DpPort port,
                                            @Nonnull Callback<DpPort> callback,
                                            long timeoutMillis);
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param name     the name of the datapath
-     * @param callback the callback that will receive information.
-     */
-    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback) {
-        datapathsGet(name, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param name          the name of the datapath
-     * @param callback      the callback that will receive information.
-     * @param timeoutMillis the timeout we are willing to wait for response.
-     */
-    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback,
-                             long timeoutMillis) {
-        _doDatapathsGet(null, name, callback, timeoutMillis);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param datapathId the name of the datapath
-     * @param callback   the callback that will receive information.
-     */
-    public void datapathsGet(int datapathId, Callback<Datapath> callback) {
-        datapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param datapathId    the name of the datapath
-     * @param callback      the callback that will receive information.
-     * @param timeoutMillis the timeout we are willing to wait for response.
-     */
-    public void datapathsGet(int datapathId, Callback<Datapath> callback,
-                             long timeoutMillis) {
-        _doDatapathsGet(datapathId, null, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    protected abstract void _doDatapathsGet(final Integer datapathId,
-                                            final String name,
-                                            final Callback<Datapath> callback,
-                                            final long defReplyTimeout);
 
     /**
      * Callback based api for enumerating flows.
