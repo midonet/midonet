@@ -1691,4 +1691,30 @@ public class ZkPathManager {
     public String getLockPath(String lockName) {
         return buildLockPath(lockName).toString();
     }
+
+    // Neutron specific paths
+    private StringBuilder buildNeutronPath() {
+        return basePath().append("/neutron");
+    }
+
+    public String getNeutronPath() {
+        return buildNeutronPath().toString();
+    }
+
+    private StringBuilder buildNeutronNetworksPath() {
+        return buildNeutronPath().append("/networks");
+    }
+
+    public String getNeutronNetworksPath() {
+        return buildNeutronNetworksPath().toString();
+    }
+
+    private StringBuilder buildNeutronNetworkPath(UUID id) {
+        return buildNeutronNetworksPath().append("/").append(id);
+    }
+
+    public String getNeutronNetworkPath(UUID id) {
+        return buildNeutronNetworkPath(id).toString();
+    }
+
 }
