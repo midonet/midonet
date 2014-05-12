@@ -44,7 +44,7 @@ public class OvsDatapathsEnumerateTest extends AbstractNetlinkProtocolTest {
         assertThat("The future was not canceled completed",
                    future.isCancelled(), is(false));
 
-        Datapath.Stats stats = new Datapath.Stats().setHits(192).setMisses(138);
+        Datapath.Stats stats = new Datapath.Stats(192, 138, 0, 0);
         Datapath datapath = new Datapath(99, "test", stats);
 
         assertThat("We got the proper response",

@@ -81,7 +81,7 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency> <!-- needed for Function & ValueFuture -->
+        <dependency> <!-- needed for Function & ValueFuture, Longs -->
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>

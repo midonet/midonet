@@ -101,24 +101,44 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsGet(Integer datapathId, String name,
+    protected void _doDatapathsGet(String name,
                                    @Nonnull Callback<Datapath> callback,
                                    long timeoutMillis) {
         if (!validateState(callback))
             return;
 
-        if (datapathId == null && name == null) {
+        if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath id or a datapath name should be provided"));
+                "given datapath name was null"));
             return;
         }
-
-        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), dpId, name),
+            Datapath.getRequest(getBuffer(), 0, name),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
+    }
+
+    @Override
+    protected void _doDatapathsGet(int datapathId,
+                                   @Nonnull Callback<Datapath> callback,
+                                   long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        if (datapathId == 0) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "datapath id should not be 0"));
+            return;
+        }
+
+        sendNetlinkMessage(
+            datapathFamily.contextGet,
+            NLFlag.REQUEST | NLFlag.ECHO,
+            Datapath.getRequest(getBuffer(), datapathId, null),
             callback,
             Datapath.deserializer,
             timeoutMillis);
@@ -158,24 +178,44 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsDelete(Integer datapathId, String name,
+    protected void _doDatapathsDelete(String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
         if (!validateState(callback))
             return;
 
-        if (datapathId == null && name == null) {
+        if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath id or a datapath name should be provided"));
+                "given datapath name was null"));
             return;
         }
-
-        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), dpId, name),
+            Datapath.getRequest(getBuffer(), 0, name),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
+    }
+
+    @Override
+    protected void _doDatapathsDelete(int datapathId,
+                                      @Nonnull Callback<Datapath> callback,
+                                      long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        if (datapathId == 0) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "datapath id should not be 0"));
+            return;
+        }
+
+        sendNetlinkMessage(
+            datapathFamily.contextDel,
+            NLFlag.REQUEST | NLFlag.ECHO,
+            Datapath.getRequest(getBuffer(), datapathId, null),
             callback,
             Datapath.deserializer,
             timeoutMillis);
@@ -306,7 +346,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -336,7 +376,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
@@ -377,7 +417,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -418,7 +458,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -447,7 +487,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -478,7 +518,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -529,7 +569,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
