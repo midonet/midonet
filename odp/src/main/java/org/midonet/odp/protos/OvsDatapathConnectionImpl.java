@@ -30,7 +30,6 @@ import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
-import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
 
 import static org.midonet.odp.family.FlowFamily.AttrKey;
@@ -60,7 +59,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             (packetFamily.contextMiss.command() == cmd ||
                 packetFamily.contextAction.command() == cmd)) {
             if (notificationHandler != null) {
-                Packet packet = deserializePacket(buffer);
+                Packet packet = Packet.buildFrom(buffer);
                 if (packet == null) {
                     log.info("Discarding malformed packet");
                     return;
@@ -619,27 +618,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             callback,
             alwaysTrueTranslator,
             timeoutMillis);
-    }
-
-    private Packet deserializePacket(ByteBuffer buffer) {
-        Packet packet = new Packet();
-
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        int datapathIndex = msg.getInt();
-        packet
-            .setPacket(msg.getAttrValueEthernet(PacketFamily.AttrKey.PACKET))
-            .setMatch(
-                new FlowMatch(
-                    msg.getAttrValue(PacketFamily.AttrKey.KEY,
-                                     FlowKey.Builder)))
-            .setActions(
-                msg.getAttrValue(
-                    PacketFamily.AttrKey.ACTIONS, FlowAction.Builder))
-            .setUserData(
-                msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA));
-
-        return packet.getPacket() != null ? packet : null;
     }
 
     private enum State {

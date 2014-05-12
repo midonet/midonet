@@ -3,19 +3,17 @@
 */
 package org.midonet.odp;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import javax.annotation.Nonnull;
 
-import org.midonet.netlink.Callback;
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.protos.OvsDatapathConnection;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.MalformedPacketException;
-
 
 /**
  * An abstraction over the Ovs kernel datapath Packet entity. Contains an
@@ -35,14 +33,13 @@ public class Packet {
         FlowActionUserspace,
     }
 
-    @Nonnull FlowMatch match = new FlowMatch();
-    List<FlowAction> actions;
-    Long userData;
-    Reason reason;
-    Ethernet eth;
-    AtomicBoolean simToken = new AtomicBoolean(false);
-
-    long startTimeNanos = 0;
+    private FlowMatch match = new FlowMatch();
+    private List<FlowAction> actions;
+    private Long userData;
+    private Reason reason;
+    private Ethernet eth;
+    private AtomicBoolean simToken = new AtomicBoolean(false);
+    private long startTimeNanos = 0;
 
     public long getStartTimeNanos() {
         return startTimeNanos;
@@ -66,12 +63,12 @@ public class Packet {
         return eth.serialize();
     }
 
-    @Nonnull
     public FlowMatch getMatch() {
         return match;
     }
 
-    public Packet setMatch(@Nonnull FlowMatch match) {
+    public Packet setMatch(FlowMatch match) {
+        assert match != null;
         this.match = match;
         return this;
     }
@@ -170,5 +167,24 @@ public class Packet {
 
     public static Packet fromEthernet(Ethernet eth) {
         return new Packet().setPacket(eth);
+    }
+
+    public static Packet buildFrom(ByteBuffer buffer) {
+        Packet packet = new Packet();
+        NetlinkMessage msg = new NetlinkMessage(buffer);
+
+        int datapathIndex = msg.getInt(); // ignored
+
+        packet.eth = msg.getAttrValueEthernet(PacketFamily.AttrKey.PACKET);
+        if (packet.eth == null)
+            return null;
+
+        packet.match = new FlowMatch(
+            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder));
+        packet.actions =
+            msg.getAttrValue(PacketFamily.AttrKey.ACTIONS, FlowAction.Builder);
+        packet.userData = msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA);
+
+        return packet;
     }
 }
