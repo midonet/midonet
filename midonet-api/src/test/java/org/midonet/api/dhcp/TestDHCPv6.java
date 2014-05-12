@@ -26,7 +26,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECT
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCPv6 extends JerseyTest {
 
@@ -40,7 +40,7 @@ public class TestDHCPv6 extends JerseyTest {
     public void before() {
         ClientResponse response;
 
-        DtoApplication app = resource().path("").accept(APPLICATION_JSON_V2)
+        DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
         bridge = new DtoBridge();

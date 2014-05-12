@@ -29,7 +29,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECT
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCP extends JerseyTest {
 
@@ -43,7 +43,7 @@ public class TestDHCP extends JerseyTest {
     public void before() {
         ClientResponse response;
 
-        DtoApplication app = resource().path("").accept(APPLICATION_JSON_V2)
+        DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
         bridge = new DtoBridge();

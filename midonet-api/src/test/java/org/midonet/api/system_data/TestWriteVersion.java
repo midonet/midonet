@@ -31,7 +31,7 @@ public class TestWriteVersion extends JerseyTest {
     @Before
     public void setUp() {
 
-        resource().accept(VendorMediaType.APPLICATION_JSON_V2)
+        resource().accept(VendorMediaType.APPLICATION_JSON_V5)
                 .get(ClientResponse.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());

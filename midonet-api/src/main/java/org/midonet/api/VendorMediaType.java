@@ -15,12 +15,12 @@ public class VendorMediaType {
     // change in the other.
     public static final String APPLICATION_JSON =
             "application/vnd.org.midonet.Application-v1+json";
-    public static final String APPLICATION_JSON_V2 =
-            "application/vnd.org.midonet.Application-v2+json";
     public static final String APPLICATION_JSON_V3 =
             "application/vnd.org.midonet.Application-v3+json";
     public static final String APPLICATION_JSON_V4 =
             "application/vnd.org.midonet.Application-v4+json";
+    public static final String APPLICATION_JSON_V5 =
+            "application/vnd.org.midonet.Application-v5+json";
 
     public static final String APPLICATION_ERROR_JSON =
             "application/vnd.org.midonet.Error-v1+json";

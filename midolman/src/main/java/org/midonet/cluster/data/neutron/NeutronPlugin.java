@@ -16,7 +16,7 @@ import java.util.UUID;
 public interface NeutronPlugin extends DataClient {
 
     /**
-     * Create a new network data in the data store.  StatePathExistsException
+     * Create a new network data in the data store. StatePathExistsException
      * thrown if the network with the same ID already exists.
      *
      * @param network Network object to create
@@ -26,7 +26,7 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException;
 
     /**
-     * Delete a network.  Nothing happens if the resource does not exist.
+     * Delete a network. Nothing happens if the resource does not exist.
      *
      * @param id ID of the Network object to delete
      */
@@ -34,7 +34,7 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException;
 
     /**
-     * Retrieve a network.  Returns null if the resource does not exist.
+     * Retrieve a network. Returns null if the resource does not exist.
      *
      * @param id ID of the Network object to delete
      * @return Network object
@@ -51,7 +51,7 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException;
 
     /**
-     * Update a network.  NoStatePathException is thrown if the resource does
+     * Update a network. NoStatePathException is thrown if the resource does
      * not exist.
      *
      * @param id ID of the Network object to update

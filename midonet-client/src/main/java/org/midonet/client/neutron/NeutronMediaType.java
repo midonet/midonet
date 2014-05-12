@@ -3,7 +3,6 @@
  */
 package org.midonet.client.neutron;
 
-
 public class NeutronMediaType {
 
     public final static String NEUTRON_JSON_V1 =

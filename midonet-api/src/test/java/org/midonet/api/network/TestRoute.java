@@ -54,7 +54,7 @@ public class TestRoute {
         @Before
         public void before() {
 
-            DtoApplication app = resource().path("").accept(APPLICATION_JSON_V2)
+            DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                     .get(DtoApplication.class);
 
             // Create a router.
