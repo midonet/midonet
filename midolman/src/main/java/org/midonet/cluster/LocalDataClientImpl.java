@@ -203,7 +203,7 @@ public class LocalDataClientImpl implements DataClient {
     private PortSetZkManager portSetZkManager;
 
     @Inject
-    private ZkManager zkManager;
+    protected ZkManager zkManager;
 
     @Inject
     private PathBuilder pathBuilder;
@@ -238,6 +238,26 @@ public class LocalDataClientImpl implements DataClient {
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
+
+    protected static void printOps(List<Op> ops) {
+
+        if (!log.isDebugEnabled()) return;
+
+        log.debug("******** BEGIN PRINTING ZK OPs *********");
+
+        for (Op op : ops) {
+            log.debug(ZooDefs.opNames[op.getType()] + " " + op.getPath());
+        }
+
+        log.debug("******** END PRINTING ZK OPs *********");
+    }
+
+    protected void commitOps(List<Op> ops) throws StateAccessException {
+        if (ops.size() > 0) {
+            printOps(ops);
+            zkManager.multi(ops);
+        }
+    }
 
     @Override
     public @CheckForNull AdRoute adRoutesGet(UUID id)
