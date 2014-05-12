@@ -3,7 +3,6 @@
  */
 package org.midonet.api.neutron;
 
-
 import org.midonet.cluster.data.neutron.Network;
 import org.midonet.cluster.data.neutron.Subnet;
 

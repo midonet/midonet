@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
@@ -117,7 +117,7 @@ public class HostTopology {
 
 
             this.app = resource.getWebResource().path("/")
-                    .type(APPLICATION_JSON_V2).get(DtoApplication.class);
+                    .type(APPLICATION_JSON_V5).get(DtoApplication.class);
 
             if (hosts.size() > 0) {
                 for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {

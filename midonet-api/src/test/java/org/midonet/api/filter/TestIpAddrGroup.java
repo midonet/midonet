@@ -49,7 +49,7 @@ public class TestIpAddrGroup {
             chain.setTenantId("tenant1-id");
 
             topology = new Topology.Builder(
-                    dtoResource, APPLICATION_JSON_V3)
+                    dtoResource, APPLICATION_JSON_V5)
                     .create("chain1", chain).build();
 
             app = topology.getApplication();

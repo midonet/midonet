@@ -58,14 +58,12 @@ public class NetworkResource extends AbstractNeutronResource {
         log.info("NetworkResource.create entered {}", network);
 
         try {
-
             Network net = dataClient.createNetwork(network);
 
             log.info("NetworkResource.get exiting {}", net);
             return Response.created(
                     NeutronUriBuilder.getNetwork(
                             getBaseUri(), net.id)).entity(net).build();
-
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
             throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
@@ -118,14 +116,12 @@ public class NetworkResource extends AbstractNeutronResource {
         log.info("NetworkResource.update entered {}", network);
 
         try {
-
             Network net = dataClient.updateNetwork(id, network);
 
             log.info("NetworkResource.update exiting {}", net);
             return Response.ok(
                     NeutronUriBuilder.getNetwork(
                             getBaseUri(), net.id)).entity(net).build();
-
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));

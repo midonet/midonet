@@ -296,10 +296,10 @@ public class ApplicationResource extends AbstractResource {
      */
     @GET
     @PermitAll
-    @Produces({VendorMediaType.APPLICATION_JSON,  // Remove this before release
-            VendorMediaType.APPLICATION_JSON_V2,
+    @Produces({VendorMediaType.APPLICATION_JSON,
             VendorMediaType.APPLICATION_JSON_V3,
             VendorMediaType.APPLICATION_JSON_V4,
+            VendorMediaType.APPLICATION_JSON_V5,
             MediaType.APPLICATION_JSON })
     public Application get() {
         log.debug("ApplicationResource: entered");
