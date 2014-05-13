@@ -88,7 +88,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 PoolHealthMonitorMappingStatus.INACTIVE);
     }
 
-    private void associatePoolHealthMonitor(Pool pool)
+    private void associatePoolHealthMonitorWithoutActivation(Pool pool)
             throws MappingStatusException, MappingViolationException,
             SerializationException, StateAccessException {
         // Associate the pool with the health monitor
@@ -100,6 +100,12 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         pool = client.poolGet(pool.getId());
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
+    }
+
+    private void associatePoolHealthMonitor(Pool pool)
+            throws MappingStatusException, MappingViolationException,
+            SerializationException, StateAccessException {
+        associatePoolHealthMonitorWithoutActivation(pool);
         pool = emulateHealthMonitorActivation(pool);
     }
 
@@ -156,7 +162,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
     }
 
-    @Test(expected=MappingViolationException.class)
+    @Test(expected = MappingViolationException.class)
     public void poolHealthMonitorMappingViolationTest()
             throws InvalidStateOperationException, MappingStatusException,
             MappingViolationException, SerializationException,
@@ -369,7 +375,6 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
             MappingViolationException, SerializationException,
             StateAccessException {
         associatePoolHealthMonitor(pool);
-        pool = emulateHealthMonitorActivation(pool);
 
         // Create a VIP with the pool ID
         VIP vip = getStockVip(poolId);
@@ -419,13 +424,47 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         disassociatePoolHealthMonitor(anotherPool);
     }
 
+    @Test(expected = MappingStatusException.class)
+    public void createVIPWhenMappingStatusIsNotStable() throws Exception {
+        associatePoolHealthMonitorWithoutActivation(pool);
+
+        // Create a VIP with the pool ID
+        VIP vip = getStockVip(poolId);
+        client.vipCreate(vip);
+    }
+
+    @Test(expected = MappingStatusException.class)
+    public void updateVIPWhenMappingStatusIsNotStable() throws Exception {
+        associatePoolHealthMonitor(pool);
+
+        // Create a VIP with the pool ID
+        VIP vip = getStockVip(poolId);
+        UUID vipId = client.vipCreate(vip);
+        PoolHealthMonitorMappingConfig config =
+                poolZkManager.getPoolHealthMonitorMapping(
+                        poolId, healthMonitorId);
+        assertThat(config, notNullValue());
+        assertThat(config.vipConfigs.size(), equalTo(1));
+        vip = client.vipGet(vipId);
+        VipConfig vipConfig = Converter.toVipConfig(vip);
+        VipConfig addedVipConfig = config.vipConfigs.get(0).config;
+        assertThat(vipConfig, equalTo(addedVipConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+
+        // Try to update the VIP when the mapping status is PENDING_UPDATE and
+        // MappingStatusException is thrown.
+        vip.setProtocolPort(443);
+        client.vipUpdate(vip);
+    }
+
     @Test
     public void updatePoolMemberTest()
             throws InvalidStateOperationException, MappingStatusException,
             MappingViolationException, SerializationException,
             StateAccessException {
         associatePoolHealthMonitor(pool);
-        pool = emulateHealthMonitorActivation(pool);
 
         // Create a pool member with the pool ID
         PoolMember poolMember = getStockPoolMember(poolId);
@@ -475,5 +514,44 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         disassociatePoolHealthMonitor(anotherPool);
+    }
+
+    @Test(expected = MappingStatusException.class)
+    public void createPoolMemberWhenMappingStatusIsNotStable()
+            throws Exception {
+        associatePoolHealthMonitorWithoutActivation(pool);
+
+        // Create a VIP with the pool ID
+        PoolMember poolMember = getStockPoolMember(poolId);
+        client.poolMemberCreate(poolMember);
+    }
+
+    @Test(expected = MappingStatusException.class)
+    public void updatePoolMemberWhenMappingStatusIsNotStable()
+            throws Exception {
+        associatePoolHealthMonitor(pool);
+
+        // Create a VIP with the pool ID
+        PoolMember poolMember = getStockPoolMember(poolId);
+        UUID poolMemberId = client.poolMemberCreate(poolMember);
+        PoolHealthMonitorMappingConfig config =
+                poolZkManager.getPoolHealthMonitorMapping(
+                        poolId, healthMonitorId);
+        assertThat(config, notNullValue());
+        assertThat(config.poolMemberConfigs.size(), equalTo(1));
+        poolMember = client.poolMemberGet(poolMemberId);
+        PoolMemberConfig poolMemberConfig =
+                Converter.toPoolMemberConfig(poolMember);
+        PoolMemberConfig addedPoolMemberConfig =
+                config.poolMemberConfigs.get(0).config;
+        assertThat(poolMemberConfig, equalTo(addedPoolMemberConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+
+        // Try to update the VIP when the mapping status is PENDING_UPDATE and
+        // MappingStatusException is thrown.
+        poolMember.setProtocolPort(443);
+        client.poolMemberUpdate(poolMember);
     }
 }
