@@ -31,8 +31,7 @@ public class TestSubnetResource extends ResourceTest {
 
         super.setUp();
 
-        testObject = new SubnetResource(config, uriInfo, context, factory,
-                plugin);
+        testObject = new SubnetResource(config, uriInfo, context, plugin);
     }
 
     @Test

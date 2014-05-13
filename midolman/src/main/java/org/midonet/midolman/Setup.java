@@ -103,6 +103,7 @@ public class Setup {
         paths.add(pathMgr.getNeutronPath());
         paths.add(pathMgr.getNeutronNetworksPath());
         paths.add(pathMgr.getNeutronSubnetsPath());
+        paths.add(pathMgr.getNeutronPortsPath());
 
         return paths;
     }

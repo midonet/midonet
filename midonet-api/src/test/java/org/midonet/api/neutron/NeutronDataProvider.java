@@ -4,6 +4,7 @@
 package org.midonet.api.neutron;
 
 import org.midonet.cluster.data.neutron.Network;
+import org.midonet.cluster.data.neutron.Port;
 import org.midonet.cluster.data.neutron.Subnet;
 
 import java.util.UUID;
@@ -30,5 +31,15 @@ public class NeutronDataProvider {
         Subnet sub = new Subnet();
         sub.id = id;
         return sub;
+    }
+
+    public static Port port() {
+        return port(UUID.randomUUID());
+    }
+
+    public static Port port(UUID id) {
+        Port p = new Port();
+        p.id = id;
+        return p;
     }
 }

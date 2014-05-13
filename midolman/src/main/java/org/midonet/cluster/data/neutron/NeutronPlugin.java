@@ -4,6 +4,7 @@
 package org.midonet.cluster.data.neutron;
 
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
@@ -106,4 +107,49 @@ public interface NeutronPlugin extends DataClient {
     public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException;
 
+    /**
+     * Create a new port data in the data store. StatePathExistsException
+     * thrown if the port with the same ID already exists.
+     *
+     * @param port port object to create
+     * @return Created Port object
+     */
+    public Port createPort(@Nonnull Port port)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Delete a port. Nothing happens if the resource does not exist.
+     *
+     * @param id ID of the Port object to delete
+     */
+    public void deletePort(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Retrieve a port. Returns null if the resource does not exist.
+     *
+     * @param id ID of the Port object to delete
+     * @return Port object
+     */
+    public Port getPort(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Get all the ports.
+     *
+     * @return List of Port objects.
+     */
+    public List<Port> getPorts()
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Update a port. NoStatePathException is thrown if the resource does
+     * not exist.
+     *
+     * @param id ID of the Port object to update
+     * @return Updated Port object
+     */
+    public Port updatePort(@Nonnull UUID id, @Nonnull Port port)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
 }

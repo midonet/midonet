@@ -44,6 +44,11 @@ public class NeutronResource extends AbstractNeutronResource {
         return factory.getNeutronSubnetResource();
     }
 
+    @Path(NeutronUriBuilder.PORTS)
+    public PortResource getPortResource() {
+        return factory.getNeutronPortResource();
+    }
+
     /**
      * Handler to getting a neutron object.
      *
@@ -63,6 +68,8 @@ public class NeutronResource extends AbstractNeutronResource {
                 baseUri);
         neutron.subnets = NeutronUriBuilder.getSubnets(baseUri);
         neutron.subnetTemplate = NeutronUriBuilder.getSubnetTemplate(baseUri);
+        neutron.ports = NeutronUriBuilder.getPorts(baseUri);
+        neutron.portTemplate = NeutronUriBuilder.getPortTemplate(baseUri);
 
         return neutron;
 

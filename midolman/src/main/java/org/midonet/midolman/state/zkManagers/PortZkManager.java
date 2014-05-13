@@ -395,6 +395,24 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                 Collections.<Op>emptyList();
     }
 
+    public void prepareUpdatePortAdminState(List<Op> ops, UUID portId,
+                                            boolean adminStateUp)
+            throws SerializationException, StateAccessException {
+
+        PortConfig p = get(portId);
+        if (p.adminStateUp != adminStateUp) {
+            p.adminStateUp = adminStateUp;
+            ops.addAll(prepareUpdate(portId, p));
+
+            // Need to also set the peer port
+            if (p.peerId != null) {
+                PortConfig peerConfig = get(p.peerId);
+                peerConfig.adminStateUp = adminStateUp;
+                ops.addAll(prepareUpdate(p.peerId, peerConfig));
+            }
+        }
+    }
+
     public List<Op> prepareUpdate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<Op>();
@@ -488,6 +506,16 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             ops.addAll(zk.getRecursiveDeleteOps(vlanPath));
         }
         return ops;
+    }
+
+    public List<Op> prepareDelete(UUID id, PortConfig config)
+            throws SerializationException, StateAccessException {
+
+        if (config instanceof PortDirectory.RouterPortConfig) {
+            return prepareDelete(id, (PortDirectory.RouterPortConfig) config);
+        } else {
+            return prepareDelete(id, (PortDirectory.BridgePortConfig) config);
+        }
     }
 
     public List<Op> prepareDelete(UUID id,

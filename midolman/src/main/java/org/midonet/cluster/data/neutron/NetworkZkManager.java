@@ -8,29 +8,30 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IntIPv4;
 
 public class NetworkZkManager extends BaseZkManager {
 
     private final BridgeZkManager bridgeZkManager;
     private final BridgeDhcpZkManager dhcpZkManager;
+    private final PortZkManager portZkManager;
 
     @Inject
     public NetworkZkManager(ZkManager zk,
                             PathBuilder paths,
                             Serializer serializer,
                             BridgeZkManager bridgeZkManager,
-                            BridgeDhcpZkManager dhcpZkManager) {
+                            BridgeDhcpZkManager dhcpZkManager,
+                            PortZkManager portZkManager) {
         super(zk, paths, serializer);
         this.bridgeZkManager = bridgeZkManager;
         this.dhcpZkManager = dhcpZkManager;
+        this.portZkManager = portZkManager;
     }
 
     /** Network methods **/
@@ -160,4 +161,226 @@ public class NetworkZkManager extends BaseZkManager {
 
         return subnets;
     }
+
+    private void prepareDhcpHostEntry(List<Op> ops, Subnet subnet,
+                                      String macAddress, String ipAddress)
+            throws SerializationException {
+
+        BridgeDhcpZkManager.Host host = ConfigFactory.createDhcpHost(
+                macAddress, ipAddress);
+        IntIPv4 cidr = IntIPv4.fromString(subnet.cidr, "/");
+        dhcpZkManager.prepareAddHost(ops, subnet.networkId, cidr, host);
+    }
+
+    private void prepareCreateDhcpHostEntries(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+        for (IPAllocation fixedIp : port.fixedIps) {
+            Subnet subnet = getSubnet(fixedIp.subnetId);
+            if (subnet.ipVersion != 4) {
+                continue;
+            }
+
+            prepareDhcpHostEntry(ops, subnet, port.macAddress,
+                    fixedIp.ipAddress);
+        }
+    }
+
+    public void prepareCreateNeutronPort(List<Op> ops, Port port)
+            throws SerializationException {
+
+        String path = paths.getNeutronPortPath(port.id);
+        ops.add(zk.getPersistentCreateOp(path, serializer.serialize(port)));
+
+    }
+
+    public void prepareCreateVifPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        // Create DHCP host entries
+        prepareCreateDhcpHostEntries(ops, port);
+
+        // Create the Bridge port
+        PortDirectory.BridgePortConfig cfg = ConfigFactory.createBridgePort(
+                port.networkId);
+        ops.addAll(portZkManager.prepareCreate(port.id, cfg));
+
+        prepareCreateNeutronPort(ops, port);
+    }
+
+    private void prepareAddMetadataOption121Route(List<Op> ops,
+                                                  Subnet subnet, String ipAddr)
+            throws SerializationException, StateAccessException {
+
+        BridgeDhcpZkManager.Opt121 opt121 = ConfigFactory.createDhcpOpt121(
+                MetaDataService.IPv4_ADDRESS, ipAddr);
+
+        BridgeDhcpZkManager.Subnet cfg =
+                dhcpZkManager.getSubnet(subnet.networkId,
+                        IntIPv4.fromString(subnet.cidr, "/"));
+
+        if (!cfg.getOpt121Routes().contains(opt121)) {
+            cfg.getOpt121Routes().add(opt121);
+            dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, cfg);
+        }
+    }
+
+    private void prepareCreateDhcpMetadataRoutes(List<Op> ops,
+                                                 List<IPAllocation> fixedIps)
+            throws SerializationException, StateAccessException {
+
+        for (IPAllocation fixedIp : fixedIps) {
+            Subnet subnet = getSubnet(fixedIp.subnetId);
+            if (subnet.ipVersion != 4) {
+                continue;
+            }
+
+            prepareAddMetadataOption121Route(ops, subnet, fixedIp.ipAddress);
+        }
+    }
+
+    public void prepareCreateDhcpPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        // Add option 121 routes for metadata
+        prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
+
+        ops.addAll(portZkManager.prepareCreate(
+                port.id, ConfigFactory.createBridgePort(port.networkId)));
+
+        prepareCreateNeutronPort(ops, port);
+    }
+
+    public void prepareDeleteNeutronPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        String path = paths.getNeutronPortPath(port.id);
+        ops.add(zk.getDeleteOp(path));
+
+    }
+
+    private void prepareDeleteDhcpHostEntries(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+
+        for (IPAllocation ipAlloc : port.fixedIps) {
+            Subnet subnet = getSubnet(ipAlloc.subnetId);
+            dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
+                    IntIPv4.fromString(subnet.cidr, "/"), port.macAddress);
+        }
+    }
+
+    public void prepareDeleteVifPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        // Remove Neutron port
+        prepareDeleteNeutronPort(ops, port);
+
+        // Remove DHCP mappings
+        prepareDeleteDhcpHostEntries(ops, port);
+
+        // Remove the port config
+        PortConfig config = portZkManager.get(port.id);
+        ops.addAll(portZkManager.prepareDelete(port.id, config));
+    }
+
+    private void prepareDeleteDhcpMetadataRoutes(List<Op> ops,
+                                                 List<IPAllocation> fixedIps)
+            throws SerializationException, StateAccessException {
+
+        for (IPAllocation fixedIp : fixedIps) {
+            Subnet subnet = getSubnet(fixedIp.subnetId);
+            if (subnet.ipVersion != 4) {
+                continue;
+            }
+
+            BridgeDhcpZkManager.Subnet cfg =
+                    dhcpZkManager.getSubnet(subnet.networkId,
+                            IntIPv4.fromString(subnet.cidr, "/"));
+
+            BridgeDhcpZkManager.Opt121 opt121 =
+                    ConfigFactory.createDhcpOpt121(
+                            MetaDataService.IPv4_ADDRESS, fixedIp.ipAddress);
+
+            if (cfg.getOpt121Routes().remove(opt121)) {
+                dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, cfg);
+            }
+        }
+    }
+
+    public void prepareDeleteDhcpPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        // Remove Neutron port
+        prepareDeleteNeutronPort(ops, port);
+
+        ops.addAll(portZkManager.prepareDelete(port.id));
+        prepareDeleteDhcpMetadataRoutes(ops, port.fixedIps);
+
+    }
+
+    public Port getPort(UUID portId)
+            throws StateAccessException, SerializationException {
+
+        String path = paths.getNeutronPortPath(portId);
+        if (!zk.exists(path)) {
+            return null;
+        }
+
+        return serializer.deserialize(zk.get(path), Port.class);
+    }
+
+    public List<Port> getPorts()
+            throws StateAccessException, SerializationException {
+
+        String path= paths.getNeutronPortsPath();
+        Set<String> portIds = zk.getChildren(path);
+
+        List<Port> ports = new ArrayList<>();
+        for (String portId : portIds) {
+            ports.add(getPort(UUID.fromString(portId)));
+        }
+
+        return ports;
+    }
+
+    public void prepareUpdateVifPort(List<Op> ops, Port newPort)
+            throws StateAccessException, SerializationException {
+
+        // This should throw NoStatePathException
+        portZkManager.prepareUpdatePortAdminState(ops, newPort.id,
+                newPort.adminStateUp);
+
+
+        // If there are fixed IPs, adjust the DHCP host entries
+        if (newPort.fixedIps != null) {
+
+            // Remove and re-add DHCP host mappings
+            Port p = getPort(newPort.id);
+            prepareDeleteDhcpHostEntries(ops, p);
+            prepareCreateDhcpHostEntries(ops, newPort);
+        }
+
+        // Update the neutron port config
+        String path = paths.getNeutronPortPath(newPort.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));
+    }
+
+    public void prepareUpdateDhcpPort(List<Op> ops, Port newPort)
+            throws StateAccessException, SerializationException {
+
+        // This should throw NoStatePathException
+        portZkManager.prepareUpdatePortAdminState(ops, newPort.id,
+                newPort.adminStateUp);
+
+        // If 'fixed_ips' are specified, they are new IPs to be assigned.
+        if (newPort.fixedIps != null) {
+
+            // Add new metadata DHCP option routes
+            prepareCreateDhcpMetadataRoutes(ops, newPort.fixedIps);
+        }
+
+        // Update the neutron port config
+        String path = paths.getNeutronPortPath(newPort.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));
+    }
+
 }
