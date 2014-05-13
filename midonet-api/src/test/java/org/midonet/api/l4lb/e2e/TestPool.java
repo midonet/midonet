@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.api.l4lb;
+package org.midonet.api.l4lb.e2e;
 
 import com.sun.jersey.api.client.ClientResponse;
 import junit.framework.Assert;
@@ -12,7 +12,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -20,6 +19,8 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 
 import java.net.URI;
 import java.util.UUID;
@@ -40,7 +41,6 @@ import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RunWith(Enclosed.class)
 public class TestPool {
-
 
     public static class TestPoolCrud extends L4LBTestBase {
 
@@ -126,9 +126,16 @@ public class TestPool {
         }
 
         @Test
-        public void testUpdateUpdatesReferences() {
+        public void testUpdateReferences()
+                throws SerializationException, StateAccessException {
             // Start with no health monitor.
             DtoPool pool = createStockPool(loadBalancer.getId());
+            assertNull(pool.getHealthMonitor());
+
+            // Clear reference.
+            pool.setHealthMonitorId(null);
+            pool = updatePool(pool);
+            // Check if the reference is gone.
             assertNull(pool.getHealthMonitor());
 
             // Add a health monitor.
@@ -139,13 +146,6 @@ public class TestPool {
             // Pool and healthMonitor1 should now reference each other.
             assertEquals(healthMonitor1.getUri(), pool.getHealthMonitor());
             checkHealthMonitorBackref(healthMonitor1.getUri(), pool);
-
-            // Clear references.
-            pool.setHealthMonitorId(null);
-            pool = updatePool(pool);
-
-            // All references gone.
-            assertNull(pool.getHealthMonitor());
         }
 
         @Test
@@ -345,22 +345,27 @@ public class TestPool {
         }
 
         @Test
-        public void testServiceUnavailable()
+        public void testServiceUnavailableWithNullHealthMonitor()
                 throws Exception {
             DtoPool pool = createStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
             pool = updatePool(pool);
 
-            // Update with another health monitor, which triggers the 503.
-            DtoHealthMonitor healthMonitor2 = createStockHealthMonitor();
-            pool.setHealthMonitorId(healthMonitor2.getId());
-            ClientResponse response = dtoResource.putAndVerifyStatus(pool.getUri(),
+            // PUT the pool during its mappingStatus is PENDING_*, which triggers
+            // 503 Service Unavailable.
+            pool.setHealthMonitorId(null);
+            ClientResponse response = dtoResource.putAndVerifyStatus(
+                    pool.getUri(),
                     APPLICATION_POOL_JSON, pool,
                     Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
             MultivaluedMap<String, String> headers = response.getHeaders();
-            assertEquals("3", headers.get(
-                    ServiceUnavailableHttpException.RETRY_AFTER_HEADER_KEY).get(0));
+            String expectedRetryAfterHeaderValue = ServiceUnavailableHttpException
+                    .RETRY_AFTER_HEADER_DEFAULT_VALUE.toString();
+            String actualRetryAfterHeaderValue = headers.get(
+                    ServiceUnavailableHttpException.RETRY_AFTER_HEADER_KEY).get(0);
+            assertEquals(expectedRetryAfterHeaderValue,
+                    actualRetryAfterHeaderValue);
         }
     }
 }

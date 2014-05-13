@@ -46,6 +46,8 @@ public class MessageProperty {
             "{midokura.javarx.MacPortOnBridge.message}";
     public static final String MAC_URI_FORMAT =
             "{midokura.javarx.MacUriFormat.message}";
+    public static final String MAPPING_DISASSOCIATION_IS_REQUIRED =
+            "{midokura.javarx.MappingDisassociationIsRequired.message}";
     public static final String MAPPING_STATUS_IS_PENDING =
             "{midokura.javarx.MappingStatusIsPending.message}";
     public static final String MAX_VALUE =
@@ -58,6 +60,8 @@ public class MessageProperty {
             "{midokura.javarx.NonNull.message}";
     public static final String NO_VXLAN_PORT =
             "{midokura.javarx.NoVxlanPort.message}";
+    public static final String POOL_MEMBER_WEIGHT_NEGATIVE =
+            "{midokura.javarx.PoolMemberWeightNegative.message}";
     public static final String PORT_ID_IS_INVALID =
             "{midokura.javarx.PortIdIsInvalid.message}";
     public static final String PORT_GROUP_ID_IS_INVALID =

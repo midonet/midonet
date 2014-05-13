@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 public class ServiceUnavailableHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
     public static final String RETRY_AFTER_HEADER_KEY = "RetryAfter";
+    public static final Long RETRY_AFTER_HEADER_DEFAULT_VALUE = 3L;
 
     /**
      * Create a ServiceUnavailableHttpException object with no message and
@@ -77,8 +78,9 @@ public class ServiceUnavailableHttpException extends WebApplicationException {
      * @param ex MappingStatusException thrown by the data client.
      */
     public ServiceUnavailableHttpException(MappingStatusException ex) {
-        this(MessageProperty.getMessage(MessageProperty.MAPPING_STATUS_IS_PENDING,
-                ex.getMessage()), 3L);
+        this(MessageProperty.getMessage(
+                MessageProperty.MAPPING_STATUS_IS_PENDING, ex.getMessage()),
+                RETRY_AFTER_HEADER_DEFAULT_VALUE);
     }
 
     /**

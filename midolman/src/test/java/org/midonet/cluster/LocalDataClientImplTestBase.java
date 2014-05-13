@@ -46,7 +46,7 @@ import java.util.UUID;
 public class LocalDataClientImplTestBase {
 
     @Inject
-    DataClient client;
+    protected DataClient client;
     Injector injector = null;
     String zkRoot = "/test/v3/midolman";
 
@@ -59,19 +59,19 @@ public class LocalDataClientImplTestBase {
 
     }
 
-    RouteZkManager getRouteZkManager() {
+    protected RouteZkManager getRouteZkManager() {
         return injector.getInstance(RouteZkManager.class);
     }
 
-    RouterZkManager getRouterZkManager() {
+    protected RouterZkManager getRouterZkManager() {
         return injector.getInstance(RouterZkManager.class);
     }
 
-    PoolZkManager getPoolZkManager() {
+    protected PoolZkManager getPoolZkManager() {
         return injector.getInstance(PoolZkManager.class);
     }
 
-    BridgeDhcpZkManager getBridgeDhcpZkManager() {
+    protected BridgeDhcpZkManager getBridgeDhcpZkManager() {
         return injector.getInstance(BridgeDhcpZkManager.class);
     }
 

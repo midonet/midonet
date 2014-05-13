@@ -2,22 +2,19 @@
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 
-package org.midonet.cluster;
+package org.midonet.cluster.data.l4lb;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.LocalDataClientImplTestBase;
 import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.l4lb.HealthMonitor;
-import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.cluster.data.l4lb.PoolMember;
-import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 
@@ -42,8 +39,6 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
     private Pool pool;
     private UUID poolId;
 
-    // TODO: re-enable these tests in one of the future patches.
-    // Most of these tests are currently covered by integration tests (mdts).
     @Before
     public void setUp()
             throws InvalidStateOperationException, MappingStatusException,
@@ -63,52 +58,79 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
             throws  MappingStatusException, SerializationException,
             StateAccessException {
         // Delete the pool
+        pool = emulateHealthMonitorActivation(pool);
         client.poolDelete(poolId);
         assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
     }
 
-    private void associatePoolHealthMonitor()
+    private Pool emulateHealthMonitor(
+            Pool pool,
+            PoolHealthMonitorMappingStatus mappingStatus)
             throws MappingStatusException, SerializationException,
             StateAccessException {
+        client.poolSetMapStatus(pool.getId(), mappingStatus);
+        Pool updatedPool = client.poolGet(pool.getId());
+        return updatedPool;
+    }
+
+    private Pool emulateHealthMonitorActivation(Pool pool)
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
+        return emulateHealthMonitor(pool,
+                PoolHealthMonitorMappingStatus.ACTIVE);
+    }
+
+    private Pool emulateHealthMonitorDeactivation(Pool pool)
+            throws MappingStatusException, SerializationException,
+            StateAccessException {
+        return emulateHealthMonitor(pool,
+                PoolHealthMonitorMappingStatus.INACTIVE);
+    }
+
+    private void associatePoolHealthMonitor(Pool pool)
+            throws MappingStatusException, MappingViolationException,
+            SerializationException, StateAccessException {
         // Associate the pool with the health monitor
         pool.setHealthMonitorId(healthMonitorId);
         client.poolUpdate(pool);
         assertTrue(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
 
-        pool = client.poolGet(poolId);
+        pool = client.poolGet(pool.getId());
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
+        pool = emulateHealthMonitorActivation(pool);
     }
 
-    private void disassociatePoolHealthMonitor()
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
-        // Disassociate the pool from the health monitor
+    private void disassociatePoolHealthMonitor(Pool pool)
+            throws MappingStatusException, MappingViolationException,
+            SerializationException, StateAccessException {
+        pool = emulateHealthMonitorActivation(pool);
+        // Disassociate the pool from the health monitor.
         pool.setHealthMonitorId(null);
         client.poolUpdate(pool);
-        assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
-                poolId, healthMonitorId));
 
-        pool = client.poolGet(poolId);
+        pool = client.poolGet(pool.getId());
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_DELETE));
+        pool = emulateHealthMonitorDeactivation(pool);
     }
 
-    // @Test
+    @Test
     public void poolHealthMonitorMappingsTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         HealthMonitor healthMonitor = client.healthMonitorGet(healthMonitorId);
-        HealthMonitorConfig healthMonitorConfig = config.healthMonitorConfig.config;
+        HealthMonitorConfig healthMonitorConfig =
+                config.healthMonitorConfig.config;
         assertThat(Converter.toHealthMonitorConfig(healthMonitor),
                 equalTo(healthMonitorConfig));
         LoadBalancer loadBalancer = client.loadBalancerGet(loadBalancerId);
@@ -117,10 +139,10 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(Converter.toLoadBalancerConfig(loadBalancer),
                 equalTo(postedLoadBalancerConfig));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(pool);
     }
 
-    // @Test
+    @Test
     public void poolHealthMonitorMappingByDefaultTest()
             throws InvalidStateOperationException, MappingStatusException,
             SerializationException, StateAccessException {
@@ -134,11 +156,49 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
     }
 
-    // @Test
+    @Test(expected=MappingViolationException.class)
+    public void poolHealthMonitorMappingViolationTest()
+            throws InvalidStateOperationException, MappingStatusException,
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
+
+        // If users try to update a pool which is already associated with a
+        // health monitor populating the ID of another health monitor, it
+        // throws MappingViolationException.
+        UUID anotherHealthMonitorId = createStockHealthMonitor();
+        pool.setHealthMonitorId(anotherHealthMonitorId);
+        client.poolUpdate(pool);
+    }
+
+    @Test(expected = MappingStatusException.class)
+    public void poolHealthMonitorMappingStatusTest()
+        throws InvalidStateOperationException, MappingStatusException,
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
+
+        // Disassociate the mapping not to violate the existing mapping and
+        // MappingViolationException is not thrown.
+        pool.setHealthMonitorId(null);
+        client.poolUpdate(pool);
+
+        // Even after the Pool-HealthMonitor mapping is disassociated, if the
+        // mapping status is not ACTIVE or INACTIVE, a MappingStatusException
+        // is thrown in this layer. The resource handler catches it and returns
+        // 503 ServiceUnavailable to the users.
+        UUID anotherHealthMonitorId = createStockHealthMonitor();
+        pool.setHealthMonitorId(anotherHealthMonitorId);
+        client.poolUpdate(pool);
+    }
+
+
+    @Test
     public void poolDeletionTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -147,11 +207,12 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         // Delete is done in `tearDown` method.
     }
 
-    // @Test
+    @Test
     public void healthMonitorDeletionTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -167,11 +228,12 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_DELETE));
     }
 
-    // @Test
+    @Test
     public void poolMemberTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -193,6 +255,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         pool = client.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+        pool = emulateHealthMonitorActivation(pool);
 
         // Delete the pool member
         client.poolMemberDelete(poolMemberId);
@@ -204,14 +267,15 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(pool);
     }
 
-    // @Test
+    @Test
     public void vipTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -231,6 +295,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         pool = client.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+        pool = emulateHealthMonitorActivation(pool);
 
         // Delete the VIP
         client.vipDelete(vipId);
@@ -242,13 +307,14 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(pool);
     }
 
-    // @Test
+    @Test
     public void updatePoolTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
+            MappingViolationException, SerializationException,
+            StateAccessException {
         // Add another health monitor with the different parameters.
         UUID anotherHealthMonitorId = client.healthMonitorCreate(
                 new HealthMonitor().setDelay(200)
@@ -256,7 +322,12 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
 
-        associatePoolHealthMonitor();
+        associatePoolHealthMonitor(pool);
+
+        // Disassociate the existing mapping first.
+        pool.setHealthMonitorId(null);
+        client.poolUpdate(pool);
+        pool = emulateHealthMonitorDeactivation(pool);
 
         // Update the pool with another health monitor
         pool.setHealthMonitorId(anotherHealthMonitorId);
@@ -265,21 +336,22 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId));
         pool = client.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
-                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
 
         PoolHealthMonitorMappingConfig config =
                 poolZkManager.getPoolHealthMonitorMapping(
                         poolId, anotherHealthMonitorId);
         assertThat(config, notNullValue());
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(pool);
     }
 
-    // @Test
+    @Test
     public void updateHealthMonitorTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
 
         healthMonitor.setDelay(42);
         client.healthMonitorUpdate(healthMonitor);
@@ -288,14 +360,16 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(pool);
     }
 
-    // @Test
+    @Test
     public void updateVipTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
+        pool = emulateHealthMonitorActivation(pool);
 
         // Create a VIP with the pool ID
         VIP vip = getStockVip(poolId);
@@ -309,11 +383,17 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         VipConfig vipConfig = Converter.toVipConfig(vip);
         VipConfig addedVipConfig = config.vipConfigs.get(0).config;
         assertThat(vipConfig, equalTo(addedVipConfig));
+        pool = client.poolGet(poolId);
+        assertThat(pool.getMappingStatus(),
+                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+        pool = emulateHealthMonitorActivation(pool);
 
         // Update the VIP with the ID of another pool
         Pool anotherPool = getStockPool(loadBalancerId);
         anotherPool.setHealthMonitorId(healthMonitorId);
         UUID anotherPoolId = client.poolCreate(anotherPool);
+        anotherPool = emulateHealthMonitorActivation(anotherPool);
+
         vip.setPoolId(anotherPoolId);
         client.vipUpdate(vip);
         // Check if the updated vip is removed from the old mapping
@@ -321,9 +401,6 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(0));
-        pool = client.poolGet(poolId);
-        assertThat(pool.getMappingStatus(),
-                equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
         // Check if the update vip is added to another mapping
         PoolHealthMonitorMappingConfig anotherConfig =
@@ -339,14 +416,16 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(anotherPool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(anotherPool);
     }
 
-    // @Test
+    @Test
     public void updatePoolMemberTest()
             throws InvalidStateOperationException, MappingStatusException,
-            SerializationException, StateAccessException {
-        associatePoolHealthMonitor();
+            MappingViolationException, SerializationException,
+            StateAccessException {
+        associatePoolHealthMonitor(pool);
+        pool = emulateHealthMonitorActivation(pool);
 
         // Create a pool member with the pool ID
         PoolMember poolMember = getStockPoolMember(poolId);
@@ -365,11 +444,14 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         pool = client.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
+        pool = emulateHealthMonitorActivation(pool);
 
         // Update the pool member with the ID of another pool
         Pool anotherPool = getStockPool(loadBalancerId);
         anotherPool.setHealthMonitorId(healthMonitorId);
         UUID anotherPoolId = client.poolCreate(anotherPool);
+        anotherPool = emulateHealthMonitorActivation(anotherPool);
+
         poolMember.setPoolId(anotherPoolId);
         client.poolMemberUpdate(poolMember);
         // Check if the updated pool member is removed from the old mapping
@@ -377,6 +459,7 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(0));
+
         // Check if the update pool member is added to the new mapping
         PoolHealthMonitorMappingConfig anotherConfig =
                 poolZkManager.getPoolHealthMonitorMapping(
@@ -391,6 +474,6 @@ public class PoolHealthMonitorMappingsTest extends LocalDataClientImplTestBase {
         assertThat(anotherPool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_UPDATE));
 
-        disassociatePoolHealthMonitor();
+        disassociatePoolHealthMonitor(anotherPool);
     }
 }

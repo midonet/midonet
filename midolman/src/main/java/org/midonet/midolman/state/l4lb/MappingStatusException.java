@@ -5,9 +5,10 @@
 package org.midonet.midolman.state.l4lb;
 
 /**
- * An exception
+ * An exception thrown when the mapping status in PENDING_* and users tried to
+ * change the mapping before the health monitor changes it.
  */
-public class MappingStatusException extends Exception {
+public class MappingStatusException extends L4LBException {
     private static final long serialVersionUID = 1L;
 
     public MappingStatusException() {

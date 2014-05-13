@@ -1,13 +1,15 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.api.l4lb;
+package org.midonet.api.l4lb.e2e;
 
+import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.midonet.api.l4lb.VIP;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;

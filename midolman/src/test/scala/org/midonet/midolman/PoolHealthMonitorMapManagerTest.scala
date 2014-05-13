@@ -3,21 +3,19 @@
  */
 package org.midonet.midolman
 
-import akka.actor.ActorSystem
-import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.l4lb.{HealthMonitor, VIP}
+import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.ActorSystem
+import org.midonet.cluster.data.l4lb.{Pool, HealthMonitor, VIP}
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{VipConfigWithId, HealthMonitorConfigWithId}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 
-// @RunWith(classOf[JUnitRunner])
+@RunWith(classOf[JUnitRunner])
 class PoolHealthMonitorMapManagerTest
         extends TestKit(ActorSystem("PoolHealthMonitorMapManagerTest"))
         with MidolmanSpec
@@ -32,6 +30,18 @@ class PoolHealthMonitorMapManagerTest
         VirtualTopologyActor.clearTopology()
         vta = VirtualTopologyActor.as[TestableVTA]
     }
+
+    private def emulatePoolHealthMonitorMapping(
+            pool: Pool, status: PoolHealthMonitorMappingStatus): Unit =
+        clusterDataClient().poolSetMapStatus(pool.getId, status)
+
+    private def emulatePoolHealthMonitorMappingActivate(pool: Pool): Unit =
+        emulatePoolHealthMonitorMapping(pool,
+            PoolHealthMonitorMappingStatus.ACTIVE)
+
+    private def emulatePoolHealthMonitorMappingDeactivate(pool: Pool): Unit =
+        emulatePoolHealthMonitorMapping(pool,
+            PoolHealthMonitorMappingStatus.INACTIVE)
 
     def healthMonitorShouldEqual(mapHm: HealthMonitorConfigWithId,
                                  hm: HealthMonitor) = {
@@ -54,6 +64,8 @@ class PoolHealthMonitorMapManagerTest
             val hm = createHealthMonitor()
             val pool = createPool(loadBalancer, hmId = hm.getId)
             val pool2 = createPool(loadBalancer2, hmId = hm.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
+            emulatePoolHealthMonitorMappingActivate(pool2)
             val vip = createRandomVip(pool)
             val vip2 = createRandomVip(pool2)
 
@@ -75,6 +87,7 @@ class PoolHealthMonitorMapManagerTest
             val loadBalancer = createLoadBalancer()
             val hm = createRandomHealthMonitor()
             val pool = createPool(loadBalancer, hmId = hm.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
@@ -89,6 +102,7 @@ class PoolHealthMonitorMapManagerTest
             And("a new association is added")
             val loadBalancer2 = createLoadBalancer()
             val pool2 = createPool(loadBalancer2, hmId = hm.getId)
+            emulatePoolHealthMonitorMappingActivate(pool2)
             expectMsgType[PoolHealthMonitorMap]
             val vip2 = createRandomVip(pool2)
 
@@ -109,6 +123,8 @@ class PoolHealthMonitorMapManagerTest
             val hm2 = createRandomHealthMonitor()
             val pool = createPool(loadBalancer, hmId = hm.getId)
             val pool2 = createPool(loadBalancer2, hmId = hm2.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
+            emulatePoolHealthMonitorMappingActivate(pool2)
             val vip = createRandomVip(pool)
             val vip2 = createRandomVip(pool2)
 
@@ -125,7 +141,11 @@ class PoolHealthMonitorMapManagerTest
             vipShouldEqual(map.mappings(pool2.getId).vipConfigs.get(0), vip2)
 
             And("an existing health monitor is removed")
+            emulatePoolHealthMonitorMappingActivate(pool)
+            emulatePoolHealthMonitorMappingActivate(pool2)
             deleteHealthMonitor(hm)
+            emulatePoolHealthMonitorMappingDeactivate(pool)
+            emulatePoolHealthMonitorMappingDeactivate(pool2)
 
             Then("the VTA should send an update")
             val map2 = expectMsgType[PoolHealthMonitorMap]
@@ -140,6 +160,7 @@ class PoolHealthMonitorMapManagerTest
             val loadBalancer = createLoadBalancer()
             val hm = createRandomHealthMonitor()
             val pool = createPool(loadBalancer, hmId = hm.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
@@ -152,6 +173,7 @@ class PoolHealthMonitorMapManagerTest
             vipShouldEqual(map.mappings(pool.getId).vipConfigs.get(0), vip)
 
             And("the health monitor is changed")
+            emulatePoolHealthMonitorMappingActivate(pool)
             setHealthMonitorDelay(hm, 17)
 
             Then("the VTA should send an update")
@@ -167,26 +189,37 @@ class PoolHealthMonitorMapManagerTest
             val hm = createRandomHealthMonitor()
             val hm2 = createRandomHealthMonitor()
             val pool = createPool(loadBalancer, hmId = hm.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
             val vip = createRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolHealthMonitorMapRequest(true)
+            emulatePoolHealthMonitorMappingActivate(pool)
 
             And("it returns the first version of the mapping")
             val map = expectMsgType[PoolHealthMonitorMap]
             healthMonitorShouldEqual(
-            map.mappings(pool.getId).healthMonitorConfig, hm)
+                map.mappings(pool.getId).healthMonitorConfig, hm)
             vipShouldEqual(map.mappings(pool.getId).vipConfigs.get(0), vip)
+
+            And("the health monitor is disassociated with the pool")
+            setPoolHealthMonitor(pool, null)
+            emulatePoolHealthMonitorMappingDeactivate(pool)
+
+            Then("the VIA should send an update")
+            val map2 = expectMsgType[PoolHealthMonitorMap]
+            map2.mappings.size shouldBe 0
 
             And("the health monitor of the pool is changed")
             setPoolHealthMonitor(pool, hm2.getId)
+            emulatePoolHealthMonitorMappingActivate(pool)
 
             Then("the VTA should send an update")
-            val map2 = expectMsgType[PoolHealthMonitorMap]
+            val map3 = expectMsgType[PoolHealthMonitorMap]
             healthMonitorShouldEqual(
-                map2.mappings(pool.getId).healthMonitorConfig, hm2)
-            vipShouldEqual(map2.mappings(pool.getId).vipConfigs.get(0), vip)
-            map2.mappings.size shouldBe 1
+                map3.mappings(pool.getId).healthMonitorConfig, hm2)
+            vipShouldEqual(map3.mappings(pool.getId).vipConfigs.get(0), vip)
+            map3.mappings.size shouldBe 1
         }
     }
 }

@@ -60,8 +60,8 @@ public class PoolMemberResource extends AbstractResource {
 
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context, Validator validator,
-                              DataClient dataClient) {
+                              SecurityContext context, DataClient dataClient,
+                              Validator validator) {
         super(config, uriInfo, context, dataClient, validator);
     }
 
