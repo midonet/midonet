@@ -12,22 +12,29 @@ import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
+import org.midonet.packets.IntIPv4;
 
 
 public class NetworkZkManager extends BaseZkManager {
 
     private final BridgeZkManager bridgeZkManager;
+    private final BridgeDhcpZkManager dhcpZkManager;
 
     @Inject
     public NetworkZkManager(ZkManager zk,
                             PathBuilder paths,
                             Serializer serializer,
-                            BridgeZkManager bridgeZkManager) {
+                            BridgeZkManager bridgeZkManager,
+                            BridgeDhcpZkManager dhcpZkManager) {
         super(zk, paths, serializer);
         this.bridgeZkManager = bridgeZkManager;
+        this.dhcpZkManager = dhcpZkManager;
     }
+
+    /** Network methods **/
 
     public void prepareCreateNetwork(List<Op> ops, Network network)
             throws SerializationException, StateAccessException {
@@ -90,5 +97,68 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         return networks;
+    }
+
+    /** Subnet methods **/
+
+    public void prepareCreateSubnet(List<Op> ops, Subnet subnet)
+            throws SerializationException, StateAccessException {
+
+        BridgeDhcpZkManager.Subnet config =
+                ConfigFactory.createDhcpSubnet(subnet);
+        dhcpZkManager.prepareCreateSubnet(ops, subnet.networkId, config);
+
+        String path = paths.getNeutronSubnetPath(subnet.id);
+        ops.add(zk.getPersistentCreateOp(path, serializer.serialize(subnet)));
+    }
+
+    public void prepareDeleteSubnet(List<Op> ops, UUID id)
+            throws StateAccessException, SerializationException {
+
+        Subnet subnet = getSubnet(id);
+        if (subnet == null) {
+            return;
+        }
+
+        dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
+                IntIPv4.fromString(subnet.cidr, "/"));
+
+        ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
+    }
+
+    public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
+            throws SerializationException, StateAccessException {
+
+        BridgeDhcpZkManager.Subnet config = ConfigFactory.createDhcpSubnet(
+                subnet);
+        dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
+
+        String path = paths.getNeutronSubnetPath(subnet.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(subnet)));
+    }
+
+    public Subnet getSubnet(UUID subnetId)
+            throws StateAccessException, SerializationException {
+
+        String path = paths.getNeutronSubnetPath(subnetId);
+        if (!zk.exists(path)) {
+            return null;
+        }
+
+        return serializer.deserialize(zk.get(path), Subnet.class);
+    }
+
+    public List<Subnet> getSubnets()
+            throws StateAccessException, SerializationException {
+
+        String path= paths.getNeutronSubnetsPath();
+        Set<String> subnetIds = zk.getChildren(path);
+
+        List<Subnet> subnets = new ArrayList<>();
+        for (String subnetId : subnetIds) {
+            subnets.add(getSubnet(UUID.fromString(subnetId)));
+        }
+
+        return subnets;
     }
 }
