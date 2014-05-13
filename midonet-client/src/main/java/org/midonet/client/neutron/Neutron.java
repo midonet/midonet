@@ -8,7 +8,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.net.URI;
 
-
 public class Neutron {
 
     public URI uri;

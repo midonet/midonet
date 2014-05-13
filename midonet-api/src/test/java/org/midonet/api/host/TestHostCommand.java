@@ -112,7 +112,7 @@ public class TestHostCommand extends JerseyTest {
             InterruptedException,
             SerializationException {
         DtoApplication application = resource()
-            .accept(VendorMediaType.APPLICATION_JSON_V2)
+            .accept(VendorMediaType.APPLICATION_JSON_V5)
             .get(DtoApplication.class);
 
 

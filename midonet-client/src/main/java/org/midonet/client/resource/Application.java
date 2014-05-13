@@ -24,7 +24,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     private static String ID_TOKEN = "{id}";
 
     public Application(WebResource resource, DtoApplication app) {
-        this(resource, app, VendorMediaType.APPLICATION_JSON_V2);
+        this(resource, app, VendorMediaType.APPLICATION_JSON_V5);
     }
 
     public Application(WebResource resource, DtoApplication app,

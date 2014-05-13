@@ -20,7 +20,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
-
 public class NeutronResource extends AbstractNeutronResource {
 
     private final static Logger log = LoggerFactory.getLogger(

@@ -142,8 +142,8 @@ public class TestHost extends JerseyTest {
                 new SerializationModule(),
                 new TestModule(ZK_ROOT_MIDOLMAN));
         dir = injector.getInstance(Directory.class);
-        resource().type(VendorMediaType.APPLICATION_JSON_V2)
-                .accept(VendorMediaType.APPLICATION_JSON_V2)
+        resource().type(VendorMediaType.APPLICATION_JSON_V5)
+                .accept(VendorMediaType.APPLICATION_JSON_V5)
                 .get(ClientResponse.class);
 
         topology = new Topology.Builder(dtoResource).build();

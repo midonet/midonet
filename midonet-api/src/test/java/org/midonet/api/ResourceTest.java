@@ -3,7 +3,6 @@
  */
 package org.midonet.api;
 
-
 import org.junit.Before;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;

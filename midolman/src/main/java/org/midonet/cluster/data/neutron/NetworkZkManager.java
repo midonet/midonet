@@ -17,7 +17,6 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.packets.IntIPv4;
 
-
 public class NetworkZkManager extends BaseZkManager {
 
     private final BridgeZkManager bridgeZkManager;

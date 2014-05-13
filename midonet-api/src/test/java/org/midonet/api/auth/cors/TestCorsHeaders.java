@@ -61,7 +61,7 @@ public class TestCorsHeaders extends JerseyTest {
         assertTrue(exposeHeaders.contains("Location"));
 
         // Test GET method returns expected response headers.
-        response = resource.accept(VendorMediaType.APPLICATION_JSON_V2)
+        response = resource.accept(VendorMediaType.APPLICATION_JSON_V5)
                            .header("X-Auth-Token", "999888777666")
                            .get(ClientResponse.class);
         String body = response.getEntity(String.class);
