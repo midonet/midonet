@@ -205,7 +205,8 @@ def test_udp_bridge():
               is_router=False)
 
 
-@attr(version="v1.2.0", slow=False)
+# FIXME: https://midobugs.atlassian.net/browse/MN-1758
+@attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_single, binding_multi_router)
 def test_udp_router():
     router = VTM.get_router('router-000-001')

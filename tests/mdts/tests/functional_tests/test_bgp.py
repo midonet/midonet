@@ -380,7 +380,8 @@ def test_snat_1():
 
     clear_bgp(p1)
 
-@attr(version="v1.2.0", slow=True)
+# FIXME: https://midobugs.atlassian.net/browse/MN-1759
+@attr(version="v1.2.0", slow=True, flaky=True)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
 def test_snat_2():
     """
