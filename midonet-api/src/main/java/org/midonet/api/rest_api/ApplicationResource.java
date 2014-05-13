@@ -299,6 +299,7 @@ public class ApplicationResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_JSON,  // Remove this before release
             VendorMediaType.APPLICATION_JSON_V2,
             VendorMediaType.APPLICATION_JSON_V3,
+            VendorMediaType.APPLICATION_JSON_V4,
             MediaType.APPLICATION_JSON })
     public Application get() {
         log.debug("ApplicationResource: entered");

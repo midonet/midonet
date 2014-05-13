@@ -71,7 +71,7 @@ public class Topology {
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
-            this(resource, VendorMediaType.APPLICATION_JSON_V2);
+            this(resource, VendorMediaType.APPLICATION_JSON_V4);
         }
 
         public Builder(DtoWebResource resource, String appMediaType) {
