@@ -66,9 +66,12 @@ import org.midonet.packets._
   * @param vxlanPortId uuid of an optional virtual exterior port logically
                        connected to a virtual switch running on a vtep gateway.
                        If defined, the UUID will point in the virtual topology
-                       to an exterior vport of subtype DeviceVxLanPort that
+                       to an exterior vport of subtype VxLanPort that
                        contains the information needed for tunnelling traffic to
                        the peer vtep.
+                       FIXME: at the moment (v1.5), this field instance is only
+                       needed for flooding traffic. With mac syncing, it will
+                       become unnecessary.
   * @param flowRemovedCallbackGen
   * @param macToLogicalPortId
   * @param ipToMac

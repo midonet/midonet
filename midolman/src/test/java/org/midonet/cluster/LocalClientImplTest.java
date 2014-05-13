@@ -235,6 +235,7 @@ public class LocalClientImplTest {
     class TestBridgeBuilder implements BridgeBuilder {
         int buildCallsCount = 0;
         Option<UUID> vlanBridgePeerPortId = Option.apply(null);
+        Option<UUID> exteriorVxlanPortId = Option.apply(null);
         MacLearningTable mlTable;
         IpMacMap ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
@@ -318,6 +319,11 @@ public class LocalClientImplTest {
         @Override
         public void updateMacEntry(
                 short vlanId, MAC mac, UUID oldPort, UUID newPort) {
+        }
+
+        @Override
+        public void setExteriorVxlanPortId(Option<UUID> id) {
+            exteriorVxlanPortId = id;
         }
 
         @Override

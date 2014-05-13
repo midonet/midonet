@@ -12,7 +12,7 @@ import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import akka.util.Timeout
 
-import org.midonet.cluster.client.{DeviceVxLanPort, Port}
+import org.midonet.cluster.client.{VxLanPort, Port}
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
@@ -270,12 +270,12 @@ trait FlowTranslator {
             } else {
                 val vxlanPortId = br.vxlanPortId.get
                 expiringAsk[Port](vxlanPortId, log) map {
-                    case p: DeviceVxLanPort =>
+                    case p: VxLanPort =>
                         outputActionsToVtep(p.vni, p.vtepAddr.addr,
                                             actions, dpTags)
                         actions
                     case _ =>
-                        log.warning("could not find DeviceVxLanPort {} " +
+                        log.warning("could not find VxLanPort {} " +
                                     "of bridge {}", vxlanPortId, br)
                         actions
                 }
@@ -290,6 +290,9 @@ trait FlowTranslator {
                         expiringAsk[Bridge](portSetId, log) flatMap {
                             br =>
                                 addRemoteActions(br, portSet.hosts, actions)
+                                // FIXME: at the moment (v1.5), this is need for
+                                // flooding traffic from a bridge. With mac
+                                // syncing, it will become unnecessary.
                                 addVtepActions(br, actions)
                         }
                 }
@@ -335,10 +338,10 @@ trait FlowTranslator {
             )
         } getOrElse {
             // Otherwise we translate to a remote port or a vtep peer
-            // DeviceVxLanPort is a subtype of exterior port,
+            // VxLanPort is a subtype of exterior port,
             // therefore it needs to be matched first.
             expiringAsk[Port](port, log) map {
-                case p: DeviceVxLanPort =>
+                case p: VxLanPort =>
                     towardsVtepPeer(p.vni, p.vtepAddr, dpTags)
                 case p: Port if p.isExterior =>
                     towardsRemoteHost(p.tunnelKey, p.hostID, dpTags)
