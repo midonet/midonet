@@ -94,6 +94,7 @@ public class Application extends UriResource {
     /**
      * @return the loadbalancers URI
      */
+    @Since("4")
     public URI getLoadBalancers() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLoadBalancers(getBaseUri());
@@ -105,6 +106,7 @@ public class Application extends UriResource {
     /**
      * @return the health monitors URI
      */
+    @Since("4")
     public URI getHealthMonitors() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHealthMonitors(getBaseUri());
@@ -116,6 +118,7 @@ public class Application extends UriResource {
     /**
      * @return the pool members URI
      */
+    @Since("4")
     public URI getPoolMembers() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolMembers(getBaseUri());
@@ -127,6 +130,7 @@ public class Application extends UriResource {
     /**
      * @return the pools URI
      */
+    @Since("4")
     public URI getPools() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPools(getBaseUri());
@@ -138,6 +142,7 @@ public class Application extends UriResource {
     /**
      * @return the VIP URI
      */
+    @Since("4")
     public URI getVips() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getVips(getBaseUri());
