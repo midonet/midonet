@@ -87,7 +87,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new ConfigProviderModule(configuration),
             new MockDatapathModule(),
             new MockCacheModule(),
-            new MockZookeeperConnectionModule(cleanDirectory),
+            new MockZookeeperConnectionModule(),
             new HostModule(),
             new MockMonitoringStoreModule(),
             new ClusterClientModule(),
@@ -98,7 +98,11 @@ public class DefaultInterfaceDataUpdaterTest {
             new MidolmanModule(),
             new InterfaceScannerModule());
 
-        directory = cleanDirectory;
+        directory = injector.getInstance(Directory.class);
+        directory.add("/hosts", null, CreateMode.PERSISTENT);
+        directory.add(pathManager.getWriteVersionPath(),
+                DataWriteVersion.CURRENT.getBytes(), CreateMode.PERSISTENT);
+
         updater = injector.getInstance(InterfaceDataUpdater.class);
         hostManager = injector.getInstance(HostZkManager.class);
 

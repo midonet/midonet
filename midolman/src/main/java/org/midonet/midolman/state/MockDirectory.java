@@ -11,8 +11,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.AbstractMap;
 import java.util.Set;
+
 import javax.annotation.Nonnull;
 
 import org.apache.jute.Record;
@@ -47,7 +49,7 @@ public class MockDirectory implements Directory {
     private final static Logger log = LoggerFactory.getLogger(
         MockDirectory.class);
 
-    private class Node {
+    protected class Node {
         // The node's path from the root.
         private String path;
         private byte[] data;
@@ -161,6 +163,55 @@ public class MockDirectory implements Directory {
                 }
             }
         }
+
+        public Node clone() {
+            Node n = new Node(this.path, this.data, this.mode);
+            for (String key: this.children.keySet()) {
+                n.children.put(key, this.children.get(key).clone());
+            }
+            return n;
+        }
+
+        /*
+         * Check for node equality. This is not the same as 'equals' because
+         * we don't want to count checkpoints or watchers to determine if it
+         * is the same node.
+         */
+        public boolean isSameNode(Node other) {
+            if (other == null) {
+                return false;
+            }
+            if (!(Objects.equals(this.mode, other.mode) &&
+                  Objects.equals(this.path, other.path) &&
+                  Objects.deepEquals(this.data, other.data))) {
+                return false;
+            }
+
+            if (other.children.size() != this.children.size())
+                return false;
+
+            for (String k: children.keySet()) {
+                if (!this.children.get(k).isSameNode(other.children.get(k)))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /*
+         * convert this node and all of its children to a path -> data map.
+         * This is useful for whitebox testing of what has been added or
+         * deleted to the Directory structure.
+         */
+        public Map<String, String> toStringMap() {
+            Map<String, String> map = new HashMap<>();
+            map.put(this.path, this.data == null ? "" : new String(this.data));
+            for (String k : this.children.keySet()) {
+                Node n = this.children.get(k);
+                map.putAll(n.toStringMap());
+            }
+            return map;
+        }
     }
 
     private Node rootNode;
@@ -179,7 +230,7 @@ public class MockDirectory implements Directory {
         multiDataWatchers = new HashMap<Watcher, WatchedEvent>();
     }
 
-    private Node getNode(String path) throws NoNodeException {
+    protected Node getNode(String path) throws NoNodeException {
         String[] path_elems = path.split("/");
         return getNode(path_elems, path_elems.length);
     }
