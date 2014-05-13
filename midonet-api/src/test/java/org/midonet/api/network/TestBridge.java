@@ -273,7 +273,7 @@ public class TestBridge {
             return dtoResource.deleteAndVerifyNotFound(
                     ResourceUriBuilder.getMacPort(
                             bridgeUri, vlanId, macAddr, portId),
-                    APPLICATION_JSON_V2);
+                    APPLICATION_JSON_V5);
         }
 
         private DtoMacPort getMacPort(URI bridgeUri, Short vlanId,

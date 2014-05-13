@@ -21,7 +21,6 @@ public class NeutronUriBuilder {
     }
 
     // Network
-
     public static URI getNetworks(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri)).path(NETWORKS).build();
     }
@@ -36,7 +35,6 @@ public class NeutronUriBuilder {
     }
 
     // Subnet
-
     public static URI getSubnets(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri)).path(SUBNETS).build();
     }
@@ -49,5 +47,4 @@ public class NeutronUriBuilder {
     public static String getSubnetTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getSubnets(baseUri));
     }
-
 }

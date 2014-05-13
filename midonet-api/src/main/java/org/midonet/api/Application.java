@@ -237,6 +237,7 @@ public class Application extends UriResource {
     /**
      * @return the health monitor URI template
      */
+    @Since("4")
     public String getHealthMonitorTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHealthMonitorTemplate(getBaseUri());
@@ -248,6 +249,7 @@ public class Application extends UriResource {
     /**
      * @return the loadbalancer URI template
      */
+    @Since("4")
     public String getLoadBalancerTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLoadBalancerTemplate(getBaseUri());
@@ -259,6 +261,7 @@ public class Application extends UriResource {
     /**
      * @return the pool member URI template
      */
+    @Since("4")
     public String getPoolMemberTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolMemberTemplate(getBaseUri());
@@ -270,6 +273,7 @@ public class Application extends UriResource {
     /**
      * @return the pool URI template
      */
+    @Since("4")
     public String getPoolTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolTemplate(getBaseUri());
@@ -281,6 +285,7 @@ public class Application extends UriResource {
     /**
      * @return the VIP URI template
      */
+    @Since("4")
     public String getVipTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getVipTemplate(getBaseUri());
@@ -450,6 +455,7 @@ public class Application extends UriResource {
         }
     }
 
+    @Since("5")
     public URI getNeutron() {
         if (getBaseUri() != null) {
             return NeutronUriBuilder.getNeutron(getBaseUri());

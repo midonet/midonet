@@ -11,7 +11,6 @@ import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.*;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -71,7 +70,7 @@ public class Topology {
         private final Map<String, String> links;
 
         public Builder(DtoWebResource resource) {
-            this(resource, VendorMediaType.APPLICATION_JSON_V4);
+            this(resource, VendorMediaType.APPLICATION_JSON_V5);
         }
 
         public Builder(DtoWebResource resource, String appMediaType) {

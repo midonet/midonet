@@ -90,7 +90,7 @@ public class TestHostVersion extends JerseyTest {
                 new VersionModule(),
                 new SerializationModule(),
                 new TestModule(ZK_ROOT_MIDOLMAN));
-        resource().accept(VendorMediaType.APPLICATION_JSON_V2)
+        resource().accept(VendorMediaType.APPLICATION_JSON_V5)
                 .get(ClientResponse.class);
         hostManager = injector.getInstance(HostZkManager.class);
         URI baseUri = resource().getURI();
