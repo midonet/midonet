@@ -15,6 +15,8 @@ OPTIONS:
  -S          Runs only slow tests
  -v VERSION  Runs tests compatible with this and following MidoNet versions
  -V VERSION  Runs only tests compatible with this MidoNet version
+ -x          Runs all tests but flaky ones
+ -X          Runs only flaky tests
 
 TEST:
   test_file           Runs all the tests in the test file.
@@ -40,7 +42,7 @@ EOF
 }
 
 ATTR=""
-while getopts ":ht:sSv:V:" OPTION
+while getopts ":ht:sSv:V:xX" OPTION
 do
     case $OPTION in
         h)
@@ -86,6 +88,22 @@ do
                 ATTR="(version == \"$OPTARG\")"
             else
                 ATTR="$ATTR and (version == \"$OPTARG\")"
+            fi
+            ;;
+        x)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="not flaky"
+            else
+                ATTR="$ATTR and not flaky"
+            fi
+            ;;
+        X)
+            if [ -z "$ATTR" ]
+            then
+                ATTR="flaky"
+            else
+                ATTR="$ATTR and flaky"
             fi
             ;;
         ?)

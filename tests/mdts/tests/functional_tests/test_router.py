@@ -58,7 +58,8 @@ def teardown():
     VTM.destroy()
 
 
-@attr(version="v1.2.0", slow=False)
+# FIXME: https://midobugs.atlassian.net/browse/MN-1746
+@attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_ping_different_subnets():
     """

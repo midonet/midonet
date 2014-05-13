@@ -163,7 +163,8 @@ FAILOVER_WAIT_SEC = 45 + 5
 FAILBACK_WAIT_SEC = 30 + 5
 
 
-@attr(version="v1.2.0", slow=True)
+# FIXME: https://midobugs.atlassian.net/browse/QA-158
+@attr(version="v1.2.0", slow=True, flaky=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_icmp_from_mn():
     """
@@ -213,7 +214,8 @@ def test_failback_icmp_from_mn():
     _ping_from_mn(iface1, iface2)
 
 
-@attr(version="v1.2.0", slow=True)
+# FIXME: https://midobugs.atlassian.net/browse/QA-158
+@attr(version="v1.2.0", slow=True, flaky=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_icmp_to_mn():
     """
