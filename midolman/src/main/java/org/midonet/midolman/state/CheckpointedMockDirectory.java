@@ -108,7 +108,7 @@ public class CheckpointedMockDirectory extends MockDirectory
 
     @Override
     public Map<String, String> getModifiedPaths(int cpIndex1, int cpIndex2) {
-        Map<String, String> modifiedNodes = new HashMap<String, String>();
+        Map<String, String> modifiedNodes = new HashMap<>();
         Checkpoint cp1 = checkpoints.get(cpIndex1);
         Checkpoint cp2 = checkpoints.get(cpIndex2);
         if ((cp1 == null || cp1.root == null) &&
