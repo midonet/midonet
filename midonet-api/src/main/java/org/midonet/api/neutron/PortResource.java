@@ -10,8 +10,9 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.NeutronPlugin;
-import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.cluster.data.neutron.Port;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -21,14 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -37,33 +31,33 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class SubnetResource extends AbstractNeutronResource {
+public class PortResource extends AbstractNeutronResource {
 
     private final static Logger log = LoggerFactory.getLogger(
-            SubnetResource.class);
+            PortResource.class);
 
     @Inject
-    public SubnetResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context, NeutronPlugin plugin) {
+    public PortResource(RestApiConfig config, UriInfo uriInfo,
+                        SecurityContext context, NeutronPlugin plugin) {
         super(config, uriInfo, context, plugin);
     }
 
     @POST
-    @Consumes(NeutronMediaType.SUBNET_JSON_V1)
-    @Produces(NeutronMediaType.SUBNET_JSON_V1)
+    @Consumes(NeutronMediaType.PORT_JSON_V1)
+    @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response create(Subnet subnet)
+    public Response create(Port port)
             throws SerializationException, StateAccessException {
-        log.info("SubnetResource.create entered {}", subnet);
+        log.info("PortResource.create entered {}", port);
 
         try {
 
-            Subnet sub = dataClient.createSubnet(subnet);
+            Port p = dataClient.createPort(port);
 
-            log.info("SubnetResource.get exiting {}", sub);
+            log.info("PortResource.get exiting {}", p);
             return Response.created(
-                    NeutronUriBuilder.getSubnet(
-                            getBaseUri(), sub.id)).entity(sub).build();
+                    NeutronUriBuilder.getPort(
+                            getBaseUri(), p.id)).entity(p).build();
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
@@ -76,54 +70,55 @@ public class SubnetResource extends AbstractNeutronResource {
     @RolesAllowed(AuthRole.ADMIN)
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
-        log.info("SubnetResource.delete entered {}", id);
-        dataClient.deleteSubnet(id);
+        log.info("PortResource.delete entered {}", id);
+        dataClient.deletePort(id);
     }
 
     @GET
     @Path("{id}")
-    @Produces(NeutronMediaType.SUBNET_JSON_V1)
+    @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Subnet get(@PathParam("id") UUID id)
+    public Port get(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
-        log.info("SubnetResource.get entered {}", id);
+        log.info("PortResource.get entered {}", id);
 
-        Subnet sub = dataClient.getSubnet(id);
-        if (sub == null) {
+        Port p = dataClient.getPort(id);
+        if (p == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
 
-        log.info("SubnetResource.get exiting {}", sub);
-        return sub;
+        log.info("PortResource.get exiting {}", p);
+        return p;
     }
 
     @GET
-    @Produces(NeutronMediaType.SUBNETS_JSON_V1)
+    @Produces(NeutronMediaType.PORTS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public List<Subnet> list()
+    public List<Port> list()
             throws SerializationException, StateAccessException {
-        log.info("SubnetResource.list entered");
-        return dataClient.getSubnets();
+        log.info("PortResource.list entered");
+        return dataClient.getPorts();
     }
 
     @PUT
     @Path("{id}")
-    @Consumes(NeutronMediaType.SUBNET_JSON_V1)
-    @Produces(NeutronMediaType.SUBNET_JSON_V1)
+    @Consumes(NeutronMediaType.PORT_JSON_V1)
+    @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id, Subnet subnet)
+    public Response update(@PathParam("id") UUID id, Port port)
             throws SerializationException, StateAccessException,
-            BridgeZkManager.VxLanPortIdUpdateException {
-        log.info("SubnetResource.update entered {}", subnet);
+            BridgeZkManager.VxLanPortIdUpdateException,
+            Rule.RuleIndexOutOfBoundsException {
+        log.info("PortResource.update entered {}", port);
 
         try {
 
-            Subnet sub = dataClient.updateSubnet(id, subnet);
+            Port p = dataClient.updatePort(id, port);
 
-            log.info("SubnetResource.update exiting {}", sub);
+            log.info("PortResource.update exiting {}", p);
             return Response.ok(
-                    NeutronUriBuilder.getSubnet(
-                            getBaseUri(), sub.id)).entity(sub).build();
+                    NeutronUriBuilder.getPort(
+                            getBaseUri(), p.id)).entity(p).build();
 
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);

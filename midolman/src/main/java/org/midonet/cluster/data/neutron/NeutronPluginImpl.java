@@ -6,8 +6,10 @@ package org.midonet.cluster.data.neutron;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.cluster.LocalDataClientImpl;
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.slf4j.Logger;
@@ -126,4 +128,98 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         return getSubnet(id);
     }
 
+    private void createPortOps(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+
+        if (port.isVif()){
+
+            networkZkManager.prepareCreateVifPort(ops, port);
+
+            // TODO: SG and External network
+
+        } else if (port.isDhcp()) {
+
+            networkZkManager.prepareCreateDhcpPort(ops, port);
+
+        } else {
+
+            networkZkManager.prepareCreateNeutronPort(ops, port);
+
+        }
+    }
+
+    @Override
+    public Port createPort(@Nonnull Port port)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        createPortOps(ops, port);
+        commitOps(ops);
+
+        return getPort(port.id);
+    }
+
+    @Override
+    public void deletePort(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        Port port = getPort(id);
+        if (port == null) {
+            return;
+        }
+
+        List<Op> ops = new ArrayList<>();
+
+        if(port.isVif()) {
+
+            // TODO: handle external network, FIP disassociation and SG
+
+            networkZkManager.prepareDeleteVifPort(ops, port);
+
+        } else if(port.isDhcp()) {
+
+            networkZkManager.prepareDeleteDhcpPort(ops, port);
+
+        }
+
+        commitOps(ops);
+    }
+
+    @Override
+    public Port getPort(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        return networkZkManager.getPort(id);
+    }
+
+    @Override
+    public List<Port> getPorts()
+            throws StateAccessException, SerializationException {
+        return networkZkManager.getPorts();
+    }
+
+    @Override
+    public Port updatePort(@Nonnull UUID id, @Nonnull Port port)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        // Fixed IP and security groups can be updated
+        List<Op> ops = new ArrayList<>();
+
+        if (port.isVif()) {
+
+            // TODO handle SG
+
+            networkZkManager.prepareUpdateVifPort(ops, port);
+
+        } else if (port.isDhcp()) {
+
+            networkZkManager.prepareUpdateDhcpPort(ops, port);
+
+        }
+
+        // This should throw NoStatePathException if it doesn't exist.
+        commitOps(ops);
+
+        return getPort(id);
+    }
 }

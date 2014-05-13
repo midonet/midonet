@@ -17,4 +17,9 @@ public class NeutronMediaType {
     public final static String SUBNETS_JSON_V1 =
             "application/vnd.org.midonet.neutron.Subnets-v1+json";
 
+    public final static String PORT_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Port-v1+json";
+    public final static String PORTS_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Ports-v1+json";
+
 }

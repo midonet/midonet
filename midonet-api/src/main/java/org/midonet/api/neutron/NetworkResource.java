@@ -44,8 +44,7 @@ public class NetworkResource extends AbstractNeutronResource {
 
     @Inject
     public NetworkResource(RestApiConfig config, UriInfo uriInfo,
-                           SecurityContext context, ResourceFactory factory,
-                           NeutronPlugin plugin) {
+                           SecurityContext context, NeutronPlugin plugin) {
         super(config, uriInfo, context, plugin);
     }
 

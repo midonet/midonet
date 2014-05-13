@@ -5,7 +5,9 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ public class Port {
     public String deviceId;
 
     @JsonProperty("device_owner")
-    public String deviceOwner;
+    public DeviceOwner deviceOwner;
 
     @JsonProperty("tenant_id")
     public String tenantId;
@@ -90,4 +92,31 @@ public class Port {
                 .add("securityGroups", ListUtil.toString(securityGroups))
                 .toString();
     }
+
+    @JsonIgnore
+    public boolean isDhcp() {
+        return deviceOwner == DeviceOwner.DHCP;
+    }
+
+    @JsonIgnore
+    public boolean isRouterInterface() {
+        return deviceOwner == DeviceOwner.ROUTER_INTF;
+    }
+
+    @JsonIgnore
+    public boolean isRouterGateway() {
+        return deviceOwner == DeviceOwner.ROUTER_GW;
+    }
+
+    @JsonIgnore
+    public boolean isFloatingIp() {
+        return deviceOwner == DeviceOwner.FLOATINGIP;
+    }
+
+    @JsonIgnore
+    public boolean isVif() {
+        return !(isDhcp() || isFloatingIp() || isRouterInterface()
+                || isRouterGateway());
+    }
+
 }

@@ -147,4 +147,6 @@ public interface ResourceFactory {
     NetworkResource getNeutronNetworkResource();
 
     SubnetResource getNeutronSubnetResource();
+
+    org.midonet.api.neutron.PortResource getNeutronPortResource();
 }

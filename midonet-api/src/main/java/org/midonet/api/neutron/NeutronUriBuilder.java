@@ -14,6 +14,7 @@ public class NeutronUriBuilder {
 
     public final static String NETWORKS = "/networks";
     public final static String SUBNETS = "/subnets";
+    public final static String PORTS = "/ports";
 
     public static URI getNeutron(URI baseUri) {
         return UriBuilder.fromUri(ResourceUriBuilder.getRoot(
@@ -46,5 +47,19 @@ public class NeutronUriBuilder {
 
     public static String getSubnetTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getSubnets(baseUri));
+    }
+
+    // Ports
+    public static URI getPorts(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(PORTS).build();
+    }
+
+    public static URI getPort(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getPorts(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getPortTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getPorts(baseUri));
     }
 }

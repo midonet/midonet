@@ -22,6 +22,11 @@ public class Neutron {
     @JsonProperty("subnet_template")
     public String subnetTemplate;
 
+    public URI ports;
+
+    @JsonProperty("port_template")
+    public String portTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -34,13 +39,15 @@ public class Neutron {
                 && Objects.equal(networks, other.networks)
                 && Objects.equal(networkTemplate, other.networkTemplate)
                 && Objects.equal(subnets, other.subnets)
-                && Objects.equal(subnetTemplate, other.subnetTemplate);
+                && Objects.equal(subnetTemplate, other.subnetTemplate)
+                && Objects.equal(ports, other.ports)
+                && Objects.equal(portTemplate, other.portTemplate);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(uri, networks, networkTemplate, subnets,
-                subnetTemplate);
+                subnetTemplate, ports, portTemplate);
     }
 
     @Override
@@ -51,6 +58,8 @@ public class Neutron {
                 .add("networks", networks)
                 .add("networkTemplate", networkTemplate)
                 .add("subnets", subnets)
-                .add("subnetTemplate", subnetTemplate).toString();
+                .add("subnetTemplate", subnetTemplate)
+                .add("ports", ports)
+                .add("portTemplate", portTemplate).toString();
     }
 }

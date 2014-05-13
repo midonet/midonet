@@ -3,12 +3,15 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Contains factory methods for constructing data objects.
@@ -64,6 +67,24 @@ public class ConfigFactory {
         return new BridgeDhcpZkManager.Opt121(
                 IntIPv4.fromString(destination, "/"),
                 IntIPv4.fromString(nexthop));
+    }
+
+    public static BridgeDhcpZkManager.Host createDhcpHost(
+            String macAddress, String ipAddress) {
+
+        MAC mac = MAC.fromString(macAddress);
+        IntIPv4 ipAddr = IntIPv4.fromString(ipAddress);
+        return new BridgeDhcpZkManager.Host(mac, ipAddr, null);
+    }
+
+    public static PortDirectory.BridgePortConfig createBridgePort(
+            UUID networkId) {
+        PortDirectory.BridgePortConfig cfg =
+                new PortDirectory.BridgePortConfig();
+
+        cfg.adminStateUp = true;
+        cfg.device_id = networkId;
+        return cfg;
     }
 
 }
