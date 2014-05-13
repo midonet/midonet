@@ -13,9 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Function;
-
 import com.sun.jna.Native;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,7 +496,7 @@ public abstract class AbstractNetlinkConnection {
         return request.position() - startPos;
     }
 
-    static class NetlinkRequest<T> {
+    static public class NetlinkRequest<T> {
         List<ByteBuffer> inBuffers = new ArrayList<>();
         ByteBuffer outBuffer;
         private final Callback<T> userCallback;
@@ -562,11 +560,13 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
+    // A null value is interpreted by the comparator as a netlinkrequest with
+    // infinite timeout, and is therefore "larger" than any non-null request.
     static class NetlinkRequestTimeoutComparator
             implements Comparator<NetlinkRequest> {
         @Override
         public int compare(NetlinkRequest a, NetlinkRequest b) {
-            long aExp = a != null ? a.expirationTimeNanos : Long.MIN_VALUE;
+            long aExp = a != null ? a.expirationTimeNanos : Long.MAX_VALUE;
             long bExp = b != null ? b.expirationTimeNanos : Long.MAX_VALUE;
             return a == b ? 0 : Long.compare(aExp, bExp);
         }
