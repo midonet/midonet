@@ -221,7 +221,7 @@ trait FlowTranslator {
 
     /** Update the list of action and list of tags with the output tunnelling
      *  action for the given vtep addr and vni key. */
-    private def outputActionsToVtep(vni: Short, vtepIp: Int,
+    private def outputActionsToVtep(vni: Int, vtepIp: Int,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[Any]) {
         if (dpState.vxLanOutputAction.isEmpty) {
@@ -232,7 +232,7 @@ trait FlowTranslator {
         val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
         if (dpTags != null)
             dpTags += FlowTagger.invalidateTunnelPort((localIp, vtepIp))
-        actions += setKey(FlowKeys.tunnel(vni, localIp, vtepIp))
+        actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
         actions += dpState.vxLanOutputAction.get
     }
 
@@ -372,7 +372,7 @@ trait FlowTranslator {
 
     /** Emits a list of output FlowActions for tunnelling traffic to a remote
      *  vtep gateway given its ip address and a vni key. */
-    private def towardsVtepPeer(vni: Short, vtepIp: IPv4Addr,
+    private def towardsVtepPeer(vni: Int, vtepIp: IPv4Addr,
                                 dpTags: mutable.Set[Any]): Seq[FlowAction] = {
         log.debug("Emitting towards vtep at {} with vni {}", vtepIp, vni)
         val actions = ListBuffer[FlowAction]()
