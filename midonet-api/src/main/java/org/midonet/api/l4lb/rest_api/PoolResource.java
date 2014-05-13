@@ -17,6 +17,7 @@ import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.event.topology.PoolEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -26,6 +27,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +65,8 @@ public class PoolResource extends AbstractResource {
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
                         DataClient dataClient,
-                        Validator validator,
-                        ResourceFactory factory) {
+                        ResourceFactory factory,
+                        Validator validator) {
         super(config, uriInfo, context, dataClient, validator);
         this.factory = factory;
     }
@@ -161,7 +163,6 @@ public class PoolResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Pool pool)
             throws StateAccessException, SerializationException {
-
         pool.setId(id);
         validate(pool);
 
@@ -170,6 +171,9 @@ public class PoolResource extends AbstractResource {
             poolEvent.update(id, dataClient.poolGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
+        } catch (MappingViolationException ex) {
+            throw new BadRequestHttpException(
+                    MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED);
         } catch (MappingStatusException ex) {
             throw new ServiceUnavailableHttpException(ex);
         }

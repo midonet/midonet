@@ -7,6 +7,7 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -71,6 +72,26 @@ public class PoolZkManager
             this.lbMethod = lbMethod;
             this.status = status;
             this.mappingStatus = mappingStatus;
+        }
+
+        /**
+         * Check if this pool config is in the transition to the regular
+         * states, which are "ACTIVE" or "INACTIVE", triggered by the
+         * health monitor actors.
+         *
+         * @return true if mappingStatus is not "ACTIVE" or "INACTIVE".
+         * @throws SerializationException
+         * @throws StateAccessException
+         */
+        @JsonIgnore
+        public boolean isImmutable()
+                throws SerializationException, StateAccessException {
+            return (this.mappingStatus ==
+                    PoolHealthMonitorMappingStatus.PENDING_CREATE ||
+                    this.mappingStatus ==
+                            PoolHealthMonitorMappingStatus.PENDING_DELETE ||
+                    this.mappingStatus ==
+                            PoolHealthMonitorMappingStatus.PENDING_UPDATE);
         }
 
         @Override

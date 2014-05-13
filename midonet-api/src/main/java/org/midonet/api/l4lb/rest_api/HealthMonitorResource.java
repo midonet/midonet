@@ -63,9 +63,8 @@ public class HealthMonitorResource extends AbstractResource {
 
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context,
-                          Validator validator, DataClient dataClient,
-                          ResourceFactory factory) {
+                                 SecurityContext context,
+                                 DataClient dataClient, Validator validator) {
         super(config, uriInfo, context, dataClient, validator);
     }
 

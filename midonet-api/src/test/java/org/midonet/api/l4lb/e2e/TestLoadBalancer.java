@@ -2,7 +2,7 @@
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
 
-package org.midonet.api.l4lb;
+package org.midonet.api.l4lb.e2e;
 
 import org.junit.After;
 import org.junit.Before;
