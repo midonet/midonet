@@ -331,7 +331,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             if (dpState isGrePort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet()
             } else {
-                val req = DeviceVxLanPortRequest(wcMatch.getTunnelID.toShort)
+                val req = DeviceVxLanPortRequest(wcMatch.getTunnelID.toInt)
                 (VirtualToPhysicalMapper expiringAsk req) flatMap {
                     vxlanPortId =>
                         processSimulationResult(simulatePacketIn(Some(vxlanPortId)))

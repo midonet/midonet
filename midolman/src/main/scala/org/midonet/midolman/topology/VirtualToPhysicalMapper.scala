@@ -122,10 +122,10 @@ object VirtualToPhysicalMapper extends Referenceable {
         override def getCached = DeviceCaches.tunnelZone(zoneId)
     }
 
-    /** Request sent by packet handlers for simulating traffic ingressing on the
-     *  vtep vxlan tunnel port. The tunnel key id (vni) maps to an exterior
-     *  bridge port in the virtual topology. */
-    case class DeviceVxLanPortRequest(vni: Short) extends VTPMRequest[UUID] {
+    /** Request sent by packet handlers for simulating traffic ingressing
+     *  on the vtep vxlan tunnel port. The 24bits tunnel key id (vni) maps
+     *  to an exterior bridge port in the virtual topology. */
+    case class DeviceVxLanPortRequest(vni: Int) extends VTPMRequest[UUID] {
         protected[topology] val tag = classTag[UUID]
         override def getCached = DeviceCaches.vxlanIdFromVNI(vni)
     }
@@ -235,7 +235,7 @@ object VirtualToPhysicalMapper extends Referenceable {
         def portSet(id: UUID) = portSets get id
         def tunnelZone(id: UUID) = tunnelZones get id
         def portSetId(tunnelKey: Long) = tunnelKeyToPortSet get tunnelKey
-        def vxlanIdFromVNI(vni: Short) = Some(UUID.randomUUID)
+        def vxlanIdFromVNI(vni: Int) = Some(UUID.randomUUID)
 
         protected[topology]
         def addPortSet(id: UUID, ps: rcu.PortSet) { portSets += id -> ps }

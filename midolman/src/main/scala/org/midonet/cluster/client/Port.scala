@@ -101,12 +101,14 @@ sealed trait Port {
     }
 }
 
-/** Logical port connected to a peer vtep gateway. This subtype holds the VxLan
- *  Network Identifier of the logical switch this port belongs to as well as the
- *  underlay ip address of the vtep gateway. */
+/** Logical port connected to a peer vtep gateway. This subtype holds the
+ *  24 bits VxLan Network Identifier (vni key) of the logical switch this
+ *  port belongs to as well as the underlay ip address of the vtep gateway.
+ *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
+ *  of the vni int field. */
 trait DeviceVxLanPort { self: Port =>
     def vtepAddr: IPv4Addr
-    def vni: Short
+    def vni: Int
 }
 
 class BridgePort extends Port {
