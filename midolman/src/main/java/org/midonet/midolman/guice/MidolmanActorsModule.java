@@ -151,7 +151,7 @@ public class MidolmanActorsModule extends PrivateModule {
                 new Function<Throwable, Directive>() {
                     @Override
                     public Directive apply(Throwable t) {
-                        log.warn("Actor crashed, aborting: {}", t);
+                        log.warn("Actor crashed, aborting", t);
                         System.exit(-1);
                         return stop();
                     }

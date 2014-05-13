@@ -352,7 +352,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             rport.id)
                     case Starting =>
                         stash()
-                    case Started =>
+                    case Started if bgps.contains(bgpID) =>
                         // TODO(pino): Use bgpVty to remove this BGP and its routes
                         val Some(bgp) = bgps.remove(bgpID)
                         bgpVty.deletePeer(bgp.getLocalAS,
@@ -370,6 +370,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             peerRoutes.clear()
                             stopBGP()
                         }
+                    case Started =>
+                        log.warning("Received RemoveBgpSession({}) for an unknown id", bgpID)
                     case Stopping =>
                         stash()
                     case Disabled =>
