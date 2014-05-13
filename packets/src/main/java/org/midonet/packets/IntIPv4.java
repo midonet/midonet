@@ -133,7 +133,11 @@ public class IntIPv4 implements Cloneable {
      */
     @JsonCreator
     public static IntIPv4 fromString(String dottedQuad) {
-        String[] parts = dottedQuad.split("_", 2);
+        return fromString(dottedQuad, "_");
+    }
+
+    public static IntIPv4 fromString(String dottedQuad, String delim) {
+        String[] parts = dottedQuad.split(delim, 2);
         // Because of String.split's contract, parts.length can only be 1 or 2
         return new IntIPv4(IPv4Addr.stringToInt(parts[0]),
                 parts.length == 1 ? 32 : Integer.parseInt(parts[1]));

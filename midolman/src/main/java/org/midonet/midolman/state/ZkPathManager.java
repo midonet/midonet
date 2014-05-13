@@ -1717,4 +1717,20 @@ public class ZkPathManager {
         return buildNeutronNetworkPath(id).toString();
     }
 
+    private StringBuilder buildNeutronSubnetsPath() {
+        return buildNeutronPath().append("/subnets");
+    }
+
+    public String getNeutronSubnetsPath() {
+        return buildNeutronSubnetsPath().toString();
+    }
+
+    private StringBuilder buildNeutronSubnetPath(UUID id) {
+        return buildNeutronSubnetsPath().append("/").append(id);
+    }
+
+    public String getNeutronSubnetPath(UUID id) {
+        return buildNeutronSubnetPath(id).toString();
+    }
+
 }

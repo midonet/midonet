@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.slf4j.Logger;
@@ -74,6 +75,55 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         commitOps(ops);
 
         return getNetwork(id);
+    }
+
+    @Override
+    public Subnet createSubnet(@Nonnull Subnet subnet)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        networkZkManager.prepareCreateSubnet(ops, subnet);
+        commitOps(ops);
+
+        // TODO: handle external network case
+
+        return getSubnet(subnet.id);
+    }
+
+    @Override
+    public void deleteSubnet(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        networkZkManager.prepareDeleteSubnet(ops, id);
+        commitOps(ops);
+
+        // TODO: handle external network case
+    }
+
+    @Override
+    public Subnet getSubnet(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        return networkZkManager.getSubnet(id);
+    }
+
+    @Override
+    public List<Subnet> getSubnets()
+            throws StateAccessException, SerializationException {
+        return networkZkManager.getSubnets();
+    }
+
+    @Override
+    public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops  = new ArrayList<>();
+        networkZkManager.prepareUpdateSubnet(ops, subnet);
+
+        // This should throw NoStatePathException if it doesn't exist.
+        commitOps(ops);
+
+        return getSubnet(id);
     }
 
 }

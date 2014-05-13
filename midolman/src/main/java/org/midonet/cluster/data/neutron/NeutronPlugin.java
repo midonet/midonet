@@ -61,4 +61,49 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException,
             BridgeZkManager.VxLanPortIdUpdateException;
 
+    /**
+     * Create a new subnet data in the data store.  StatePathExistsException
+     * thrown if the subnet with the same ID already exists.
+     *
+     * @param subnet Network object to create
+     * @return Created Subnet object
+     */
+    public Subnet createSubnet(@Nonnull Subnet subnet)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Delete a subnet.  Nothing happens if the resource does not exist.
+     *
+     * @param id ID of the Subnet object to delete
+     */
+    public void deleteSubnet(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Retrieve a subnet.  Returns null if the resource does not exist.
+     *
+     * @param id ID of the Subnet object to delete
+     * @return Subnet object
+     */
+    public Subnet getSubnet(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Get all the subnets.
+     *
+     * @return List of Subnet objects.
+     */
+    public List<Subnet> getSubnets()
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Update a subnet.  NoStatePathException is thrown if the resource does
+     * not exist.
+     *
+     * @param id ID of the Subnet object to update
+     * @return Updated Subnet object
+     */
+    public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
+            throws StateAccessException, SerializationException;
+
 }
