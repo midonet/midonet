@@ -106,13 +106,12 @@ sealed trait Port {
  *  port belongs to as well as the underlay ip address of the vtep gateway.
  *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
  *  of the vni int field. */
-trait DeviceVxLanPort { self: Port =>
+abstract class VxLanPort extends Port {
     def vtepAddr: IPv4Addr
     def vni: Int
 }
 
-class BridgePort extends Port {
-}
+class BridgePort extends Port
 
 class RouterPort extends Port {
     var portAddr: IPSubnet[IPv4Addr] = null
@@ -129,6 +128,4 @@ class RouterPort extends Port {
         this.portMac = mac
         this
     }
-
 }
-
