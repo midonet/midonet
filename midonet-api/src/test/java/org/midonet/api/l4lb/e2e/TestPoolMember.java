@@ -40,12 +40,23 @@ public class TestPoolMember {
 
         private DtoLoadBalancer loadBalancer;
         private DtoPool pool;
+        private DtoPoolMember member;
+        private int poolMemberCounter;
 
         @Before
         public void setUp() throws Exception {
             super.setUp();
             loadBalancer = createStockLoadBalancer();
             pool = createStockPool(loadBalancer.getId());
+            poolMemberCounter = 0;
+            // Members should be empty
+            verifyNumberOfPoolMembers(poolMemberCounter);
+            checkBackrefs(pool.getUri());  // No members.
+            member = createStockPoolMember(pool.getId());
+            poolMemberCounter++;
+            verifyNumberOfPoolMembers(poolMemberCounter);
+            assertEquals(pool.getUri(), member.getPool());
+            checkBackrefs(pool.getUri(), member);
         }
 
         private void verifyNumberOfPoolMembers(int num) {
@@ -65,74 +76,61 @@ public class TestPoolMember {
 
         @Test
         public void testCrud() throws Exception {
-
-            // Members should be empty
-            verifyNumberOfPoolMembers(0);
-
-            // Post
-            DtoPoolMember poolMember = createStockPoolMember(pool.getId());
-            verifyNumberOfPoolMembers(1);
-
             // Post another
             DtoPoolMember poolMember2 = createStockPoolMember(pool.getId());
-            verifyNumberOfPoolMembers(2);
+            poolMemberCounter++;
+            verifyNumberOfPoolMembers(poolMemberCounter);
 
             // Get and check
-            DtoPoolMember newPoolMember = getPoolMember(poolMember.getUri());
-            Assert.assertEquals(poolMember, newPoolMember);
+            DtoPoolMember newPoolMember = getPoolMember(member.getUri());
+            Assert.assertEquals(member, newPoolMember);
             newPoolMember = getPoolMember(poolMember2.getUri());
             Assert.assertEquals(poolMember2, newPoolMember);
 
             // Delete
-            deletePoolMember(poolMember.getUri());
-            verifyNumberOfPoolMembers(1);
+            deletePoolMember(member.getUri());
+            poolMemberCounter--;
+            verifyNumberOfPoolMembers(poolMemberCounter);
             deletePoolMember(poolMember2.getUri());
-            verifyNumberOfPoolMembers(0);
+            poolMemberCounter--;
+            verifyNumberOfPoolMembers(poolMemberCounter);
         }
 
         @Test
         public void assertCreateAddsReferences() {
-            checkBackrefs(pool.getUri()); // No members.
-
-            DtoPoolMember member1 = createStockPoolMember(pool.getId());
-            assertEquals(pool.getUri(), member1.getPool());
-            checkBackrefs(pool.getUri(), member1);
-
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
             assertEquals(pool.getUri(), member2.getPool());
-            checkBackrefs(pool.getUri(), member1, member2);
+            checkBackrefs(pool.getUri(), member, member2);
         }
 
         @Test
         public void assertUpdateUpdatesReferences() {
             DtoPool pool2 = createStockPool(loadBalancer.getId());
 
-            DtoPoolMember member1 = createStockPoolMember(pool.getId());
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
-            checkBackrefs(pool.getUri(), member1, member2);
+            checkBackrefs(pool.getUri(), member, member2);
 
             // Switch member2 to pool2.
             member2.setPoolId(pool2.getId());
             member2 = updatePoolMember(member2);
             assertEquals(pool2.getUri(), member2.getPool());
-            checkBackrefs(pool.getUri(), member1);
+            checkBackrefs(pool.getUri(), member);
             checkBackrefs(pool2.getUri(), member2);
 
-            // Switch member1 to pool2.
-            member1.setPoolId(pool2.getId());
-            member1 = updatePoolMember(member1);
-            assertEquals(pool2.getUri(), member1.getPool());
+            // Switch member to pool2.
+            member.setPoolId(pool2.getId());
+            member = updatePoolMember(member);
+            assertEquals(pool2.getUri(), member.getPool());
             checkBackrefs(pool.getUri()); // No members
-            checkBackrefs(pool2.getUri(), member1, member2);
+            checkBackrefs(pool2.getUri(), member, member2);
         }
 
         @Test
         public void testDeletePoolMemberRemovesReferencesFromPool() {
-            DtoPoolMember member1 = createStockPoolMember(pool.getId());
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
-            checkBackrefs(pool.getUri(), member1, member2);
+            checkBackrefs(pool.getUri(), member, member2);
 
-            deletePoolMember(member1.getUri());
+            deletePoolMember(member.getUri());
             checkBackrefs(pool.getUri(), member2);
 
             deletePoolMember(member2.getUri());
@@ -141,9 +139,8 @@ public class TestPoolMember {
 
         @Test
         public void testDeletePoolRemovesReferencesFromPoolMembers() {
-            DtoPoolMember member1 = createStockPoolMember(pool.getId());
-            assertEquals(pool.getId(), member1.getPoolId());
-            assertEquals(pool.getUri(), member1.getPool());
+            assertEquals(pool.getId(), member.getPoolId());
+            assertEquals(pool.getUri(), member.getPool());
 
             DtoPoolMember member2 = createStockPoolMember(pool.getId());
             assertEquals(pool.getId(), member2.getPoolId());
@@ -151,7 +148,7 @@ public class TestPoolMember {
 
             deletePool(pool.getUri());
             // Strongly associated resources are deleted by cascading.
-            dtoResource.getAndVerifyNotFound(member1.getUri(),
+            dtoResource.getAndVerifyNotFound(member.getUri(),
                     VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
             dtoResource.getAndVerifyNotFound(member2.getUri(),
                     VendorMediaType.APPLICATION_POOL_MEMBER_JSON);
@@ -159,14 +156,13 @@ public class TestPoolMember {
 
         @Test
         public void testCreateWithDuplicateId() {
-            DtoPoolMember member1 = createStockPoolMember(pool.getId());
             DtoPoolMember member2 = getStockPoolMember(pool.getId());
-            member2.setId(member1.getId());
+            member2.setId(member.getId());
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
                     member2, CONFLICT);
             assertErrorMatches(
-                    error, RESOURCE_EXISTS, "pool member", member1.getId());
+                    error, RESOURCE_EXISTS, "pool member", member.getId());
         }
 
         @Test
@@ -238,7 +234,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithBadPoolMemberId() throws Exception {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
             DtoError error = dtoResource.putAndVerifyNotFound(
@@ -249,7 +244,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithBadPoolId() {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setPoolId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
@@ -258,7 +252,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithNegativeWeight() {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setWeight(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
@@ -287,7 +280,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithBadIpAddress() {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setAddress("10.10.10.999");
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
@@ -296,7 +288,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithNegativePort() {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setProtocolPort(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
@@ -305,7 +296,6 @@ public class TestPoolMember {
 
         @Test
         public void testUpdateWithPortGreaterThan65535() {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             member.setProtocolPort(65536);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
@@ -321,7 +311,6 @@ public class TestPoolMember {
         @Test
         public void testCreatePoolMemberAndStatusDefaultsToActive()
                 throws Exception {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             assertEquals(LBStatus.ACTIVE, member.getStatus());
 
             // Even if the users put values in the `status` property, it should
@@ -335,7 +324,6 @@ public class TestPoolMember {
         @Test
         public void testPoolMemberStatusCanNotBeChanged()
                 throws Exception {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             assertEquals(LBStatus.ACTIVE, member.getStatus());
 
             member.setStatus(LBStatus.INACTIVE);
@@ -346,7 +334,6 @@ public class TestPoolMember {
         @Test
         public void testPoolMemberUnsettableProperties()
                 throws Exception {
-            DtoPoolMember member = createStockPoolMember(pool.getId());
             String oldAddress = member.getAddress();
             member.setAddress("192.168.100.100");
             member = updatePoolMember(member);
