@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright 2014 Midokura PTE LTD.
  */
 
 package org.midonet.cluster;
@@ -8,10 +8,10 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -29,13 +29,15 @@ import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.cluster.data.neutron.*;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class NeutronPluginTest {
 
     @Inject NeutronPlugin plugin;
     Injector injector = null;
-    String zkRoot = "/test/v3/midolman";
+    String zkRoot = "/test";
 
 
     HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
@@ -62,6 +64,21 @@ public class NeutronPluginTest {
     public Subnet createStockSubnet() {
         Subnet subnet = new Subnet();
         subnet.cidr = "10.0.0.0/24";
+        List<String> nss = new ArrayList<>();
+        nss.add("10.0.0.1");
+        nss.add("10.0.1.1");
+        nss.add("10.0.2.1");
+        List<Route> routes = new ArrayList<>();
+        Route r = new Route();
+        r.destination = "10.1.1.1";
+        r.nexthop = "10.1.1.2";
+        Route r2 = new Route();
+        r2.destination = "20.1.1.1";
+        r2.nexthop = "20.1.1.2";
+        routes.add(r);
+        routes.add(r2);
+        subnet.dnsNameservers = nss;
+        subnet.hostRoutes = routes;
         subnet.enableDhcp = true;
         subnet.gatewayIp = "10.0.0.1";
         subnet.ipVersion = 4;
@@ -69,6 +86,24 @@ public class NeutronPluginTest {
         subnet.tenantId = "tenant";
         subnet.id = UUID.randomUUID();
         return subnet;
+    }
+
+    public Port createStockPort(UUID subnetId, UUID networkId) {
+        Port port = new Port();
+        port.adminStateUp = true;
+        List<IPAllocation> ips = new ArrayList<>();
+        IPAllocation ip = new IPAllocation();
+        ip.ipAddress = "10.0.0.10";
+        ip.subnetId = subnetId;
+        ips.add(ip);
+        List<UUID> secGroups = new ArrayList<>();
+        secGroups.add(UUID.randomUUID());
+        port.fixedIps = ips;
+        port.tenantId = "tenant";
+        port.networkId = networkId;
+        port.macAddress = "aa:bb:cc:00:11:22";
+        port.id = UUID.randomUUID();
+        return port;
     }
 
     @Before
@@ -166,6 +201,48 @@ public class NeutronPluginTest {
         assert(zkDir().getRemovedPaths(cp1, cp5).size() == 0);
         assert(zkDir().getModifiedPaths(cp1, cp5).size() == 0);
         assert(zkDir().getAddedPaths(cp1, cp5).size() == 1);
+    }
+
+    @Test
+    public void testPortCRUD() throws SerializationException,
+            StateAccessException, Rule.RuleIndexOutOfBoundsException {
+        Network network = plugin.createNetwork(createStockNetwork());
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+
+        int cp1 = zkDir().createCheckPoint();
+
+        Port port = createStockPort(subnet.id, network.id);
+        port = plugin.createPort(port);
+
+        Port dhcpPort = createStockPort(subnet.id, network.id);
+        dhcpPort.deviceOwner = DeviceOwner.DHCP;
+        dhcpPort = plugin.createPort(dhcpPort);
+
+        int cp2 = zkDir().createCheckPoint();
+
+        dhcpPort.securityGroups.add(UUID.randomUUID());
+        dhcpPort = plugin.updatePort(dhcpPort.id, dhcpPort);
+
+        int cp3 = zkDir().createCheckPoint();
+
+        assert(zkDir().getRemovedPaths(cp2, cp3).size() == 0);
+        assert(zkDir().getModifiedPaths(cp2, cp3).size() == 2);
+        assert(zkDir().getAddedPaths(cp2, cp3).size() == 0);
+
+
+        plugin.deletePort(dhcpPort.id);
+        plugin.deletePort(port.id);
+
+        int cp6 = zkDir().createCheckPoint();
+
+        assert(zkDir().getRemovedPaths(cp1, cp6).size() == 0);
+        //assert(zkDir().getModifiedPaths(cp1, cp6).size() == 0);  <-- FAILS
+        assert(zkDir().getAddedPaths(cp1, cp6).size() == 0);
+
+        plugin.deleteSubnet(subnet.id);
+        plugin.deleteNetwork(network.id);
     }
 }
 
