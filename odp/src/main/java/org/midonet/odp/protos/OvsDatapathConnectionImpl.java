@@ -563,6 +563,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath,
                                      @Nonnull Packet packet,
+                                     @Nonnull List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
         if (!validateState(callback))
@@ -586,7 +587,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (packet.getActions() == null || packet.getActions().isEmpty()) {
+        if (actions == null || actions.isEmpty()) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
                     "The packet should have an action set up.");
             propagateError(callback, ex);
@@ -596,7 +597,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         Builder builder = newMessage();
         builder.addValue(datapathId);
         builder.addAttrs(PacketFamily.AttrKey.KEY, flowMatch.getKeys());
-        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, packet.getActions());
+        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, actions);
         // TODO(pino): find out why ovs_packet_cmd_execute throws an
         // EINVAL if we put the PACKET attribute right after the
         // datapathId. I examined the ByteBuffers constructed with that

@@ -4,25 +4,19 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.family.PacketFamily;
-import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
 
 /**
  * An abstraction over the Ovs kernel datapath Packet entity. Contains an
  * {@link FlowMatch} object and a <code>byte[] data</code> member when triggered
- * via a kernel notification and a set list of {@link FlowAction} actions when
- * sent from userland.
+ * via a kernel notification.
  *
  * @see FlowMatch
- * @see FlowAction
  * @see OvsDatapathConnection#packetsExecute(Datapath, Packet)
  * @see OvsDatapathConnection#datapathsSetNotificationHandler(Datapath, Callback)
  */
@@ -34,7 +28,6 @@ public class Packet {
     }
 
     private FlowMatch match = new FlowMatch();
-    private List<FlowAction> actions;
     private Long userData;
     private Reason reason;
     private Ethernet eth;
@@ -78,33 +71,6 @@ public class Packet {
         return this;
     }
 
-    public List<FlowAction> getActions() {
-        return actions;
-    }
-
-    public Packet setActions(List<FlowAction> actions) {
-        this.actions = actions;
-        return this;
-    }
-
-    public Packet addAction(FlowAction action) {
-        if (this.actions == null)
-            this.actions = new ArrayList<>();
-
-        this.actions.add(action);
-        return this;
-    }
-
-    public Packet removeAction(FlowAction action) {
-        if (this.actions != null) {
-            if (this.actions.contains(action)) {
-                this.actions.remove(action);
-            }
-        }
-
-        return this;
-    }
-
     public Long getUserData() {
         return userData;
     }
@@ -130,8 +96,6 @@ public class Packet {
 
         Packet packet = (Packet) o;
 
-        if (actions != null ? !actions.equals(
-            packet.actions) : packet.actions != null) return false;
         if (eth != null ? !eth.equals(packet.eth) : packet.eth != null)
             return false;
         if (match != null ? !match.equals(packet.match) : packet.match != null)
@@ -147,7 +111,6 @@ public class Packet {
     public int hashCode() {
         int result = eth != null ? eth.hashCode() : 0;
         result = 31 * result + (match != null ? match.hashCode() : 0);
-        result = 31 * result + (actions != null ? actions.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
         result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
@@ -159,7 +122,6 @@ public class Packet {
         return "Packet{" +
             "data=" + eth +
             ", match=" + match +
-            ", actions=" + actions +
             ", userData=" + userData +
             ", reason=" + reason +
             '}';
@@ -181,8 +143,6 @@ public class Packet {
 
         packet.match = new FlowMatch(
             msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder));
-        packet.actions =
-            msg.getAttrValue(PacketFamily.AttrKey.ACTIONS, FlowAction.Builder);
         packet.userData = msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA);
 
         return packet;

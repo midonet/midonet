@@ -18,12 +18,14 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
-import org.midonet.odp.DpPort;
+import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
+import org.midonet.util.functors.Callback2;
 
 import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
 
@@ -43,7 +45,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     public Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
     public List<Packet> packetsSent = new ArrayList<Packet>();
 
-    org.midonet.util.functors.Callback<Packet, ?> packetExecCb = null;
+    Callback2<Packet,List<FlowAction>> packetExecCb = null;
     FlowListener flowsCb = null;
 
     boolean initialized = false;
@@ -323,17 +325,19 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doPacketsExecute(@Nonnull Datapath datapath, @Nonnull Packet packet,
-                                     Callback<Boolean> callback, long timeoutMillis) {
+    protected void _doPacketsExecute(@Nonnull Datapath datapath,
+                                     @Nonnull Packet packet,
+                                     @Nonnull List<FlowAction> actions,
+                                     Callback<Boolean> callback,
+                                     long timeoutMillis) {
         packetsSent.add(packet);
         if (callback != null)
             callback.onSuccess(true);
         if (packetExecCb != null)
-            packetExecCb.onSuccess(packet);
+            packetExecCb.call(packet, actions);
     }
 
-    public void packetsExecuteSubscribe(
-            org.midonet.util.functors.Callback<Packet, ?> cb) {
+    public void packetsExecuteSubscribe(Callback2<Packet,List<FlowAction>> cb) {
         this.packetExecCb = cb;
     }
 

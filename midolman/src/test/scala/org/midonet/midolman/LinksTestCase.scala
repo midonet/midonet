@@ -25,6 +25,7 @@ import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.FlowActionOutput
+import org.midonet.odp.flows.FlowActions
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
@@ -171,16 +172,13 @@ class LinksTestCase extends MidolmanTestCase
         requestOfType[PacketIn](packetInProbe)
 
         // can't use expectPacketOut because we inspect actions differently
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getData should not be null
-        pktOut.getActions.size should equal (1)
-        val action = pktOut.getActions.get(0)
-        action.getValue .getClass should be (classOf[FlowActionOutput])
-        action.getValue.asInstanceOf[FlowActionOutput]
-            .getPortNumber should be (rtrPort1Num)
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getData should not be null
+        pktOut.actions should contain(FlowActions.output(rtrPort1Num))
 
-        pkt = Ethernet.deserialize(pktOut.getData).getPayload.asInstanceOf[IPv4]
+        pkt = Ethernet.deserialize(pktOut.packet.getData)
+                      .getPayload.asInstanceOf[IPv4]
 
         pkt.getProtocol should be (ICMP.PROTOCOL_NUMBER)
         pkt.getSourceAddress should be (rtrIp1.getAddress.addr)

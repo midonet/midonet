@@ -137,7 +137,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         // Send a forward packet that will be both DNATed and SNATed.
         injectTcp("port1", client1Mac, client1, 12345, clientGwMac,
             dnatDst, 80)
-        var pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        var pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         outPorts should have size(1)
         outPorts should contain (3.toShort)
@@ -162,7 +162,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         val serverMac = if (fromServer1) server1Mac else server2Mac
         injectTcp("port2", serverMac, serverIp, 81,
             serverGwMac, serverGw, snatPort)
-        pktOut = requestOfType[PacketsExecute](packetEventsProbe).packet
+        pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
         outPorts should (have size(1) and contain (2.toShort))
         eth = applyOutPacketActions(pktOut)

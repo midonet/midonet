@@ -3,12 +3,14 @@
  */
 package org.midonet.odp
 
+import java.util.{List => JList}
 import scala.collection.JavaConversions.asScalaSet
 import scala.concurrent._
 import scala.concurrent.duration._
 
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.BatchCollector
@@ -59,11 +61,13 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
     def delFlow(flow: Flow, dp: Datapath) =
         toFuture[Flow] { ovsCon flowsDelete(dp, flow, _) }
 
-    def execPacket(packet: Packet, dp: Datapath) =
-        toFuture[java.lang.Boolean] { ovsCon packetsExecute(dp, packet, _) }
+    def execPacket(packet: Packet, actions: JList[FlowAction], dp: Datapath) =
+        toFuture[java.lang.Boolean] {
+            ovsCon packetsExecute(dp, packet, actions, _)
+        }
 
-    def firePacket(packet: Packet, dp: Datapath) =
-        ovsCon packetsExecute(dp, packet, null)
+    def firePacket(packet: Packet, actions: JList[FlowAction], dp: Datapath) =
+        ovsCon packetsExecute(dp, packet, actions, null)
 
     def ensureDp(name: String)(implicit ec: ExecutionContext) =
         getDp(name) recoverWith { case ex => createDp(name) }

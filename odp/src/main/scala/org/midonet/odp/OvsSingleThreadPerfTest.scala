@@ -37,8 +37,7 @@ abstract class OvsSimpleThroughputTest {
         val output = new java.util.ArrayList[FlowAction]()
         output.add(FlowActions.output(2))
         def handlePacket(p: Packet) {
-            p setActions output
-            con firePacket (p,dp)
+            con firePacket (p,output,dp)
         }
     }
 
@@ -46,8 +45,7 @@ abstract class OvsSimpleThroughputTest {
         val output = new java.util.ArrayList[FlowAction]()
         output.add(FlowActions.output(2))
         def handlePacket(p: Packet) {
-            p setActions output
-            con execPacket (p,dp)
+            con execPacket (p,output,dp)
         }
     }
 
