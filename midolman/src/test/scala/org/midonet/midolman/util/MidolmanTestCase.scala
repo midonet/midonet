@@ -3,6 +3,7 @@
 */
 package org.midonet.midolman.util
 
+import java.util.{List => JList}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -12,22 +13,24 @@ import scala.concurrent.duration._
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.compat.Platform
+import language.implicitConversions
+
 import akka.actor._
 import akka.event.EventStream
 import akka.testkit._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.google.inject._
-import language.implicitConversions
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult}
 import org.slf4j.{Logger, LoggerFactory}
+
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.DatapathController
-import org.midonet.midolman.DatapathController.{InitializationComplete, DpPortCreate, Initialize}
+import org.midonet.midolman.DatapathController.{DatapathReady, DpPortCreate, Initialize}
 import org.midonet.midolman.DatapathState
 import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
 import org.midonet.midolman.FlowController
@@ -66,7 +69,7 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
-import org.midonet.util.functors.callbacks.AbstractCallback
+import org.midonet.util.functors.Callback2
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -78,7 +81,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                                      with MidolmanServices
                                      with VirtualConfigurationBuilders {
 
-    case class PacketsExecute(packet: Packet)
+    case class PacketsExecute(packet: Packet, actions: JList[FlowAction])
     case class FlowAdded(flow: Flow)
     case class FlowRemoved(flow: Flow)
 
@@ -163,12 +166,12 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
-            mockDpConn().packetsExecuteSubscribe(
-                new AbstractCallback[Packet, Exception] {
-                    override def onSuccess(pkt: Packet) {
-                        actors().eventStream.publish(PacketsExecute(pkt))
-                    }
-                })
+            val cb = new Callback2[Packet, JList[FlowAction]] {
+                override def call(pkt: Packet, actions: JList[FlowAction]) {
+                    actors().eventStream.publish(PacketsExecute(pkt, actions))
+                }
+            }
+            mockDpConn().packetsExecuteSubscribe(cb)
 
             mockDpConn().flowsSubscribe(
                 new FlowListener {
@@ -300,10 +303,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorsByName(name).asInstanceOf[TestActorRef[A]]
     }
 
-    protected def initializeDatapath() = {
+    protected def initializeDatapath(): String = {
         val result = Await.result(dpController() ? Initialize, timeout)
-        result should be (InitializationComplete)
-        InitializationComplete
+        result shouldBe a [DatapathReady]
+        "ok"
     }
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {

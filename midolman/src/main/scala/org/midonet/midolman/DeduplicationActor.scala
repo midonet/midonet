@@ -379,20 +379,24 @@ class DeduplicationActor(
         }
     }
 
-    private def executePacket(packet: Packet,
-                              actions: JList[FlowAction]): Unit = {
-        packet.setActions(actions)
-        if (packet.getMatch.isUserSpaceOnly)
-            UserspaceFlowActionTranslator.translate(packet)
+    private def executePacket(packet: Packet, actions: JList[FlowAction]) {
 
-        if (!packet.getActions.isEmpty) {
-            try {
-                datapathConn(packet).packetsExecute(datapath, packet)
-            } catch {
-                case e: NetlinkException =>
-                    log.info("Failed to execute packet: {}", e)
-            }
-            metrics.packetsProcessed.mark()
+        val finalActions = if (packet.getMatch.isUserSpaceOnly) {
+            UserspaceFlowActionTranslator.translate(packet, actions)
+        } else {
+            actions
         }
+
+        if (finalActions.isEmpty) {
+            return
+        }
+
+        try {
+            datapathConn(packet).packetsExecute(datapath, packet, finalActions)
+        } catch {
+            case e: NetlinkException =>
+                log.info("Failed to execute packet: {}", e)
+        }
+        metrics.packetsProcessed.mark()
     }
 }

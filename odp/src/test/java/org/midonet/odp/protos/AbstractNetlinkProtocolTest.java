@@ -158,7 +158,8 @@ public abstract class AbstractNetlinkProtocolTest {
 
     }
 
-    protected void initializeConnection(Future<Boolean> initialization, int messages) throws Exception {
+    protected void initializeConnection(Future<Boolean> initialization,
+                                        int messages) throws Exception {
 
         while (messages-- > 0) {
             exchangeMessage();

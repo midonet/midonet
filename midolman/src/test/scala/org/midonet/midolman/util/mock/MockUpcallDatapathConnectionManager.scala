@@ -11,17 +11,14 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.io.ManagedDatapathConnection
-import org.midonet.midolman.io.MockManagedDatapathConnection
-import org.midonet.midolman.io.TokenBucketPolicy
-import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.io._
 import org.midonet.midolman.toActorRef
-import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
-import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
+import org.midonet.util.{TokenBucketTestRate, TokenBucket, BatchCollector}
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
-        extends UpcallDatapathConnectionManager(config,
+        extends UpcallDatapathConnectionManagerBase(config,
             new TokenBucketPolicy(config, new TokenBucketTestRate)) {
     protected override val log = LoggerFactory.getLogger(this.getClass)
 

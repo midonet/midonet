@@ -598,8 +598,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         expectPacketOnPort(uplinkPort.getId)
         requestOfType[DiscardPacket](discardPacketProbe)
 
-        val pktReply = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktReply should not be null
+        val pktReply = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktReply.packet should not be null
         val ethReply = applyOutPacketActions(pktReply)
         val ipReply = ethReply.getPayload.asInstanceOf[IPv4]
         ipReply.getSourceAddress should be (floatingIp.toInt)

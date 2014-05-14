@@ -3,6 +3,7 @@
  */
 package org.midonet.odp.protos;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
@@ -27,6 +28,7 @@ import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
+import org.midonet.odp.flows.FlowAction;
 
 
 /**
@@ -141,6 +143,58 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                                long timeoutMillis);
 
     /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name     the name of the datapath
+     * @param callback the callback that will receive information.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback) {
+        datapathsGet(name, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param name          the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback,
+                             long timeoutMillis) {
+        _doDatapathsGet(name, callback, timeoutMillis);
+    }
+
+    protected abstract void _doDatapathsGet(String name,
+                                            Callback<Datapath> callback,
+                                            long defReplyTimeout);
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId the name of the datapath
+     * @param callback   the callback that will receive information.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback) {
+        datapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    /**
+     * Callback based api for retrieving datapath information.
+     *
+     * @param datapathId    the name of the datapath
+     * @param callback      the callback that will receive information.
+     * @param timeoutMillis the timeout we are willing to wait for response.
+     */
+    public void datapathsGet(int datapathId, Callback<Datapath> callback,
+                             long timeoutMillis) {
+        _doDatapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    protected abstract void _doDatapathsGet(int datapathId,
+                                            Callback<Datapath> callback,
+                                            long defReplyTimeout);
+
+    /**
      * Callback based api for creating a datapath by name (with default timeout).
      *
      * @param datapathId the id of the datapath
@@ -162,8 +216,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public void datapathsDelete(int datapathId,
                                 @Nonnull Callback<Datapath> callback,
                                 long timeoutMillis) {
-        _doDatapathsDelete(datapathId, null, callback, timeoutMillis);
+        _doDatapathsDelete(datapathId, callback, timeoutMillis);
     }
+
+    protected abstract void _doDatapathsDelete(int datapathId,
+                                               @Nonnull Callback<Datapath> callback,
+                                               long timeoutMillis);
 
     /**
      * Callback based api for creating a datapath by name (with default timeout).
@@ -187,10 +245,10 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
     public void datapathsDelete(@Nonnull String name,
                                 @Nonnull Callback<Datapath> callback,
                                 long timeoutMillis) {
-        _doDatapathsDelete(null, name, callback, timeoutMillis);
+        _doDatapathsDelete(name, callback, timeoutMillis);
     }
 
-    protected abstract void _doDatapathsDelete(Integer datapathId, String name,
+    protected abstract void _doDatapathsDelete(String name,
                                                @Nonnull Callback<Datapath> callback,
                                                long timeoutMillis);
 
@@ -382,55 +440,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
                                            @Nonnull DpPort port,
                                            @Nonnull Callback<DpPort> callback,
                                            long timeoutMillis);
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param name     the name of the datapath
-     * @param callback the callback that will receive information.
-     */
-    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback) {
-        datapathsGet(name, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param name          the name of the datapath
-     * @param callback      the callback that will receive information.
-     * @param timeoutMillis the timeout we are willing to wait for response.
-     */
-    public void datapathsGet(@Nonnull String name, Callback<Datapath> callback,
-                             long timeoutMillis) {
-        _doDatapathsGet(null, name, callback, timeoutMillis);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param datapathId the name of the datapath
-     * @param callback   the callback that will receive information.
-     */
-    public void datapathsGet(int datapathId, Callback<Datapath> callback) {
-        datapathsGet(datapathId, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    /**
-     * Callback based api for retrieving datapath information.
-     *
-     * @param datapathId    the name of the datapath
-     * @param callback      the callback that will receive information.
-     * @param timeoutMillis the timeout we are willing to wait for response.
-     */
-    public void datapathsGet(int datapathId, Callback<Datapath> callback,
-                             long timeoutMillis) {
-        _doDatapathsGet(datapathId, null, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    protected abstract void _doDatapathsGet(final Integer datapathId,
-                                            final String name,
-                                            final Callback<Datapath> callback,
-                                            final long defReplyTimeout);
 
     /**
      * Callback based api for enumerating flows.
@@ -644,10 +653,11 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param callback is the callback which will receive the operation completion
      *                 status
      */
-    public void packetsExecute(@Nonnull final Datapath datapath,
-                               @Nonnull final Packet packet,
-                               @Nonnull final Callback<Boolean> callback) {
-        packetsExecute(datapath, packet, callback, DEF_REPLY_TIMEOUT);
+    public void packetsExecute(@Nonnull Datapath datapath,
+                               @Nonnull Packet packet,
+                               @Nonnull List<FlowAction> actions,
+                               @Nonnull Callback<Boolean> callback) {
+        packetsExecute(datapath, packet, actions, callback, DEF_REPLY_TIMEOUT);
     }
 
     private void unwrapNetlinkException(RuntimeException ex) throws NetlinkException {
@@ -665,10 +675,11 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param packet   is the packet we want to send. It needs to have both
      *                 the keys and the actions parameters set.
      */
-    public void packetsExecute(@Nonnull final Datapath datapath,
-                               @Nonnull final Packet packet) throws NetlinkException {
+    public void packetsExecute(@Nonnull Datapath datapath,
+                               @Nonnull Packet packet,
+                               @Nonnull List<FlowAction> actions) throws NetlinkException {
         try {
-            _doPacketsExecute(datapath, packet, null, DEF_REPLY_TIMEOUT);
+            _doPacketsExecute(datapath, packet, actions, null, DEF_REPLY_TIMEOUT);
         } catch (RuntimeException wrapper) {
             unwrapNetlinkException(wrapper);
         }
@@ -685,16 +696,18 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
      * @param timeoutMillis is the timeout we want to wait until the operation
      *                      should complete
      */
-    public void packetsExecute(@Nonnull final Datapath datapath,
-                               @Nonnull final Packet packet,
-                               @Nonnull final Callback<Boolean> callback,
+    public void packetsExecute(@Nonnull Datapath datapath,
+                               @Nonnull Packet packet,
+                               @Nonnull List<FlowAction> actions,
+                               @Nonnull Callback<Boolean> callback,
                                long timeoutMillis) {
-        _doPacketsExecute(datapath, packet, callback, timeoutMillis);
+        _doPacketsExecute(datapath, packet, actions, callback, timeoutMillis);
     }
 
-    protected abstract void _doPacketsExecute(@Nonnull final Datapath datapath,
-                                              @Nonnull final Packet packet,
-                                              final Callback<Boolean> callback,
+    protected abstract void _doPacketsExecute(@Nonnull Datapath datapath,
+                                              @Nonnull Packet packet,
+                                              @Nonnull List<FlowAction> actions,
+                                              Callback<Boolean> callback,
                                               long timeoutMillis);
 
 
@@ -955,10 +968,12 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
          * @return a future that can be used to track the successful completion of
          *         the operation.
          */
-        public Future<Boolean> packetsExecute(@Nonnull final Datapath datapath,
-                                              @Nonnull final Packet packet) {
+        public Future<Boolean> packetsExecute(@Nonnull Datapath datapath,
+                                              @Nonnull Packet packet,
+                                              @Nonnull List<FlowAction> actions) {
             ValueFuture<Boolean> resultFuture = ValueFuture.create();
-            OvsDatapathConnection.this.packetsExecute(datapath, packet, wrapFuture(resultFuture));
+            OvsDatapathConnection.this.packetsExecute(
+                datapath, packet, actions, wrapFuture(resultFuture));
             return resultFuture;
         }
     }

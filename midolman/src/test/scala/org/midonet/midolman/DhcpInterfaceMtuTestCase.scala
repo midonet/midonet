@@ -169,20 +169,20 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
     }
 
     private def expectPacketOut(portNum : Int): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         log.debug("Packet execute: {}", pktOut)
 
-        pktOut.getActions.size should equal (1)
+        pktOut.actions.size should equal (1)
 
-        pktOut.getActions.toList map { action =>
+        pktOut.actions.toList map { action =>
             action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
             action.getValue.getClass() should be (classOf[FlowActionOutput])
             action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
 
-        pktOut.getPacket
+        pktOut.packet.getPacket
     }
 
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {

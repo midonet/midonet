@@ -30,7 +30,6 @@ import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
-import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
 
 import static org.midonet.odp.family.FlowFamily.AttrKey;
@@ -60,7 +59,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             (packetFamily.contextMiss.command() == cmd ||
                 packetFamily.contextAction.command() == cmd)) {
             if (notificationHandler != null) {
-                Packet packet = deserializePacket(buffer);
+                Packet packet = Packet.buildFrom(buffer);
                 if (packet == null) {
                     log.info("Discarding malformed packet");
                     return;
@@ -101,24 +100,44 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsGet(Integer datapathId, String name,
+    protected void _doDatapathsGet(String name,
                                    @Nonnull Callback<Datapath> callback,
                                    long timeoutMillis) {
         if (!validateState(callback))
             return;
 
-        if (datapathId == null && name == null) {
+        if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath id or a datapath name should be provided"));
+                "given datapath name was null"));
             return;
         }
-
-        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), dpId, name),
+            Datapath.getRequest(getBuffer(), 0, name),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
+    }
+
+    @Override
+    protected void _doDatapathsGet(int datapathId,
+                                   @Nonnull Callback<Datapath> callback,
+                                   long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        if (datapathId == 0) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "datapath id should not be 0"));
+            return;
+        }
+
+        sendNetlinkMessage(
+            datapathFamily.contextGet,
+            NLFlag.REQUEST | NLFlag.ECHO,
+            Datapath.getRequest(getBuffer(), datapathId, null),
             callback,
             Datapath.deserializer,
             timeoutMillis);
@@ -158,24 +177,44 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doDatapathsDelete(Integer datapathId, String name,
+    protected void _doDatapathsDelete(String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
         if (!validateState(callback))
             return;
 
-        if (datapathId == null && name == null) {
+        if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
-                "Either a datapath id or a datapath name should be provided"));
+                "given datapath name was null"));
             return;
         }
-
-        int dpId = datapathId != null ? datapathId : 0;
 
         sendNetlinkMessage(
             datapathFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), dpId, name),
+            Datapath.getRequest(getBuffer(), 0, name),
+            callback,
+            Datapath.deserializer,
+            timeoutMillis);
+    }
+
+    @Override
+    protected void _doDatapathsDelete(int datapathId,
+                                      @Nonnull Callback<Datapath> callback,
+                                      long timeoutMillis) {
+        if (!validateState(callback))
+            return;
+
+        if (datapathId == 0) {
+            callback.onError(new OvsDatapathInvalidParametersException(
+                "datapath id should not be 0"));
+            return;
+        }
+
+        sendNetlinkMessage(
+            datapathFamily.contextDel,
+            NLFlag.REQUEST | NLFlag.ECHO,
+            Datapath.getRequest(getBuffer(), datapathId, null),
             callback,
             Datapath.deserializer,
             timeoutMillis);
@@ -306,7 +345,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -336,7 +375,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
@@ -377,7 +416,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -418,7 +457,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -447,7 +486,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -478,7 +517,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             callback.onError(
@@ -524,12 +563,13 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath,
                                      @Nonnull Packet packet,
+                                     @Nonnull List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
         if (!validateState(callback))
             return;
 
-        final int datapathId = datapath.getIndex() != null ? datapath.getIndex() : 0;
+        int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
@@ -547,7 +587,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (packet.getActions() == null || packet.getActions().isEmpty()) {
+        if (actions == null || actions.isEmpty()) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
                     "The packet should have an action set up.");
             propagateError(callback, ex);
@@ -557,7 +597,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         Builder builder = newMessage();
         builder.addValue(datapathId);
         builder.addAttrs(PacketFamily.AttrKey.KEY, flowMatch.getKeys());
-        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, packet.getActions());
+        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, actions);
         // TODO(pino): find out why ovs_packet_cmd_execute throws an
         // EINVAL if we put the PACKET attribute right after the
         // datapathId. I examined the ByteBuffers constructed with that
@@ -579,27 +619,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             callback,
             alwaysTrueTranslator,
             timeoutMillis);
-    }
-
-    private Packet deserializePacket(ByteBuffer buffer) {
-        Packet packet = new Packet();
-
-        NetlinkMessage msg = new NetlinkMessage(buffer);
-
-        int datapathIndex = msg.getInt();
-        packet
-            .setPacket(msg.getAttrValueEthernet(PacketFamily.AttrKey.PACKET))
-            .setMatch(
-                new FlowMatch(
-                    msg.getAttrValue(PacketFamily.AttrKey.KEY,
-                                     FlowKey.Builder)))
-            .setActions(
-                msg.getAttrValue(
-                    PacketFamily.AttrKey.ACTIONS, FlowAction.Builder))
-            .setUserData(
-                msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA));
-
-        return packet.getPacket() != null ? packet : null;
     }
 
     private enum State {

@@ -26,8 +26,8 @@ import scala.concurrent.Await
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
-class DatapathControllerTestCase extends MidolmanTestCase
-        with Matchers {
+class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
+
     import scala.collection.JavaConversions._
     import DatapathController._
 

@@ -268,21 +268,20 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     }
 
     def executePacket(actions: Seq[FlowAction]) {
-        packet.setActions(actions.asJava)
-        if (packet.getMatch.isUserSpaceOnly) {
-            log.debug("Applying userspace actions to packet {}", cookieStr)
-            UserspaceFlowActionTranslator.translate(packet)
+        val finalActions = if (packet.getMatch.isUserSpaceOnly) {
+            UserspaceFlowActionTranslator.translate(packet, actions.asJava)
+        } else {
+            actions.asJava
         }
 
-        if (packet.getActions.isEmpty) {
+        if (finalActions.isEmpty) {
             log.debug("Dropping packet {}", cookieStr)
             return
         }
 
-        log.debug("Executing packet {}", cookieStr)
-
         try {
-            datapathConnection.packetsExecute(datapath, packet)
+            log.debug("Executing packet {}", cookieStr)
+            datapathConnection.packetsExecute(datapath, packet, finalActions)
         } catch {
             case e: NetlinkException =>
                 log.info("{} Failed to execute packet: {}", cookieStr, e)
