@@ -31,7 +31,7 @@ object UpcallChannelsTest {
         def receive = { case _ => }
     }
 
-    trait TestMixin { self: UpcallDatapathConnectionManager  =>
+    trait TestMixin { self: UpcallDatapathConnectionManagerBase  =>
         val dispatcher: ActorRef
         val packetHandler: ActorRef
         override def askForWorkers()(implicit ec: ExecutionContext,

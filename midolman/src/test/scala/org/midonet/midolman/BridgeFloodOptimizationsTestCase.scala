@@ -111,7 +111,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         pktOut.packet.getData should be (ARP.makeArpReply(
             mac1, mac2, IPv4Addr.intToBytes(ip1.addr),
             IPv4Addr.intToBytes(ip2.addr)).serialize())
-        var outports = actionsToOutputPorts(pktOut.packet.getActions)
+        var outports = actionsToOutputPorts(pktOut.actions)
         outports should have size (1)
         outports should (contain (portId2))
         // one packet should have been forwarded; no flows installed
@@ -132,7 +132,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         mockDpConn().flowsTable.size() should be(1)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
-        (pktOut.packet.getActions.toArray) should be (wflow.getActions.toArray)
+        (pktOut.actions.toArray) should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
         mockDpConn().packetsSent.size() should be (2)
         mockDpConn().packetsSent.get(1) should be (pktOut.packet)
@@ -153,7 +153,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         mockDpConn().flowsTable.size() should be(2)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
-        pktOut.packet.getActions.toArray should be (wflow.getActions.toArray)
+        pktOut.actions.toArray should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
         mockDpConn().packetsSent.size() should be (3)
         mockDpConn().packetsSent.get(2) should be (pktOut.packet)

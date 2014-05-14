@@ -59,8 +59,6 @@ public class VxLanTunnelPortOptions implements BuilderAware {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        if (!super.equals(o))
-            return false;
 
         VxLanTunnelPortOptions that = (VxLanTunnelPortOptions) o;
         return (dstPort == that.dstPort);

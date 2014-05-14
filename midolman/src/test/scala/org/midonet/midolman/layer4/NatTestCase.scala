@@ -228,7 +228,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     }
 
     def expectTranslatedPacket(): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val eth = applyOutPacketActions(pktOut)
         log.info("packet translated: {}", eth)
         log.info("packet ports: {}", getOutPacketPorts(pktOut))
@@ -275,7 +275,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         injectTcp("uplinkPort", uplinkGatewayMac, IPv4Addr("62.72.82.1"), 20301,
                                 uplinkPortMac, dnatAddress, 80,
                                 syn = true)
-        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         val newMappings: Set[String] = updateAndDiffMappings()
@@ -286,7 +286,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
                 leaseManager.fwdKeys.get(newMappings.head).flowCount,
                 "uplinkPort", localPortNumberToName(outPorts.head).get,
-                pktOut.getPacket,
+                pktOut.packet.getPacket,
                 applyOutPacketActions(pktOut))
 
         log.info("Sending a return tcp packet")
@@ -294,7 +294,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             mapping.revInFromMac, mapping revInFromIp, mapping.revInFromPort,
             mapping.revInToMac, mapping.revInToIp, mapping.revInToPort,
             ack = true, syn = true)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         updateAndDiffMappings().size should be (0)
@@ -307,7 +307,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         injectTcp("uplinkPort",
             MAC.fromString("02:99:99:77:77:77"), IPv4Addr("62.72.82.1"), 20301,
             uplinkPortMac, dnatAddress, 80, ack = true)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         updateAndDiffMappings().size should be (0)
@@ -332,7 +332,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         injectTcp(vmPortNames.head, vmMacs.head, vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
             syn = true)
-        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         val newMappings: Set[String] = updateAndDiffMappings()
@@ -344,7 +344,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
             vmPortNames.head, "uplinkPort",
-            pktOut.getPacket,
+            pktOut.packet.getPacket,
             applyOutPacketActions(pktOut))
 
         log.info("Sending a return tcp packet")
@@ -353,7 +353,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             mapping.revInToMac, mapping.revInToIp, mapping.revInToPort,
             ack = true, syn = true)
 
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         updateAndDiffMappings().size should be (0)
@@ -366,7 +366,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         injectTcp(vmPortNames.head, "02:34:34:43:43:20", vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
             ack = true)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
         drainProbes()
         updateAndDiffMappings().size should be (0)
@@ -401,7 +401,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val icmpReq = injectIcmpEchoReq(outPort,
             srcMac, srcIp, dstMac, dstIp, icmpId, icmpSeq)
 
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
 
@@ -413,7 +413,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
             outPort, localPortNumberToName(outPorts.head).get,
-            pktOut.getPacket,
+            pktOut.packet.getPacket,
             eth)
 
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -443,7 +443,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         // Expect the packet delivered back to the source, MAC should be learnt
         // already so expect straight on the bridge's port
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some("uplinkPort"))
@@ -471,7 +471,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      */
     private def expectICMPError(port: String, expectIcmpData: IPv4) {
         // we should have a packet coming out of the expected port
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some(port))
@@ -537,7 +537,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
                         dstMac, dstIp,
                         icmpId, icmpSeq)
 
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be === 1
         localPortNumberToName(outPorts.head) should be === Some("uplinkPort")
@@ -582,7 +582,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         // Expect the packet delivered back to the source, MAC should be learnt
         // already so expect straight on the bridge's port
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
 
@@ -672,7 +672,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * UNREACHABLE, and verify that the reverse SNAT is done properly
      */
     private def verifySnatICMPErrorAfterPacket() {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
         drainProbes()
@@ -682,7 +682,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
         localPortNumberToName(outPorts.head) should be (Some("uplinkPort"))
 
-        val eth = pktOut.getPacket
+        val eth = pktOut.packet.getPacket
         val ethApplied = applyOutPacketActions(pktOut)
         val mp = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,
@@ -707,7 +707,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
      * properly
      */
     private def verifyDnatICMPErrorAfterPacket() {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
         drainProbes()
@@ -716,7 +716,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         newMappings.size should be (1)
         leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
 
-        val eth = pktOut.getPacket
+        val eth = pktOut.packet.getPacket
         val ethApplied = applyOutPacketActions(pktOut)
         val mapping = new Mapping(newMappings.head,
             leaseManager.fwdKeys.get(newMappings.head).flowCount,

@@ -7,10 +7,15 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.math.BigInteger;
+import java.util.Random;
+import java.util.Objects;
 
 import com.google.common.base.Function;
+import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.DatapathFamily;
@@ -26,7 +31,6 @@ public class Datapath {
     public static final NetlinkMessage.AttrKey<Datapath.Stats> StatsAttr =
         NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Stat);
 
-
     public Datapath(int index, String name) {
         this.name = name;
         this.index = index;
@@ -39,39 +43,41 @@ public class Datapath {
         this.stats = stats;
     }
 
-    Integer index;
-    String name;
-    Stats stats;
+    private int index;
+    private String name;
+    private Stats stats;
 
-    public Integer getIndex() {
+    public int getIndex() {
         return index;
-    }
-
-    public void setIndex(Integer index) {
-        this.index = index;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Stats getStats() {
         return stats;
     }
 
-    public void setStats(Stats stats) {
-        this.stats = stats;
-    }
-
     public static Datapath buildFrom(NetlinkMessage msg) {
-        Integer index = msg.getInt();
+        int index = msg.getInt();
         String name = msg.getAttrValueString(NameAttr);
         Stats stats = Stats.buildFrom(msg);
         return new Datapath(index, name, stats);
+    }
+
+    /** This function is only used in test, as all dp commands directly
+     *  write the request message. See get/enum/createRequest(). */
+    public void serializeInto(ByteBuffer buf) {
+        buf.putInt(index);
+
+        short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
+        NetlinkMessage.addAttribute(buf, nameAttrId, name);
+
+        if (stats != null) {
+            short statsAttrId = (short) OpenVSwitch.Datapath.Attr.Stat;
+            NetlinkMessage.write(buf, statsAttrId, stats, Stats.trans);
+        }
     }
 
     /** Static stateless deserializer which builds a single Datapath instance.
@@ -104,45 +110,34 @@ public class Datapath {
 
     public static class Stats implements BuilderAware {
 
-        long hits;
-        long misses;
-        long lost;
-        long flows;
+        private long hits;
+        private long misses;
+        private long lost;
+        private long flows;
+
+        public Stats() { }
+
+        public Stats(long hits, long misses, long lost, long flows) {
+            this.hits = hits;
+            this.misses = misses;
+            this.lost = lost;
+            this.flows = flows;
+        }
 
         public long getHits() {
             return hits;
-        }
-
-        public Stats setHits(long hits) {
-            this.hits = hits;
-            return this;
         }
 
         public long getMisses() {
             return misses;
         }
 
-        public Stats setMisses(long misses) {
-            this.misses = misses;
-            return this;
-        }
-
         public long getLost() {
             return lost;
         }
 
-        public Stats setLost(long lost) {
-            this.lost = lost;
-            return this;
-        }
-
         public long getFlows() {
             return flows;
-        }
-
-        public Stats setFlows(long flows) {
-            this.flows = flows;
-            return this;
         }
 
         @Override
@@ -171,23 +166,21 @@ public class Datapath {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Stats stats = (Stats) o;
+            @SuppressWarnings("unchecked") // safe cast
+            Stats that = (Stats) o;
 
-            if (flows != stats.flows) return false;
-            if (hits != stats.hits) return false;
-            if (lost != stats.lost) return false;
-            if (misses != stats.misses) return false;
-
-            return true;
+            return (this.hits == that.hits)
+                && (this.misses == that.misses)
+                && (this.lost == that.lost)
+                && (this.flows == that.flows);
         }
 
         @Override
         public int hashCode() {
-            int result = (int) (hits ^ (hits >>> 32));
-            result = 31 * result + (int) (misses ^ (misses >>> 32));
-            result = 31 * result + (int) (lost ^ (lost >>> 32));
-            result = 31 * result + (int) (flows ^ (flows >>> 32));
-            return result;
+            int result = Longs.hashCode(hits);
+            result = 31 * result + Longs.hashCode(misses);
+            result = 31 * result + Longs.hashCode(lost);
+            return 31 * result + Longs.hashCode(flows);
         }
 
         @Override
@@ -203,6 +196,28 @@ public class Datapath {
         public static Stats buildFrom(NetlinkMessage msg) {
             return msg.getAttrValue(StatsAttr, new Stats());
         }
+
+        public static final Translator<Stats> trans = new Translator<Stats>() {
+            public int serializeInto(ByteBuffer receiver, Stats value) {
+                receiver.putLong(value.hits)
+                        .putLong(value.misses)
+                        .putLong(value.lost)
+                        .putLong(value.flows);
+                return 4 * 8;
+            }
+            public Stats deserializeFrom(ByteBuffer source) {
+                long hits = source.getLong();
+                long misses = source.getLong();
+                long lost = source.getLong();
+                long flows = source.getLong();
+                return new Stats(hits, misses, lost, flows);
+            }
+        };
+
+        public static Stats random() {
+            return new Stats(r.nextLong(), r.nextLong(),
+                             r.nextLong(), r.nextLong());
+        }
     }
 
     @Override
@@ -210,26 +225,17 @@ public class Datapath {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Datapath datapath = (Datapath) o;
+        @SuppressWarnings("unchecked") // safe cast
+        Datapath that = (Datapath) o;
 
-        if (index != null ? !index.equals(
-            datapath.index) : datapath.index != null)
-            return false;
-        if (name != null ? !name.equals(datapath.name) : datapath.name != null)
-            return false;
-        if (stats != null ? !stats.equals(
-            datapath.stats) : datapath.stats != null)
-            return false;
-
-        return true;
+        return Objects.equals(this.index, that.index)
+            && Objects.equals(this.name, that.name)
+            && Objects.equals(this.stats, that.stats);
     }
 
     @Override
     public int hashCode() {
-        int result = index != null ? index.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (stats != null ? stats.hashCode() : 0);
-        return result;
+        return Objects.hash(index, name, stats);
     }
 
     @Override
@@ -259,7 +265,7 @@ public class Datapath {
     }
 
     public static ByteBuffer createRequest(ByteBuffer buf, int pid,
-                                        String datapathName) {
+                                           String datapathName) {
         buf.putInt(0);
         short pidAttrId = (short) OpenVSwitch.Datapath.Attr.UpcallPID;
         NetlinkMessage.writeIntAttr(buf, pidAttrId, pid);
@@ -270,4 +276,12 @@ public class Datapath {
         buf.flip();
         return buf;
     }
+
+    public static Datapath random() {
+        return new Datapath(1 + r.nextInt(100),
+                            new BigInteger(100, r).toString(32),
+                            Stats.random());
+    }
+
+    private static final Random r = new Random();
 }

@@ -176,9 +176,9 @@ class FloatingIpTestCase extends MidolmanTestCase
         log.info("Sending a tcp packet VM2 -> floating IP, should be DNAT'ed")
         injectTcp(vm2PortName, vm2Mac, vm2Ip, 20301, routerMac2,
                   floatingIP, 80, syn = true)
-        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         var eth = applyOutPacketActions(pktOut)
         log.debug("Packet out: {}", pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -190,9 +190,9 @@ class FloatingIpTestCase extends MidolmanTestCase
             "Replying with tcp packet floatingIP -> VM2, should be SNAT'ed")
         injectTcp(rtrPort1Name, vm1Mac, vm1Ip, 20301, routerMac1,
                   vm2Ip, 80, syn = true)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -203,9 +203,9 @@ class FloatingIpTestCase extends MidolmanTestCase
         log.info("Sending tcp packet from VM2 -> VM1, private ips, no NAT")
         injectTcp(vm2PortName, vm2Mac, vm2Ip, 20301, routerMac2,
                   vm1Ip, 80, syn = true)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -215,9 +215,9 @@ class FloatingIpTestCase extends MidolmanTestCase
 
         log.info("ICMP echo, VM1 -> VM2, should be SNAT'ed")
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, vm2Ip)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -227,9 +227,9 @@ class FloatingIpTestCase extends MidolmanTestCase
 
         log.info("ICMP echo, VM2 -> floatingIp, should be DNAT'ed")
         injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip, routerMac1, floatingIP)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -240,9 +240,9 @@ class FloatingIpTestCase extends MidolmanTestCase
         log.info(
             "ICMP echo, VM1 -> floatingIp, should be DNAT'ed, but not SNAT'ed")
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, floatingIP)
-        pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
+        pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]

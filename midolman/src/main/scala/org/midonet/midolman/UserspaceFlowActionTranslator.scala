@@ -27,9 +27,9 @@ object UserspaceFlowActionTranslator {
      * @return A newly allocated packet with the fields in the match applied
      * @throws MalformedPacketException
      */
-    def translate(packet: Packet) {
+    def translate(packet: Packet, actions: java.util.List[FlowAction]) = {
         val newActions = new java.util.ArrayList[FlowAction]()
-        val iter = packet.getActions.iterator()
+        val iter = actions.iterator()
         while (iter.hasNext()) {
             iter.next() match {
                 case a: FlowActionSetKey =>
@@ -44,7 +44,7 @@ object UserspaceFlowActionTranslator {
                     newActions.add(a)
             }
         }
-        packet.setActions(newActions)
+        newActions
     }
 
     // This is very limited but we don't really need more

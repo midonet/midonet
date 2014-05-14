@@ -141,7 +141,7 @@ class PingTestCase extends MidolmanTestCase
         val pktOut = getPacketOut
         log.debug("Packet execute: {}", pktOut)
 
-        val flowActs = pktOut.getActions
+        val flowActs = pktOut.actions
         flowActs.size should be (1)
 
         val act = flowActs(0)
@@ -149,7 +149,7 @@ class PingTestCase extends MidolmanTestCase
         act.getValue.getClass() should be (classOf[FlowActionOutput])
         act.getValue.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
 
-        pktOut.getPacket
+        pktOut.packet.getPacket
     }
 
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {

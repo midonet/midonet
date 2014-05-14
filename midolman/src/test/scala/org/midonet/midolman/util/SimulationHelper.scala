@@ -25,10 +25,12 @@ trait SimulationHelper { this: MidolmanTestCase =>
 
     final val IPv6_ETHERTYPE: Short = 0x86dd.toShort
 
-    def applyOutPacketActions(packet: Packet): Ethernet = {
+    def applyOutPacketActions(packetEx: PacketsExecute): Ethernet = {
+        val packet = packetEx.packet
+        val actions = packetEx.actions
         packet should not be null
         packet.getPacket should not be null
-        packet.getActions should not be null
+        actions should not be null
 
         val eth = Ethernet.deserialize(packet.getPacket.serialize())
         var ip: IPv4 = null
@@ -49,13 +51,13 @@ trait SimulationHelper { this: MidolmanTestCase =>
                 }
         }
 
-        val actions = packet.getActions.flatMap(action => action match {
+        val actionsSet = actions.flatMap(action => action match {
             case a: FlowActionSetKey => Option(a)
             case _ => None
         }).toSet
 
         // TODO(guillermo) incomplete, but it should cover testing needs
-        actions foreach { action =>
+        actionsSet foreach { action =>
             action.getFlowKey match {
                 case key: FlowKeyEthernet =>
                     if (key.getDst != null) eth.setDestinationMACAddress(key.getDst)
@@ -86,17 +88,17 @@ trait SimulationHelper { this: MidolmanTestCase =>
         eth
     }
 
-    def getPacketOut: Packet =
-        checkPacket((expect[PacketsExecute] on packetsEventsProbe).packet)
+    def getPacketOut: PacketsExecute =
+        checkPacket((expect[PacketsExecute] on packetsEventsProbe))
 
-    def checkPacket(p: Packet): Packet = {
-        p should not be null
-        p.getPacket should not be null
+    def checkPacket(p: PacketsExecute): PacketsExecute = {
+        p.packet should not be null
+        p.packet.getPacket should not be null
         p
     }
 
-    def getOutPacketPorts(packet: Packet): Set[Short] =
-        actionsToOutputPorts(checkPacket(packet).getActions)
+    def getOutPacketPorts(packet: PacketsExecute): Set[Short] =
+        actionsToOutputPorts(checkPacket(packet).actions)
 
     def actionsToOutputPorts(actions: JList[FlowAction]): Set[Short] = {
         actions should not be null
@@ -286,10 +288,10 @@ trait SimulationHelper { this: MidolmanTestCase =>
 
     def expectRoutedPacketOut(portNum : Int): Ethernet = {
         val pktOut = getPacketOut
-        val flowActs = pktOut.getActions
+        val flowActs = pktOut.actions
         flowActs.size should equal (3)
         flowActs.contains(output(portNum)) should be (true)
-        pktOut.getPacket
+        pktOut.packet.getPacket
     }
 
     /**
@@ -301,15 +303,16 @@ trait SimulationHelper { this: MidolmanTestCase =>
      */
     def expectPacketOutWithVlanIds(portNums : Seq[Int],
             vlanIdsPush: List[Short], vlanIdsPop: List[Short]): Ethernet = {
-        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe).packet
-        pktOut should not be null
-        pktOut.getPacket should not be null
-        pktOut.getActions.size should be (portNums.size +
+        val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
+        pktOut.packet should not be null
+        pktOut.packet.getPacket should not be null
+        val actions = pktOut.actions
+        actions.size should be (portNums.size +
                                             vlanIdsPush.size + vlanIdsPop.size)
 
         // Check that we're outputting on the right ports
         portNums.foreach( portNum =>
-            pktOut.getActions.filter {
+            actions.filter {
                 x => x.isInstanceOf[FlowActionOutput]}.toList map { action =>
                     action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
                     action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
@@ -319,7 +322,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         // Check that the vlan ids to push contained in the actions are those
         // that were expected
         vlanIdsPush.foreach( vlanId =>
-            pktOut.getActions.filter {
+            actions.filter {
                 x => x.isInstanceOf[FlowActionPushVLAN]}.toList map { action =>
                     action.getKey should be (FlowAction.FlowActionAttr.PUSH_VLAN)
                     // The VlanId is just 12 bits in that field
@@ -331,10 +334,9 @@ trait SimulationHelper { this: MidolmanTestCase =>
         // Pop actions don't have the vlan id, but check that we have the right
         // number at least (this could be improved by verifying the actual
         // ids in the frame)
-        vlanIdsPop.size should be (pktOut.getActions
-            .count( _.isInstanceOf[FlowActionPopVLAN]))
+        vlanIdsPop.size shouldBe actions.count( _.isInstanceOf[FlowActionPopVLAN])
 
-        pktOut.getPacket
+        pktOut.packet.getPacket
     }
 
 }

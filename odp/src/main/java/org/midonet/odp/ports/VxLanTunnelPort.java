@@ -4,6 +4,7 @@
 package org.midonet.odp.ports;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.DpPort;
@@ -68,15 +69,12 @@ public class VxLanTunnelPort extends DpPort {
         @SuppressWarnings("unchecked") // safe cast
         VxLanTunnelPort that = (VxLanTunnelPort) o;
 
-        return options == null ?
-                  that.options == null : options.equals(that.options);
+        return Objects.equals(options, that.options);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (options != null ? options.hashCode() : 0);
-        return result;
+        return 31 * super.hashCode() + Objects.hashCode(options);
     }
 
 

@@ -6,6 +6,8 @@ package org.midonet.odp;
 /** This public interface contains integer constants defined in the openvswitch header.
  *  These constants can be maintenaned and kept updated by taking diffs of the
  *  openvswitch/include/linux/openvswitch.h header between different versions.
+ *  Alternatively, if you are using the native ovs datapath in the linux kernel,
+ *  you should refer to /include/uapi/linux/openvswitch.h in the kernel source.
  *
  *  All classes and methods which needs to reference constant intues of the
  *  openvswitch netlink public interface for serialization and deserialization
@@ -56,17 +58,6 @@ public interface OpenVSwitch {
         //    __u64 n_missed;          /* Number of flow table misses. */
         //    __u64 n_lost;            /* Number of misses not sent to userspace. */
         //    __u64 n_flows;           /* Number of flows present */
-        //};
-
-        //struct ovs_vport_stats {
-        //	__u64   rx_packets;		/* total packets received       */
-        //	__u64   tx_packets;		/* total packets transmitted    */
-        //	__u64   rx_bytes;		/* total bytes received         */
-        //	__u64   tx_bytes;		/* total bytes transmitted      */
-        //	__u64   rx_errors;		/* bad packets received         */
-        //	__u64   tx_errors;		/* packet transmit problems     */
-        //	__u64   rx_dropped;		/* no space in linux buffers    */
-        //	__u64   tx_dropped;		/* no space available in linux  */
         //};
 
     }
@@ -183,6 +174,17 @@ public interface OpenVSwitch {
         public interface VPortTunnelOptions {
             int DstPort     = 1;                  // u16
         }
+
+        //struct ovs_vport_stats {
+        //	__u64   rx_packets;		/* total packets received       */
+        //	__u64   tx_packets;		/* total packets transmitted    */
+        //	__u64   rx_bytes;		/* total bytes received         */
+        //	__u64   tx_bytes;		/* total bytes transmitted      */
+        //	__u64   rx_errors;		/* bad packets received         */
+        //	__u64   tx_errors;		/* packet transmit problems     */
+        //	__u64   rx_dropped;		/* no space in linux buffers    */
+        //	__u64   tx_dropped;		/* no space available in linux  */
+        //};
 
     }
 

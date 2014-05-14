@@ -7,10 +7,15 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
+import java.util.Random;
+import java.math.BigInteger;
 
 import com.google.common.base.Function;
+import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
@@ -79,6 +84,11 @@ public abstract class DpPort {
             short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
             NetlinkMessage.writeIntAttr(buf, portNoAttrId, getPortNo());
         }
+
+        if (stats != null) {
+            short statsAttrId = (short) OpenVSwitch.Port.Attr.Stats;
+            NetlinkMessage.write(buf, statsAttrId, stats, Stats.trans);
+        }
     }
 
     protected void deserializeFrom(NetlinkMessage msg) {
@@ -92,27 +102,17 @@ public abstract class DpPort {
         if (o == null || getClass() != o.getClass()) return false;
 
         @SuppressWarnings("unchecked") // safe cast
-        DpPort port = (DpPort) o;
+        DpPort that = (DpPort) o;
 
-        if (getType() != port.getType())
-            return false;
-        if (name != null ? !name.equals(port.name) : port.name != null)
-            return false;
-        if (portNo != null ? !portNo.equals(port.portNo) : port.portNo != null)
-            return false;
-        if (stats != null ? !stats.equals(port.stats) : port.stats != null)
-            return false;
-
-        return true;
+        return (getType() == that.getType())
+            && Objects.equals(name, that.name)
+            && Objects.equals(portNo, that.portNo)
+            && Objects.equals(stats, that.stats);
     }
 
     @Override
     public int hashCode() {
-        int result = portNo != null ? portNo.hashCode() : 0;
-        result = 31 * result + getType().hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (stats != null ? stats.hashCode() : 0);
-        return result;
+        return Objects.hash(portNo, getType(), name, stats);
     }
 
     @Override
@@ -247,14 +247,14 @@ public abstract class DpPort {
         long rxErrors, txErrors;
         long rxDropped, txDropped;
 
-        public long getRxPackets() {return rxPackets;}
-        public long getTxPackets() {return txPackets;}
-        public long getRxBytes() {return rxBytes;}
-        public long getTxBytes() {return txBytes;}
-        public long getRxErrors() {return rxErrors;}
-        public long getTxErrors() {return txErrors;}
-        public long getRxDropped() {return rxDropped;}
-        public long getTxDropped() {return txDropped;}
+        public long getRxPackets() { return rxPackets; }
+        public long getTxPackets() { return txPackets; }
+        public long getRxBytes() { return rxBytes; }
+        public long getTxBytes() { return txBytes; }
+        public long getRxErrors() { return rxErrors; }
+        public long getTxErrors() { return txErrors; }
+        public long getRxDropped() { return rxDropped; }
+        public long getTxDropped() { return txDropped; }
 
         @Override
         public void serialize(Builder builder) {
@@ -290,31 +290,29 @@ public abstract class DpPort {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Stats stats = (Stats) o;
+            @SuppressWarnings("unchecked") // safe cast
+            Stats that = (Stats) o;
 
-            if (rxBytes != stats.rxBytes) return false;
-            if (rxDropped != stats.rxDropped) return false;
-            if (rxErrors != stats.rxErrors) return false;
-            if (rxPackets != stats.rxPackets) return false;
-            if (txBytes != stats.txBytes) return false;
-            if (txDropped != stats.txDropped) return false;
-            if (txErrors != stats.txErrors) return false;
-            if (txPackets != stats.txPackets) return false;
-
-            return true;
+            return (this.rxBytes == that.rxBytes)
+                && (this.rxDropped == that.rxDropped)
+                && (this.rxErrors == that.rxErrors)
+                && (this.rxPackets == that.rxPackets)
+                && (this.txBytes == that.txBytes)
+                && (this.txDropped == that.txDropped)
+                && (this.txErrors == that.txErrors)
+                && (this.txPackets == that.txPackets);
         }
 
         @Override
         public int hashCode() {
-            int result = (int) (rxPackets ^ (rxPackets >>> 32));
-            result = 31 * result + (int) (txPackets ^ (txPackets >>> 32));
-            result = 31 * result + (int) (rxBytes ^ (rxBytes >>> 32));
-            result = 31 * result + (int) (txBytes ^ (txBytes >>> 32));
-            result = 31 * result + (int) (rxErrors ^ (rxErrors >>> 32));
-            result = 31 * result + (int) (txErrors ^ (txErrors >>> 32));
-            result = 31 * result + (int) (rxDropped ^ (rxDropped >>> 32));
-            result = 31 * result + (int) (txDropped ^ (txDropped >>> 32));
-            return result;
+            int result = Longs.hashCode(rxPackets);
+            result = 31 * result + Longs.hashCode(txPackets);
+            result = 31 * result + Longs.hashCode(rxBytes);
+            result = 31 * result + Longs.hashCode(txBytes);
+            result = 31 * result + Longs.hashCode(rxErrors);
+            result = 31 * result + Longs.hashCode(txErrors);
+            result = 31 * result + Longs.hashCode(rxDropped);
+            return 31 * result + Longs.hashCode(txDropped);
         }
 
         @Override
@@ -334,6 +332,40 @@ public abstract class DpPort {
         public static Stats buildFrom(NetlinkMessage msg) {
             return msg.getAttrValue(PortFamily.Attr.STATS, new Stats());
         }
+
+        public static final Translator<Stats> trans = new Translator<Stats>() {
+            public int serializeInto(ByteBuffer receiver, Stats value) {
+                receiver.putLong(value.rxPackets)
+                        .putLong(value.txPackets)
+                        .putLong(value.rxBytes)
+                        .putLong(value.txBytes)
+                        .putLong(value.rxErrors)
+                        .putLong(value.txErrors)
+                        .putLong(value.rxDropped)
+                        .putLong(value.txDropped);
+                return 8 * 8;
+            }
+            public Stats deserializeFrom(ByteBuffer source) {
+                Stats s = new Stats();
+                s.rxPackets = source.getLong();
+                s.txPackets = source.getLong();
+                s.rxBytes = source.getLong();
+                s.txBytes = source.getLong();
+                s.rxErrors = source.getLong();
+                s.txErrors = source.getLong();
+                s.rxDropped = source.getLong();
+                s.txDropped = source.getLong();
+                return s;
+            }
+        };
+
+        public static Stats random() {
+            ByteBuffer buf = ByteBuffer.allocate(8 * 8);
+            r.nextBytes(buf.array());
+            Stats s = new Stats();
+            s.deserialize(new NetlinkMessage(buf));
+            return s;
+        }
     }
 
     /** mock method used in MockOvsDatapathConnection. */
@@ -344,4 +376,20 @@ public abstract class DpPort {
         return fake;
     }
 
+    public static DpPort random() {
+        int[] types = new int[]{
+            OpenVSwitch.Port.Type.Netdev,
+            OpenVSwitch.Port.Type.Internal,
+            OpenVSwitch.Port.Type.Gre,
+            OpenVSwitch.Port.Type.VXLan
+        };
+        int type = types[r.nextInt(types.length)];
+        String name = new BigInteger(100, r).toString(32);
+        DpPort port = newPortByTypeId(type, name);
+        port.portNo = r.nextInt(100);
+        port.stats = Stats.random();
+        return port;
+    }
+
+    private static final Random r = new Random();
 }
