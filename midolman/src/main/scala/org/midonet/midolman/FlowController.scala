@@ -71,7 +71,7 @@ class EventHistory[T](val slots: Int) {
     def exists(lastSeen: Long, eventSet: ROSet[T]): EventSearchResult = {
         val frozen = events
 
-        if (frozen.isEmpty || oldest > lastSeen)
+        if (frozen.isEmpty || oldest > lastSeen + 1)
             return EventSearchWindowMissed
 
         var i = 0
@@ -94,7 +94,7 @@ object FlowController extends Referenceable {
                                dpFlow: Flow,
                                flowRemovalCallbacks: Seq[Callback0],
                                tags: ROSet[Any],
-                               lastInvalidation: Long = 0,
+                               lastInvalidation: Long = -1,
                                flowMatch: FlowMatch = null,
                                processed: Array[FlowMatch] = null,
                                index: Int = 0)
@@ -185,7 +185,7 @@ object FlowController extends Referenceable {
     private val invalidationHistory = new EventHistory[Any](1024)
 
     def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[Any]) = {
-        if (lastSeenInvalidation > 0) {
+        if (lastSeenInvalidation >= 0) {
             invalidationHistory.exists(lastSeenInvalidation, tags) match {
                 case EventSearchWindowMissed => tags.isEmpty
                 case EventSeen => false
