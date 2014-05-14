@@ -452,8 +452,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
         private def _removeFlow(flow: Flow, retries: Int) {
             def scheduleRetry() {
                 if (retries > 0) {
-                    log.info("Scheduling retry of flow deletion with match: {}",
-                             flow.getMatch)
+                    log.debug("Scheduling retry of flow deletion with match: {}",
+                              flow.getMatch)
                     sched.scheduleOnce(1 second){
                         _removeFlow(flow, retries - 1)
                     }
@@ -466,8 +466,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
             datapathConnection(flow.getMatch).flowsDelete(datapath, flow,
                 new NetlinkCallback[Flow] {
                     override def onTimeout() {
-                        log.warning("Got a timeout when trying to remove " +
-                                    "flow with match {}", flow.getMatch)
+                        log.debug("Got a timeout when trying to remove " +
+                                  "flow with match {}", flow.getMatch)
                         scheduleRetry()
                     }
 
