@@ -45,6 +45,24 @@ public class NeutronPluginImpl extends LocalDataClientImpl
     }
 
     @Override
+    public List<Network> createNetworkBulk(@Nonnull List<Network> networks)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        for (Network network : networks) {
+            networkZkManager.prepareCreateNetwork(ops, network);
+        }
+
+        commitOps(ops);
+
+        List<Network> nets = new ArrayList<>(networks.size());
+        for (Network network : networks) {
+            nets.add(getNetwork(network.id));
+        }
+        return nets;
+    }
+
+    @Override
     public void deleteNetwork(@Nonnull UUID id)
             throws StateAccessException, SerializationException {
 
@@ -90,6 +108,24 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         // TODO: handle external network case
 
         return getSubnet(subnet.id);
+    }
+
+    @Override
+    public List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        for (Subnet subnet: subnets) {
+            networkZkManager.prepareCreateSubnet(ops, subnet);
+        }
+        commitOps(ops);
+
+        List<Subnet> newSubnets = new ArrayList<>(subnets.size());
+        for (Subnet subnet : subnets) {
+            newSubnets.add(getSubnet(subnet.id));
+        }
+
+        return newSubnets;
     }
 
     @Override
@@ -157,6 +193,24 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         commitOps(ops);
 
         return getPort(port.id);
+    }
+
+    @Override
+    public List<Port> createPortBulk(@Nonnull List<Port> ports)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        List<Op> ops = new ArrayList<>();
+        for (Port port : ports) {
+            createPortOps(ops, port);
+        }
+        commitOps(ops);
+
+        List<Port> outPorts = new ArrayList<>(ports.size());
+        for (Port port : ports) {
+            outPorts.add(getPort(port.id));
+        }
+        return outPorts;
     }
 
     @Override

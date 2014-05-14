@@ -5,6 +5,7 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.midonet.util.collection.ListUtil;
 
@@ -100,5 +101,10 @@ public class Subnet {
                 .add("hostRoutes",
                         ListUtil.toString(hostRoutes))
                 .toString();
+    }
+
+    @JsonIgnore
+    public boolean isIpv4() {
+        return ipVersion == 4;
     }
 }
