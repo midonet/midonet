@@ -34,10 +34,9 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.functors.Callback2;
+import org.midonet.util.functors.Callback3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
@@ -486,8 +485,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             ArpTable.Watcher<IPv4Addr, ArpCacheEntry> {
 
         ArpTable arpTable;
-        private final Set<Callback2<IPv4Addr, MAC>> listeners =
-                        new LinkedHashSet<Callback2<IPv4Addr, MAC>>();
+        private final Set<Callback3<IPv4Addr, MAC, MAC>> listeners =
+                        new LinkedHashSet<Callback3<IPv4Addr, MAC, MAC>>();
 
         ArpCacheImpl(ArpTable arpTable) {
             this.arpTable = arpTable;
@@ -509,8 +508,11 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
             }
 
             synchronized (listeners) {
-                for (Callback2<IPv4Addr, MAC> cb: listeners)
-                    cb.call(key, (newV != null) ? newV.macAddr : null);
+                for (Callback3<IPv4Addr, MAC, MAC> cb: listeners) {
+                    cb.call(key,
+                            (oldV != null) ? oldV.macAddr : null,
+                            (newV != null) ? newV.macAddr : null);
+                }
             }
         }
 
@@ -552,14 +554,14 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void notify(Callback2<IPv4Addr, MAC> cb) {
+        public void notify(Callback3<IPv4Addr, MAC, MAC> cb) {
             synchronized (listeners) {
                 listeners.add(cb);
             }
         }
 
         @Override
-        public void unsubscribe(Callback2<IPv4Addr, MAC> cb) {
+        public void unsubscribe(Callback3<IPv4Addr, MAC, MAC> cb) {
             synchronized (listeners) {
                 listeners.remove(cb);
             }

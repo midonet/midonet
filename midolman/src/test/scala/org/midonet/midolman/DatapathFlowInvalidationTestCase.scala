@@ -139,7 +139,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             MAC.fromString(macToReach),
             IPv4Addr(ipOutPort).addr,
             MAC.fromString(macOutPort))
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         // packet from ipSource to ipToReach enters from inPort
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
@@ -170,7 +169,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             MAC.fromString(macToReach),
             IPv4Addr(ipOutPort).addr,
             MAC.fromString(macOutPort))
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         // packet from ipSource to ipToReach enters from inPort
         triggerPacketIn(inPortName, TestHelpers.createUdpPacket(macSource, ipSource,
