@@ -27,6 +27,15 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException;
 
     /**
+     * Create multiple networks atomically.
+     *
+     * @param networks Network objects to create
+     * @return Created Network objects
+     */
+    public List<Network> createNetworkBulk(@Nonnull List<Network> networks)
+            throws StateAccessException, SerializationException;
+
+    /**
      * Delete a network. Nothing happens if the resource does not exist.
      *
      * @param id ID of the Network object to delete
@@ -73,6 +82,16 @@ public interface NeutronPlugin extends DataClient {
             throws StateAccessException, SerializationException;
 
     /**
+     * Create multiple subnets atomically.
+     *
+     * @param subnets Subnet objects to create
+     * @return Created Subnet objects
+     */
+    public List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
+            throws StateAccessException, SerializationException;
+
+
+    /**
      * Delete a subnet.  Nothing happens if the resource does not exist.
      *
      * @param id ID of the Subnet object to delete
@@ -117,6 +136,15 @@ public interface NeutronPlugin extends DataClient {
     public Port createPort(@Nonnull Port port)
             throws StateAccessException, SerializationException;
 
+    /**
+     * Create multiple ports atomically.
+     *
+     * @param ports Port objects to create
+     * @return Created Port objects
+     */
+    public List<Port>  createPortBulk(@Nonnull List<Port> ports)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
     /**
      * Delete a port. Nothing happens if the resource does not exist.
      *

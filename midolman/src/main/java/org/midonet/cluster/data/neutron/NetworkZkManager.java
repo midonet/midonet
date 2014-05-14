@@ -176,9 +176,7 @@ public class NetworkZkManager extends BaseZkManager {
             throws SerializationException, StateAccessException {
         for (IPAllocation fixedIp : port.fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
-            if (subnet.ipVersion != 4) {
-                continue;
-            }
+            if (!subnet.isIpv4()) continue;
 
             prepareDhcpHostEntry(ops, subnet, port.macAddress,
                     fixedIp.ipAddress);
@@ -230,9 +228,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
-            if (subnet.ipVersion != 4) {
-                continue;
-            }
+            if (!subnet.isIpv4()) continue;
 
             prepareAddMetadataOption121Route(ops, subnet, fixedIp.ipAddress);
         }
@@ -288,9 +284,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
-            if (subnet.ipVersion != 4) {
-                continue;
-            }
+            if (!subnet.isIpv4()) continue;
 
             BridgeDhcpZkManager.Subnet cfg =
                     dhcpZkManager.getSubnet(subnet.networkId,
