@@ -172,10 +172,6 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     }
 
     def set(ip: IPv4Addr, mac: MAC) (implicit ec: ExecutionContext) {
-        arpWaiters.remove(ip) match {
-            case Some(waiters) => waiters map { _ success mac}
-            case None =>
-        }
         val now = Platform.currentTime
         val entry = arpCache.get(ip)
         if (entry != null &&
