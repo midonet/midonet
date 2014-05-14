@@ -235,8 +235,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             gwMac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        expectPacketOnPort(uplinkPort.getId)
         drainProbes()
 
         triggerPacketIn(portNumToName(onPort), eth)
@@ -317,9 +316,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
         feedArpCache(portNumToName(outPort), toIp.addr, outToMac,
                      myAddressOnPort(outPort).addr, outFromMac)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
+        expectPacketOnPort(portNumToId(outPort))
         drainProbes()
+
         triggerPacketIn(portNumToName(inPort), eth)
         expectPacketOnPort(portNumToId(inPort))
 
@@ -365,9 +364,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             IPv4Addr.stringToInt(uplinkGatewayAddr), mac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbes()
         extractMac(arpUrgent) should be (mac)
     }
 
@@ -470,8 +466,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             fromMac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         val echo = new ICMP()
@@ -502,8 +496,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             fromMac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
         drainProbes()
 
         val echo = new ICMP()
@@ -559,9 +551,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             MAC.fromString("44:44:44:44:44:22"),
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbes()
 
         log.info("Setting Floating IP rules")
         // Set the FloatingIp rule
@@ -705,9 +694,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         feedArpCache("uplinkPort", hisIp.addr, hisMac, myIp.addr, myMac)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbes()
         extractMac(arpUrgent)(1 second) should be (hisMac)
         dedupProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
     }
@@ -722,9 +708,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         var arpUrgent = router.arpTable.get(hisIp, port, expiry)
 
         feedArpCache("uplinkPort", hisIp.addr, mac, myIp.addr, uplinkMacAddr)
-        fishForRequestOfType[DiscardPacket](discardPacketProbe)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
-        drainProbes()
         extractMac(arpUrgent)(1 second) should be (mac)
 
         dilatedSleep((ARP_STALE_SECS/2) * 1000)

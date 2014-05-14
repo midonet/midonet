@@ -21,7 +21,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
-import org.midonet.util.functors.{Callback2, Callback1}
+import org.midonet.util.functors.Callback3
 
 /* The ArpTable is called from the Coordinators' actors and
  * processes and schedules ARPs. */
@@ -52,7 +52,7 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
 }
 
 class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
-                   val observer: (IPv4Addr, MAC) => Unit)
+                   val observer: (IPv4Addr, MAC, MAC) => Unit)
                   (implicit system: ActorSystem) extends ArpTable {
     private val log =
         LoggerFactory.getActorSystemThreadLog(this.getClass)(system.eventStream)
@@ -63,20 +63,25 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private val arpWaiters = new mutable.HashMap[IPv4Addr,
                                             mutable.Set[Promise[MAC]]] with
             SynchronizedMultiMap[IPv4Addr, Promise[MAC]]
-    private var arpCacheCallback: Callback2[IPv4Addr, MAC] = null
+    private var arpCacheCallback: Callback3[IPv4Addr, MAC, MAC] = null
 
     override def start() {
-        arpCacheCallback = new Callback2[IPv4Addr, MAC] {
-            def call(ip: IPv4Addr, mac: MAC) {
-                if (mac == null)
+        arpCacheCallback = new Callback3[IPv4Addr, MAC, MAC] {
+            def call(ip: IPv4Addr, oldMac: MAC, newMac: MAC) {
+                if (newMac == null)
                     return
                 log.debug("invalidating flows for {}", ip)
-                observer(ip, mac)
+
+                /* Do not invalidate flows the first time that a mac is set.
+                 * That could render the simulations that triggered the ARP
+                 * request invalid. */
+                if (oldMac != null)
+                    observer(ip, oldMac, newMac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
                         log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
-                                  waiters.size, mac)
-                        waiters map { _ success mac }
+                                  waiters.size, newMac)
+                        waiters map { _ success newMac }
                     case _ =>
                 }
             }
