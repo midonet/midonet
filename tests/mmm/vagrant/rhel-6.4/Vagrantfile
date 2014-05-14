@@ -55,8 +55,9 @@ Vagrant.configure("2") do |config|
   #   vb.gui = true
   #
   #   # Use VBoxManage to customize the VM. For example to change memory:
+  #   # Use the host's resolver as a DNS proxy in NAT mode
     vb.customize ["modifyvm", :id, "--memory", "4096", "--name", hostname,
-                 "--cpus", "2"]
+                 "--cpus", "2", "--natdnshostresolver1", "on"]
   end
   #
   # View the documentation for the provider you're using for more
