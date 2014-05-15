@@ -23,7 +23,8 @@ import org.midonet.util.TokenBucket;
 
 
 public class SelectorBasedDatapathConnection implements ManagedDatapathConnection {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    private final static Logger log =
+        LoggerFactory.getLogger(SelectorBasedDatapathConnection.class);
 
     public final String name;
 

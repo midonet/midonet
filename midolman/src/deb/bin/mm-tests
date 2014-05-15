@@ -99,7 +99,8 @@ if_clean() {
 }
 
 ovs_integration() {
-    echo -e "\nOpenVSwitch integration test"
+    class=$1
+    echo -e "\nOpenVSwitch integration test with main from $1"
 
     ns=ovstest-ns
     dpifa=ovstest-foo
@@ -111,7 +112,7 @@ ovs_integration() {
     if_prepare $ns $dpifb $dpifb-e 100.0.10.3/24
     if_prepare $ns $dpifc $dpifc-e 100.0.10.4/24
 
-    run_test "org.midonet.odp.OvsIntegrationTest"
+    run_test $1
 
     if_clean $ns $dpifa $dpifa-e
     if_clean $ns $dpifb $dpifb-e
@@ -173,6 +174,11 @@ ovs_throughput() {
     ns_clean $ns
 }
 
-ovs_integration
+ovs_integration "org.midonet.odp.OvsIntegrationTest"
+ovs_integration "org.midonet.midolman.io.OneSelectorConnectionTest"
+ovs_integration "org.midonet.midolman.io.TwoSelectorsConnectionTest"
+ovs_integration "org.midonet.midolman.io.PoolOfOneConnectionTest"
+ovs_integration "org.midonet.midolman.io.PoolOfTenConnectionTest"
+#ovs_integration "org.midonet.midolman.io.BlockingTransactorTest"
 ovs_throughput
 mm_io_upcall_manager_test

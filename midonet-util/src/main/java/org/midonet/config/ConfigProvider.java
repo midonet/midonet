@@ -82,6 +82,11 @@ public abstract class ConfigProvider {
         }
     }
 
+    public static <Config> Config defaultConfig(Class<Config> confType) {
+        HierarchicalConfiguration emptyConf = new HierarchicalConfiguration();
+        return providerForIniConfig(emptyConf).getConfig(confType);
+    }
+
     public static <Config> Config getConfig(
             Class<Config> interfaces, final ConfigProvider provider) {
 
