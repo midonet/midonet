@@ -21,6 +21,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
@@ -183,7 +184,10 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        ops.add(simpleCreateOp(id, config));
+        ops.add(zk.getPersistentCreateOp(paths.getPortPath(id),
+                                         serializer.serialize(config)));
+        ops.add(zk.getPersistentCreateOp(paths.getVxLanPortIdPath(id), null));
+
         ops.addAll(filterZkManager.prepareCreate(id));
 
         // TODO: do we put it here? Or in exterior?
@@ -718,6 +722,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         // String path = paths.getHostVrnPortMappingPath(cfg.getHostId(), id);
         // ops.add(Op.delete(path, -1));
         ops.add(Op.delete(paths.getBridgePortPath(cfg.device_id, id), -1));
+        ops.add(Op.delete(paths.getVxLanPortIdPath(cfg.id), -1));
         ops.add(Op.delete(paths.getPortPath(id), -1));
         return ops;
     }
@@ -891,6 +896,12 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throws SerializationException, StateAccessException {
         PortConfig port = get(portId);
         return port.peerId == null ? null : get(port.peerId);
+    }
+
+    public void getVxLanPortIdsAsync(DirectoryCallback<Set<UUID>> callback,
+                                     Directory.TypedWatcher watcher)
+            throws StateAccessException {
+        getUUIDSetAsync(paths.getVxLanPortIdsPath(), callback, watcher);
     }
 
     /**

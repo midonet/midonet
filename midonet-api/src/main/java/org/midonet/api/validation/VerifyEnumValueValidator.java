@@ -44,10 +44,10 @@ public class VerifyEnumValueValidator
         if (myval == null) {
             return true;
         } else if (enumClass != null) {
-            Enum[] enumValues = enumClass.getEnumConstants();
+            Enum<?>[] enumValues = enumClass.getEnumConstants();
             Object enumValue = null;
 
-            for (Enum enumerable : enumValues)   {
+            for (Enum<?> enumerable : enumValues)   {
                 if (myval.equals(enumerable.toString())) {
                     return true;
                 }
