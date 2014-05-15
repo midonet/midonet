@@ -83,16 +83,15 @@ class TokenBucketPolicy(config: MidolmanConfig,
     def unlink(port: DpPort): Unit = {
         lock.lock()
         try {
-            val curMax = root.getMaxTokens
             tokenBuckets.remove(port.getName) match {
                 case Some(tb) =>
                     val tokens = (if (tunnel(port)) root else vmBuckets).unlink(tb)
                     val newMax = calculateMinimumSystemTokens
-                    root.setMaxTokens(newMax)
-                    if (tokens > (curMax - newMax))
-                        root.addTokens(tokens - (curMax - newMax))
-                    // FIXME - otherwise we are leaving too many packets in the system.
-                    // handle that case
+                    if (newMax >= config.getGlobalIncomingBurstCapacity)
+                        root.setMaxTokens(newMax)
+                    else
+                        root.addTokens(tokens)
+
                     log.info("HTB updated")
                     root.dumpToLog()
                 case None =>
@@ -101,6 +100,5 @@ class TokenBucketPolicy(config: MidolmanConfig,
         } finally {
             lock.unlock()
         }
-
     }
 }
