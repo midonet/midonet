@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.{NotYet, PacketsEntryPoint, Ready, Urgent}
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
@@ -17,7 +17,6 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.packets._
 import org.midonet.midolman.topology.RouterConfig
 import org.midonet.sdn.flows.WildcardMatch
@@ -114,17 +113,20 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
         }
 
         // Attempt to refresh the router's arp table.
-        arpTable.set(spa, pkt.getSenderHardwareAddress)
+        arpTable.setAndGet(spa,
+                           pkt.getSenderHardwareAddress,
+                           inPort,
+                           origPktContext.expiry) onSuccess { case _ =>
+            log.debug("replying to ARP request from {} for {} with own mac {}",
+                Array[Object](spa, tpa, inPort.portMac))
 
-        log.debug("replying to ARP request from {} for {} with own mac {}",
-            Array[Object](spa, tpa, inPort.portMac))
-
-        // Construct the reply, reversing src/dst fields from the request.
-        val eth = ARP.makeArpReply(inPort.portMac, sha,
-            pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
-        PacketsEntryPoint ! EmitGeneratedPacket(
-            inPort.id, eth,
-            if (origPktContext != null) origPktContext.flowCookie else None)
+            // Construct the reply, reversing src/dst fields from the request.
+            val eth = ARP.makeArpReply(inPort.portMac, sha,
+                pkt.getTargetProtocolAddress, pkt.getSenderProtocolAddress)
+            PacketsEntryPoint ! EmitGeneratedPacket(
+                inPort.id, eth,
+                if (origPktContext != null) origPktContext.flowCookie else None)
+        }
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort)
