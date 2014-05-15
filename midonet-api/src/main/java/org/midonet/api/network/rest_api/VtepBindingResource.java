@@ -37,8 +37,6 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepDataClientProvider;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Port;
@@ -50,7 +48,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,7 +152,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                VendorMediaType.APPLICATION_JSON})
-    @Path("{portName}_{vlanId}")
+    @Path("{portName}/{vlanId}")
     public VTEPBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
         throws SerializationException, StateAccessException {
@@ -172,43 +169,13 @@ public class VtepBindingResource extends AbstractVtepResource {
                   MediaType.APPLICATION_JSON})
     public List<VTEPBinding> list() throws StateAccessException,
                                            SerializationException {
-
-        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
-        VtepDataClient vtepClient =
-            getVtepClient(vtep.getId(), vtep.getMgmtPort(), true);
-
-        try {
-            Map<UUID, java.util.UUID> lsToBridge = new HashMap<>();
-            for (LogicalSwitch ls : vtepClient.listLogicalSwitches()) {
-                lsToBridge.put(ls.uuid, logicalSwitchNameToBridgeId(ls.name));
-            }
-
-            List<VTEPBinding> bindings = new ArrayList<>();
-            for (PhysicalPort pp : getPhysicalPorts(vtepClient, vtep)) {
-                for (Map.Entry<Integer, UUID> e : pp.vlanBindings.entrySet()) {
-
-                    java.util.UUID bridgeId = lsToBridge.get(e.getValue());
-                    if (bridgeId != null) { // Ignore non-Midonet bindings.
-                        VTEPBinding b =  new VTEPBinding(ipAddrStr, pp.name,
-                                                         e.getKey().shortValue(),
-                                                         bridgeId);
-                        b.setBaseUri(getBaseUri());
-                        bindings.add(b);
-                    }
-                }
-            }
-
-            return bindings;
-
-        } finally {
-            vtepClient.disconnect();
-        }
+        return listVtepBindings(this.ipAddrStr, null);
     }
 
 
     @DELETE
     @RolesAllowed({AuthRole.ADMIN})
-    @Path("{portName}_{vlanId}")
+    @Path("{portName}/{vlanId}")
     public void delete(@PathParam("portName") String portName,
                        @PathParam("vlanId") short vlanId)
         throws StateAccessException, SerializationException
@@ -234,15 +201,15 @@ public class VtepBindingResource extends AbstractVtepResource {
         if (affectedNwId == null) {
             log.warn("No bindings found for port {} and vlan {}",
                      portName, vlanId);
-            throw new NotFoundHttpException(VTEP_BINDING_NOT_FOUND);
+            throw new NotFoundHttpException(getMessage(
+                    VTEP_BINDING_NOT_FOUND, ipAddrStr, vlanId, portName));
         }
 
         // delete this binding
         VtepDataClient vtepClient = getVtepClient(
             IPv4Addr.fromString(ipAddrStr), vtep.getMgmtPort(), true);
-        Status st = null;
         try {
-            st = vtepClient.deleteBinding(portName, vlanId);
+            Status st = vtepClient.deleteBinding(portName, vlanId);
             throwIfFailed(st);
         } finally {
             vtepClient.disconnect();
@@ -288,7 +255,7 @@ public class VtepBindingResource extends AbstractVtepResource {
         throws StateAccessException, SerializationException
     {
         for (VlanMacPort vmp : dataClient.bridgeGetMacPorts(bridgeId)) {
-            Port p = dataClient.portsGet(vmp.portId);
+            Port<?, ?> p = dataClient.portsGet(vmp.portId);
             if (p != null && p.isExterior()) {
                 IPv4Addr hostIp =
                     dataClient.vxlanTunnelEndpointFor((BridgePort)p);
@@ -303,44 +270,4 @@ public class VtepBindingResource extends AbstractVtepResource {
             }
         }
     }
-
-    /**
-     * Gets the ID of the bridge bound to the specified port and VLAN ID
-     * on the specified VTEP.
-     *
-     * @param ipAddrStr VTEP's management IP address
-     * @param portName Binding's port name
-     * @param vlanId Binding's VLAN ID
-     */
-    protected final java.util.UUID getBoundBridgeId(
-        String ipAddrStr, String portName, short vlanId)
-        throws SerializationException, StateAccessException
-    {
-
-        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
-        VtepDataClient vtepClient =
-            getVtepClient(vtep.getId(), vtep.getMgmtPort(), true);
-
-        try {
-            PhysicalPort pp = getPhysicalPort(vtepClient, vtep, portName);
-            UUID lsUuid = pp.vlanBindings.get((int)vlanId);
-            if (lsUuid == null) {
-                throw new NotFoundHttpException(
-                    getMessage(VTEP_BINDING_NOT_FOUND, vtep.getId(),
-                               vtep.getMgmtPort(), vlanId, portName)
-                );
-            }
-
-            for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
-                if (lswitch.uuid.equals(lsUuid))
-                    return logicalSwitchNameToBridgeId(lswitch.name);
-            }
-
-            throw new IllegalStateException("Logical switch with ID " + lsUuid +
-                        " should exist but was not returned from VTEP client.");
-        } finally {
-            vtepClient.disconnect();
-        }
-    }
-
 }

@@ -3,14 +3,14 @@
  */
 package org.midonet.client.dto;
 
-import java.util.List;
+import java.net.URI;
 
 public class DtoVxLanPort extends DtoBridgePort {
 
     private String mgmtIpAddr;
     private int mgmtPort;
     private int vni;
-    private List<DtoVtepBinding> bindings;
+    private URI bindings;
 
     @Override
     public Short getVlanId() {
@@ -46,11 +46,12 @@ public class DtoVxLanPort extends DtoBridgePort {
         this.vni = vni;
     }
 
-    public List<DtoVtepBinding> getBindings() {
+    public URI getBindings() {
         return bindings;
     }
 
-    public void setBindings(List<DtoVtepBinding> bindings) {
+    public void setBindings(URI bindings) {
         this.bindings = bindings;
     }
+
 }

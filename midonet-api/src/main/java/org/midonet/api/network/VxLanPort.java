@@ -79,11 +79,10 @@ public class VxLanPort extends Port {
         this.vni = vni;
     }
 
-    public List<VTEPBinding> getBindings() {
-        return bindings;
+    public URI getBindings() {
+        return (getBaseUri() == null || getId() == null) ? null :
+                ResourceUriBuilder.getVxLanPortBindings(getBaseUri(), getId());
     }
 
-    public void setBindings(List<VTEPBinding> bindings) {
-        this.bindings = bindings;
-    }
+
 }

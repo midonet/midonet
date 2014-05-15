@@ -112,7 +112,7 @@ public class VtepResource extends AbstractVtepResource {
         // TODO: Verify that it has no bindings to Midonet networks.
     }
 
-    @Path("/{ipAddr}" + ResourceUriBuilder.VTEP_BINDINGS)
+    @Path("/{ipAddr}" + ResourceUriBuilder.BINDINGS)
     public VtepBindingResource getVtepBindingResource(
         @PathParam("ipAddr") String ipAddrStr) {
         return factory.getVtepBindingResource(ipAddrStr);

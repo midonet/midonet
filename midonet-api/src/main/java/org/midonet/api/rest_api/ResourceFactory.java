@@ -33,6 +33,7 @@ import org.midonet.api.network.rest_api.RouteResource;
 import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.network.rest_api.VtepBindingResource;
 import org.midonet.api.network.rest_api.VtepResource;
+import org.midonet.api.network.rest_api.VxLanPortBindingResource;
 import org.midonet.api.neutron.NetworkResource;
 import org.midonet.api.neutron.NeutronResource;
 import org.midonet.api.neutron.SecurityGroupResource;
@@ -144,6 +145,8 @@ public interface ResourceFactory {
     VtepResource getVtepResource();
 
     VtepBindingResource getVtepBindingResource(String ipAddrStr);
+
+    VxLanPortBindingResource getVxLanPortBindingResource(UUID vxLanPortId);
 
     // Neutron Resource factory methods
     NeutronResource getNeutronResource();

@@ -5,6 +5,7 @@ package org.midonet.api.rest_api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
@@ -17,6 +18,7 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
 import static junit.framework.Assert.assertNotNull;
@@ -121,4 +123,8 @@ public abstract class RestApiTestBase extends JerseyTest {
             uri, APPLICATION_PORT_V2_JSON, DtoPort.class);
     }
 
+    public DtoBridgePort postBridgePort(DtoBridgePort port, DtoBridge bridge) {
+        return dtoResource.postAndVerifyCreated(bridge.getPorts(),
+                APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
+    }
 }
