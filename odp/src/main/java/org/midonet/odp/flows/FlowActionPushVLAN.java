@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.VLAN;
@@ -32,15 +31,15 @@ public class FlowActionPushVLAN implements FlowAction {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(vlan_tpid, ByteOrder.BIG_ENDIAN);
-        builder.addValue(vlan_tci, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE(vlan_tpid));
+        builder.addValue(BytesUtil.instance.reverseBE(vlan_tci));
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            vlan_tpid = message.getShort(ByteOrder.BIG_ENDIAN);
-            vlan_tci = message.getShort(ByteOrder.BIG_ENDIAN);
+            vlan_tpid = BytesUtil.instance.reverseBE(message.getShort());
+            vlan_tci = BytesUtil.instance.reverseBE(message.getShort());
             return true;
         } catch (Exception e) {
             return false;
@@ -70,19 +69,15 @@ public class FlowActionPushVLAN implements FlowAction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowActionPushVLAN that = (FlowActionPushVLAN) o;
 
-        if (vlan_tci != that.vlan_tci) return false;
-        if (vlan_tpid != that.vlan_tpid) return false;
-
-        return true;
+        return (vlan_tci == that.vlan_tci) && (vlan_tpid == that.vlan_tpid);
     }
 
     @Override
     public int hashCode() {
-        int result = (int) vlan_tpid;
-        result = 31 * result + (int) vlan_tci;
-        return result;
+        return 31 * vlan_tpid + vlan_tci;
     }
 
     @Override

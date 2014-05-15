@@ -3,15 +3,16 @@
 */
 package org.midonet.netlink;
 
-import com.google.common.collect.MapMaker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.google.common.collect.MapMaker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A pool of reusable, native I/O ready, byte buffers. All operations are
@@ -52,14 +53,12 @@ public class BufferPool {
         /* on the buffer's contents. A normal IdentityHashMap is not suitable
         /* because there's no concurrent implementation of it. Thus the use
         /* of the weak-keys concurrent map. */
-        this.bufferPool = new MapMaker().
-                            initialCapacity(maxBuffers).
-                            weakKeys().
-                            makeMap();
+        this.bufferPool =
+            new MapMaker().initialCapacity(maxBuffers).weakKeys().makeMap();
 
         numBuffers = new AtomicInteger(0);
         do {
-            ByteBuffer buf = ByteBuffer.allocateDirect(bufSize);
+            ByteBuffer buf = BytesUtil.instance.allocateDirect(bufSize);
             availPool.offer(buf);
             bufferPool.put(buf, PRESENT);
         } while (numBuffers.incrementAndGet() < minBuffers);
@@ -75,7 +74,7 @@ public class BufferPool {
 
         if (numBuffers.incrementAndGet() <= maxBuffers) {
             log.debug("increasing buffer pool size to {}", numBuffers.get());
-            ByteBuffer buf = ByteBuffer.allocateDirect(bufSize);
+            ByteBuffer buf = BytesUtil.instance.allocateDirect(bufSize);
             bufferPool.put(buf, PRESENT);
             return buf;
         } else {
@@ -91,7 +90,7 @@ public class BufferPool {
              * copy at write-time.
              */
             log.info("pool is empty, allocating a temporary buffer");
-            return ByteBuffer.allocate(bufSize);
+            return  BytesUtil.instance.allocate(bufSize);
         }
     }
 

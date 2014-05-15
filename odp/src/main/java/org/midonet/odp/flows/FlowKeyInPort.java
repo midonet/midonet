@@ -8,7 +8,7 @@ import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyInPort implements CachedFlowKey {
 
-    /*__be32*/ private int portNo;
+    /*__u32*/ private int portNo;
 
     // This is used for deserialization purposes only.
     FlowKeyInPort() { }

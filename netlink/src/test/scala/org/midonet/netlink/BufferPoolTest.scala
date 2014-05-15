@@ -4,6 +4,7 @@
 package org.midonet.netlink;
 
 import java.nio.ByteBuffer
+import scala.collection.mutable.ListBuffer
 
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -11,6 +12,10 @@ import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class BufferPoolTest extends FunSpec with Matchers {
+
+    /** this mutable list is used to keep hard references to buffers taken from
+     *  temporary pools so that they don't get GCed during the unit tests. */
+    val buffers = new ListBuffer[ByteBuffer]()
 
     describe("BufferPool") {
         it("can be created with valid parameters") {
@@ -29,16 +34,16 @@ class BufferPoolTest extends FunSpec with Matchers {
         it("should increase allocated buffers to max capicity to meet demand") {
             val pool = new BufferPool(10,20,128)
             checkAllocs(pool, 10, 10)
-            (1 to 10) foreach { _ => pool.take }
+            (1 to 10) foreach { _ => buffers += pool.take }
             checkAllocs(pool, 10, 0)
-            (1 to 10) foreach { _ => pool.take }
+            (1 to 10) foreach { _ => buffers += pool.take }
             checkAllocs(pool, 20, 0)
         }
 
         it("should allocate temporary GCed buffers when beyond max capacity") {
             val pool = new BufferPool(10,20,128)
             (1 to 3) foreach { _ =>
-                (1 to 20) foreach { _ => pool.take }
+                (1 to 20) foreach { _ => buffers += pool.take }
                 checkAllocs(pool, 20, 0)
             }
         }
@@ -48,7 +53,7 @@ class BufferPoolTest extends FunSpec with Matchers {
             pool.allocated shouldBe 10
             (10 to -10 by -1) foreach { i =>
                 pool.available shouldBe i.max(0)
-                pool.take
+                buffers += pool.take
             }
         }
 
@@ -57,7 +62,7 @@ class BufferPoolTest extends FunSpec with Matchers {
             List(2,5,10) foreach { n =>
                 val bufs = List.fill(n) { pool.take }
                 pool.available shouldBe (10 - n)
-                bufs foreach { pool release _ }
+                bufs foreach { b => buffers += b; pool release b }
                 pool.available shouldBe 10
             }
         }
@@ -66,7 +71,7 @@ class BufferPoolTest extends FunSpec with Matchers {
             it("should recycle buffers") {
                 val pool = new BufferPool(10,10,128)
                 val bufs1 = List.fill(10) { pool.take }
-                bufs1 foreach { pool release _ }
+                bufs1 foreach { b => buffers += b; pool release b }
                 val bufs2 = List.fill(10) { pool.take }
                 bufs1.toSet shouldBe bufs2.toSet
             }
@@ -93,7 +98,7 @@ class BufferPoolTest extends FunSpec with Matchers {
                         def run() {
                             (1 to 1000) foreach { _ =>
                                 List.fill(5) { pool.take }
-                                    .foreach { pool.release _ }
+                                    .foreach { b => buffers += b; pool release b }
                             }
 
                         }

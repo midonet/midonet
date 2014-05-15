@@ -4,6 +4,7 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.ArrayList
 
 import org.junit.runner.RunWith
@@ -26,7 +27,7 @@ class DpPortTest extends FunSpec with Matchers {
         describe("Stats") {
             it("should be invariant by serialization/deserialisation") {
                 stats foreach { s =>
-                    val bldr = new Builder(ByteBuffer allocate 256)
+                    val bldr = new Builder(getBuffer)
                     bldr addAttr(PortFamily.Attr.STATS, s)
                     s shouldBe (DpPort.Stats buildFrom bldr.build())
                 }
@@ -34,7 +35,7 @@ class DpPortTest extends FunSpec with Matchers {
 
             describe("translator") {
                 it("should deserialize the same value after serialization") {
-                    val buf = ByteBuffer allocate 256
+                    val buf = getBuffer
                     stats foreach { s =>
                         buf.clear
                         DpPort.Stats.trans.serializeInto(buf,s)
@@ -46,7 +47,7 @@ class DpPortTest extends FunSpec with Matchers {
         }
 
         it("should be invariant by serialization/deserialisation") {
-            val buf = ByteBuffer allocate 256
+            val buf = getBuffer
             ports foreach { p =>
                 buf.clear
                 buf putInt 42 // write datapath index
@@ -67,7 +68,7 @@ class DpPortTest extends FunSpec with Matchers {
                 val portSet = ports.toSet
                 val buffers = portSet.foldLeft(new ArrayList[ByteBuffer]()) {
                     case (ls,p) =>
-                        val buf = ByteBuffer allocate 256
+                        val buf = getBuffer
                         buf putInt 42 // write datapath index
                         p serializeInto buf
                         buf.flip
@@ -84,7 +85,7 @@ class DpPortTest extends FunSpec with Matchers {
 
         describe("deserializer") {
             it("should deserialize a port correctly") {
-                val buf = ByteBuffer allocate 256
+                val buf = getBuffer
                 ports foreach { p =>
                     buf.clear
                     buf putInt 42 // write datapath index
@@ -98,4 +99,5 @@ class DpPortTest extends FunSpec with Matchers {
         }
     }
 
+    def getBuffer =  BytesUtil.instance allocate 256
 }

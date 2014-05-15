@@ -3,14 +3,12 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyPriority implements FlowKey {
 
-    /*__be32*/ private int priority;
+    /*__u32*/ private int priority;
 
     // This is used for deserialization purposes only.
     FlowKeyPriority() { }
@@ -27,7 +25,7 @@ public class FlowKeyPriority implements FlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            priority = message.getInt(ByteOrder.BIG_ENDIAN);
+            priority = message.getInt();
             return true;
         } catch (Exception e) {
             return false;
@@ -53,11 +51,10 @@ public class FlowKeyPriority implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyPriority that = (FlowKeyPriority) o;
 
-        if (priority != that.priority) return false;
-
-        return true;
+        return priority == that.priority;
     }
 
     @Override

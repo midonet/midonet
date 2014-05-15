@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 
@@ -52,13 +51,13 @@ public class FlowKeyEtherType implements CachedFlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(etherType, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE(etherType));
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            etherType = message.getShort(ByteOrder.BIG_ENDIAN);
+            etherType = BytesUtil.instance.reverseBE(message.getShort());
             return true;
         } catch (Exception e) {
             return false;
@@ -84,11 +83,10 @@ public class FlowKeyEtherType implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyEtherType that = (FlowKeyEtherType) o;
 
-        if (etherType != that.etherType) return false;
-
-        return true;
+        return etherType == that.etherType;
     }
 
     @Override
