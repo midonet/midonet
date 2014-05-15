@@ -175,10 +175,6 @@ public class PortResource extends AbstractResource {
         Port port = PortFactory.convertToApiPort(portData);
         port.setBaseUri(getBaseUri());
 
-        if (port instanceof VxLanPort) {
-            // TODO: Get bindings from VTEP.
-        }
-
         return port;
     }
 
@@ -301,6 +297,12 @@ public class PortResource extends AbstractResource {
     public PortGroupResource.PortPortGroupResource getPortGroupResource(
             @PathParam("id") UUID id) {
         return factory.getPortPortGroupResource(id);
+    }
+
+    @Path("/{id}" + ResourceUriBuilder.VTEP_BINDINGS)
+    public VxLanPortBindingResource getVxLanPortBindingResource(
+            @PathParam("id") UUID id) {
+        return factory.getVxLanPortBindingResource(id);
     }
 
     /**

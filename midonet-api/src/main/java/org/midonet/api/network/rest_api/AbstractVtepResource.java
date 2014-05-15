@@ -3,12 +3,21 @@
  */
 package org.midonet.api.network.rest_api;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.validation.Validator;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
+import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.network.VTEPBinding;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadGatewayHttpException;
 import org.midonet.api.rest_api.BadRequestHttpException;
@@ -19,19 +28,20 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepDataClientProvider;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
-import org.opendaylight.controller.sal.utils.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
 abstract public class AbstractVtepResource extends AbstractResource {
 
@@ -177,6 +187,96 @@ abstract public class AbstractVtepResource extends AbstractResource {
                 return ps;
 
         return null;
+    }
+
+    /**
+     * Gets the ID of the bridge bound to the specified port and VLAN ID
+     * on the specified VTEP.
+     *
+     * @param ipAddrStr VTEP's management IP address
+     * @param portName Binding's port name
+     * @param vlanId Binding's VLAN ID
+     */
+    protected final java.util.UUID getBoundBridgeId(
+            String ipAddrStr, String portName, short vlanId)
+            throws SerializationException, StateAccessException
+    {
+
+        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
+        VtepDataClient vtepClient =
+                getVtepClient(vtep.getId(), vtep.getMgmtPort(), true);
+
+        try {
+            PhysicalPort pp = getPhysicalPort(vtepClient, vtep, portName);
+            UUID lsUuid = pp.vlanBindings.get((int)vlanId);
+            if (lsUuid == null) {
+                throw new NotFoundHttpException(
+                        getMessage(VTEP_BINDING_NOT_FOUND,
+                                   vtep.getId(), vlanId, portName));
+            }
+
+            for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
+                if (lswitch.uuid.equals(lsUuid))
+                    return logicalSwitchNameToBridgeId(lswitch.name);
+            }
+
+            throw new IllegalStateException("Logical switch with ID " + lsUuid +
+                    " should exist but was not returned from VTEP client.");
+        } finally {
+            vtepClient.disconnect();
+        }
+    }
+
+    /**
+     * Get the VTEP bindings for the VTEP at IP ipAddrStr, optionally
+     * filtering out bindings to bridges other than the one with ID
+     * bridgeId.
+     *
+     * @param ipAddrStr VTEP's management IP address
+     * @param bridgeId ID of bridge to get bindings for. Will return all
+     *                 bindings if bridgeId is null.
+     */
+    protected final List<VTEPBinding> listVtepBindings(String ipAddrStr,
+                                                       java.util.UUID bridgeId)
+            throws SerializationException, StateAccessException {
+
+        // Get VTEP client.
+        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddrStr, false);
+        VtepDataClient vtepClient =
+                getVtepClient(vtep.getId(), vtep.getMgmtPort(), true);
+
+        try {
+            // Build map from OVSDB LogicalSwitch ID to Midonet Bridge ID.
+            Map<UUID, java.util.UUID> lsToBridge = new HashMap<>();
+            for (LogicalSwitch ls : vtepClient.listLogicalSwitches()) {
+                lsToBridge.put(ls.uuid, logicalSwitchNameToBridgeId(ls.name));
+            }
+
+            List<VTEPBinding> bindings = new ArrayList<>();
+            for (PhysicalPort pp : getPhysicalPorts(vtepClient, vtep)) {
+                for (Map.Entry<Integer, UUID> e : pp.vlanBindings.entrySet()) {
+
+                    java.util.UUID bindingBridgeId =
+                            lsToBridge.get(e.getValue());
+                    // Ignore non-Midonet bindings and bindings to bridges
+                    // other than the requested one, if applicable.
+                    if (bindingBridgeId != null &&
+                            (bridgeId == null ||
+                                    bridgeId.equals(bindingBridgeId))) {
+                        VTEPBinding b = new VTEPBinding(ipAddrStr, pp.name,
+                                                        e.getKey().shortValue(),
+                                                        bindingBridgeId);
+                        b.setBaseUri(getBaseUri());
+                        bindings.add(b);
+                    }
+                }
+            }
+
+            return bindings;
+
+        } finally {
+            vtepClient.disconnect();
+        }
     }
 
     protected final void throwIfFailed(Status status) {
