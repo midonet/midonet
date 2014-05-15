@@ -1697,6 +1697,22 @@ public class ZkPathManager {
         return buildVtepPath(ipAddr).toString();
     }
 
+    private StringBuilder buildVxLanPortIdsPath() {
+        return basePath().append("/vxlan_port_ids");
+    }
+
+    public String getVxLanPortIdsPath() {
+        return buildVxLanPortIdsPath().toString();
+    }
+
+    private StringBuilder buildVxLanPortIdPath(UUID id) {
+        return buildVxLanPortIdsPath().append("/").append(id);
+    }
+
+    public String getVxLanPortIdPath(UUID id) {
+        return buildVxLanPortIdPath(id).toString();
+    }
+
     private StringBuilder buildLocksPath() {
         return basePath().append("/locks");
     }
