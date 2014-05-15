@@ -6,4 +6,9 @@ if grep "Red Hat Enterprise Linux" /etc/issue >/dev/null; then
         modprobe -r openvswitch
     fi
     insmod /lib/modules/$(uname -r)/kernel/net/openvswitch/openvswitch.ko
+elif grep "Ubuntu" /etc/issue >/dev/null; then
+    if lsmod | grep openvswitch >/dev/null; then
+        modprobe -r openvswitch
+    fi
+    modprobe openvswitch
 fi
