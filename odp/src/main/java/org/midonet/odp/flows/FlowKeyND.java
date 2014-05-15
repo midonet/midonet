@@ -3,13 +3,13 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import org.midonet.packets.MAC;
-import org.midonet.packets.Net;
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
+import org.midonet.packets.MAC;
+import org.midonet.packets.Net;
 
 /**
 * Neighbour Discovery key
@@ -28,7 +28,9 @@ public class FlowKeyND implements CachedFlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(nd_target, ByteOrder.BIG_ENDIAN);
+        for (int x : nd_target) {
+            builder.addValue(BytesUtil.instance.reverseBE(x));
+        }
         builder.addValue(nd_sll);
         builder.addValue(nd_tll);
     }
@@ -37,7 +39,10 @@ public class FlowKeyND implements CachedFlowKey {
     public boolean deserialize(NetlinkMessage message) {
         try {
             nd_target = new int[4];
-            message.getInts(nd_target, ByteOrder.BIG_ENDIAN);
+            for (int i = 0; i < 4; i++) {
+                nd_target[i] =
+                    BytesUtil.instance.reverseBE(message.getInt());
+            }
             message.getBytes(nd_sll);
             message.getBytes(nd_tll);
             return true;

@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
@@ -34,8 +33,8 @@ public class FlowKeyIPv4 implements FlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(ipv4_src, ByteOrder.BIG_ENDIAN);
-        builder.addValue(ipv4_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE(ipv4_src));
+        builder.addValue(BytesUtil.instance.reverseBE(ipv4_dst));
         builder.addValue(ipv4_proto);
         builder.addValue(ipv4_tos);
         builder.addValue(ipv4_ttl);
@@ -45,8 +44,8 @@ public class FlowKeyIPv4 implements FlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            ipv4_src = message.getInt(ByteOrder.BIG_ENDIAN);
-            ipv4_dst = message.getInt(ByteOrder.BIG_ENDIAN);
+            ipv4_src = BytesUtil.instance.reverseBE(message.getInt());
+            ipv4_dst = BytesUtil.instance.reverseBE(message.getInt());
             ipv4_proto = message.getByte();
             ipv4_tos = message.getByte();
             ipv4_ttl = message.getByte();
@@ -73,16 +72,15 @@ public class FlowKeyIPv4 implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyIPv4 that = (FlowKeyIPv4) o;
 
-        if (ipv4_dst != that.ipv4_dst) return false;
-        if (ipv4_frag != that.ipv4_frag) return false;
-        if (ipv4_proto != that.ipv4_proto) return false;
-        if (ipv4_src != that.ipv4_src) return false;
-        if (ipv4_tos != that.ipv4_tos) return false;
-        if (ipv4_ttl != that.ipv4_ttl) return false;
-
-        return true;
+        return (ipv4_dst == that.ipv4_dst)
+            && (ipv4_frag == that.ipv4_frag)
+            && (ipv4_proto == that.ipv4_proto)
+            && (ipv4_src == that.ipv4_src)
+            && (ipv4_tos == that.ipv4_tos)
+            && (ipv4_ttl == that.ipv4_ttl);
     }
 
     @Override

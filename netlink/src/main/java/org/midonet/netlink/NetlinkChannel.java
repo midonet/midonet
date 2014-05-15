@@ -6,7 +6,6 @@ package org.midonet.netlink;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.spi.SelectorProvider;
 
 import com.sun.jna.Native;
@@ -60,8 +59,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         fd = IOUtil.newFD(socket);
         fdVal = IOUtil.fdVal(fd);
 
-        ByteBuffer sobuf = ByteBuffer.allocate(4);
-        sobuf.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer sobuf = BytesUtil.instance.allocate(4);
         sobuf.putInt(RCVBUF_SIZE);
 
         int sockoptret = cLibrary.lib.setsockopt(
@@ -83,8 +81,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
          * netlink_broadcast() to send to userspace, so this will make sure it
          * gets the errors (and ignore them at will).
          */
-        ByteBuffer sobuf2 = ByteBuffer.allocate(4);
-        sobuf2.order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer sobuf2 = BytesUtil.instance.allocate(4);
         sobuf2.putInt(1);
         sockoptret = cLibrary.lib.setsockopt(
             fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf2, 4);

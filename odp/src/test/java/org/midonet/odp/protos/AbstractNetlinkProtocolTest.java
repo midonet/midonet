@@ -4,8 +4,6 @@
 package org.midonet.odp.protos;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -26,8 +24,6 @@ import org.midonet.netlink.AbstractNetlinkConnection;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
-import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.eventloop.TryCatchReactor;
 
 public abstract class AbstractNetlinkProtocolTest {
 
@@ -36,7 +32,6 @@ public abstract class AbstractNetlinkProtocolTest {
 
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
     BlockingQueue<ValueFuture<ByteBuffer>> listWrites;
-    Reactor reactor = null;
     OvsDatapathConnection connection = null;
 
     protected void setConnection() throws Exception {
@@ -45,8 +40,6 @@ public abstract class AbstractNetlinkProtocolTest {
     }
 
     protected void setUp(final byte[][] responses) throws Exception {
-
-        reactor = new TryCatchReactor("test", 1);
 
         Netlink.Address remote = new Netlink.Address(0);
         Netlink.Address local = new Netlink.Address(uplinkPid());
@@ -98,14 +91,11 @@ public abstract class AbstractNetlinkProtocolTest {
 
     }
 
-
-
     protected Future<ByteBuffer> waitWrite() throws InterruptedException {
         return listWrites.poll(100, TimeUnit.MILLISECONDS);
     }
 
     protected void tearDown() throws Exception {
-        reactor.shutDownNow();
     }
 
     protected int uplinkPid() {
