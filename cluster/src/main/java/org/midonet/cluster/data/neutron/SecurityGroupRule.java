@@ -4,7 +4,11 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.ICMP;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.util.Range;
 
 import java.util.UUID;
 
@@ -18,9 +22,9 @@ public class SecurityGroupRule {
     @JsonProperty("remote_group_id")
     public UUID remoteGroupId;
 
-    public String direction;
+    public RuleDirection direction;
 
-    public String protocol;
+    public RuleProtocol protocol;
 
     @JsonProperty("port_range_min")
     public Integer portRangeMin;
@@ -28,7 +32,7 @@ public class SecurityGroupRule {
     @JsonProperty("port_range_max")
     public Integer portRangeMax;
 
-    public String ethertype;
+    public RuleEthertype ethertype;
 
     @JsonProperty("remote_ip_prefix")
     public String remoteIpPrefix;
@@ -78,5 +82,44 @@ public class SecurityGroupRule {
                 .add("ethertype", ethertype)
                 .add("remoteIpPrefix", remoteIpPrefix)
                 .add("tenantId", tenantId).toString();
+    }
+
+    @JsonIgnore
+    public boolean isEgress() {
+        return direction == RuleDirection.EGRESS;
+    }
+
+    @JsonIgnore
+    public boolean isIngress() {
+        return direction == RuleDirection.INGRESS;
+    }
+
+    @JsonIgnore
+    public Byte protocolNumber() {
+        if (protocol == null) return null;
+        return protocol.number();
+    }
+
+    @JsonIgnore
+    public Integer ethertype() {
+        if (ethertype == null) return null;
+        return ethertype.number();
+    }
+
+    @JsonIgnore
+    public IPv4Subnet remoteIpv4Subnet() {
+        if (remoteIpPrefix == null) return null;
+        return new IPv4Subnet(remoteIpPrefix);
+    }
+
+    @JsonIgnore
+    public Range<Integer> portRange() {
+        if (portRangeMin == null && portRangeMax == null) return null;
+
+        if(protocol.number() == ICMP.PROTOCOL_NUMBER) {
+            return new Range<>(portRangeMax, portRangeMax);
+        } else {
+            return new Range<>(portRangeMin, portRangeMax);
+        }
     }
 }
