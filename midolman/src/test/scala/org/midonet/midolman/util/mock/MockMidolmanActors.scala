@@ -5,7 +5,6 @@ package org.midonet.midolman.util.mock
 
 import java.util.UUID
 
-import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
@@ -14,7 +13,7 @@ import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 
-import org.midonet.midolman.Referenceable
+import org.midonet.midolman.{MockScheduler, Referenceable}
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
@@ -26,8 +25,6 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.concurrent._
-import org.midonet.midolman.host.scanner.InterfaceScanner
-
 
 trait MockMidolmanActors {
     this: Suite =>
@@ -35,6 +32,8 @@ trait MockMidolmanActors {
     protected[this] val actorsService = new MockMidolmanActorsService
     implicit def actorSystem: ActorSystem = actorsService.system
     implicit def executionContext: ExecutionContext = ExecutionContext.callingThread
+
+    def scheduler = actorSystem.scheduler.asInstanceOf[MockScheduler]
 
     // These methods can be overridden by each class mixing MockMidolmanActors
     // to add custom operations before or after each test
