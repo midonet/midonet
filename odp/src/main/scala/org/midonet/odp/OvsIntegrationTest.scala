@@ -11,13 +11,22 @@ import org.midonet.odp.ports._
 import org.midonet.odp.flows._
 import org.midonet.util.IntegrationTests
 
-object OvsIntegrationTest extends DatapathTest with FlowTest with PortTest {
+object OvsIntegrationTest extends OvsIntegrationTestBase {
+    val baseConnection = DatapathClient.createConnection()
+}
+
+trait OvsIntegrationTestBase extends DatapathTest with FlowTest with PortTest {
 
     import IntegrationTests._
 
-    val con = new OvsConnectionOps(DatapathClient.createConnection())
+    val baseConnection: OvsDatapathConnection
+
+    var _con: OvsConnectionOps = _
+
+    def con = _con
 
     def main(args: Array[String]) {
+        _con = new OvsConnectionOps(baseConnection)
         var status = true
         val (dpF, dps, tests) = datapathTests()
 
@@ -31,12 +40,11 @@ object OvsIntegrationTest extends DatapathTest with FlowTest with PortTest {
 
         System exit (if (status) 0 else 1) // necessary for closing con
     }
-
 }
 
 trait DatapathTest {
 
-    val con: OvsConnectionOps
+    def con: OvsConnectionOps
 
     val dpname1 = "ovsdp-foo"
     val dpname2 = "ovsdp-bar"
@@ -75,12 +83,11 @@ trait DatapathTest {
             case (name,dpF) :: tail =>
                 for (dp <- dpF; d <- con delDp name; s <- delDps(tail)) yield s
         }
-
 }
 
 trait FlowTest {
 
-    val con: OvsConnectionOps
+    def con: OvsConnectionOps
 
     def flowTests(dpF: Future[Datapath]) = {
 
@@ -127,12 +134,11 @@ trait FlowTest {
         )
 
     }
-
 }
 
 trait PortTest {
 
-    val con: OvsConnectionOps
+    def con: OvsConnectionOps
 
     val portname1 = "ovstest-foo"
     val portname2 = "ovstest-bar"

@@ -18,14 +18,13 @@ import org.midonet.odp.protos.OvsDatapathConnection;
 
 
 public class BlockingTransactorDatapathConnection implements ManagedDatapathConnection {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final Logger log =
+        LoggerFactory.getLogger(BlockingTransactorDatapathConnection.class);
 
-    public String name;
-
-    private MidolmanConfig config;
-
+    public final String name;
+    private final MidolmanConfig config;
+    private final BufferPool sendPool;
     private Thread thread;
-    private BufferPool sendPool;
     private OvsDatapathConnection conn = null;
 
     public BlockingTransactorDatapathConnection(String name,
