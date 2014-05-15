@@ -190,13 +190,11 @@ class DeduplicationActor(
 
     // We return collection.Set so we can return an empty immutable set
     // and a non-empty mutable set.
-    private def removePacket(cookie: Int): collection.Set[Packet] = {
+    private def removePendingPacket(cookie: Int): collection.Set[Packet] = {
         val pending = cookieToPendedPackets.remove(cookie)
         log.debug("Remove {} pending packet(s) for cookie {}",
-            (if (pending.isDefined)
-                pending.get.size
-            else 0),
-            cookie)
+                  if (pending.isDefined) pending.get.size else 0,
+                  cookie)
         if (pending.isDefined) {
             val dpMatch = cookieToDpMatch.remove(cookie)
             if (dpMatch.isDefined)
@@ -270,7 +268,7 @@ class DeduplicationActor(
         } finally {
             var dropped = 0
             if (pw.cookie.isDefined) {
-                dropped = removePacket(pw.cookie.get).size
+                dropped = removePendingPacket(pw.cookie.get).size
                 packetOut(dropped)
             }
             metrics.packetsDropped.mark(dropped + 1)
@@ -305,7 +303,7 @@ class DeduplicationActor(
 
     private def applyFlow(cookie: Int, pw: PacketHandler): Unit = {
         val actions = actionsCache.actions.get(pw.packet.getMatch)
-        val pendingPackets = removePacket(cookie)
+        val pendingPackets = removePendingPacket(cookie)
         val numPendingPackets = pendingPackets.size
         if (numPendingPackets > 0) {
             // Send all pended packets with the same action list (unless
@@ -356,6 +354,7 @@ class DeduplicationActor(
         if (actions != null) {
             log.debug("Got actions from the cache: {}", actions)
             executePacket(packet, actions)
+            packetOut(1)
         } else {
             dpMatchToCookie.get(flowMatch) match {
                 case None =>
@@ -374,7 +373,7 @@ class DeduplicationActor(
                     log.debug("A matching packet with cookie {} is already " +
                               "being handled", cookie)
                     cookieToPendedPackets.addBinding(cookie, packet)
-                    giveUpWorkflows(waitingRoom.doExpirations)
+                    giveUpWorkflows(waitingRoom.doExpirations())
             }
         }
     }

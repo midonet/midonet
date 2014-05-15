@@ -7,14 +7,12 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Promise
 import scala.concurrent.promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.yammer.metrics.core.MetricsRegistry
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
@@ -27,7 +25,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{FlowMatches, Packet, Datapath}
+import org.midonet.odp.{FlowMatch, FlowMatches, Packet, Datapath}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
@@ -162,6 +160,24 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             packetsOut should be (3)
         }
 
+        scenario("executes packets that hit the actions cache") {
+            Given("an entry in the actions cache")
+            val pkts = List(makePacket(1))
+            dda.addToActionsCache(pkts(0).getMatch -> List(output(1)))
+
+            When("a packet comes that hits the actions cache")
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute that packet directly")
+            mockDpConn().packetsSent.asScala should be (pkts)
+
+            And("no pended packets should remain")
+            dda.pendedPackets(1) should be (None)
+
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (1)
+        }
+
         scenario("simulates sequences of packets from the datapath") {
             Given("4 packets with 3 different matches")
             val pkts = List(makePacket(1), makePacket(2), makePacket(3), makePacket(2))
@@ -293,5 +309,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             handlers foreach { _.complete(actions) }
             handlers.clear()
         }
+
+        def addToActionsCache(entry: (FlowMatch, List[FlowAction])): Unit =
+            actionsCache.actions.put(entry._1, entry._2.asJava)
     }
 }
