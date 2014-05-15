@@ -7,7 +7,6 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -119,4 +118,31 @@ public class Port {
                 || isRouterGateway());
     }
 
+    @JsonIgnore
+    public String egressChainName() {
+        if (id == null) return null;
+        return egressChainName(id);
+    }
+
+    @JsonIgnore
+    public String ingressChainName() {
+        if (id == null) return null;
+        return ingressChainName(id);
+    }
+
+    @JsonIgnore
+    public static String egressChainName(UUID portId) {
+        if (portId == null)
+            throw new IllegalArgumentException("portId is null");
+
+        return "OS_PORT_" + portId + "_INBOUND";
+    }
+
+    @JsonIgnore
+    public static String ingressChainName(UUID portId) {
+        if (portId == null)
+            throw new IllegalArgumentException("portId is null");
+
+        return "OS_PORT_" + portId + "_OUTBOUND";
+    }
 }

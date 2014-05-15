@@ -66,8 +66,8 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return Rule.class;
     }
 
-    private List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
-                                                   int position)
+    public List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
+                                                  int position)
             throws RuleIndexOutOfBoundsException, StateAccessException,
             SerializationException {
         // Make sure the position is greater than 0.
@@ -125,6 +125,60 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return ops;
     }
 
+    public void prepareCreateRulesInNewChain(List<Op> ops, UUID chainId,
+                                             List<Rule> rules)
+            throws StateAccessException, SerializationException {
+
+        // This method assumes that the chain provided does not exist yet and
+        // it is in process of getting created.
+        List<UUID> ruleIds = new ArrayList<>(rules.size());
+        for (Rule rule : rules) {
+            UUID id = UUID.randomUUID();
+            rule.chainId = chainId;
+            ops.addAll(prepareRuleCreate(id, rule));
+            ruleIds.add(id);
+        }
+
+        // Chain does not exist yet, but it's assumed that it's initialized
+        // to have an empty rule list.  Update the list.
+        ops.add(Op.setData(paths.getChainRulesPath(chainId),
+                serializer.serialize(new RuleList(ruleIds)), -1));
+
+        //ops.add(Op.create(paths.getChainRulesPath(chainId),
+        //        serializer.serialize(new RuleList(ruleIds)),
+        //        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+    }
+
+    public void prepareReplaceRules(List<Op> ops, UUID chainId,
+                                    List<Rule> rules)
+            throws StateAccessException, SerializationException {
+
+        // Get the current list of rules and remove them but without
+        // updating the position order.
+        Map.Entry<RuleList, Integer> list = getRuleListWithVersion(chainId);
+        RuleList currentList = list.getKey();
+        for (UUID ruleId : currentList.ruleList) {
+            Rule r = get(ruleId);
+            // Remove it but do not update rules list
+            prepareDelete(ops, ruleId, r);
+        }
+
+        // Insert the new rules, and maintain their order
+        List<UUID> ruleIds = new ArrayList<>(rules.size());
+        for (Rule rule : rules) {
+            UUID id = UUID.randomUUID();
+            ops.addAll(prepareRuleCreate(id, rule));
+            ruleIds.add(id);
+        }
+
+        // Update the rule list with the new order.  Fail if someone else
+        // updated it
+        int version = list.getValue();
+        String path = paths.getChainRulesPath(chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
+    }
+
     /**
      * Constructs a list of ZooKeeper update operations to perform when adding a
      * new rule. This method does not re-number the positions of other rules in
@@ -176,6 +230,51 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
                     Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         return ops;
+    }
+
+    /**
+     * Constructs a list of operations to perform in a rule deletion. This
+     * method does not re-number the positions of other rules in the same chain.
+     * The method is package-private so that it can be used for deleting an
+     * entire rule-chain.
+     *
+     * @param rule
+     *            Rule ZooKeeper entry to delete.
+     * @return A list of Op objects representing the operations to perform.
+     */
+    public void prepareDelete(List<Op> ops, UUID id, Rule rule)
+            throws StateAccessException {
+        String rulePath = paths.getRulePath(id);
+        log.debug("Preparing to delete: " + rulePath);
+        ops.add(Op.delete(rulePath, -1));
+
+        if (rule instanceof JumpRule) {
+            JumpRule jrule = (JumpRule)rule;
+            if (jrule.jumpToChainID != null) {
+                ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                        jrule.jumpToChainID, ResourceType.RULE, id));
+            }
+        }
+
+        // Remove the reference to port group
+        UUID portGroupId = rule.getCondition().portGroup;
+        if (portGroupId != null) {
+            ops.add(Op.delete(
+                    paths.getPortGroupRulePath(portGroupId, id), -1));
+        }
+
+        // Remove the reference(s) from the IP address group(s).
+        UUID ipAddrGroupIdDst = rule.getCondition().ipAddrGroupIdDst;
+        if (ipAddrGroupIdDst != null) {
+            ops.add(Op.delete(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupIdDst, id), -1));
+        }
+
+        UUID ipAddrGroupIdSrc = rule.getCondition().ipAddrGroupIdSrc;
+        if (ipAddrGroupIdSrc != null) {
+            ops.add(Op.delete(
+                    paths.getIpAddrGroupRulePath(ipAddrGroupIdSrc, id), -1));
+        }
     }
 
     public List<Op> prepareDelete(UUID id) throws StateAccessException,

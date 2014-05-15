@@ -1748,4 +1748,36 @@ public class ZkPathManager {
     public String getNeutronPortPath(UUID id) {
         return buildNeutronPortPath(id).toString();
     }
+
+    private StringBuilder buildNeutronSecurityGroupsPath() {
+        return buildNeutronPath().append("/security_groups");
+    }
+
+    public String getNeutronSecurityGroupsPath() {
+        return buildNeutronSecurityGroupsPath().toString();
+    }
+
+    private StringBuilder buildNeutronSecurityGroupPath(UUID id) {
+        return buildNeutronSecurityGroupsPath().append("/").append(id);
+    }
+
+    public String getNeutronSecurityGroupPath(UUID id) {
+        return buildNeutronSecurityGroupPath(id).toString();
+    }
+
+    private StringBuilder buildNeutronSecurityGroupRulesPath() {
+        return buildNeutronPath().append("/security_group_rules");
+    }
+
+    public String getNeutronSecurityGroupRulesPath() {
+        return buildNeutronSecurityGroupRulesPath().toString();
+    }
+
+    private StringBuilder buildNeutronSecurityGroupRulePath(UUID id) {
+        return buildNeutronSecurityGroupRulesPath().append("/").append(id);
+    }
+
+    public String getNeutronSecurityGroupRulePath(UUID id) {
+        return buildNeutronSecurityGroupRulePath(id).toString();
+    }
 }
