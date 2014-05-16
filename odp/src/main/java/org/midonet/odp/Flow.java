@@ -42,13 +42,13 @@ public class Flow implements AttributeHandler {
         this.match = match;
     }
 
-    public Flow(List<FlowKey> keys, List<FlowAction> actions) {
-        this.match = new FlowMatch(keys);
+    public Flow(FlowMatch match, List<FlowAction> actions) {
+        this(match);
         this.actions = actions;
     }
 
-    public Flow(List<FlowKey> keys, List<FlowAction> actions, FlowStats stats) {
-        this(keys, actions);
+    public Flow(FlowMatch match, List<FlowAction> actions, FlowStats stats) {
+        this(match, actions);
         this.stats = stats;
     }
 

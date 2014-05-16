@@ -5,15 +5,12 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cache.MockCache
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
 import org.midonet.midolman._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
@@ -28,7 +25,7 @@ import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.odp.flows.IPFragmentType
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class IPFragmentationTest extends MidolmanSpec {

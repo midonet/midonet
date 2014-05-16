@@ -15,7 +15,6 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
-import org.midonet.cache.MockCache
 import org.midonet.cluster.data.Port
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.{NotYet, Ready}
@@ -86,16 +85,7 @@ trait MidolmanSpec extends FeatureSpecLike
         sendPacket(t._1, t._2)
 
     def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
-        new Coordinator(
-            makeWildcardMatch(port, pkt),
-            pkt,
-            Some(1),
-            None,
-            0,
-            new MockCache(), new MockCache(), new MockCache(),
-            None,
-            Nil
-        ) simulate() match {
+        new Coordinator(packetContextFor(pkt, port.getId)) simulate() match {
             case Ready(r) => r
             case NotYet(f) =>
                 Await.result(f, 3 seconds)
