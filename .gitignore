@@ -45,8 +45,9 @@ host_uuid.properties
 /midolman/src/main/resources/git.properties
 /midonet-functional-tests/src/main/resources/git.properties
 /midonet-client/dependency-reduced-pom.xml
-/*.rpm
-/*.deb
+
+*.rpm
+*.deb
 
 # vagrant files
 /vagrant/.vagrant
