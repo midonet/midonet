@@ -215,31 +215,37 @@ public class NeutronPluginTest {
 
         Port port = createStockPort(subnet.id, network.id);
         port = plugin.createPort(port);
+        int cp2 = zkDir().createCheckPoint();
 
         Port dhcpPort = createStockPort(subnet.id, network.id);
         dhcpPort.deviceOwner = DeviceOwner.DHCP;
         dhcpPort = plugin.createPort(dhcpPort);
 
-        int cp2 = zkDir().createCheckPoint();
+        int cp3 = zkDir().createCheckPoint();
 
         dhcpPort.securityGroups.add(UUID.randomUUID());
         dhcpPort = plugin.updatePort(dhcpPort.id, dhcpPort);
 
-        int cp3 = zkDir().createCheckPoint();
+        int cp4 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp2, cp3).size() == 0);
-        assert(zkDir().getModifiedPaths(cp2, cp3).size() == 2);
-        assert(zkDir().getAddedPaths(cp2, cp3).size() == 0);
-
+        assert(zkDir().getRemovedPaths(cp3, cp4).size() == 0);
+        assert(zkDir().getModifiedPaths(cp3, cp4).size() == 1);
+        assert(zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
         plugin.deletePort(dhcpPort.id);
-        plugin.deletePort(port.id);
-
         int cp6 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp1, cp6).size() == 0);
-        //assert(zkDir().getModifiedPaths(cp1, cp6).size() == 0);  <-- FAILS
-        assert(zkDir().getAddedPaths(cp1, cp6).size() == 0);
+        assert(zkDir().getRemovedPaths(cp2, cp6).size() == 0);
+        assert(zkDir().getModifiedPaths(cp2, cp6).size() == 0);
+        assert(zkDir().getAddedPaths(cp2, cp6).size() == 0);
+
+        plugin.deletePort(port.id);
+
+        int cp7 = zkDir().createCheckPoint();
+
+        assert(zkDir().getRemovedPaths(cp1, cp7).size() == 0);
+        assert(zkDir().getModifiedPaths(cp1, cp7).size() == 0);
+        assert(zkDir().getAddedPaths(cp1, cp7).size() == 0);
 
         plugin.deleteSubnet(subnet.id);
         plugin.deleteNetwork(network.id);
