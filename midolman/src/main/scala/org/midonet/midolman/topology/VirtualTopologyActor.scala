@@ -35,14 +35,14 @@ import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMa
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.util.concurrent._
 
+/**
+ * The VirtualTopologyActor is a component that interacts with MidoNet's state
+ * management cluster and is responsible for all pieces of state that describe
+ * virtual network devices.
+ */
 object VirtualTopologyActor extends Referenceable {
     override val Name: String = "VirtualTopologyActor"
 
-    /*
-     * VirtualTopologyActor's clients use these messages to request the most
-     * recent state of a device and, optionally, notifications when the state
-     * changes.
-     */
     sealed trait DeviceRequest {
         val id: UUID
         val update: Boolean
@@ -365,7 +365,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     // TODO:       in a while.
     private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
     private val idToUnansweredClients = mutable.Map[UUID, mutable.Set[ActorRef]]()
-    private val managed = mutable.Set[UUID]()
+
+    private val managedDevices = mutable.Set[UUID]()
 
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
@@ -376,8 +377,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     @Inject
     val config: MidolmanConfig = null
 
+    /** Build a manager for a device */
     private def manageDevice(r: DeviceRequest): Unit = {
-        if (managed(r.id))
+        if (managedDevices(r.id))
             return
 
         log.info("Build a manager for {}", r)
@@ -386,7 +388,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         val props = Props { mgrFactory() }.withDispatcher(context.props.dispatcher)
         context.actorOf(props, r.managerName)
 
-        managed.add(r.id)
+        managedDevices.add(r.id)
         idToUnansweredClients.put(r.id, mutable.Set[ActorRef]())
         idToSubscribers.put(r.id, mutable.Set[ActorRef]())
     }
