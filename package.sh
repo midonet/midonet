@@ -210,6 +210,8 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
     #############################
     if [ $KEEP_GIT -eq 0 ] ; then
         log "Pushing local changes to repo..."
+        git tag -a "v$NEW_POM_VERSION" -m "Version $NEW_POM_VERSION"
+        git push --tags
     fi
 
 fi
