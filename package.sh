@@ -6,7 +6,6 @@
 
 #############################################################################
 
-RAISE_VERSION=0
 NEW_POM_VERSION=
 KEEP_GIT=0
 CLEAN=1
@@ -23,7 +22,10 @@ PACKAGE_NAME="midonet"
 # two params: (deb|rhel) version-tag
 EXTRA_SUB_PACKAGES="python-midonetclient"
 
-log()   { echo ">>> $1" ; }
+# Maven flag for verbose/quiet
+MAVEN_VERBOSE_FLAG=-q
+
+log()   { echo "[PACKAGING] $1" ; }
 error() { log "ERROR: $1" ; }
 warn()  { log "WARNING: $1" ; }
 abort() { log "$1" ; exit 1 ; }
@@ -56,7 +58,6 @@ EOF
 while [ $# -gt 0 ] ; do
     case "$1" in
         --version)
-          RAISE_VERSION=1
           NEW_POM_VERSION=$2
           shift
           ;;
@@ -81,7 +82,10 @@ while [ $# -gt 0 ] ; do
           ;;
         --skip-clean)
           CLEAN=0
-          ;;      
+          ;;
+        --debug)
+          MAVEN_VERBOSE_FLAG=
+          ;;  
         --help|-h)
           usage
           exit 0
@@ -99,11 +103,15 @@ done
 
 export -n LC_LANG LANG
 
+current_pom_version() {
+    echo $(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate \
+                 -Dexpression=project.version | \
+                 egrep -v '^\[|Downloading:' | \
+                 awk 1 ORS='')    
+}
+
 log "Obtaining current version from POM"
-CURRENT_POM_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate \
-             -Dexpression=project.version | \
-             egrep -v '^\[|Downloading:' | \
-             awk 1 ORS='')
+CURRENT_POM_VERSION=$(current_pom_version)
 log "Version: $CURRENT_POM_VERSION"
 
 if [ $WILL_PACKAGE -eq 1 ] ; then
@@ -129,21 +137,30 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
     #############################
     ## Version management
     #############################
-    if [ $RAISE_VERSION  -eq 1 ] ; then
-        log "Updating $PACKAGE_NAME POMs from $CURRENT_POM_VERSION to $NEW_POM_VERSION"
-        mvn versions:set -DnewVersion=$NEW_POM_VERSION
+    if [ "x$NEW_POM_VERSION" != "x" ] ; then
+        if [ "x$CURRENT_POM_VERSION" != "x$NEW_POM_VERSION" ] ; then
+            log "Updating $PACKAGE_NAME POMs from $CURRENT_POM_VERSION to $NEW_POM_VERSION"
+            mvn -q versions:set -DnewVersion=$NEW_POM_VERSION
+            CURRENT_POM_VERSION=$(current_pom_version)
+            log "Version raised to $CURRENT_POM_VERSION..."
 
-        if [ $KEEP_GIT -eq 0 ] ; then
-            git commit -asm "Updating client module and POMs for $NEW_POM_VERSION"
-            log "The commit is ready to send for review: \
-            - verify changes with 'git log -1 HEAD~1' \
-            - push for review to the appropriate branch"
+            if [ $KEEP_GIT -eq 0 ] ; then
+                git commit -asm "Updating client module and POMs for $NEW_POM_VERSION"
+                log "The commit is ready to send for review: \
+                - verify changes with 'git log -1 HEAD~1' \
+                - push for review to the appropriate branch"
+            else
+                warn "Did not commit the new POMs"
+            fi
         else
-            warn "Did not commit the new POMs"
+            log "$PACKAGE_NAME already set to $NEW_POM_VERSION"
         fi
     else
         warn "POMs version not raised! Will use version $CURRENT_POM_VERSION"
     fi
+
+    log "Claning up..."
+    mvn $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true clean
 
     #############################
     ## Debian packaging
@@ -151,8 +168,8 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
     if [ $PACKAGE_DEBIAN -eq 1 ] ; then
         log "Building debian packages, version: $CURRENT_POM_VERSION destination: $DEST_DIR"
 
-        log "Bulding $PACKAGE_NAME (Debian)"
-        mvn -q -DskipTests -Dmaven.test.skip=true clean package
+        log "Bulding $PACKAGE_NAME (Debian) with Maven"
+        mvn -o $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true package
         log "Debian packages built successfully"
     fi
 
@@ -173,12 +190,12 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
             RPM_RELEASE="0.1.$PRE_VERSION" # a pre release
         fi
 
-        log "Bulding $PACKAGE_NAME (RHEL)"
+        log "Bulding $PACKAGE_NAME (RHEL) with Maven"
         log "Using version:$RPM_VERSION release:$RPM_RELEASE"
-        mvn -q -DskipTests -Dmaven.test.skip=true \
+        mvn -o $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true \
                -Drpm -Dmido.rpm.release="$RPM_RELEASE" \
                -Dmido.rpm.version="$RPM_VERSION" \
-               clean package
+               package
         log "RHEL packages built successfully"
     fi
 
