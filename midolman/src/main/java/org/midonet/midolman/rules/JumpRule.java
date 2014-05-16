@@ -39,6 +39,12 @@ public class JumpRule extends Rule {
         this.jumpToChainName = jumpToChainName;
     }
 
+    public JumpRule(UUID chainId, UUID jumpChainId,
+                    String jumpChainName) {
+        this(new Condition(), jumpChainId, jumpChainName);
+        this.chainId = chainId;
+    }
+
     @Override
     public void apply(ChainPacketContext fwdInfo, RuleResult res,
                       NatMapping natMapping) {

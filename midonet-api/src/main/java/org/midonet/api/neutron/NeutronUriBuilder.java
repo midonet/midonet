@@ -15,6 +15,7 @@ public class NeutronUriBuilder {
     public final static String NETWORKS = "/networks";
     public final static String SUBNETS = "/subnets";
     public final static String PORTS = "/ports";
+    public final static String ROUTERS = "/routers";
     public final static String SECURITY_GROUPS = "/security_groups";
     public final static String SECURITY_GROUPS_RULES = "/security_group_rules";
 
@@ -65,6 +66,20 @@ public class NeutronUriBuilder {
         return ResourceUriBuilder.buildIdTemplateUri(getPorts(baseUri));
     }
 
+    // Routers
+    public static URI getRouters(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(ROUTERS).build();
+    }
+
+    public static URI getRouter(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getRouters(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getRouterTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getRouters(baseUri));
+    }
+    
     // Security Groups
     public static URI getSecurityGroups(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri)).path(

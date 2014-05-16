@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.data.neutron.Port;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -22,6 +23,14 @@ public class PortDirectory {
 
         public BridgePortConfig(UUID device_id) {
             super(device_id);
+        }
+
+        public BridgePortConfig(UUID device_id, boolean adminStateUp) {
+            super(device_id, adminStateUp);
+        }
+
+        public BridgePortConfig(Port port) {
+            super(port);
         }
 
         public BridgePortConfig(UUID deviceId, UUID peerId, Short vlanId) {

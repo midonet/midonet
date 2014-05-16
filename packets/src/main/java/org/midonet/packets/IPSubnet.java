@@ -22,4 +22,5 @@ public interface IPSubnet<T extends IPAddr> {
     void setAddress(T address);
     /* Required for deserialization */
     void setPrefixLen(int prefixLen);
+    short ethertype();
 }

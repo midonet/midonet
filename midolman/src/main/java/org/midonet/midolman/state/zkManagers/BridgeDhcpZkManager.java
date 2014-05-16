@@ -4,6 +4,8 @@
 
 package org.midonet.midolman.state.zkManagers;
 
+import org.midonet.cluster.data.neutron.Route;
+import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -76,6 +78,28 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.defaultGateway = defaultGateway;
             this.opt121Routes = opt121Routes;
             this.enabled = enabled;
+        }
+
+        public Subnet(org.midonet.cluster.data.neutron.Subnet subnet) {
+
+            this.subnetAddr = IntIPv4.fromString(subnet.cidr, "/");
+            this.defaultGateway = IntIPv4.fromString(subnet.gatewayIp);
+
+            if (subnet.hostRoutes != null) {
+                this.opt121Routes = new ArrayList<>(subnet.hostRoutes.size());
+                for (Route hostRoute : subnet.hostRoutes) {
+                    this.opt121Routes.add(new BridgeDhcpZkManager.Opt121(
+                            hostRoute.destination, hostRoute.nexthop));
+                }
+            }
+
+            if (subnet.dnsNameservers != null) {
+                this.dnsServerAddrs = new ArrayList<>(
+                        subnet.dnsNameservers.size());
+                for (String dnsServer : subnet.dnsNameservers) {
+                    this.dnsServerAddrs.add(IntIPv4.fromString(dnsServer));
+                }
+            }
         }
 
         public IntIPv4 getDefaultGateway() {
@@ -161,6 +185,14 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.name = name;
         }
 
+        public Host(MAC mac, IntIPv4 ip) {
+            this(mac, ip, null);
+        }
+
+        public Host(String mac, String ip) {
+            this(MAC.fromString(mac), IntIPv4.fromString(ip));
+        }
+
         public MAC getMac() {
             return mac;
         }
@@ -222,6 +254,11 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         public Opt121(IntIPv4 rtDstSubnet, IntIPv4 gateway) {
             this.rtDstSubnet = rtDstSubnet;
             this.gateway = gateway;
+        }
+
+        public Opt121(String rtDstSubnet, String gateway) {
+            this.rtDstSubnet = IntIPv4.fromString(rtDstSubnet, "/");
+            this.gateway = IntIPv4.fromString(gateway, "/");
         }
 
         public IntIPv4 getGateway() {
@@ -380,6 +417,19 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         ops.add(zk.getPersistentCreateOp(paths.getBridgeDhcpHostPath(
                 bridgeId, subnetAddr, host.getMac()),
                 serializer.serialize(host)));
+    }
+
+    public void prepareAddHost(List<Op> ops, UUID bridgeId, String subnetAddr,
+                               Host host) throws SerializationException {
+        IntIPv4 cidr = IntIPv4.fromString(subnetAddr, "/");
+        prepareAddHost(ops, bridgeId, cidr, host);
+    }
+
+    public void prepareAddHost(List<Op> ops,
+                               org.midonet.cluster.data.neutron.Subnet subnet,
+                               Host host)
+            throws SerializationException {
+        prepareAddHost(ops, subnet.networkId, subnet.cidr, host);
     }
 
     public void addHost(UUID bridgeId, IntIPv4 subnetAddr, Host host)

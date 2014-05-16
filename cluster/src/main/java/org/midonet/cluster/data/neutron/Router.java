@@ -4,6 +4,7 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.UUID;
@@ -62,4 +63,17 @@ public class Router {
                 .add("gwPortId", gwPortId)
                 .add("externalGatewayInfo", externalGatewayInfo).toString();
     }
+
+    @JsonIgnore
+    public String preRouteChainName() {
+        if (id == null) return null;
+        return "OS_PRE_ROUTING_" + id;
+    }
+
+    @JsonIgnore
+    public String postRouteChainName() {
+        if (id == null) return null;
+        return "OS_POST_ROUTING_" + id;
+    }
+
 }

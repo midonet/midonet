@@ -420,6 +420,18 @@ public class ZkManager {
         return Op.setData(path, data, -1);
     }
 
+    public void removeLastOp(List<Op> ops, String path) {
+
+        ListIterator<Op> it = ops.listIterator(ops.size());
+        while (it.hasPrevious()) {
+
+            if (it.previous().getPath().equals(path) ) {
+                it.remove();
+                return;
+            }
+        }
+    }
+
     public List<Op> getRecursiveDeleteOps(String root)
             throws StateAccessException {
 

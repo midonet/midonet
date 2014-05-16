@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.midonet.cluster.data.neutron.Port;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.InteriorBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.ExteriorBridgePortConfig;
@@ -39,9 +40,19 @@ import org.midonet.midolman.state.zkManagers.BaseConfig;
 public abstract class PortConfig extends BaseConfig {
 
     PortConfig(UUID device_id) {
+        this(device_id, false);
+    }
+
+    PortConfig(UUID device_id, boolean adminStateUp) {
         super();
         this.device_id = device_id;
+        this.adminStateUp = adminStateUp;
     }
+
+    PortConfig(Port port) {
+        this(port.networkId, port.adminStateUp);
+    }
+
     // Default constructor for the Jackson deserialization.
     PortConfig() { super(); }
     public UUID device_id;
