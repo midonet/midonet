@@ -239,6 +239,15 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         public void setRtDstSubnet(IntIPv4 rtDstSubnet) {
             this.rtDstSubnet = rtDstSubnet;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!rtDstSubnet.equals(((Opt121) o).rtDstSubnet)) return false;
+            if (!gateway.equals(((Opt121) o).gateway)) return false;
+            return true;
+        }
     }
 
     /**
