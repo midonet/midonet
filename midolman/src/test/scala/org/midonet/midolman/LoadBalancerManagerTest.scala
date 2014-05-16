@@ -5,16 +5,14 @@ package org.midonet.midolman
 
 import java.util.UUID
 import scala.compat.Platform
-import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, CustomMatchers}
+import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
@@ -193,9 +191,9 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
                 .setNetworkSource(IPv4Addr.fromString("1.1.1.1"))
                 .setTransportSource(1)
                 .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            val pktContextIngress = new PacketContext(None, null,
+            val pktContextIngress = new PacketContext(Left(1), null,
                 Platform.currentTime + 10000, null,
-                null, null, true, None, ingressMatch)(actorSystem)
+                null, null, None, ingressMatch)(actorSystem)
 
             val f = lb.processInbound(pktContextIngress)(executionContext, actorSystem)
 

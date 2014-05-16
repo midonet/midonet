@@ -123,7 +123,7 @@ class Bridge(val id: UUID,
                                  actorSystem: ActorSystem)
     : Urgent[Coordinator.Action] = {
 
-        log.debug("Processing frame: {}", packetContext.frame)
+        log.debug("Processing frame: {}", packetContext.ethernet)
 
         packetContext.addFlowTag(deviceTag)
 
@@ -132,7 +132,7 @@ class Bridge(val id: UUID,
             return Ready(DropAction)
         }
 
-        log.debug("Processing frame: {}", packetContext.frame)
+        log.debug("Processing frame: {}", packetContext.ethernet)
 
         if (areChainsApplicable()) {
 
@@ -285,7 +285,7 @@ class Bridge(val id: UUID,
             return ToPortAction(toPort)
         }
 
-        val vlanInFrame: Option[JShort] = pktCtx.frame.getVlanIDs match {
+        val vlanInFrame: Option[JShort] = pktCtx.ethernet.getVlanIDs match {
             case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
@@ -332,12 +332,12 @@ class Bridge(val id: UUID,
       */
     private def multicastAction()(implicit pktCtx: PacketContext,
                                            executor: ExecutionContext)
-    :Urgent[Coordinator.Action] =
+    : Urgent[Coordinator.Action] =
         vlanPortId match {
             case Some(vPId) if !pktCtx.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
                 log.debug("Add vlan-aware bridge to port set")
-                Ready(ForkAction(List(
+                Ready(ForkAction(Vector(
                     ToPortSetAction(id),
                     ToPortAction(vPId)
                 )))
@@ -359,7 +359,7 @@ class Bridge(val id: UUID,
 
         case p: BridgePort if p.isExterior =>
             // multicast from trunk, goes only to designated log. port
-            val vlanIds = pktCtx.frame.getVlanIDs
+            val vlanIds = pktCtx.ethernet.getVlanIDs
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
             vlanToPort.getPort(vlanId) match {
@@ -369,7 +369,7 @@ class Bridge(val id: UUID,
                 case vlanPort => // vlan is on an interior port
                     log.info("Frame from trunk on vlan {}, send to other " +
                              "trunks, POP, send to port {}", vlanId, vlanPort)
-                    ForkAction(List(
+                    ForkAction(Vector(
                         ToPortSetAction(id),
                         DoFlowAction(popVLAN()),
                         ToPortAction(vlanPort))
@@ -431,7 +431,7 @@ class Bridge(val id: UUID,
                 multicastAction()
             } else {
                 log.debug("Known MAC, {} reply to the ARP req.", mac)
-                processArpRequest(pktContext.frame.getPayload.asInstanceOf[ARP],
+                processArpRequest(pktContext.ethernet.getPayload.asInstanceOf[ARP],
                                   mac, pktContext.inPortId)
                 Ready(ConsumedAction)
             }

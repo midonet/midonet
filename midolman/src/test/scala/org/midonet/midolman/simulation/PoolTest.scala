@@ -4,20 +4,17 @@
 package org.midonet.midolman.simulation
 
 import java.lang.reflect.Field
-import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cache.{CacheWithPrefix, MockCache}
 import org.midonet.cache.MockCache.CacheEntry
 import org.midonet.cluster.data.l4lb
-import org.midonet.cluster.data.{Router => ClusterRouter, Entity, Port}
+import org.midonet.cluster.data.{Router => ClusterRouter, Entity}
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
@@ -28,7 +25,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger
 
 
 object DisableAction extends Enumeration {

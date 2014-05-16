@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013 Midokura SARL, All Rights Reserved.
  */
+
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
@@ -74,7 +75,7 @@ trait FlowTranslator {
     implicit protected def executor = system.dispatcher
 
     val log: LoggingAdapter
-    val cookieStr: String
+    def cookieStr: String
 
     protected def translateVirtualWildcardFlow(flow: WildcardFlow,
                                                tags: ROSet[FlowTag])

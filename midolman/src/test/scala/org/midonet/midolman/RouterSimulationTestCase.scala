@@ -168,8 +168,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         new IPv4Addr(portNumToSegmentAddr(portNum) + 1)
 
     implicit private def dummyPacketContext =
-        new PacketContext(None, null, Platform.currentTime+5000,
-                          null, null, null, false, None, new WildcardMatch())(actors())
+        new PacketContext(Left(0), null, Platform.currentTime+5000,
+                          null, null, null, None, new WildcardMatch())(actors())
 
     def testBalancesRoutes() {
         val routeDst = "21.31.41.51"

@@ -50,7 +50,7 @@ class FlowTest extends FunSpec with Matchers {
             (keyLists zip actLists) foreach { case (keys, actions) =>
                 buf.clear
                 Flow describeOneRequest (buf, 42, keys, actions)
-                val flow = (new Flow (keys, actions))
+                val flow = new Flow(new FlowMatch(keys), actions)
                 (Flow.deserializer deserializeFrom buf) shouldBe flow
             }
         }
