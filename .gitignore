@@ -48,6 +48,6 @@ host_uuid.properties
 
 *.rpm
 *.deb
-
+pom.xml.versionsBackup
 # vagrant files
 /vagrant/.vagrant
