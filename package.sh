@@ -41,7 +41,7 @@ Usage:
   --debian | -d | --deb build Debian packages
   --rhel | -r | --rpm   build RHEL packages
   --dest <DIR>          destination directory for the packages
-  --name <NAME>         use thhis package name
+  --name <NAME>         use this package name
   --skip-git | -N       do not commit/push/... anything to Git
   --skip-clean          do not perform a Git clean before building stuff...
 
@@ -211,6 +211,7 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
     if [ $KEEP_GIT -eq 0 ] ; then
         log "Pushing local changes to repo..."
     fi
+
 fi
 
 log "Done!"
