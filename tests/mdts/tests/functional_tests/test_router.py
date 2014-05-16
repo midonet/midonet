@@ -80,7 +80,7 @@ def test_ping_different_subnets():
     # because the MidoNet Router forwards the ICMP with the previous mac
     # found in bindings1 in ethernet headers.
     # Issue: https://midobugs.atlassian.net/browse/MN-79
-    receiver.ping4(sender)
+    receiver.ping4(sender, sync=True, do_arp=True)
 
     f1 = sender.ping4(receiver)
 
@@ -112,7 +112,7 @@ def test_fragmented_packets():
     # because the MidoNet Router forwards the ICMP with the previous mac
     # found in bindings1 in ethernet headers.
     # Issue: https://midobugs.atlassian.net/browse/MN-79
-    receiver.ping4(sender, 0.5, 3, False, 2000)
+    receiver.ping4(sender, 0.5, 3, True, 2000, do_arp=True)
 
     f1 = sender.ping4(receiver, 0.5, 3, False, 2000)
 
