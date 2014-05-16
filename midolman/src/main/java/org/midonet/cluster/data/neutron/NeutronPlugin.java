@@ -14,11 +14,12 @@ import java.util.List;
 import java.util.UUID;
 
 
-public interface NeutronPlugin extends DataClient, SecurityGroupExtension {
+public interface NeutronPlugin
+        extends DataClient, L3Extension, SecurityGroupExtension {
 
     /**
      * Create a new network data in the data store. StatePathExistsException
-     * thrown if the network with the same ID already exists.
+     * thrown if a network with the same ID already exists.
      *
      * @param network Network object to create
      * @return Created Network object
@@ -46,7 +47,7 @@ public interface NeutronPlugin extends DataClient, SecurityGroupExtension {
     /**
      * Retrieve a network. Returns null if the resource does not exist.
      *
-     * @param id ID of the Network object to delete
+     * @param id ID of the Network object to get
      * @return Network object
      */
     public Network getNetwork(@Nonnull UUID id)
@@ -102,7 +103,7 @@ public interface NeutronPlugin extends DataClient, SecurityGroupExtension {
     /**
      * Retrieve a subnet.  Returns null if the resource does not exist.
      *
-     * @param id ID of the Subnet object to delete
+     * @param id ID of the Subnet object to get
      * @return Subnet object
      */
     public Subnet getSubnet(@Nonnull UUID id)

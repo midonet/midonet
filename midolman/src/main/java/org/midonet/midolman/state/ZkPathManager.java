@@ -1749,6 +1749,22 @@ public class ZkPathManager {
         return buildNeutronPortPath(id).toString();
     }
 
+    private StringBuilder buildNeutronRoutersPath() {
+        return buildNeutronPath().append("/routers");
+    }
+
+    public String getNeutronRoutersPath() {
+        return buildNeutronRoutersPath().toString();
+    }
+
+    private StringBuilder buildNeutronRouterPath(UUID id) {
+        return buildNeutronRoutersPath().append("/").append(id);
+    }
+
+    public String getNeutronRouterPath(UUID id) {
+        return buildNeutronRouterPath(id).toString();
+    }
+
     private StringBuilder buildNeutronSecurityGroupsPath() {
         return buildNeutronPath().append("/security_groups");
     }

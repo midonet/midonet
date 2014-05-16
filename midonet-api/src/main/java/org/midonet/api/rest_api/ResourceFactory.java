@@ -148,6 +148,8 @@ public interface ResourceFactory {
 
     org.midonet.api.neutron.PortResource getNeutronPortResource();
 
+    org.midonet.api.neutron.RouterResource getNeutronRouterResource();
+
     SecurityGroupResource getNeutronSecurityGroupResource();
 
     SecurityGroupRuleResource getNeutronSecurityGroupRuleResource();

@@ -27,6 +27,11 @@ public class Neutron {
     @JsonProperty("port_template")
     public String portTemplate;
 
+    public URI routers;
+
+    @JsonProperty("router_template")
+    public String routerTemplate;
+    
     @JsonProperty("security_groups")
     public URI securityGroups;
 
@@ -54,6 +59,8 @@ public class Neutron {
                 && Objects.equal(subnetTemplate, other.subnetTemplate)
                 && Objects.equal(ports, other.ports)
                 && Objects.equal(portTemplate, other.portTemplate)
+                && Objects.equal(routers, other.routers)
+                && Objects.equal(routerTemplate, other.routerTemplate)
                 && Objects.equal(securityGroups, other.securityGroups)
                 && Objects.equal(
                     securityGroupTemplate, other.securityGroupTemplate)
@@ -66,9 +73,9 @@ public class Neutron {
     @Override
     public int hashCode() {
         return Objects.hashCode(uri, networks, networkTemplate, subnets,
-                subnetTemplate, ports, portTemplate, securityGroups,
-                securityGroupTemplate, securityGroupRules,
-                securityGroupRuleTemplate);
+                subnetTemplate, ports, portTemplate, routers,
+                routerTemplate, securityGroups, securityGroupTemplate, 
+                securityGroupRules, securityGroupRuleTemplate);
     }
 
     @Override
@@ -82,6 +89,8 @@ public class Neutron {
                 .add("subnetTemplate", subnetTemplate)
                 .add("ports", ports)
                 .add("portTemplate", portTemplate)
+                .add("routers", routers)
+                .add("routerTemplate", routerTemplate)
                 .add("securityGroups", securityGroups)
                 .add("securityGroupTemplate", securityGroupTemplate)
                 .add("securityGroupRules", securityGroupRules)

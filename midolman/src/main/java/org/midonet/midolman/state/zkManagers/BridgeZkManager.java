@@ -5,6 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import org.apache.zookeeper.Op;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.neutron.Network;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,12 @@ public class BridgeZkManager
             this.name = name;
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
+        }
+
+        public BridgeConfig(Network network) {
+            super();
+            this.name = network.name;
+            this.adminStateUp = network.adminStateUp;
         }
 
         // TODO: Make this private with a getter.

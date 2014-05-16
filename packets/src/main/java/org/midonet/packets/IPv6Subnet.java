@@ -3,6 +3,8 @@
 package org.midonet.packets;
 
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
 
     private IPv6Addr address;
@@ -35,6 +37,12 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
     @Override
     public void setPrefixLen(int prefixLen) {
         this.prefixLen = prefixLen;
+    }
+
+    @Override
+    @JsonIgnore
+    public short ethertype() {
+        return IPv6.ETHERTYPE;
     }
 
     @Override
