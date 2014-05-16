@@ -304,6 +304,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                             // the FlowController's ref
                             managedFlow.unref()
                         }
+                        metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             } else {
                 log.debug("Skipping obsolete wildcard flow {} with tags {}",
