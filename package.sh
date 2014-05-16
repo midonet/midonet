@@ -16,9 +16,6 @@ PACKAGE_RHEL=0
 DEST_DIR=`pwd`/
 PACKAGES_STORED_DIRS="midolman/target/"
 
-# only show the POM version and exit
-SHOW_POM_VERSION=0
-
 # the package name
 PACKAGE_NAME="midonet"
 
@@ -58,20 +55,17 @@ EOF
 
 while [ $# -gt 0 ] ; do
     case "$1" in
-        --show-version)
-          SHOW_POM_VERSION=1
-          ;;
-        --name)
-          PACKAGE_NAME=$1
-          shift
-          ;;
         --version)
           RAISE_VERSION=1
-          NEW_POM_VERSION=$1
+          NEW_POM_VERSION=$2
+          shift
+          ;;
+        --name)
+          PACKAGE_NAME=$2
           shift
           ;;
         --dest)
-          DEST_DIR=$1
+          DEST_DIR=$2
           shift
           ;;
         --debian|-d|--deb)
@@ -110,15 +104,12 @@ CURRENT_POM_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evalu
              -Dexpression=project.version | \
              egrep -v '^\[|Downloading:' | \
              awk 1 ORS='')
-
 log "Version: $CURRENT_POM_VERSION"
-[ $SHOW_POM_VERSION -eq 1 ] && exit 0
 
 if [ $WILL_PACKAGE -eq 1 ] ; then
     # Cleans the repo, ensures that the destination dir is both given and exists,
     # and resets the submodules
     log "Preparing for packaging.."
-    
     if [ $CLEAN -eq 1 ] ; then
         # Will wipe off everything in the current dir, resetting state to the
         # current git head.
@@ -134,70 +125,80 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
 
     log "Fetching git submodules.."
     git submodule --quiet init && git submodule --quiet update    
-fi
 
-if [ $RAISE_VERSION  -eq 1 ] ; then
-    log "Updating $PACKAGE_NAME POMs from $CURRENT_POM_VERSION to $NEW_POM_VERSION"
-    mvn versions:set -DnewVersion=$NEW_POM_VERSION
+    #############################
+    ## Version management
+    #############################
+    if [ $RAISE_VERSION  -eq 1 ] ; then
+        log "Updating $PACKAGE_NAME POMs from $CURRENT_POM_VERSION to $NEW_POM_VERSION"
+        mvn versions:set -DnewVersion=$NEW_POM_VERSION
 
-    if [ $KEEP_GIT -eq 0 ] ; then
-        git commit -asm "Updating client module and POMs for $NEW_POM_VERSION"
-        log "The commit is ready to send for review: \
-        - verify changes with 'git log -1 HEAD~1' \
-        - push for review to the appropriate branch"
+        if [ $KEEP_GIT -eq 0 ] ; then
+            git commit -asm "Updating client module and POMs for $NEW_POM_VERSION"
+            log "The commit is ready to send for review: \
+            - verify changes with 'git log -1 HEAD~1' \
+            - push for review to the appropriate branch"
+        else
+            warn "Did not commit the new POMs"
+        fi
     else
-        warn "Did not commit the new POMs"
-    fi
-else
-    warn "POMs version not raised! Will use version $CURRENT_POM_VERSION"
-fi
-
-##
-## Debian packaging
-##
-if [ $PACKAGE_DEBIAN -eq 1 ] ; then
-    log "Building debian packages, version: $CURRENT_POM_VERSION destination: $DEST_DIR"
-
-    log "Bulding $PACKAGE_NAME (Debian)"
-    mvn -q -DskipTests -Dmaven.test.skip=true clean package
-    log "Debian packages built successfully"
-fi
-
-##
-## RedHat packaging
-##
-if [ $PACKAGE_RHEL -eq 1 ] ; then    
-    log "Building RPM packages, version $CURRENT_POM_VERSION, destination $DEST_DIR"
-    RPM_VERSION=`echo $CURRENT_POM_VERSION | sed -e 's/-.*//g'` # take the 1.3.0 bit from 1.2.3-*
-    RPM_RELEASE=`echo $CURRENT_POM_VERSION | sed -e 's/.*-//g'` # take the bit after - if exists
-    if [ "$RPM_VERSION" = "$RPM_RELEASE" ] ; then
-        log "Looks like this is a FINAL release for $RPM_VERSION"
-        RPM_RELEASE="1.0" # a final
-    else
-        log "Looks like this is a non final release for $RPM_VERSION, $RPM_RELEASE"
-        TIMESTAMP=$(date +%Y%m%d%H%M)
-        PRE_VERSION=$(echo $CURRENT_POM_VERSION | sed -e "s/^.*-//g" | sed -e "s/SNAPSHOT/$TIMESTAMP/g")
-        RPM_RELEASE="0.1.$PRE_VERSION" # a pre release
+        warn "POMs version not raised! Will use version $CURRENT_POM_VERSION"
     fi
 
-    log "Bulding $PACKAGE_NAME (RHEL)"
-    log "Using version:$RPM_VERSION release:$RPM_RELEASE"
-    mvn -q -DskipTests -Dmaven.test.skip=true \
-           -Drpm -Dmido.rpm.release="$RPM_RELEASE" \
-           -Dmido.rpm.version="$RPM_VERSION" \
-           clean package
-    log "RHEL packages built successfully"
-fi
+    #############################
+    ## Debian packaging
+    #############################
+    if [ $PACKAGE_DEBIAN -eq 1 ] ; then
+        log "Building debian packages, version: $CURRENT_POM_VERSION destination: $DEST_DIR"
 
-if [ $WILL_PACKAGE -eq 1 ] ; then
+        log "Bulding $PACKAGE_NAME (Debian)"
+        mvn -q -DskipTests -Dmaven.test.skip=true clean package
+        log "Debian packages built successfully"
+    fi
+
+    #############################
+    ## RedHat packaging
+    #############################
+    if [ $PACKAGE_RHEL -eq 1 ] ; then    
+        log "Building RPM packages, version $CURRENT_POM_VERSION, destination $DEST_DIR"
+        RPM_VERSION=`echo $CURRENT_POM_VERSION | sed -e 's/-.*//g'` # take the 1.3.0 bit from 1.2.3-*
+        RPM_RELEASE=`echo $CURRENT_POM_VERSION | sed -e 's/.*-//g'` # take the bit after - if exists
+        if [ "$RPM_VERSION" = "$RPM_RELEASE" ] ; then
+            log "Looks like this is a FINAL release for $RPM_VERSION"
+            RPM_RELEASE="1.0" # a final
+        else
+            log "Looks like this is a non final release for $RPM_VERSION, $RPM_RELEASE"
+            TIMESTAMP=$(date +%Y%m%d%H%M)
+            PRE_VERSION=$(echo $CURRENT_POM_VERSION | sed -e "s/^.*-//g" | sed -e "s/SNAPSHOT/$TIMESTAMP/g")
+            RPM_RELEASE="0.1.$PRE_VERSION" # a pre release
+        fi
+
+        log "Bulding $PACKAGE_NAME (RHEL)"
+        log "Using version:$RPM_VERSION release:$RPM_RELEASE"
+        mvn -q -DskipTests -Dmaven.test.skip=true \
+               -Drpm -Dmido.rpm.release="$RPM_RELEASE" \
+               -Dmido.rpm.version="$RPM_VERSION" \
+               clean package
+        log "RHEL packages built successfully"
+    fi
+
     log "Collecting packages"
     for PKG in `find $PACKAGES_STORED_DIRS -name '*.rpm'` `find $PACKAGES_STORED_DIRS -name '*.deb'` ; do
         log "... copying $PKG"
-        mv $PKG $DEST_DIR/
+        mv -f $PKG $DEST_DIR/
     done
+    
+    #############################
+    ## Push tags & co
+    #############################
+    if [ $KEEP_GIT -eq 0 ] ; then
+        log "Pushing local changes to repo..."
+    fi
 fi
 
 log "Done!"
+exit 0
+
 
 
 
