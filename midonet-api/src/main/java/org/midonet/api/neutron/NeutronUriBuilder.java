@@ -16,6 +16,8 @@ public class NeutronUriBuilder {
     public final static String SUBNETS = "/subnets";
     public final static String PORTS = "/ports";
     public final static String ROUTERS = "/routers";
+    public final static String ADD_ROUTER_INTF = "/add_router_interface";
+    public final static String REMOVE_ROUTER_INTF = "/remove_router_interface";
     public final static String SECURITY_GROUPS = "/security_groups";
     public final static String SECURITY_GROUPS_RULES = "/security_group_rules";
 
@@ -79,7 +81,17 @@ public class NeutronUriBuilder {
     public static String getRouterTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getRouters(baseUri));
     }
-    
+
+    public static String getAddRouterInterfaceTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getRouters(baseUri)) +
+                ADD_ROUTER_INTF;
+    }
+
+    public static String getRemoveRouterInterfaceTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getRouters(baseUri)) +
+                REMOVE_ROUTER_INTF;
+    }
+
     // Security Groups
     public static URI getSecurityGroups(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri)).path(

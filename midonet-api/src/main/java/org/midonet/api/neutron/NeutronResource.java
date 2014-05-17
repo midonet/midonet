@@ -87,6 +87,10 @@ public class NeutronResource extends AbstractNeutronResource {
         neutron.portTemplate = NeutronUriBuilder.getPortTemplate(baseUri);
         neutron.routers = NeutronUriBuilder.getRouters(baseUri);
         neutron.routerTemplate = NeutronUriBuilder.getRouterTemplate(baseUri);
+        neutron.addRouterInterfaceTemplate =
+                NeutronUriBuilder.getAddRouterInterfaceTemplate(baseUri);
+        neutron.removeRouterInterfaceTemplate =
+                NeutronUriBuilder.getRemoveRouterInterfaceTemplate(baseUri);
         neutron.securityGroups = NeutronUriBuilder.getSecurityGroups(baseUri);
         neutron.securityGroupTemplate =
                 NeutronUriBuilder.getSecurityGroupTemplate(baseUri);

@@ -7,6 +7,7 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
@@ -94,6 +95,19 @@ public class Port {
     }
 
     @JsonIgnore
+    public boolean hasIp() {
+        return fixedIps != null && fixedIps.size()> 0;
+    }
+
+    @JsonIgnore
+    public IPv4Addr firstIpv4Addr() {
+        if (!hasIp()) return null;
+
+        String addr = fixedIps.get(0).ipAddress;
+        return IPv4Addr.fromString(addr);
+    }
+
+    @JsonIgnore
     public MAC macAddress() {
         if (macAddress == null) return null;
         return MAC.fromString(macAddress);
@@ -102,6 +116,11 @@ public class Port {
     @JsonIgnore
     public boolean isDhcp() {
         return deviceOwner == DeviceOwner.DHCP;
+    }
+
+    @JsonIgnore
+    public boolean isDhcp(UUID netId) {
+        return isDhcp() && Objects.equal(networkId, netId);
     }
 
     @JsonIgnore

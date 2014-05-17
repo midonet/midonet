@@ -270,7 +270,77 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return id;
     }
 
-    public List<Op> prepareLink(UUID id, UUID peerId)
+    /**
+     * This should be called for new ports that do not have routes associated
+     * already.  This method does only linking, and does not move routes to the
+     * routing table.
+     */
+    private void prepareLink(List<Op> ops, UUID id, UUID peerId,
+                             PortConfig port, PortConfig peerPort,
+                             boolean portExists, boolean peerPortExists)
+            throws SerializationException, StateAccessException {
+
+        port.setPeerId(peerId);
+        peerPort.setPeerId(id);
+
+        ops.add(Op.setData(paths.getPortPath(id),
+                serializer.serialize(port), -1));
+        ops.add(Op.setData(paths.getPortPath(peerId),
+                serializer.serialize(peerPort), -1));
+
+        //When a bridge port becomes an interior port, move the port
+        // reference in the bridge to the logical-ports folder.
+        if(port instanceof PortDirectory.BridgePortConfig) {
+            ops.add(Op.delete(paths.getBridgePortPath(port.device_id, id),
+                    -1));
+            ops.add(Op.create(paths.getBridgeLogicalPortPath(
+                            port.device_id, id), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } //do nothing for router port
+        if(peerPort instanceof PortDirectory.BridgePortConfig) {
+            ops.add(Op.delete(paths.getBridgePortPath(peerPort.device_id,
+                    peerId), -1));
+            ops.add(Op.create(paths.getBridgeLogicalPortPath(
+                            peerPort.device_id, peerId), null,
+                    Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+        } //do nothing for peer router port
+
+        // Copy all the routes in port route directory to routing table.
+        // If the port doesn't exist. The only route in this case is the local
+        // route.  Just create that route without accessing ZK.
+        if(port instanceof PortDirectory.RouterPortConfig) {
+
+            if (portExists) {
+                ops.addAll(routeZkManager.prepareCreatePortRoutesInTable(id));
+            } else {
+                routeZkManager.prepareCreatePortRouteInTable(
+                        ops, id, (PortDirectory.RouterPortConfig) port);
+            }
+
+        }
+        if(peerPort instanceof PortDirectory.RouterPortConfig) {
+
+            if (peerPortExists) {
+                ops.addAll(
+                        routeZkManager.prepareCreatePortRoutesInTable(peerId));
+            } else {
+                routeZkManager.prepareCreatePortRouteInTable(
+                        ops, peerId, (PortDirectory.RouterPortConfig) peerPort);
+            }
+        }
+    }
+
+    /**
+     * Call this method if the ports you are about to link do not exists.
+     */
+    public void prepareLink(List<Op> ops, UUID id, UUID peerId,
+                            PortConfig port, PortConfig peerPort)
+            throws SerializationException, StateAccessException {
+
+        prepareLink(ops, id, peerId, port, peerPort, false, false);
+    }
+
+    public void prepareLink(List<Op> ops, UUID id, UUID peerId)
             throws StateAccessException, SerializationException {
 
         PortConfig port = get(id);
@@ -278,48 +348,14 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         if (port.isUnplugged()) {
             PortConfig peerPort = get(peerId);
             if (!peerPort.isUnplugged()) {
-                throw new IllegalArgumentException("peerId is not an unplugged" +
-                                                       " port:" + id.toString());
-            }
-            port.setPeerId(peerId);
-            peerPort.setPeerId(id);
-
-            List<Op> ops = new ArrayList<Op>();
-            ops.add(Op.setData(paths.getPortPath(id),
-                    serializer.serialize(port), -1));
-            ops.add(Op.setData(paths.getPortPath(peerId),
-                    serializer.serialize(peerPort), -1));
-
-            //When a bridge port becomes an interior port, move the port
-            // reference in the bridge to the logical-ports folder.
-            if(port instanceof PortDirectory.BridgePortConfig) {
-                ops.add(Op.delete(paths.getBridgePortPath(port.device_id, id),
-                        -1));
-                ops.add(Op.create(paths.getBridgeLogicalPortPath(
-                        port.device_id, id), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            } //do nothing for router port
-            if(peerPort instanceof PortDirectory.BridgePortConfig) {
-                ops.add(Op.delete(paths.getBridgePortPath(peerPort.device_id,
-                        peerId), -1));
-                ops.add(Op.create(paths.getBridgeLogicalPortPath(
-                        peerPort.device_id, peerId), null,
-                        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-            } //do nothing for peer router port
-
-            // Copy all the routes in port route directory to routing table
-            if(port instanceof PortDirectory.RouterPortConfig) {
-                ops.addAll(routeZkManager.prepareCreatePortRoutesInTable(id));
-            }
-            if(peerPort instanceof PortDirectory.RouterPortConfig) {
-                ops.addAll(
-                        routeZkManager.prepareCreatePortRoutesInTable(peerId));
+                throw new IllegalArgumentException(
+                        "peerId is not an unplugged port:" + id.toString());
             }
 
-            return ops;
+            prepareLink(ops, id, peerId, port, peerPort, true, true);
         } else {
             throw new IllegalArgumentException(
-                "Port 'id' is not an unplugged port: " + id);
+                    "Port 'id' is not an unplugged port: " + id);
         }
     }
 
@@ -733,7 +769,8 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
     public void link(UUID id, UUID peerId) throws StateAccessException,
             SerializationException {
-        List<Op> ops = prepareLink(id, peerId);
+        List<Op> ops = new ArrayList<Op>();
+        prepareLink(ops, id, peerId);
         zk.multi(ops);
     }
 

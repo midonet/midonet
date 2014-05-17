@@ -9,16 +9,25 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
-import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.packets.IPv4Subnet;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class L3ZkManager extends BaseZkManager {
 
+    private final NetworkZkManager networkZkManager;
+    private final PortZkManager portZkManager;
+    private final RouteZkManager routeZkManager;
     private final RouterZkManager routerZkManager;
     private final ChainZkManager chainZkManager;
 
@@ -26,10 +35,16 @@ public class L3ZkManager extends BaseZkManager {
     public L3ZkManager(ZkManager zk,
                        PathBuilder paths,
                        Serializer serializer,
+                       NetworkZkManager networkZkManager,
                        ChainZkManager chainZkManager,
+                       PortZkManager portZkManager,
+                       RouteZkManager routeZkManager,
                        RouterZkManager routerZkManager) {
         super(zk, paths, serializer);
+        this.networkZkManager = networkZkManager;
         this.chainZkManager = chainZkManager;
+        this.portZkManager = portZkManager;
+        this.routeZkManager = routeZkManager;
         this.routerZkManager = routerZkManager;
     }
 
@@ -124,5 +139,43 @@ public class L3ZkManager extends BaseZkManager {
         // Update the neutron router config
         ops.add(zk.getSetDataOp(paths.getNeutronRouterPath(newRouter.id),
                 serializer.serialize(newRouter)));
+    }
+
+    public void prepareCreateRouterInterface(List<Op> ops,
+                                             RouterInterface rInt)
+            throws SerializationException, StateAccessException {
+
+        Port port = networkZkManager.getPort(rInt.portId);
+        Subnet subnet = networkZkManager.getSubnet(rInt.subnetId);
+
+        // Create a bridge port
+        BridgePortConfig bpConfig = new BridgePortConfig(port.networkId, true);
+        ops.addAll(portZkManager.prepareCreate(port.id, bpConfig));
+
+        // Create a router port
+        UUID rpId = UUID.randomUUID();
+        RouterPortConfig rpConfig = new RouterPortConfig(rInt, subnet, true);
+        ops.addAll(portZkManager.prepareCreate(rpId, rpConfig));
+
+        // Link them
+        portZkManager.prepareLink(ops, port.id, rpId, bpConfig, rpConfig);
+
+        // Add a route to this subnet
+        routeZkManager.preparePersisPortRouteCreate(ops, UUID.randomUUID(),
+                new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, 100,
+                rInt.id, rpConfig);
+
+        // Add a route for the metadata server.
+        // Not all VM images supports DHCP option 121.  Add a route for the
+        // Metadata server in the router to forward the packet to the bridge
+        // that will send them to the Metadata Proxy.
+        Port dPort = networkZkManager.getDhcpPort(subnet.networkId);
+        if (dPort != null && dPort.hasIp()) {
+
+            routeZkManager.preparePersisPortRouteCreate(ops,
+                    UUID.randomUUID(), new IPv4Subnet(0, 0),
+                    MetaDataService.IPv4_SUBNET, rpId, dPort.firstIpv4Addr(),
+                    100, rInt.id, rpConfig);
+        }
     }
 }

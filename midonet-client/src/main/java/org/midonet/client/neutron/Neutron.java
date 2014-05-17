@@ -31,7 +31,13 @@ public class Neutron {
 
     @JsonProperty("router_template")
     public String routerTemplate;
-    
+
+    @JsonProperty("add_router_interface_template")
+    public String addRouterInterfaceTemplate;
+
+    @JsonProperty("remove_router_interface_template")
+    public String removeRouterInterfaceTemplate;
+
     @JsonProperty("security_groups")
     public URI securityGroups;
 
@@ -61,21 +67,26 @@ public class Neutron {
                 && Objects.equal(portTemplate, other.portTemplate)
                 && Objects.equal(routers, other.routers)
                 && Objects.equal(routerTemplate, other.routerTemplate)
+                && Objects.equal(addRouterInterfaceTemplate,
+                                 other.addRouterInterfaceTemplate)
+                && Objects.equal(removeRouterInterfaceTemplate,
+                                 other.removeRouterInterfaceTemplate)
                 && Objects.equal(securityGroups, other.securityGroups)
                 && Objects.equal(
                     securityGroupTemplate, other.securityGroupTemplate)
                 && Objects.equal(securityGroupRules, other.securityGroupRules)
                 && Objects.equal(
                     securityGroupRuleTemplate, other.securityGroupRuleTemplate);
-
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(uri, networks, networkTemplate, subnets,
                 subnetTemplate, ports, portTemplate, routers,
-                routerTemplate, securityGroups, securityGroupTemplate, 
-                securityGroupRules, securityGroupRuleTemplate);
+                routerTemplate, addRouterInterfaceTemplate,
+                removeRouterInterfaceTemplate, securityGroups,
+                securityGroupTemplate, securityGroupRules,
+                securityGroupRuleTemplate);
     }
 
     @Override
@@ -91,6 +102,9 @@ public class Neutron {
                 .add("portTemplate", portTemplate)
                 .add("routers", routers)
                 .add("routerTemplate", routerTemplate)
+                .add("addRouterInterfaceTemplate", addRouterInterfaceTemplate)
+                .add("removeRouterInterfaceTemplate",
+                        removeRouterInterfaceTemplate)
                 .add("securityGroups", securityGroups)
                 .add("securityGroupTemplate", securityGroupTemplate)
                 .add("securityGroupRules", securityGroupRules)
