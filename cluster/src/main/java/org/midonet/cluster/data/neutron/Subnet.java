@@ -7,6 +7,9 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -106,5 +109,33 @@ public class Subnet {
     @JsonIgnore
     public boolean isIpv4() {
         return ipVersion == 4;
+    }
+
+    @JsonIgnore
+    public IPv4Subnet ipv4Subnet() {
+        if (cidr == null) return null;
+
+        if (isIpv4()) {
+            return new IPv4Subnet(cidr);
+        } else {
+            // TODO support IPv6
+            return null;
+        }
+    }
+
+    @JsonIgnore
+    public Integer cidrAddressInt() {
+        IPv4Subnet ipSubnet = ipv4Subnet();
+        if (ipSubnet == null) return null;
+
+        return ipSubnet.getIntAddress();
+    }
+
+    @JsonIgnore
+    public Integer cidrAddressLen() {
+        IPv4Subnet ipSubnet = ipv4Subnet();
+        if (ipSubnet == null) return null;
+
+        return ipSubnet.getPrefixLen();
     }
 }

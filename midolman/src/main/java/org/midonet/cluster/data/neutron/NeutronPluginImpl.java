@@ -346,6 +346,28 @@ public class NeutronPluginImpl extends LocalDataClientImpl
     }
 
     @Override
+    public RouterInterface addRouterInterface(
+            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        l3ZkManager.prepareCreateRouterInterface(ops, routerInterface);
+        commitOps(ops);
+
+        return routerInterface;
+    }
+
+    @Override
+    public RouterInterface removeRouterInterface(
+            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface) {
+
+        // Since the ports are already deleted by the time this is called,
+        // there is nothing to do.
+        return routerInterface;
+
+    }
+
+    @Override
     public SecurityGroup createSecurityGroup(@Nonnull SecurityGroup sg)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException {
@@ -455,8 +477,7 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         }
         commitOps(ops);
 
-        List<SecurityGroupRule> newRules = new ArrayList<>(
-                rules.size());
+        List<SecurityGroupRule> newRules = new ArrayList<>(rules.size());
         for(SecurityGroupRule rule : rules) {
             newRules.add(getSecurityGroupRule(rule.id));
         }

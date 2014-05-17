@@ -50,7 +50,17 @@ public class NeutronDataProvider {
         r.id = id;
         return r;
     }
-    
+
+    public static RouterInterface routerInterface() {
+        return routerInterface(UUID.randomUUID());
+    }
+
+    public static RouterInterface routerInterface(UUID id) {
+        RouterInterface ri = new RouterInterface();
+        ri.id = id;
+        return ri;
+    }
+
     public static SecurityGroup securityGroup() {
         return securityGroup(UUID.randomUUID());
     }

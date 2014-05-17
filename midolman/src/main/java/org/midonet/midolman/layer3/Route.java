@@ -11,6 +11,7 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 
 @JsonPropertyOrder(alphabetic=true)
@@ -52,6 +53,16 @@ public class Route implements Serializable {
         this.weight = weight;
         this.attributes = attributes;
         this.routerId = routerId;
+    }
+
+    public Route(IPv4Subnet srcSubnet, IPv4Subnet dstSubnet,
+                 NextHop nextHop, UUID nextHopPortId, IPv4Addr nextHopGw,
+                 int weight, UUID routerId) {
+        this(srcSubnet.getIntAddress(), srcSubnet.getPrefixLen(),
+                dstSubnet.getIntAddress(), dstSubnet.getPrefixLen(),
+                nextHop, nextHopPortId,
+                nextHopGw == null ? 0 : nextHopGw.addr(),
+                weight, null, routerId);
     }
 
     // Default constructor for the Jackson deserialization.
@@ -177,4 +188,17 @@ public class Route implements Serializable {
         return rt;
     }
 
+    public static Route nextHopPortRoute(IPv4Subnet srcSubnet,
+                                         IPv4Subnet dstSubnet,
+                                         UUID nextHopPortId, IPv4Addr nextHopGw,
+                                         int weight, UUID routerId) {
+
+        return new Route(srcSubnet, dstSubnet, NextHop.PORT,
+                nextHopPortId, nextHopGw, weight, routerId);
+    }
+
+    public static Route localRoute(UUID portId, int portAddr, UUID routerId) {
+        return new Route(0, 0, portAddr, 32, Route.NextHop.LOCAL,
+                portId, Route.NO_GATEWAY, 0, null, routerId);
+    }
 }
