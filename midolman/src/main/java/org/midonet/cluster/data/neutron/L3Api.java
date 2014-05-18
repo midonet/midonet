@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
 
-public interface L3Extension {
+public interface L3Api {
 
     /**
      * Create a new router data in the data store. StatePathExistsException

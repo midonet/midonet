@@ -284,11 +284,6 @@ public class ApplicationResource extends AbstractResource {
         return factory.getVtepResource();
     }
 
-    @Path(ResourceUriBuilder.NEUTRON)
-    public NeutronResource getNeutronResource() {
-        return factory.getNeutronResource();
-    }
-
     /**
      * Handler for getting root application resources.
      *

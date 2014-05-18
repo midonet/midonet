@@ -7,6 +7,7 @@ package org.midonet.midolman.layer3;
 import java.io.Serializable;
 import java.util.UUID;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import org.midonet.packets.IPv4;
@@ -200,5 +201,11 @@ public class Route implements Serializable {
     public static Route localRoute(UUID portId, int portAddr, UUID routerId) {
         return new Route(0, 0, portAddr, 32, Route.NextHop.LOCAL,
                 portId, Route.NO_GATEWAY, 0, null, routerId);
+    }
+
+    @JsonIgnore
+    public boolean hasDstSubnet(IPv4Subnet sub) {
+        return dstNetworkAddr == sub.getIntAddress() &&
+                dstNetworkLength == sub.getPrefixLen();
     }
 }

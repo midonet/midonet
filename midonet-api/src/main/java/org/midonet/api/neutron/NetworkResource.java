@@ -5,12 +5,13 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.Network;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -29,15 +30,18 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class NetworkResource extends AbstractNeutronResource {
+public class NetworkResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             NetworkResource.class);
 
+    private final NetworkApi api;
+
     @Inject
     public NetworkResource(RestApiConfig config, UriInfo uriInfo,
-                           SecurityContext context, NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                           SecurityContext context, NetworkApi api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -49,9 +53,9 @@ public class NetworkResource extends AbstractNeutronResource {
         log.info("NetworkResource.create entered {}", network);
 
         try {
-            Network net = dataClient.createNetwork(network);
+            Network net = api.createNetwork(network);
 
-            log.info("NetworkResource.get exiting {}", net);
+            log.info("NetworkResource.create exiting {}", net);
             return Response.created(
                     NeutronUriBuilder.getNetwork(
                             getBaseUri(), net.id)).entity(net).build();
@@ -70,7 +74,7 @@ public class NetworkResource extends AbstractNeutronResource {
         log.info("NetworkResource.createBulk entered");
 
         try {
-            List<Network> nets = dataClient.createNetworkBulk(networks);
+            List<Network> nets = api.createNetworkBulk(networks);
 
             return Response.created(NeutronUriBuilder.getNetworks(
                     getBaseUri())).entity(nets).build();
@@ -85,7 +89,7 @@ public class NetworkResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("NetworkResource.delete entered {}", id);
-        dataClient.deleteNetwork(id);
+        api.deleteNetwork(id);
     }
 
     @GET
@@ -96,7 +100,7 @@ public class NetworkResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("NetworkResource.get entered {}", id);
 
-        Network net = dataClient.getNetwork(id);
+        Network net = api.getNetwork(id);
         if (net == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -111,7 +115,7 @@ public class NetworkResource extends AbstractNeutronResource {
     public List<Network> list()
             throws SerializationException, StateAccessException {
         log.info("NetworkResource.list entered");
-        return dataClient.getNetworks();
+        return api.getNetworks();
     }
 
     @PUT
@@ -125,7 +129,7 @@ public class NetworkResource extends AbstractNeutronResource {
         log.info("NetworkResource.update entered {}", network);
 
         try {
-            Network net = dataClient.updateNetwork(id, network);
+            Network net = api.updateNetwork(id, network);
 
             log.info("NetworkResource.update exiting {}", net);
             return Response.ok(

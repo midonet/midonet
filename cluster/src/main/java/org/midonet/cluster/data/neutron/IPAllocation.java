@@ -52,11 +52,12 @@ public class IPAllocation {
     }
 
     @JsonIgnore
-    public IPSubnet subnet(int ipVersion) {
-        if (ipVersion == 6) {
-            return new IPv6Subnet(IPv6Addr.fromString(ipAddress), 128);
-        } else {
-            return new IPv4Subnet(IPv4Addr.fromString(ipAddress), 32);
-        }
+    public IPv4Subnet ipv4Subnet() {
+        return new IPv4Subnet(IPv4Addr.fromString(ipAddress), 32);
+    }
+
+    @JsonIgnore
+    public IPv6Subnet ipv6Subnet() {
+        return new IPv6Subnet(IPv6Addr.fromString(ipAddress), 128);
     }
 }
