@@ -64,7 +64,6 @@ public class ResourceUriBuilder {
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
-    public static final String NEUTRON = "/neutron";
 
     private ResourceUriBuilder() {
     }

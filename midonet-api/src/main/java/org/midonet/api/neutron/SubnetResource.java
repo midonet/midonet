@@ -5,11 +5,12 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -29,15 +30,18 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class SubnetResource extends AbstractNeutronResource {
+public class SubnetResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SubnetResource.class);
 
+    private final NetworkApi api;
+
     @Inject
     public SubnetResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context, NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                          SecurityContext context, NetworkApi api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -50,9 +54,9 @@ public class SubnetResource extends AbstractNeutronResource {
 
         try {
 
-            Subnet sub = dataClient.createSubnet(subnet);
+            Subnet sub = api.createSubnet(subnet);
 
-            log.info("SubnetResource.get exiting {}", sub);
+            log.info("SubnetResource.create exiting {}", sub);
             return Response.created(
                     NeutronUriBuilder.getSubnet(
                             getBaseUri(), sub.id)).entity(sub).build();
@@ -72,7 +76,7 @@ public class SubnetResource extends AbstractNeutronResource {
         log.info("SubnetResource.createBulk entered");
 
         try {
-            List<Subnet> nets = dataClient.createSubnetBulk(subnets);
+            List<Subnet> nets = api.createSubnetBulk(subnets);
 
             return Response.created(NeutronUriBuilder.getSubnets(
                     getBaseUri())).entity(nets).build();
@@ -87,7 +91,7 @@ public class SubnetResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("SubnetResource.delete entered {}", id);
-        dataClient.deleteSubnet(id);
+        api.deleteSubnet(id);
     }
 
     @GET
@@ -98,7 +102,7 @@ public class SubnetResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("SubnetResource.get entered {}", id);
 
-        Subnet sub = dataClient.getSubnet(id);
+        Subnet sub = api.getSubnet(id);
         if (sub == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -113,7 +117,7 @@ public class SubnetResource extends AbstractNeutronResource {
     public List<Subnet> list()
             throws SerializationException, StateAccessException {
         log.info("SubnetResource.list entered");
-        return dataClient.getSubnets();
+        return api.getSubnets();
     }
 
     @PUT
@@ -128,7 +132,7 @@ public class SubnetResource extends AbstractNeutronResource {
 
         try {
 
-            Subnet sub = dataClient.updateSubnet(id, subnet);
+            Subnet sub = api.updateSubnet(id, subnet);
 
             log.info("SubnetResource.update exiting {}", sub);
             return Response.ok(

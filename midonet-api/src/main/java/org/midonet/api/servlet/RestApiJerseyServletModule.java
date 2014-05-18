@@ -18,6 +18,7 @@ import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.filter.FilterModule;
 import org.midonet.api.network.NetworkModule;
+import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
@@ -71,7 +72,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         // Install Zookeeper module until Cluster Client makes it unnecessary
         install(new ZookeeperModule());
+
+        // Install Neutron modules
         install(new NeutronClusterModule());
+        install(new NeutronRestApiModule());
 
         install(new NetworkModule());
         install(new FilterModule());

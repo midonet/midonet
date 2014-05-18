@@ -5,12 +5,13 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Port;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -30,15 +31,18 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class PortResource extends AbstractNeutronResource {
+public class PortResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             PortResource.class);
 
+    private final NetworkApi api;
+
     @Inject
     public PortResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context, NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                        SecurityContext context, NetworkApi api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -51,9 +55,9 @@ public class PortResource extends AbstractNeutronResource {
 
         try {
 
-            Port p = dataClient.createPort(port);
+            Port p = api.createPort(port);
 
-            log.info("PortResource.get exiting {}", p);
+            log.info("PortResource.create exiting {}", p);
             return Response.created(
                     NeutronUriBuilder.getPort(
                             getBaseUri(), p.id)).entity(p).build();
@@ -74,7 +78,7 @@ public class PortResource extends AbstractNeutronResource {
         log.info("PortResource.createBulk entered");
 
         try {
-            List<Port> outPorts = dataClient.createPortBulk(ports);
+            List<Port> outPorts = api.createPortBulk(ports);
 
             return Response.created(NeutronUriBuilder.getPorts(
                     getBaseUri())).entity(outPorts).build();
@@ -89,7 +93,7 @@ public class PortResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("PortResource.delete entered {}", id);
-        dataClient.deletePort(id);
+        api.deletePort(id);
     }
 
     @GET
@@ -100,7 +104,7 @@ public class PortResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("PortResource.get entered {}", id);
 
-        Port p = dataClient.getPort(id);
+        Port p = api.getPort(id);
         if (p == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -115,7 +119,7 @@ public class PortResource extends AbstractNeutronResource {
     public List<Port> list()
             throws SerializationException, StateAccessException {
         log.info("PortResource.list entered");
-        return dataClient.getPorts();
+        return api.getPorts();
     }
 
     @PUT
@@ -131,7 +135,7 @@ public class PortResource extends AbstractNeutronResource {
 
         try {
 
-            Port p = dataClient.updatePort(id, port);
+            Port p = api.updatePort(id, port);
 
             log.info("PortResource.update exiting {}", p);
             return Response.ok(
