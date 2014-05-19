@@ -169,7 +169,7 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
         log "Building debian packages, version: $CURRENT_POM_VERSION destination: $DEST_DIR"
 
         log "Bulding $PACKAGE_NAME (Debian) with Maven"
-        mvn -o $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true package
+        mvn $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true package
         log "Debian packages built successfully"
     fi
 
@@ -192,7 +192,7 @@ if [ $WILL_PACKAGE -eq 1 ] ; then
 
         log "Bulding $PACKAGE_NAME (RHEL) with Maven"
         log "Using version:$RPM_VERSION release:$RPM_RELEASE"
-        mvn -o $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true \
+        mvn $MAVEN_VERBOSE_FLAG -DskipTests -Dmaven.test.skip=true \
                -Drpm -Dmido.rpm.release="$RPM_RELEASE" \
                -Dmido.rpm.version="$RPM_VERSION" \
                package
