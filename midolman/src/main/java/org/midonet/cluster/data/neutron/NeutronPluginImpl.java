@@ -12,6 +12,7 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,9 @@ public class NeutronPluginImpl extends LocalDataClientImpl
 
     @Inject
     private NetworkZkManager networkZkManager;
+
+    @Inject
+    private L3ZkManager l3ZkManager;
 
     @Inject
     private SecurityGroupZkManager securityGroupZkManager;
@@ -282,6 +286,63 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         commitOps(ops);
 
         return getPort(id);
+    }
+
+    @Override
+    public Router createRouter(@Nonnull Router router)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+
+        // Create a RouterConfig in ZK
+        RouterZkManager.RouterConfig config = l3ZkManager.prepareCreateRouter(
+                ops, router);
+
+        // TODO handle gateway case
+
+        commitOps(ops);
+
+        return getRouter(router.id);
+    }
+
+    @Override
+    public Router getRouter(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        return l3ZkManager.getRouter(id);
+    }
+
+    @Override
+    public List<Router> getRouters()
+            throws StateAccessException, SerializationException {
+        return l3ZkManager.getRouters();
+    }
+
+    @Override
+    public void deleteRouter(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        l3ZkManager.prepareDeleteRouter(ops, id);
+        commitOps(ops);
+    }
+
+    @Override
+    public Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        List<Op> ops = new ArrayList<>();
+
+        // TODO handle gateway
+
+        // Update the router config
+        l3ZkManager.prepareUpdateRouter(ops, router);
+
+        // This should throw NoPathExistsException if the resource does not
+        // exist.
+        commitOps(ops);
+
+        return getRouter(router.id);
     }
 
     @Override

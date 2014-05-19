@@ -22,6 +22,11 @@ public class NeutronMediaType {
     public final static String PORTS_JSON_V1 =
             "application/vnd.org.midonet.neutron.Ports-v1+json";
 
+    public final static String ROUTER_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Router-v1+json";
+    public final static String ROUTERS_JSON_V1 =
+            "application/vnd.org.midonet.neutron.Routers-v1+json";
+
     public final static String SECURITY_GROUP_JSON_V1 =
             "application/vnd.org.midonet.neutron.SecurityGroup-v1+json";
     public final static String SECURITY_GROUPS_JSON_V1 =

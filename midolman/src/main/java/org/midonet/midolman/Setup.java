@@ -104,6 +104,7 @@ public class Setup {
         paths.add(pathMgr.getNeutronNetworksPath());
         paths.add(pathMgr.getNeutronSubnetsPath());
         paths.add(pathMgr.getNeutronPortsPath());
+        paths.add(pathMgr.getNeutronRoutersPath());
         paths.add(pathMgr.getNeutronSecurityGroupsPath());
         paths.add(pathMgr.getNeutronSecurityGroupRulesPath());
 

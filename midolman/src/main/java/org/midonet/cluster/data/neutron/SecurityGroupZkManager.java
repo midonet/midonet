@@ -6,12 +6,17 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
+import org.midonet.midolman.rules.JumpRule;
+import org.midonet.midolman.rules.LiteralRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
+        .IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
 
@@ -49,7 +54,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
                                     List<Rule> rules)
             throws SerializationException, StateAccessException {
 
-        ChainZkManager.ChainConfig config = ConfigFactory.createChain(name);
+        ChainConfig config = new ChainConfig(name);
         chainZkManager.prepareCreate(ops, chainId, config);
         ruleZkManager.prepareCreateRulesInNewChain(ops, chainId, rules);
     }
@@ -72,12 +77,12 @@ public class SecurityGroupZkManager extends BaseZkManager {
         prepareCreateChain(ops, outboundChainId, name, outRules);
     }
 
-    private Rule createSgJumpRule(IpAddrGroupZkManager.IpAddrGroupConfig gc,
+    private Rule createSgJumpRule(IpAddrGroupConfig gc,
                                   RuleDirection dir, UUID chainId)
             throws StateAccessException, SerializationException {
         UUID jumpChainId = gc.getPropertyUuid(dir);
-        ChainZkManager.ChainConfig jChain = chainZkManager.get(jumpChainId);
-        return ConfigFactory.createJumpRule(chainId, jumpChainId, jChain.name);
+        ChainConfig jChain = chainZkManager.get(jumpChainId);
+        return new JumpRule(chainId, jumpChainId, jChain.name);
     }
 
     private void putPortChainRules(List<Rule> inRules, List<Rule> outRules,
@@ -88,29 +93,27 @@ public class SecurityGroupZkManager extends BaseZkManager {
         outRules.clear();
 
         // Add reverse flow matching for out_chain.
-        outRules.add(ConfigFactory.createAcceptReturnFlowRule(outChainId));
+        outRules.add(LiteralRule.acceptReturnFlowRule(outChainId));
 
         // IP spoofing protection for in_chain
         for (IPAllocation fixedIp : port.fixedIps) {
 
             Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
-            inRules.add(ConfigFactory.createIpSpoofProtectionRule(
-                            inChainId, subnet, fixedIp.ipAddress));
+            inRules.add(LiteralRule.ipSpoofProtectionRule(
+                    fixedIp.subnet(subnet.ipVersion), inChainId));
         }
 
         // MAC spoofing protection for in_chain
-        inRules.add(ConfigFactory.createMacSpoofProtectionRule(
-                        inChainId, port.macAddress));
+        inRules.add(LiteralRule.macSpoofProtectionRule(
+                        port.macAddress(), inChainId));
 
         // Add reverse flow matching for in_chain.
-        inRules.add(
-                ConfigFactory.createAcceptReturnFlowRule(inChainId));
+        inRules.add(LiteralRule.acceptReturnFlowRule(inChainId));
 
         // Add jump rules for security groups
         if (port.securityGroups != null) {
             for (UUID sgId : port.securityGroups) {
-                IpAddrGroupZkManager.IpAddrGroupConfig gc =
-                        ipAddrGroupZkManager.get(sgId);
+                IpAddrGroupConfig gc = ipAddrGroupZkManager.get(sgId);
                 inRules.add(createSgJumpRule(gc, RuleDirection.EGRESS,
                         inChainId));
                 outRules.add(createSgJumpRule(gc, RuleDirection.INGRESS,
@@ -119,8 +122,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         }
 
         // Both chains drop non-ARP traffic if no other rules match.
-        inRules.add(ConfigFactory.createDropAllRule(inChainId));
-        inRules.add(ConfigFactory.createDropAllRule(outChainId));
+        inRules.add(LiteralRule.dropAllExceptArpRule(inChainId));
+        inRules.add(LiteralRule.dropAllExceptArpRule(outChainId));
     }
 
     private void prepareUpdatePortChains(List<Op> ops, Port port,
@@ -218,8 +221,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
             return;
         }
 
-        IpAddrGroupZkManager.IpAddrGroupConfig group =
-                ipAddrGroupZkManager.get(sgId);
+        IpAddrGroupConfig group = ipAddrGroupZkManager.get(sgId);
 
         // Delete the IP Address Group.
         ops.addAll(ipAddrGroupZkManager.prepareDelete(sgId));
@@ -249,19 +251,17 @@ public class SecurityGroupZkManager extends BaseZkManager {
         // egress directions.  Use the name field to associate them back to SG.
         // Note that 'ingress' is 'outbound' in midonet.
         UUID outboundChainId = UUID.randomUUID();
-        ChainZkManager.ChainConfig cfg = ConfigFactory.createChain(
-                sg.ingressChainName());
+        ChainConfig cfg = new ChainConfig(sg.ingressChainName());
         ops.addAll(chainZkManager.prepareCreate(outboundChainId, cfg));
 
         UUID inboundChainId = UUID.randomUUID();
-        cfg = ConfigFactory.createChain(sg.egressChainName());
+        cfg = new ChainConfig(sg.egressChainName());
         ops.addAll(chainZkManager.prepareCreate(inboundChainId, cfg));
 
         // Create an IP address group for this security group. Save the chain
         // IDs in the properties so that there is a way to get the chains from
         // IP address group.
-        IpAddrGroupZkManager.IpAddrGroupConfig config =
-                ConfigFactory.createIpAddrGroup(sg);
+        IpAddrGroupConfig config = new IpAddrGroupConfig(sg.id, sg.name);
         config.putProperty(RuleDirection.INGRESS, outboundChainId);
         config.putProperty(RuleDirection.EGRESS, inboundChainId);
 
@@ -333,14 +333,14 @@ public class SecurityGroupZkManager extends BaseZkManager {
             org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         // Get the IP address group so that we can retrieve the chains
-        IpAddrGroupZkManager.IpAddrGroupConfig ipAddrGroupConfig =
-                ipAddrGroupZkManager.get(rule.securityGroupId);
+        IpAddrGroupConfig ipAddrGroupConfig = ipAddrGroupZkManager.get(
+                rule.securityGroupId);
 
         RuleDirection dir =  rule.isIngress() ?
                 RuleDirection.INGRESS : RuleDirection.EGRESS;
         UUID chainId = ipAddrGroupConfig.getPropertyUuid(dir);
 
-        Rule r = ConfigFactory.createAcceptRule(rule, chainId);
+        Rule r = LiteralRule.acceptRule(rule, chainId);
         ops.addAll(ruleZkManager.prepareInsertPositionOrdering(rule.id, r, 1));
 
         String path = paths.getNeutronSecurityGroupRulePath(rule.id);

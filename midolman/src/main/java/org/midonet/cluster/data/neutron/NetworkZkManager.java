@@ -10,9 +10,12 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.packets.IntIPv4;
 
 public class NetworkZkManager extends BaseZkManager {
@@ -42,7 +45,7 @@ public class NetworkZkManager extends BaseZkManager {
         String path = paths.getNeutronNetworkPath(network.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(network)));
 
-        BridgeConfig config = ConfigFactory.createBridge(network);
+        BridgeConfig config = new BridgeConfig(network);
         ops.addAll(bridgeZkManager.prepareBridgeCreate(network.id, config));
     }
 
@@ -66,8 +69,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         UUID id = network.id;
 
-        BridgeZkManager.BridgeConfig config = ConfigFactory.createBridge(
-                network);
+        BridgeConfig config = new BridgeConfig(network);
         ops.addAll(bridgeZkManager.prepareUpdate(id, config, true));
 
         String path = paths.getNeutronNetworkPath(id);
@@ -105,7 +107,7 @@ public class NetworkZkManager extends BaseZkManager {
             throws SerializationException, StateAccessException {
 
         BridgeDhcpZkManager.Subnet config =
-                ConfigFactory.createDhcpSubnet(subnet);
+                new BridgeDhcpZkManager.Subnet(subnet);
         dhcpZkManager.prepareCreateSubnet(ops, subnet.networkId, config);
 
         String path = paths.getNeutronSubnetPath(subnet.id);
@@ -129,8 +131,8 @@ public class NetworkZkManager extends BaseZkManager {
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
             throws SerializationException, StateAccessException {
 
-        BridgeDhcpZkManager.Subnet config = ConfigFactory.createDhcpSubnet(
-                subnet);
+        BridgeDhcpZkManager.Subnet config =
+                new BridgeDhcpZkManager.Subnet(subnet);
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
 
         String path = paths.getNeutronSubnetPath(subnet.id);
@@ -162,24 +164,14 @@ public class NetworkZkManager extends BaseZkManager {
         return subnets;
     }
 
-    private void prepareDhcpHostEntry(List<Op> ops, Subnet subnet,
-                                      String macAddress, String ipAddress)
-            throws SerializationException {
-
-        BridgeDhcpZkManager.Host host = ConfigFactory.createDhcpHost(
-                macAddress, ipAddress);
-        IntIPv4 cidr = IntIPv4.fromString(subnet.cidr, "/");
-        dhcpZkManager.prepareAddHost(ops, subnet.networkId, cidr, host);
-    }
-
     private void prepareCreateDhcpHostEntries(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
         for (IPAllocation fixedIp : port.fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
             if (!subnet.isIpv4()) continue;
 
-            prepareDhcpHostEntry(ops, subnet, port.macAddress,
-                    fixedIp.ipAddress);
+            dhcpZkManager.prepareAddHost(
+                    ops, subnet, new Host(port.macAddress, fixedIp.ipAddress));
         }
     }
 
@@ -188,7 +180,6 @@ public class NetworkZkManager extends BaseZkManager {
 
         String path = paths.getNeutronPortPath(port.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(port)));
-
     }
 
     public PortConfig prepareCreateVifPort(List<Op> ops, Port port)
@@ -198,10 +189,9 @@ public class NetworkZkManager extends BaseZkManager {
         prepareCreateDhcpHostEntries(ops, port);
 
         // Create the Bridge port
-        PortDirectory.BridgePortConfig cfg = ConfigFactory.createBridgePort(
-                port.networkId);
+        BridgePortConfig cfg = new BridgePortConfig(port.networkId,
+                port.adminStateUp);
         ops.addAll(portZkManager.prepareCreate(port.id, cfg));
-
         prepareCreateNeutronPort(ops, port);
 
         return cfg;
@@ -211,8 +201,7 @@ public class NetworkZkManager extends BaseZkManager {
                                                   Subnet subnet, String ipAddr)
             throws SerializationException, StateAccessException {
 
-        BridgeDhcpZkManager.Opt121 opt121 = ConfigFactory.createDhcpOpt121(
-                MetaDataService.IPv4_ADDRESS, ipAddr);
+        Opt121 opt121 = new Opt121(MetaDataService.IPv4_ADDRESS, ipAddr);
 
         BridgeDhcpZkManager.Subnet cfg =
                 dhcpZkManager.getSubnet(subnet.networkId,
@@ -242,8 +231,8 @@ public class NetworkZkManager extends BaseZkManager {
         // Add option 121 routes for metadata
         prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
 
-        ops.addAll(portZkManager.prepareCreate(
-                port.id, ConfigFactory.createBridgePort(port.networkId)));
+        ops.addAll(portZkManager.prepareCreate(port.id,
+                new BridgePortConfig(port)));
 
         prepareCreateNeutronPort(ops, port);
     }
@@ -292,10 +281,8 @@ public class NetworkZkManager extends BaseZkManager {
                     dhcpZkManager.getSubnet(subnet.networkId,
                             IntIPv4.fromString(subnet.cidr, "/"));
 
-            BridgeDhcpZkManager.Opt121 opt121 =
-                    ConfigFactory.createDhcpOpt121(
-                            MetaDataService.IPv4_ADDRESS, fixedIp.ipAddress);
-
+            Opt121 opt121 = new Opt121(MetaDataService.IPv4_ADDRESS,
+                    fixedIp.ipAddress);
             if (cfg.getOpt121Routes().remove(opt121)) {
                 dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, cfg);
             }

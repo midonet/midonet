@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.packets.IPAddr;
@@ -98,6 +99,30 @@ public class Condition extends BaseConfig {
 
     // Default constructor for the Jackson deserialization.
     public Condition() { super(); }
+
+    public Condition(SecurityGroupRule sgRule) {
+        nwProto = sgRule.protocolNumber();
+        dlType = sgRule.ethertype();
+        matchForwardFlow = sgRule.isEgress();
+        tpDst = sgRule.portRange();
+
+        if (sgRule.isIngress()) {
+            nwSrcIp = sgRule.remoteIpv4Subnet();
+            ipAddrGroupIdSrc = sgRule.remoteGroupId;
+        } else {
+            nwDstIp = sgRule.remoteIpv4Subnet();
+            ipAddrGroupIdDst = sgRule.remoteGroupId;
+        }
+    }
+
+    public Condition(MAC macAddress) {
+        dlSrc = macAddress;
+    }
+
+    public Condition(IPSubnet subnet) {
+        nwSrcIp = subnet;
+        dlType = (int) subnet.ethertype();
+    }
 
     public boolean matches(ChainPacketContext fwdInfo,
                            WildcardMatch pktMatch,

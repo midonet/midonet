@@ -32,6 +32,11 @@ public class IpAddrGroupZkManager extends
         }
 
         public IpAddrGroupConfig(String name) {
+            this(null, name);
+        }
+
+        public IpAddrGroupConfig(UUID id, String name) {
+            this.id = id;
             this.name = name;
         }
 

@@ -41,6 +41,16 @@ public class NeutronDataProvider {
         return p;
     }
 
+    public static Router router() {
+        return router(UUID.randomUUID());
+    }
+
+    public static Router router(UUID id) {
+        Router r= new Router();
+        r.id = id;
+        return r;
+    }
+    
     public static SecurityGroup securityGroup() {
         return securityGroup(UUID.randomUUID());
     }
