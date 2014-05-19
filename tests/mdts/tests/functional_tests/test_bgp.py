@@ -372,9 +372,12 @@ def test_snat_1():
     set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
 
     try:
-        ping_inet()
+        # requires all 10 trials work and each of which has one pair of
+        # echo/reply work at least in 5 trials (i.e. about 10 second)
+        # failover possibly takes about 5-6 seconds at most
         for i in range(0, 10):
-            ping_inet(count=1, retry=False) # BGP #1 is working
+            # BGP #1 is working
+            ping_inet(count=1, retry_count=5)
     finally:
         unset_filters('router-000-001')
 
@@ -404,10 +407,8 @@ def test_snat_2():
                         NoFailure()):
             failure.inject()
             try:
-                ping_inet()
-                ping_inet(count=30) # XXX the test doesn't pass otherwise
                 for i in range(0, 10):
-                    ping_inet(count=1, retry=False) # BGP #1 is working
+                    ping_inet(count=1, retry_count=5)
             finally:
                 failure.eject()
     finally:
