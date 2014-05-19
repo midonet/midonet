@@ -7,6 +7,7 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -90,6 +91,12 @@ public class Port {
                 .add("fixedIps", ListUtil.toString(fixedIps))
                 .add("securityGroups", ListUtil.toString(securityGroups))
                 .toString();
+    }
+
+    @JsonIgnore
+    public MAC macAddress() {
+        if (macAddress == null) return null;
+        return MAC.fromString(macAddress);
     }
 
     @JsonIgnore

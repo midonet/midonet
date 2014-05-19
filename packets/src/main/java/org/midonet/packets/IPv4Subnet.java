@@ -2,6 +2,8 @@
 
 package org.midonet.packets;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,6 +66,12 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
     @Override
     public void setPrefixLen(int prefixLen) {
         this.prefixLen = prefixLen;
+    }
+
+    @Override
+    @JsonIgnore
+    public short ethertype() {
+        return IPv4.ETHERTYPE;
     }
 
     @Override

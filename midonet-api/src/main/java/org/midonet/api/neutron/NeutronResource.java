@@ -49,6 +49,11 @@ public class NeutronResource extends AbstractNeutronResource {
         return factory.getNeutronPortResource();
     }
 
+    @Path(NeutronUriBuilder.ROUTERS)
+    public RouterResource getRouterResource() {
+        return factory.getNeutronRouterResource();
+    }
+
     @Path(NeutronUriBuilder.SECURITY_GROUPS)
     public SecurityGroupResource getSecurityGroupResource() {
         return factory.getNeutronSecurityGroupResource();
@@ -80,6 +85,8 @@ public class NeutronResource extends AbstractNeutronResource {
         neutron.subnetTemplate = NeutronUriBuilder.getSubnetTemplate(baseUri);
         neutron.ports = NeutronUriBuilder.getPorts(baseUri);
         neutron.portTemplate = NeutronUriBuilder.getPortTemplate(baseUri);
+        neutron.routers = NeutronUriBuilder.getRouters(baseUri);
+        neutron.routerTemplate = NeutronUriBuilder.getRouterTemplate(baseUri);
         neutron.securityGroups = NeutronUriBuilder.getSecurityGroups(baseUri);
         neutron.securityGroupTemplate =
                 NeutronUriBuilder.getSecurityGroupTemplate(baseUri);

@@ -8,6 +8,7 @@ import java.util.*;
 import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
+import org.midonet.cluster.data.neutron.Router;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -56,6 +57,14 @@ public class RouterZkManager
             this.inboundFilter = inboundFilter;
             this.outboundFilter = outboundFilter;
             this.loadBalancer = loadBalancer;
+        }
+
+        public RouterConfig(Router router, UUID inboundFilter,
+                            UUID outboundFilter) {
+            this.adminStateUp = router.adminStateUp;
+            this.name = router.name;
+            this.inboundFilter = inboundFilter;
+            this.outboundFilter = outboundFilter;
         }
 
         @Override

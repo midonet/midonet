@@ -4,7 +4,9 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.*;
 
 import java.util.UUID;
 
@@ -49,4 +51,12 @@ public class IPAllocation {
                 .add("subnetId", subnetId).toString();
     }
 
+    @JsonIgnore
+    public IPSubnet subnet(int ipVersion) {
+        if (ipVersion == 6) {
+            return new IPv6Subnet(IPv6Addr.fromString(ipAddress), 128);
+        } else {
+            return new IPv4Subnet(IPv4Addr.fromString(ipAddress), 32);
+        }
+    }
 }
