@@ -188,6 +188,36 @@
                     </dataSet>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <complianceLevel>1.7</complianceLevel>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <verbose>true</verbose>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>com.jcabi</groupId>
+                            <artifactId>jcabi-aspects</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>weave-classes</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
     </build>
@@ -393,6 +423,31 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
+        </dependency>
+
+        <dependency> <!-- unique to midonet-api -->
+            <groupId>com.vmware</groupId>
+            <artifactId>vijava</artifactId>
+            <version>5.1</version>
+        </dependency>
+
+        <dependency> <!-- unique to midonet-api -->
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jcabi</groupId>
+            <artifactId>jcabi-aspects</artifactId>
+            <version>0.15.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.0</version>
+            <scope>runtime</scope>
         </dependency>
 
     </dependencies>
