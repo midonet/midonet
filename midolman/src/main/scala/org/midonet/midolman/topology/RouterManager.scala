@@ -136,7 +136,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             if (arpCache == null && newArpCache != null) {
                 arpCache = newArpCache
                 arpTable = new ArpTableImpl(arpCache, config,
-                    (ip: IPv4Addr, mac: MAC) => invalidateFlowsByIp(ip))
+                    (ip: IPv4Addr, oldMac: MAC, newMac: MAC) => invalidateFlowsByIp(ip))
                 arpTable.start()
             } else if (arpCache != newArpCache) {
                 throw new RuntimeException("Trying to re-set the arp cache")
