@@ -69,6 +69,21 @@ def teardown():
     PTM.destroy()
     VTM.destroy()
 
+# See MN-1758.
+#
+# Drop flows for ip fragmentation are temporary because we want flows to
+# come to userspace once in a while, it give MM the chance to send ICMP
+# fragmentation needed messages.
+#
+# When a test case leaves such a flow installed, the flow can pill over
+# to the next test. This method prevents that.
+#
+# The wait time that guarantees that flows will be ejected is 15 seconds.
+# 5 seconds is their hard expiration time, and 10 seconds is the flow
+# expiration check interval in the flow controller.
+def let_temporary_frag_needed_flows_expire():
+    time.sleep(15)
+
 def _async_assert_receives_icmp_frag_needed(sender, should_receive):
     icmp_filter = 'icmp[icmptype] == icmp-unreach and icmp[icmpcode] == 4'
     if should_receive:
@@ -122,6 +137,8 @@ def _test_icmp(sender, receiver, target_ipv4, filter_resource, is_router):
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_single, binding_multi_bridge)
 def test_icmp_bridge():
+    let_temporary_frag_needed_flows_expire()
+
     _test_icmp(BM.get_iface_for_port('bridge-000-001', 2),
                BM.get_iface_for_port('bridge-000-001', 3),
                '172.16.1.2',
@@ -132,6 +149,8 @@ def test_icmp_bridge():
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_single, binding_multi_router)
 def test_icmp_router():
+    let_temporary_frag_needed_flows_expire()
+
     _test_icmp(BM.get_iface_for_port('bridge-000-001', 2),
                BM.get_iface_for_port('bridge-000-002', 2),
                '172.16.2.1',
@@ -197,6 +216,8 @@ def _test_udp(sender, receiver, target_hw, target_ipv4,
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_single, binding_multi_bridge)
 def test_udp_bridge():
+    let_temporary_frag_needed_flows_expire()
+
     _test_udp(BM.get_iface_for_port('bridge-000-001', 2),
               BM.get_iface_for_port('bridge-000-001', 3),
               'aa:bb:cc:00:02:02',
@@ -205,10 +226,11 @@ def test_udp_bridge():
               is_router=False)
 
 
-# FIXME: https://midobugs.atlassian.net/browse/MN-1758
-@attr(version="v1.2.0", slow=False, flaky=True)
+@attr(version="v1.2.0", slow=False)
 @bindings(binding_single, binding_multi_router)
 def test_udp_router():
+    let_temporary_frag_needed_flows_expire()
+
     router = VTM.get_router('router-000-001')
     router_port = router.get_port(1)
     _test_udp(BM.get_iface_for_port('bridge-000-001', 2),
