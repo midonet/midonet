@@ -49,6 +49,16 @@ public class NeutronResource extends AbstractNeutronResource {
         return factory.getNeutronPortResource();
     }
 
+    @Path(NeutronUriBuilder.SECURITY_GROUPS)
+    public SecurityGroupResource getSecurityGroupResource() {
+        return factory.getNeutronSecurityGroupResource();
+    }
+
+    @Path(NeutronUriBuilder.SECURITY_GROUPS_RULES)
+    public SecurityGroupRuleResource getSecurityGroupRuleResource() {
+        return factory.getNeutronSecurityGroupRuleResource();
+    }
+
     /**
      * Handler to getting a neutron object.
      *
@@ -70,8 +80,13 @@ public class NeutronResource extends AbstractNeutronResource {
         neutron.subnetTemplate = NeutronUriBuilder.getSubnetTemplate(baseUri);
         neutron.ports = NeutronUriBuilder.getPorts(baseUri);
         neutron.portTemplate = NeutronUriBuilder.getPortTemplate(baseUri);
-
+        neutron.securityGroups = NeutronUriBuilder.getSecurityGroups(baseUri);
+        neutron.securityGroupTemplate =
+                NeutronUriBuilder.getSecurityGroupTemplate(baseUri);
+        neutron.securityGroupRules =
+                NeutronUriBuilder.getSecurityGroupRules(baseUri);
+        neutron.securityGroupRuleTemplate =
+                NeutronUriBuilder.getSecurityGroupRuleTemplate(baseUri);
         return neutron;
-
     }
 }

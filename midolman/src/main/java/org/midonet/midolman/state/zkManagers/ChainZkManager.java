@@ -177,14 +177,20 @@ public class ChainZkManager
      */
     public List<Op> prepareCreate(UUID id, ChainConfig config)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
+        prepareCreate(ops, id, config);
+        return ops;
+    }
+
+    public void prepareCreate(List<Op> ops, UUID id, ChainConfig config)
+            throws StateAccessException, SerializationException {
+
         ops.add(simpleCreateOp(id, config));
         ops.add(Op.create(paths.getChainRulesPath(id),
                 serializer.serialize(new RuleList()),
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
         ops.add(Op.create(paths.getChainBackRefsPath(id), null,
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
-        return ops;
     }
 
     /**

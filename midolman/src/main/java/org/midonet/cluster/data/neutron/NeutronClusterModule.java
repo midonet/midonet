@@ -18,6 +18,9 @@ public class NeutronClusterModule extends DataClientModule {
         bind(NetworkZkManager.class).in(Singleton.class);
         expose(NetworkZkManager.class);
 
+        bind(SecurityGroupZkManager.class).in(Singleton.class);
+        expose(SecurityGroupZkManager.class);
+
         bind(NeutronPlugin.class).to(
                 NeutronPluginImpl.class).asEagerSingleton();
         expose(NeutronPlugin.class);

@@ -6,6 +6,7 @@ package org.midonet.midolman.state.zkManagers;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -37,6 +38,28 @@ public class IpAddrGroupZkManager extends
         public UUID id;
         public String name;
         public Map<String, String> properties = new HashMap<>();
+
+        // TODO: Move these up to BaseConfig if all configs have properties
+        @JsonIgnore
+        public UUID getPropertyUuid(String key) {
+            String val = properties.get(key);
+            return val == null ? null : UUID.fromString(properties.get(key));
+        }
+
+        @JsonIgnore
+        public UUID getPropertyUuid(Object key) {
+            return getPropertyUuid(key.toString());
+        }
+
+        @JsonIgnore
+        public void putProperty(String key, String val) {
+            properties.put(key, val);
+        }
+
+        @JsonIgnore
+        public void putProperty(Object key, Object val) {
+            putProperty(key.toString(), val.toString());
+        }
     }
 
     private final RuleZkManager ruleDao;
@@ -245,5 +268,18 @@ public class IpAddrGroupZkManager extends
             // Either the group doesn't exist, or the address doesn't.
             // Either way, the desired postcondition is met.
         }
+    }
+
+    public void prepareAddAdr(List<Op> ops, UUID groupId, String addr)
+            throws StateAccessException, SerializationException {
+        addr = IPAddr$.MODULE$.canonicalize(addr);
+        ops.add(zk.getPersistentCreateOp(
+                paths.getIpAddrGroupAddrPath(groupId, addr), null));
+    }
+
+    public void prepareRemoveAddr(List<Op> ops, UUID groupId, String addr)
+            throws StateAccessException, SerializationException {
+        addr = IPAddr$.MODULE$.canonicalize(addr);
+        ops.add(zk.getDeleteOp(paths.getIpAddrGroupAddrPath(groupId, addr)));
     }
 }

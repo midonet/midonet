@@ -33,9 +33,7 @@ import org.midonet.api.network.rest_api.PortResource;
 import org.midonet.api.network.rest_api.RouteResource;
 import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.network.rest_api.VtepResource;
-import org.midonet.api.neutron.NetworkResource;
-import org.midonet.api.neutron.NeutronResource;
-import org.midonet.api.neutron.SubnetResource;
+import org.midonet.api.neutron.*;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
@@ -149,4 +147,8 @@ public interface ResourceFactory {
     SubnetResource getNeutronSubnetResource();
 
     org.midonet.api.neutron.PortResource getNeutronPortResource();
+
+    SecurityGroupResource getNeutronSecurityGroupResource();
+
+    SecurityGroupRuleResource getNeutronSecurityGroupRuleResource();
 }
