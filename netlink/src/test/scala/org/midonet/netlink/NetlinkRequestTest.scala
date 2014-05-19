@@ -18,7 +18,6 @@ import org.midonet.netlink.exceptions.NetlinkException;
 class NetlinkRequestTest extends FunSpec with Matchers {
 
     import AbstractNetlinkConnection.NetlinkRequest
-    import AbstractNetlinkConnection.NetlinkRequestTimeoutComparator
 
     describe("NetlinkRequest") {
 
@@ -119,7 +118,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
         describe("Request comparator") {
 
-            val comp = new NetlinkRequestTimeoutComparator
+            val comp = AbstractNetlinkConnection.requestComparator
             val a = requestFor(null)
             val b = requestFor(null)
             val c = requestFor(null)
@@ -158,7 +157,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
     }
 
     def requestFor(cb: Callback[Int], buf: ByteBuffer = null) = {
-        val req = new NetlinkRequest[Int](cb, trans, buf, getSeq, 1000)
+        val req = NetlinkRequest make (cb, trans, buf, getSeq, 1000)
         req
     }
 

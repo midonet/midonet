@@ -138,7 +138,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleWriteEvent(key);
+                        conn.handleWriteEvent();
                     }
                 });
     }
