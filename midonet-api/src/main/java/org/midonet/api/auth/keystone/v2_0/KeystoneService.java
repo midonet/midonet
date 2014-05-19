@@ -3,6 +3,7 @@
  */
 package org.midonet.api.auth.keystone.v2_0;
 
+import com.google.inject.Inject;
 import org.midonet.api.auth.*;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
@@ -40,6 +41,7 @@ public class KeystoneService implements AuthService {
      * @param config
      *            KeystoneConfig object.
      */
+    @Inject
     public KeystoneService(KeystoneClient client, KeystoneConfig config) {
         this.client = client;
         this.config = config;

@@ -4,7 +4,6 @@
  */
 package org.midonet.api.auth;
 
-import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigString;
 

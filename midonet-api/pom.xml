@@ -373,6 +373,12 @@
             <version>3.0</version>
         </dependency>
 
+        <dependency> <!-- unique to midonet-api -->
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
+            <version>3.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
