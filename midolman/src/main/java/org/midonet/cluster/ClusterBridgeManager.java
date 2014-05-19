@@ -206,7 +206,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 // Add the router port's IP and MAC to the permanent ARP map.
                 IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
                 rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
-                log.debug("Add bridge port linked to router port, MAC:{}, IP:{}",
+                log.debug("Add bridge port {} linked to router port, MAC:{}, IP:{}",
                           new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
             } else if (peerPortCfg instanceof PortDirectory.BridgePortConfig) {
                log.debug("Bridge peer is another Bridge's interior port");

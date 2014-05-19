@@ -30,6 +30,8 @@ trait ArpTable {
            (implicit ec: ExecutionContext,
                      pktContext: PacketContext): Urgent[MAC]
     def set(ip: IPv4Addr, mac: MAC)(implicit ec: ExecutionContext)
+    def setAndGet(ip: IPv4Addr, mac: MAC, port: RouterPort, expiry: Long)
+                 (implicit ec: ExecutionContext): Future[MAC]
     def start()
     def stop()
 }
@@ -168,6 +170,21 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         } else {
             log.debug("MAC for IP {} unknown, will suspend during ARP", ip)
             NotYet(waitForArpEntry(ip, expiry).future)
+        }
+    }
+
+    def setAndGet(ip: IPv4Addr, mac: MAC, port: RouterPort, expiry: Long)
+                  (implicit ec: ExecutionContext): Future[MAC] = {
+        val macFuture = waitForArpEntry(ip, expiry).future
+
+        set(ip, mac)
+        val entry = arpCache.get(ip)
+
+        if (entry != null && entry.macAddr != null &&
+                entry.expiry >= Platform.currentTime) {
+            Future.successful(entry.macAddr)
+        } else {
+            macFuture
         }
     }
 
