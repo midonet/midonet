@@ -3,9 +3,7 @@
  */
 package org.midonet.api.neutron;
 
-import org.midonet.cluster.data.neutron.Network;
-import org.midonet.cluster.data.neutron.Port;
-import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.cluster.data.neutron.*;
 
 import java.util.UUID;
 
@@ -41,5 +39,25 @@ public class NeutronDataProvider {
         Port p = new Port();
         p.id = id;
         return p;
+    }
+
+    public static SecurityGroup securityGroup() {
+        return securityGroup(UUID.randomUUID());
+    }
+
+    public static SecurityGroup securityGroup(UUID id) {
+        SecurityGroup sg = new SecurityGroup();
+        sg.id = id;
+        return sg;
+    }
+
+    public static SecurityGroupRule securityGroupRule() {
+        return securityGroupRule(UUID.randomUUID());
+    }
+
+    public static SecurityGroupRule securityGroupRule(UUID id) {
+        SecurityGroupRule rule = new SecurityGroupRule();
+        rule.id = id;
+        return rule;
     }
 }

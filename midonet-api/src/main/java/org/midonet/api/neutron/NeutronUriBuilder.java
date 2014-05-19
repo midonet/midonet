@@ -15,6 +15,8 @@ public class NeutronUriBuilder {
     public final static String NETWORKS = "/networks";
     public final static String SUBNETS = "/subnets";
     public final static String PORTS = "/ports";
+    public final static String SECURITY_GROUPS = "/security_groups";
+    public final static String SECURITY_GROUPS_RULES = "/security_group_rules";
 
     public static URI getNeutron(URI baseUri) {
         return UriBuilder.fromUri(ResourceUriBuilder.getRoot(
@@ -61,5 +63,37 @@ public class NeutronUriBuilder {
 
     public static String getPortTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getPorts(baseUri));
+    }
+
+    // Security Groups
+    public static URI getSecurityGroups(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(
+                SECURITY_GROUPS).build();
+    }
+
+    public static URI getSecurityGroup(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getSecurityGroups(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getSecurityGroupTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(
+                getSecurityGroups(baseUri));
+    }
+
+    // Security Group Rules
+    public static URI getSecurityGroupRules(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(
+                SECURITY_GROUPS_RULES).build();
+    }
+
+    public static URI getSecurityGroupRule(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getSecurityGroupRules(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getSecurityGroupRuleTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(
+                getSecurityGroupRules(baseUri));
     }
 }

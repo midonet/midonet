@@ -89,11 +89,11 @@ public class NetworkZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
 
         String path= paths.getNeutronNetworksPath();
-        Set<String> networkIds = zk.getChildren(path);
+        Set<UUID> networkIds = getUuidSet(path);
 
         List<Network> networks = new ArrayList<>();
-        for (String networkId : networkIds) {
-            networks.add(getNetwork(UUID.fromString(networkId)));
+        for (UUID networkId : networkIds) {
+            networks.add(getNetwork(networkId));
         }
 
         return networks;
@@ -152,11 +152,11 @@ public class NetworkZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
 
         String path= paths.getNeutronSubnetsPath();
-        Set<String> subnetIds = zk.getChildren(path);
+        Set<UUID> subnetIds = getUuidSet(path);
 
         List<Subnet> subnets = new ArrayList<>();
-        for (String subnetId : subnetIds) {
-            subnets.add(getSubnet(UUID.fromString(subnetId)));
+        for (UUID subnetId : subnetIds) {
+            subnets.add(getSubnet(subnetId));
         }
 
         return subnets;
@@ -191,7 +191,7 @@ public class NetworkZkManager extends BaseZkManager {
 
     }
 
-    public void prepareCreateVifPort(List<Op> ops, Port port)
+    public PortConfig prepareCreateVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
         // Create DHCP host entries
@@ -203,6 +203,8 @@ public class NetworkZkManager extends BaseZkManager {
         ops.addAll(portZkManager.prepareCreate(port.id, cfg));
 
         prepareCreateNeutronPort(ops, port);
+
+        return cfg;
     }
 
     private void prepareAddMetadataOption121Route(List<Op> ops,
@@ -308,7 +310,6 @@ public class NetworkZkManager extends BaseZkManager {
 
         ops.addAll(portZkManager.prepareDelete(port.id));
         prepareDeleteDhcpMetadataRoutes(ops, port.fixedIps);
-
     }
 
     public Port getPort(UUID portId)
@@ -326,11 +327,11 @@ public class NetworkZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
 
         String path= paths.getNeutronPortsPath();
-        Set<String> portIds = zk.getChildren(path);
+        Set<UUID> portIds = getUuidSet(path);
 
         List<Port> ports = new ArrayList<>();
-        for (String portId : portIds) {
-            ports.add(getPort(UUID.fromString(portId)));
+        for (UUID portId : portIds) {
+            ports.add(getPort(portId));
         }
 
         return ports;
@@ -376,5 +377,4 @@ public class NetworkZkManager extends BaseZkManager {
         String path = paths.getNeutronPortPath(newPort.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));
     }
-
 }

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public interface NeutronPlugin extends DataClient {
+public interface NeutronPlugin extends DataClient, SecurityGroupExtension {
 
     /**
      * Create a new network data in the data store. StatePathExistsException

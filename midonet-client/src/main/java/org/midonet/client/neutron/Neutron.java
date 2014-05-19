@@ -27,6 +27,18 @@ public class Neutron {
     @JsonProperty("port_template")
     public String portTemplate;
 
+    @JsonProperty("security_groups")
+    public URI securityGroups;
+
+    @JsonProperty("security_group_template")
+    public String securityGroupTemplate;
+
+    @JsonProperty("security_group_rules")
+    public URI securityGroupRules;
+
+    @JsonProperty("security_group_rule_template")
+    public String securityGroupRuleTemplate;
+
     @Override
     public boolean equals(Object obj) {
 
@@ -41,13 +53,22 @@ public class Neutron {
                 && Objects.equal(subnets, other.subnets)
                 && Objects.equal(subnetTemplate, other.subnetTemplate)
                 && Objects.equal(ports, other.ports)
-                && Objects.equal(portTemplate, other.portTemplate);
+                && Objects.equal(portTemplate, other.portTemplate)
+                && Objects.equal(securityGroups, other.securityGroups)
+                && Objects.equal(
+                    securityGroupTemplate, other.securityGroupTemplate)
+                && Objects.equal(securityGroupRules, other.securityGroupRules)
+                && Objects.equal(
+                    securityGroupRuleTemplate, other.securityGroupRuleTemplate);
+
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(uri, networks, networkTemplate, subnets,
-                subnetTemplate, ports, portTemplate);
+                subnetTemplate, ports, portTemplate, securityGroups,
+                securityGroupTemplate, securityGroupRules,
+                securityGroupRuleTemplate);
     }
 
     @Override
@@ -60,6 +81,11 @@ public class Neutron {
                 .add("subnets", subnets)
                 .add("subnetTemplate", subnetTemplate)
                 .add("ports", ports)
-                .add("portTemplate", portTemplate).toString();
+                .add("portTemplate", portTemplate)
+                .add("securityGroups", securityGroups)
+                .add("securityGroupTemplate", securityGroupTemplate)
+                .add("securityGroupRules", securityGroupRules)
+                .add("securityGroupRuleTemplate",
+                        securityGroupRuleTemplate).toString();
     }
 }

@@ -33,6 +33,9 @@ public class NeutronPluginImpl extends LocalDataClientImpl
     @Inject
     private NetworkZkManager networkZkManager;
 
+    @Inject
+    private SecurityGroupZkManager securityGroupZkManager;
+
     @Override
     public Network createNetwork(@Nonnull Network network)
             throws StateAccessException, SerializationException {
@@ -169,9 +172,12 @@ public class NeutronPluginImpl extends LocalDataClientImpl
 
         if (port.isVif()){
 
-            networkZkManager.prepareCreateVifPort(ops, port);
+            PortConfig cfg = networkZkManager.prepareCreateVifPort(ops, port);
 
-            // TODO: SG and External network
+            securityGroupZkManager.preparePortSecurityGroupBindings(ops, port,
+                    cfg);
+
+            // TODO: External network
 
         } else if (port.isDhcp()) {
 
@@ -226,8 +232,9 @@ public class NeutronPluginImpl extends LocalDataClientImpl
 
         if(port.isVif()) {
 
-            // TODO: handle external network, FIP disassociation and SG
+            // TODO: handle external network and FIP disassociation
 
+            securityGroupZkManager.prepareDeletePortSecurityGroup(ops, port);
             networkZkManager.prepareDeleteVifPort(ops, port);
 
         } else if(port.isDhcp()) {
@@ -261,8 +268,8 @@ public class NeutronPluginImpl extends LocalDataClientImpl
 
         if (port.isVif()) {
 
-            // TODO handle SG
-
+            securityGroupZkManager.prepareUpdatePortSecurityGroupBindings(
+                    ops, port);
             networkZkManager.prepareUpdateVifPort(ops, port);
 
         } else if (port.isDhcp()) {
@@ -275,5 +282,146 @@ public class NeutronPluginImpl extends LocalDataClientImpl
         commitOps(ops);
 
         return getPort(id);
+    }
+
+    @Override
+    public SecurityGroup createSecurityGroup(@Nonnull SecurityGroup sg)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        List<Op> ops = new ArrayList<>();
+        securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
+        commitOps(ops);
+
+        return getSecurityGroup(sg.id);
+    }
+
+    @Override
+    public List<SecurityGroup> createSecurityGroupBulk(
+            @Nonnull List<SecurityGroup> sgs)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+        List<Op> ops = new ArrayList<>();
+        for(SecurityGroup sg : sgs) {
+            securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
+        }
+        commitOps(ops);
+
+        List<SecurityGroup> newSgs = new ArrayList<>(sgs.size());
+        for (SecurityGroup sg : sgs) {
+            newSgs.add(getSecurityGroup(sg.id));
+        }
+
+        return newSgs;
+    }
+
+    @Override
+    public void deleteSecurityGroup(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        securityGroupZkManager.prepareDeleteSecurityGroup(ops, id);
+        commitOps(ops);
+    }
+
+    @Override
+    public SecurityGroup getSecurityGroup(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        SecurityGroup sg = securityGroupZkManager.getSecurityGroup(id);
+        if (sg == null) {
+            return null;
+        }
+
+        // Also return security group rules.
+        sg.securityGroupRules = securityGroupZkManager.getSecurityGroupRules(
+                sg.id);
+
+        return sg;
+    }
+
+    @Override
+    public List<SecurityGroup> getSecurityGroups()
+            throws StateAccessException, SerializationException {
+
+        List<SecurityGroup> sgs = securityGroupZkManager.getSecurityGroups();
+
+        // Also get their rules
+        for (SecurityGroup sg : sgs) {
+            sg.securityGroupRules =
+                    securityGroupZkManager.getSecurityGroupRules(sg.id);
+        }
+
+        return sgs;
+    }
+
+    @Override
+    public SecurityGroup updateSecurityGroup(
+            @Nonnull UUID id, @Nonnull SecurityGroup sg)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        securityGroupZkManager.prepareUpdateSecurityGroup(ops, sg);
+
+        // This should throw NoStatePathException if it doesn't exist.
+        commitOps(ops);
+
+        return getSecurityGroup(id);
+    }
+
+    @Override
+    public SecurityGroupRule createSecurityGroupRule(
+            @Nonnull SecurityGroupRule rule)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        List<Op> ops = new ArrayList<>();
+        securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
+        commitOps(ops);
+
+        return getSecurityGroupRule(rule.id);
+    }
+
+    @Override
+    public List<SecurityGroupRule> createSecurityGroupRuleBulk(
+            @Nonnull List<SecurityGroupRule> rules)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        List<Op> ops = new ArrayList<>();
+        for(SecurityGroupRule rule : rules) {
+            securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
+        }
+        commitOps(ops);
+
+        List<SecurityGroupRule> newRules = new ArrayList<>(
+                rules.size());
+        for(SecurityGroupRule rule : rules) {
+            newRules.add(getSecurityGroupRule(rule.id));
+        }
+
+        return newRules;
+    }
+
+    @Override
+    public void deleteSecurityGroupRule(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        securityGroupZkManager.prepareDeleteSecurityGroupRule(ops, id);
+        commitOps(ops);
+    }
+
+    @Override
+    public SecurityGroupRule getSecurityGroupRule(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+        return securityGroupZkManager.getSecurityGroupRule(id);
+
+    }
+
+    @Override
+    public List<SecurityGroupRule> getSecurityGroupRules()
+            throws StateAccessException, SerializationException {
+        return securityGroupZkManager.getSecurityGroupRules();
     }
 }

@@ -11,12 +11,11 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.NeutronPlugin;
-import org.midonet.cluster.data.neutron.Port;
+import org.midonet.cluster.data.neutron.SecurityGroup;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,33 +29,35 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class PortResource extends AbstractNeutronResource {
+public class SecurityGroupResource extends AbstractNeutronResource {
 
     private final static Logger log = LoggerFactory.getLogger(
-            PortResource.class);
+            SecurityGroupResource.class);
 
     @Inject
-    public PortResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context, NeutronPlugin plugin) {
+    public SecurityGroupResource(RestApiConfig config, UriInfo uriInfo,
+                                 SecurityContext context, 
+                                 NeutronPlugin plugin) {
         super(config, uriInfo, context, plugin);
     }
 
     @POST
-    @Consumes(NeutronMediaType.PORT_JSON_V1)
-    @Produces(NeutronMediaType.PORT_JSON_V1)
+    @Consumes(NeutronMediaType.SECURITY_GROUP_JSON_V1)
+    @Produces(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response create(Port port)
-            throws SerializationException, StateAccessException {
-        log.info("PortResource.create entered {}", port);
+    public Response create(SecurityGroup sg)
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
+        log.info("SecurityGroupResource.create entered {}", sg);
 
         try {
 
-            Port p = dataClient.createPort(port);
+            SecurityGroup s = dataClient.createSecurityGroup(sg);
 
-            log.info("PortResource.get exiting {}", p);
+            log.info("SecurityGroupResource.get exiting {}", s);
             return Response.created(
-                    NeutronUriBuilder.getPort(
-                            getBaseUri(), p.id)).entity(p).build();
+                    NeutronUriBuilder.getSecurityGroup(
+                            getBaseUri(), s.id)).entity(s).build();
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
@@ -65,19 +66,20 @@ public class PortResource extends AbstractNeutronResource {
     }
 
     @POST
-    @Consumes(NeutronMediaType.PORTS_JSON_V1)
-    @Produces(NeutronMediaType.PORTS_JSON_V1)
+    @Consumes(NeutronMediaType.SECURITY_GROUPS_JSON_V1)
+    @Produces(NeutronMediaType.SECURITY_GROUPS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<Port> ports)
+    public Response createBulk(List<SecurityGroup> sgs)
             throws SerializationException, StateAccessException,
             Rule.RuleIndexOutOfBoundsException {
-        log.info("PortResource.createBulk entered");
+        log.info("SecurityGroupResource.createBulk entered");
 
         try {
-            List<Port> outPorts = dataClient.createPortBulk(ports);
+            List<SecurityGroup> outSgs =
+                    dataClient.createSecurityGroupBulk(sgs);
 
-            return Response.created(NeutronUriBuilder.getPorts(
-                    getBaseUri())).entity(outPorts).build();
+            return Response.created(NeutronUriBuilder.getSecurityGroups(
+                    getBaseUri())).entity(outSgs).build();
         } catch (StatePathExistsException e) {
             throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
         }
@@ -88,55 +90,54 @@ public class PortResource extends AbstractNeutronResource {
     @RolesAllowed(AuthRole.ADMIN)
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
-        log.info("PortResource.delete entered {}", id);
-        dataClient.deletePort(id);
+        log.info("SecurityGroupResource.delete entered {}", id);
+        dataClient.deleteSecurityGroup(id);
     }
 
     @GET
     @Path("{id}")
-    @Produces(NeutronMediaType.PORT_JSON_V1)
+    @Produces(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Port get(@PathParam("id") UUID id)
+    public SecurityGroup get(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
-        log.info("PortResource.get entered {}", id);
+        log.info("SecurityGroupResource.get entered {}", id);
 
-        Port p = dataClient.getPort(id);
-        if (p == null) {
+        SecurityGroup sg = dataClient.getSecurityGroup(id);
+        if (sg == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
 
-        log.info("PortResource.get exiting {}", p);
-        return p;
+        log.info("SecurityGroupResource.get exiting {}", sg);
+        return sg;
     }
 
     @GET
-    @Produces(NeutronMediaType.PORTS_JSON_V1)
+    @Produces(NeutronMediaType.SECURITY_GROUPS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public List<Port> list()
+    public List<SecurityGroup> list()
             throws SerializationException, StateAccessException {
-        log.info("PortResource.list entered");
-        return dataClient.getPorts();
+        log.info("SecurityGroupResource.list entered");
+        return dataClient.getSecurityGroups();
     }
 
     @PUT
     @Path("{id}")
-    @Consumes(NeutronMediaType.PORT_JSON_V1)
-    @Produces(NeutronMediaType.PORT_JSON_V1)
+    @Consumes(NeutronMediaType.SECURITY_GROUP_JSON_V1)
+    @Produces(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id, Port port)
+    public Response update(@PathParam("id") UUID id, SecurityGroup sg)
             throws SerializationException, StateAccessException,
-            BridgeZkManager.VxLanPortIdUpdateException,
             Rule.RuleIndexOutOfBoundsException {
-        log.info("PortResource.update entered {}", port);
+        log.info("SecurityGroupResource.update entered {}", sg);
 
         try {
 
-            Port p = dataClient.updatePort(id, port);
+            SecurityGroup s = dataClient.updateSecurityGroup(id, sg);
 
-            log.info("PortResource.update exiting {}", p);
+            log.info("SecurityGroupResource.update exiting {}", s);
             return Response.ok(
-                    NeutronUriBuilder.getPort(
-                            getBaseUri(), p.id)).entity(p).build();
+                    NeutronUriBuilder.getSecurityGroup(
+                            getBaseUri(), s.id)).entity(s).build();
 
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
