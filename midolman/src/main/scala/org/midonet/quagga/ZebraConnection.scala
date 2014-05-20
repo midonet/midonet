@@ -43,7 +43,7 @@ class ZebraConnection(val dispatcher: ActorRef,
         val ifNameBuf = new StringBuffer(ifName)
         ifNameBuf.setLength(InterfaceNameSize)
         out.writeBytes(ifNameBuf.toString)
-        log.debug("ifName: {}", ifNameBuf)
+        log.debug("ifName: {}", ifName)
     }
 
     private def sendInterfaceIndex(out: DataOutputStream, ifIndex: Int) {
