@@ -1,14 +1,15 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.odp
+package org.midonet.odp.test
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.ports._
+import org.midonet.odp._
 import org.midonet.odp.flows._
+import org.midonet.odp.ports._
+import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.IntegrationTests
 
 object OvsIntegrationTest extends OvsIntegrationTestBase {
@@ -25,7 +26,7 @@ trait OvsIntegrationTestBase extends DatapathTest with FlowTest with PortTest {
 
     def con = _con
 
-    def main(args: Array[String]) {
+    def run(): Boolean = {
         _con = new OvsConnectionOps(baseConnection)
         var status = true
         val (dpF, dps, tests) = datapathTests()
@@ -37,6 +38,12 @@ trait OvsIntegrationTestBase extends DatapathTest with FlowTest with PortTest {
         status &= printReport(runSuite(dpPortTests(dpF)))
 
         status &= printReport(runSuite(dpCleanup(dps)))
+
+        status
+    }
+
+    def main(args: Array[String]) {
+        val status = run()
 
         System exit (if (status) 0 else 1) // necessary for closing con
     }
