@@ -5,10 +5,10 @@ package org.midonet.midolman.io
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.midonet.odp.OvsIntegrationTestBase
-import org.midonet.odp.OvsConnectionOps
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.odp.OvsConnectionOps
+import org.midonet.odp.test.OvsIntegrationTestBase
 
 object ConnectionFactory {
 
