@@ -5,8 +5,6 @@ package org.midonet.brain.guice;
 
 import com.google.inject.PrivateModule;
 
-import org.midonet.brain.southbound.midonet.MidoVtep;
-import org.midonet.brain.southbound.midonet.handlers.MacPortUpdateHandler;
 import org.midonet.config.ConfigProvider;
 
 /**
@@ -15,10 +13,7 @@ import org.midonet.config.ConfigProvider;
 public class BrainModule extends PrivateModule {
     @Override
     protected void configure() {
-        bind(MidoVtep.class).asEagerSingleton();
-        expose(MidoVtep.class);
 
         requireBinding(ConfigProvider.class);
-        requireBinding(MacPortUpdateHandler.class);
     }
 }

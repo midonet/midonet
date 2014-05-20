@@ -3,8 +3,11 @@
  */
 package org.midonet.util.collection;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.google.common.base.Function;
 
 /**
  * Class that contains utility methods for List
@@ -24,6 +27,19 @@ public class ListUtil {
     public static <T> String toString(List<T> list) {
 
         return list == null ? "null" : Arrays.toString(list.toArray());
+    }
+
+    /**
+     * Returns a new list containing the elements from the given one that
+     * satisfy p
+     */
+    public static <T> List<T> filter(List<T> list, Function<T, Boolean> p) {
+        List<T> res = new ArrayList<>(list.size());
+        for (T t : list) {
+            if (p.apply(t))
+                res.add(t);
+        }
+        return res;
     }
 
 }
