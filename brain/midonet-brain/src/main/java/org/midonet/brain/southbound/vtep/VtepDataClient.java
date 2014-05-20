@@ -12,15 +12,14 @@ import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
+import rx.Observable;
 
 /**
  * Represents a connection to a VTEP-enabled switch.
  */
 public interface VtepDataClient {
-
-    public static final String UNKNOWN_DST = "unknown-dst";
 
     /**
      * Lists all physical switches configured in the VTEP.
@@ -28,7 +27,6 @@ public interface VtepDataClient {
      * @return the physical switches.
      */
     public List<PhysicalSwitch> listPhysicalSwitches();
-
 
     /**
      * Lists all logical switches configured in the VTEP.
@@ -42,7 +40,8 @@ public interface VtepDataClient {
      * @param psUuid uuid of the physical switch
      * @return the list of physical ports
      */
-    public List<PhysicalPort> listPhysicalPorts(UUID psUuid);
+    public List<PhysicalPort> listPhysicalPorts(
+        org.opendaylight.ovsdb.lib.notation.UUID psUuid);
 
     public List<McastMac> listMcastMacsLocal();
 
@@ -94,7 +93,8 @@ public interface VtepDataClient {
      * Adds a new entry to the Ucast_Macs_Remote table.
      *
      * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address, must be a valid mac, or VtepDataClient.UNKNOWN-DST
+     * @param mac the mac address, must be a valid mac, or
+     *            VtepConstants.UNKNOWN-DST
      * @param ip the ip of the vxlan tunnel peer where packets addressed to
      *           mac should be tunnelled to
      * @return true if success, false otherwise
@@ -105,11 +105,18 @@ public interface VtepDataClient {
      * Adds a new entry to the Mcast_Macs_Remote table.
      *
      * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address, must be a valid mac, or VtepDataClient.UNKNOWN-DST
+     * @param mac the mac address, must be a valid mac, or
+     *            VtepConstants.UNKNOWN-DST
      * @param ip the ip of the vxlan tunnel peer where packets addressed to
      *           mac should be tunnelled to
      * @return true if success, false otherwise
      */
     public Status addMcastMacRemote(String lsName, String mac, String ip);
+
+    /**
+     * Provides an Observable producing a stream of updates from the Vtep of
+     * unicast MACs that are local to the vtep.
+     */
+    public Observable<TableUpdates> observableLocalMacTable();
 
 }
