@@ -674,28 +674,6 @@ class PoolTest extends MidolmanSpec {
         cachePrefixCacheField.get(cacheWithPrefix).asInstanceOf[MockCache]
     }
 
-    private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
-        new Coordinator(
-                makeWMatch(t._1, t._2),
-                t._2,
-                Some(1),
-                None,
-                0,
-                new MockCache(),
-                new MockCache(),
-                new MockCache(),
-                None,
-                Nil).simulate() match {
-        case Ready(v) => v
-        case NotYet(f) =>
-            Await.result(f, 3 seconds)
-            sendPacket(t)
-    }
-
-    private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =
-        WildcardMatch.fromEthernetPacket(pkt)
-            .setInputPortUUID(port.getId)
-
     private def clientToVipPkt(srcTpPort: Short): Ethernet =
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
