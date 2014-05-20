@@ -267,10 +267,8 @@ class DeduplicationActor(
                 log.error(e, "Failed to drop flow for {}", pw.packet)
         } finally {
             var dropped = 0
-            if (pw.cookie.isDefined) {
+            if (pw.cookie.isDefined)
                 dropped = removePendingPacket(pw.cookie.get).size
-                packetOut(dropped)
-            }
             metrics.packetsDropped.mark(dropped + 1)
         }
     }
@@ -316,7 +314,6 @@ class DeduplicationActor(
                 pendingPackets foreach (executePacket(_, actions))
                 metrics.pendedPackets.dec(numPendingPackets)
             }
-            packetOut(numPendingPackets)
         }
 
         if (actions.isEmpty) {
@@ -373,6 +370,7 @@ class DeduplicationActor(
                     log.debug("A matching packet with cookie {} is already " +
                               "being handled", cookie)
                     cookieToPendedPackets.addBinding(cookie, packet)
+                    packetOut(1)
                     giveUpWorkflows(waitingRoom.doExpirations())
             }
         }

@@ -112,6 +112,9 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             And("exactly one packet should be pended")
             dda.pendedPackets(1) should be (Some(Set(pkts.head)))
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
         }
 
         scenario("discards packets when ApplyFlow has no actions") {
@@ -124,15 +127,15 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             Then("some packets should be pended")
             dda.pendedPackets(1) should not be None
 
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (3)
+
             When("the dda is told to apply the flow with empty actions")
             dda.complete(Nil)
 
             Then("the packets should be dropped")
             mockDpConn().packetsSent should be (empty)
             dda.pendedPackets(1) should be (None)
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (3)
         }
 
         scenario("emits packets when ApplyFlow contains actions") {
@@ -145,6 +148,9 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             Then("some packets should be pended")
             dda.pendedPackets(1) should not be None
 
+            And("packetsOut should be called with the correct number")
+            packetsOut should be (3)
+
             When("the dda is told to apply the flow with an output action")
             dda.complete(List(output(1)))
 
@@ -155,9 +161,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             And("no pended packets should remain")
             dda.pendedPackets(1) should be (None)
-
-            And("packetsOut should be called with the correct number")
-            packetsOut should be (3)
         }
 
         scenario("executes packets that hit the actions cache") {
@@ -184,6 +187,9 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             When("they are fed to the DDA")
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+
+            And("a packetOut should have been called for the pending packets")
+            packetsOut should be (4)
 
             Then("3 packet workflows should be executed")
             val expected = pkts.distinct zip cookieList(1 to 3)
@@ -223,6 +229,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             // simulationExpireMillis is 0, pended packets should be
             // expired immediately
             dda.pendedPackets(1) should be (None)
+            packetsOut should be (2)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
