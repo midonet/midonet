@@ -107,6 +107,14 @@ public interface DataClient {
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
 
+    /**
+     * Return all bridges with a VxLan Port
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    List<Bridge> bridgesGetAllWithVxlanPort() throws StateAccessException,
+                                                     SerializationException;
+
     List<UUID> bridgesGetAllIds() throws StateAccessException,
             SerializationException;
 
@@ -912,6 +920,12 @@ public interface DataClient {
      * this bridge".
      */
     public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
+        throws SerializationException, StateAccessException;
+
+    /**
+     * See vxlanTunnelEndpointFor(BridgePort port)
+     */
+    public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
 
 }
