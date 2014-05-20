@@ -59,4 +59,24 @@ public interface L3Extension {
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
 
+    /**
+     * Add an interface on the network to link to a router.
+     *
+     * @param routerId ID of the router to link
+     * @param routerInterface Router interface info
+     * @return RouterInterface info created
+     */
+    public RouterInterface addRouterInterface(
+            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Remove an interface on the network linked to a router.
+     *
+     * @param routerId ID of the router to unlink
+     * @param routerInterface Router interface info
+     * @return RouterInterface info removed
+     */
+    public RouterInterface removeRouterInterface(
+            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface);
 }
