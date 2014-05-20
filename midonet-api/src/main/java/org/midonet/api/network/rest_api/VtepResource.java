@@ -51,12 +51,14 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
+
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static org.midonet.api.validation.MessageProperty.NETWORK_ALREADY_BOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
@@ -64,12 +66,13 @@ import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
+import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
 public class VtepResource extends AbstractResource {
 
-    public static final String LOGICAL_SWITCH_PREFIX = "mn-";
-
-    private static final Logger log = LoggerFactory.getLogger(VtepResource.class);
+    private static final Logger log = LoggerFactory.getLogger(
+        VtepResource.class);
 
     private final Random rand = new Random();
     private final VtepDataClientProvider vtepClientProvider;
@@ -479,19 +482,6 @@ public class VtepResource extends AbstractResource {
                                new NotFoundHttpException(msg);
         }
         return dataVtep;
-    }
-
-    private java.util.UUID logicalSwitchNameToBridgeId(String lsName) {
-        try {
-            return java.util.UUID.fromString(
-                    lsName.substring(LOGICAL_SWITCH_PREFIX.length()));
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    private String bridgeIdToLogicalSwitchName(java.util.UUID uuid) {
-        return LOGICAL_SWITCH_PREFIX + uuid;
     }
 
     private void throwIfFailed(
