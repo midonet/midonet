@@ -4,6 +4,8 @@
 package org.midonet.midolman.util
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
@@ -13,10 +15,16 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
+import org.midonet.cache.MockCache
+import org.midonet.cluster.data.Port
 import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.{Coordinator, CustomMatchers}
+import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.packets.Ethernet
+import org.midonet.sdn.flows.WildcardMatch
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -67,10 +75,34 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     protected def fillConfig(config: HierarchicalConfiguration)
-    : HierarchicalConfiguration = {
+            : HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }
+
+    def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
+        sendPacket(t._1, t._2)
+
+    def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
+        new Coordinator(
+            makeWildcardMatch(port, pkt),
+            pkt,
+            Some(1),
+            None,
+            0,
+            new MockCache(), new MockCache(), new MockCache(),
+            None,
+            Nil
+        ) simulate() match {
+            case Ready(r) => r
+            case NotYet(f) =>
+                Await.result(f, 3 seconds)
+                sendPacket(port, pkt)
+        }
+
+    def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
+        WildcardMatch.fromEthernetPacket(pkt)
+            .setInputPortUUID(port.getId)
 }

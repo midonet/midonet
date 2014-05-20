@@ -203,25 +203,9 @@ class IPFragmentationTest extends MidolmanSpec {
 
     private[this] def sendPacket(fragType: IPFragmentType,
                                  etherType: Short = IPv4.ETHERTYPE)
-    : SimulationResult = {
+            : SimulationResult = {
         val pkt = makePacket(fragType, etherType)
-        new Coordinator(
-            makeWMatch(pkt),
-            pkt,
-            Some(1),
-            None,
-            0,
-            new MockCache(),
-            new MockCache(),
-            new MockCache(),
-            None,
-            Nil
-        ) simulate() match {
-            case Ready(r) => r
-            case NotYet(ft) =>
-                Await.result(ft, 3 seconds)
-                sendPacket(fragType, etherType)
-        }
+        sendPacket(srcPort, pkt)
     }
 
     private[this] def makePacket(fragType: IPFragmentType, etherType: Short) = {
@@ -237,10 +221,6 @@ class IPFragmentationTest extends MidolmanSpec {
         // overwritten by the L3 payload's ethertype.
         builder.ether_type(etherType).packet
     }
-
-    private[this] def makeWMatch(pkt: Ethernet) =
-        WildcardMatch.fromEthernetPacket(pkt)
-                     .setInputPortUUID(srcPort.getId)
 
     private def assertToPortFlowCreated(simRes: SimulationResult) {
         simRes should be (toPort(dstPort.getId)
