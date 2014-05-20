@@ -12,6 +12,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.NeutronPlugin;
 import org.midonet.cluster.data.neutron.Router;
+import org.midonet.cluster.data.neutron.RouterInterface;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -123,5 +124,37 @@ public class RouterResource extends AbstractNeutronResource {
         }
     }
 
+    @PUT
+    @Path("{id}" + NeutronUriBuilder.ADD_ROUTER_INTF)
+    @Consumes(NeutronMediaType.ROUTER_INTERFACE_V1)
+    @Produces(NeutronMediaType.ROUTER_INTERFACE_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public void addRouterInterface(@PathParam("id") UUID id,
+                                   RouterInterface intf)
+            throws SerializationException, StateAccessException {
+        log.info("RouterResource.addRouterInterface entered {}", intf);
 
+        try {
+
+            RouterInterface ri = dataClient.addRouterInterface(id, intf);
+            log.info("RouterResource.addRouterInterface exiting {}", ri);
+
+        } catch (NoStatePathException e) {
+            log.error("Resource does not exist", e);
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+        }
+    }
+
+    @PUT
+    @Path("{id}" + NeutronUriBuilder.REMOVE_ROUTER_INTF)
+    @Consumes(NeutronMediaType.ROUTER_INTERFACE_V1)
+    @Produces(NeutronMediaType.ROUTER_INTERFACE_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public void removeRouterInterface(@PathParam("id") UUID id,
+                                      RouterInterface intf)
+            throws SerializationException, StateAccessException {
+        log.info("RouterResource.removeRouterInterface entered {}", intf);
+        RouterInterface ri = dataClient.removeRouterInterface(id, intf);
+        log.info("RouterResource.removeRouterInterface exiting {}", ri);
+    }
 }

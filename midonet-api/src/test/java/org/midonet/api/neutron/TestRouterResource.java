@@ -10,6 +10,7 @@ import org.midonet.api.ResourceTest;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.cluster.data.neutron.Router;
+import org.midonet.cluster.data.neutron.RouterInterface;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -85,5 +86,17 @@ public class TestRouterResource extends ResourceTest {
                 any(UUID.class), any(Router.class));
 
         testObject.update(any(UUID.class), any(Router.class));
+    }
+
+    @Test(expected = NotFoundHttpException.class)
+    public void testAddRouterInterfaceNotFound() throws Exception {
+
+        doThrow(NoStatePathException.class).when(
+                plugin).addRouterInterface(
+                any(UUID.class), any(RouterInterface.class));
+
+        UUID id = UUID.randomUUID();
+        RouterInterface ri = NeutronDataProvider.routerInterface(id);
+        testObject.addRouterInterface(id, ri);
     }
 }

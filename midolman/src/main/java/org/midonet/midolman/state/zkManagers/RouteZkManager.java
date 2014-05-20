@@ -12,6 +12,8 @@ import java.util.UUID;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,6 +186,17 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
+    public void preparePersisPortRouteCreate(
+            List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
+            UUID nextHopPortId, IPv4Addr nextHopAddr, int weight,
+            UUID routerId, PortDirectory.RouterPortConfig rpCfg)
+            throws SerializationException, StateAccessException {
+
+        Route r = Route.nextHopPortRoute(src, dest, nextHopPortId, nextHopAddr,
+                weight, routerId);
+        ops.addAll(prepareRouteCreate(id,r, true, rpCfg));
+    }
+
     private Set<String> getRoutingTablePaths(UUID portId)
             throws StateAccessException, SerializationException {
         Set<String> routePaths = new HashSet<String>();
@@ -220,6 +233,24 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         }
 
         return ops;
+    }
+
+    /**
+     * Set an Op to create one route entry in the routing table.  Since this
+     * method does not assume that this route has been created, it is useful
+     * when you want to use it as part of new port creation/link.
+     * @throws StateAccessException
+     */
+    public void prepareCreatePortRouteInTable(List<Op> ops,
+            UUID portId, PortDirectory.RouterPortConfig pCfg)
+            throws SerializationException, StateAccessException {
+
+        Route route = Route.localRoute(portId, pCfg.portAddr, pCfg.device_id);
+        String routeKey = getRouteInRoutingTable(route);
+
+        // Assume only persistent routes are processed
+        ops.add(Op.create(routeKey, null, Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT));
     }
 
     /***

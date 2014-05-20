@@ -310,6 +310,21 @@ public class NetworkZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Port.class);
     }
 
+    public Port getDhcpPort(UUID networkId)
+            throws SerializationException, StateAccessException {
+
+        // TODO: This is very inefficient.  Fix it by tagging bridge config
+        // with the DHCP port
+        List<Port> ports = getPorts();
+        for (Port port : ports) {
+            if (port.isDhcp(networkId)) {
+                return port;
+            }
+        }
+
+        return null;
+    }
+
     public List<Port> getPorts()
             throws StateAccessException, SerializationException {
 

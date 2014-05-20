@@ -11,8 +11,11 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.neutron.Port;
+import org.midonet.cluster.data.neutron.RouterInterface;
+import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.midolman.layer3.Route;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 
 public class PortDirectory {
@@ -91,6 +94,13 @@ public class PortDirectory {
 
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;
+
+        public RouterPortConfig(RouterInterface rInt, Subnet subnet,
+                                boolean adminStateUp) {
+            this(rInt.id, subnet.cidrAddressInt(), subnet.cidrAddressLen(),
+                    IPv4Addr.stringToInt(subnet.gatewayIp), null, null);
+            this.adminStateUp = adminStateUp;
+        }
 
         public RouterPortConfig(UUID device_id, int networkAddr,
                 int networkLength, int portAddr, Set<Route> routes,
