@@ -9,13 +9,8 @@ import javax.annotation.Nonnull;
 
 import org.midonet.cluster.data.TunnelZone;
 
-/**
- *
- */
 public class IpsecTunnelZone
     extends TunnelZone<IpsecTunnelZone, IpsecTunnelZone.Data> {
-
-    public static final short TUNNEL_OVERHEAD = (short)50;
 
     public IpsecTunnelZone() {
         this(null, new Data());
@@ -28,11 +23,6 @@ public class IpsecTunnelZone
     @Override
     public Type getType() {
         return Type.Ipsec;
-    }
-
-    @Override
-    public short getTunnelOverhead() {
-        return TUNNEL_OVERHEAD;
     }
 
     public IpsecTunnelZone(UUID uuid, @Nonnull Data data) {
