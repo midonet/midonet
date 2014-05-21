@@ -29,6 +29,14 @@ necessarialy any other node types.
 
 The **MidoNet** project is split into several submodules:
 
+### brain
+
+This contains the various pieces that compose the Midonet controller
+node `brain`. Controller nodes take care of orchestrating the
+configuration of all Midonet subcomponents, as well as coordinating with
+other external devices and systems, such as VTEP switches, the backend services
+holding our Network State DataBase (e.g: Zookeeper and Cassandra), etc.
+
 ### packets
 
 This holds basic classes for parsing, building, and manipulating packets
@@ -59,6 +67,13 @@ the kernel's Open Datapath module.
 
 
 ## Building the project
+
+The `brain` directory contains an odl-ovsdb git submodule with code that
+must be compiled in order to generate dependencies needed in various
+midonet components. Before any build tasks, ensure that you have the
+right version of odl-ovsdb by executing:
+
+    ~/midonet$ git submodule update --init --recursive
 
 ### Complete build
 
