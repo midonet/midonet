@@ -72,13 +72,11 @@ public class SecurityGroup {
         return ingressChainName(id);
     }
 
-    @JsonIgnore
     public static String egressChainName(UUID sgId) {
         if (sgId == null) return null;
         return "OS_SG_" + sgId + "_" + RuleDirection.EGRESS;
     }
 
-    @JsonIgnore
     public static String ingressChainName(UUID sgId) {
         if (sgId == null) return null;
         return "OS_SG_" + sgId + "_" + RuleDirection.INGRESS;

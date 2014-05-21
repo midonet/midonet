@@ -156,7 +156,6 @@ public class Port {
         return ingressChainName(id);
     }
 
-    @JsonIgnore
     public static String egressChainName(UUID portId) {
         if (portId == null)
             throw new IllegalArgumentException("portId is null");
@@ -164,7 +163,6 @@ public class Port {
         return "OS_PORT_" + portId + "_INBOUND";
     }
 
-    @JsonIgnore
     public static String ingressChainName(UUID portId) {
         if (portId == null)
             throw new IllegalArgumentException("portId is null");

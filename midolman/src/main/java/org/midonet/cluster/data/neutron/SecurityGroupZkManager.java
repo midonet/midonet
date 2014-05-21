@@ -15,10 +15,10 @@ import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
-import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager
-        .IpAddrGroupConfig;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager.IpAddrGroupConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.packets.IPSubnet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,8 +99,9 @@ public class SecurityGroupZkManager extends BaseZkManager {
         for (IPAllocation fixedIp : port.fixedIps) {
 
             Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
-            inRules.add(LiteralRule.ipSpoofProtectionRule(
-                    fixedIp.subnet(subnet.ipVersion), inChainId));
+            IPSubnet ipSub = subnet.isIpv4()
+                    ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
+            inRules.add(LiteralRule.ipSpoofProtectionRule(ipSub, inChainId));
         }
 
         // MAC spoofing protection for in_chain

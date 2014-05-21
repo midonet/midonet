@@ -26,6 +26,16 @@ public class TestPortResource extends ResourceTest {
 
     private PortResource testObject;
 
+    public static Port port() {
+        return port(UUID.randomUUID());
+    }
+
+    public static Port port(UUID id) {
+        Port p = new Port();
+        p.id = id;
+        return p;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -37,8 +47,8 @@ public class TestPortResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        Port input = NeutronDataProvider.port();
-        Port output = NeutronDataProvider.port(input.id);
+        Port input = port();
+        Port output = port(input.id);
 
         doReturn(output).when(plugin).createPort(input);
 
@@ -68,8 +78,8 @@ public class TestPortResource extends ResourceTest {
     @Test
     public void testUpdate() throws Exception {
 
-        Port input = NeutronDataProvider.port();
-        Port output = NeutronDataProvider.port(input.id);
+        Port input = port();
+        Port output = port(input.id);
 
         doReturn(output).when(plugin).updatePort(input.id, input);
 

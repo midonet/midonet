@@ -148,20 +148,35 @@ public class L3ZkManager extends BaseZkManager {
         Port port = networkZkManager.getPort(rInt.portId);
         Subnet subnet = networkZkManager.getSubnet(rInt.subnetId);
 
-        // Create a bridge port
-        BridgePortConfig bpConfig = new BridgePortConfig(port.networkId, true);
-        ops.addAll(portZkManager.prepareCreate(port.id, bpConfig));
+        // Check to see if this port exists.  It's possible that an existing
+        // port ID was specified to be the router interface port.
+        BridgePortConfig bpConfig;
+        if (port.isRouterInterface()) {
+            // Create a bridge port
+            bpConfig = new BridgePortConfig(port.networkId, true);
+            ops.addAll(portZkManager.prepareCreate(port.id, bpConfig));
+        } else {
+            // use the existing
+            bpConfig = (BridgePortConfig) portZkManager.get(port.id);
+
+            // Also update this to the correct device ID/owner
+            port.deviceId = rInt.id.toString();
+            port.deviceOwner = DeviceOwner.ROUTER_INTF;
+            networkZkManager.prepareUpdateNeutronPort(ops, port);
+        }
 
         // Create a router port
         UUID rpId = UUID.randomUUID();
-        RouterPortConfig rpConfig = new RouterPortConfig(rInt, subnet, true);
+        RouterPortConfig rpConfig = new RouterPortConfig(rInt.id,
+                subnet.cidrAddressInt(), subnet.cidrAddressLen(),
+                subnet.gwIpInt(), true);
         ops.addAll(portZkManager.prepareCreate(rpId, rpConfig));
 
         // Link them
         portZkManager.prepareLink(ops, port.id, rpId, bpConfig, rpConfig);
 
         // Add a route to this subnet
-        routeZkManager.preparePersisPortRouteCreate(ops, UUID.randomUUID(),
+        routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
                 new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, 100,
                 rInt.id, rpConfig);
 
@@ -172,7 +187,7 @@ public class L3ZkManager extends BaseZkManager {
         Port dPort = networkZkManager.getDhcpPort(subnet.networkId);
         if (dPort != null && dPort.hasIp()) {
 
-            routeZkManager.preparePersisPortRouteCreate(ops,
+            routeZkManager.preparePersistPortRouteCreate(ops,
                     UUID.randomUUID(), new IPv4Subnet(0, 0),
                     MetaDataService.IPv4_SUBNET, rpId, dPort.firstIpv4Addr(),
                     100, rInt.id, rpConfig);

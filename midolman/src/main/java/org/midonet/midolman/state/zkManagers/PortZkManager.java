@@ -20,6 +20,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -359,6 +360,15 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         }
     }
 
+    public void prepareCreateAndLink(List<Op> ops, PortConfig port,
+                                     PortConfig peerPort)
+            throws SerializationException, StateAccessException {
+
+        ops.addAll(prepareCreate(port.id, port));
+        ops.addAll(prepareCreate(peerPort.id, peerPort));
+        prepareLink(ops, port.id, peerPort.id, port, peerPort);
+    }
+
     public List<Op> prepareUnlink(UUID id) throws StateAccessException,
             SerializationException {
 
@@ -405,6 +415,97 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                 serializer.serialize(peerPort), -1));
 
         return ops;
+    }
+
+    public void prepareDelete(List<Op> ops, PortDirectory.RouterPortConfig cfg,
+                              boolean deletePeer)
+            throws SerializationException, StateAccessException {
+
+        if (deletePeer && cfg.isInterior()) {
+            ops.addAll(prepareDelete(cfg.getPeerId()));
+
+            // Set peer to null so that the next prepareDelete call does not
+            // try to delete the peer port again.
+            cfg.setPeerId(null);
+        }
+
+        ops.addAll(prepareDelete(cfg.id, cfg));
+    }
+
+    public void prepareDelete(List<Op> ops,
+                              List<PortDirectory.RouterPortConfig> cfgs,
+                              boolean deletePeer)
+            throws SerializationException, StateAccessException {
+        for (PortDirectory.RouterPortConfig cfg : cfgs) {
+            prepareDelete(ops, cfg, deletePeer);
+        }
+    }
+
+    public List<PortDirectory.RouterPortConfig> getRouterPorts(UUID routerId,
+                                                               IPv4Subnet sub)
+            throws SerializationException, StateAccessException {
+        return getRouterPorts(routerId, Arrays.asList(sub));
+    }
+
+    public List<PortDirectory.RouterPortConfig> getRouterPorts(
+            UUID routerId, List<IPv4Subnet> subs)
+            throws SerializationException, StateAccessException {
+
+        // Get the ports of this router
+        List<UUID> portIds = getRouterPortIDs(routerId);
+        List<PortDirectory.RouterPortConfig> cfgs = new ArrayList<>();
+        for (UUID portId : portIds) {
+            PortDirectory.RouterPortConfig rpCfg =
+                    (PortDirectory.RouterPortConfig) get(portId);
+
+            for (IPv4Subnet sub : subs) {
+                if (rpCfg.hasSubnet(sub)) {
+                    cfgs.add(rpCfg);
+                    break;
+                }
+            }
+        }
+        return cfgs;
+    }
+
+    /**
+     * Call this method to get the port with the provided subnet that's
+     */
+    public PortDirectory.RouterPortConfig getRouterPort(UUID routerId,
+                                                        UUID deviceId,
+                                                        IPv4Subnet sub)
+            throws SerializationException, StateAccessException {
+        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
+                sub);
+        for (PortDirectory.RouterPortConfig cfg : cfgs) {
+
+            if (!cfg.isInterior()) continue;
+
+            PortConfig peer = get(cfg.peerId);
+            if (Objects.equals(peer.device_id, deviceId)) {
+                return cfg;
+            }
+        }
+        return null;
+    }
+
+    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
+                                         IPv4Subnet sub, boolean deletePeer)
+            throws StateAccessException, SerializationException {
+
+        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
+                sub);
+        prepareDelete(ops, cfgs, deletePeer);
+    }
+
+    public void prepareDeleteRouterPorts(List<Op> ops, UUID routerId,
+                                         List<IPv4Subnet> subs,
+                                         boolean deletePeer)
+            throws StateAccessException, SerializationException {
+
+        List<PortDirectory.RouterPortConfig> cfgs = getRouterPorts(routerId,
+                subs);
+        prepareDelete(ops, cfgs, deletePeer);
     }
 
     public List<Op> prepareClearRefsToChains(UUID id, UUID chainId)

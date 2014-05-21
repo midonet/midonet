@@ -25,6 +25,16 @@ public class TestSecurityGroupRuleResource extends ResourceTest {
 
     private SecurityGroupRuleResource testObject;
 
+    public static SecurityGroupRule securityGroupRule() {
+        return securityGroupRule(UUID.randomUUID());
+    }
+
+    public static SecurityGroupRule securityGroupRule(UUID id) {
+        SecurityGroupRule rule = new SecurityGroupRule();
+        rule.id = id;
+        return rule;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -37,8 +47,8 @@ public class TestSecurityGroupRuleResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        SecurityGroupRule input = NeutronDataProvider.securityGroupRule();
-        SecurityGroupRule output = NeutronDataProvider.securityGroupRule(
+        SecurityGroupRule input = securityGroupRule();
+        SecurityGroupRule output = securityGroupRule(
                 input.id);
 
         doReturn(output).when(plugin).createSecurityGroupRule(input);

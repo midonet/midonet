@@ -5,6 +5,7 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.Neutron;
@@ -20,7 +21,8 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 
-public class NeutronResource extends AbstractNeutronResource {
+@Path(NeutronUriBuilder.NEUTRON)
+public class NeutronResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             NeutronResource.class);
@@ -30,7 +32,7 @@ public class NeutronResource extends AbstractNeutronResource {
     @Inject
     public NeutronResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context, ResourceFactory factory) {
-        super(config, uriInfo, context);
+        super(config, uriInfo, context, null);
         this.factory = factory;
     }
 
@@ -59,7 +61,7 @@ public class NeutronResource extends AbstractNeutronResource {
         return factory.getNeutronSecurityGroupResource();
     }
 
-    @Path(NeutronUriBuilder.SECURITY_GROUPS_RULES)
+    @Path(NeutronUriBuilder.SECURITY_GROUP_RULES)
     public SecurityGroupRuleResource getSecurityGroupRuleResource() {
         return factory.getNeutronSecurityGroupRuleResource();
     }

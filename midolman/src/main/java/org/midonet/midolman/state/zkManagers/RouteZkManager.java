@@ -186,7 +186,7 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
-    public void preparePersisPortRouteCreate(
+    public void preparePersistPortRouteCreate(
             List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
             UUID nextHopPortId, IPv4Addr nextHopAddr, int weight,
             UUID routerId, PortDirectory.RouterPortConfig rpCfg)
@@ -303,6 +303,18 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
             ops.add(Op.delete(path, -1));
         }
         return ops;
+    }
+
+    public void prepareRouteDelete(List<Op> ops, UUID routerId,
+                                   IPv4Subnet dstSub)
+            throws SerializationException, StateAccessException {
+        List<UUID> routeIds = list(routerId);
+        for (UUID routeId : routeIds) {
+            Route route = get(routeId);
+            if (route.hasDstSubnet(dstSub)) {
+                ops.addAll(prepareRouteDelete(routeId));
+            }
+        }
     }
 
     /**

@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.cluster.data.neutron.Port;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.InteriorBridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.ExteriorBridgePortConfig;
@@ -19,6 +18,8 @@ import org.midonet.midolman.state.PortDirectory.InteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.ExteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Subnet;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -47,10 +48,6 @@ public abstract class PortConfig extends BaseConfig {
         super();
         this.device_id = device_id;
         this.adminStateUp = adminStateUp;
-    }
-
-    PortConfig(Port port) {
-        this(port.networkId, port.adminStateUp);
     }
 
     // Default constructor for the Jackson deserialization.
@@ -89,6 +86,8 @@ public abstract class PortConfig extends BaseConfig {
     public boolean isExterior() { return hostId != null; }
     @JsonIgnore
     public boolean isUnplugged() { return !isInterior() && !isExterior(); }
+    @JsonIgnore
+    public boolean hasSubnet(IPv4Subnet sub) { return false; };
 
     @Override
     public boolean equals(Object o) {

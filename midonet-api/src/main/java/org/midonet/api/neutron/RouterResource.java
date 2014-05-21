@@ -5,11 +5,13 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.neutron.L3Api;
 import org.midonet.cluster.data.neutron.NeutronPlugin;
 import org.midonet.cluster.data.neutron.Router;
 import org.midonet.cluster.data.neutron.RouterInterface;
@@ -30,15 +32,18 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class RouterResource extends AbstractNeutronResource {
+public class RouterResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
 
+    private final L3Api api;
+
     @Inject
     public RouterResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context, NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                        SecurityContext context, L3Api api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -51,9 +56,9 @@ public class RouterResource extends AbstractNeutronResource {
 
         try {
 
-            Router r = dataClient.createRouter(router);
+            Router r = api.createRouter(router);
 
-            log.info("RouterResource.get exiting {}", r);
+            log.info("RouterResource.create exiting {}", r);
             return Response.created(
                     NeutronUriBuilder.getRouter(
                             getBaseUri(), r.id)).entity(r).build();
@@ -70,7 +75,7 @@ public class RouterResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("RouterResource.delete entered {}", id);
-        dataClient.deleteRouter(id);
+        api.deleteRouter(id);
     }
 
     @GET
@@ -81,7 +86,7 @@ public class RouterResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("RouterResource.get entered {}", id);
 
-        Router r = dataClient.getRouter(id);
+        Router r = api.getRouter(id);
         if (r == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -96,7 +101,7 @@ public class RouterResource extends AbstractNeutronResource {
     public List<Router> list()
             throws SerializationException, StateAccessException {
         log.info("RouterResource.list entered");
-        return dataClient.getRouters();
+        return api.getRouters();
     }
 
     @PUT
@@ -111,7 +116,7 @@ public class RouterResource extends AbstractNeutronResource {
 
         try {
 
-            Router r = dataClient.updateRouter(id, router);
+            Router r = api.updateRouter(id, router);
 
             log.info("RouterResource.update exiting {}", r);
             return Response.ok(
@@ -136,7 +141,7 @@ public class RouterResource extends AbstractNeutronResource {
 
         try {
 
-            RouterInterface ri = dataClient.addRouterInterface(id, intf);
+            RouterInterface ri = api.addRouterInterface(id, intf);
             log.info("RouterResource.addRouterInterface exiting {}", ri);
 
         } catch (NoStatePathException e) {
@@ -154,7 +159,7 @@ public class RouterResource extends AbstractNeutronResource {
                                       RouterInterface intf)
             throws SerializationException, StateAccessException {
         log.info("RouterResource.removeRouterInterface entered {}", intf);
-        RouterInterface ri = dataClient.removeRouterInterface(id, intf);
+        RouterInterface ri = api.removeRouterInterface(id, intf);
         log.info("RouterResource.removeRouterInterface exiting {}", ri);
     }
 }

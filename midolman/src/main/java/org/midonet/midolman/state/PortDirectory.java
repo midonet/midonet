@@ -9,14 +9,10 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.cluster.data.BGP;
-import org.midonet.cluster.data.neutron.Port;
-import org.midonet.cluster.data.neutron.RouterInterface;
-import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.midolman.layer3.Route;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.MAC;
+import org.midonet.packets.*;
 
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());
@@ -30,10 +26,6 @@ public class PortDirectory {
 
         public BridgePortConfig(UUID device_id, boolean adminStateUp) {
             super(device_id, adminStateUp);
-        }
-
-        public BridgePortConfig(Port port) {
-            super(port);
         }
 
         public BridgePortConfig(UUID deviceId, UUID peerId, Short vlanId) {
@@ -95,10 +87,10 @@ public class PortDirectory {
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;
 
-        public RouterPortConfig(RouterInterface rInt, Subnet subnet,
+        public RouterPortConfig(UUID routerId, int networkAddr,
+                                int networkLength, int portAddr,
                                 boolean adminStateUp) {
-            this(rInt.id, subnet.cidrAddressInt(), subnet.cidrAddressLen(),
-                    IPv4Addr.stringToInt(subnet.gatewayIp), null, null);
+            this(routerId, networkAddr, networkLength, portAddr, null, null);
             this.adminStateUp = adminStateUp;
         }
 
@@ -213,6 +205,13 @@ public class PortDirectory {
             result = 31 * result + (hwAddr != null ? hwAddr.hashCode() : 0);
             result = 31 * result + (bgps != null ? bgps.hashCode() : 0);
             return result;
+        }
+
+        @JsonIgnore
+        @Override
+        public boolean hasSubnet(IPv4Subnet sub) {
+            return sub.getIntAddress() == nwAddr
+                    && sub.getPrefixLen() == nwLength;
         }
     }
 

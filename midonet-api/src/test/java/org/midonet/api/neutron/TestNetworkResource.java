@@ -26,6 +26,16 @@ public class TestNetworkResource extends ResourceTest {
 
     private NetworkResource testObject;
 
+    public static Network network() {
+        return network(UUID.randomUUID());
+    }
+
+    public static Network network(UUID id) {
+        Network net = new Network();
+        net.id = id;
+        return net;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -37,8 +47,8 @@ public class TestNetworkResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        Network input = NeutronDataProvider.network();
-        Network output = NeutronDataProvider.network(input.id);
+        Network input = network();
+        Network output = network(input.id);
 
         doReturn(output).when(plugin).createNetwork(input);
 
@@ -68,8 +78,8 @@ public class TestNetworkResource extends ResourceTest {
     @Test
     public void testUpdate() throws Exception {
 
-        Network input = NeutronDataProvider.network();
-        Network output = NeutronDataProvider.network(input.id);
+        Network input = network();
+        Network output = network(input.id);
 
         doReturn(output).when(plugin).updateNetwork(input.id, input);
 

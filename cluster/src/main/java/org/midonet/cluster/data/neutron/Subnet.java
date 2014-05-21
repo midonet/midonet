@@ -7,9 +7,7 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.midonet.packets.IPSubnet;
-import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.IPv6Subnet;
+import org.midonet.packets.*;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -124,18 +122,24 @@ public class Subnet {
     }
 
     @JsonIgnore
-    public Integer cidrAddressInt() {
+    public int cidrAddressInt() {
         IPv4Subnet ipSubnet = ipv4Subnet();
-        if (ipSubnet == null) return null;
+        if (ipSubnet == null) return 0;
 
         return ipSubnet.getIntAddress();
     }
 
     @JsonIgnore
-    public Integer cidrAddressLen() {
+    public int cidrAddressLen() {
         IPv4Subnet ipSubnet = ipv4Subnet();
-        if (ipSubnet == null) return null;
+        if (ipSubnet == null) return 0;
 
         return ipSubnet.getPrefixLen();
+    }
+
+    @JsonIgnore
+    public int gwIpInt() {
+        if (gatewayIp == null) return 0;
+        return IPv4Addr.stringToInt(gatewayIp);
     }
 }

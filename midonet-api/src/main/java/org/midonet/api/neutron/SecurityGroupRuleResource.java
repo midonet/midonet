@@ -5,12 +5,13 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.SecurityGroupApi;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -28,16 +29,19 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class SecurityGroupRuleResource extends AbstractNeutronResource {
+public class SecurityGroupRuleResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SecurityGroupRuleResource.class);
 
+    private final SecurityGroupApi api;
+
     @Inject
     public SecurityGroupRuleResource(RestApiConfig config, UriInfo uriInfo,
                                      SecurityContext context,
-                                     NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                                     SecurityGroupApi api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -51,7 +55,7 @@ public class SecurityGroupRuleResource extends AbstractNeutronResource {
 
         try {
 
-            SecurityGroupRule r = dataClient.createSecurityGroupRule(rule);
+            SecurityGroupRule r = api.createSecurityGroupRule(rule);
 
             log.info("SecurityGroupRuleResource.get exiting {}", r);
             return Response.created(
@@ -74,7 +78,7 @@ public class SecurityGroupRuleResource extends AbstractNeutronResource {
 
         try {
             List<SecurityGroupRule> outRules =
-                    dataClient.createSecurityGroupRuleBulk(rules);
+                    api.createSecurityGroupRuleBulk(rules);
 
             return Response.created(NeutronUriBuilder.getSecurityGroupRules(
                     getBaseUri())).entity(outRules).build();
@@ -89,7 +93,7 @@ public class SecurityGroupRuleResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupRuleResource.delete entered {}", id);
-        dataClient.deleteSecurityGroupRule(id);
+        api.deleteSecurityGroupRule(id);
     }
 
     @GET
@@ -100,7 +104,7 @@ public class SecurityGroupRuleResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupRuleResource.get entered {}", id);
 
-        SecurityGroupRule rule = dataClient.getSecurityGroupRule(id);
+        SecurityGroupRule rule = api.getSecurityGroupRule(id);
         if (rule == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -115,6 +119,6 @@ public class SecurityGroupRuleResource extends AbstractNeutronResource {
     public List<SecurityGroupRule> list()
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupRuleResource.list entered");
-        return dataClient.getSecurityGroupRules();
+        return api.getSecurityGroupRules();
     }
 }
