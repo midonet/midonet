@@ -207,12 +207,6 @@ object DatapathController extends Referenceable {
     private var cachedMinMtu: Short = DEFAULT_MTU
 
     def minMtu = cachedMinMtu
-
-    // TODO: this belongs in TunnelZone
-    private val tzTypeOverheads = Map(
-        TunnelZone.Type.Gre -> GreTunnelZone.TUNNEL_OVERHEAD,
-        TunnelZone.Type.Capwap -> CapwapTunnelZone.TUNNEL_OVERHEAD,
-        TunnelZone.Type.Ipsec -> IpsecTunnelZone.TUNNEL_OVERHEAD)
 }
 
 
@@ -746,7 +740,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             ByteBuffer.wrap(inetAddress.getAddress).getInt == ip.addressAsInt()
 
         var minMtu = Short.MaxValue
-        val overhead = tzTypeOverheads(TunnelZone.Type.Gre)
+        val overhead = if (dpState.tunnelVxLan.isDefined)
+            VxLanTunnelPort.TunnelOverhead
+        else
+            GreTunnelPort.TunnelOverhead
 
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
