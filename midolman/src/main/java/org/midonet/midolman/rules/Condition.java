@@ -124,6 +124,14 @@ public class Condition extends BaseConfig {
         dlType = (int) subnet.ethertype();
     }
 
+    public boolean containsInPort(UUID portId) {
+        return inPortIds != null && inPortIds.contains(portId);
+    }
+
+    public boolean containsOutPort(UUID portId) {
+        return outPortIds != null && outPortIds.contains(portId);
+    }
+
     public boolean matches(ChainPacketContext fwdInfo,
                            WildcardMatch pktMatch,
                            boolean isPortFilter) {

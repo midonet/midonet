@@ -8,6 +8,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
@@ -105,6 +106,12 @@ public class Port {
 
         String addr = fixedIps.get(0).ipAddress;
         return IPv4Addr.fromString(addr);
+    }
+
+    @JsonIgnore
+    public IPv4Subnet firstIpv4Subnet() {
+        if (!hasIp()) return null;
+        return new IPv4Subnet(firstIpv4Addr(), 32);
     }
 
     @JsonIgnore
