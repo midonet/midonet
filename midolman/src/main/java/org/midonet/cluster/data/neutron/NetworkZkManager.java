@@ -16,6 +16,8 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IntIPv4;
 
 public class NetworkZkManager extends BaseZkManager {
@@ -49,18 +51,28 @@ public class NetworkZkManager extends BaseZkManager {
         ops.addAll(bridgeZkManager.prepareBridgeCreate(network.id, config));
     }
 
-    public void prepareDeleteNetwork(List<Op> ops, UUID id)
+    public Network prepareDeleteNetwork(List<Op> ops, UUID id)
             throws SerializationException, StateAccessException {
 
         Network network = getNetwork(id);
         if (network == null) {
-            return;
+            return null;
         }
 
         ops.addAll(bridgeZkManager.prepareBridgeDelete(id));
 
+        // Delete Neutron subnets.  That should be the only thing that is still
+        // left over after deleting the bridge.
+        List<Subnet> subs = getSubnets(id);
+        for (Subnet sub : subs) {
+            String subPath = paths.getNeutronSubnetPath(sub.id);
+            ops.add(zk.getDeleteOp(subPath));
+        }
+
         String path = paths.getNeutronNetworkPath(id);
         ops.add(zk.getDeleteOp(path));
+
+        return network;
     }
 
     public void prepareUpdateNetwork(List<Op> ops, Network network)
@@ -114,18 +126,19 @@ public class NetworkZkManager extends BaseZkManager {
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(subnet)));
     }
 
-    public void prepareDeleteSubnet(List<Op> ops, UUID id)
+    public Subnet prepareDeleteSubnet(List<Op> ops, UUID id)
             throws StateAccessException, SerializationException {
 
         Subnet subnet = getSubnet(id);
         if (subnet == null) {
-            return;
+            return null;
         }
 
         dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
                 IntIPv4.fromString(subnet.cidr, "/"));
 
         ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
+        return subnet;
     }
 
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
@@ -162,6 +175,34 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         return subnets;
+    }
+
+    public List<Subnet> getSubnets(UUID networkId)
+            throws StateAccessException, SerializationException {
+
+        List<Subnet> subs = getSubnets();
+        List<Subnet> netSubs = new ArrayList<>(subs.size());
+        for (Subnet sub : subs) {
+            if (Objects.equals(sub.networkId, networkId)) {
+                netSubs.add(sub);
+            }
+        }
+
+        return netSubs;
+    }
+
+    public List<IPv4Subnet> getIPv4Subnets(UUID networkId)
+            throws SerializationException, StateAccessException {
+
+        List<Subnet> subs = getSubnets(networkId);
+        List<IPv4Subnet> ipv4Subnets = new ArrayList<>(subs.size());
+        for (Subnet sub : subs) {
+            if (sub.isIpv4()) {
+                ipv4Subnets.add(sub.ipv4Subnet());
+            }
+        }
+
+        return ipv4Subnets;
     }
 
     private void prepareCreateDhcpHostEntries(List<Op> ops, Port port)
@@ -232,7 +273,7 @@ public class NetworkZkManager extends BaseZkManager {
         prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
 
         ops.addAll(portZkManager.prepareCreate(port.id,
-                new BridgePortConfig(port)));
+                new BridgePortConfig(port.networkId, true)));
 
         prepareCreateNeutronPort(ops, port);
     }
@@ -357,8 +398,7 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         // Update the neutron port config
-        String path = paths.getNeutronPortPath(newPort.id);
-        ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));
+        prepareUpdateNeutronPort(ops, newPort);
     }
 
     public void prepareUpdateDhcpPort(List<Op> ops, Port newPort)
@@ -375,6 +415,11 @@ public class NetworkZkManager extends BaseZkManager {
             prepareCreateDhcpMetadataRoutes(ops, newPort.fixedIps);
         }
 
+        prepareUpdateNeutronPort(ops, newPort);
+    }
+
+    public void prepareUpdateNeutronPort(List<Op> ops, Port newPort)
+            throws SerializationException {
         // Update the neutron port config
         String path = paths.getNeutronPortPath(newPort.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));

@@ -5,13 +5,14 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
 import org.midonet.cluster.data.neutron.SecurityGroup;
+import org.midonet.cluster.data.neutron.SecurityGroupApi;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -29,16 +30,19 @@ import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
 
-public class SecurityGroupResource extends AbstractNeutronResource {
+public class SecurityGroupResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SecurityGroupResource.class);
 
+    private final SecurityGroupApi api;
+
     @Inject
     public SecurityGroupResource(RestApiConfig config, UriInfo uriInfo,
-                                 SecurityContext context, 
-                                 NeutronPlugin plugin) {
-        super(config, uriInfo, context, plugin);
+                                 SecurityContext context,
+                                 SecurityGroupApi api) {
+        super(config, uriInfo, context, null);
+        this.api = api;
     }
 
     @POST
@@ -52,9 +56,9 @@ public class SecurityGroupResource extends AbstractNeutronResource {
 
         try {
 
-            SecurityGroup s = dataClient.createSecurityGroup(sg);
+            SecurityGroup s = api.createSecurityGroup(sg);
 
-            log.info("SecurityGroupResource.get exiting {}", s);
+            log.info("SecurityGroupResource.create exiting {}", s);
             return Response.created(
                     NeutronUriBuilder.getSecurityGroup(
                             getBaseUri(), s.id)).entity(s).build();
@@ -76,7 +80,7 @@ public class SecurityGroupResource extends AbstractNeutronResource {
 
         try {
             List<SecurityGroup> outSgs =
-                    dataClient.createSecurityGroupBulk(sgs);
+                    api.createSecurityGroupBulk(sgs);
 
             return Response.created(NeutronUriBuilder.getSecurityGroups(
                     getBaseUri())).entity(outSgs).build();
@@ -91,7 +95,7 @@ public class SecurityGroupResource extends AbstractNeutronResource {
     public void delete(@PathParam("id") UUID id)
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupResource.delete entered {}", id);
-        dataClient.deleteSecurityGroup(id);
+        api.deleteSecurityGroup(id);
     }
 
     @GET
@@ -102,7 +106,7 @@ public class SecurityGroupResource extends AbstractNeutronResource {
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupResource.get entered {}", id);
 
-        SecurityGroup sg = dataClient.getSecurityGroup(id);
+        SecurityGroup sg = api.getSecurityGroup(id);
         if (sg == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
@@ -117,7 +121,7 @@ public class SecurityGroupResource extends AbstractNeutronResource {
     public List<SecurityGroup> list()
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupResource.list entered");
-        return dataClient.getSecurityGroups();
+        return api.getSecurityGroups();
     }
 
     @PUT
@@ -132,7 +136,7 @@ public class SecurityGroupResource extends AbstractNeutronResource {
 
         try {
 
-            SecurityGroup s = dataClient.updateSecurityGroup(id, sg);
+            SecurityGroup s = api.updateSecurityGroup(id, sg);
 
             log.info("SecurityGroupResource.update exiting {}", s);
             return Response.ok(

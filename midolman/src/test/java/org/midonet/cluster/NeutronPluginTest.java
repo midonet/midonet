@@ -4,6 +4,7 @@
 
 package org.midonet.cluster;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -36,6 +37,7 @@ import java.util.UUID;
 public class NeutronPluginTest {
 
     @Inject NeutronPlugin plugin;
+
     Injector injector = null;
     String zkRoot = "/test";
 
@@ -118,7 +120,14 @@ public class NeutronPluginTest {
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new CacheModule(),
                 new MockMonitoringStoreModule(),
-                new NeutronClusterModule()
+                new NeutronClusterModule(),
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(NeutronPlugin.class);
+                    }
+                }
+
         );
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);

@@ -27,6 +27,26 @@ public class TestRouterResource extends ResourceTest {
 
     private RouterResource testObject;
 
+    public static Router router() {
+        return router(UUID.randomUUID());
+    }
+
+    public static Router router(UUID id) {
+        Router r= new Router();
+        r.id = id;
+        return r;
+    }
+
+    public static RouterInterface routerInterface() {
+        return routerInterface(UUID.randomUUID());
+    }
+
+    public static RouterInterface routerInterface(UUID id) {
+        RouterInterface ri = new RouterInterface();
+        ri.id = id;
+        return ri;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -38,8 +58,8 @@ public class TestRouterResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        Router input = NeutronDataProvider.router();
-        Router output = NeutronDataProvider.router(input.id);
+        Router input = router();
+        Router output = router(input.id);
 
         doReturn(output).when(plugin).createRouter(input);
 
@@ -69,8 +89,8 @@ public class TestRouterResource extends ResourceTest {
     @Test
     public void testUpdate() throws Exception {
 
-        Router input = NeutronDataProvider.router();
-        Router output = NeutronDataProvider.router(input.id);
+        Router input = router();
+        Router output = router(input.id);
 
         doReturn(output).when(plugin).updateRouter(input.id, input);
 
@@ -96,7 +116,7 @@ public class TestRouterResource extends ResourceTest {
                 any(UUID.class), any(RouterInterface.class));
 
         UUID id = UUID.randomUUID();
-        RouterInterface ri = NeutronDataProvider.routerInterface(id);
+        RouterInterface ri = routerInterface(id);
         testObject.addRouterInterface(id, ri);
     }
 }

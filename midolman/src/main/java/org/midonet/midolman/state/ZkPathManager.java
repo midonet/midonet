@@ -1701,6 +1701,14 @@ public class ZkPathManager {
         return buildNeutronPath().toString();
     }
 
+    public StringBuilder buildNeutronProviderRouterPath() {
+        return buildNeutronPath().append("/provider_router");
+    }
+
+    public String getNeutronProviderRouterPath() {
+        return buildNeutronProviderRouterPath().toString();
+    }
+
     private StringBuilder buildNeutronNetworksPath() {
         return buildNeutronPath().append("/networks");
     }

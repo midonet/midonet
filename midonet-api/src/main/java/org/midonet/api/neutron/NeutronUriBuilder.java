@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public class NeutronUriBuilder {
 
+    public static final String NEUTRON = "/neutron";
     public final static String NETWORKS = "/networks";
     public final static String SUBNETS = "/subnets";
     public final static String PORTS = "/ports";
@@ -19,11 +20,11 @@ public class NeutronUriBuilder {
     public final static String ADD_ROUTER_INTF = "/add_router_interface";
     public final static String REMOVE_ROUTER_INTF = "/remove_router_interface";
     public final static String SECURITY_GROUPS = "/security_groups";
-    public final static String SECURITY_GROUPS_RULES = "/security_group_rules";
+    public final static String SECURITY_GROUP_RULES = "/security_group_rules";
 
     public static URI getNeutron(URI baseUri) {
-        return UriBuilder.fromUri(ResourceUriBuilder.getRoot(
-                baseUri)).path(ResourceUriBuilder.NEUTRON).build();
+        return UriBuilder.fromUri(ResourceUriBuilder.getRoot(baseUri)).path(
+                NEUTRON).build();
     }
 
     // Network
@@ -111,7 +112,7 @@ public class NeutronUriBuilder {
     // Security Group Rules
     public static URI getSecurityGroupRules(URI baseUri) {
         return UriBuilder.fromUri(getNeutron(baseUri)).path(
-                SECURITY_GROUPS_RULES).build();
+                SECURITY_GROUP_RULES).build();
     }
 
     public static URI getSecurityGroupRule(URI baseUri, UUID id) {

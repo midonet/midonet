@@ -26,6 +26,16 @@ public class TestSecurityGroupResource extends ResourceTest {
 
     private SecurityGroupResource testObject;
 
+    public static SecurityGroup securityGroup() {
+        return securityGroup(UUID.randomUUID());
+    }
+
+    public static SecurityGroup securityGroup(UUID id) {
+        SecurityGroup sg = new SecurityGroup();
+        sg.id = id;
+        return sg;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -37,8 +47,8 @@ public class TestSecurityGroupResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        SecurityGroup input = NeutronDataProvider.securityGroup();
-        SecurityGroup output = NeutronDataProvider.securityGroup(input.id);
+        SecurityGroup input = securityGroup();
+        SecurityGroup output = securityGroup(input.id);
 
         doReturn(output).when(plugin).createSecurityGroup(input);
 
@@ -68,8 +78,8 @@ public class TestSecurityGroupResource extends ResourceTest {
     @Test
     public void testUpdate() throws Exception {
 
-        SecurityGroup input = NeutronDataProvider.securityGroup();
-        SecurityGroup output = NeutronDataProvider.securityGroup(input.id);
+        SecurityGroup input = securityGroup();
+        SecurityGroup output = securityGroup(input.id);
 
         doReturn(output).when(plugin).updateSecurityGroup(input.id, input);
 

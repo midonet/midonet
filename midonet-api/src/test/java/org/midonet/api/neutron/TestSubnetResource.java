@@ -26,6 +26,16 @@ public class TestSubnetResource extends ResourceTest {
 
     private SubnetResource testObject;
 
+    public static Subnet subnet() {
+        return subnet(UUID.randomUUID());
+    }
+
+    public static Subnet subnet(UUID id) {
+        Subnet sub = new Subnet();
+        sub.id = id;
+        return sub;
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -37,8 +47,8 @@ public class TestSubnetResource extends ResourceTest {
     @Test
     public void testCreate() throws Exception {
 
-        Subnet input = NeutronDataProvider.subnet();
-        Subnet output = NeutronDataProvider.subnet(input.id);
+        Subnet input = subnet();
+        Subnet output = subnet(input.id);
 
         doReturn(output).when(plugin).createSubnet(input);
 
@@ -68,8 +78,8 @@ public class TestSubnetResource extends ResourceTest {
     @Test
     public void testUpdate() throws Exception {
 
-        Subnet input = NeutronDataProvider.subnet();
-        Subnet output = NeutronDataProvider.subnet(input.id);
+        Subnet input = subnet();
+        Subnet output = subnet(input.id);
 
         doReturn(output).when(plugin).updateSubnet(input.id, input);
 
