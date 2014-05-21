@@ -10,7 +10,8 @@ jar {
 }
 
 dependencies {
-    compile project(':packets'), project(':cluster'), project(':midolman')
+    compile project(':packets'), project(':cluster'), project(':midolman'),
+            project(':midonet-client')
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }

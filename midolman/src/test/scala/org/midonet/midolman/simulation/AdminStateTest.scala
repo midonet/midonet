@@ -579,27 +579,4 @@ class AdminStateTest extends MidolmanSpec {
 
         invalidations should contain theSameElementsAs tags
     }
-
-    private[this] def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
-        new Coordinator(
-            makeWMatch(t._1, t._2),
-            t._2,
-            Some(1),
-            None,
-            0,
-            new MockCache(),
-            new MockCache(),
-            new MockCache(),
-            None,
-            Nil
-        ) simulate() match {
-            case Ready(r) => r
-            case NotYet(f) =>
-                Await.result(f, 3 seconds)
-                sendPacket(t)
-        }
-
-    private[this] def makeWMatch(port: Port[_,_], pkt: Ethernet) =
-        WildcardMatch.fromEthernetPacket(pkt)
-                     .setInputPortUUID(port.getId)
 }
