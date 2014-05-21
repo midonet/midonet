@@ -80,14 +80,16 @@ def unset_filters(router_name):
     set_filters(router_name, None, None)
 
 
-def feed_receiver_mac(sender, receiver):
+def feed_receiver_mac(receiver):
     """Feeds the receiver's mac address to the MidoNet router."""
     try:
-        f1 = receiver.ping4(sender)
-        wait_on_futures([f1])
+        router_port = VTM.get_router('router-000-001').get_port(2)
+        router_ip = router_port.get_mn_resource().get_port_address()
+        receiver.send_arp_request(router_ip)
+        time.sleep(1)
     except:
-        LOG.warn('Oops, sending ping from the receiver VM failed.')
-        raise Exception('Oops, sending ping from the receiver VM failed.')
+        LOG.warn('Oops, sending ARP from the receiver VM failed.')
+        raise
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1643
@@ -111,7 +113,7 @@ def test_dnat():
 
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
-    feed_receiver_mac(sender, receiver)
+    feed_receiver_mac(receiver)
 
     f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
     assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
@@ -149,7 +151,7 @@ def test_dnat_for_udp():
 
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
-    feed_receiver_mac(sender, receiver)
+    feed_receiver_mac(receiver)
 
     # Target hardware is a router's incoming port.
     router_port = VTM.get_router('router-000-001').get_port(1)
@@ -196,7 +198,7 @@ def test_snat():
 
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
-    feed_receiver_mac(sender, receiver)
+    feed_receiver_mac(receiver)
 
     f1 = sender.ping4(receiver)
     # No SNAT configured. Should not receive SNATed messages.
@@ -236,7 +238,7 @@ def test_snat_for_udp():
 
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
-    feed_receiver_mac(sender, receiver)
+    feed_receiver_mac(receiver)
 
     # Target hardware is a router's incoming port.
     router_port = VTM.get_router('router-000-001').get_port(1)
@@ -289,7 +291,7 @@ def test_floating_ip():
 
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
-    feed_receiver_mac(sender, receiver)
+    feed_receiver_mac(receiver)
 
     f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
     assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
