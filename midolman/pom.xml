@@ -378,6 +378,8 @@
                         <exclude>**/Coordinator$DoFlowAction*</exclude>
                         <exclude>**/Coordinator$ForkAction*</exclude>
                         <exclude>**/VirtualActions$*</exclude>
+
+                        <exclude>**/VxLanPortMapper$Internal$*</exclude>
                     </excludes>
                     </instrumentation>
                 </configuration>

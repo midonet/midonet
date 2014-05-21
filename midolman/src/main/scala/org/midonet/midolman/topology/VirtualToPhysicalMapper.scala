@@ -5,6 +5,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 import java.util.concurrent.TimeoutException
+import java.util.{Set => JSet}
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.mutable.Queue
 import scala.collection.{mutable, immutable}
@@ -28,11 +29,11 @@ import org.midonet.cluster.data.zones._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.rcu.Host
@@ -123,14 +124,6 @@ object VirtualToPhysicalMapper extends Referenceable {
     case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers[_]] {
         protected[topology] val tag = classTag[ZoneMembers[_]]
         override def getCached = DeviceCaches.tunnelZone(zoneId)
-    }
-
-    /** Request sent by packet handlers for simulating traffic ingressing
-     *  on the vtep vxlan tunnel port. The 24bits tunnel key id (vni) maps
-     *  to an exterior bridge port in the virtual topology. */
-    case class VxLanPortRequest(vni: Int) extends VTPMRequest[UUID] {
-        protected[topology] val tag = classTag[UUID]
-        override def getCached = DeviceCaches.vxlanIdFromVNI(vni)
     }
 
     case class TunnelZoneUnsubscribe(zoneId: UUID)
@@ -238,10 +231,6 @@ object VirtualToPhysicalMapper extends Referenceable {
         def portSet(id: UUID) = portSets get id
         def tunnelZone(id: UUID) = tunnelZones get id
         def portSetId(tunnelKey: Long) = tunnelKeyToPortSet get tunnelKey
-
-        // temporary "static" implementation for midonet v1.5
-        var vniToUUID: Map[Int,UUID] = Map[Int,UUID]()
-        def vxlanIdFromVNI(vni: Int) = vniToUUID get vni
 
         protected[topology]
         def addPortSet(id: UUID, ps: rcu.PortSet) { portSets += id -> ps }
@@ -507,6 +496,8 @@ trait PortActivationStateMachine extends Actor with ActorLogWithoutPath {
 abstract class VirtualToPhysicalMapperBase
         extends Actor with ActorLogWithoutPath with PortActivationStateMachine {
 
+    val clusterDataClient: DataClient
+
     import VirtualToPhysicalMapper._
     import VirtualTopologyActor.BridgeRequest
     import VirtualTopologyActor.PortRequest
@@ -555,15 +546,21 @@ abstract class VirtualToPhysicalMapperBase
     implicit val executor = context.dispatcher
 
 
-    @Inject
-    val config: MidolmanConfig = null
-
     override def preStart() {
         super.preStart()
         DeviceCaches.clear()
-        val filePath = config getUUIDToVniFileLocation()
-        if (filePath != "none")
-            DeviceCaches.vniToUUID = VniMapping.readFromJson(filePath)
+        startVxLanPortMapper()
+    }
+
+    def startVxLanPortMapper() {
+        val provider = new VxLanIdsProvider {
+            def vxLanPortIdsAsyncGet(cb: DirectoryCallback[JSet[UUID]],
+                                     watcher: TypedWatcher) {
+                clusterDataClient vxLanPortIdsAsyncGet (cb, watcher)
+            }
+        }
+        val props = VxLanPortMapper props (VirtualTopologyActor, provider)
+        context actorOf (props, "VxLanPortMapper")
     }
 
     override def receive = super.receive orElse {
