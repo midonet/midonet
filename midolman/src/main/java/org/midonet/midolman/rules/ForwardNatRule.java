@@ -4,19 +4,14 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPAddr$;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MalformedPacketException;
-import org.midonet.packets.Net;
+import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback0;
 import org.slf4j.Logger;
@@ -244,5 +239,15 @@ public class ForwardNatRule extends NatRule {
                 sb.append(t.toString()).append(", ");
         }
         return sb.append("}]").toString();
+    }
+
+    public static Rule dynamicSnatRule(UUID chainId, UUID portId, IPv4Addr ip) {
+        Condition cond = new Condition();
+        cond.outPortIds = new HashSet<>();
+        cond.outPortIds.add(portId);
+        Set<NatTarget> targets = new HashSet<>();
+        targets.add(new NatTarget(ip, ip, 1, 65535));
+        return new ForwardNatRule(cond, RuleResult.Action.ACCEPT, chainId, 1,
+                false, targets);
     }
 }

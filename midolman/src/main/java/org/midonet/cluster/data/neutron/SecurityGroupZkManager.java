@@ -141,6 +141,19 @@ public class SecurityGroupZkManager extends BaseZkManager {
         ruleZkManager.prepareReplaceRules(ops, cfg.outboundFilter, outRules);
     }
 
+    private void preparePortSecurityGroupBindings(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+
+        // Bind port to security groups
+        for (UUID sgId : port.securityGroups) {
+            // Add each IPs assigned to the ip address group
+            for (IPAllocation ipAlloc : port.fixedIps) {
+                ipAddrGroupZkManager.prepareAddAdr(ops, sgId,
+                        ipAlloc.ipAddress);
+            }
+        }
+    }
+
     public void preparePortSecurityGroupBindings(List<Op> ops, Port port,
                                                  PortConfig portConfig)
             throws StateAccessException, SerializationException {
@@ -152,20 +165,26 @@ public class SecurityGroupZkManager extends BaseZkManager {
         // Initialize the chains for this port
         preparePortChains(ops, port, inboundChainId, outboundChainId);
 
-        // Bind port to security groups
-        for (UUID sgId : port.securityGroups) {
-            // Add each IPs assigned to the ip address group
-            for (IPAllocation ipAlloc : port.fixedIps) {
-                ipAddrGroupZkManager.prepareAddAdr(ops, sgId,
-                        ipAlloc.ipAddress);
-            }
-        }
+        // Remove port - SG bindings
+        preparePortSecurityGroupBindings(ops, port);
 
         // Update the port with the chains
         portConfig.inboundFilter = inboundChainId;
         portConfig.outboundFilter = outboundChainId;
         String path = paths.getPortPath(port.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(portConfig)));
+    }
+
+    private void prepareDeletePortChains(List<Op> ops, PortConfig cfg)
+            throws SerializationException, StateAccessException {
+        // Delete all the rules in the chain plus the chain itself
+        if (cfg.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareDelete(cfg.inboundFilter));
+        }
+
+        if (cfg.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareDelete(cfg.outboundFilter));
+        }
     }
 
     private void prepareDeletePortSecurityGroupBindings(List<Op> ops,
@@ -186,16 +205,11 @@ public class SecurityGroupZkManager extends BaseZkManager {
     public void prepareDeletePortSecurityGroup(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
+        PortConfig cfg = portZkManager.get(port.id);
         prepareDeletePortSecurityGroupBindings(ops, port);
 
         // Remove the port chains
-        PortConfig config = portZkManager.get(port.id);
-        if (config.inboundFilter != null) {
-            ops.addAll(chainZkManager.prepareDelete(config.inboundFilter));
-        }
-        if (config.outboundFilter != null) {
-            ops.addAll(chainZkManager.prepareDelete(config.outboundFilter));
-        }
+        prepareDeletePortChains(ops, cfg);
     }
 
     public void prepareUpdatePortSecurityGroupBindings(List<Op> ops,
@@ -211,7 +225,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         // TODO: optimize
         prepareDeletePortSecurityGroupBindings(ops, p);
-        preparePortSecurityGroupBindings(ops, newPort, config);
+        preparePortSecurityGroupBindings(ops, newPort);
     }
 
     public void prepareDeleteSecurityGroup(List<Op> ops, UUID sgId)

@@ -189,6 +189,12 @@ public class Route implements Serializable {
         return rt;
     }
 
+    public static Route defaultRoute(UUID nextHopPortId, int weight,
+                                     UUID routerId) {
+        return new Route(0, 0, 0, 0, NextHop.PORT, nextHopPortId,
+                Route.NO_GATEWAY, weight, null, routerId);
+    }
+
     public static Route nextHopPortRoute(IPv4Subnet srcSubnet,
                                          IPv4Subnet dstSubnet,
                                          UUID nextHopPortId, IPv4Addr nextHopGw,

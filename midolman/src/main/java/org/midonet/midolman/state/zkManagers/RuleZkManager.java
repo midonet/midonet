@@ -3,21 +3,18 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.AbstractMap;
-import java.util.UUID;
+import java.util.*;
 
+import com.google.common.base.Function;
+import com.google.inject.Inject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.midonet.midolman.rules.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.rules.Rule;
-import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -28,6 +25,8 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.Functor;
+
+import javax.annotation.Nullable;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
@@ -167,6 +166,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         List<UUID> ruleIds = new ArrayList<>(rules.size());
         for (Rule rule : rules) {
             UUID id = UUID.randomUUID();
+            rule.chainId = chainId;
             ops.addAll(prepareRuleCreate(id, rule));
             ruleIds.add(id);
         }
@@ -176,6 +176,45 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         int version = list.getValue();
         String path = paths.getChainRulesPath(chainId);
         ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
+    }
+
+    public void prepareReplaceRule(List<Op> ops, UUID ruleIdToRemove,
+                                   Rule ruleToRemove, UUID ruleIdToAdd,
+                                   Rule ruleToAdd)
+            throws RuleIndexOutOfBoundsException, StateAccessException,
+            SerializationException {
+
+        if (ruleToRemove.chainId == null || ruleToAdd.chainId == null) {
+            throw new IllegalArgumentException("Chain ID not set on rules");
+        }
+
+        if (!Objects.equals(ruleToRemove.chainId, ruleToAdd.chainId)) {
+            throw new IllegalArgumentException("Chain ID mismatch");
+        }
+
+        UUID chainId = ruleToRemove.chainId;
+
+        // Get the ordered list of rules for this chain
+        Map.Entry<RuleList, Integer> ruleListWithVersion =
+                getRuleListWithVersion(chainId);
+        int version = ruleListWithVersion.getValue();
+        RuleList list = ruleListWithVersion.getKey();
+        List<UUID> ids = list.getRuleList();
+        int idx = ids.indexOf(ruleIdToRemove);
+        if (idx < 0 ) {
+            throw new IllegalArgumentException("Rule does not exist " +
+                    ruleIdToRemove);
+        }
+
+        ids.remove(idx);
+        ids.add(idx, ruleIdToAdd);
+
+        prepareDelete(ops, ruleIdToRemove, ruleToRemove);
+        ops.addAll(prepareRuleCreate(ruleIdToAdd, ruleToAdd));
+
+        String path = paths.getChainRulesPath(chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ids)),
                 version));
     }
 
@@ -240,9 +279,8 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      *
      * @param rule
      *            Rule ZooKeeper entry to delete.
-     * @return A list of Op objects representing the operations to perform.
      */
-    public void prepareDelete(List<Op> ops, UUID id, Rule rule)
+    private void prepareDelete(List<Op> ops, UUID id, Rule rule)
             throws StateAccessException {
         String rulePath = paths.getRulePath(id);
         log.debug("Preparing to delete: " + rulePath);
@@ -331,6 +369,35 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     /**
+     * Call this method if you want to update the rule list of a chain that
+     * has not been created.  This is useful if a previous Op created a chain
+     * with the default rule list but doesn't actually exist at the time of
+     * the method invocation.  Chain ID of the Rule object must be set.
+     */
+    public UUID prepareUpdateRuleInNewChain(List<Op> ops, Rule rule)
+            throws StateAccessException, SerializationException {
+
+        if (rule.chainId == null) {
+            throw new IllegalArgumentException("Chain ID is not set");
+        }
+
+        // This method assumes that the chain provided exists because previous
+        // Op created it, but does not exist at the time this method is
+        // executed.
+        UUID id = UUID.randomUUID();
+        ops.addAll(prepareRuleCreate(id, rule));
+
+        List<UUID> ruleIds = new ArrayList<>(1);
+        ruleIds.add(id);
+
+        // Since it's a new chain, no need to check the version
+        ops.add(Op.setData(paths.getChainRulesPath(rule.chainId),
+                serializer.serialize(new RuleList(ruleIds)), -1));
+
+        return id;
+    }
+
+    /**
      * Performs an atomic update on the ZooKeeper to add a new rule entry. This
      * method may re-number the positions of other rules in the same chain in
      * order to insert the new rule at the desired position.
@@ -410,6 +477,48 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     public Map.Entry<RuleList, Integer> getRuleListWithVersion(UUID chainId)
             throws StateAccessException {
         return getRuleListWithVersion(chainId, null);
+    }
+
+    public UUID prepareDeleteRules(List<Op> ops, UUID chainId,
+                                   Function<Rule, Boolean> matcher)
+            throws StateAccessException, SerializationException {
+        return prepareDeleteRules(ops, chainId, matcher, null);
+    }
+
+    public UUID prepareDeleteRules(List<Op> ops, UUID chainId,
+                                   Function<Rule, Boolean> matcher,
+                                   Rule newRule)
+            throws StateAccessException, SerializationException {
+        // Get the ordered list of rules for this chain
+        Map.Entry<RuleList, Integer> ruleListWithVersion =
+                getRuleListWithVersion(chainId);
+        int version = ruleListWithVersion.getValue();
+        RuleList list = ruleListWithVersion.getKey();
+        List<UUID> ruleIds = list.getRuleList();
+        for (UUID ruleId : ruleIds) {
+
+            Rule r = get(ruleId);
+            if (matcher.apply(r)) {
+                prepareDelete(ops, ruleId, r);
+                ruleIds.remove(ruleId);
+            }
+        }
+
+        // When newRule is supplied, this is inserted in the list.
+        // This seems arbitrary but useful if you want replace the existing
+        // rules with a new rule after deletion.
+        UUID newId = null;
+        if (newRule != null) {
+            newId = UUID.randomUUID();
+            ruleIds.add(0, newId);
+            ops.addAll(prepareRuleCreate(newId, newRule));
+        }
+
+        String path = paths.getChainRulesPath(chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
+
+        return newId;
     }
 
     /***
