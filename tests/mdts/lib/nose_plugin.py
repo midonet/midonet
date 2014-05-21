@@ -89,12 +89,14 @@ class Mdts(Plugin):
                 failure = test_case.find('failure')
                 if failure is not None:
                     failure.text += '\n'
-                    failure.text += self._get_midolman_logs_for_test(test_id)
+                    failure.text += self._get_midolman_logs_for_test(
+                        test_id).replace('\0', '')
 
                 error = test_case.find('error')
                 if error is not None:
                     error.text += '\n'
-                    error.text += self._get_midolman_logs_for_test(test_id)
+                    error.text += self._get_midolman_logs_for_test(
+                        test_id).replace('\0', '')
 
             tree.write(self.xunit_file)
 
