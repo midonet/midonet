@@ -3,23 +3,30 @@
  */
 package org.midonet.midolman.state;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.inject.Inject;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.OpResult;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.Watcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 import static org.midonet.util.functors.TreeNodeFunctors.recursiveBottomUpFold;
 
@@ -216,7 +223,7 @@ public class ZkManager {
                                      final DirectoryCallback.Add cb) {
         asyncDelete(path, new DirectoryCallback.Void() {
             @Override
-            public void onSuccess(Result<java.lang.Void> result) {
+            public void onSuccess(java.lang.Void result) {
                 zk.asyncAdd(path, data, CreateMode.EPHEMERAL, cb);
             }
 

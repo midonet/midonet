@@ -130,9 +130,9 @@ public abstract class ReplicatedSet<T> {
 
     class GetItemsCallback implements DirectoryCallback<Set<String>> {
         @Override
-        public void onSuccess(Result<Set<String>> data) {
+        public void onSuccess(Set<String> data) {
             try {
-                updateItems(data.getData());
+                updateItems(data);
             } catch (SerializationException e) {
                 log.error("Serialization error: ", e);
             }
@@ -170,7 +170,7 @@ public abstract class ReplicatedSet<T> {
         }
 
         @Override
-        public void onSuccess(Result<java.lang.Void> data) {
+        public void onSuccess(java.lang.Void data) {
             log.debug("ReplicatedSet delete {} succeeded", item);
         }
 
@@ -192,7 +192,7 @@ public abstract class ReplicatedSet<T> {
             item = v;
         }
 
-        public void onSuccess(Result<String> result) {
+        public void onSuccess(String result) {
             log.info("ReplicatedSet Add {} succeeded", item);
         }
 
