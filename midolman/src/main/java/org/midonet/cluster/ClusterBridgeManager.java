@@ -171,7 +171,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         for (UUID id : logicalPortIDs) {
-            log.debug("Found logical port {}", id);
+            log.debug("Found logical port {} for bridge {}", id, bridgeId);
             // TODO(rossella) consider keeping in memory the old ports list
             // so that the watcher can consider just the port whose
             // configuration changed, not the whole list.
