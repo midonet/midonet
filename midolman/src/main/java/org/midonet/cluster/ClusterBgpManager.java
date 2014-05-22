@@ -110,15 +110,14 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          * DirectoryCallback overrides
          */
         @Override
-        public void onSuccess(Result<BGP> data) {
+        public void onSuccess(BGP bgp) {
             // We shall receive only updates for this BGP object
-            if (!Objects.equal(data.getData().getId(), bgpID)) {
+            if (!Objects.equal(bgp.getId(), bgpID)) {
                 log.error("received BGP update from id: {} to id: {}",
-                        data.getData().getId(), bgpID);
+                        bgp.getId(), bgpID);
                 return;
             }
 
-            BGP bgp = data.getData();
             BGPListBuilder bgpListBuilder = getBuilder(bgp.getPortId());
             if (requestedBgps.contains(bgp.getId())) {
                 log.debug("bgp object updated");
@@ -178,9 +177,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          * DirectoryCallback overrides
          */
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
+        public void onSuccess(Set<UUID> uuids) {
             log.debug("begin");
-            update(data.getData());
+            update(uuids);
             log.debug("end");
         }
 
@@ -260,9 +259,8 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         * DirectoryCallback overrides
         */
         @Override
-        public void onSuccess(Result<AdRouteZkManager.AdRouteConfig> data) {
+        public void onSuccess(AdRouteZkManager.AdRouteConfig adRouteConfig) {
             log.debug("AdRouteCallback - begin");
-            AdRouteZkManager.AdRouteConfig adRouteConfig = data.getData();
             if (adRouteConfig == null) {
                 log.error("adRouteConfig is null");
                 return;
@@ -320,9 +318,9 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          * DirectoryCallback overrides
          */
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
+        public void onSuccess(Set<UUID> uuids) {
             log.debug("AdRoutesCallback - begin");
-            update(data.getData());
+            update(uuids);
         }
 
         /*

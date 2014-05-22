@@ -43,9 +43,9 @@ public class ClusterIPAddrGroupManager
         }
 
         @Override
-        public void onSuccess(Result<Set<String>> data) {
+        public void onSuccess(Set<String> addrStrings) {
             Set<IPAddr> ipAddrs = new HashSet<IPAddr>();
-            for (String strAddr : data.getData()) {
+            for (String strAddr : addrStrings) {
                 try {
                     ipAddrs.add(IPAddr$.MODULE$.fromString(strAddr));
                 } catch (Exception ex) {

@@ -266,11 +266,10 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
 
 
         @Override
-        public void onSuccess(Result<Set<Route>> data) {
+        public void onSuccess(Set<Route> routes) {
             log.debug("GetRoutesCallback success, got {} routes {}",
-                      data.getData().size(), data.getData());
-            updateRoutingTableAfterGettingRoutes(routerId, portId,
-                                                 data.getData());
+                      routes.size(), routes);
+            updateRoutingTableAfterGettingRoutes(routerId, portId, routes);
         }
     }
 
@@ -351,22 +350,22 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
+        public void onSuccess(Set<UUID> uuids) {
             if (!isCancelled()) {
                 log.debug("PortRoutesCallback success, received {} routes: {} " +
                         "for port {}",
-                        new Object[]{data.getData().size(), data.getData(), portId});
+                        new Object[]{uuids.size(), uuids, portId});
 
                 Set<Route> oldRoutes = mapPortIdToRoutes.get(portId);
 
-                if (data.getData().equals(oldRoutes)){
+                if (uuids.equals(oldRoutes)){
                     log.debug("No change in the routes, nothing to do for port {}", portId);
                     return;
                 }
 
                 // if the routes in zk are different from the routes contained in local update them
                 // asynchronously.
-                routeManager.asyncMultiRoutesGet(data.getData(),
+                routeManager.asyncMultiRoutesGet(uuids,
                         new GetRoutesCallback(routerId,
                                 portId,
                                 "get routes for port"

@@ -4,13 +4,13 @@
 package org.midonet.cluster
 
 import java.util.UUID
+
 import com.google.inject.Inject
 import org.slf4j.{LoggerFactory, Logger}
+
+import org.midonet.cluster.client.HealthMonitorBuilder
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager._
-import org.midonet.cluster.client.HealthMonitorBuilder
-import org.midonet.midolman.state.DirectoryCallback.Result
-
 
 /**
  * A cluster data manager for health monitor.
@@ -40,16 +40,13 @@ class ClusterHealthMonitorManager extends ClusterManager[HealthMonitorBuilder] {
             }
         }
 
-        override def onSuccess(res: Result[HealthMonitorConfig]): Unit = {
+        override def onSuccess(cfg: HealthMonitorConfig): Unit = {
             log.debug("Got health monitor config {}", id)
 
-            res.getData match {
-
-                case cfg: HealthMonitorConfig =>
-                    builder.setHealthMonitor(cfg)
-                    builder.build()
-
-                case _ =>
+            if (cfg != null) {
+                builder.setHealthMonitor(cfg)
+                builder.build()
+            } else {
                     log.warn("Null health monitor returned from ZK for {}", id)
             }
         }

@@ -23,7 +23,6 @@ import org.midonet.cluster.client._
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.state.DirectoryCallback.Result
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -147,7 +146,7 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                 vxlanMapper(self)
                 val ids = new java.util.HashSet[UUID]
                 (1 to 2) foreach { _ => ids add UUID.randomUUID }
-                expectMsgType[IdsRequest].cb.onSuccess(new Result(ids,null))
+                expectMsgType[IdsRequest].cb.onSuccess(ids)
                 (1 to 2) foreach { _ =>
                     expectMsgType[PortRequest]
                     lastSender ! new BridgePort // don't care about port type
