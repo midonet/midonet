@@ -79,6 +79,7 @@ public class ProviderRouterZkManager extends BaseZkManager {
 
         try {
             ProviderRouter r = get();
+            log.debug("ProviderRouterZkManager.getId: provider router={}", r);
             return r.id;
         } catch (NoStatePathException ex) {
             throw new IllegalStateException("Provider router not found");
@@ -99,7 +100,7 @@ public class ProviderRouterZkManager extends BaseZkManager {
      */
     public UUID ensureExists()
             throws StateAccessException, SerializationException {
-
+        log.debug("ProviderRouterZkManager.ensureExists entered");
         UUID id = getIdSafe();
         if (id != null) {
             return id;

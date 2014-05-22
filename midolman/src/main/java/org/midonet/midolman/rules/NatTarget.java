@@ -32,6 +32,14 @@ public class NatTarget {
         this.tpEnd = tpEnd;
     }
 
+    public NatTarget(IPAddr nwStart, IPAddr nwEnd) {
+        this(nwStart, nwEnd, 1, 65535);
+    }
+
+    public NatTarget(IPAddr ipAddr) {
+        this(ipAddr, ipAddr);
+    }
+
     // Default constructor for the Jackson deserialization.
     public NatTarget() { super(); }
 

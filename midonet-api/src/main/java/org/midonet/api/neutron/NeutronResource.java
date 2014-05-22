@@ -6,7 +6,6 @@ package org.midonet.api.neutron;
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.Neutron;
 import org.midonet.client.neutron.NeutronMediaType;
@@ -27,11 +26,12 @@ public class NeutronResource extends AbstractResource {
     private final static Logger log = LoggerFactory.getLogger(
             NeutronResource.class);
 
-    private final ResourceFactory factory;
+    private final NeutronResourceFactory factory;
 
     @Inject
     public NeutronResource(RestApiConfig config, UriInfo uriInfo,
-                           SecurityContext context, ResourceFactory factory) {
+                           SecurityContext context,
+                           NeutronResourceFactory factory) {
         super(config, uriInfo, context, null);
         this.factory = factory;
     }
@@ -54,6 +54,11 @@ public class NeutronResource extends AbstractResource {
     @Path(NeutronUriBuilder.ROUTERS)
     public RouterResource getRouterResource() {
         return factory.getNeutronRouterResource();
+    }
+
+    @Path(NeutronUriBuilder.FLOATING_IPS)
+    public FloatingIpResource getFloatingIpResource() {
+        return factory.getNeutronFloatingIpResource();
     }
 
     @Path(NeutronUriBuilder.SECURITY_GROUPS)
@@ -93,6 +98,9 @@ public class NeutronResource extends AbstractResource {
                 NeutronUriBuilder.getAddRouterInterfaceTemplate(baseUri);
         neutron.removeRouterInterfaceTemplate =
                 NeutronUriBuilder.getRemoveRouterInterfaceTemplate(baseUri);
+        neutron.floatingIps = NeutronUriBuilder.getFloatingIps(baseUri);
+        neutron.floatingIpTemplate = NeutronUriBuilder.getFloatingIpTemplate(
+                baseUri);
         neutron.securityGroups = NeutronUriBuilder.getSecurityGroups(baseUri);
         neutron.securityGroupTemplate =
                 NeutronUriBuilder.getSecurityGroupTemplate(baseUri);

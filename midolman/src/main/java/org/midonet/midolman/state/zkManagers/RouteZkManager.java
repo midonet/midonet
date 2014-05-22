@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Function;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -31,6 +32,8 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
+
+import javax.annotation.Nullable;
 
 /**
  * Class to manage the routing ZooKeeper data.
@@ -186,6 +189,27 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
+    public UUID preparePersistPortRouteCreate(
+            List<Op> ops, UUID routerId, IPv4Subnet src,  IPv4Subnet dst,
+            PortDirectory.RouterPortConfig cfg, IPv4Addr gwIp, int weight)
+            throws SerializationException, StateAccessException {
+        UUID id = UUID.randomUUID();
+        Route rt = Route.nextHopPortRoute(src, dst, cfg.id, gwIp, weight,
+                routerId);
+        ops.addAll(prepareRouteCreate(id, rt, true, cfg));
+        return id;
+    }
+
+    public UUID preparePersistDefaultRouteCreate(
+            List<Op> ops, UUID routerId, PortDirectory.RouterPortConfig cfg,
+            int weight)
+            throws SerializationException, StateAccessException {
+        UUID id = UUID.randomUUID();
+        Route rt = Route.defaultRoute(cfg.id, weight, routerId);
+        ops.addAll(prepareRouteCreate(id, rt, true, cfg));
+        return id;
+    }
+
     public void preparePersistPortRouteCreate(
             List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
             UUID nextHopPortId, IPv4Addr nextHopAddr, int weight,
@@ -305,13 +329,26 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
-    public void prepareRouteDelete(List<Op> ops, UUID routerId,
-                                   IPv4Subnet dstSub)
+    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
+                                    final IPv4Subnet dstSub)
             throws SerializationException, StateAccessException {
+
+        prepareRoutesDelete(ops, routerId,
+                new Function<Route, Boolean>() {
+                    @Override
+                    public Boolean apply(@Nullable Route route) {
+                        return route.hasDstSubnet(dstSub);
+                    }
+                });
+    }
+
+    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
+                                    Function<Route, Boolean> matcher)
+            throws StateAccessException, SerializationException {
         List<UUID> routeIds = list(routerId);
         for (UUID routeId : routeIds) {
             Route route = get(routeId);
-            if (route.hasDstSubnet(dstSub)) {
+            if (matcher.apply(route)) {
                 ops.addAll(prepareRouteDelete(routeId));
             }
         }

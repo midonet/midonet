@@ -79,4 +79,51 @@ public interface L3Api {
      */
     public RouterInterface removeRouterInterface(
             @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface);
+
+    /**
+     * Create a new floating IP in the data store. StatePathExistsException
+     * thrown if a floating IP with the same ID already exists.
+     *
+     * @param floatingIp FloatingIp object to create
+     * @return Created FloatingIp object
+     */
+    public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Delete a floating IP. Nothing happens if the resource does not exist.
+     *
+     * @param id ID of the FloatingIp object to delete
+     */
+    public void deleteFloatingIp(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Retrieve a floating IP. Returns null if the resource does not exist.
+     *
+     * @param id ID of the FloatingIp object to get
+     * @return Router object
+     */
+    public FloatingIp getFloatingIp(@Nonnull UUID id)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Get all the floating IP.
+     *
+     * @return List of FloatingIp objects.
+     */
+    public List<FloatingIp> getFloatingIps()
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Update a floating IP..  NoStatePathException is thrown if the resource
+     * does not exist.
+     *
+     * @param id ID of the FloatingIp object to update
+     * @return Updated FloatingIp object
+     */
+    public FloatingIp updateFloatingIp(@Nonnull UUID id,
+                                       @Nonnull FloatingIp floatingIp)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
 }

@@ -1773,6 +1773,22 @@ public class ZkPathManager {
         return buildNeutronRouterPath(id).toString();
     }
 
+    private StringBuilder buildNeutronFloatingIpsPath() {
+        return buildNeutronPath().append("/floating_ips");
+    }
+
+    public String getNeutronFloatingIpsPath() {
+        return buildNeutronFloatingIpsPath().toString();
+    }
+
+    private StringBuilder buildNeutronFloatingIpPath(UUID id) {
+        return buildNeutronFloatingIpsPath().append("/").append(id);
+    }
+
+    public String getNeutronFloatingIpPath(UUID id) {
+        return buildNeutronFloatingIpPath(id).toString();
+    }
+
     private StringBuilder buildNeutronSecurityGroupsPath() {
         return buildNeutronPath().append("/security_groups");
     }

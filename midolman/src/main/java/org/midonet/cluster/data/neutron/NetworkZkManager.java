@@ -223,15 +223,21 @@ public class NetworkZkManager extends BaseZkManager {
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(port)));
     }
 
+    public BridgePortConfig prepareCreateBridgePort(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+        BridgePortConfig cfg = new BridgePortConfig(port.networkId,
+                port.adminStateUp);
+        ops.addAll(portZkManager.prepareCreate(port.id, cfg));
+        return cfg;
+    }
+
     public PortConfig prepareCreateVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
-        BridgePortConfig cfg = new BridgePortConfig(port.networkId,
-                port.adminStateUp);
+        BridgePortConfig cfg = prepareCreateBridgePort(ops, port);
 
         // Create DHCP host entries
         prepareCreateDhcpHostEntries(ops, port);
-        ops.addAll(portZkManager.prepareCreate(port.id, cfg));
 
         return cfg;
     }
@@ -239,12 +245,10 @@ public class NetworkZkManager extends BaseZkManager {
     public PortConfig prepareCreateDhcpPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
-        BridgePortConfig cfg = new BridgePortConfig(port.networkId,
-                port.adminStateUp);
+        BridgePortConfig cfg = prepareCreateBridgePort(ops, port);
 
         // Add option 121 routes for metadata
         prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
-        ops.addAll(portZkManager.prepareCreate(port.id, cfg));
 
         return cfg;
     }
@@ -295,6 +299,13 @@ public class NetworkZkManager extends BaseZkManager {
         }
     }
 
+    public PortConfig prepareDeletePortConfig(List<Op> ops, UUID portId)
+            throws SerializationException, StateAccessException {
+        PortConfig p = portZkManager.get(portId);
+        portZkManager.prepareDelete(ops, p, true);
+        return p;
+    }
+
     public void prepareDeleteVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
@@ -302,8 +313,7 @@ public class NetworkZkManager extends BaseZkManager {
         prepareDeleteDhcpHostEntries(ops, port);
 
         // Remove the port config
-        PortConfig config = portZkManager.get(port.id);
-        ops.addAll(portZkManager.prepareDelete(port.id, config));
+        prepareDeletePortConfig(ops, port.id);
     }
 
     private void prepareDeleteDhcpMetadataRoutes(List<Op> ops,
@@ -329,7 +339,7 @@ public class NetworkZkManager extends BaseZkManager {
     public void prepareDeleteDhcpPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
-        ops.addAll(portZkManager.prepareDelete(port.id));
+        prepareDeletePortConfig(ops, port.id);
         prepareDeleteDhcpMetadataRoutes(ops, port.fixedIps);
     }
 
