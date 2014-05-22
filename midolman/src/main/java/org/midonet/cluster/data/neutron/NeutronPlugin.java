@@ -3,16 +3,20 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.midonet.cluster.data.Rule;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.packets.ARP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -568,5 +572,58 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     public List<SecurityGroupRule> getSecurityGroupRules()
             throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRules();
+    }
+
+
+    /*
+     * Simple utility functions used in UT to test types of rules.
+     */
+
+    public static boolean isDropAllExceptArpRule(Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.dlType.equals(new Integer(ARP.ETHERTYPE))) return false;
+        if (!(cond.invDlType)) return false;
+        if (!java.util.Objects.equals(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+
+    public static boolean isMacSpoofProtectionRule(String macAddress,
+                                                   Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.invDlSrc) return false;
+        if (!Objects.equal(cond.dlSrc.toString(), macAddress)) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+    public static boolean isIpSpoofProtectionRule(IPAllocation subnet,
+                                                  Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.nwSrcInv) return false;
+        String subnetStr = cond.nwSrcIp.getAddress().toString();
+        if (!Objects.equal(subnetStr, subnet.ipAddress)) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+    public static boolean isAcceptReturnFlowRule(
+            org.midonet.cluster.data.Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.matchReturnFlow) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.ACCEPT))
+            return false;
+        return true;
     }
 }

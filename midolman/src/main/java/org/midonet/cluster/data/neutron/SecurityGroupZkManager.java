@@ -124,7 +124,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         // Both chains drop non-ARP traffic if no other rules match.
         inRules.add(LiteralRule.dropAllExceptArpRule(inChainId));
-        inRules.add(LiteralRule.dropAllExceptArpRule(outChainId));
+        outRules.add(LiteralRule.dropAllExceptArpRule(outChainId));
     }
 
     private void prepareUpdatePortChains(List<Op> ops, Port port,
