@@ -203,9 +203,9 @@ class Bridge(val id: UUID,
     private def handleL2Unicast()(implicit pktCtx: PacketContext,
                                            ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
-        log.debug("Handling L2 unicast")
         val dlDst = pktCtx.wcmatch.getEthernetDestination
         val dlSrc = pktCtx.wcmatch.getEthernetSource
+        log.debug("Handling L2 unicast to {}", dlDst)
         macToLogicalPortId.get(dlDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
                 log.debug("Packet intended for interior port {}", logicalPort)
