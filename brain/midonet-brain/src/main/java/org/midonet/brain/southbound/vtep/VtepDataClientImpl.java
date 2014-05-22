@@ -17,9 +17,11 @@ import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.internal.Table;
 import org.opendaylight.ovsdb.lib.table.vtep.Logical_Switch;
@@ -36,10 +38,15 @@ import org.opendaylight.ovsdb.plugin.InventoryServiceInternal;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rx.Observable;
+import rx.functions.Func1;
+
+import static org.midonet.brain.southbound.vtep.VtepConstants.UNKNOWN_DST;
 
 public class VtepDataClientImpl implements VtepDataClient {
 
-    private static final Logger log = LoggerFactory.getLogger(VtepDataClientImpl.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(VtepDataClientImpl.class);
     private static final String VTEP_NODE_NAME= "vtep";
 
     private ConnectionService cnxnSrv = null;
@@ -64,9 +71,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         is.init();
 
         cnxnSrv.setInventoryServiceInternal(is);
-        log.info("NODES: {}", cnxnSrv.getNodes());
         node = cnxnSrv.connect(VTEP_NODE_NAME, params);
-        log.info("Connecting to VTEP, node: {}", node.getID());
+        log.info("Connecting to VTEP on {}:{}, node {}",
+                 new Object[]{mgmtIp, port, node.getID()});
         cfgSrv = new ConfigurationService();
         cfgSrv.setInventoryServiceInternal(is);
         cfgSrv.setConnectionServiceInternal(cnxnSrv);
@@ -284,5 +291,22 @@ public class VtepDataClientImpl implements VtepDataClient {
                       st.getCode(), st.getDescription());
         }
         return st;
+    }
+
+    @Override
+    public Observable<TableUpdates> observableLocalMacTable() {
+       return this.cnxnSrv.observableUpdates().map(
+           new Func1<TableUpdates, TableUpdates>() {
+               @Override
+               public TableUpdates call(TableUpdates tableUpdates) {
+                   // TODO: implement this; the tricky (or annoying) bit is that
+                   // OVSDB seems to give us a full snapshot of the table, so
+                   // we'll have to compute a diff, so we'll have to keep the
+                   // latest snapshot in memory.. It also sends all updates from
+                   // all tables, so we need to filter relevant ones.
+                   log.warn("CANNOT UNDERSTAND VTEP EVENTS");
+                   return null;
+               }
+       });
     }
 }
