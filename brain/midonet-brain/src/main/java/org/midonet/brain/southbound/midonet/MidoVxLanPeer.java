@@ -91,7 +91,7 @@ public class MidoVxLanPeer implements VxLanPeer {
     public void apply(MacLocation macLocation) {
         log.info("Received update from peer: {}", macLocation);
         UUID bridgeId = VtepConstants.logicalSwitchNameToBridgeId(
-            macLocation.logicalSwitchId);
+            macLocation.logicalSwitchName);
         LogicalSwitchContext ctx = macPortTables.get(bridgeId);
         MacPortMap macPortMap = ctx.macPortMap;
         UUID portId = ctx.vxLanPortId;

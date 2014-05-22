@@ -5,16 +5,18 @@ package org.midonet.brain.southbound.vtep;
 
 import java.util.List;
 
+import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.ovsdb.lib.message.TableUpdates;
+import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
+import rx.Observable;
+
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.ovsdb.lib.message.TableUpdates;
-import org.opendaylight.ovsdb.plugin.StatusWithUuid;
-import rx.Observable;
 
 /**
  * Represents a connection to a VTEP-enabled switch.
@@ -52,6 +54,16 @@ public interface VtepDataClient {
     public List<UcastMac> listUcastMacsRemote();
 
     /**
+     * Retrieve a LogicalSwitch by UUID.
+     */
+    public LogicalSwitch getLogicalSwitch(UUID id);
+
+    /**
+     * Retrieve a LogicalSwitch by name.
+     */
+    public LogicalSwitch getLogicalSwitch(String name);
+
+    /**
      * Connect to the VTEP database instance:
      *
      * @param mgmtIp the management ip of the VTEP
@@ -70,7 +82,7 @@ public interface VtepDataClient {
      *
      * @param name the name of the new logical switch
      * @param vni the VNI associated to the new logical switch
-     * @return the result, with UUID of the new logical switch if success
+     * @return operation result status
      */
     public StatusWithUuid addLogicalSwitch(String name, int vni);
 
@@ -84,7 +96,7 @@ public interface VtepDataClient {
      * @param floodIps ips of the vtep peers that will get a remote Mcast and
      *                 Ucast entry for unknown-dst.
      *
-     * @return true if success, false otherwise
+     * @return operation result status
      */
     public Status bindVlan(String lsName, String portName, int vlan,
                            Integer vni, List<String> floodIps);
@@ -114,10 +126,18 @@ public interface VtepDataClient {
     public Status addMcastMacRemote(String lsName, String mac, String ip);
 
     /**
-     * Provides an Observable producing a stream of updates from the Vtep of
-     * unicast MACs that are local to the vtep.
+     * Delete an entry in the Ucast_Mac_Remote table.
+     *
+     * @param mac the MAC address
+     * @param lsName the logical switch name
+     * @return operation result status
      */
-    public Observable<TableUpdates> observableLocalMacTable();
+    public Status delUcastMacRemote(String mac, String lsName);
+
+    /**
+     * Provides an Observable producing a stream of updates from the Vtep.
+     */
+    public Observable<TableUpdates> observableUpdates();
 
     /**
      * Deletes a binding between the given port and vlan.
@@ -135,4 +155,11 @@ public interface VtepDataClient {
      * @return the result of the operation
      */
     public Status deleteLogicalSwitch(String name);
+
+    /**
+     * Returns the PhysicalSwitch data for the local VTEP this VtepDataClient
+     * is connected to.
+     */
+    public PhysicalSwitch describe();
+
 }
