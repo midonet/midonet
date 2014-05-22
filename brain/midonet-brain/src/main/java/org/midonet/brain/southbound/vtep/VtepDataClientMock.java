@@ -1,16 +1,25 @@
 package org.midonet.brain.southbound.vtep;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.common.collect.Sets;
-import org.midonet.brain.southbound.vtep.model.*;
+import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.McastMac;
+import org.midonet.brain.southbound.vtep.model.PhysicalPort;
+import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Addr$;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
+import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
-
-import java.lang.Override;
-import java.util.*;
+import rx.Observable;
 
 public class VtepDataClientMock implements VtepDataClient {
 
@@ -149,7 +158,7 @@ public class VtepDataClientMock implements VtepDataClient {
         pp.vlanBindings.put(vlan, logicalSwitchUuids.get(lsName));
 
         for (String floodIp : floodIps)
-            addMcastMacRemote(lsName, VtepDataClient.UNKNOWN_DST, floodIp);
+            addMcastMacRemote(lsName, VtepConstants.UNKNOWN_DST, floodIp);
 
         return new Status(StatusCode.SUCCESS);
     }
@@ -186,6 +195,11 @@ public class VtepDataClientMock implements VtepDataClient {
         McastMac mcastMac = new McastMac(mac, lsUuid, getLocatorUuid(ip), ip);
         mcastMacsRemote.put(mac, mcastMac);
         return new Status(StatusCode.SUCCESS);
+    }
+
+    @Override
+    public Observable<TableUpdates> observableLocalMacTable() {
+        return Observable.never(); // No tests use this for now.
     }
 
     private UUID getLocatorUuid(String ip) {
