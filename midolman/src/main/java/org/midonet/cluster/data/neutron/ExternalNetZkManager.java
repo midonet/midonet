@@ -147,7 +147,7 @@ public class ExternalNetZkManager extends BaseZkManager {
         UUID prId = providerRouterZkManager.getId();
         for (IPAllocation ipAlloc : port.fixedIps) {
             //TODO: check for IP version
-            routeZkManager.prepareRouteDelete(ops, prId, ipAlloc.ipv4Subnet());
+            routeZkManager.prepareRoutesDelete(ops, prId, ipAlloc.ipv4Subnet());
 
         }
     }

@@ -207,14 +207,4 @@ public class ReverseNatRule extends NatRule {
         sb.append(super.toString()).append("]");
         return sb.toString();
     }
-
-    public static Rule reverseSnatRule(UUID chainId, UUID portId, IPv4Addr ip) {
-        Condition cond = new Condition();
-        cond.nwDstIp = new IPv4Subnet(ip, 32);
-        cond.inPortIds = new HashSet<>();
-        cond.inPortIds.add(portId);
-        Rule cfg = new ReverseNatRule(cond, RuleResult.Action.ACCEPT, false);
-        cfg.chainId = chainId;
-        return cfg;
-    }
 }

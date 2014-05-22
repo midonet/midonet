@@ -38,6 +38,12 @@ public class Neutron {
     @JsonProperty("remove_router_interface_template")
     public String removeRouterInterfaceTemplate;
 
+    @JsonProperty("floating_ips")
+    public URI floatingIps;
+
+    @JsonProperty("floating_ip_template")
+    public String floatingIpTemplate;
+
     @JsonProperty("security_groups")
     public URI securityGroups;
 
@@ -71,6 +77,8 @@ public class Neutron {
                                  other.addRouterInterfaceTemplate)
                 && Objects.equal(removeRouterInterfaceTemplate,
                                  other.removeRouterInterfaceTemplate)
+                && Objects.equal(floatingIps, other.floatingIps)
+                && Objects.equal(floatingIpTemplate, other.floatingIpTemplate)
                 && Objects.equal(securityGroups, other.securityGroups)
                 && Objects.equal(
                     securityGroupTemplate, other.securityGroupTemplate)
@@ -84,8 +92,8 @@ public class Neutron {
         return Objects.hashCode(uri, networks, networkTemplate, subnets,
                 subnetTemplate, ports, portTemplate, routers,
                 routerTemplate, addRouterInterfaceTemplate,
-                removeRouterInterfaceTemplate, securityGroups,
-                securityGroupTemplate, securityGroupRules,
+                removeRouterInterfaceTemplate, floatingIps, floatingIpTemplate,
+                securityGroups, securityGroupTemplate, securityGroupRules,
                 securityGroupRuleTemplate);
     }
 
@@ -105,6 +113,8 @@ public class Neutron {
                 .add("addRouterInterfaceTemplate", addRouterInterfaceTemplate)
                 .add("removeRouterInterfaceTemplate",
                         removeRouterInterfaceTemplate)
+                .add("floatingIps", floatingIps)
+                .add("floatingIpTemplate", floatingIpTemplate)
                 .add("securityGroups", securityGroups)
                 .add("securityGroupTemplate", securityGroupTemplate)
                 .add("securityGroupRules", securityGroupRules)

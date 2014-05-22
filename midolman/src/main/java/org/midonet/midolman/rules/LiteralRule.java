@@ -70,47 +70,4 @@ public class LiteralRule extends Rule {
         sb.append("]");
         return sb.toString();
     }
-
-    // Useful factory methods
-    public static Rule acceptRule(Condition cond, UUID chainId) {
-        Rule cfg = new LiteralRule(cond, RuleResult.Action.ACCEPT);
-        cfg.chainId = chainId;
-        return cfg;
-    }
-
-    public static Rule dropRule(Condition cond, UUID chainId) {
-        Rule cfg = new LiteralRule(cond, RuleResult.Action.DROP);
-        cfg.chainId = chainId;
-        return cfg;
-    }
-
-    public static Rule acceptRule(SecurityGroupRule sgRule, UUID chainId) {
-        return acceptRule(new Condition(sgRule), chainId);
-    }
-
-    public static Rule acceptReturnFlowRule(UUID chainId) {
-        Condition cond = new Condition();
-        cond.matchReturnFlow = true;
-        return acceptRule(cond, chainId);
-    }
-
-    public static Rule ipSpoofProtectionRule(IPSubnet subnet, UUID chainId) {
-        Condition cond = new Condition(subnet);
-        cond.nwSrcInv = true;
-        return dropRule(cond, chainId);
-    }
-
-    public static Rule macSpoofProtectionRule(MAC macAddress, UUID chainId) {
-        // MAC spoofing protection for in_chain
-        Condition cond = new Condition(macAddress);
-        cond.invDlSrc = true;
-        return dropRule(cond, chainId);
-    }
-
-    public static Rule dropAllExceptArpRule(UUID chainId) {
-        Condition cond = new Condition();
-        cond.dlType = (int) ARP.ETHERTYPE;
-        cond.invDlType = true;
-        return dropRule(cond, chainId);
-    }
 }

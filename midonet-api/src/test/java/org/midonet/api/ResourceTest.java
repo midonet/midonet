@@ -4,7 +4,7 @@
 package org.midonet.api;
 
 import org.junit.Before;
-import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.neutron.NeutronResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.data.neutron.NeutronPlugin;
 import org.mockito.Answers;
@@ -34,7 +34,7 @@ public abstract class ResourceTest {
     protected UriInfo uriInfo;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected ResourceFactory factory;
+    protected NeutronResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     protected NeutronPlugin plugin;

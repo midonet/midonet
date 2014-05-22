@@ -163,6 +163,12 @@ public class Port {
         return ingressChainName(id);
     }
 
+    @JsonIgnore
+    public UUID deviceIdUuid() {
+        if (deviceId == null) return null;
+        return UUID.fromString(deviceId);
+    }
+
     public static String egressChainName(UUID portId) {
         if (portId == null)
             throw new IllegalArgumentException("portId is null");

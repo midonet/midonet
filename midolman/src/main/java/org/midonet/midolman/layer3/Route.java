@@ -199,7 +199,6 @@ public class Route implements Serializable {
                                          IPv4Subnet dstSubnet,
                                          UUID nextHopPortId, IPv4Addr nextHopGw,
                                          int weight, UUID routerId) {
-
         return new Route(srcSubnet, dstSubnet, NextHop.PORT,
                 nextHopPortId, nextHopGw, weight, routerId);
     }

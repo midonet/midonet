@@ -240,14 +240,4 @@ public class ForwardNatRule extends NatRule {
         }
         return sb.append("}]").toString();
     }
-
-    public static Rule dynamicSnatRule(UUID chainId, UUID portId, IPv4Addr ip) {
-        Condition cond = new Condition();
-        cond.outPortIds = new HashSet<>();
-        cond.outPortIds.add(portId);
-        Set<NatTarget> targets = new HashSet<>();
-        targets.add(new NatTarget(ip, ip, 1, 65535));
-        return new ForwardNatRule(cond, RuleResult.Action.ACCEPT, chainId, 1,
-                false, targets);
-    }
 }

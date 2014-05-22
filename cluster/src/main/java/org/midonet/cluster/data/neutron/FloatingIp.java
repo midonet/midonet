@@ -4,7 +4,10 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 import java.util.UUID;
 
@@ -64,5 +67,23 @@ public class FloatingIp {
                 .add("routerId", routerId)
                 .add("portId", portId)
                 .add("fixedIpAddress", fixedIpAddress).toString();
+    }
+
+    @JsonIgnore
+    public IPv4Subnet floatingIpv4Subnet() {
+        if (floatingIpAddress == null) return null;
+        return new IPv4Subnet(floatingIpAddress, 32);
+    }
+
+    @JsonIgnore
+    public IPv4Addr floatingIpv4Addr() {
+        if (floatingIpAddress == null) return null;
+        return IPv4Addr.fromString(floatingIpAddress);
+    }
+
+    @JsonIgnore
+    public IPv4Addr fixedIpv4Addr() {
+        if (fixedIpAddress == null) return null;
+        return IPv4Addr.fromString(fixedIpAddress);
     }
 }

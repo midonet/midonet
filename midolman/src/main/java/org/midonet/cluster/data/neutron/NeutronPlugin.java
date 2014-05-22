@@ -50,14 +50,11 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     private L3ZkManager l3ZkManager;
 
     @Inject
-    private L3ExtGwModeZkManager l3ExtGwModeZkManager;
-
-    @Inject
     private SecurityGroupZkManager securityGroupZkManager;
 
     private static void printOps(List<Op> ops) {
 
-        //if (!log.isDebugEnabled()) return;
+        if (!log.isDebugEnabled()) return;
 
         log.debug("******** BEGIN PRINTING ZK OPs *********");
 
@@ -257,11 +254,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         } else if (port.isRouterInterface()) {
 
-            l3ZkManager.prepareCreateRouterInterfacePort(ops, port);
+            // Create a port on the bridge but leave it unlinked.  When
+            // prepareCreateRouterInterface is executed, this port is linked.
+            networkZkManager.prepareCreateBridgePort(ops, port);
 
         } else if (port.isRouterGateway()) {
 
-            l3ExtGwModeZkManager.prepareCreateGatewayPort(ops, port);
+            l3ZkManager.prepareCreateProviderRouterGwPort(ops, port);
 
         }
     }
@@ -314,6 +313,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
                 externalNetZkManager.prepareDeleteExtNetRoute(ops, port);
             }
 
+            l3ZkManager.prepareDisassociateFloatingIp(ops, port);
             securityGroupZkManager.prepareDeletePortSecurityGroup(ops, port);
             networkZkManager.prepareDeleteVifPort(ops, port);
 
@@ -323,11 +323,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         }  else if (port.isRouterInterface()) {
 
-            l3ZkManager.prepareDeleteRouterInterfacePort(ops, port);
+            networkZkManager.prepareDeletePortConfig(ops, port.id);
 
         } else if (port.isRouterGateway()) {
 
-            l3ExtGwModeZkManager.prepareDeleteGatewayPort(ops, port);
+            l3ZkManager.prepareDeleteGatewayPort(ops, port);
+
         }
 
         networkZkManager.prepareDeleteNeutronPort(ops, port);
@@ -383,14 +384,6 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         // Create a RouterConfig in ZK
         l3ZkManager.prepareCreateRouter(ops, router);
-
-        if (router.gwPortId != null) {
-
-            // Gateway port ID is set, which means that gateway is set at the
-            // time of router creation.
-            l3ExtGwModeZkManager.prepareCreateGatewayRouter(ops, router);
-        }
-
         commitOps(ops);
 
         return getRouter(router.id);
@@ -424,9 +417,6 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         List<Op> ops = new ArrayList<>();
 
-        // Update gateway
-        l3ExtGwModeZkManager.prepareUpdateGatewayRouter(ops, router);
-
         // Update the router config
         l3ZkManager.prepareUpdateRouter(ops, router);
 
@@ -457,6 +447,61 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
         // there is nothing to do.
         return routerInterface;
 
+    }
+
+    @Override
+    public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
+            throws StateAccessException, SerializationException {
+
+        List<Op> ops = new ArrayList<>();
+        l3ZkManager.prepareCreateFloatingIp(ops, floatingIp);
+        commitOps(ops);
+
+        return getFloatingIp(floatingIp.id);
+    }
+
+    @Override
+    public FloatingIp getFloatingIp(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        return l3ZkManager.getFloatingIp(id);
+    }
+
+    @Override
+    public List<FloatingIp> getFloatingIps()
+            throws StateAccessException, SerializationException {
+
+        return l3ZkManager.getFloatingIps();
+    }
+
+    @Override
+    public void deleteFloatingIp(@Nonnull UUID id)
+            throws StateAccessException, SerializationException {
+
+        // Delete FIP in Neutron deletes the router interface port, which
+        // calls MN's deletePort and disassociates FIP.  The only thing left
+        // to do is delete the floating IP entry.
+        List<Op> ops = new ArrayList<>();
+        l3ZkManager.prepareDeleteFloatingIp(ops, id);
+        commitOps(ops);
+    }
+
+    @Override
+    public FloatingIp updateFloatingIp(@Nonnull UUID id,
+                                       @Nonnull FloatingIp floatingIp)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
+
+        FloatingIp oldFip = l3ZkManager.getFloatingIp(id);
+        if (oldFip == null) {
+            return null;
+        }
+
+        List<Op> ops = new ArrayList<>();
+        l3ZkManager.prepareUpdateFloatingIp(ops, floatingIp);
+        commitOps(ops);
+
+        return l3ZkManager.getFloatingIp(id);
     }
 
     @Override

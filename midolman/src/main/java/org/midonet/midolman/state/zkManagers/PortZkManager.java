@@ -5,6 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.*;
 
+import com.google.common.base.Function;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
@@ -23,6 +24,8 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 /**
  * Class to manage the port ZooKeeper data.
@@ -761,6 +764,54 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return getUuidList(path, watcher);
     }
 
+    public PortDirectory.RouterPortConfig findFirstRouterPortByPeer(
+            UUID routerId, final UUID peerRouterId)
+            throws SerializationException, StateAccessException {
+
+        if (peerRouterId == null) {
+            throw new IllegalArgumentException("peerRouterId is null");
+        }
+
+        return findFirstRouterPortMatch(routerId,
+                new Function<PortDirectory.RouterPortConfig, Boolean>() {
+
+            @Override
+            public Boolean apply(
+                            @Nullable PortDirectory.RouterPortConfig rpCfg) {
+                if (rpCfg.peerId == null) {
+                    return false;
+                }
+
+                // Get the peer port
+                PortConfig c;
+                try {
+                    c = get(rpCfg.peerId);
+                } catch (Exception e) {
+                    throw new IllegalStateException("Could not retrieve port " +
+                            rpCfg.peerId);
+                }
+
+                return Objects.equals(peerRouterId, c.device_id);
+            }
+        });
+    }
+
+    public PortDirectory.RouterPortConfig findFirstRouterPortMatch(
+            UUID routerId,
+            Function<PortDirectory.RouterPortConfig, Boolean> matcher)
+            throws StateAccessException, SerializationException {
+        List<UUID> ids = getRouterPortIDs(routerId);
+        for (UUID id : ids) {
+            PortDirectory.RouterPortConfig cfg =
+                    (PortDirectory.RouterPortConfig) get(id);
+            if (matcher.apply(cfg)) {
+                return cfg;
+            }
+         }
+
+        return null;
+    }
+
     /**
      * Gets a list of router port IDs for a given router
      *
@@ -801,6 +852,12 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<UUID> getBridgePortIDs(UUID bridgeId)
             throws StateAccessException {
         return getBridgePortIDs(bridgeId, null);
+    }
+
+    public PortConfig getPeerPort(UUID portId)
+            throws SerializationException, StateAccessException {
+        PortConfig port = get(portId);
+        return port.peerId == null ? null : get(port.peerId);
     }
 
     /**

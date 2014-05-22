@@ -19,6 +19,7 @@ public class NeutronUriBuilder {
     public final static String ROUTERS = "/routers";
     public final static String ADD_ROUTER_INTF = "/add_router_interface";
     public final static String REMOVE_ROUTER_INTF = "/remove_router_interface";
+    public final static String FLOATING_IPS = "/floating_ips";
     public final static String SECURITY_GROUPS = "/security_groups";
     public final static String SECURITY_GROUP_RULES = "/security_group_rules";
 
@@ -91,6 +92,20 @@ public class NeutronUriBuilder {
     public static String getRemoveRouterInterfaceTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(getRouters(baseUri)) +
                 REMOVE_ROUTER_INTF;
+    }
+
+    public static URI getFloatingIps(URI baseUri) {
+        return UriBuilder.fromUri(getNeutron(baseUri)).path(
+                FLOATING_IPS).build();
+    }
+
+    public static URI getFloatingIp(URI baseUri, UUID id) {
+        return UriBuilder.fromUri(
+                getFloatingIps(baseUri)).path(id.toString()).build();
+    }
+
+    public static String getFloatingIpTemplate(URI baseUri) {
+        return ResourceUriBuilder.buildIdTemplateUri(getFloatingIps(baseUri));
     }
 
     // Security Groups
