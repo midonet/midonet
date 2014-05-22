@@ -65,23 +65,22 @@ def teardown():
     VTM.destroy()
 
 
-def _ping_from_mn(iface_in_mn, outside, count=40):
+def _ping_from_mn(iface_in_mn, outside, count=3, do_arp=False):
 
-    f1 = iface_in_mn.ping4(outside, count=count)
+    f1 = iface_in_mn.ping4(outside, count=count, do_arp=do_arp)
     assert_that(outside, receives('dst host 172.16.0.224 and icmp',
                                   within_sec(20)))
+    wait_on_futures([f1])
 
-
-def _ping_to_mn(iface_in_mn, outside):
+def _ping_to_mn(iface_in_mn, outside, count=3, do_arp=False):
 
     outside.clear_arp(sync=True)
-    f1 = outside.ping4(iface_in_mn)
+    f1 = outside.ping4(iface_in_mn, count=count, do_arp=do_arp)
     assert_that(iface_in_mn, receives('dst host 172.16.0.1 and icmp',
                                       within_sec(5)))
     wait_on_futures([f1])
 
-@bindings(bindings1)
-def test_resiliency_from_transient_loop():
+def _test_resiliency_from_transient_loop(ping, iface_in_mn, outside):
     """
     Title: Resiliency from transient loop
 
@@ -94,22 +93,30 @@ def test_resiliency_from_transient_loop():
 
     Note: this is a regression test for MN-853.
     """
-    iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    iface2 = BM.get_iface(4,1)
 
     try:
-        _ping_from_mn(iface1, iface2, count=5)
-    except AssertionError:
+        ping(iface_in_mn, outside, count=5)
+    except (AssertionError, subprocess.CalledProcessError):
         LOG.debug("MN didn't recover from a bad state caused by a "
-                 "transient loop within the timeframe of pinging 5 times.")
+                  "transient loop within the timeframe of pinging 5 times.")
 
-    # Give MM a chance for 120 sec to recover.
-    # NOTE: MM needs to recover quicker, Product to come up with a requirement.
-    time.sleep(120)
+        # Give MM a chance for 100 secs[*1 + *2 + *3] to recover,
+        # in which all the associated states are going to expire.
+        # *1 idle flow expiration
+        #    (hardcoded; 60 secs)
+        # *2 mac-port learning expiration
+        #    (bridge.mac_port_mapping_expire_millis; 30 secs by default)
+        # *3 FlowController checks for flow expiration every 10 seconds
+        #    (comment from Guillermo)
+        time.sleep(100)
 
-    # Now assert that ping works
-    _ping_from_mn(iface1, iface2, count=5)
-
+        # Now assert that ping works
+        #
+        # See also MN-1346; Do ARP to force to refresh MAC learning in
+        # Linux Bridge. If a wrong pair of MAC and port is learnt in
+        # transient loop, that won't expire in 300 secs by default.
+        #
+        ping(iface_in_mn, outside, count=5, do_arp=True)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -125,16 +132,12 @@ def test_icmp_from_mn():
     And: the ping command succeeds
     """
 
-    # Wait for the peer bridge to block one of the trunks.
-    # Othewise, the peer bridge would make the both ports forwarding
-    # for a couple of seconds, which causes a loop.
-    time.sleep(5)
-
     iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
     iface2 = BM.get_iface(4,1)
 
-    _ping_from_mn(iface1, iface2)
-
+    # Wait for the peer bridge to block one of the trunks and
+    # make sure Midonet has recovered from a transient loop.
+    _test_resiliency_from_transient_loop(_ping_from_mn, iface1, iface2)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -152,19 +155,21 @@ def test_icmp_to_mn():
 
     iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
     iface2 = BM.get_iface(4,1)
-    _ping_to_mn(iface1, iface2)
 
-# approx. 45 sec for the peer Linux bridge to failover:
-# 15s to detect, 15s in listening, another 15s in learning
-FAILOVER_WAIT_SEC = 45 + 5
+    # Wait for the peer bridge to block one of the trunks and
+    # make sure Midonet has recovered from a transient loop.
+    _test_resiliency_from_transient_loop(_ping_to_mn, iface1, iface2)
+
+# approx. 50 sec for the peer Linux bridge to failover:
+# 20s to detect, 15s in listening, another 15s in learning
+FAILOVER_WAIT_SEC = 50 + 5
 
 # approx. 30 sec for the peer Linux bridge to failback:
 # 15s in listening, 15s in learning
 FAILBACK_WAIT_SEC = 30 + 5
 
 
-# FIXME: https://midobugs.atlassian.net/browse/QA-158
-@attr(version="v1.2.0", slow=True, flaky=True)
+@attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_icmp_from_mn():
     """
@@ -189,33 +194,33 @@ def test_failback_icmp_from_mn():
 
     """
 
-    # wait for the peer bridge to warm up. see the comment in the first test
-    time.sleep(5)
-
     iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
     iface2 = BM.get_iface(4,1)
 
-    _ping_from_mn(iface1, iface2)
+    # Wait for the peer bridge to block one of the trunks and
+    # make sure Midonet has recovered from a transient loop.
+    _test_resiliency_from_transient_loop(_ping_from_mn, iface1, iface2)
 
     trunk0 = BM.get_iface_for_port('bridge-000-001', 3)
 
-    trunk0.execute('ip link set dev $if down',sync=True)
+    trunk0.execute('ip link set dev $if down', sync=True)
 
     # wait for stp to failover
     time.sleep(FAILOVER_WAIT_SEC)
 
     _ping_from_mn(iface1, iface2)
 
-    trunk0.execute('ip link set dev $if up',sync=True)
+    trunk0.execute('ip link set dev $if up', sync=True)
 
     # wait for stp to failback
     time.sleep(FAILBACK_WAIT_SEC)
 
-    _ping_from_mn(iface1, iface2)
+    # Emit an ARP request expecting a reply migrates the MAC
+    # back to trunk0
+    _ping_from_mn(iface1, iface2, do_arp=True)
 
 
-# FIXME: https://midobugs.atlassian.net/browse/QA-158
-@attr(version="v1.2.0", slow=True, flaky=True)
+@attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
 def test_failback_icmp_to_mn():
     """
@@ -241,24 +246,23 @@ def test_failback_icmp_to_mn():
           scenario 1 above.
     """
 
-    # wait for the peer bridge to warm up. see the comment in the first test
-    time.sleep(5)
-
     iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
     iface2 = BM.get_iface(4,1)
 
-    _ping_to_mn(iface1, iface2)
+    # Wait for the peer bridge to block one of the trunks and
+    # make sure Midonet has recovered from a transient loop.
+    _test_resiliency_from_transient_loop(_ping_to_mn, iface1, iface2)
 
     trunk0 = BM.get_iface_for_port('bridge-000-001', 3)
 
-    trunk0.execute('ip link set dev $if down',sync=True)
+    trunk0.execute('ip link set dev $if down', sync=True)
 
     # wait for stp to failover
     time.sleep(FAILOVER_WAIT_SEC)
 
     _ping_to_mn(iface1, iface2)
 
-    trunk0.execute('ip link set dev $if up',sync=True)
+    trunk0.execute('ip link set dev $if up', sync=True)
 
     # wait for stp to failback
     time.sleep(FAILBACK_WAIT_SEC)
