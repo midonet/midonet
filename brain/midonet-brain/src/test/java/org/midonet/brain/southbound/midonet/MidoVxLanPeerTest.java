@@ -3,9 +3,7 @@
 */
 package org.midonet.brain.southbound.midonet;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,21 +12,17 @@ import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action0;
-import rx.functions.Action1;
-
 import org.midonet.brain.BrainTestUtils;
+import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.southbound.vtep.VtepConstants;
-import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.zones.GreTunnelZone;
 import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.serialization.SerializationException;
@@ -36,64 +30,13 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import rx.Observable;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-/**
- * Accumulates payload from callbacks.
- */
-class ActionAccumulator<T> implements Action1<T>, Action0 {
-
-    final List<T> notifications = new ArrayList<>();
-    int numCalls = 0;
-
-    @Override
-    public void call(T update) {
-        notifications.add(update);
-        numCalls++;
-    }
-
-    @Override
-    public void call() {
-        numCalls++;
-    }
-}
-
-/**
- * Will fail the test as soon as it's called.
- * @param <T>
- */
-class ActionRefuser<T> implements Action1<T>, Action0 {
-    @Override
-    public void call(T update) {
-        call();
-    }
-    @Override
-    public void call() {
-        fail("Didn't expect any callbacks");
-    }
-}
-
-/**
- * Will fail the test when called more than once.
- */
-class ActionOnce implements Action0 {
-    boolean called = false;
-    @Override
-    public void call() {
-        if (this.called) {
-            fail("Didn't expect more than 1 callback");
-        }
-        called = true;
-    }
-}
 
 public class MidoVxLanPeerTest {
 
@@ -230,18 +173,18 @@ public class MidoVxLanPeerTest {
     public void testMidoBridgesProxyNotifiedOnMacPortUpdate() throws Exception {
 
         UUID bridgeId = makeBridge("bridge");
+        String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
 
         midoVxLanPeer.watch(Arrays.asList(bridgeId));
-        Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
-
-        final ActionAccumulator<MacLocation> update = new ActionAccumulator<>();
-        final Action1<Throwable> errors = new ActionRefuser<>();
-        final Action0 completes = new ActionRefuser<>();
-        final Subscription subscription = obs
-                                          .subscribe(update, errors, completes);
-
-        assertTrue(update.notifications.isEmpty());
-        assertFalse(subscription.isUnsubscribed());
+        RxTestUtils.TestedObservable<MacLocation> testedObs =
+            RxTestUtils.test(midoVxLanPeer.observableUpdates());
+        testedObs.expect(
+                    new MacLocation(mac1, lsName, tunnelZoneHostIP),
+                    new MacLocation(mac1, lsName, null),
+                    new MacLocation(mac3, lsName, tunnelZoneHostIP))
+                 .noErrors()
+                 .notCompleted()
+                 .subscribe();
 
         final UUID bridgePortId = addPort(bridgeId, mac1);
 
@@ -251,13 +194,11 @@ public class MidoVxLanPeerTest {
         dataClient.bridgeAddMacPort(bridgeId, Bridge.UNTAGGED_VLAN_ID,
                                     mac3, bridgePortId);
 
-        String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        assertThat(update.notifications,
-                   contains(
-                       new MacLocation(mac1, lsName, tunnelZoneHostIP),
-                       new MacLocation(mac1, lsName, null),
-                       new MacLocation(mac3, lsName, tunnelZoneHostIP)
-                   ));
+        testedObs.unsubscribe();
+
+        midoVxLanPeer.stop();
+
+        testedObs.evaluate();
     }
 
     @Test
@@ -289,67 +230,46 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = makeBridge("bridge");
         midoVxLanPeer.watch(Arrays.asList(bridgeId));
 
-        final ActionAccumulator<MacLocation> updates =
-            new ActionAccumulator<>();
-        final ActionRefuser<Throwable> errors = new ActionRefuser<>();
-        final ActionOnce completes = new ActionOnce();
+       // add a port before subscribing, should go unnoticed
+       addPort(bridgeId, mac1);
 
-        // add a port before subscribing, should go unnoticed
-        UUID bridgePortId = addPort(bridgeId, mac1);
-        Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
-        final Subscription subscription =
-            obs.subscribe(updates, errors, completes);
+       // extract the observable and test it
+       Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
+       RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
+       testedObs.noElements()
+                .noErrors()
+                .completes()
+                .subscribe();
 
-        assertTrue(updates.notifications.isEmpty());
-        assertFalse(subscription.isUnsubscribed());
-        midoVxLanPeer.stop();
-        assertTrue(updates.notifications.isEmpty());
-        assertFalse(subscription.isUnsubscribed());
-        assertTrue(completes.called);
+       midoVxLanPeer.stop();
+
+       testedObs.evaluate();
     }
 
     @Test
     public void testUnsubscribe() throws Exception {
-        // Create two bridges and one bridge port per each.
         UUID bridgeId = makeBridge("bridge");
+        String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
 
         midoVxLanPeer.watch(Arrays.asList(bridgeId));
 
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
+        RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
+        testedObs.expect(new MacLocation(mac1, lsName, tunnelZoneHostIP))
+                 .noErrors()
+                 .notCompleted()
+                 .subscribe();
 
-        final ActionAccumulator<MacLocation> updates =
-            new ActionAccumulator<>();
-        final Action1<Throwable> errors = new ActionRefuser<>();
-        final Action0 completes = new ActionRefuser<>();
-
-        final Subscription subscription =
-            obs.subscribe(updates, errors, completes);
-
-        assertTrue(updates.notifications.isEmpty());
-        assertFalse(subscription.isUnsubscribed());
-
-        UUID bridgePortId1 = addPort(bridgeId, mac1);
-        String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        assertEquals(1, updates.notifications.size());
-
-        assertThat(updates.notifications,
-                   contains(new MacLocation(mac1, lsName, tunnelZoneHostIP)));
-
+        addPort(bridgeId, mac1);
         // let's unsubscribe, expect no onNext or onComplete calls
-        subscription.unsubscribe();
-        assertTrue(subscription.isUnsubscribed());
-        assertEquals(1, updates.notifications.size());
-
+        testedObs.unsubscribe();
         // Add another port, we should not get a notification
-        UUID bridgePortId2 = addPort(bridgeId, mac1);
-        assertEquals(1, updates.notifications.size());
-        assertTrue(subscription.isUnsubscribed());
+        addPort(bridgeId, mac1);
 
-        // Stop the midoVtep, we should not get any onCompletes since we
-        // already unsubscribed
+        // The stop completes the observable, but we should not get any
+        // onCompletes since we already unsubscribed
         midoVxLanPeer.stop();
-        assertEquals(1, updates.notifications.size());
-        assertTrue(subscription.isUnsubscribed());
+        testedObs.evaluate();
 
     }
 

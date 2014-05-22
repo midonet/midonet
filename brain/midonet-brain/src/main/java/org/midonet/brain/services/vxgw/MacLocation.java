@@ -14,19 +14,19 @@ import org.midonet.packets.MAC;
  */
 public final class MacLocation {
 
-    public final String logicalSwitchId;
+    public final String logicalSwitchName;
     public final MAC mac;
     public final IPv4Addr vxlanTunnelEndpoint;
 
     public MacLocation(final MAC mac,
-                       final String logicalSwitchId,
+                       final String logicalSwitchName,
                        final IPv4Addr vxlanTunnelEndpoint) {
         if (mac == null)
             throw new IllegalArgumentException("MAC cannot be null");
-        if (logicalSwitchId == null)
-            throw new IllegalArgumentException("Log. Switch ID cannot be null");
+        if (logicalSwitchName == null)
+            throw new IllegalArgumentException("Log. Switch name can't be null");
         this.mac = mac;
-        this.logicalSwitchId = logicalSwitchId;
+        this.logicalSwitchName = logicalSwitchName;
         this.vxlanTunnelEndpoint = vxlanTunnelEndpoint;
     }
 
@@ -38,19 +38,19 @@ public final class MacLocation {
         MacLocation that = (MacLocation) o;
 
         return Objects.equals(mac, that.mac) &&
-               Objects.equals(logicalSwitchId, that.logicalSwitchId) &&
+               Objects.equals(logicalSwitchName, that.logicalSwitchName) &&
                Objects.equals(vxlanTunnelEndpoint, that.vxlanTunnelEndpoint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mac, logicalSwitchId, vxlanTunnelEndpoint);
+        return Objects.hash(mac, logicalSwitchName, vxlanTunnelEndpoint);
     }
 
     @Override
     public String toString() {
         return "MacLocation{" +
-            "logicalSwitchId='" + logicalSwitchId + '\'' +
+            "logicalSwitchName='" + logicalSwitchName + '\'' +
             ", mac=" + mac +
             ", vxlanTunnelEndpoint=" + vxlanTunnelEndpoint +
             '}';
