@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -125,6 +126,7 @@ import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
+import org.midonet.util.collection.ListUtil;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
@@ -504,6 +506,20 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesGetAll exiting: {} bridges found", bridges.size());
         return bridges;
+    }
+
+    @Override
+    public List<Bridge> bridgesGetAllWithVxlanPort()
+        throws StateAccessException, SerializationException {
+        return ListUtil.filter(
+            this.bridgesGetAll(),
+            new Function<Bridge, Boolean>() {
+                @Override
+                public Boolean apply(@Nullable Bridge bridge) {
+                    return bridge != null && bridge.getVxLanPortId() != null;
+                }
+            }
+        );
     }
 
     @Override
@@ -3188,18 +3204,25 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
-        throws SerializationException, StateAccessException
-    {
+    public IPv4Addr vxlanTunnelEndpointFor(UUID id)
+        throws SerializationException, StateAccessException {
+        return vxlanTunnelEndpointFor((BridgePort)portsGet(id));
+    }
 
-        if (port.isExterior()) {
-            throw new IllegalArgumentException("Port " + port.getId() + " is" +
+    @Override
+    public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
+        throws SerializationException, StateAccessException {
+
+        if (!port.isExterior()) {
+            throw new IllegalArgumentException("Port " + port.getId() + " is " +
                                                "not exterior");
         }
 
         Bridge b = bridgesGet(port.getDeviceId());
         if (null == b.getVxLanPortId()) {
-            return null;
+            throw new IllegalArgumentException("Can't resolve vxlan tunnel " +
+                                               "endpoint on bridge not bound " +
+                                               "to a vtep: " + b.getId());
         }
 
         VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortId());
@@ -3227,7 +3250,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return hostCfg.getIp().toIPv4Addr();
-
     }
 
     @Override
