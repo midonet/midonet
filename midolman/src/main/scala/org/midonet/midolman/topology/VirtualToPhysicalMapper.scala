@@ -6,7 +6,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 import scala.collection.immutable.{Set => ROSet}
-import scala.collection.{immutable, mutable}
+import scala.collection.mutable.Queue
+import scala.collection.{mutable, immutable}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -15,6 +16,7 @@ import scala.util.Failure
 
 import akka.actor._
 import akka.util.Timeout
+import akka.pattern.pipe
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.{NodeExistsException, NoNodeException}
 import org.slf4j.LoggerFactory
@@ -448,6 +450,42 @@ trait DeviceManagement {
 
 }
 
+trait PortActivationStateMachine extends Actor with ActorLogWithoutPath {
+    /** map of queues of LocalPortActive msgs to process later, preserving
+      *  arrival order. */
+    private var queues = Map[UUID, Queue[LocalPortActive]]()
+
+    import context.dispatcher
+
+    protected def handlePortActivation(msg: LocalPortActive): Future[_]
+
+    private def queueEvent(msg: LocalPortActive) = queues.get(msg.portID) match {
+        case Some(queue) =>
+            queue.enqueue(msg)
+        case None =>
+            queues += (msg.portID -> Queue.empty)
+            consumeEvent(msg)
+    }
+
+    private def consumeEvent(msg: LocalPortActive) = {
+        log.debug("Received {}", msg)
+        handlePortActivation(msg) map {_ => _Resume(msg.portID)} pipeTo self
+    }
+
+    private def eventConsumed(vport: UUID) = queues.get(vport) match {
+        case Some(queue) if !queue.isEmpty => consumeEvent(queue.dequeue())
+        case Some(queue) => queues -= vport
+        case None => // NoOp
+    }
+
+    def receive = {
+        case message: LocalPortActive => queueEvent(message)
+        case _Resume(vportId) => eventConsumed(vportId)
+    }
+
+    private case class _Resume(portId: UUID)
+}
+
 /**
  * The Virtual-Physical Mapping is a component that interacts with Midonet
  * state management cluster and is responsible for those pieces of state that
@@ -467,7 +505,7 @@ trait DeviceManagement {
  * </ul>
  */
 abstract class VirtualToPhysicalMapperBase
-        extends Actor with ActorLogWithoutPath {
+        extends Actor with ActorLogWithoutPath with PortActivationStateMachine {
 
     import VirtualToPhysicalMapper._
     import VirtualTopologyActor.BridgeRequest
@@ -516,9 +554,6 @@ abstract class VirtualToPhysicalMapperBase
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
 
-    /** map of queues of LocalPortActive msgs to process later, preserving
-     *  arrival order. */
-    var portActiveFifo = Map[UUID,Vector[LocalPortActive]]()
 
     @Inject
     val config: MidolmanConfig = null
@@ -531,22 +566,7 @@ abstract class VirtualToPhysicalMapperBase
             DeviceCaches.vniToUUID = VniMapping.readFromJson(filePath)
     }
 
-    private def freezePortActivation(vport: UUID): Unit = {
-        portActiveFifo = portActiveFifo + (vport -> Vector[LocalPortActive]())
-    }
-
-    private def deferPortActiveMsg(msg: LocalPortActive): Unit = {
-        for (msgs <- portActiveFifo.get(msg.portID)) {
-            portActiveFifo = portActiveFifo + (msg.portID -> (msgs :+ msg))
-        }
-    }
-
-    private def resumePortActivation(vport: UUID): Unit = {
-        for (msgs <- portActiveFifo.get(vport); m <- msgs) { self ! m }
-        portActiveFifo = portActiveFifo - vport
-    }
-
-    def receive = {
+    override def receive = super.receive orElse {
         case PortSetRequest(portSetId, updates) =>
             portSetMgr.addSubscriber(portSetId, sender, updates)
 
@@ -592,34 +612,6 @@ abstract class VirtualToPhysicalMapperBase
                       else zoneChanged
 
             tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg)
-
-        case message @ LocalPortActive(vportID, active)
-            if portActiveFifo.contains(vportID) =>
-                log.debug("Defering {}", message)
-                deferPortActiveMsg(message)
-
-        case message @ LocalPortActive(vportID, active) =>
-            log.debug("Received {}", message)
-            freezePortActivation(vportID)
-            notifyLocalPortActive(vportID, active)
-
-            // We need to track whether the vport belongs to a PortSet.
-            // Fetch the port configuration and see if it s in a bridge.
-            getPortConfig(vportID) map {
-                case Some((port, br)) => // bridge port
-                    self ! _DevicePortStatus(port, br, active)
-                case None => // not a bridge port
-                    context.system.eventStream.publish(
-                        LocalPortActive(vportID, active))
-            } onComplete {
-                case _ =>
-                    // scheduling processing of defered LocalPortActive
-                    // msgs for this vport uuid.
-                    self ! _ResumePortActivation(vportID)
-            }
-
-        case _ResumePortActivation(vportID) =>
-            resumePortActivation(vportID)
 
         case _DevicePortStatus(port, device, active) =>
             val (deviceId: UUID, tunnelKey: Long) = device match {
@@ -705,6 +697,20 @@ abstract class VirtualToPhysicalMapperBase
         case value =>
             log.warning("Unknown message: " + value)
 
+    }
+
+    protected override def handlePortActivation(msg: LocalPortActive): Future[_] = {
+        notifyLocalPortActive(msg.portID, msg.active)
+
+        // We need to track whether the vport belongs to a PortSet.
+        // Fetch the port configuration and see if it s in a bridge.
+        getPortConfig(msg.portID) map {
+            case Some((port, br)) => // bridge port
+                self ! _DevicePortStatus(port, br, msg.active)
+            case None => // not a bridge port
+                context.system.eventStream.publish(
+                    LocalPortActive(msg.portID, msg.active))
+        }
     }
 
     /**
@@ -816,8 +822,6 @@ abstract class VirtualToPhysicalMapperBase
                                          device: Device,
                                          active: Boolean)
 
-    private case class _ResumePortActivation(portId: UUID)
-
     private case class _PortSetOpResult(
             subscribe: Boolean, psetID: UUID,
             success: Boolean, error: Option[KeeperException])
@@ -828,3 +832,4 @@ abstract class VirtualToPhysicalMapperBase
 class VirtualToPhysicalMapper
     extends VirtualToPhysicalMapperBase
     with DataClientLink with ZkConnectionWatcherLink with DeviceManagement
+
