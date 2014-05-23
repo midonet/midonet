@@ -72,8 +72,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         BridgeZkManager.BridgeConfig config = null;
-
-        MacPortMap macPortMap = null;
         Ip4ToMacReplicatedMap ip4MacMap = null;
         try {
             // we don't need to get the macPortMap again if it's an
@@ -82,16 +80,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             if (!isUpdate) {
                 ZkPathManager pathManager = new ZkPathManager(
                         zkConfig.getMidolmanRootKey());
-                macPortMap = new MacPortMap(dir.getSubDirectory(
-                        pathManager.getBridgeMacPortsPath(
-                                id, Bridge.UNTAGGED_VLAN_ID)));
-                macPortMap.setConnectionWatcher(connectionWatcher);
-                macPortMap.start();
-                MacLearningTable table = new MacLearningTableImpl(
-                        id, macPortMap, Bridge.UNTAGGED_VLAN_ID);
-                builder.setMacLearningTable(Bridge.UNTAGGED_VLAN_ID, table);
-                table.notify(new MacTableNotifyCallBack(Bridge.UNTAGGED_VLAN_ID,
-                                                        builder));
+                setMacLearningTable(
+                        pathManager, id, Bridge.UNTAGGED_VLAN_ID, builder);
 
                 ip4MacMap = new Ip4ToMacReplicatedMap(
                     bridgeMgr.getIP4MacMapDirectory(id));
@@ -252,17 +242,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
         for(Short createdVlanId: createdVlans) {
             try {
-                // Create MAC learning table for VLAN we hadn't
-                // seen before
-                MacPortMap macPortMap = new MacPortMap(
-                        dir.getSubDirectory(
-                                pathManager.getBridgeMacPortsPath(
-                                        bridgeId, createdVlanId)));
-                macPortMap.setConnectionWatcher(connectionWatcher);
-                macPortMap.start();
-                builder.setMacLearningTable(createdVlanId,
-                        new MacLearningTableImpl(bridgeId, macPortMap,
-                                createdVlanId));
+                // Create a MAC learning table for VLAN we hadn't seen before.
+                setMacLearningTable(
+                        pathManager, bridgeId, createdVlanId, builder);
             } catch (KeeperException e) {
                 log.warn("Error retrieving mac-ports for VLAN ID" +
                         " {}, bridge {}",
@@ -281,6 +263,29 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setExteriorVxlanPortId(Option.apply(exteriorVxlanPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
+    }
+
+    /**
+     * Creates a MAC learning table for the bridge with the specified VLAN or
+     * no VLAN ID, and sets it to the BridgeBuilder.
+     *
+     * @param pathManager ZkPathManager for the ZK MAC/ports table dir path.
+     * @param bridgeId A bridge UUID.
+     * @param vlanId A VLAN ID or UNTAGGED_VLAN_ID.
+     * @param builder A BridgeBuilder instance.
+     * @throws KeeperException If failed to create a MacPortMap for the bridge /
+     * the VLAN ID.
+     */
+    void setMacLearningTable(ZkPathManager pathManager, UUID bridgeId, short vlanId,
+                             BridgeBuilder builder) throws KeeperException {
+        MacPortMap macPortMap = new MacPortMap(dir.getSubDirectory(
+                pathManager.getBridgeMacPortsPath(bridgeId, vlanId)));
+        macPortMap.setConnectionWatcher(connectionWatcher);
+        macPortMap.start();
+        MacLearningTable table = new MacLearningTableImpl(
+                bridgeId, macPortMap, vlanId);
+        builder.setMacLearningTable(vlanId, table);
+        table.notify(new MacTableNotifyCallBack(vlanId, builder));
     }
 
     void buildLogicalPortUpdates(BridgeBuilder builder, UUID bridgeId)
