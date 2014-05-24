@@ -7,12 +7,9 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.*;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
 import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
@@ -73,7 +70,7 @@ public class L3ZkManager extends BaseZkManager {
         return routers;
     }
 
-    public RouterConfig prepareCreateRouter(List<Op> ops, Router router)
+    public void prepareCreateRouter(List<Op> ops, Router router)
             throws SerializationException, StateAccessException {
 
         UUID preChainId = UUID.randomUUID();
@@ -97,8 +94,6 @@ public class L3ZkManager extends BaseZkManager {
 
         String path = paths.getNeutronRouterPath(router.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(router)));
-
-        return config;
     }
 
     public void prepareDeleteRouter(List<Op> ops, UUID id)
@@ -141,6 +136,15 @@ public class L3ZkManager extends BaseZkManager {
                 serializer.serialize(newRouter)));
     }
 
+    public void prepareCreateRouterInterfacePort(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+
+        // Create a port on the bridge but leave it unlinked.  When
+        // prepareCreateRouterInterface is executed, this port is linked.
+        BridgePortConfig bpConfig = new BridgePortConfig(port.networkId, true);
+        ops.addAll(portZkManager.prepareCreate(port.id, bpConfig));
+    }
+
     public void prepareCreateRouterInterface(List<Op> ops,
                                              RouterInterface rInt)
             throws SerializationException, StateAccessException {
@@ -148,18 +152,12 @@ public class L3ZkManager extends BaseZkManager {
         Port port = networkZkManager.getPort(rInt.portId);
         Subnet subnet = networkZkManager.getSubnet(rInt.subnetId);
 
-        // Check to see if this port exists.  It's possible that an existing
-        // port ID was specified to be the router interface port.
-        BridgePortConfig bpConfig;
-        if (port.isRouterInterface()) {
-            // Create a bridge port
-            bpConfig = new BridgePortConfig(port.networkId, true);
-            ops.addAll(portZkManager.prepareCreate(port.id, bpConfig));
-        } else {
-            // use the existing
-            bpConfig = (BridgePortConfig) portZkManager.get(port.id);
-
-            // Also update this to the correct device ID/owner
+        BridgePortConfig bpConfig =
+                (BridgePortConfig) portZkManager.get(port.id);
+        if (!port.isRouterInterface()) {
+            // Update this port to the correct port type.  This happens when
+            // a non-RouterInterface port was specified to be used to create
+            // RouterInterface port.
             port.deviceId = rInt.id.toString();
             port.deviceOwner = DeviceOwner.ROUTER_INTF;
             networkZkManager.prepareUpdateNeutronPort(ops, port);
@@ -192,5 +190,12 @@ public class L3ZkManager extends BaseZkManager {
                     MetaDataService.IPv4_SUBNET, rpId, dPort.firstIpv4Addr(),
                     100, rInt.id, rpConfig);
         }
+    }
+
+    public void prepareDeleteRouterInterfacePort(List<Op> ops, Port port)
+            throws SerializationException, StateAccessException {
+
+        PortConfig p = portZkManager.get(port.id);
+        portZkManager.prepareDelete(ops, p, true);
     }
 }

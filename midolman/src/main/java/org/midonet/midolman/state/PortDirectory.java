@@ -87,6 +87,12 @@ public class PortDirectory {
         // Routes are stored in a ZK sub-directory. Don't serialize them.
         public transient Set<Route> routes;
 
+        public RouterPortConfig(UUID routerId, IPv4Subnet network,
+                                IPv4Addr portAddr, boolean adminStateUp) {
+            this(routerId, network.getIntAddress(), network.getPrefixLen(),
+                    portAddr.addr(), adminStateUp);
+        }
+
         public RouterPortConfig(UUID routerId, int networkAddr,
                                 int networkLength, int portAddr,
                                 boolean adminStateUp) {

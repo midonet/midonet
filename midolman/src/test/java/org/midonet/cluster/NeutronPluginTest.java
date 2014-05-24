@@ -4,6 +4,7 @@
 
 package org.midonet.cluster;
 
+import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -13,11 +14,12 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.neutron.*;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
-import org.midonet.cluster.data.Chain;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
@@ -26,18 +28,15 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.rules.LiteralRule;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.cluster.data.neutron.*;
+import org.midonet.packets.ARP;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import java.util.*;
 
 public class NeutronPluginTest {
@@ -60,7 +59,58 @@ public class NeutronPluginTest {
         return injector.getInstance(CheckpointedDirectory.class);
     }
 
-    private Network createStockNetwork() {
+    /*
+     * Simple utility functions used in UT to test types of rules.
+     */
+
+    public static boolean isDropAllExceptArpRule(Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.dlType.equals(new Integer(ARP.ETHERTYPE))) return false;
+        if (!(cond.invDlType)) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+    public static boolean isMacSpoofProtectionRule(String macAddress,
+                                                   Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.invDlSrc) return false;
+        if (!Objects.equal(cond.dlSrc.toString(), macAddress)) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+    public static boolean isIpSpoofProtectionRule(IPAllocation subnet,
+                                                  Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.nwSrcInv) return false;
+        String subnetStr = cond.nwSrcIp.getAddress().toString();
+        if (!Objects.equal(subnetStr, subnet.ipAddress)) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
+            return false;
+        return true;
+    }
+
+    public static boolean isAcceptReturnFlowRule(
+            org.midonet.cluster.data.Rule rule) {
+        if (rule == null) return false;
+        Condition cond = rule.getCondition();
+        if (cond == null) return false;
+        if (!cond.matchReturnFlow) return false;
+        if (!Objects.equal(rule.getAction(), RuleResult.Action.ACCEPT))
+            return false;
+        return true;
+    }
+
+    public Network createStockNetwork() {
         Network network = new Network();
         network.adminStateUp = true;
         network.name = "net";
@@ -173,18 +223,18 @@ public class NeutronPluginTest {
         List<Rule<?,?>> outboundRules =
                 dataClient.rulesFindByChain(outbound.getId());
 
-        Assert.assertTrue(NeutronPlugin.isAcceptReturnFlowRule(
-                outboundRules.get(0)));
-        Assert.assertTrue(NeutronPlugin.isDropAllExceptArpRule(
-                outboundRules.get(outboundRules.size() - 1)));
+        Assert.assertTrue(isAcceptReturnFlowRule(outboundRules.get(0)));
+        Assert.assertTrue(isDropAllExceptArpRule(outboundRules.get(
+                outboundRules.size() - 1)));
 
-        List<Rule<?, ?>> spoofRules = inboundRules.subList(0, port.fixedIps.size());
+        List<Rule<?, ?>> spoofRules = inboundRules.subList(0,
+                port.fixedIps.size());
         for (IPAllocation ip : port.fixedIps) {
 
             // verify the rule exists
             boolean found = false;
             for (Rule r : spoofRules) {
-                if (NeutronPlugin.isIpSpoofProtectionRule(ip, r)) {
+                if (isIpSpoofProtectionRule(ip, r)) {
                     found = true;
                     break;
                 }
@@ -192,10 +242,10 @@ public class NeutronPluginTest {
             Assert.assertTrue(found);
         }
 
-        Assert.assertTrue(NeutronPlugin.isMacSpoofProtectionRule(
+        Assert.assertTrue(isMacSpoofProtectionRule(
                 port.macAddress, inboundRules.get(spoofRules.size())));
 
-        Assert.assertTrue(NeutronPlugin.isAcceptReturnFlowRule(inboundRules.get(
+        Assert.assertTrue(isAcceptReturnFlowRule(inboundRules.get(
                 spoofRules.size() + 1)));
 
         List<Rule<?, ?>> sgJumpRulesInbound =
@@ -257,7 +307,7 @@ public class NeutronPluginTest {
             Assert.assertTrue(outboundFound);
         }
 
-        Assert.assertTrue(NeutronPlugin.isDropAllExceptArpRule(
+        Assert.assertTrue(isDropAllExceptArpRule(
                 inboundRules.get(inboundRules.size() - 1)));
     }
 

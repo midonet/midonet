@@ -226,14 +226,25 @@ public class NetworkZkManager extends BaseZkManager {
     public PortConfig prepareCreateVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
-        // Create DHCP host entries
-        prepareCreateDhcpHostEntries(ops, port);
-
-        // Create the Bridge port
         BridgePortConfig cfg = new BridgePortConfig(port.networkId,
                 port.adminStateUp);
+
+        // Create DHCP host entries
+        prepareCreateDhcpHostEntries(ops, port);
         ops.addAll(portZkManager.prepareCreate(port.id, cfg));
-        prepareCreateNeutronPort(ops, port);
+
+        return cfg;
+    }
+
+    public PortConfig prepareCreateDhcpPort(List<Op> ops, Port port)
+            throws StateAccessException, SerializationException {
+
+        BridgePortConfig cfg = new BridgePortConfig(port.networkId,
+                port.adminStateUp);
+
+        // Add option 121 routes for metadata
+        prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
+        ops.addAll(portZkManager.prepareCreate(port.id, cfg));
 
         return cfg;
     }
@@ -266,18 +277,6 @@ public class NetworkZkManager extends BaseZkManager {
         }
     }
 
-    public void prepareCreateDhcpPort(List<Op> ops, Port port)
-            throws StateAccessException, SerializationException {
-
-        // Add option 121 routes for metadata
-        prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
-
-        ops.addAll(portZkManager.prepareCreate(port.id,
-                new BridgePortConfig(port.networkId, true)));
-
-        prepareCreateNeutronPort(ops, port);
-    }
-
     public void prepareDeleteNeutronPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
@@ -298,9 +297,6 @@ public class NetworkZkManager extends BaseZkManager {
 
     public void prepareDeleteVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
-
-        // Remove Neutron port
-        prepareDeleteNeutronPort(ops, port);
 
         // Remove DHCP mappings
         prepareDeleteDhcpHostEntries(ops, port);
@@ -332,9 +328,6 @@ public class NetworkZkManager extends BaseZkManager {
 
     public void prepareDeleteDhcpPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
-
-        // Remove Neutron port
-        prepareDeleteNeutronPort(ops, port);
 
         ops.addAll(portZkManager.prepareDelete(port.id));
         prepareDeleteDhcpMetadataRoutes(ops, port.fixedIps);
@@ -380,48 +373,42 @@ public class NetworkZkManager extends BaseZkManager {
         return ports;
     }
 
-    public void prepareUpdateVifPort(List<Op> ops, Port newPort)
+    public void prepareUpdateVifPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
         // This should throw NoStatePathException
-        portZkManager.prepareUpdatePortAdminState(ops, newPort.id,
-                newPort.adminStateUp);
-
+        portZkManager.prepareUpdatePortAdminState(ops, port.id,
+                port.adminStateUp);
 
         // If there are fixed IPs, adjust the DHCP host entries
-        if (newPort.fixedIps != null) {
+        if (port.fixedIps != null) {
 
             // Remove and re-add DHCP host mappings
-            Port p = getPort(newPort.id);
+            Port p = getPort(port.id);
             prepareDeleteDhcpHostEntries(ops, p);
-            prepareCreateDhcpHostEntries(ops, newPort);
+            prepareCreateDhcpHostEntries(ops, port);
         }
-
-        // Update the neutron port config
-        prepareUpdateNeutronPort(ops, newPort);
     }
 
-    public void prepareUpdateDhcpPort(List<Op> ops, Port newPort)
+    public void prepareUpdateDhcpPort(List<Op> ops, Port port)
             throws StateAccessException, SerializationException {
 
         // This should throw NoStatePathException
-        portZkManager.prepareUpdatePortAdminState(ops, newPort.id,
-                newPort.adminStateUp);
+        portZkManager.prepareUpdatePortAdminState(ops, port.id,
+                port.adminStateUp);
 
         // If 'fixed_ips' are specified, they are new IPs to be assigned.
-        if (newPort.fixedIps != null) {
+        if (port.fixedIps != null) {
 
             // Add new metadata DHCP option routes
-            prepareCreateDhcpMetadataRoutes(ops, newPort.fixedIps);
+            prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
         }
-
-        prepareUpdateNeutronPort(ops, newPort);
     }
 
-    public void prepareUpdateNeutronPort(List<Op> ops, Port newPort)
+    public void prepareUpdateNeutronPort(List<Op> ops, Port port)
             throws SerializationException {
         // Update the neutron port config
-        String path = paths.getNeutronPortPath(newPort.id);
-        ops.add(zk.getSetDataOp(path, serializer.serialize(newPort)));
+        String path = paths.getNeutronPortPath(port.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(port)));
     }
 }

@@ -44,22 +44,25 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     private NetworkZkManager networkZkManager;
 
     @Inject
+    private ExternalNetZkManager externalNetZkManager;
+
+    @Inject
     private L3ZkManager l3ZkManager;
 
     @Inject
-    private ExternalNetZkManager externalNetZkManager;
+    private L3ExtGwModeZkManager l3ExtGwModeZkManager;
 
     @Inject
     private SecurityGroupZkManager securityGroupZkManager;
 
     private static void printOps(List<Op> ops) {
 
-        if (!log.isDebugEnabled()) return;
+        //if (!log.isDebugEnabled()) return;
 
         log.debug("******** BEGIN PRINTING ZK OPs *********");
 
         for (Op op : ops) {
-            log.debug(ZooDefs.opNames[op.getType()] + " " + op.getPath());
+            log.info(ZooDefs.opNames[op.getType()] + " " + op.getPath());
         }
 
         log.debug("******** END PRINTING ZK OPs *********");
@@ -234,7 +237,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     private void createPortOps(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
-        if (port.isVif()){
+        networkZkManager.prepareCreateNeutronPort(ops, port);
+
+        if (port.isVif()) {
 
             PortConfig cfg = networkZkManager.prepareCreateVifPort(ops, port);
 
@@ -250,9 +255,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
             networkZkManager.prepareCreateDhcpPort(ops, port);
 
-        } else {
+        } else if (port.isRouterInterface()) {
 
-            networkZkManager.prepareCreateNeutronPort(ops, port);
+            l3ZkManager.prepareCreateRouterInterfacePort(ops, port);
+
+        } else if (port.isRouterGateway()) {
+
+            l3ExtGwModeZkManager.prepareCreateGatewayPort(ops, port);
 
         }
     }
@@ -312,8 +321,16 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
             networkZkManager.prepareDeleteDhcpPort(ops, port);
 
+        }  else if (port.isRouterInterface()) {
+
+            l3ZkManager.prepareDeleteRouterInterfacePort(ops, port);
+
+        } else if (port.isRouterGateway()) {
+
+            l3ExtGwModeZkManager.prepareDeleteGatewayPort(ops, port);
         }
 
+        networkZkManager.prepareDeleteNeutronPort(ops, port);
         commitOps(ops);
     }
 
@@ -349,6 +366,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         }
 
+        // Update the neutron port config
+        networkZkManager.prepareUpdateNeutronPort(ops, port);
+
         // This should throw NoStatePathException if it doesn't exist.
         commitOps(ops);
 
@@ -362,10 +382,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
         List<Op> ops = new ArrayList<>();
 
         // Create a RouterConfig in ZK
-        RouterZkManager.RouterConfig config = l3ZkManager.prepareCreateRouter(
-                ops, router);
+        l3ZkManager.prepareCreateRouter(ops, router);
 
-        // TODO handle gateway case
+        if (router.gwPortId != null) {
+
+            // Gateway port ID is set, which means that gateway is set at the
+            // time of router creation.
+            l3ExtGwModeZkManager.prepareCreateGatewayRouter(ops, router);
+        }
 
         commitOps(ops);
 
@@ -400,7 +424,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
         List<Op> ops = new ArrayList<>();
 
-        // TODO handle gateway
+        // Update gateway
+        l3ExtGwModeZkManager.prepareUpdateGatewayRouter(ops, router);
 
         // Update the router config
         l3ZkManager.prepareUpdateRouter(ops, router);
@@ -572,58 +597,5 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     public List<SecurityGroupRule> getSecurityGroupRules()
             throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRules();
-    }
-
-
-    /*
-     * Simple utility functions used in UT to test types of rules.
-     */
-
-    public static boolean isDropAllExceptArpRule(Rule rule) {
-        if (rule == null) return false;
-        Condition cond = rule.getCondition();
-        if (cond == null) return false;
-        if (!cond.dlType.equals(new Integer(ARP.ETHERTYPE))) return false;
-        if (!(cond.invDlType)) return false;
-        if (!java.util.Objects.equals(rule.getAction(), RuleResult.Action.DROP))
-            return false;
-        return true;
-    }
-
-
-    public static boolean isMacSpoofProtectionRule(String macAddress,
-                                                   Rule rule) {
-        if (rule == null) return false;
-        Condition cond = rule.getCondition();
-        if (cond == null) return false;
-        if (!cond.invDlSrc) return false;
-        if (!Objects.equal(cond.dlSrc.toString(), macAddress)) return false;
-        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
-            return false;
-        return true;
-    }
-
-    public static boolean isIpSpoofProtectionRule(IPAllocation subnet,
-                                                  Rule rule) {
-        if (rule == null) return false;
-        Condition cond = rule.getCondition();
-        if (cond == null) return false;
-        if (!cond.nwSrcInv) return false;
-        String subnetStr = cond.nwSrcIp.getAddress().toString();
-        if (!Objects.equal(subnetStr, subnet.ipAddress)) return false;
-        if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP))
-            return false;
-        return true;
-    }
-
-    public static boolean isAcceptReturnFlowRule(
-            org.midonet.cluster.data.Rule rule) {
-        if (rule == null) return false;
-        Condition cond = rule.getCondition();
-        if (cond == null) return false;
-        if (!cond.matchReturnFlow) return false;
-        if (!Objects.equal(rule.getAction(), RuleResult.Action.ACCEPT))
-            return false;
-        return true;
     }
 }
