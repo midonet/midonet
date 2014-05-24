@@ -5,17 +5,13 @@
 package org.midonet.midolman.rules;
 
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.UUID;
 
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MalformedPacketException;
-import org.midonet.packets.TCP;
-import org.midonet.packets.UDP;
+import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,4 +208,13 @@ public class ReverseNatRule extends NatRule {
         return sb.toString();
     }
 
+    public static Rule reverseSnatRule(UUID chainId, UUID portId, IPv4Addr ip) {
+        Condition cond = new Condition();
+        cond.nwDstIp = new IPv4Subnet(ip, 32);
+        cond.inPortIds = new HashSet<>();
+        cond.inPortIds.add(portId);
+        Rule cfg = new ReverseNatRule(cond, RuleResult.Action.ACCEPT, false);
+        cfg.chainId = chainId;
+        return cfg;
+    }
 }

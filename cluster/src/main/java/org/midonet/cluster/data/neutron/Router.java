@@ -76,4 +76,9 @@ public class Router {
         return "OS_POST_ROUTING_" + id;
     }
 
+    @JsonIgnore
+    public boolean snatEnabled() {
+        return externalGatewayInfo != null && externalGatewayInfo.enableSnat;
+    }
+
 }

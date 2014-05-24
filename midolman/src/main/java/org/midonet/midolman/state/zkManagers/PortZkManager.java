@@ -417,8 +417,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
-    public void prepareDelete(List<Op> ops, PortDirectory.RouterPortConfig cfg,
-                              boolean deletePeer)
+    public void prepareDelete(List<Op> ops, PortConfig cfg, boolean deletePeer)
             throws SerializationException, StateAccessException {
 
         if (deletePeer && cfg.isInterior()) {
@@ -429,7 +428,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             cfg.setPeerId(null);
         }
 
-        ops.addAll(prepareDelete(cfg.id, cfg));
+        if (cfg instanceof PortDirectory.RouterPortConfig) {
+            ops.addAll(
+                    prepareDelete(cfg.id,(PortDirectory.RouterPortConfig) cfg));
+        } else {
+            ops.addAll(
+                    prepareDelete(cfg.id,(PortDirectory.BridgePortConfig) cfg));
+        }
     }
 
     public void prepareDelete(List<Op> ops,
