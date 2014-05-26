@@ -2,6 +2,7 @@ import logging
 import subprocess
 import time
 
+from mdts.lib import subprocess_compat
 from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ class PktFailure(FailureBase):
             % (self._netns, self._interface)
         LOG.debug('drop packets coming from %s in %s' \
                       % (self._interface, self._netns))
-        subprocess.check_call(cmdline.split())
+        subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)
 
     def eject(self):
@@ -35,5 +36,5 @@ class PktFailure(FailureBase):
             % (self._netns, self._interface)
         LOG.debug('take packets coming from %s in %s' \
                       % (self._interface, self._netns))
-        subprocess.check_call(cmdline.split())
+        subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)
