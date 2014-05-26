@@ -3,12 +3,21 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
 public interface FlowAction
         extends BuilderAware, NetlinkMessage.Attr<FlowAction> {
+
+    /** write the action into a bytebuffer, without its header. */
+    int serializeInto(ByteBuffer buf);
+
+    /** give the netlink attr id of this action instance. */
+    short attrId();
 
     public interface FlowActionAttr {
 
@@ -65,4 +74,19 @@ public interface FlowAction
                 }
             }
         };
+
+    /** stateless serialiser and deserialiser of ovs FlowAction classes. Used
+     *  as a typeclass with NetlinkMessage.writeAttr() and writeAttrSet()
+     *  for assembling ovs requests. */
+    Translator<FlowAction> translator = new Translator<FlowAction>() {
+        public short attrIdOf(FlowAction value) {
+            return value.attrId();
+        }
+        public int serializeInto(ByteBuffer receiver, FlowAction value) {
+            return value.serializeInto(receiver);
+        }
+        public FlowAction deserializeFrom(ByteBuffer source) {
+            throw new UnsupportedOperationException();
+        }
+    };
 }

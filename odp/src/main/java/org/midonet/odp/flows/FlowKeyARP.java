@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import java.util.Arrays;
+import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
@@ -31,6 +32,16 @@ public class FlowKeyARP implements CachedFlowKey {
         arp_op = opcode;
         arp_sip = sourceIp;
         arp_tip = targetIp;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putInt(BytesUtil.instance.reverseBE(arp_sip));
+        buffer.putInt(BytesUtil.instance.reverseBE(arp_tip));
+        buffer.putShort(BytesUtil.instance.reverseBE(arp_op));
+        buffer.put(arp_sha);
+        buffer.put(arp_tha);
+        buffer.putShort((short)0); // padding
+        return 24;
     }
 
     @Override
@@ -61,6 +72,10 @@ public class FlowKeyARP implements CachedFlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyARP> getKey() {
         return FlowKeyAttr.ARP;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.ARP.getId();
     }
 
     @Override

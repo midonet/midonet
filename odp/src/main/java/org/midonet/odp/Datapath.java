@@ -75,8 +75,7 @@ public class Datapath {
         NetlinkMessage.addAttribute(buf, nameAttrId, name);
 
         if (stats != null) {
-            short statsAttrId = (short) OpenVSwitch.Datapath.Attr.Stat;
-            NetlinkMessage.write(buf, statsAttrId, stats, Stats.trans);
+            NetlinkMessage.writeAttr(buf, stats, Stats.trans);
         }
     }
 
@@ -198,6 +197,9 @@ public class Datapath {
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
+            public short attrIdOf(Stats any) {
+                return (short) OpenVSwitch.Datapath.Attr.Stat;
+            }
             public int serializeInto(ByteBuffer receiver, Stats value) {
                 receiver.putLong(value.hits)
                         .putLong(value.misses)

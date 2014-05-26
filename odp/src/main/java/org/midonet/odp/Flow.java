@@ -206,5 +206,49 @@ public class Flow {
             desc.add("lastUsedTime: " + lastUsedTime);
         return  desc;
     }
-}
 
+    /** Prepares an ovs request to select all flows in a datapath instance. The
+     *  message is empty. Used with flow get (enumerate) and flow del (flush
+     *  all) generic netlink commands of the flow family. */
+    public static ByteBuffer selectAllRequest(ByteBuffer buf, int datapathId) {
+        buf.putInt(datapathId);
+        buf.flip();
+        return buf;
+    }
+
+    /** Prepares an ovs request to select a single flow in a datapath instance
+     *  based of the flow match. Used with flow get and flow del generic netlink
+     *  commands of the flow family. */
+    public static ByteBuffer selectOneRequest(ByteBuffer buf, int datapathId,
+                                              Iterable<FlowKey> keys) {
+        buf.putInt(datapathId);
+        addKeys(buf,keys);
+        buf.flip();
+        return buf;
+    }
+
+    /** Prepares an ovs request to describe a single flow (flow match and flow
+     *  actions). Used with flow set and flow create generic netlink commands
+     *  of the flow family. */
+    public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
+                                                Iterable<FlowKey> keys,
+                                                Iterable<FlowAction> actions) {
+        buf.putInt(datapathId);
+        addKeys(buf,keys);
+
+        // the actions list is allowed to be empty (drop flow). Nevertheless the
+        // actions nested attribute header needs to be written otherwise the
+        // datapath will answer back with EINVAL
+        short actionsId = FlowFamily.AttrKey.ACTIONS.getId();
+        NetlinkMessage.writeAttrSeq(buf, actionsId, actions,
+                                    FlowAction.translator);
+
+        buf.flip();
+        return buf;
+    }
+
+    public static void addKeys(ByteBuffer buf, Iterable<FlowKey> keys) {
+        short keysId = FlowFamily.AttrKey.KEY.getId();
+        NetlinkMessage.writeAttrSeq(buf, keysId, keys, FlowKey.translator);
+    }
+}

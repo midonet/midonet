@@ -3,9 +3,10 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
-
 
 import static org.midonet.packets.Unsigned.unsign;
 
@@ -19,6 +20,12 @@ public class FlowKeyICMPv6 implements FlowKey {
     FlowKeyICMPv6(byte type, byte code) {
         this.icmpv6_type = type;
         this.icmpv6_code = code;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.put(icmpv6_type);
+        buffer.put(icmpv6_code);
+        return 2;
     }
 
     @Override
@@ -41,6 +48,10 @@ public class FlowKeyICMPv6 implements FlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyICMPv6> getKey() {
         return FlowKeyAttr.ICMPv6;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.ICMPv6.getId();
     }
 
     @Override

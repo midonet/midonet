@@ -3,12 +3,22 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 
 public class FlowActionPopVLAN implements FlowAction {
 
     FlowActionPopVLAN() { }
+
+    /** For the POP_VLAN action, nothing is actually serialised after the
+     *  netlink attribute header, since POP_VLAN is a "value-less" action. In
+     *  the datapath code, the 0 length (not-counting the header) is checked and
+     *  enforced in flow-netlink.c in ovs_nla_copy_actions(). */
+    public int serializeInto(ByteBuffer buffer) {
+        return 0;
+    }
 
     @Override
     public void serialize(Builder builder) {
@@ -22,6 +32,10 @@ public class FlowActionPopVLAN implements FlowAction {
     @Override
     public NetlinkMessage.AttrKey<FlowActionPopVLAN> getKey() {
         return FlowActionAttr.POP_VLAN;
+    }
+
+    public short attrId() {
+        return FlowActionAttr.POP_VLAN.getId();
     }
 
     @Override

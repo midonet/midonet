@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
@@ -49,6 +51,11 @@ public class FlowKeyEtherType implements CachedFlowKey {
         this.etherType = etherType;
     }
 
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putShort(BytesUtil.instance.reverseBE(etherType));
+        return 2;
+    }
+
     @Override
     public void serialize(Builder builder) {
         builder.addValue(BytesUtil.instance.reverseBE(etherType));
@@ -67,6 +74,10 @@ public class FlowKeyEtherType implements CachedFlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyEtherType> getKey() {
         return FlowKeyAttr.ETHERTYPE;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.ETHERTYPE.getId();
     }
 
     @Override

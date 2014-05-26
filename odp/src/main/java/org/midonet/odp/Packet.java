@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.family.PacketFamily;
+import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
 
@@ -146,5 +147,32 @@ public class Packet {
         packet.userData = msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA);
 
         return packet;
+    }
+
+    /** Prepares an ovs request for executing and a packet with the given list
+     *  of actions. */
+    public static ByteBuffer execRequest(ByteBuffer buf, int datapathId,
+                                         Iterable<FlowKey> keys,
+                                         Iterable<FlowAction> actions,
+                                         Ethernet packet) {
+        buf.putInt(datapathId);
+// todo: find out about this !
+        // TODO(pino): find out why ovs_packet_cmd_execute throws an
+        // EINVAL if we put the PACKET attribute right after the
+        // datapathId. I examined the ByteBuffers constructed with that
+        // ordering of attributes and compared it to this one, and found
+        // only the expected difference.
+
+        short keyId = PacketFamily.AttrKey.KEY.getId();
+        NetlinkMessage.writeAttrSeq(buf, keyId, keys, FlowKey.translator);
+
+        short actId = PacketFamily.AttrKey.ACTIONS.getId();
+        NetlinkMessage.writeAttrSeq(buf, actId, actions, FlowAction.translator);
+
+        short pktId = PacketFamily.AttrKey.PACKET.getId();
+        NetlinkMessage.addAttribute(buf, pktId, packet.serialize());
+
+        buf.flip();
+        return buf;
     }
 }

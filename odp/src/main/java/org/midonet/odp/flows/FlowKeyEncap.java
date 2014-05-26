@@ -28,9 +28,21 @@ public class FlowKeyEncap implements FlowKey {
         return FlowKeyAttr.ENCAP;
     }
 
+    public short attrId() {
+        return FlowKeyAttr.ENCAP.getId();
+    }
+
     @Override
     public FlowKeyEncap getValue() {
         return this;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        int nBytes = 0;
+        for (FlowKey key : keys) {
+            nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKey.translator);
+        }
+        return nBytes;
     }
 
     @Override

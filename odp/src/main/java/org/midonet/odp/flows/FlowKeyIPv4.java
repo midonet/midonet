@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
@@ -29,6 +31,16 @@ public class FlowKeyIPv4 implements FlowKey {
         this.ipv4_tos = typeOfService;
         this.ipv4_ttl = ttl;
         this.ipv4_frag = fragmentType;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putInt(BytesUtil.instance.reverseBE(ipv4_src));
+        buffer.putInt(BytesUtil.instance.reverseBE(ipv4_dst));
+        buffer.put(ipv4_proto);
+        buffer.put(ipv4_tos);
+        buffer.put(ipv4_ttl);
+        buffer.put(ipv4_frag);
+        return 12;
     }
 
     @Override
@@ -60,6 +72,10 @@ public class FlowKeyIPv4 implements FlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyIPv4> getKey() {
         return FlowKeyAttr.IPv4;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.IPv4.getId();
     }
 
     @Override
