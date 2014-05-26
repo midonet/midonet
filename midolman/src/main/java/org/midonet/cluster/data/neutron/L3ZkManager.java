@@ -179,6 +179,9 @@ public class L3ZkManager extends BaseZkManager {
             networkZkManager.prepareUpdateNeutronPort(ops, port);
         }
 
+        // For IPv6, this is not supported
+        if (!subnet.isIpv4()) return;
+
         // Create a router port
         UUID rpId = UUID.randomUUID();
         RouterPortConfig rpConfig = new RouterPortConfig(rInt.id,

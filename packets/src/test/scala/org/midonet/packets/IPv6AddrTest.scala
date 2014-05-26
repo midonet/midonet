@@ -7,12 +7,9 @@ package org.midonet.packets
 import java.util.Random
 
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.scalatest.Matchers
 import org.scalatest.Suite
-import org.scalatest.junit.JUnitRunner
 
-@RunWith(classOf[JUnitRunner])
 class IPv6AddrTest extends Suite with Matchers {
 
     val ippool = List.tabulate(1000) { _ => IPv6Addr.random }
@@ -114,4 +111,20 @@ class IPv6AddrTest extends Suite with Matchers {
         (ip1 range ip11).toSeq should be((ip11 range ip1).toSeq)
     }
 
+    @Test
+    def testConvertToLongNotation() {
+        IPv6Addr.convertToLongNotation("::") shouldEqual "0:0:0:0:0:0:0:0"
+
+        IPv6Addr.convertToLongNotation("::FE01") shouldEqual
+            "0:0:0:0:0:0:0:FE01"
+
+        IPv6Addr.convertToLongNotation("2001::") shouldEqual
+            "2001:0:0:0:0:0:0:0"
+
+        IPv6Addr.convertToLongNotation("2001::0DB8") shouldEqual
+            "2001:0:0:0:0:0:0:0DB8"
+
+        IPv6Addr.convertToLongNotation("0:0:0:0:0:0:0:0") shouldEqual
+            "0:0:0:0:0:0:0:0"
+    }
 }
