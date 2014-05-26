@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import java.util.Arrays;
+import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
@@ -51,6 +52,17 @@ public class FlowKeyIPv6 implements FlowKey {
         };
     }
 
+    public int serializeInto(ByteBuffer buffer) {
+        BytesUtil.instance.writeBEIntsInto(buffer, ipv6_src);
+        BytesUtil.instance.writeBEIntsInto(buffer, ipv6_dst);
+        buffer.putInt(BytesUtil.instance.reverseBE(ipv6_label));
+        buffer.put(ipv6_proto);
+        buffer.put(ipv6_tclass);
+        buffer.put(ipv6_hlimit);
+        buffer.put(ipv6_frag);
+        return 40;
+    }
+
     @Override
     public void serialize(Builder builder) {
         for (int x : ipv6_src) {
@@ -89,6 +101,11 @@ public class FlowKeyIPv6 implements FlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyIPv6> getKey() {
         return FlowKeyAttr.IPv6;
+    }
+
+    @Override
+    public short attrId() {
+        return FlowKeyAttr.IPv6.getId();
     }
 
     @Override

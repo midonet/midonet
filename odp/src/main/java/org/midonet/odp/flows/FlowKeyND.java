@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import java.util.Arrays;
+import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
@@ -24,6 +25,13 @@ public class FlowKeyND implements CachedFlowKey {
 
     FlowKeyND(int[] target) {
         nd_target = target;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        BytesUtil.instance.writeBEIntsInto(buffer, nd_target);
+        buffer.put(nd_sll);
+        buffer.put(nd_tll);
+        return 28;
     }
 
     @Override
@@ -54,6 +62,10 @@ public class FlowKeyND implements CachedFlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyND> getKey() {
         return FlowKeyAttr.ND;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.ND.getId();
     }
 
     @Override

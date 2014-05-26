@@ -3,12 +3,21 @@
  */
 package org.midonet.odp.flows;
 
-import org.midonet.netlink.NetlinkMessage;
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage.AttrKey;
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
 public interface FlowKey extends BuilderAware, NetlinkMessage.Attr<FlowKey> {
+
+    /** write the key into a bytebuffer, without its header. */
+    int serializeInto(ByteBuffer buf);
+
+    /** give the netlink attr id of this key instance. */
+    short attrId();
 
     /**
      * Should be used by those keys that are only supported in user space.
@@ -160,4 +169,19 @@ public interface FlowKey extends BuilderAware, NetlinkMessage.Attr<FlowKey> {
                 }
             }
         };
+
+    /** stateless serialiser and deserialiser of ovs FlowKey classes. Used
+     *  as a typeclass with NetlinkMessage.writeAttr() and writeAttrSet()
+     *  for assembling ovs requests. */
+    Translator<FlowKey> translator = new Translator<FlowKey>() {
+        public short attrIdOf(FlowKey value) {
+            return value.attrId();
+        }
+        public int serializeInto(ByteBuffer receiver, FlowKey value) {
+            return value.serializeInto(receiver);
+        }
+        public FlowKey deserializeFrom(ByteBuffer source) {
+            throw new UnsupportedOperationException();
+        }
+    };
 }

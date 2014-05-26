@@ -9,6 +9,9 @@ import java.nio.ByteBuffer;
  *  objects to and from netlink messages. */
 public interface Translator<V> {
 
+  /** Returns the attribute id of a given T value. */
+  short attrIdOf(V value);
+
   /** Serialize into a receiving ByteBuffer a T value and returns the number of
    *  bytes written. The translator should writes the value continously and
    *  should not care about netlink attribute headers. */

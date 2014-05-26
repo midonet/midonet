@@ -19,6 +19,10 @@ public class FlowActionSetKey implements FlowAction {
         this.flowKey = flowKey;
     }
 
+    public int serializeInto(ByteBuffer buffer) {
+        return NetlinkMessage.writeAttr(buffer, flowKey, FlowKey.translator);
+    }
+
     @Override
     public void serialize(Builder builder) {
         builder.addAttr(flowKey.getKey(), flowKey);
@@ -40,6 +44,10 @@ public class FlowActionSetKey implements FlowAction {
         });
 
         return flowKey != null;
+    }
+
+    public short attrId() {
+        return FlowActionAttr.SET.getId();
     }
 
     @Override

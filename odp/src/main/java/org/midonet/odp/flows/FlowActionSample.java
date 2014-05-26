@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import java.util.List;
+import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
@@ -33,6 +34,16 @@ public class FlowActionSample implements FlowAction {
         this.actions = actions;
     }
 
+    public int serializeInto(ByteBuffer buffer) {
+        int nBytes= 0;
+        short probId = (short) OpenVSwitch.FlowAction.SampleAttr.Probability;
+        short actionsId = (short) OpenVSwitch.FlowAction.SampleAttr.Actions;
+        nBytes += NetlinkMessage.writeIntAttr(buffer, probId, probability);
+        nBytes += NetlinkMessage.writeAttrSeq(buffer, actionsId, actions,
+                                              FlowAction.translator);
+        return nBytes;
+    }
+
     @Override
     public void serialize(Builder builder) {
         builder.addAttr(PROBABILITY, probability);
@@ -48,6 +59,10 @@ public class FlowActionSample implements FlowAction {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public short attrId() {
+        return FlowActionAttr.SAMPLE.getId();
     }
 
     @Override

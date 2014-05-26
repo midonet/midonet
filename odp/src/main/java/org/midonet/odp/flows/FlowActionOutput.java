@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 
@@ -16,6 +18,11 @@ public class FlowActionOutput implements FlowAction {
 
     FlowActionOutput(int portNumber) {
         this.portNumber = portNumber;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putInt(portNumber);
+        return 4;
     }
 
     @Override
@@ -36,6 +43,10 @@ public class FlowActionOutput implements FlowAction {
     @Override
     public NetlinkMessage.AttrKey<FlowActionOutput> getKey() {
         return FlowActionAttr.OUTPUT;
+    }
+
+    public short attrId() {
+        return FlowActionAttr.OUTPUT.getId();
     }
 
     @Override
