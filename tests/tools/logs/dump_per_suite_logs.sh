@@ -30,6 +30,16 @@ for d in /var/log/cassandra*; do
     cd $OLDPWD
 done
 
+# MidoNet API log
+MIDONET_API_LOGFILE=/var/log/tomcat[67]/midonet-api.log
+[ -f $MIDONET_API_LOGFILE ] && {
+    echo ======================
+    echo MidoNet API server log: $MIDONET_API_LOGFILE
+    echo ======================
+    cat  $MIDONET_API_LOGFILE
+}
+
+
 MIDOLMAN_LOG_FILE=midolman.log
 MIDOLMAN_UPSTART_ERR_LOG_FILE=upstart-stderr.log
 for d in /var/log/midolman.*; do
