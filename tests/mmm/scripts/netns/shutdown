@@ -33,6 +33,7 @@ done
 
 echo 0 >/proc/sys/net/ipv4/ip_forward
 iptables -t nat -D POSTROUTING -s 10.0.0.0/24 ! -d 10.0.0.0/24 -j MASQUERADE
+iptables -t nat -D POSTROUTING -s 172.16.1.0/24 ! -d 172.16.1.0/24 -j MASQUERADE
 
 if test -x /etc/init.d/iptables; then
     /etc/init.d/iptables start
