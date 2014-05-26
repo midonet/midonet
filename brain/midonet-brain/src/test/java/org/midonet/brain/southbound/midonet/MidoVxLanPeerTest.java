@@ -14,15 +14,21 @@ import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+import rx.Observable;
+import rx.Subscription;
+import rx.functions.Action0;
+import rx.functions.Action1;
+
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.southbound.vtep.VtepConstants;
-import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.BridgePort;
+import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.zones.GreTunnelZone;
 import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.serialization.SerializationException;
@@ -30,10 +36,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import rx.Observable;
-import rx.Subscription;
-import rx.functions.Action0;
-import rx.functions.Action1;
+
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
@@ -99,21 +102,27 @@ public class MidoVxLanPeerTest {
 
     private DataClient dataClient = null;
 
-    private UUID hostId = UUID.randomUUID();
     private MAC mac1 = MAC.fromString("aa:bb:cc:dd:ee:01");
     private MAC mac2 = MAC.fromString("aa:bb:cc:dd:ee:02");
     private MAC mac3 = MAC.fromString("aa:bb:cc:dd:ee:03");
 
-    private IPv4Addr vtepIp = IPv4Addr.fromString("10.2.3.4");
-    private int vtepPort = 6632;
-    private IPv4Addr hostIp1 = IPv4Addr.fromString("10.1.1.1");
-    private int vni = 100;
+    private final IPv4Addr tunnelZoneHostIP = IPv4Addr.apply("192.168.1.200");
+    private final int bridgePortVNI = 42;
+    private final String bridgePortIface = "eth0";
+
+    private final IPv4Addr tunnelZoneVtepIP = IPv4Addr.apply("192.168.1.100");
+    private final int vtepMgmtPort = 6632;
+
+    private Host host = null;
+    private UUID hostId = null;
+    private VTEP vtep = null;
 
     @Before
     public void setUp() throws Exception {
         HierarchicalConfiguration config = new HierarchicalConfiguration();
         BrainTestUtils.fillTestConfig(config);
-        Injector injector = Guice.createInjector(BrainTestUtils.modules(config));
+        Injector injector = Guice.createInjector(
+            BrainTestUtils.modules(config));
 
         Directory directory = injector.getInstance(Directory.class);
         BrainTestUtils.setupZkTestDirectory(directory);
@@ -121,24 +130,22 @@ public class MidoVxLanPeerTest {
         this.dataClient = injector.getInstance(DataClient.class);
         this.midoVxLanPeer = new MidoVxLanPeer(this.dataClient);
 
-        // Make a host, required so the bridge ports map to a vxlan tunnel
-        // endpoint
-        this.hostId = UUID.randomUUID();
-        this.dataClient.hostsCreate(hostId, new Host(hostId).setName("host"));
-        UUID tzId = this.dataClient.tunnelZonesCreate(
-            new GreTunnelZone(UUID.randomUUID()).setName("tz"));
-        this.dataClient .tunnelZonesAddMembership(tzId,
-                                                  new GreTunnelZoneHost(hostId)
-                                                      .setIp(hostIp1.toIntIPv4())
-        );
+        host = new Host();
+        host.setName("MidoMacBrokerTestHost");
+        hostId = dataClient.hostsCreate(UUID.randomUUID(), host);
 
-        // Make a fake vtep
-        VTEP vtep = new VTEP();
-        vtep.setId(vtepIp);
-        vtep.setMgmtPort(vtepPort);
+        TunnelZone<?, ?> tz = new GreTunnelZone();
+        tz.setName("test");
+        UUID tzId = dataClient.tunnelZonesCreate(tz);
+        GreTunnelZoneHost zoneHost = new GreTunnelZoneHost(hostId);
+        zoneHost.setIp(tunnelZoneHostIP.toIntIPv4());
+        dataClient.tunnelZonesAddMembership(tzId, zoneHost);
+
+        vtep = new VTEP();
+        vtep.setId(tunnelZoneVtepIP);
+        vtep.setMgmtPort(vtepMgmtPort);
         vtep.setTunnelZone(tzId);
-
-        this.dataClient.vtepCreate(vtep);
+        dataClient.vtepCreate(vtep);
     }
 
     /*
@@ -150,7 +157,8 @@ public class MidoVxLanPeerTest {
         bridge.setName(name);
         UUID bridgeId = dataClient.bridgesCreate(bridge);
         // Fake a binding
-        dataClient.bridgeCreateVxLanPort(bridgeId, vtepIp, vtepPort, vni);
+        dataClient.bridgeCreateVxLanPort(bridgeId, tunnelZoneVtepIP,
+                                         vtepMgmtPort, bridgePortVNI);
         return bridgeId;
     }
 
@@ -164,8 +172,16 @@ public class MidoVxLanPeerTest {
         port.setHostId(hostId);
         port.setInterfaceName("eth-"+bridgeId);
         UUID bridgePortId = dataClient.portsCreate(port);
+        port = dataClient.portsGet(bridgePortId);
+        dataClient.hostsAddVrnPortMappingAndReturnPort(hostId,
+                                                       bridgePortId,
+                                                       bridgePortIface);
+
+        port.setInterfaceName(bridgePortIface);
+        port.setHostId(hostId);
+        dataClient.portsUpdate(port);
         dataClient.bridgeAddMacPort(bridgeId, Bridge.UNTAGGED_VLAN_ID,
-                                    mac, bridgePortId);
+            mac, bridgePortId);
         return bridgePortId;
     }
 
@@ -238,13 +254,36 @@ public class MidoVxLanPeerTest {
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
         assertThat(update.notifications,
                    contains(
-                       new MacLocation(mac1, lsName, hostIp1),
+                       new MacLocation(mac1, lsName, tunnelZoneHostIP),
                        new MacLocation(mac1, lsName, null),
-                       new MacLocation(mac3, lsName, hostIp1)
+                       new MacLocation(mac3, lsName, tunnelZoneHostIP)
                    ));
     }
 
     @Test
+    public void testMacLocationApplies() throws Exception {
+        UUID bridgeId = makeBridge("bridge");
+        String  lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
+        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        UUID vxLanPortId = dataClient.bridgesGet(bridgeId).getVxLanPortId();
+
+        MacLocation ml;
+
+        // add a mapping
+        ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
+        midoVxLanPeer.apply(ml);
+        assertEquals("Port is correctly mapped", vxLanPortId,
+                     midoVxLanPeer.getPort(bridgeId, mac1));
+
+        // remove the mapping
+        ml = new MacLocation(mac1, lsName, null);
+        midoVxLanPeer.apply(ml);
+        assertEquals("Port is correctly unmapped", null,
+                     midoVxLanPeer.getPort(bridgeId, mac1));
+
+    }
+
+   @Test
     public void testSubscriptionLifecycle() throws Exception {
 
         UUID bridgeId = makeBridge("bridge");
@@ -294,7 +333,7 @@ public class MidoVxLanPeerTest {
         assertEquals(1, updates.notifications.size());
 
         assertThat(updates.notifications,
-                   contains(new MacLocation(mac1, lsName, hostIp1)));
+                   contains(new MacLocation(mac1, lsName, tunnelZoneHostIP)));
 
         // let's unsubscribe, expect no onNext or onComplete calls
         subscription.unsubscribe();

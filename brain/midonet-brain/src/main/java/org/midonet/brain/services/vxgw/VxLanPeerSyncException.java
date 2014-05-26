@@ -15,7 +15,13 @@ public class VxLanPeerSyncException extends RuntimeException {
         this.change = change;
     }
 
-    @Override
+    public VxLanPeerSyncException(String msg, MacLocation change,
+                                  Throwable cause) {
+        super(msg, cause);
+        this.change = change;
+    }
+
+   @Override
     public String toString() {
         return String.format("Failed to apply %s, %s",
                              change.toString(), this.getMessage());
