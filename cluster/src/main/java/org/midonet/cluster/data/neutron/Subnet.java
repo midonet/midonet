@@ -122,6 +122,23 @@ public class Subnet {
     }
 
     @JsonIgnore
+    public IntIPv4 intIpv4() {
+        if (cidr == null) return null;
+        return IntIPv4.fromString(cidr, "/");
+    }
+
+    @JsonIgnore
+    public IPv6Subnet ipv6Subnet() {
+        if (cidr == null) return null;
+
+        if (isIpv4()) {
+            return null;
+        } else {
+            return IPv6Subnet.fromString(cidr);
+        }
+    }
+
+    @JsonIgnore
     public int cidrAddressInt() {
         IPv4Subnet ipSubnet = ipv4Subnet();
         if (ipSubnet == null) return 0;

@@ -115,15 +115,32 @@ object IPv6Addr {
 
     def apply(upper: Long, lower: Long) = fromLong(upper, lower)
 
-    // TODO: Support ":: (abbreviated)" notation
+    def convertToLongNotation(s: String): String = {
+
+          val n = s.count(_ == ':') - 2 // subtract 2 for '::'
+          s match {
+              case "::" => ("0:" * 8).dropRight(1)
+              case x if s.startsWith("::") =>
+                  // '::' exists at the beginning => 7 potential '0:' slots
+                  x.replace("::", "0:" * (7 - n))
+              case x if s.endsWith("::") =>
+                  // '::' exists at the end => 7 potential '0:' slots
+                  x.replace("::", ":" + ("0:" * (7 - n))).dropRight(1)
+              case x if s.contains("::") =>
+                  // '::' exists in the middle => 6 potential '0:' slots
+                  x.replace("::", ":" + ("0:" * (6 - n)))
+              case _ => s
+        }
+    }
+
     // TODO: Verify each piece is valid 1-4 digit hex.
     @JsonCreator
     def fromString(s: String): IPv6Addr = {
         val unsplit = if (s.charAt(0) == '[' && s.charAt(s.length - 1) == ']')
                           s.substring(1, s.length - 1)
                       else s
-
-        val pieces = unsplit.split(":")
+        val longNotation = convertToLongNotation(unsplit)
+        val pieces = longNotation.split(":")
         val ip = if (pieces.size == 8)
                         new IPv6Addr((parseLong(pieces(0), 16) << 48) |
                                      (parseLong(pieces(1), 16) << 32) |

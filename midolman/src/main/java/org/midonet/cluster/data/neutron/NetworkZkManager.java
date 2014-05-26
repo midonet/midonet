@@ -3,27 +3,29 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import java.util.*;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
+import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Host;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IntIPv4;
+
+import java.util.*;
 
 public class NetworkZkManager extends BaseZkManager {
 
     private final BridgeZkManager bridgeZkManager;
     private final BridgeDhcpZkManager dhcpZkManager;
+    private final BridgeDhcpV6ZkManager dhcpV6ZkManager;
     private final PortZkManager portZkManager;
 
     @Inject
@@ -32,10 +34,12 @@ public class NetworkZkManager extends BaseZkManager {
                             Serializer serializer,
                             BridgeZkManager bridgeZkManager,
                             BridgeDhcpZkManager dhcpZkManager,
+                            BridgeDhcpV6ZkManager dhcpV6ZkManager,
                             PortZkManager portZkManager) {
         super(zk, paths, serializer);
         this.bridgeZkManager = bridgeZkManager;
         this.dhcpZkManager = dhcpZkManager;
+        this.dhcpV6ZkManager = dhcpV6ZkManager;
         this.portZkManager = portZkManager;
     }
 
@@ -118,9 +122,15 @@ public class NetworkZkManager extends BaseZkManager {
     public void prepareCreateSubnet(List<Op> ops, Subnet subnet)
             throws SerializationException, StateAccessException {
 
-        BridgeDhcpZkManager.Subnet config =
-                new BridgeDhcpZkManager.Subnet(subnet);
-        dhcpZkManager.prepareCreateSubnet(ops, subnet.networkId, config);
+        if (subnet.isIpv4()) {
+            BridgeDhcpZkManager.Subnet config =
+                    new BridgeDhcpZkManager.Subnet(subnet);
+            dhcpZkManager.prepareCreateSubnet(ops, subnet.networkId, config);
+        } else {
+            BridgeDhcpV6ZkManager.Subnet6 config =
+                    new BridgeDhcpV6ZkManager.Subnet6(subnet.ipv6Subnet());
+            dhcpV6ZkManager.prepareCreateSubnet6(ops, subnet.networkId, config);
+        }
 
         String path = paths.getNeutronSubnetPath(subnet.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(subnet)));
@@ -134,8 +144,13 @@ public class NetworkZkManager extends BaseZkManager {
             return null;
         }
 
-        dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
-                IntIPv4.fromString(subnet.cidr, "/"));
+        if (subnet.isIpv4()) {
+            dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
+                    subnet.intIpv4());
+        } else {
+            dhcpV6ZkManager.prepareDeleteSubnet6(ops, subnet.networkId,
+                    subnet.ipv6Subnet());
+        }
 
         ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
         return subnet;
@@ -144,9 +159,15 @@ public class NetworkZkManager extends BaseZkManager {
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
             throws SerializationException, StateAccessException {
 
-        BridgeDhcpZkManager.Subnet config =
-                new BridgeDhcpZkManager.Subnet(subnet);
-        dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
+        if (subnet.isIpv4()) {
+            BridgeDhcpZkManager.Subnet config =
+                    new BridgeDhcpZkManager.Subnet(subnet);
+            dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
+        } else {
+            BridgeDhcpV6ZkManager.Subnet6 config =
+                    new BridgeDhcpV6ZkManager.Subnet6(subnet.ipv6Subnet());
+            dhcpV6ZkManager.prepareUpdateSubnet6(ops, subnet.networkId, config);
+        }
 
         String path = paths.getNeutronSubnetPath(subnet.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(subnet)));
@@ -209,10 +230,15 @@ public class NetworkZkManager extends BaseZkManager {
             throws SerializationException, StateAccessException {
         for (IPAllocation fixedIp : port.fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
-            if (!subnet.isIpv4()) continue;
-
-            dhcpZkManager.prepareAddHost(
-                    ops, subnet, new Host(port.macAddress, fixedIp.ipAddress));
+            if (subnet.isIpv4()) {
+                dhcpZkManager.prepareAddHost(ops, subnet,
+                        new Host(port.macAddress, fixedIp.ipAddress));
+            } else{
+                dhcpV6ZkManager.prepareAddHost(ops, subnet.networkId,
+                        subnet.ipv6Subnet(),
+                        new BridgeDhcpV6ZkManager.Host(
+                                port.macAddress, fixedIp.ipv6Addr(), null));
+            }
         }
     }
 
@@ -294,8 +320,13 @@ public class NetworkZkManager extends BaseZkManager {
 
         for (IPAllocation ipAlloc : port.fixedIps) {
             Subnet subnet = getSubnet(ipAlloc.subnetId);
-            dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
-                    IntIPv4.fromString(subnet.cidr, "/"), port.macAddress);
+            if (subnet.isIpv4()) {
+                dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
+                        IntIPv4.fromString(subnet.cidr, "/"), port.macAddress);
+            } else {
+                dhcpV6ZkManager.prepareDeleteHost(ops, subnet.networkId,
+                        subnet.ipv6Subnet(), port.macAddress);
+            }
         }
     }
 
