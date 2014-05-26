@@ -30,6 +30,7 @@ import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
+import org.midonet.api.license.LicenseResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
 import org.midonet.api.network.rest_api.PortResource;
@@ -282,6 +283,16 @@ public class ApplicationResource extends AbstractResource {
     @Path(ResourceUriBuilder.VTEPS)
     public VtepResource getVtepResource() {
         return factory.getVtepResource();
+    }
+
+    /**
+     * Licenses resource locator.
+     *
+     * @return LicenseResource object to handle licenses requests.
+     */
+    @Path(ResourceUriBuilder.LICENSES)
+    public LicenseResource getLicenseResource() {
+        return factory.getLicenseResource();
     }
 
     /**

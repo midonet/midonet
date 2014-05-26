@@ -475,4 +475,37 @@ public class Application extends UriResource {
             return null;
         }
     }
+
+    /**
+     * @return Licenses URI
+     */
+    public URI getLicenses() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLicenses(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return License URI template
+     */
+    public String getLicenseTemplate() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLicenseTemplate(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return License status URI
+     */
+    public URI getLicenseStatus() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getLicenseStatus(getBaseUri());
+        } else {
+            return null;
+        }
+    }
 }

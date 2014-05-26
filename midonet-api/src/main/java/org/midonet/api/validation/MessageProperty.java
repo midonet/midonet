@@ -107,9 +107,29 @@ public class MessageProperty {
     public static final String VTEP_PORT_NOT_FOUND =
             "{midokura.javarx.VtepPortNotFound.message}";
     public static final String VTEP_PORT_VLAN_PAIR_ALREADY_USED =
-        "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
+            "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
+    public static final String LICENSE_INSTALL_NOT_VALID =
+            "{midokura.javarx.LicenseInstallNotValid.message}";
+    public static final String LICENSE_INSTALL_NOT_MIDONET =
+            "{midokura.javarx.LicenseInstallNotMidonet.message}";
+    public static final String LICENSE_INSTALL_ID_EXISTS =
+            "{midokura.javarx.LicenseInstallIdExists.message}";
+    public static final String LICENSE_INSTALL_FAILED =
+            "{midokura.javarx.LicenseInstallFailed.message}";
+    public static final String LICENSE_ACCESS_FAILED =
+            "{midokura.javarx.LicenseAccessFailed.message}";
+    public static final String LICENSE_NOT_FOUND =
+            "{midokura.javarx.LicenseNotFound.message}";
+    public static final String LICENSE_STATUS_VALID =
+            "{midokura.javarx.LicenseStatusValid.message}";
+    public static final String LICENSE_STATUS_NOT_INSTALLED =
+            "{midokura.javarx.LicenseStatusNotInstalled.message}";
+    public static final String LICENSE_STATUS_NOT_VALID =
+            "{midokura.javarx.LicenseStatusNotValid.message}";
+    public static final String LICENSE_INVALID_ID_FORMAT =
+            "{midokura.javarx.LicenseInvalidIdFormat.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");

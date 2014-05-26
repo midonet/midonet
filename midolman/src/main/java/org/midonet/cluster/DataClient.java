@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -968,4 +969,12 @@ public interface DataClient {
                                      Directory.TypedWatcher watcher)
         throws StateAccessException;
 
+    public void licenseCreate(UUID licenseId, byte[] licenseData)
+        throws StateAccessException;
+
+    public void licenseDelete(UUID licenseId) throws StateAccessException;
+
+    public byte[] licenseSelect(UUID licenseId) throws StateAccessException;
+
+    public Collection<UUID> licenseList() throws StateAccessException;
 }
