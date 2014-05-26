@@ -1478,6 +1478,27 @@ public class ZkPathManager {
         return buildIpAddrGroupAddrPath(id, addr).toString();
     }
 
+    private StringBuilder buildIpAddrGroupAddrPortsPath(UUID id, String addr) {
+        return buildIpAddrGroupAddrPath(id, addr)
+                .append("/ports");
+    }
+
+    public String getIpAddrGroupAddrPortsPath(UUID id, String addr) {
+        return buildIpAddrGroupAddrPortsPath(id, addr).toString();
+    }
+
+    private StringBuilder buildIpAddrGroupAddrPortPath(UUID id, String addr,
+                                                      UUID portId) {
+        return buildIpAddrGroupAddrPortsPath(id, addr)
+                .append("/")
+                .append(portId.toString());
+    }
+
+    public String getIpAddrGroupAddrPortPath(UUID id, String addr,
+                                             UUID portId) {
+        return buildIpAddrGroupAddrPortPath(id, addr, portId).toString();
+    }
+
     private StringBuilder buildLoadBalancersPath() {
         return basePath().append("/load_balancers");
     }
