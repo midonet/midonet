@@ -65,6 +65,8 @@ public class ResourceUriBuilder {
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
+    public static final String LICENSES = "/licenses";
+    public static final String LICENSE_STATUS = "/licenses/status";
 
     private ResourceUriBuilder() {
     }
@@ -793,5 +795,43 @@ public class ResourceUriBuilder {
     public static URI getVip(URI baseUri, UUID vipId) {
         return UriBuilder.fromUri(getVips(baseUri))
                 .path(vipId.toString()).build();
+    }
+
+    /**
+     * Generates the licenses URI.
+     * @param baseUri The base URI.
+     * @return The licenses URI.
+     */
+    public static URI getLicenses(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSES).build();
+    }
+
+    /**
+     * Generates the URI for the license with the specified identifier.
+     * @param baseUri The base URI.
+     * @param id The license identifier.
+     * @return The license URI.
+     */
+    public static URI getLicense(URI baseUri, String id) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSES)
+                         .path(id.toString()).build();
+    }
+
+    /**
+     * Generates the license status URI.
+     * @param baseUri The base URI.
+     * @return The license status URI.
+     */
+    public static URI getLicenseStatus(URI baseUri) {
+        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSE_STATUS).build();
+    }
+
+    /**
+     * Generates the license URI template.
+     * @param baseUri The base URI.
+     * @return The license URI template.
+     */
+    public static String getLicenseTemplate(URI baseUri) {
+        return buildIdTemplateUri(getLicenses(baseUri));
     }
 }

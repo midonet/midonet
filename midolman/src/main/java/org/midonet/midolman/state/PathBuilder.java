@@ -22,6 +22,7 @@ public class PathBuilder extends ZkPathManager {
     public static final String TENANTS_PATH = "tenants";
     public static final String TRACED_CONDITIONS_PATH = "trace-conditions";
     public static final String PORT_GROUP_NAMES_PATH = "port_group-names";
+    public static final String LICENSES_PATH = "licenses";
 
     @Inject
     public PathBuilder(ZookeeperConfig config) {
@@ -214,5 +215,30 @@ public class PathBuilder extends ZkPathManager {
         StringBuilder tcBuilder =
             new StringBuilder(getTraceConditionsPath()).append("/").append(id);
         return tcBuilder.toString();
+    }
+
+    /**
+     * Get ZK licenses path.
+     *
+     * @return /licenses
+     */
+    public String getLicensesPath() { return buildLicensesPath().toString(); }
+
+    private StringBuilder buildLicensesPath() {
+        return new StringBuilder(basePath).append("/").append(LICENSES_PATH);
+    }
+
+    /**
+     * Get ZK license path.
+     *
+     * @param id License ID
+     * @return /licenses/licenseId
+     */
+    public String getLicensePath(UUID id) {
+        return buildLicensePath(id).toString();
+    }
+
+    private StringBuilder buildLicensePath(UUID id) {
+        return buildLicensesPath().append("/").append(id.toString());
     }
 }
