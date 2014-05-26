@@ -87,8 +87,4 @@ public interface MidolmanConfig
 
     @ConfigString(key = "input_channel_threading", defaultValue = "one_to_many")
     public String getInputChannelThreading();
-
-    @ConfigString(key = "uuid_vni_json_mapping_file", defaultValue = "none")
-    public String getUUIDToVniFileLocation();
-
 }

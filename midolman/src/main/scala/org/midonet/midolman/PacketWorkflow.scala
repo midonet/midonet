@@ -19,6 +19,7 @@ import akka.util.Timeout
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.simulation.DhcpImpl
+import org.midonet.midolman.topology.VxLanPortMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.netlink.exceptions.NetlinkException
@@ -121,7 +122,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
     import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
-    import VirtualToPhysicalMapper.VxLanPortRequest
 
     def runSimulation(): Urgent[SimulationResult]
 
@@ -330,11 +330,8 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             if (dpState isGrePort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet()
             } else {
-                val req = VxLanPortRequest(wcMatch.getTunnelID.toInt)
-                (VirtualToPhysicalMapper expiringAsk req) flatMap {
-                    vxlanPortId =>
-                        processSimulationResult(simulatePacketIn(Some(vxlanPortId)))
-                }
+                val uuidOpt = VxLanPortMapper uuidOf wcMatch.getTunnelID.toInt
+                processSimulationResult(simulatePacketIn(uuidOpt))
             }
         } else {
             /* QUESTION: do we need another de-duplication stage here to avoid

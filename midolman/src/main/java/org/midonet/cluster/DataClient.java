@@ -42,6 +42,7 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.l4lb.LBStatus;
@@ -928,4 +929,7 @@ public interface DataClient {
     public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
 
+    public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
+                                     Directory.TypedWatcher watcher)
+        throws StateAccessException;
 }
