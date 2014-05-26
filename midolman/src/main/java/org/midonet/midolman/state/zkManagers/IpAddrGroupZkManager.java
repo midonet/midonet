@@ -239,6 +239,17 @@ public class IpAddrGroupZkManager extends
         return zk.exists(paths.getIpAddrGroupAddrPath(groupId, addr));
     }
 
+    public boolean isOnlyMember(UUID groupId, String addr, UUID portId)
+            throws StateAccessException {
+
+        if (!zk.exists(paths.getIpAddrGroupAddrPath(groupId, addr)))
+            return false;
+
+        Set<String> ports = zk.getChildren(
+                paths.getIpAddrGroupAddrPortsPath(groupId, addr));
+        return ports.size() == 1 && ports.contains(portId.toString());
+    }
+
     public void addAddr(UUID groupId, String addr)
             throws StateAccessException, SerializationException {
         addr = IPAddr$.MODULE$.canonicalize(addr);
@@ -247,7 +258,6 @@ public class IpAddrGroupZkManager extends
         } catch (StatePathExistsException ex) {
             // This group already has this address. Do nothing.
         }
-
     }
 
     public Set<String> getAddrs(UUID id) throws StateAccessException {
@@ -275,16 +285,35 @@ public class IpAddrGroupZkManager extends
         }
     }
 
-    public void prepareAddAdr(List<Op> ops, UUID groupId, String addr)
+    public void prepareAddAdr(List<Op> ops, UUID groupId, String addr,
+                              UUID portId, boolean isRebuild)
             throws StateAccessException, SerializationException {
         addr = IPAddr$.MODULE$.canonicalize(addr);
+        if (!isMember(groupId, addr) ||
+                (isRebuild && isOnlyMember(groupId, addr, portId))) {
+            ops.add(zk.getPersistentCreateOp(
+                    paths.getIpAddrGroupAddrPath(groupId, addr), null));
+            ops.add(zk.getPersistentCreateOp(
+                    paths.getIpAddrGroupAddrPortsPath(groupId, addr), null));
+        }
         ops.add(zk.getPersistentCreateOp(
-                paths.getIpAddrGroupAddrPath(groupId, addr), null));
+                paths.getIpAddrGroupAddrPortPath(groupId, addr, portId), null));
     }
 
-    public void prepareRemoveAddr(List<Op> ops, UUID groupId, String addr)
+    public void prepareRemoveAddr(List<Op> ops, UUID groupId, String addr,
+                                  UUID portId)
             throws StateAccessException, SerializationException {
         addr = IPAddr$.MODULE$.canonicalize(addr);
-        ops.add(zk.getDeleteOp(paths.getIpAddrGroupAddrPath(groupId, addr)));
+
+        ops.add(zk.getDeleteOp(
+                paths.getIpAddrGroupAddrPortPath(groupId, addr, portId)));
+
+        if (isOnlyMember(groupId, addr, portId)) {
+            // This is the last port, so we can delete the addr entry
+            ops.add(zk.getDeleteOp(
+                    paths.getIpAddrGroupAddrPortsPath(groupId, addr)));
+            ops.add(zk.getDeleteOp(
+                    paths.getIpAddrGroupAddrPath(groupId, addr)));
+        }
     }
 }

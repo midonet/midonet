@@ -555,5 +555,90 @@ public class NeutronPluginTest {
         // TODO: FAILS
         //Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
     }
+
+    @Test
+    public void testSGSameIpCreate() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
+        Network network = plugin.createNetwork(createStockNetwork());
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+
+        Network network2 = plugin.createNetwork(createStockNetwork());
+        Subnet subnet2 = createStockSubnet();
+        subnet2.networkId = network2.id;
+        subnet2 = plugin.createSubnet(subnet2);
+
+        SecurityGroup sg = createStockSecurityGroup();
+        sg = plugin.createSecurityGroup(sg);
+
+        Port port = createStockPort(subnet.id, network.id, sg.id);
+        port = plugin.createPort(port);
+
+        String bothPortsIp = port.fixedIps.get(0).ipAddress;
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg.id, bothPortsIp));
+
+        Port port2 = createStockPort(subnet2.id, network2.id, sg.id);
+        port2.id = UUID.randomUUID();
+        port2 = plugin.createPort(port2);
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg.id, bothPortsIp));
+
+        // Delete just one of the ports. The IP should remain.
+        plugin.deletePort(port.id);
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg.id, bothPortsIp));
+
+        // Delete the other port. The IP should not be present.
+        plugin.deletePort(port2.id);
+        Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg.id, bothPortsIp));
+
+        plugin.deleteSecurityGroup(sg.id);
+        plugin.deleteSubnet(subnet.id);
+        plugin.deleteNetwork(network.id);
+        plugin.deleteSubnet(subnet2.id);
+        plugin.deleteNetwork(network2.id);
+    }
+
+    @Test
+    public void testSGSameIpUpdate() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
+        Network network = plugin.createNetwork(createStockNetwork());
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+
+        Network network2 = plugin.createNetwork(createStockNetwork());
+        Subnet subnet2 = createStockSubnet();
+        subnet2.networkId = network2.id;
+        subnet2 = plugin.createSubnet(subnet2);
+
+        SecurityGroup sg = createStockSecurityGroup();
+        sg = plugin.createSecurityGroup(sg);
+
+        SecurityGroup sg2 = createStockSecurityGroup();
+        sg2 = plugin.createSecurityGroup(sg2);
+
+        Port port = createStockPort(subnet.id, network.id, sg.id);
+        port = plugin.createPort(port);
+
+        String portsIp = port.fixedIps.get(0).ipAddress;
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg.id, portsIp));
+        port.securityGroups.add(sg2.id);
+        port = plugin.updatePort(port.id, port);
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg.id, portsIp));
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg2.id, portsIp));
+
+        port.securityGroups = new ArrayList<>();
+        port.securityGroups.add(sg2.id);
+        port = plugin.updatePort(port.id, port);
+
+        Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg.id, portsIp));
+        Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sg2.id, portsIp));
+
+        port.securityGroups = new ArrayList<>();
+        port = plugin.updatePort(port.id, port);
+
+        Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg.id, portsIp));
+        Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg2.id, portsIp));
+    }
 }
 

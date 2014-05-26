@@ -140,7 +140,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         ruleZkManager.prepareReplaceRules(ops, cfg.outboundFilter, outRules);
     }
 
-    private void preparePortSecurityGroupBindings(List<Op> ops, Port port)
+    private void preparePortSecurityGroupBindings(List<Op> ops, Port port,
+                                                  boolean isRebuild)
             throws SerializationException, StateAccessException {
 
         // Bind port to security groups
@@ -148,7 +149,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
             // Add each IPs assigned to the ip address group
             for (IPAllocation ipAlloc : port.fixedIps) {
                 ipAddrGroupZkManager.prepareAddAdr(ops, sgId,
-                        ipAlloc.ipAddress);
+                        ipAlloc.ipAddress, port.id, isRebuild);
             }
         }
     }
@@ -165,7 +166,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         preparePortChains(ops, port, inboundChainId, outboundChainId);
 
         // Remove port - SG bindings
-        preparePortSecurityGroupBindings(ops, port);
+        preparePortSecurityGroupBindings(ops, port, false);
 
         // Update the port with the chains
         portConfig.inboundFilter = inboundChainId;
@@ -196,7 +197,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         for (UUID sgId : port.securityGroups) {
             for (IPAllocation ipAlloc : port.fixedIps) {
                 ipAddrGroupZkManager.prepareRemoveAddr(ops, sgId,
-                        ipAlloc.ipAddress);
+                        ipAlloc.ipAddress, port.id);
             }
         }
     }
@@ -224,7 +225,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         // TODO: optimize
         prepareDeletePortSecurityGroupBindings(ops, p);
-        preparePortSecurityGroupBindings(ops, newPort);
+        preparePortSecurityGroupBindings(ops, newPort, true);
     }
 
     public void prepareDeleteSecurityGroup(List<Op> ops, UUID sgId)
