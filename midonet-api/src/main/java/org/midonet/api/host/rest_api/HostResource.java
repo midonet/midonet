@@ -12,16 +12,20 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.host.Host;
 import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.DataClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jersey.api.client.ClientResponse.Status;
 import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -31,6 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.midonet.api.validation.MessageProperty.HOST_FLOODING_PROXY_WEIGHT_IS_NULL;
+import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RequestScoped
 public class HostResource extends AbstractResource {
@@ -42,10 +49,10 @@ public class HostResource extends AbstractResource {
 
     @Inject
     public HostResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context,
+                        SecurityContext context, Validator validator,
                         DataClient dataClient,
                         ResourceFactory factory) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, validator);
         this.factory = factory;
     }
 
@@ -82,7 +89,8 @@ public class HostResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_HOST_JSON,
-                  MediaType.APPLICATION_JSON})
+               VendorMediaType.APPLICATION_HOST_V2_JSON,
+               MediaType.APPLICATION_JSON})
     public Host get(@PathParam("id") UUID id)
         throws NotFoundHttpException,
                StateAccessException,
@@ -166,4 +174,43 @@ public class HostResource extends AbstractResource {
         return factory.getHostInterfacePortResource(hostId);
     }
 
+    /**
+     * Update the host information.
+     *
+     * The update also involves associated values such as the flooding
+     * proxy weight.
+     * @param id         Host ID from the request.
+     * @param host     New flooding proxy weight.
+     * @return An updated Host object.
+     */
+    @PUT
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{id}")
+    @Consumes({VendorMediaType.APPLICATION_HOST_V2_JSON,
+                  MediaType.APPLICATION_JSON})
+    public Response update(@PathParam("id") UUID id, Host host)
+            throws StateAccessException, SerializationException {
+        host.setId(id);
+        validate(host);
+
+        /*
+         * currently, the only updatable host information is the flooding
+         * proxy weight
+         */
+        Integer weight = host.getFloodingProxyWeight();
+        if (weight != null) {
+            try {
+                dataClient.hostsSetFloodingProxyWeight(id, weight);
+                return Response.ok().build();
+            } catch (NoStatePathException e) {
+                throw new NotFoundHttpException(e);
+            }
+        } else {
+            if (!dataClient.hostsExists(id))
+                throw new NotFoundHttpException(
+                    getMessage(RESOURCE_NOT_FOUND, "host", id));
+            throw new BadRequestHttpException(
+                getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL));
+        }
+    }
 }

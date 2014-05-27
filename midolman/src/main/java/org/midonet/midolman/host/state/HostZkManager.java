@@ -14,11 +14,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
-import org.midonet.midolman.state.StatePathExistsException;
+import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Port;
@@ -26,6 +25,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
@@ -140,6 +140,52 @@ public class HostZkManager
         return zk.exists(paths.getHostPath(id) + "/alive");
     }
 
+    /**
+     * Set the flooding proxy weight value.
+     *
+     * The value is an Integer for consistency with getFloodingProxyWeight,
+     * which may return null if the value has not been initialized.
+     * Nevertheless, the input value of setFloodingProxy cannot be null.
+     * @param hostId is the host id
+     * @param weight is a non-null, non-negative integer value.
+     */
+    public void setFloodingProxyWeight(UUID hostId, int weight)
+        throws StateAccessException, SerializationException {
+        String path = paths.getHostFloodingProxyWeightPath(hostId);
+        byte[] value = serializer.serialize(weight);
+        try {
+            zk.update(path, value);
+        } catch (NoStatePathException e) {
+            /*
+             * if the node exists again at this point, it means that the
+             * value that was going to be written was overwritten by someone
+             * else... So, we do not care about our value anymore.
+             */
+            zk.addPersistent_safe(path, value);
+        }
+    }
+
+    /**
+     * Get the flooding proxy weight value for the host.
+     *
+     * The returned value is null if the value was not present/initialized in
+     * zk; it is the responsibility of the caller to convert that into the
+     * required default value (or take any other necessary actions).
+     * @param hostId is the host id
+     * @return the proxy weight value or null if it was not initialized.
+     */
+    public Integer getFloodingProxyWeight(UUID hostId)
+        throws StateAccessException, SerializationException {
+        String path = paths.getHostFloodingProxyWeightPath(hostId);
+        String hostPath = paths.getHostPath(hostId);
+        if (zk.exists(hostPath) && !zk.exists(path)) {
+            return null;
+        } else {
+            byte[] data = zk.get(path);
+            return serializer.deserialize(data, int.class);
+        }
+    }
+
     public boolean hasPortBindings(UUID id) throws StateAccessException {
         Set<String> portChildren =
             zk.getChildren(paths.getHostVrnPortMappingsPath(id));
@@ -171,6 +217,11 @@ public class HostZkManager
             ops.addAll(zk.getDeleteOps(
                     paths.getHostTunnelZonePath(id, zoneId),
                     paths.getTunnelZoneMembershipPath(zoneId, id)));
+        }
+
+        if (zk.exists(paths.getHostFloodingProxyWeightPath(id))) {
+            ops.addAll(zk.getDeleteOps(
+                paths.getHostFloodingProxyWeightPath(id)));
         }
 
         ops.addAll(zk.getDeleteOps(

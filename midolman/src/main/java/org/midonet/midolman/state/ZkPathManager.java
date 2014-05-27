@@ -24,6 +24,7 @@ public class ZkPathManager {
 
     public static final String TUNNEL_ZONES = "tunnel_zones";
     public static final String MEMBERSHIPS = "memberships";
+    public static final String FLOODING_PROXY_WEIGHT = "/flooding_proxy_weight";
 
     protected String basePath = null;
 
@@ -1248,6 +1249,20 @@ public class ZkPathManager {
 
     private StringBuilder buildHostPath(UUID id) {
         return new StringBuilder(getHostsPath()).append("/").append(id);
+    }
+
+    /**
+     * Get ZK flooding proxy weight path for a given host.
+     *
+     * @param id Host UUID
+     * @return /hosts/&lt;hostId&gt;/flooding_proxy_weight
+     */
+    public String getHostFloodingProxyWeightPath(UUID id) {
+        return buildHostFloodingProxyWeightPath(id).toString();
+    }
+
+    private StringBuilder buildHostFloodingProxyWeightPath(UUID id) {
+        return new StringBuilder(getHostPath(id)).append(FLOODING_PROXY_WEIGHT);
     }
 
     /**

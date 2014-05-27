@@ -22,6 +22,7 @@ public class DtoHost {
     private URI hostCommands;
     private URI ports;
     private boolean alive;
+    private Integer floodingProxyWeight;
 
     @XmlTransient
     private URI uri;
@@ -72,6 +73,14 @@ public class DtoHost {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public Integer getFloodingProxyWeight() {
+        return floodingProxyWeight;
+    }
+
+    public void setFloodingProxyWeight(Integer floodingProxyWeight) {
+        this.floodingProxyWeight = floodingProxyWeight;
     }
 
     public URI getHostCommands() {
