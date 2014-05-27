@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
+import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.*;
 import org.midonet.cluster.data.rules.JumpRule;
@@ -29,6 +30,7 @@ import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
@@ -175,13 +177,16 @@ public class NeutronPluginTest {
         return sg;
     }
 
-    public Router createStockRouter() {
-        Router r = new Router();
+    public org.midonet.cluster.data.neutron.Router createStockRouter() {
+        org.midonet.cluster.data.neutron.Router r
+                = new org.midonet.cluster.data.neutron.Router();
         r.id = UUID.randomUUID();
+        r.externalGatewayInfo = new ExternalGatewayInfo();
         r.adminStateUp = true;
         r.tenantId = "tenant";
         return r;
     }
+
 
     public RouterInterface createStockRouterInterface(UUID portId,
                                                       UUID subnetId)
@@ -659,6 +664,7 @@ public class NeutronPluginTest {
         Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg2.id, portsIp));
     }
 
+    @Test
     public void testAddRouterInterfaceCreateDelete() throws StateAccessException,
             SerializationException {
         Network network = createStockNetwork();
@@ -668,7 +674,7 @@ public class NeutronPluginTest {
         subnet = plugin.createSubnet(subnet);
         int cp1 = zkDir().createCheckPoint();
 
-        Router r = createStockRouter();
+        org.midonet.cluster.data.neutron.Router r = createStockRouter();
         r = plugin.createRouter(r);
         int cp2 = zkDir().createCheckPoint();
 
@@ -706,7 +712,7 @@ public class NeutronPluginTest {
         subnet = plugin.createSubnet(subnet);
         int cp1 = zkDir().createCheckPoint();
 
-        Router r = createStockRouter();
+        org.midonet.cluster.data.neutron.Router r = createStockRouter();
         r = plugin.createRouter(r);
         int cp2 = zkDir().createCheckPoint();
 
@@ -731,6 +737,137 @@ public class NeutronPluginTest {
         Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp4).size(), 0);
         Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp4).size(), 0);
         Assert.assertEquals(zkDir().getAddedPaths(cp1, cp4).size(), 0);
+    }
+
+    @Test
+    public void testRouterGatewayCreate() throws StateAccessException,
+            SerializationException {
+        Network network = createStockNetwork();
+        network.external = true;
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+        int cp1 = zkDir().createCheckPoint();
+
+        Port port = createStockPort(subnet.id, network.id, null);
+        port.deviceOwner = DeviceOwner.ROUTER_GW;
+        port = plugin.createPort(port);
+
+        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        router.externalGatewayInfo.networkId = network.id;
+        router.externalGatewayInfo.enableSnat = true;
+        router.gwPortId = port.id;
+        router = plugin.createRouter(router);
+
+        plugin.deletePort(port.id);
+        plugin.deleteRouter(router.id);
+
+        int cp2 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
+    }
+
+    private void verifySnatAddr(UUID routerId, String snatIp)
+            throws StateAccessException, SerializationException {
+        Router routerMido = dataClient.routersGet(routerId);
+
+        List<org.midonet.cluster.data.Rule<?,?>> inboundRules
+                = dataClient.rulesFindByChain(routerMido.getInboundFilter());
+        List<org.midonet.cluster.data.Rule<?,?>> outboundRules
+                = dataClient.rulesFindByChain(routerMido.getOutboundFilter());
+
+        boolean foundSnat = false;
+        boolean foundRevSnat = false;
+
+        for (org.midonet.cluster.data.Rule r : inboundRules) {
+            String dstAddr = r.getCondition().nwDstIp.toString();
+            if (dstAddr.equals(snatIp + "/32")) {
+                foundSnat = true;
+            }
+        }
+
+        for (org.midonet.cluster.data.Rule r : outboundRules) {
+            System.out.println();
+            Set<org.midonet.midolman.rules.NatTarget> targets
+                    = ((org.midonet.cluster.data.rules.ForwardNatRule) r).getTargets();
+            for (NatTarget nt : targets) {
+                if (nt.getNwEnd().equals(snatIp) &&
+                        nt.getNwStart().equals(snatIp)) {
+                    foundRevSnat = true;
+                }
+            }
+        }
+
+        Assert.assertTrue(foundSnat && foundRevSnat);
+    }
+
+    @Test
+    public void testRouterGatewayUpdate() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
+        Network network = createStockNetwork();
+        network.external = true;
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+
+        Network network2 = createStockNetwork();
+        network2.external = true;
+        network2 = plugin.createNetwork(network2);
+        Subnet subnet2 = createStockSubnet();
+        subnet2.networkId = network2.id;
+        subnet2.cidr = "10.0.1.0/24";
+        subnet2 = plugin.createSubnet(subnet2);
+
+        int cp1 = zkDir().createCheckPoint();
+
+        Port port2 = createStockPort(subnet2.id, network2.id, null);
+        port2.fixedIps = new ArrayList<>();
+        IPAllocation ip = new IPAllocation();
+        ip.ipAddress = "10.0.1.10";
+        ip.subnetId = subnet2.id;
+        port2.fixedIps.add(ip);
+        port2.deviceOwner = DeviceOwner.ROUTER_GW;
+        port2 = plugin.createPort(port2);
+
+        Port port = createStockPort(subnet.id, network.id, null);
+        port.deviceOwner = DeviceOwner.ROUTER_GW;
+        port = plugin.createPort(port);
+
+        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        router = plugin.createRouter(router);
+
+        router.externalGatewayInfo.networkId = network.id;
+        router.externalGatewayInfo.enableSnat = true;
+        router.gwPortId = port.id;
+
+        router = plugin.updateRouter(router.id, router);
+        verifySnatAddr(router.id, port.fixedIps.get(0).ipAddress);
+
+        router.externalGatewayInfo.networkId = network2.id;
+        router.gwPortId = port2.id;
+
+        plugin.deletePort(port.id);
+        router = plugin.updateRouter(router.id, router);
+        verifySnatAddr(router.id, port2.fixedIps.get(0).ipAddress);
+
+        router.externalGatewayInfo.networkId = null;
+        router.externalGatewayInfo.enableSnat = false;
+        router.gwPortId = null;
+
+        plugin.deletePort(port2.id);
+        router = plugin.updateRouter(router.id, router);
+
+        plugin.deletePort(port2.id);
+        plugin.deleteRouter(router.id);
+        int cp2 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
     }
 }
 

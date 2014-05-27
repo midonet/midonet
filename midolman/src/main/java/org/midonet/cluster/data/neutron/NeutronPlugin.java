@@ -643,4 +643,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
             throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRules();
     }
+
+    public ProviderRouter getProviderRouter() throws StateAccessException,
+            SerializationException {
+        return providerRouterZkManager.getSafe();
+    }
 }
