@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import com.google.inject.Inject;
 import org.midonet.api.network.VTEPBinding;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.BadGatewayHttpException;
@@ -32,8 +33,6 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
-
-import com.google.inject.Inject;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
@@ -45,9 +44,11 @@ import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
+
 
 /**
  * Coordinates VtepDataClient and DataClient (Zookeeper) operations.
@@ -180,8 +181,7 @@ public class VtepClusterClient {
      */
     protected final PhysicalPort getPhysicalPort(VtepDataClient vtepClient,
             IPv4Addr mgmtIp, int mgmtPort, String portName)
-            throws StateAccessException, SerializationException
-    {
+            throws StateAccessException, SerializationException {
         // Find the requested port.
         List<PhysicalPort> pports =
                 listPhysicalPorts(vtepClient, mgmtIp, mgmtPort);
@@ -327,6 +327,27 @@ public class VtepClusterClient {
         VTEP vtep = getVtepOrThrow(ipAddr, true);
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
+
+        PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
+                                          vtep.getMgmtPort(),
+                                          binding.getPortName());
+        if (pp == null) {
+            throw new NotFoundHttpException(getMessage(
+                VTEP_PORT_NOT_FOUND, vtep.getId(), vtep.getMgmtPort(),
+                binding.getPortName()
+            ));
+        }
+
+        UUID lsUuid = pp.vlanBindings.get((int)binding.getVlanId());
+        if (lsUuid != null) {
+            // TODO: when the new getLogicalSwitch operation gets merged, we
+            // should use it here to include it in the error message
+            throw new ConflictHttpException(getMessage(
+                VTEP_PORT_VLAN_PAIR_ALREADY_USED, vtep.getId(),
+                vtep.getMgmtPort(), binding.getPortName(), binding.getVlanId()
+            ));
+        }
+
         try {
             Integer newPortVni = null;
             String lsName = bridgeIdToLogicalSwitchName(binding.getNetworkId());
@@ -491,4 +512,5 @@ public class VtepClusterClient {
             }
         }
     }
+
 }
