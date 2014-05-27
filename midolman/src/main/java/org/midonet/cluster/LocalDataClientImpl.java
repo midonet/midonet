@@ -3289,5 +3289,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
-        throws StateAccessException { /* not implemented */ }
+            throws StateAccessException {
+        portZkManager.getVxLanPortIdsAsync(callback, watcher);
+    }
 }
