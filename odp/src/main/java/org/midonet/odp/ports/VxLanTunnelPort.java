@@ -16,6 +16,15 @@ import org.midonet.odp.family.PortFamily;
  */
 public class VxLanTunnelPort extends DpPort {
 
+    /*
+     *    14B ethernet header length
+     *  + 20B IPv4 header length
+     *  +  8B UDP header length
+     *  +  8B vxlan header length
+     *  = 50B
+     */
+    public static final int TunnelOverhead = 50;
+
     private VxLanTunnelPortOptions options;
 
     public VxLanTunnelPort(String name) {

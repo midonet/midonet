@@ -23,15 +23,6 @@ public abstract class TunnelZone<
 
     public abstract Type getType();
 
-    /*
-     * returns per-packet overhead for a particular tunnel type
-     * This is a method on the instance (rather than the class or the
-     * corresponding enum value) because different tunnel instances
-     * (even of the same type) may be configured slightly differently,
-     * which can result in different overhead sizes
-     */
-    public abstract short getTunnelOverhead();
-
     protected TunnelZone(UUID uuid, @Nonnull ZoneData data) {
         super(uuid, data);
     }

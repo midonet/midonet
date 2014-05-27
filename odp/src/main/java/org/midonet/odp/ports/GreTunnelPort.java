@@ -10,6 +10,17 @@ import org.midonet.odp.DpPort;
  */
 public class GreTunnelPort extends DpPort {
 
+    /*
+     * from OVS datapath/vport-gre.c:
+     *    14B ethernet header length
+     *  + 20B IPv4 header length
+     *  +  4B gre csum
+     *  +  4B gre key
+     *  +  4B gre seq
+     *  = 46B
+     */
+    public static final int TunnelOverhead = 46;
+
     public GreTunnelPort(String name) {
         super(name);
     }
