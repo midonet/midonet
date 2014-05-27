@@ -177,6 +177,16 @@ public class L3ZkManager extends BaseZkManager {
             port.deviceId = rInt.id.toString();
             port.deviceOwner = DeviceOwner.ROUTER_INTF;
             networkZkManager.prepareUpdateNeutronPort(ops, port);
+
+            if (bpConfig.inboundFilter != null) {
+                ops.addAll(chainZkManager.prepareDelete(bpConfig.inboundFilter));
+            }
+
+            if (bpConfig.outboundFilter != null) {
+                ops.addAll(chainZkManager.prepareDelete(bpConfig.outboundFilter));
+            }
+
+            networkZkManager.prepareDeleteDhcpHostEntries(ops, port);
         }
 
         // For IPv6, this is not supported
