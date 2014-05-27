@@ -298,11 +298,12 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithUnrecognizedIP() {
+        DtoBridge bridge = postBridge("network1");
         DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
         URI bindingsUri = replaceInUri(
                 vtep.getBindings(), MOCK_VTEP_MGMT_IP, "10.10.10.10");
         DtoVtepBinding binding =
-                makeBinding("eth0", (short) 1, UUID.randomUUID());
+                makeBinding("eth0", (short) 1, bridge.getId());
         DtoError error = dtoResource.postAndVerifyError(bindingsUri,
                                                         APPLICATION_VTEP_BINDING_JSON,
                                                         binding,
