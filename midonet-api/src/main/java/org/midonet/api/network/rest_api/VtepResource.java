@@ -19,7 +19,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import com.google.inject.Inject;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -27,13 +26,16 @@ import org.midonet.api.network.VTEP;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepDataClientProvider;
+import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
+
+import com.google.inject.Inject;
+
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
@@ -43,9 +45,9 @@ public class VtepResource extends AbstractVtepResource {
     public VtepResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, Validator validator,
                         DataClient dataClient, ResourceFactory factory,
-                        VtepDataClientProvider vtepClientProvider) {
-        super(config, uriInfo, context, validator, dataClient, factory,
-              vtepClientProvider);
+                        VtepClusterClient vtepClient) {
+        super(config, uriInfo, context, validator,
+              dataClient, factory, vtepClient);
     }
 
     @POST
@@ -77,13 +79,9 @@ public class VtepResource extends AbstractVtepResource {
             throws StateAccessException, SerializationException {
 
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
-        org.midonet.cluster.data.VTEP dataVtep = getVtepOrThrow(ipAddr, false);
-        PhysicalSwitch ps =
-                getPhysicalSwitch(ipAddr, dataVtep.getMgmtPort(), false);
-
-        VTEP vtep = new VTEP(getVtepOrThrow(ipAddr, false), ps);
-        vtep.setBaseUri(getBaseUri());
-        return vtep;
+        org.midonet.cluster.data.VTEP dataVtep =
+                vtepClient.getVtepOrThrow(ipAddr, false);
+        return toApiVtep(dataVtep);
     }
 
     @GET
@@ -95,11 +93,7 @@ public class VtepResource extends AbstractVtepResource {
         List<org.midonet.cluster.data.VTEP> dataVteps = dataClient.vtepsGetAll();
         List<VTEP> vteps = new ArrayList<>(dataVteps.size());
         for (org.midonet.cluster.data.VTEP dataVtep : dataVteps) {
-            PhysicalSwitch ps = getPhysicalSwitch(
-                    dataVtep.getId(), dataVtep.getMgmtPort(), false);
-            VTEP vtep = new VTEP(dataVtep, ps);
-            vtep.setBaseUri(getBaseUri());
-            vteps.add(vtep);
+            vteps.add(toApiVtep(dataVtep));
         }
         return vteps;
     }
@@ -116,5 +110,19 @@ public class VtepResource extends AbstractVtepResource {
     public VtepBindingResource getVtepBindingResource(
         @PathParam("ipAddr") String ipAddrStr) {
         return factory.getVtepBindingResource(ipAddrStr);
+    }
+
+    private VTEP toApiVtep(org.midonet.cluster.data.VTEP dataVtep) {
+        PhysicalSwitch ps;
+        try {
+            ps = vtepClient.getPhysicalSwitch(dataVtep.getId(),
+                                              dataVtep.getMgmtPort());
+        } catch (Exception ex) {
+            ps = null;
+        }
+
+        VTEP apiVtep = new VTEP(dataVtep, ps);
+        apiVtep.setBaseUri(getBaseUri());
+        return apiVtep;
     }
 }

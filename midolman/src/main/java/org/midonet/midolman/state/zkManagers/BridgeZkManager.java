@@ -42,6 +42,7 @@ public class BridgeZkManager
      * to a bridge's VxLanPortId property.
      */
     public static class VxLanPortIdUpdateException extends Exception {
+        private static final long serialVersionUID = 1L;
     }
 
     public static class BridgeConfig extends BaseConfig
@@ -70,7 +71,7 @@ public class BridgeZkManager
         public UUID vxLanPortId;
         public String name;
         public boolean adminStateUp;
-        public Map<String, String> properties = new HashMap<String, String>();
+        public Map<String, String> properties = new HashMap<>();
 
         @Override
         public boolean equals(Object o) {
@@ -217,9 +218,7 @@ public class BridgeZkManager
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
 
-        if ((oldConfig.name == null && config.name != null) ||
-                (oldConfig.name != null && config.name == null) ||
-                !oldConfig.name.equals(config.name)) {
+        if (!Objects.equals(oldConfig.name, config.name)) {
             log.debug("The name of bridge {} changed from {} to {}",
                     new Object[]{id, oldConfig.name, config.name});
             dataChanged = true;
@@ -248,11 +247,9 @@ public class BridgeZkManager
         }
 
         if (!Objects.equals(config.vxLanPortId, oldConfig.vxLanPortId)) {
-            // Allows only vxlan port deletion (when the new value = null)
-            if (userUpdate &&
-               !(oldConfig.vxLanPortId != null && config.vxLanPortId == null)) {
+            // Users cannot set vxLanPortId directly.
+            if (userUpdate)
                 throw new VxLanPortIdUpdateException();
-            }
             log.debug("The vxLanPortId of bridge{} changed from {} to {}",
                     new Object[]{id, oldConfig.vxLanPortId, config.vxLanPortId});
             dataChanged = true;
@@ -288,7 +285,7 @@ public class BridgeZkManager
      */
     public List<Op> prepareBridgeDelete(UUID id, BridgeConfig config)
             throws StateAccessException, SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         if (config.inboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefDelete(
@@ -392,11 +389,6 @@ public class BridgeZkManager
     /**
      * Ensures the bridge has a VLANs directory.
      * For backwards compatibility with pre-1.2
-     *
-     * @param id
-     *            Bridge ID to check
-     * @return True if VLAN directory exists
-     * @throws StateAccessException
      */
     public void ensureBridgeHasVlanDirectory(UUID id)
             throws StateAccessException {

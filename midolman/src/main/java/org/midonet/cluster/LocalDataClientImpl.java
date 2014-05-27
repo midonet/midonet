@@ -84,6 +84,7 @@ import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
+import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
@@ -3284,6 +3285,38 @@ public class LocalDataClientImpl implements DataClient {
 
         zkManager.multi(ops);
         return port;
+    }
+
+    @Override
+    public void bridgeDeleteVxLanPort(UUID bridgeId)
+            throws SerializationException, StateAccessException {
+        // Make sure the bridge has a VXLAN port.
+        BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
+        UUID vxLanPortId = bridgeConfig.vxLanPortId;
+        if (vxLanPortId == null) {
+            throw new IllegalStateException(
+                    "Attempted to delete VxLanPort for bridge " +
+                    bridgeId + ", which has no VxLanPort.");
+        }
+
+        List<Op> ops = new ArrayList<>();
+
+        // Clear bridge's vxLanPortId property.
+        bridgeConfig.vxLanPortId = null;
+        try {
+            ops.addAll(bridgeZkManager.prepareUpdate(
+                    bridgeId, bridgeConfig, false));
+        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
+            // Should never happen.
+            throw new RuntimeException("Unexpected exception", ex);
+        }
+
+        // Delete the port.
+        VxLanPortConfig portConfig =
+                (VxLanPortConfig)portZkManager.get(vxLanPortId);
+        ops.addAll(portZkManager.prepareDelete(vxLanPortId, portConfig));
+
+        zkManager.multi(ops);
     }
 
     @Override

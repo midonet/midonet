@@ -910,6 +910,14 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /**
+     * Deletes the VXLAN port belonging to the specified bridge, and
+     * sets its vxLanPortId property to null. Does not delete bindings
+     * on the VTEP since the DataClient is not VTEP-aware.
+     */
+    public void bridgeDeleteVxLanPort(UUID bridgeId)
+            throws SerializationException, StateAccessException;
+
+    /**
      * Given a bridge port that is expected to be exterior and bound to a given
      * host's interface, this method will figure out what's the IP that should
      * be used as vxlan tunnel end point given the bridge's configuration.

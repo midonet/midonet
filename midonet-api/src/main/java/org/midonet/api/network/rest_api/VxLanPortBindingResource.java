@@ -3,24 +3,8 @@
  */
 package org.midonet.api.network.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VTEPBinding;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepDataClientProvider;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.List;
+import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.GET;
@@ -30,8 +14,26 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.UUID;
+
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.network.VTEPBinding;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.midonet.api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
@@ -51,10 +53,9 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
             RestApiConfig config, UriInfo uriInfo,
             SecurityContext context, Validator validator,
             DataClient dataClient, ResourceFactory factory,
-            VtepDataClientProvider vtepClientProvider,
-            @Assisted UUID vxLanPortId) {
-        super(config, uriInfo, context, validator, dataClient, factory,
-                vtepClientProvider);
+            VtepClusterClient vtepClient, @Assisted UUID vxLanPortId) {
+        super(config, uriInfo, context, validator,
+              dataClient, factory, vtepClient);
         this.vxLanPortId = vxLanPortId;
     }
 
@@ -69,18 +70,18 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
 
         // Get the ID of the bridge in the specified binding.
         VxLanPort vxLanPort = getVxLanPort(vxLanPortId);
-        String ipAddrStr = vxLanPort.getMgmtIpAddr().toString();
+        IPv4Addr ipAddr = vxLanPort.getMgmtIpAddr();
         java.util.UUID boundBridgeId =
-                getBoundBridgeId(ipAddrStr, portName, vlanId);
+                vtepClient.getBoundBridgeId(ipAddr, portName, vlanId);
 
         // Make sure it matches the VXLAN port's bridge ID.
         if (!boundBridgeId.equals(vxLanPort.getDeviceId())) {
             throw new NotFoundHttpException(getMessage(
-                    VTEP_BINDING_NOT_FOUND, ipAddrStr, vlanId, portName));
+                    VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
         }
 
-        VTEPBinding b = new VTEPBinding(
-                ipAddrStr, portName, vlanId, boundBridgeId);
+        VTEPBinding b = new VTEPBinding(ipAddr.toString(), portName,
+                                        vlanId, boundBridgeId);
         b.setBaseUri(getBaseUri());
         return b;
     }
