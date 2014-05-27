@@ -315,7 +315,7 @@ public class NetworkZkManager extends BaseZkManager {
 
     }
 
-    private void prepareDeleteDhcpHostEntries(List<Op> ops, Port port)
+    public void prepareDeleteDhcpHostEntries(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
         for (IPAllocation ipAlloc : port.fixedIps) {
