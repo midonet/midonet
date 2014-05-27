@@ -130,9 +130,8 @@ public class ClusterLoadBalancerManager
         }
 
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
-            // This is a set of the UUIDs of current VIPs
-            Set<UUID> curVipIds = data.getData();
+        public void onSuccess(Set<UUID> curVipIds) {
+            // curVipIds is a set of the UUIDs of current VIPs
 
             // UUID to actual VIP for each vip in LoadBalancer
             Map<UUID, VIP> vipMap = loadBalancerIdToVipMap.get(loadBalancerId);
@@ -215,8 +214,7 @@ public class ClusterLoadBalancerManager
         }
 
         @Override
-        public void onSuccess(Result<VipZkManager.VipConfig> data) {
-            VipZkManager.VipConfig vipConfig = data.getData();
+        public void onSuccess(VipZkManager.VipConfig vipConfig) {
             VIP vip = Converter.fromVipConfig(vipConfig);
             vip.setId(vipId);
 

@@ -303,9 +303,9 @@ public abstract class ReplicatedMap<K, V> {
             value = v;
         }
 
-        public void onSuccess(DirectoryCallback.Result<String> result) {
+        public void onSuccess(String result) {
             // Claim the sequence number added by ZooKeeper.
-            Path p = decodePath(result.getData());
+            Path p = decodePath(result);
             synchronized(ReplicatedMap.this) {
                 ownedVersions.add(p.version);
             }

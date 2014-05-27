@@ -75,9 +75,7 @@ public class ZkDirectory implements Directory {
                     KeeperException.Code code = KeeperException.Code.get(rc);
                     switch (code) {
                         case OK:
-                            cb.onSuccess(
-                                new DirectoryCallback.Result<String>(
-                                    name.substring(basePath.length()), null));
+                            cb.onSuccess(name.substring(basePath.length()));
                             break;
                         default:
                             cb.onError(KeeperException.create(code, path));
@@ -216,10 +214,10 @@ public class ZkDirectory implements Directory {
             getAbsolutePath(relativePath), wrapCallback(watcher),
             new AsyncCallback.DataCallback() {
                 @Override
-                public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+                public void processResult(int rc, String path, Object ctx,
+                                          byte[] data, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        dataCallback.onSuccess(
-                            new DirectoryCallback.Result<byte[]>(data, stat));
+                        dataCallback.onSuccess(data);
                     } else {
                         dataCallback.onError(KeeperException.create(
                             KeeperException.Code.get(rc), path));
@@ -255,9 +253,7 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path, Object ctx,
                                           List<String> children, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        cb.onSuccess(
-                            new DirectoryCallback.Result<Set<String>>(
-                                new HashSet<String>(children), stat));
+                        cb.onSuccess(new HashSet<String>(children));
                     } else {
                         cb.onError(KeeperException.create(KeeperException.Code.get(rc), path));
                     }
@@ -292,7 +288,7 @@ public class ZkDirectory implements Directory {
             @Override
             public void processResult(int rc, String path, Object ctx) {
                 if (rc == KeeperException.Code.OK.intValue()) {
-                    callback.onSuccess(new DirectoryCallback.Result<Void>(null, null));
+                    callback.onSuccess(null);
                 } else {
                     callback.onError(KeeperException.create(KeeperException.Code.get(rc), path));
                 }
@@ -335,8 +331,7 @@ public class ZkDirectory implements Directory {
                                   final DirectoryCallback<Set<byte[]>> cb){
         if(relativePaths.isEmpty()){
             log.debug("Empty set of paths, is that OK?");
-            cb.onSuccess(new DirectoryCallback.Result<Set<byte[]>>(
-                Collections.<byte[]>emptySet(), null));
+            cb.onSuccess(Collections.<byte[]>emptySet());
         }
         // Map to keep track of the callbacks that returned
         // TODO(rossella) probably it's better to return a ConcurrentMap and make
@@ -364,17 +359,16 @@ public class ZkDirectory implements Directory {
                 }
 
                 @Override
-                public void onSuccess(Result<byte[]> data) {
+                public void onSuccess(byte[] data) {
                     synchronized (callbackResults){
-                        callbackResults.put(path, data.getData());
+                        callbackResults.put(path, data);
                         if(callbackResults.size() == relativePaths.size()){
                             Set<byte[]> results = new HashSet<byte[]>();
                             for(Map.Entry entry : callbackResults.entrySet()){
                                 if(entry != null)
                                     results.add((byte[])entry.getValue());
                             }
-                            cb.onSuccess(
-                                new Result<Set<byte[]>>(results, null));
+                            cb.onSuccess(results);
                         }
                     }
                 }

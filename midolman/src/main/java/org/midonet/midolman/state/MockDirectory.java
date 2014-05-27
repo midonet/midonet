@@ -294,11 +294,7 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback.Add cb) {
         try {
-            cb.onSuccess(
-                new DirectoryCallback.Result<String>(
-                    add(relativePath, data, mode),
-                    null
-                ));
+            cb.onSuccess(add(relativePath, data, mode));
         } catch (KeeperException e) {
             cb.onError(e);
         }
@@ -333,9 +329,7 @@ public class MockDirectory implements Directory {
     public void asyncGetChildren(String relativePath, DirectoryCallback<Set<String>> childrenCallback, TypedWatcher watcher) {
         try {
             childrenCallback.onSuccess(
-                new DirectoryCallback.Result<Set<String>>(
-                    getNode(relativePath).getChildren(watcher),
-                    new Stat()));
+                getNode(relativePath).getChildren(watcher));
         } catch (NoNodeException e) {
             childrenCallback.onError(e);
         }
@@ -344,8 +338,7 @@ public class MockDirectory implements Directory {
     @Override
     public void asyncGet(String relativePath, DirectoryCallback<byte[]> dataCb, TypedWatcher watcher) {
         try {
-            byte[] data = getNode(relativePath).getData(wrapCallback(watcher));
-            dataCb.onSuccess(new DirectoryCallback.Result<byte[]>(data, new Stat()));
+            dataCb.onSuccess(getNode(relativePath).getData(wrapCallback(watcher)));
         } catch (NoNodeException e) {
             dataCb.onError(e);
         }
@@ -396,7 +389,7 @@ public class MockDirectory implements Directory {
     public void asyncDelete(String relativePath, DirectoryCallback.Void callback) {
          try {
              delete(relativePath, false);
-             callback.onSuccess(new DirectoryCallback.Result<Void>(null, null));
+             callback.onSuccess(null);
          } catch (KeeperException ex) {
              callback.onError(ex);
          }
@@ -517,8 +510,7 @@ public class MockDirectory implements Directory {
                                   final DirectoryCallback<Set<byte[]>> cb) {
         if(relativePaths.isEmpty()){
             log.debug("Empty set of paths, is that OK?");
-            cb.onSuccess(new DirectoryCallback.Result<Set<byte[]>>(
-            Collections.<byte[]>emptySet(), null));
+            cb.onSuccess(Collections.<byte[]>emptySet());
         }
         // Map to keep track of the callbacks that returned
         final Map<String, byte[]> callbackResults =
@@ -543,17 +535,16 @@ public class MockDirectory implements Directory {
                 }
 
                 @Override
-                public void onSuccess(Result<byte[]> data) {
-                    synchronized (callbackResults){
-                        callbackResults.put(path, data.getData());
-                            if(callbackResults.size() == relativePaths.size()){
+                public void onSuccess(byte[] data) {
+                    synchronized (callbackResults) {
+                        callbackResults.put(path, data);
+                            if(callbackResults.size() == relativePaths.size()) {
                                 Set<byte[]> results = new HashSet<byte[]>();
-                                for(Map.Entry entry : callbackResults.entrySet()){
+                                for(Map.Entry entry : callbackResults.entrySet()) {
                                     if(entry != null)
                                         results.add((byte[])entry.getValue());
                                 }
-                                cb.onSuccess(
-                                    new Result<Set<byte[]>>(results, null));
+                                cb.onSuccess(results);
                             }
                     }
                 }

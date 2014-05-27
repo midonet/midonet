@@ -23,7 +23,6 @@ import org.midonet.cluster.client.VxLanPort
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.state.DirectoryCallback.Result
 
 /** Adapter trait around the DataClient interface which exposes the unique
  *  setter method needed by the VxLanMapper. */
@@ -98,8 +97,8 @@ class VxLanPortMapper(val vta: ActorRef,
     }
 
     private val directoryCallback = new DirectoryCallback[JSet[UUID]] {
-        override def onSuccess(result: Result[JSet[UUID]]) {
-            self ! VxLanPorts(result.getData.toSeq)
+        override def onSuccess(uuids: JSet[UUID]) {
+            self ! VxLanPorts(uuids.toSeq)
         }
         override def onTimeout() {
             retry("timeout")

@@ -76,8 +76,8 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<PoolConfig> data) {
-            Pool pool = Converter.fromPoolConfig(data.getData());
+        public void onSuccess(PoolConfig conf) {
+            Pool pool = Converter.fromPoolConfig(conf);
             pool.setId(poolId);
             getBuilder(poolId).setPoolConfig(pool);
         }
@@ -112,9 +112,8 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<Set<UUID>> data) {
-            // This is a set of the UUIDs of current PoolMembers
-            Set<UUID> curPoolMemberIds = data.getData();
+        public void onSuccess(Set<UUID> curPoolMemberIds) {
+            // curPoolMemberIds is a set of the UUIDs of current PoolMembers
 
             // UUID to actual PoolMember for each PoolMember in Pool
             Map<UUID, PoolMember> poolMemberMap = poolIdToPoolMemberMap.get(poolId);
@@ -190,8 +189,8 @@ public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<PoolMemberConfig> data) {
-            PoolMember poolMember = Converter.fromPoolMemberConfig(data.getData());
+        public void onSuccess(PoolMemberConfig memberConf) {
+            PoolMember poolMember = Converter.fromPoolMemberConfig(memberConf);
             poolMember.setId(poolMemberId);
 
             Collection<UUID> missingPoolMemberIds =

@@ -34,8 +34,8 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback.Result
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.state.ZkConnectionAwareWatcher
+import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
 
@@ -741,7 +741,7 @@ abstract class VirtualToPhysicalMapperBase
 
     def subscribeCallback(psetID: UUID): DirectoryCallback.Add =
         new DirectoryCallback.Add {
-            override def onSuccess(result: Result[String]) {
+            override def onSuccess(result: String) {
                 self ! _PortSetOpResult(true, psetID, true, None)
             }
             override def onTimeout() {
@@ -763,7 +763,7 @@ abstract class VirtualToPhysicalMapperBase
 
     def unsubscribeCallback(psetID: UUID): DirectoryCallback.Void =
         new DirectoryCallback.Void {
-            override def onSuccess(result: Result[java.lang.Void]) {
+            override def onSuccess(result: java.lang.Void) {
                 self ! _PortSetOpResult(false, psetID, true, None)
             }
             override def onTimeout() {
