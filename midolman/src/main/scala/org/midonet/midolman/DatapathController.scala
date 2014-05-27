@@ -31,7 +31,6 @@ import org.midonet.cluster.data.zones._
 import org.midonet.event.agent.InterfaceEvent
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath._
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
@@ -163,11 +162,10 @@ object DatapathController extends Referenceable {
                                    uplinkPid: Int) extends DpPortReply
 
     case class DpPortDeleteSuccess(request: DpPortRequest, createdPort: DpPort)
-        extends DpPortReply
+            extends DpPortReply
 
-    case class DpPortError(
-        request: DpPortRequest, timeout: Boolean, error: Throwable
-    ) extends DpPortReply
+    case class DpPortError(request: DpPortRequest, error: Throwable)
+            extends DpPortReply
 
     case class DpPortCreateNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortCreate
@@ -450,14 +448,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             log.info("Starting to schedule the port link status updates.")
             portWatcher = interfaceScanner.register(
                 new Callback[JSet[InterfaceDescription]] {
-                    override def onSuccess(data: JSet[InterfaceDescription])
-                    : Unit = self ! InterfacesUpdate(data)
-
-                    override def onTimeout(): Unit =
-                    { /* Not called */ }
-
-                    override def onError(e: NetlinkException): Unit =
-                    { /* Not called */ }
+                    def onSuccess(data: JSet[InterfaceDescription]) {
+                      self ! InterfacesUpdate(data)
+                    }
+                    def onError(e: NetlinkException) { /* not called */ }
             })
         }
 
@@ -569,11 +563,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                                 MonitoringActor !
                                         DpPortStats(portID, data.getStats)
                             }
-
-                            def onTimeout() {
-                                log.error("Timeout when retrieving port stats")
-                            }
-
                             def onError(e: NetlinkException) {
                                 log.error("Error retrieving port stats for " +
                                     "port {}({}): {}",
@@ -678,30 +667,22 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.debug("Port operation reply: {}", opReply)
 
         opReply match {
-
             case DpPortCreateSuccess(DpPortCreateNetdev(_, _), newPort, _) =>
                 dpState.dpPortAdded(newPort)
 
             case DpPortDeleteSuccess(DpPortDeleteNetdev(_, _), newPort) =>
                 dpState.dpPortRemoved(newPort)
 
-            case DpPortError(DpPortCreateNetdev(p, tag), false, ex) =>
-                ex match {
-                    case nle: NetlinkException =>
-                        log.warning("port {} creation failed: OVS returned {}",
-                            p, nle.getErrorCodeEnum)
-                        // This will make the vport manager retry the create op
-                        // the next time the interfaces are scanned (2 secs).
-                        if (nle.getErrorCodeEnum == ErrorCode.EBUSY)
-                            dpState.dpPortForget(p)
-                    case _ =>
-                        log.error("port {} creation failed:", ex)
-                }
+            case DpPortError(DpPortCreateNetdev(p, tag), ex: NetlinkException) =>
+                // This will make the vport manager retry the create op
+                // the next time the interfaces are scanned (2 secs).
+                if (ex.getErrorCodeEnum == ErrorCode.EBUSY)
+                    dpState.dpPortForget(p)
 
-            case DpPortError(_: DpPortDelete, _, _) =>
+            case DpPortError(_: DpPortDelete, _) =>
                 log.warning("Failed DpPortDelete {}", opReply)
 
-            case DpPortError(_, _, _) =>
+            case DpPortError(_, _) =>
                 log.warning("not handling DpPortError reply {}", opReply)
 
             case _ =>
@@ -717,16 +698,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         }
     }
 
-    private def exceptionToOpError(req: DpPortRequest, ex: Throwable): DpPortReply =
-        ex match {
-            case tout: TimeoutException =>
-                log.error("Port operation timed out: {}", req)
-                DpPortError(req, true, null)
-            case other =>
-                log.error(other, "Port operation failed: {}", req)
-                DpPortError(req, false, other)
-        }
-
     def createDatapathPort(caller: ActorRef, request: DpPortCreate) {
         if (caller == self)
             pendingUpdateCount += 1
@@ -737,7 +708,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 caller ! DpPortCreateSuccess(request, port, pid)
 
             case Failure(ex) =>
-                caller ! exceptionToOpError(request, ex)
+                log.warning("Request {} failed: {}", request, ex.getMessage)
+                caller ! DpPortError(request, reifyTimeoutException(ex))
         }
     }
 
@@ -753,10 +725,20 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         log.info("deleting port: {} (by request of: {})", request.port, caller)
 
         upcallConnManager.deleteDpPort(datapath, request.port) onComplete {
-            case Success(b) => caller ! DpPortDeleteSuccess(request, request.port)
+            case Success(b) =>
+                caller ! DpPortDeleteSuccess(request, request.port)
 
-            case Failure(ex) => caller ! exceptionToOpError(request, ex)
+            case Failure(ex) =>
+                log.error(ex, "Port deletion failed: {}", request)
+                caller ! DpPortError(request, reifyTimeoutException(ex))
         }
+    }
+
+    def reifyTimeoutException(ex: Throwable): Throwable = ex match {
+        case _: TimeoutException =>
+            new NetlinkException(NetlinkException.ErrorCode.ETIMEOUT, ex);
+        case other =>
+            other
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
@@ -793,9 +775,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         def handleExistingDP(dp: Datapath) {
             log.info("The datapath already existed. Flushing the flows.")
             datapathConnection.flowsFlush(dp,
-                new ErrorHandlingCallback[JBoolean] {
+                new Callback[JBoolean] {
                     def onSuccess(data: JBoolean) {}
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
+                    def onError(ex: NetlinkException) {
                         log.error("Failed to flush the Datapath's flows!")
                     }
                 }
@@ -811,36 +793,32 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             }
         }
 
-        val dpCreateCallback = new ErrorHandlingCallback[Datapath] {
+        val dpCreateCallback = new Callback[Datapath] {
             def onSuccess(data: Datapath) {
                 log.info("Datapath created {}", data)
                 queryDatapathPorts(data)
             }
-
-            def handleError(ex: NetlinkException, timeout: Boolean) {
-                log.error(ex, "Datapath creation failure {}", timeout)
+            def onError(ex: NetlinkException) {
+                log.error(ex, "Datapath creation failure")
                 system.scheduler.scheduleOnce(100 millis, retryTask)
             }
         }
 
-        val dpGetCallback = new ErrorHandlingCallback[Datapath] {
+        val dpGetCallback = new Callback[Datapath] {
             def onSuccess(dp: Datapath) {
                 handleExistingDP(dp)
             }
-
-            def handleError(ex: NetlinkException, timeout: Boolean) {
-                if (timeout) {
-                    log.error("Timeout while getting the datapath", timeout)
-                    system.scheduler.scheduleOnce(100 millis, retryTask)
-                } else if (ex != null) {
-                    val errorCode: ErrorCode = ex.getErrorCodeEnum
-
-                    if (errorCode != null &&
-                        errorCode == NetlinkException.ErrorCode.ENODEV) {
+            def onError(ex: NetlinkException) {
+                ex.getErrorCodeEnum match {
+                    case ErrorCode.ENODEV =>
                         log.info("Datapath is missing. Creating.")
                         datapathConnection.datapathsCreate(
                             wantedDatapath, dpCreateCallback)
-                    }
+                    case ErrorCode.ETIMEOUT =>
+                        log.error("Timeout while getting the datapath")
+                        system.scheduler.scheduleOnce(100 millis, retryTask)
+                    case other =>
+                        log.error(ex, "Unexpected error while getting datapath")
                 }
             }
         }
@@ -854,14 +832,13 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     private def queryDatapathPorts(datapath: Datapath) {
         log.debug("Enumerating ports for datapath: " + datapath)
         datapathConnection.portsEnumerate(datapath,
-            new ErrorHandlingCallback[JSet[DpPort]] {
+            new Callback[JSet[DpPort]] {
                 def onSuccess(ports: JSet[DpPort]) {
                     self ! ExistingDatapathPorts(datapath, ports.asScala.toSet)
                 }
-
-                // WARN: this is ugly. Normally we should configure the message error handling
-                // inside the router
-                def handleError(ex: NetlinkException, timeout: Boolean) {
+                // WARN: this is ugly. Normally we should configure
+                // the message error handling inside the router
+                def onError(ex: NetlinkException) {
                     system.scheduler.scheduleOnce(100 millis, new Runnable {
                         def run() {
                             queryDatapathPorts(datapath)

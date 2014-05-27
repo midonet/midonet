@@ -20,15 +20,14 @@ import akka.event.LoggingReceive
 import com.yammer.metrics.core.{Gauge, MetricsRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.ErrorHandlingCallback
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
 import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
+import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.netlink.{Callback => NetlinkCallback}
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowManager
 import org.midonet.sdn.flows.FlowManagerHelper
@@ -465,14 +464,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
 
             datapathConnection(flow.getMatch).flowsDelete(datapath, flow,
-                new NetlinkCallback[Flow] {
-                    override def onTimeout() {
-                        log.debug("Got a timeout when trying to remove " +
-                                  "flow with match {}", flow.getMatch)
-                        scheduleRetry()
-                    }
-
-                    override def onError(ex: NetlinkException) {
+                new Callback[Flow] {
+                    def onError(ex: NetlinkException) {
                         log.debug("Got an exception {} when trying to remove " +
                                   "flow with match {}", ex, flow.getMatch)
                         ex.getErrorCodeEnum match {
@@ -486,6 +479,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                             case ErrorCode.EAGAIN => scheduleRetry()
                             case ErrorCode.EIO => scheduleRetry()
                             case ErrorCode.EINTR => scheduleRetry()
+                            case ErrorCode.ETIMEOUT => scheduleRetry()
                             // Give up
                             case _ =>
                                 log.error("Giving up on deleting flow with "+
@@ -509,30 +503,29 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow] ) {
             log.debug("requesting flow for flow match: {}", flowMatch)
-
-                datapathConnection(flowMatch).flowsGet(datapath, flowMatch,
-                new ErrorHandlingCallback[Flow] {
-
-                    def handleError(ex: NetlinkException, timeout: Boolean) {
-                        if (ex != null && ex.getErrorCodeEnum == ErrorCode.ENOENT) {
+            val cb = new Callback[Flow] {
+                def onError(ex: NetlinkException) {
+                    ex.getErrorCodeEnum match {
+                        case ErrorCode.ENOENT =>
                             self ! FlowMissing(flowMatch, flowCallback)
-                        } else {
-                            log.error("Got an exception {} or timeout {} when " +
-                                "trying to flowsGet() for flow match {}",
-                                ex, timeout, flowMatch)
+                        case other =>
+                            log.error(ex, "Got exception {} when trying to " +
+                                          "flowsGet() for {}", flowMatch)
                             self ! GetFlowFailed(flowCallback)
-                        }
                     }
-
-                    def onSuccess(data: Flow) {
-                        self ! (if (data != null) {
-                            GetFlowSucceeded(data, flowCallback)
-                        } else {
-                            log.warning("Unexpected getFlow() result: success, but a null flow")
-                            FlowMissing(flowMatch, flowCallback)
-                        })
+                }
+                def onSuccess(data: Flow) {
+                    val msg = if (data != null) {
+                        GetFlowSucceeded(data, flowCallback)
+                    } else {
+                        log.warning("Unexpected getFlow() result: " +
+                                    "success, but a null flow")
+                        FlowMissing(flowMatch, flowCallback)
                     }
-                })
+                    self ! msg
+                }
+            }
+            datapathConnection(flowMatch).flowsGet(datapath, flowMatch, cb)
         }
     }
 

@@ -392,10 +392,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             "Starting - we're now in {}", phase)
                 }
 
-            case DpPortError(DpPortCreateNetdev(port, _), timeout, ex) =>
-                // Do nothing
-                log.debug("Netdev port {} creation request failed: " +
-                    "timeout={}, error={}", port, timeout, ex)
+            case DpPortError(DpPortCreateNetdev(port, _), ex) =>
+                // Only log errors, do nothing
+                log.error(ex, "Netdev port {} creation request failed: {}")
 
             case BGPD_READY =>
                 log.debug("BGPD_READY for port {}", rport.id)

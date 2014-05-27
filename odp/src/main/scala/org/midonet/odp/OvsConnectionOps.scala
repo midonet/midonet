@@ -89,7 +89,6 @@ object OvsConnectionOps {
 
     def callback[T](p: Promise[T]) = new Callback[T] {
         def onSuccess(dp: T) { p.trySuccess(dp) }
-        def onTimeout() { p.tryFailure(new Exception("timeout exception")) }
         def onError(ex: NetlinkException) { p.tryFailure(ex) }
     }
 
