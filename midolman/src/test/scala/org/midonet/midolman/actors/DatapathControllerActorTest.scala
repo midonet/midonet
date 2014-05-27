@@ -57,7 +57,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val portReplies =
         portRequests.map{ req => DpPortCreateSuccess(req, req.port, 1) } ++
-            portRequests.map{ DpPortError(_, true, null) }
+            portRequests.map{ DpPortError(_, null) }
 
     val miscMessages = List[AnyRef](
         DpPortStatsRequest(UUID.randomUUID),

@@ -80,7 +80,6 @@ public class NetlinkConnectionTest extends AbstractNetlinkProtocolTest {
         Callback<Short> cb = new Callback<Short>() {
             public void onSuccess(Short s) { dpId.set(s); }
             public void onError(NetlinkException e) { }
-            public void onTimeout() {}
         };
 
         connection.getFamilyId("ovs_datapath", cb);

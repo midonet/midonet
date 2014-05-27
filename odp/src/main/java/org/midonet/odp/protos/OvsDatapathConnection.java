@@ -987,11 +987,6 @@ public abstract class OvsDatapathConnection extends NetlinkConnection {
             }
 
             @Override
-            public void onTimeout() {
-                future.cancel(true);
-            }
-
-            @Override
             public void onError(NetlinkException e) {
                 future.setException(e);
             }

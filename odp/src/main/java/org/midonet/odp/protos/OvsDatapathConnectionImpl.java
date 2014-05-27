@@ -747,13 +747,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         @Override
-        public void onTimeout() {
-            state = State.ErrorInInitialization;
-            if (statusCallback != null)
-                statusCallback.onTimeout();
-        }
-
-        @Override
         public void onError(NetlinkException ex) {
             state = State.ErrorInInitialization;
             stateInitializationEx = ex;

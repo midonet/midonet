@@ -91,10 +91,6 @@ public class HostService extends AbstractService
                 }
 
                 @Override
-                public void onTimeout() {
-                }
-
-                @Override
                 public void onError(NetlinkException e) {
                 }
             });
@@ -209,9 +205,6 @@ public class HostService extends AbstractService
                 interfaces[0] = data;
                 latch.countDown();
             }
-
-            @Override
-            public void onTimeout() { /* Not called */ }
 
             @Override
             public void onError(NetlinkException e) { /* Not called */ }
