@@ -101,7 +101,9 @@ public class MessageProperty {
     public static final String VTEP_NOT_FOUND =
             "{midokura.javarx.VtepNotFound.message}";
     public static final String VTEP_PORT_NOT_FOUND =
-            "{midokura.javarx.VtepPortNotFound}";
+            "{midokura.javarx.VtepPortNotFound.message}";
+    public static final String VTEP_PORT_VLAN_PAIR_ALREADY_USED =
+        "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
 
