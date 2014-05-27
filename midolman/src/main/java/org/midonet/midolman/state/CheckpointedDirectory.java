@@ -63,4 +63,6 @@ public interface CheckpointedDirectory extends Directory {
      * @return map of removed paths to data.
      */
     Map<String, String> getModifiedPaths(int cpIndex1, int cpIndex2);
+
+    String genSetOfAddedPaths(int cpIndex1, int cpIndex2);
 }

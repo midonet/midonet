@@ -4,7 +4,10 @@
 
 package org.midonet.midolman.state;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.zookeeper.KeeperException.NoNodeException;
@@ -128,5 +131,22 @@ public class CheckpointedMockDirectory extends MockDirectory
         }
 
         return modifiedNodes;
+    }
+
+    @Override
+    public String genSetOfAddedPaths(int cpIndex1, int cpIndex2) {
+        Map<String, String> added = getAddedPaths(cpIndex1, cpIndex2);
+        String code = "Set<String> valSet = new HashSet<>();\n";
+        List<String> opList = new ArrayList<>();
+        for (String path : added.keySet()) {
+            String opCode = "valSet.add(\"" + path + "\");\n";
+            opList.add(opCode);
+        }
+        Collections.sort(opList);
+        for (String op: opList) {
+            code += op;
+        }
+        code += "return valSet;";
+        return code;
     }
 }
