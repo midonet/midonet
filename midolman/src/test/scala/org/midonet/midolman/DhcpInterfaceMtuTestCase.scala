@@ -28,6 +28,7 @@ import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
+import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.packets._
 
 @Category(Array(classOf[SimulationTests]))
@@ -258,7 +259,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val returnPkt = fishForRequestOfType[EmitGeneratedPacket](dedupProbe()).eth
         val interfaceMtu = extractInterfaceMtuDhcpReply(returnPkt)
         log.info("Returning interface MTU is {}", interfaceMtu)
-        intfMtu -= (new GreTunnelZone).getTunnelOverhead()
+        intfMtu -= GreTunnelPort.TunnelOverhead
         interfaceMtu should equal (intfMtu)
     }
 }
