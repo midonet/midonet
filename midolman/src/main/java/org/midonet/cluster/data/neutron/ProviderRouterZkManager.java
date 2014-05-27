@@ -40,7 +40,7 @@ public class ProviderRouterZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), ProviderRouter.class);
     }
 
-    private ProviderRouter getSafe()
+    public ProviderRouter getSafe()
             throws StateAccessException, SerializationException {
 
         try {
