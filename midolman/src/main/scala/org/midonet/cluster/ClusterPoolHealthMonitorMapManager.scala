@@ -3,20 +3,18 @@
  */
 package org.midonet.cluster
 
-
-import org.midonet.cluster.client.PoolHealthMonitorMapBuilder
-import org.midonet.cluster.data.l4lb.Pool
-import org.midonet.midolman.state.DirectoryCallback.Result
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager
-
-import com.google.inject.Inject
 import java.util.{Map => JMap, UUID}
-import org.slf4j.{LoggerFactory, Logger}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{HashMap => MMap}
 import scala.collection.immutable.{HashMap => IMap}
 
+import com.google.inject.Inject
+import org.slf4j.{LoggerFactory, Logger}
+
+import org.midonet.cluster.client.PoolHealthMonitorMapBuilder
+import org.midonet.cluster.data.l4lb.Pool
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
+import org.midonet.midolman.state.zkManagers.PoolZkManager
 
 class ClusterPoolHealthMonitorMapManager
         extends ClusterManager[PoolHealthMonitorMapBuilder]{
@@ -72,21 +70,20 @@ class ClusterPoolHealthMonitorMapManager
             requestsPendingMap
         }
 
-        def onSuccess(res: Result[JMap[UUID, UUID]]): Unit = {
-            log.debug("Got pool health monitor mappings")
-            res.getData match {
-                case cfg: JMap[UUID, UUID] =>
-                    val requestsPending = processNewMap(cfg)
-                    if (watchedPoolIdToHmId.size == poolIdToMapConfig.size) {
-                        // If we still have some missing data, it will be
-                        // retrieved when the data comes in via the
-                        // GetConfDataCallback. The build will happen then.
-                        builder.set(IMap(poolIdToMapConfig.toSeq:_*))
-                        builder.build()
-                    }
-                    requestsPending.foreach(kv => requestData(kv._1, kv._2))
-                case _ =>
-                    log.warn("Bad pool health monitor mapping returned from ZK")
+        def onSuccess(cfg: JMap[UUID, UUID]): Unit = {
+            if (cfg != null) {
+                log.debug("Got pool health monitor mappings")
+                val requestsPending = processNewMap(cfg)
+                if (watchedPoolIdToHmId.size == poolIdToMapConfig.size) {
+                    // If we still have some missing data, it will be
+                    // retrieved when the data comes in via the
+                    // GetConfDataCallback. The build will happen then.
+                    builder.set(IMap(poolIdToMapConfig.toSeq:_*))
+                    builder.build()
+                }
+                requestsPending.foreach(kv => requestData(kv._1, kv._2))
+            } else {
+                log.warn("null pool health monitor mapping returned from ZK")
             }
         }
 
@@ -119,14 +116,14 @@ class ClusterPoolHealthMonitorMapManager
             }
         }
 
-        def onSuccess(res: Result[PoolHealthMonitorMappingConfig]): Unit = {
+        def onSuccess(cfg: PoolHealthMonitorMappingConfig): Unit = {
              if (!watchedPoolIdToHmId.contains(poolId)) {
                  // This is just a late change notification. We stopped
                  // watching this already.
                  return
              }
 
-            poolIdToMapConfig.put(poolId, res.getData)
+            poolIdToMapConfig.put(poolId, cfg)
              if (watchedPoolIdToHmId.size == poolIdToMapConfig.size) {
                  val builder: PoolHealthMonitorMapBuilder =
                      getBuilder(Pool.POOL_HEALTH_MONITOR_MAP_KEY)

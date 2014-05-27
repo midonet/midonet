@@ -222,8 +222,8 @@ public class LocalClientImpl implements Client {
                 uuid,
                 new DirectoryCallback<Set<UUID>>() {
                     @Override
-                    public void onSuccess(Result<Set<UUID>> result) {
-                        builder.setHosts(result.getData()).build();
+                    public void onSuccess(Set<UUID> uuidSet) {
+                        builder.setHosts(uuidSet).build();
                     }
 
                     @Override

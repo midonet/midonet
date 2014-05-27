@@ -21,21 +21,16 @@ public class DirectoryCallbackFactory {
     }
 
     private static class AdaptingCallback<From, To>
-        extends org.midonet.util.functors.callbacks.AdaptingCallback<
-                DirectoryCallback.Result<From>, DirectoryCallback.Result<To>,
-                KeeperException>
+        extends org.midonet.util.functors.callbacks.AdaptingCallback<From,To, KeeperException>
         implements DirectoryCallback<From> {
 
         private AdaptingCallback(DirectoryCallback<To> target,
                                  final Functor<From, To> adaptor) {
             super(target,
-                new Functor<DirectoryCallback.Result<From>,
-                            DirectoryCallback.Result<To>>() {
+                new Functor<From,To>() {
                     @Override
-                    public DirectoryCallback.Result<To> apply(
-                                DirectoryCallback.Result<From> arg0) {
-                        return new DirectoryCallback.Result<To>(
-                            adaptor.apply(arg0.getData()), arg0.getStat());
+                    public To apply(From input) {
+                        return adaptor.apply(input);
                     }
                 });
         }

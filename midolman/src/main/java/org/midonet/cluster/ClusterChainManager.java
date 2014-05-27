@@ -65,9 +65,8 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<List<UUID>> data) {
-            // This is an ordered list of the UUIDs of current rules
-            List<UUID> curRuleIds = data.getData();
+        public void onSuccess(List<UUID> curRuleIds) {
+            // curlRuleIds is an ordered list of the UUIDs of current rules
 
             // UUID to actual rule for each rule in chain
             Map<UUID, Rule> ruleMap = chainIdToRuleMap.get(chainId);
@@ -137,8 +136,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
         }
 
         @Override
-        public void onSuccess(Result<Rule> data) {
-            Rule rule = data.getData();
+        public void onSuccess(Rule rule) {
             Collection<UUID> missingRuleIds =
                     chainToMissingRuleIds.get(rule.chainId);
             List<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
