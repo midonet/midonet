@@ -128,13 +128,11 @@ public class VTEP extends UriResource {
 
     public URI getUri() {
         return (getBaseUri() == null || managementIp == null) ? null :
-                ResourceUriBuilder.getVtep(getBaseUri(),
-                                           managementIp.toString());
+                ResourceUriBuilder.getVtep(getBaseUri(), managementIp);
     }
 
     public URI getBindings() {
         return (getBaseUri() == null || managementIp == null) ? null :
-                ResourceUriBuilder.getVtepBindings(getBaseUri(),
-                        managementIp.toString());
+                ResourceUriBuilder.getVtepBindings(getBaseUri(), managementIp);
     }
 }

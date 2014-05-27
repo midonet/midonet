@@ -58,8 +58,9 @@ public class ResourceUriBuilder {
     public static final String VIPS = "/vips";
     public static final String VLAN_ID = "/{vlanId}";
     public static final String VTEPS = "/vteps";
-    public static final String VTEP_BINDINGS = "/bindings";
-    public static final String VTEP_PORT_AND_VLAN = "/{portName}_{vlanId}";
+    public static final String VTEP_BINDINGS = "/vtep_bindings";
+    public static final String BINDINGS = "/bindings";
+    public static final String PORT_NAME = "/{portName}";
     public static final String VXLAN_PORT = "/vxlan_port";
     public static final String MAC_ADDR = "/{macAddress}";
     public static final String PORT_ID_NO_SLASH = "{portId}";
@@ -469,7 +470,7 @@ public class ResourceUriBuilder {
 
     public static URI getTunnelZoneHosts(URI baseUri, UUID tunnelZoneId) {
         return UriBuilder.fromUri(getTunnelZone(baseUri, tunnelZoneId
-                )).path(HOSTS).build();
+        )).path(HOSTS).build();
     }
 
     public static URI getTunnelZoneHost(URI baseUri, UUID tunnelZoneId,
@@ -488,13 +489,13 @@ public class ResourceUriBuilder {
 
     public static URI getVtepBindings(URI baseUri, String ipAddr) {
         return UriBuilder.fromUri(getVtep(baseUri, ipAddr))
-                .path(VTEP_BINDINGS).build();
+                .path(BINDINGS).build();
     }
 
     public static URI getVtepBinding(URI baseUri, String ipAddr,
                                      String portName, short vlanId) {
         return UriBuilder.fromUri(getVtepBindings(baseUri, ipAddr))
-                .path("/" + portName + "_" + vlanId).build();
+                .path(portName).path(Short.toString(vlanId)).build();
     }
 
     public static URI getBridgeVxLanPort(URI baseUri, UUID bridgeId) {
@@ -502,10 +503,22 @@ public class ResourceUriBuilder {
                 .path(VXLAN_PORT).build();
     }
 
+    public static URI getVxLanPortBindings(URI baseUri, UUID vxLanPortId) {
+        return UriBuilder.fromUri(getPort(baseUri, vxLanPortId))
+                .path(VTEP_BINDINGS).build();
+    }
+
+    public static URI getVxLanPortBinding(URI baseUri, UUID vxLanPortId,
+                                          String portName, short vlanId) {
+        return UriBuilder.fromUri(getPort(baseUri, vxLanPortId))
+                .path(VTEP_BINDINGS)
+                .path(portName)
+                .path(Short.toString(vlanId))
+                .build();
+    }
+
     public static String buildIdTemplateUri(URI uri) {
-        StringBuilder template = new StringBuilder(
-                UriBuilder.fromUri(uri).build().toString());
-        return template.append(ID_TOKEN).toString();
+        return uri.toString() + ID_TOKEN;
     }
 
     /**
@@ -650,7 +663,7 @@ public class ResourceUriBuilder {
     }
 
     public static String getVtepBindingTemplate(URI baseUri) {
-        return getVtepBindingsTemplate(baseUri) + VTEP_PORT_AND_VLAN;
+        return getVtepBindingsTemplate(baseUri) + PORT_NAME + VLAN_ID;
     }
 
     /**

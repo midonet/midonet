@@ -316,7 +316,7 @@ public class TestPort {
             DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 2727;
             b1Lp1.setDeviceId(b.getId());
-            b1Lp1.setVlanId(new Short(vlanId));
+            b1Lp1.setVlanId(vlanId);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
 
