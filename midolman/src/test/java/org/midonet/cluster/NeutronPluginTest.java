@@ -175,6 +175,24 @@ public class NeutronPluginTest {
         return sg;
     }
 
+    public Router createStockRouter() {
+        Router r = new Router();
+        r.id = UUID.randomUUID();
+        r.adminStateUp = true;
+        r.tenantId = "tenant";
+        return r;
+    }
+
+    public RouterInterface createStockRouterInterface(UUID portId,
+                                                      UUID subnetId)
+            throws StateAccessException {
+        RouterInterface ri = new RouterInterface();
+        ri.id = UUID.randomUUID();
+        ri.portId = portId;
+        ri.subnetId = subnetId;
+        return ri;
+    }
+
     public void verifyIpAddrGroups() throws StateAccessException,
             SerializationException{
         List<IpAddrGroup> ipgs = dataClient.ipAddrGroupsGetAll();
@@ -639,6 +657,80 @@ public class NeutronPluginTest {
 
         Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg.id, portsIp));
         Assert.assertFalse(dataClient.ipAddrGroupHasAddr(sg2.id, portsIp));
+    }
+
+    public void testAddRouterInterfaceCreateDelete() throws StateAccessException,
+            SerializationException {
+        Network network = createStockNetwork();
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+        int cp1 = zkDir().createCheckPoint();
+
+        Router r = createStockRouter();
+        r = plugin.createRouter(r);
+        int cp2 = zkDir().createCheckPoint();
+
+        Port p = createStockPort(subnet.id, network.id, null);
+        p.deviceOwner = DeviceOwner.ROUTER_INTF;
+        p.deviceId = r.id.toString();
+        p = plugin.createPort(p);
+
+        RouterInterface ri = createStockRouterInterface(p.id, subnet.id);
+        ri.id = r.id;
+        ri = plugin.addRouterInterface(r.id, ri);
+
+        plugin.deletePort(p.id);
+        int cp3 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp2, cp3).size(), 0);
+
+        plugin.deleteRouter(r.id);
+        int cp4 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp4).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp4).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp4).size(), 0);
+    }
+
+    @Test
+    public void testRouterInterfaceConvertPort() throws StateAccessException,
+            SerializationException {
+        Network network = createStockNetwork();
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+        int cp1 = zkDir().createCheckPoint();
+
+        Router r = createStockRouter();
+        r = plugin.createRouter(r);
+        int cp2 = zkDir().createCheckPoint();
+
+        Port p = createStockPort(subnet.id, network.id, null);
+        p = plugin.createPort(p);
+
+        RouterInterface ri = createStockRouterInterface(p.id, subnet.id);
+        ri.id = r.id;
+        ri.portId = p.id;
+        ri = plugin.addRouterInterface(r.id, ri);
+
+        plugin.deletePort(p.id);
+        int cp3 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp2, cp3).size(), 0);
+
+        plugin.deleteRouter(r.id);
+        int cp4 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp4).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp4).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp4).size(), 0);
     }
 }
 
