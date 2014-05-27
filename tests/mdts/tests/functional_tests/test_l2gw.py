@@ -1,4 +1,5 @@
 from nose.plugins.attrib import attr
+from mdts.lib import subprocess_compat
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
@@ -6,6 +7,7 @@ from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
 
 from hamcrest import *
+from nose.tools import nottest
 
 import logging
 import time
@@ -65,22 +67,22 @@ def teardown():
     VTM.destroy()
 
 
-def _ping_from_mn(iface_in_mn, outside, count=3, do_arp=False):
+def _ping_from_mn(midoVmIface, exHostIface, count=3, do_arp=False):
 
-    f1 = iface_in_mn.ping4(outside, count=count, do_arp=do_arp)
-    assert_that(outside, receives('dst host 172.16.0.224 and icmp',
+    f1 = midoVmIface.ping4(exHostIface, count=count, do_arp=do_arp)
+    assert_that(exHostIface, receives('dst host 172.16.0.224 and icmp',
                                   within_sec(20)))
     wait_on_futures([f1])
 
-def _ping_to_mn(iface_in_mn, outside, count=3, do_arp=False):
+def _ping_to_mn(midoVmIface, exHostIface, count=3, do_arp=False):
 
-    outside.clear_arp(sync=True)
-    f1 = outside.ping4(iface_in_mn, count=count, do_arp=do_arp)
-    assert_that(iface_in_mn, receives('dst host 172.16.0.1 and icmp',
+    exHostIface.clear_arp(sync=True)
+    f1 = exHostIface.ping4(midoVmIface, count=count, do_arp=do_arp)
+    assert_that(midoVmIface, receives('dst host 172.16.0.1 and icmp',
                                       within_sec(5)))
     wait_on_futures([f1])
 
-def _test_resiliency_from_transient_loop(ping, iface_in_mn, outside):
+def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
     """
     Title: Resiliency from transient loop
 
@@ -95,7 +97,7 @@ def _test_resiliency_from_transient_loop(ping, iface_in_mn, outside):
     """
 
     try:
-        ping(iface_in_mn, outside, count=5)
+        ping(midoVmIface, exHostIface, count=5)
     except (AssertionError, subprocess.CalledProcessError):
         LOG.debug("MN didn't recover from a bad state caused by a "
                   "transient loop within the timeframe of pinging 5 times.")
@@ -116,9 +118,9 @@ def _test_resiliency_from_transient_loop(ping, iface_in_mn, outside):
         # Linux Bridge. If a wrong pair of MAC and port is learnt in
         # transient loop, that won't expire in 300 secs by default.
         #
-        ping(iface_in_mn, outside, count=5, do_arp=True)
+        ping(midoVmIface, exHostIface, count=5, do_arp=True)
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_icmp_from_mn():
     """
@@ -132,14 +134,14 @@ def test_icmp_from_mn():
     And: the ping command succeeds
     """
 
-    iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    iface2 = BM.get_iface(4,1)
+    midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
+    exHostIface = BM.get_iface(4,1)
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
-    _test_resiliency_from_transient_loop(_ping_from_mn, iface1, iface2)
+    _test_resiliency_from_transient_loop(_ping_from_mn, midoVmIface, exHostIface)
 
-@attr(version="v1.2.0", slow=True)
+@attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
 def test_icmp_to_mn():
     """
@@ -153,12 +155,12 @@ def test_icmp_to_mn():
     And: the ping command succeeds
     """
 
-    iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    iface2 = BM.get_iface(4,1)
+    midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
+    exHostIface = BM.get_iface(4,1)
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
-    _test_resiliency_from_transient_loop(_ping_to_mn, iface1, iface2)
+    _test_resiliency_from_transient_loop(_ping_to_mn, midoVmIface, exHostIface)
 
 # approx. 50 sec for the peer Linux bridge to failover:
 # 20s to detect, 15s in listening, another 15s in learning
@@ -168,103 +170,186 @@ FAILOVER_WAIT_SEC = 50 + 5
 # 15s in listening, 15s in learning
 FAILBACK_WAIT_SEC = 30 + 5
 
+@nottest
+def _test_failover(ping, failover, restore):
 
-@attr(version="v1.2.0", slow=True)
-@bindings(bindings1, bindings2, bindings3)
-def test_failback_icmp_from_mn():
-    """
-    Title: Failover/Failback with ICMP from MidoNet VLAN
-
-    Scenario 1:
-    Given: a VM is inside a MidoNet vlan
-    When: a VM sends ICMP echo request with ping command
-          to a peer on a VLAN that is outside MidoNet
-    Then: the receiver VM should receive the ICMP echo packet.
-    And: the ping command succeeds
-
-    Scenario 2:
-    When: the trunk interface loses the link
-    Then: the VM still should have the connectivity described in the
-          scenario 1 above.
-
-    Scenario 3:
-    When: the trunk interface gets the link back
-    Then: the VM still should have the connectivity described in the
-          scenario 1 above.
-
-    """
-
-    iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    iface2 = BM.get_iface(4,1)
+    midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
+    exHostIface = BM.get_iface(4,1)
 
     # Wait for the peer bridge to block one of the trunks and
     # make sure Midonet has recovered from a transient loop.
-    _test_resiliency_from_transient_loop(_ping_from_mn, iface1, iface2)
+    _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface)
 
     trunk0 = BM.get_iface_for_port('bridge-000-001', 3)
 
-    trunk0.execute('ip link set dev $if down', sync=True)
+    failover(trunk0)
+    try:
+        # wait for stp to failover
+        time.sleep(FAILOVER_WAIT_SEC)
 
-    # wait for stp to failover
-    time.sleep(FAILOVER_WAIT_SEC)
+        ping(midoVmIface, exHostIface, do_arp=True)
+    finally:
+        restore(trunk0)
 
-    _ping_from_mn(iface1, iface2)
+@nottest
+def _test_failover_on_ifdown_with_icmp_from_mn():
+    def failover(trunk):
+        trunk.execute('ip link set dev $if down', sync=True)
 
-    trunk0.execute('ip link set dev $if up', sync=True)
+    def restore(trunk):
+        trunk.execute('ip link set dev $if up', sync=True)
+
+    _test_failover(_ping_from_mn, failover, restore)
+
+@attr(version="v1.2.0")
+@bindings(bindings1, bindings2, bindings3)
+def test_failover_on_ifdown_with_icmp_from_mn():
+    """
+    Title: Failover on Network Interface Down
+           with ARP/ICMP to MidoNet VLAN
+
+    Scenario 1:
+    When: MM detects a forwarding trunk interface is down immediately
+    Then: MM invalidates flows
+
+    """
+    _test_failover_on_ifdown_with_icmp_from_mn()
+
+@nottest
+def _test_failover_on_ifdown_with_icmp_to_mn():
+    def failover(trunk):
+        trunk.execute('ip link set dev $if down', sync=True)
+
+    def restore(trunk):
+        trunk.execute('ip link set dev $if up', sync=True)
+
+    _test_failover(_ping_to_mn, failover, restore)
+
+@attr(version="v1.2.0", slow=True)
+@bindings(bindings1, bindings2, bindings3)
+def test_failover_on_ifdown_with_icmp_to_mn():
+    """
+    Title: Failover on Network Interface Down
+           with ARP/ICMP to MidoNet VLAN
+
+    Scenario 1:
+    When: MM detects a forwarding trunk interface is down immediately
+    Then: MM invalidates flows
+    """
+    _test_failover_on_ifdown_with_icmp_to_mn()
+
+@nottest
+def _test_failover_on_generic_failure_with_icmp_from_mn():
+    def ifname(trunk):
+        return trunk._delegate._proxy._concrete._get_peer_ifname()
+
+    def brctl(instr, trunk):
+        cmd = 'brctl %s brv0 %s' % (instr, ifname(trunk))
+        subprocess_compat.check_output(cmd.split())
+
+    def failover(trunk):
+        brctl('delif', trunk)
+
+    def restore(trunk):
+        brctl('addif', trunk)
+
+    _test_failover(_ping_from_mn, failover, restore)
+
+@attr(version="v1.2.0")
+@bindings(bindings1, bindings2, bindings3)
+def test_failover_on_generic_failure_with_icmp_from_mn():
+    """
+    Title: Failover on Generic Network Failure
+           with ARP/ICMP from MidoNet VLAN
+
+    Scenario 1:
+    When: MM WON'T detect a failure in a forwarding trunk
+    Then: MM migrates a MAC and invalidates the associated flows
+    """
+    _test_failover_on_generic_failure_with_icmp_from_mn()
+
+@nottest
+def _test_failover_on_generic_failure_with_icmp_to_mn():
+
+    def ifname(trunk):
+        return trunk._delegate._proxy._concrete._get_peer_ifname()
+
+    def brctl(instr, trunk):
+        cmd = 'brctl %s brv0 %s' % (instr, ifname(trunk))
+        subprocess_compat.check_output(cmd.split())
+
+    def failover(trunk):
+        brctl('delif', trunk)
+
+    def restore(trunk):
+        brctl('addif', trunk)
+
+    _test_failover(_ping_to_mn, failover, restore)
+
+@attr(version="v1.2.0", slow=True)
+@bindings(bindings1, bindings2, bindings3)
+def test_failover_on_generic_failure_with_icmp_to_mn():
+    """
+    Title: Failover on Generic Network Failure
+           with ARP/ICMP to MidoNet VLAN
+
+    Scenario 1:
+    When: MM will not detects a failure in a forwarding trunk
+    Then: MM migrates a MAC and invalidates the associated flows
+    """
+    _test_failover_on_generic_failure_with_icmp_to_mn()
+
+@nottest
+def _test_failback(test_failover, ping):
+
+    test_failover()
 
     # wait for stp to failback
     time.sleep(FAILBACK_WAIT_SEC)
+
+    midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
+    exHostIface = BM.get_iface(4,1)
 
     # Emit an ARP request expecting a reply migrates the MAC
     # back to trunk0
-    _ping_from_mn(iface1, iface2, do_arp=True)
-
+    ping(midoVmIface, exHostIface, do_arp=True)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
-def test_failback_icmp_to_mn():
+def test_failback_on_ifdown_with_icmp_from_mn():
     """
-    Title: Failover/Failback with ICMP to MidoNet VLAN
-
-    Scenario 1:
-    Given: a VM is inside a MidoNet vlan
-    When: a host outside MidoNet that is on the same VLAN sends ICMP echo
-          request with ping command to a VM on the MidoNet VLAN
-    Then: the VM inside MidoNet VLAN should receive the ICMP echo packet.
-    And: the ping command on the host succeeds
-
-
-    Scenario 2:
-    When: the trunk interface loses the link
-    Then: the VM still should have the connectivity described in the
-          scenario 1 above.
-
-
-    Scenario 3:
-    When: the trunk interface gets the link back
-    Then: the VM still should have the connectivity described in the
-          scenario 1 above.
+    Title: Failover on Network Interface Down / Failback
+           with ARP/ICMP from MidoNet VLAN
     """
+    _test_failback(_test_failover_on_ifdown_with_icmp_from_mn,
+                   _ping_from_mn)
 
-    iface1 = BM.get_iface_for_port('bridge-000-001-0001', 1)
-    iface2 = BM.get_iface(4,1)
+@attr(version="v1.2.0", slow=True)
+@bindings(bindings1, bindings2, bindings3)
+def test_failback_on_ifdown_with_icmp_to_mn():
+    """
+    Title: Failover on Network Interface Down / Failback
+           with ARP/ICMP to MidoNet VLAN
+    """
+    _test_failback(_test_failover_on_ifdown_with_icmp_to_mn,
+                   _ping_to_mn)
 
-    # Wait for the peer bridge to block one of the trunks and
-    # make sure Midonet has recovered from a transient loop.
-    _test_resiliency_from_transient_loop(_ping_to_mn, iface1, iface2)
+@attr(version="v1.2.0", slow=True)
+@bindings(bindings1, bindings2, bindings3)
+def test_failback_on_generic_failure_with_icmp_from_mn():
+    """
+    Title: Failover on Generic Network Failure / Failback
+           with ARP/ICMP from MidoNet VLAN
+    """
+    _test_failback(_test_failover_on_generic_failure_with_icmp_from_mn,
+                   _ping_from_mn)
 
-    trunk0 = BM.get_iface_for_port('bridge-000-001', 3)
-
-    trunk0.execute('ip link set dev $if down', sync=True)
-
-    # wait for stp to failover
-    time.sleep(FAILOVER_WAIT_SEC)
-
-    _ping_to_mn(iface1, iface2)
-
-    trunk0.execute('ip link set dev $if up', sync=True)
-
-    # wait for stp to failback
-    time.sleep(FAILBACK_WAIT_SEC)
-
-    _ping_to_mn(iface1, iface2)
+@attr(version="v1.2.0", slow=True)
+@bindings(bindings1, bindings2, bindings3)
+def test_failback_on_generic_failure_with_icmp_to_mn():
+    """
+    Title: Failover on Generic Network Failure / Failback
+           with ARP/ICMP to MidoNet VLAN
+    """
+    _test_failback(_test_failover_on_generic_failure_with_icmp_to_mn,
+                   _ping_to_mn)
