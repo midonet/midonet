@@ -29,18 +29,12 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoBridge;
@@ -51,11 +45,20 @@ import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.*;
 import org.midonet.client.resource.Host;
 import org.midonet.client.VendorMediaType;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_V2_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
@@ -63,6 +66,8 @@ import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTIO
 public class TestHost extends JerseyTest {
 
     public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
+    public static final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
+    public static final int FLOODING_PROXY_WEIGHT = 42;
 
     private HostZkManager hostManager;
     private ZkPathManager pathManager;
@@ -114,6 +119,37 @@ public class TestHost extends JerseyTest {
                                                   Serializer serializer) {
             return new HostZkManager(zkManager, paths, serializer);
         }
+    }
+
+    private DtoHost retrieveHostV1(UUID hostId) {
+        URI hostUri = ResourceUriBuilder.getHost(
+            topology.getApplication().getUri(), hostId);
+        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
+                                                  APPLICATION_HOST_JSON,
+                                                  DtoHost.class);
+        return host;
+    }
+
+    private DtoHost retrieveHostV2(UUID hostId) {
+        URI hostUri = ResourceUriBuilder.getHost(
+            topology.getApplication().getUri(), hostId);
+        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
+                                                  APPLICATION_HOST_V2_JSON,
+                                                  DtoHost.class);
+        return host;
+    }
+
+    private void putHostV2(DtoHost host) {
+        putHostV2(host, ClientResponse.Status.OK);
+    }
+
+    private void putHostV2(DtoHost host, ClientResponse.Status status) {
+        URI hostUri = ResourceUriBuilder.getHost(
+            topology.getApplication().getUri(), host.getId());
+        dtoResource.putAndVerifyStatus(hostUri,
+                                       APPLICATION_HOST_V2_JSON,
+                                       host,
+                                       status.getStatusCode());
     }
 
     private DtoBridge addBridge(String bridgeName) {
@@ -214,6 +250,200 @@ public class TestHost extends JerseyTest {
                    hosts.get(0).getId(), equalTo(hostId));
         assertThat("The host should be reported as alive",
                    hosts.get(0).isAlive(), equalTo(true));
+    }
+
+    @Test
+    public void testFloodingProxyWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+        hostManager.createHost(hostId, metadata);
+
+        hosts = api.getHosts();
+
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("We should expose 1 host via the API",
+                   hosts.size(), equalTo(1));
+        assertThat("The returned host should have the same UUID",
+                   hosts.get(0).getId(), equalTo(hostId));
+
+        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should be null",
+                   weight, is(nullValue()));
+
+        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+        weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The flooding proxy weight has the proper value",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        hostManager.setFloodingProxyWeight(hostId, 0);
+        weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The flooding proxy weight has the proper value",
+                   weight, equalTo(0));
+    }
+
+    @Test
+    public void testFloodingProxyWeightNoHost() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+
+        try {
+            hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+            Assert.fail(
+                "Flooding proxy weight cannot be set on non-existing hosts");
+        } catch (NoStatePathException e) { }
+
+        try {
+            hostManager.getFloodingProxyWeight(hostId);
+            Assert.fail(
+                "Flooding proxy weight cannot be retrieved on non-existing hosts");
+        } catch (NoStatePathException e) { }
+    }
+
+    @Test
+    public void testDeleteFloodingProxyWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+
+        ResourceCollection<Host> hosts = api.getHosts();
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("Hosts should be empty", hosts.size(), equalTo(0));
+        hostManager.createHost(hostId, metadata);
+        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+
+        hosts = api.getHosts();
+
+        assertThat("Hosts array should not be null", hosts, is(notNullValue()));
+        assertThat("We should expose 1 host via the API",
+                   hosts.size(), equalTo(1));
+        assertThat("The returned host should have the same UUID",
+                   hosts.get(0).getId(), equalTo(hostId));
+
+        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should not be null",
+                   weight, is(notNullValue()));
+        assertThat("The flooding proxy weight has the proper value",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        hosts.get(0).delete();
+
+        assertThat("Host should have been removed from ZooKeeper.",
+                   !dir.has(pathManager.getHostPath(hostId)));
+        assertThat("Host flooding proxy weight should have been removed from ZooKeeper.",
+                   !dir.has(pathManager.getHostFloodingProxyWeightPath(hostId)));
+
+        boolean caughtNotFound = false;
+        try {
+            hostManager.getFloodingProxyWeight(hostId);
+        } catch (NoStatePathException e) {
+            caughtNotFound = true;
+        }
+        assertThat("Flooding proxy weight cannot be retrieved on non-existing hosts",
+                   caughtNotFound, equalTo(true));
+    }
+
+    @Test
+    public void testGetFloodingProxyWeightDefault() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+        hostManager.createHost(hostId, metadata);
+
+        DtoHost dtoHost = retrieveHostV2(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has the default value",
+                   weight, equalTo(DEFAULT_FLOODING_PROXY_WEIGHT));
+
+        // Check that we are back-compatible
+        DtoHost dtoHostV1 = retrieveHostV1(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHostV1, is(notNullValue()));
+        weight = dtoHostV1.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has a null value",
+                   weight, is(nullValue()));
+    }
+
+    @Test
+    public void testGetFloodingProxyWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+        hostManager.createHost(hostId, metadata);
+        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+
+        DtoHost dtoHost = retrieveHostV2(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has the proper value",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        // Check that we are back-compatible
+        DtoHost dtoHostV1 = retrieveHostV1(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHostV1, is(notNullValue()));
+        weight = dtoHostV1.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has a null value",
+                   weight, is(nullValue()));
+    }
+
+    @Test
+    public void testUpdate() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+        hostManager.createHost(hostId, metadata);
+        DtoHost dtoHost = retrieveHostV2(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+
+        putHostV2(dtoHost);
+        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should be the default value",
+                   weight, equalTo(DEFAULT_FLOODING_PROXY_WEIGHT));
+
+        dtoHost.setFloodingProxyWeight(FLOODING_PROXY_WEIGHT);
+        putHostV2(dtoHost);
+        weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should be properly set",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        dtoHost.setFloodingProxyWeight(null);
+        putHostV2(dtoHost, ClientResponse.Status.BAD_REQUEST);
+        weight = hostManager.getFloodingProxyWeight(hostId);
+        assertThat("The flooding proxy weight should be properly set",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+    }
+
+    @Test
+    public void testUpdateNoHost() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+        hostManager.createHost(hostId, metadata);
+        DtoHost dtoHost = retrieveHostV2(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        dtoHost.setId(UUID.randomUUID());
+
+        dtoHost.setFloodingProxyWeight(null);
+        putHostV2(dtoHost, ClientResponse.Status.NOT_FOUND);
     }
 
     @Test

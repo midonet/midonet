@@ -16,18 +16,30 @@ import java.util.UUID;
  */
 public class Host extends Entity.Base<UUID, Host.Data, Host> {
 
+    static private final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
+
     private boolean isAlive;
+
+    /*
+     * Flooding-Proxy weight.
+     * This value defines the preference for this host to be chosen as a
+     * VTEP's flooding proxy. The higher the value, the higher the probability.
+     * A zero value prevents this host from being chosen.
+     * If the value is not explicitly set, then the default value should be 1.
+     */
+    private int floodingProxyWeight;
 
     public Host() {
         this(null, new Data());
     }
 
     public Host(UUID uuid) {
-        super(uuid, new Data());
+        this(uuid, new Data());
     }
 
     public Host(UUID uuid, Data data) {
         super(uuid, data);
+        floodingProxyWeight = DEFAULT_FLOODING_PROXY_WEIGHT;
     }
 
     @Override
@@ -71,10 +83,34 @@ public class Host extends Entity.Base<UUID, Host.Data, Host> {
         return getData().tunnelZones;
     }
 
+    /**
+     * Get the flooding proxy weight.
+     *
+     * This value defines the preference for this host to be chosen as a
+     * VTEP's flooding proxy. The higher the value, the higher the probability.
+     * A zero value prevents this host from being chosen.
+     * @return a non-negative int value representing the host's weight.
+     */
+    public int getFloodingProxyWeight() {
+        return this.floodingProxyWeight;
+    }
+
+    /**
+     * Set the flooding proxy weight.
+     *
+     * This is needed when a Host object is being created, as the flooding
+     * proxy weight is not part of the common Host.Data
+     */
+    public Host setFloodingProxyWeight(int weight) {
+        this.floodingProxyWeight = weight;
+        return self();
+    }
+
     public static class Data {
         String name;
         InetAddress[] addresses;
         Set<UUID> tunnelZones = new HashSet<UUID>();
+
 
         @Override
         public boolean equals(Object o) {

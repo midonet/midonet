@@ -517,6 +517,8 @@ public interface DataClient {
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
             throws StateAccessException, SerializationException;
 
+    void hostsSetFloodingProxyWeight(UUID hostId, int weight)
+            throws StateAccessException, SerializationException;
 
     /* Ports related methods */
     boolean portsExists(UUID id) throws StateAccessException;

@@ -1121,10 +1121,18 @@ public class LocalDataClientImpl implements DataClient {
                 log.error("Failed to fetch metadata for host {}", hostId);
                 return null;
             }
+            Integer floodingProxyWeight =
+                hostZkManager.getFloodingProxyWeight(hostId);
 
             host = Converter.fromHostConfig(hostMetadata);
             host.setId(hostId);
             host.setIsAlive(hostsIsAlive(hostId));
+
+            /* The flooding proxy weight might have not been initialized
+             * for this host; if so, leave the default value set by Host
+             * constructor; otherwise, set the stored value. */
+            if (floodingProxyWeight != null)
+                host.setFloodingProxyWeight(floodingProxyWeight);
         }
 
         return host;
@@ -2793,6 +2801,14 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         hostZkManager.delVirtualPortMapping(hostId, portId);
     }
+
+    @Override
+    public void hostsSetFloodingProxyWeight(UUID hostId, int weight)
+            throws StateAccessException, SerializationException {
+        hostZkManager.setFloodingProxyWeight(hostId, weight);
+    }
+
+
 
     @Override
     public @CheckForNull Route routesGet(UUID id)

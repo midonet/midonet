@@ -50,6 +50,8 @@ public class VendorMediaType {
             "application/vnd.org.midonet.collection.IP4Mac-v1+json";
     public static final String APPLICATION_HOST_JSON =
             "application/vnd.org.midonet.Host-v1+json";
+    public static final String APPLICATION_HOST_V2_JSON =
+            "application/vnd.org.midonet.Host-v2+json";
     public static final String APPLICATION_HOST_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Host-v1+json";
     public static final String APPLICATION_INTERFACE_JSON =

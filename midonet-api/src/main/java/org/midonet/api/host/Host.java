@@ -3,15 +3,20 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.util.version.Since;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
@@ -24,6 +29,23 @@ public class Host extends UriResource {
     List<String> addresses;
     boolean alive;
 
+    /*
+     * From specs: This weight is a non-negative integer whose default
+     * value is 1. The MN administrator may set this value to zero to signify
+     * that the host should never be chosen as a flooding proxy.
+     *
+     * Note: though null is not a valid value, we accept it to support clients
+     * not providing any value (this will be converted to the proper default
+     * value when stored and retrieved afterwards).
+     *
+     * This property belongs to version 2 of the the class, to be used with
+     * MN version >= 1.5
+     */
+    @Since("2")
+    @Min(0)
+    @Max(65535)
+    private Integer floodingProxyWeight;
+
     public Host() {
     }
 
@@ -35,6 +57,7 @@ public class Host extends UriResource {
 
         this.id = host.getId();
         this.name = host.getName();
+        this.floodingProxyWeight = host.getFloodingProxyWeight();
 
         this.addresses = new ArrayList<String>();
         if (host.getAddresses() != null) {
@@ -76,6 +99,14 @@ public class Host extends UriResource {
 
     public void setAlive(boolean alive) {
         this.alive = alive;
+    }
+
+    public Integer getFloodingProxyWeight() {
+        return this.floodingProxyWeight;
+    }
+
+    public void setFloodingProxyWeight(Integer floodingProxyWeight) {
+        this.floodingProxyWeight = floodingProxyWeight;
     }
 
     @Override
