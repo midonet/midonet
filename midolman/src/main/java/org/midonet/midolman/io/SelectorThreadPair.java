@@ -98,7 +98,7 @@ public class SelectorThreadPair {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleWriteEvent(key);
+                        conn.handleWriteEvent();
                     }
                 });
 

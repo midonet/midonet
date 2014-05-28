@@ -21,9 +21,8 @@ import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.io.SelectorInputQueue;
-import org.midonet.util.Runnables;
 import org.midonet.util.TokenBucket;
+import org.midonet.util.io.SelectorInputQueue;
 
 /**
  * Abstract class to be derived by any netlink protocol implementation.
@@ -62,9 +61,9 @@ public abstract class AbstractNetlinkConnection {
     private SelectorInputQueue<NetlinkRequest> writeQueue =
             new SelectorInputQueue<NetlinkRequest>();
 
-    private PriorityQueue<NetlinkRequest<?>> expirationQueue;
+    private PriorityQueue<NetlinkRequest> expirationQueue;
 
-    private Set<NetlinkRequest<?>> ongoingTransaction = new HashSet<>();
+    private Set<NetlinkRequest> ongoingTransaction = new HashSet<>();
 
     /* When true, this connection will interpret that the notification
      * handler is shared with other channels and thus an upper entity
@@ -74,8 +73,8 @@ public abstract class AbstractNetlinkConnection {
     public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
         this.channel = channel;
         this.requestPool = sendPool;
-        expirationQueue = new PriorityQueue<NetlinkRequest<?>>(
-                512, new NetlinkRequestTimeoutComparator());
+        expirationQueue =
+            new PriorityQueue<NetlinkRequest>(512, requestComparator);
 
         // default implementation runs callbacks out of the calling thread one by one
         this.dispatcher = new BatchCollector<Runnable>() {
@@ -132,7 +131,7 @@ public abstract class AbstractNetlinkConnection {
 
     private void expireOldRequests() {
         long now = System.nanoTime();
-        NetlinkRequest<?> req;
+        NetlinkRequest req;
 
         while ((req = expirationQueue.peek()) != null &&
                 req.expirationTimeNanos <= now) {
@@ -146,10 +145,7 @@ public abstract class AbstractNetlinkConnection {
 
             log.debug("[pid:{}] Signalling timeout to the callback: {}",
                       pid(), req.seq);
-            if (req.outBuffer != null) {
-                requestPool.release(req.outBuffer);
-                req.outBuffer = null;
-            }
+            requestPool.release(req.releaseRequestPayload());
             dispatcher.submit(req.expired());
         }
     }
@@ -177,8 +173,8 @@ public abstract class AbstractNetlinkConnection {
         // set the header length
         headerBuf.putInt(0, totalSize);
 
-        final NetlinkRequest<T> netlinkRequest =
-            new NetlinkRequest<>(callback, translator, payload, seq, timeoutMillis);
+        NetlinkRequest netlinkRequest =
+            NetlinkRequest.make(callback, translator, payload, seq, timeoutMillis);
 
         log.trace("[pid:{}] Sending message for id {}", pid(), seq);
         pendRequest(netlinkRequest, seq);
@@ -195,8 +191,8 @@ public abstract class AbstractNetlinkConnection {
         return getChannel().getLocalAddress().getPid();
     }
 
-    private void pendRequest(NetlinkRequest<?> req, int seq) {
-        if (req.userCallback != null) {
+    private void pendRequest(NetlinkRequest req, int seq) {
+        if (req.hasCallback()) {
             pendingRequests.put(seq, req);
         }
     }
@@ -206,9 +202,9 @@ public abstract class AbstractNetlinkConnection {
         return seq == 0 ? nextSequenceNumber() : seq;
     }
 
-    private void abortRequestQueueIsFull(NetlinkRequest<?> req, int seq) {
+    private void abortRequestQueueIsFull(NetlinkRequest req, int seq) {
         String msg = "Too many pending netlink requests";
-        if (req.userCallback != null) {
+        if (req.hasCallback()) {
             pendingRequests.remove(seq);
             /* Run the callback directly, because this runs out of the client's
              * thread, not the channel's: it's the client that failed to
@@ -234,7 +230,7 @@ public abstract class AbstractNetlinkConnection {
                 "Blocking transactions on non-blocking channels are unsupported");
         }
 
-        NetlinkRequest<?> r;
+        NetlinkRequest r;
 
         /* Wait five seconds for the 1st request to arrive, don't wait at all
          * after that. */
@@ -245,7 +241,7 @@ public abstract class AbstractNetlinkConnection {
             if (processWriteToChannel(r) <= 0)
                 break;
 
-            if (r.userCallback != null)
+            if (r.hasCallback())
                 ongoingTransaction.add(r);
         }
 
@@ -263,9 +259,9 @@ public abstract class AbstractNetlinkConnection {
         ongoingTransaction.clear();
     }
 
-    public void handleWriteEvent(final SelectionKey key) throws IOException {
+    public void handleWriteEvent() throws IOException {
         for (int i = 0; i < maxBatchIoOps; i++) {
-            final NetlinkRequest<?> request = writeQueue.poll();
+            final NetlinkRequest request = writeQueue.poll();
             if (request == null)
                 break;
             final int ret = processWriteToChannel(request);
@@ -280,23 +276,22 @@ public abstract class AbstractNetlinkConnection {
         expireOldRequests();
     }
 
-    private int processWriteToChannel(final NetlinkRequest<?> request) {
+    private int processWriteToChannel(final NetlinkRequest request) {
         if (request == null)
             return 0;
-        ByteBuffer outBuf = request.outBuffer;
+
+        ByteBuffer outBuf = request.releaseRequestPayload();
         if (outBuf == null)
             return 0;
-        else
-            request.outBuffer = null;
 
         int bytes = 0;
         try {
             bytes = channel.write(outBuf);
-            if (request.userCallback != null)
+            if (request.hasCallback())
                 expirationQueue.add(request);
         } catch (IOException e) {
             log.warn("NETLINK write() exception: {}", e);
-            if (request.userCallback != null) {
+            if (request.hasCallback()) {
                 pendingRequests.remove(request.seq);
                 dispatcher.submit(request.failed(new NetlinkException(
                                   NetlinkException.ERROR_SENDING_REQUEST, e)));
@@ -417,7 +412,7 @@ public abstract class AbstractNetlinkConnection {
         return nbytes;
     }
 
-    private void processSuccessfulRequest(NetlinkRequest<?> request) {
+    private void processSuccessfulRequest(NetlinkRequest request) {
         if (request != null) {
             ongoingTransaction.remove(request);
             dispatcher.submit(request.successful());
@@ -425,26 +420,26 @@ public abstract class AbstractNetlinkConnection {
     }
 
     private void processRequestAnswer(int seq, short flag, ByteBuffer payload) {
-        NetlinkRequest<?> request = removeRequest(seq);
+        NetlinkRequest request = removeRequest(seq);
         if (request != null) {
             if (NLFlag.isMultiFlagSet(flag)) {
                 // if the answer is made of multiple msgs, we clone the payload and
                 // and we will process the request callback when the multi-msg ends.
-                request.inBuffers.add(cloneBuffer(payload));
+                request.addAnswerFragment(cloneBuffer(payload));
                 // We don't bother with placing the request back in the expiration
                 // queue because we can't access it from this thread, and because
                 // we know the reply is in flight.
                 pendingRequests.put(seq, request);
             } else {
                 // otherwise we process the callback directly with the payload.
-                request.inBuffers.add(payload);
+                request.addAnswerFragment(payload);
                 processSuccessfulRequest(request);
             }
         }
     }
 
     private void processFailedRequest(int seq, int error) {
-        NetlinkRequest<?> request = removeRequest(seq);
+        NetlinkRequest request = removeRequest(seq);
         if (request != null) {
             String errorMessage = cLibrary.lib.strerror(-error);
             NetlinkException err = new NetlinkException(-error, errorMessage);
@@ -452,8 +447,8 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
-    private NetlinkRequest<?> removeRequest(int seq) {
-        NetlinkRequest<?> request = pendingRequests.remove(seq);
+    private NetlinkRequest removeRequest(int seq) {
+        NetlinkRequest request = pendingRequests.remove(seq);
         if (request == null) {
             log.debug("[pid:{}] Reply handler for netlink request with id {} " +
                       "not found.", pid(), seq);
@@ -496,84 +491,145 @@ public abstract class AbstractNetlinkConnection {
         return request.position() - startPos;
     }
 
-    static public class NetlinkRequest<T> {
-        List<ByteBuffer> inBuffers = new ArrayList<>();
-        ByteBuffer outBuffer;
-        private final Callback<T> userCallback;
-        private final Function<List<ByteBuffer>, T> translationFunction;
-        final long expirationTimeNanos;
-        final int seq;
-        private boolean hasRun = false;
+    static public class NetlinkRequest implements Runnable {
 
-        public NetlinkRequest(Callback<T> callback,
-                              Function<List<ByteBuffer>, T> translationFunc,
+        enum State {
+          NotYet,
+          Success,
+          Failure,
+          HasRun;
+        }
+
+        private List<ByteBuffer> inBuffers; // dont allocate if callback is null
+        private ByteBuffer outBuffer;
+        private final Callback<Object> userCallback;
+        private final Function<List<ByteBuffer>,Object> translationFunction;
+        public final long expirationTimeNanos;
+        public final int seq;
+        private Object cbData = null;
+        private State state = State.NotYet;
+
+        private NetlinkRequest(Callback<Object> callback,
+                              Function<List<ByteBuffer>,Object> translationFunc,
                               ByteBuffer data,
                               int seq,
                               long timeoutMillis) {
             this.userCallback = callback;
             this.translationFunction = translationFunc;
             this.outBuffer = data;
+            this.seq = seq;
             this.expirationTimeNanos = System.nanoTime() +
                 TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
-            this.seq = seq;
+        }
+
+        public boolean hasCallback() {
+            return userCallback != null;
+        }
+
+        public void addAnswerFragment(ByteBuffer buf) {
+            if (inBuffers == null) {
+                inBuffers = new ArrayList<>(1); // most requests not fragmented
+            }
+            inBuffers.add(buf);
+        }
+
+        public ByteBuffer releaseRequestPayload() {
+            ByteBuffer payload = outBuffer;
+            outBuffer = null;
+            return payload;
+        }
+
+        @Override
+        public void run() {
+            synchronized(this) {
+                try {
+                    switch (state) {
+                        case Success:
+                            userCallback.onSuccess(cbData);
+                            break;
+
+                        case Failure:
+                            @SuppressWarnings("unchecked")
+                            NetlinkException e = (NetlinkException) cbData;
+                            userCallback.onError(e);
+                            break;
+
+                        case NotYet:
+                            throw new IllegalStateException(
+                                "tried to run the user callback before " +
+                                "completing the NetlinkRequest");
+
+                        case HasRun:
+                            throw new IllegalStateException(
+                                "attempted to run the user callback " +
+                                "of a NetlinkRequest more than once");
+                    }
+                } catch (Exception e) {
+                    log.error("Error trying to run user callback", e);
+                } finally {
+                    state = State.HasRun;
+                }
+            }
         }
 
         public Runnable successful() {
-            final T result = translationFunction.apply(inBuffers);
-            return ensureNotRun() ? new Runnables.RunOnceRunnable() {
-                                        @Override
-                                        public void runOnce() {
-                                            userCallback.onSuccess(result);
-                                        }
-                                    }
-                                   : Runnables.NO_OP;
+            changeState(State.Success, translationFunction.apply(inBuffers));
+            return this;
         }
 
         public Runnable failed(final NetlinkException e) {
-            return ensureNotRun() && e != null ? new Runnables.RunOnceRunnable() {
-                                                    @Override
-                                                    public void runOnce() {
-                                                        userCallback.onError(e);
-                                                    }
-                                                 }
-                                                : Runnables.NO_OP;
+            changeState(State.Failure, e);
+            return this;
         }
 
         public Runnable expired() {
+            NetlinkException.ErrorCode er = NetlinkException.ErrorCode.ETIMEOUT;
             String msg = "request #" + seq + " timeout";
-            NetlinkException ex =
-                new NetlinkException(NetlinkException.ErrorCode.ETIMEOUT, msg);
-            return failed(ex);
+            return failed(new NetlinkException(er, msg));
         }
 
-        private boolean ensureNotRun() {
-            synchronized (this) {
-                if (hasRun) {
-                    log.error("Attempted to create a runnable for the {}" +
-                              "NetlinkRequest more than once.", seq);
-                    return false;
+        private void changeState(State nextState, Object data) {
+            synchronized(this) {
+                if (state == State.NotYet) {
+                    cbData = data;
+                    state = nextState;
+                } else {
+                    log.error("Attempted to create a runnable for the " +
+                              "NetlinkRequest #{} more than once.", seq);
                 }
-                return hasRun = true;
             }
+        }
+
+        public static <T> NetlinkRequest make(Callback<T> callback,
+                                              Function<List<ByteBuffer>,T> translator,
+                                              ByteBuffer data,
+                                              int seq,
+                                              long timeoutMillis) {
+            @SuppressWarnings("unchecked")
+            Callback<Object> cb = (Callback<Object>) callback;
+            @SuppressWarnings("unchecked")
+            Function<List<ByteBuffer>,Object> func =
+                (Function<List<ByteBuffer>,Object>) translator;
+            return new NetlinkRequest(cb, func, data, seq, timeoutMillis);
         }
     }
 
     // A null value is interpreted by the comparator as a netlinkrequest with
     // infinite timeout, and is therefore "larger" than any non-null request.
-    static class NetlinkRequestTimeoutComparator
-            implements Comparator<NetlinkRequest> {
-        @Override
-        public int compare(NetlinkRequest a, NetlinkRequest b) {
-            long aExp = a != null ? a.expirationTimeNanos : Long.MAX_VALUE;
-            long bExp = b != null ? b.expirationTimeNanos : Long.MAX_VALUE;
-            return a == b ? 0 : Long.compare(aExp, bExp);
-        }
+    public static final Comparator<NetlinkRequest> requestComparator =
+        new Comparator<NetlinkRequest>() {
+            @Override
+            public int compare(NetlinkRequest a, NetlinkRequest b) {
+                long aExp = a != null ? a.expirationTimeNanos : Long.MAX_VALUE;
+                long bExp = b != null ? b.expirationTimeNanos : Long.MAX_VALUE;
+                return a == b ? 0 : Long.compare(aExp, bExp);
+            }
 
-        @Override
-        public boolean equals(Object o) {
-            return o instanceof NetlinkRequestTimeoutComparator;
-        }
-    }
+            @Override
+            public boolean equals(Object o) {
+                return o == this;
+            }
+    };
 
     protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();

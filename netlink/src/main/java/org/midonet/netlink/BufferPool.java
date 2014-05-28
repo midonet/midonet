@@ -99,7 +99,7 @@ public class BufferPool {
      *  callers must be careful not to call release() twice on the same buffer.
      */
     public void release(ByteBuffer buf) {
-        if (bufferPool.containsKey(buf)) {
+        if (buf != null && bufferPool.containsKey(buf)) {
             availPool.offer(buf);
             log.trace("released buffer ({}/{} free buffers)",
                      availPool.size(), numBuffers.get());
