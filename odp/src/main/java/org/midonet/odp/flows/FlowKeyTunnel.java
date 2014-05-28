@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
@@ -92,18 +91,8 @@ public class FlowKeyTunnel implements CachedFlowKey {
         usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyTunnel> getKey() {
-        return FlowKeyAttr.TUNNEL;
-    }
-
     public short attrId() {
         return FlowKeyAttr.TUNNEL.getId();
-    }
-
-    @Override
-    public FlowKeyTunnel getValue() {
-        return this;
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -153,37 +142,6 @@ public class FlowKeyTunnel implements CachedFlowKey {
         }
 
         return nBytes;
-    }
-
-    @Override
-    public void serialize(Builder builder) {
-        if ((usedFields & TUN_ID_MASK) != 0)
-            builder.addAttr(ID, BytesUtil.instance.reverseBE(tun_id));
-
-        if ((usedFields & IPV4_SRC_MASK) != 0)
-            builder.addAttr(IPV4_SRC, BytesUtil.instance.reverseBE(ipv4_src));
-
-        /*
-         * For flow-based tunneling, ipv4_dst has to be set, otherwise
-         * the NL message will result in EINVAL
-         */
-        if ((usedFields & IPV4_DST_MASK) != 0)
-            builder.addAttr(IPV4_DST, BytesUtil.instance.reverseBE(ipv4_dst));
-
-        if ((usedFields & IPV4_TOS_MASK) != 0)
-            builder.addAttrNoPad(TOS, ipv4_tos);
-
-        /*
-         * For flow-based tunneling, ipv4_ttl of zero would also result
-         * in OVS kmod replying with error EINVAL
-         */
-        if ((usedFields & IPV4_TTL_MASK) != 0)
-            builder.addAttrNoPad(TTL, ipv4_ttl);
-
-        if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT)
-            builder.addAttr(DONT_FRAGMENT);
-        if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM)
-            builder.addAttr(CSUM);
     }
 
     @Override

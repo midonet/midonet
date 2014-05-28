@@ -20,7 +20,6 @@ import org.midonet.netlink.CtrlFamily;
 import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 /**
  * Basic Netlink protocol implementation.
@@ -49,10 +48,6 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
     public void getFamilyId(@Nonnull String familyName,
                             @Nonnull Callback<Short> callback, long timeoutMillis) {
 
-        Builder builder = newMessage();
-        builder.addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName);
-        NetlinkMessage message = builder.build();
-
         Function<List<ByteBuffer>, Short> familyIdDeserializer =
             new Function<List<ByteBuffer>, Short>() {
                 @Override
@@ -69,7 +64,7 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
         sendNetlinkMessage(
             CtrlFamily.Context.GetFamily,
             NLFlag.REQUEST,
-            message.getBuffer(),
+            familyNameRequest(familyName),
             callback,
             familyIdDeserializer,
             timeoutMillis);
@@ -85,10 +80,6 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
                                   final String groupName,
                                   Callback<Integer> callback,
                                   long timeoutMillis) {
-
-        Builder builder = newMessage();
-        builder.addAttr(CtrlFamily.AttrKey.FAMILY_NAME, familyName);
-        NetlinkMessage message = builder.build();
 
         Function<List<ByteBuffer>, Integer> mcastGrpDeserializer =
             new Function<List<ByteBuffer>, Integer>() {
@@ -118,10 +109,17 @@ public class NetlinkConnection extends AbstractNetlinkConnection {
         sendNetlinkMessage(
             CtrlFamily.Context.GetFamily,
             NLFlag.REQUEST,
-            message.getBuffer(),
+            familyNameRequest(familyName),
             callback,
             mcastGrpDeserializer,
             timeoutMillis);
     }
 
+    private ByteBuffer familyNameRequest(String familyName) {
+        ByteBuffer buffer = getBuffer();
+        short nameId = CtrlFamily.AttrKey.FAMILY_NAME.getId();
+        NetlinkMessage.writeStringAttr(buffer, nameId, familyName);
+        buffer.flip();
+        return buffer;
+    }
 }

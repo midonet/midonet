@@ -11,7 +11,7 @@ import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
-public interface FlowKey extends BuilderAware, NetlinkMessage.Attr<FlowKey> {
+public interface FlowKey extends BuilderAware {
 
     /** write the key into a bytebuffer, without its header. */
     int serializeInto(ByteBuffer buf);

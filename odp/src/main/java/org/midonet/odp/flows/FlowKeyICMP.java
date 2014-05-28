@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyICMP implements FlowKey {
     /*__u8*/ protected byte icmp_type;
@@ -27,12 +26,6 @@ public class FlowKeyICMP implements FlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(icmp_type);
-        builder.addValue(icmp_code);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             icmp_type = message.getByte();
@@ -43,18 +36,8 @@ public class FlowKeyICMP implements FlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyICMP> getKey() {
-        return FlowKeyAttr.ICMP;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ICMP.getId();
-    }
-
-    @Override
-    public FlowKeyICMP getValue() {
-        return this;
     }
 
     @Override

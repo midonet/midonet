@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyInPort implements CachedFlowKey {
 
@@ -25,11 +24,6 @@ public class FlowKeyInPort implements CachedFlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(portNo);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             portNo = message.getInt();
@@ -39,18 +33,8 @@ public class FlowKeyInPort implements CachedFlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyInPort> getKey() {
-        return FlowKeyAttr.IN_PORT;
-    }
-
     public short attrId() {
         return FlowKeyAttr.IN_PORT.getId();
-    }
-
-    @Override
-    public FlowKeyInPort getValue() {
-        return this;
     }
 
     public int getInPort() {

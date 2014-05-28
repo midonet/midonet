@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyEncap implements FlowKey {
 
@@ -23,18 +22,8 @@ public class FlowKeyEncap implements FlowKey {
         this.keys = keys;
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyEncap> getKey() {
-        return FlowKeyAttr.ENCAP;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ENCAP.getId();
-    }
-
-    @Override
-    public FlowKeyEncap getValue() {
-        return this;
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -43,13 +32,6 @@ public class FlowKeyEncap implements FlowKey {
             nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKey.translator);
         }
         return nBytes;
-    }
-
-    @Override
-    public void serialize(Builder builder) {
-        for (FlowKey key : keys) {
-            builder.addAttr(key.getKey(), key.getValue());
-        }
     }
 
     @Override

@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 import static org.midonet.packets.Unsigned.unsign;
 
@@ -29,12 +28,6 @@ public class FlowKeyICMPv6 implements FlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(icmpv6_type);
-        builder.addValue(icmpv6_code);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             icmpv6_type = message.getByte();
@@ -45,18 +38,8 @@ public class FlowKeyICMPv6 implements FlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyICMPv6> getKey() {
-        return FlowKeyAttr.ICMPv6;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ICMPv6.getId();
-    }
-
-    @Override
-    public FlowKeyICMPv6 getValue() {
-        return this;
     }
 
     public byte getType() {

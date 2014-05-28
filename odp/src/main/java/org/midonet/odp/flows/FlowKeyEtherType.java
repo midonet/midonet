@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyEtherType implements CachedFlowKey {
 
@@ -57,11 +56,6 @@ public class FlowKeyEtherType implements CachedFlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(BytesUtil.instance.reverseBE(etherType));
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             etherType = BytesUtil.instance.reverseBE(message.getShort());
@@ -71,18 +65,8 @@ public class FlowKeyEtherType implements CachedFlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyEtherType> getKey() {
-        return FlowKeyAttr.ETHERTYPE;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ETHERTYPE.getId();
-    }
-
-    @Override
-    public FlowKeyEtherType getValue() {
-        return this;
     }
 
     public short getEtherType() {

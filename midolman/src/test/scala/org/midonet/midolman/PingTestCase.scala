@@ -145,9 +145,8 @@ class PingTestCase extends MidolmanTestCase
         flowActs.size should be (1)
 
         val act = flowActs(0)
-        act.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
-        act.getValue.getClass() should be (classOf[FlowActionOutput])
-        act.getValue.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
+        act.getClass() should be (classOf[FlowActionOutput])
+        act.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
 
         pktOut.packet.getPacket
     }

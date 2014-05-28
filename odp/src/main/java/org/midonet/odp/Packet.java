@@ -170,7 +170,7 @@ public class Packet {
         NetlinkMessage.writeAttrSeq(buf, actId, actions, FlowAction.translator);
 
         short pktId = PacketFamily.AttrKey.PACKET.getId();
-        NetlinkMessage.addAttribute(buf, pktId, packet.serialize());
+        NetlinkMessage.writeRawAttribute(buf, pktId, packet.serialize());
 
         buf.flip();
         return buf;
