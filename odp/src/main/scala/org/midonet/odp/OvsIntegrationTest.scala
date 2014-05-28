@@ -185,17 +185,27 @@ trait PortTest {
     def tunnelTest(dpF: Future[Datapath]) = {
         val makeGre =
             dpF flatMap { con createPort(GreTunnelPort.make("gre"), _) }
+
         val delGre =
             dpF flatMap { case dp => makeGre flatMap { con delPort(_, dp) } }
-        val makeVxLan =
-            dpF flatMap { con createPort(VxLanTunnelPort.make("vxlan"), _) }
-        val delVxLan =
-            dpF flatMap { case dp => makeVxLan flatMap { con delPort(_, dp) } }
+
+        val vxlanPorts = List(
+            VxLanTunnelPort.make("vxlan1"),
+            VxLanTunnelPort.make("vxlan2", 6677)
+        )
+
+        val makeVxLan = dpF flatMap { dp =>
+            Future.traverse(vxlanPorts) { con createPort (_, dp) }
+        }
+
+        val delVxLan = for (dp <- dpF; ports <- makeVxLan)
+                          yield Future.traverse(ports) { con delPort (_,dp) }
+
         Seq[(String, Future[Any])](
             ("can create a gre tunnel port", makeGre),
             ("can delete a gre tunnel port", delGre),
-            ("can create a vxlan tunnel port", makeVxLan),
-            ("can delete a vxlan tunnel port", delVxLan)
+            ("can create two vxlan tunnel ports", makeVxLan),
+            ("can delete vxlan tunnel ports", delVxLan)
         )
     }
 
