@@ -12,7 +12,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.netlink._
-import org.midonet.netlink.messages._
 import org.midonet.odp.family.PortFamily
 
 @RunWith(classOf[JUnitRunner])
@@ -27,9 +26,10 @@ class DpPortTest extends FunSpec with Matchers {
         describe("Stats") {
             it("should be invariant by serialization/deserialisation") {
                 stats foreach { s =>
-                    val bldr = new Builder(getBuffer)
-                    bldr addAttr(PortFamily.Attr.STATS, s)
-                    s shouldBe (DpPort.Stats buildFrom bldr.build())
+                    val buf = getBuffer
+                    NetlinkMessage writeAttr (buf, s, DpPort.Stats.trans)
+                    buf.flip
+                    s shouldBe (DpPort.Stats buildFrom new NetlinkMessage(buf))
                 }
             }
 

@@ -984,7 +984,7 @@ public class WildcardMatch implements Cloneable {
 
     private void processMatchKeys(Iterable<FlowKey> flowKeys) {
         for (FlowKey flowKey : flowKeys) {
-            switch (flowKey.getKey().getId()) {
+            switch (flowKey.attrId()) {
 
                 case OpenVSwitch.FlowKey.Attr.Encap:
                     FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
@@ -1097,8 +1097,8 @@ public class WildcardMatch implements Cloneable {
         }
     }
 
-    private static <Key extends FlowKey>
-                   Key as(FlowKey flowKey, Class<Key> type) {
-        return type.cast(flowKey.getValue());
+    private static <Key extends FlowKey> Key as(FlowKey flowKey,
+                                                Class<Key> type) {
+        return type.cast(flowKey);
     }
 }

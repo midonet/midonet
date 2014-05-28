@@ -16,7 +16,6 @@ import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.family.PortFamily;
@@ -75,7 +74,7 @@ public abstract class DpPort {
 
     public void serializeInto(ByteBuffer buf) {
         short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
-        NetlinkMessage.addAttribute(buf, nameAttrId, getName());
+        NetlinkMessage.writeStringAttr(buf, nameAttrId, getName());
 
         short portTypeAttrId = (short) OpenVSwitch.Port.Attr.Type;
         NetlinkMessage.writeIntAttr(buf, portTypeAttrId, getType().attrId);
@@ -209,7 +208,7 @@ public abstract class DpPort {
 
         if (portName != null) {
             short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
-            NetlinkMessage.addAttribute(buf, nameAttrId, portName);
+            NetlinkMessage.writeStringAttr(buf, nameAttrId, portName);
         }
 
         buf.flip();
@@ -255,18 +254,6 @@ public abstract class DpPort {
         public long getTxErrors() { return txErrors; }
         public long getRxDropped() { return rxDropped; }
         public long getTxDropped() { return txDropped; }
-
-        @Override
-        public void serialize(Builder builder) {
-            builder.addValue(rxPackets);
-            builder.addValue(txPackets);
-            builder.addValue(rxBytes);
-            builder.addValue(txBytes);
-            builder.addValue(rxErrors);
-            builder.addValue(txErrors);
-            builder.addValue(rxDropped);
-            builder.addValue(txDropped);
-        }
 
         @Override
         public boolean deserialize(NetlinkMessage message) {

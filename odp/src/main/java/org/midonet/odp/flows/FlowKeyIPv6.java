@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 
@@ -64,21 +63,6 @@ public class FlowKeyIPv6 implements FlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        for (int x : ipv6_src) {
-            builder.addValue(BytesUtil.instance.reverseBE(x));
-        }
-        for (int x : ipv6_dst) {
-            builder.addValue(BytesUtil.instance.reverseBE(x));
-        }
-        builder.addValue(BytesUtil.instance.reverseBE(ipv6_label));
-        builder.addValue(ipv6_proto);
-        builder.addValue(ipv6_tclass);
-        builder.addValue(ipv6_hlimit);
-        builder.addValue(ipv6_frag);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             for (int i = 0; i < 4; i++) {
@@ -99,18 +83,8 @@ public class FlowKeyIPv6 implements FlowKey {
     }
 
     @Override
-    public NetlinkMessage.AttrKey<FlowKeyIPv6> getKey() {
-        return FlowKeyAttr.IPv6;
-    }
-
-    @Override
     public short attrId() {
         return FlowKeyAttr.IPv6.getId();
-    }
-
-    @Override
-    public FlowKeyIPv6 getValue() {
-        return this;
     }
 
     public int[] getSrc() {
