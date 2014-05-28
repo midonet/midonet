@@ -4,11 +4,12 @@
 package org.midonet.odp.protos;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,11 +18,7 @@ import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.odp.Datapath;
-import org.midonet.odp.DpPort;
-import org.midonet.odp.Flow;
-import org.midonet.odp.FlowMatch;
-import org.midonet.odp.Packet;
+import org.midonet.odp.*;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
@@ -34,26 +31,26 @@ import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
  */
 public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
-    Set<Datapath> datapaths = new HashSet<Datapath>();
+    private final Set<Datapath> datapaths;
+    private final Map<Datapath, Set<DpPort>> datapathPorts;
+    private final Map<Datapath, AtomicInteger> portsIndexes;
+    public final Map<FlowMatch, Flow> flowsTable;
+    public final List<Packet> packetsSent;
 
-    Map<Datapath, Set<DpPort>> datapathPorts
-        = new HashMap<Datapath, Set<DpPort>>();
-
-    Map<Datapath, AtomicInteger> portsIndexes
-        = new HashMap<Datapath, AtomicInteger>();
-
-    public Map<FlowMatch, Flow> flowsTable = new HashMap<FlowMatch, Flow>();
-    public List<Packet> packetsSent = new ArrayList<Packet>();
-
-    Callback2<Packet,List<FlowAction>> packetExecCb = null;
-    FlowListener flowsCb = null;
-
-    boolean initialized = false;
+    private Callback2<Packet,List<FlowAction>> packetExecCb = null;
+    private FlowListener flowsCb = null;
+    private boolean initialized = false;
 
     AtomicInteger datapathIds = new AtomicInteger(1);
 
     public MockOvsDatapathConnection(NetlinkChannel channel) {
         super(channel, new BufferPool(128, 512, 0x1000));
+        this.datapaths = Collections.newSetFromMap(
+                            new ConcurrentHashMap<Datapath,Boolean>());
+        this.datapathPorts = new ConcurrentHashMap<Datapath, Set<DpPort>>();
+        this.portsIndexes = new ConcurrentHashMap<Datapath, AtomicInteger>();
+        this.flowsTable = new ConcurrentHashMap<FlowMatch, Flow>();
+        this.packetsSent = new ArrayList<Packet>();
     }
 
     @Override
@@ -99,7 +96,9 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     private Datapath newDatapath(String name) {
         Datapath datapath = new Datapath(datapathIds.incrementAndGet(), name);
         datapaths.add(datapath);
-        datapathPorts.put(datapath, new HashSet<DpPort>());
+        Set<DpPort> ports =
+            Collections.newSetFromMap(new ConcurrentHashMap<DpPort,Boolean>());
+        datapathPorts.put(datapath, ports);
         datapathPorts.get(datapath).add(makeDatapathPort(datapath));
         portsIndexes.put(datapath, new AtomicInteger(0));
         return datapath;
@@ -275,7 +274,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         flowsTable.put(flow.getMatch(), flow);
         if (callback != null)
             callback.onSuccess(flow);
-        flowsCb.flowCreated(flow);
+        if (flowsCb != null)
+            flowsCb.flowCreated(flow);
     }
 
     @Override
@@ -283,7 +283,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
        if(flowsTable.containsKey(flow.getMatch())){
            Flow removed = flowsTable.remove(flow.getMatch());
            callback.onSuccess(removed);
-           flowsCb.flowDeleted(removed);
+           if (flowsCb != null)
+              flowsCb.flowDeleted(removed);
        }
         else{
            callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));

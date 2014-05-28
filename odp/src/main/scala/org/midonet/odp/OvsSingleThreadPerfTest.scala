@@ -1,20 +1,21 @@
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
-package org.midonet.odp
+package org.midonet.odp.test
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.sys.process.Process
 
-import org.midonet.util.BatchCollector
 import org.midonet.netlink._
 import org.midonet.netlink.exceptions._
+import org.midonet.odp._
 import org.midonet.odp.family._
-import org.midonet.odp.ports._
 import org.midonet.odp.flows._
+import org.midonet.odp.ports._
 import org.midonet.odp.protos._
+import org.midonet.util.BatchCollector
 
 abstract class OvsSimpleThroughputTest {
 

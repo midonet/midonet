@@ -146,7 +146,7 @@ run_throughput_test() {
     main=$1
     ns=$2
     nsif=$3
-    run_test "org.midonet.odp."$1 $2 $3
+    run_test "org.midonet.odp.test."$1 $2 $3
     mm-dpctl --show-dp perftest
     mm-dpctl --delete-dp perftest
 }
@@ -174,7 +174,7 @@ ovs_throughput() {
     ns_clean $ns
 }
 
-ovs_integration "org.midonet.odp.OvsIntegrationTest"
+ovs_integration "org.midonet.odp.test.OvsIntegrationTest"
 ovs_integration "org.midonet.midolman.io.OneSelectorConnectionTest"
 ovs_integration "org.midonet.midolman.io.TwoSelectorsConnectionTest"
 ovs_integration "org.midonet.midolman.io.PoolOfOneConnectionTest"
