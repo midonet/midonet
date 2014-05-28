@@ -183,7 +183,7 @@ def clear_physical_topology():
                    "do sudo -i ip netns delete $ns 2>/dev/null; done")
         logging.debug("cmdline: " + cmdline)
         try:
-            subprocess.check_call(cmdline, shell=True)
+            subprocess_compat.check_output(cmdline, shell=True)
         except subprocess.CalledProcessError:
             pass
 
@@ -191,7 +191,7 @@ def clear_physical_topology():
                    "do sudo -i ip link delete $iface 2>/dev/null; done")
         logging.debug("cmdline: " + cmdline)
         try:
-            subprocess.check_call(cmdline, shell=True)
+            subprocess_compat.check_output(cmdline, shell=True)
         except subprocess.CalledProcessError:
             pass
 

@@ -7,8 +7,6 @@ import re
 import shlex
 import string
 import subprocess
-from subprocess import Popen
-from subprocess import PIPE
 
 from mdts.lib import subprocess_compat
 
@@ -118,7 +116,7 @@ class Netns(object):
         Raises:
             subprocess.CalledProcessError: when one of the commands to set
                                            up the veth+ns environment fails
-       """
+        """
 
         LOG.debug('create')
         ifname = self._get_ifname()
@@ -130,12 +128,12 @@ class Netns(object):
             cmdline =  "ip link add dev %s type veth peer name %s" % (
                 ifname, ifname_peer)
             LOG.debug('VethNs: creating a veth pair: ' + cmdline)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
 
             # create a network namespace
             cmdline =  "ip netns add " + self._get_nsname()
             LOG.debug('VethNs: creating a network namespace: ' + cmdline)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
 
             if not self._interface.get('ipv6_addr'):
                 # disable ipv6 if there's no address configured
@@ -148,13 +146,13 @@ class Netns(object):
                     self._interface['hw_addr'],
                     ifname_peer)
                 LOG.debug('VethNs: setting HW address: ' + cmdline)
-                subprocess.check_call(cmdline.split())
+                subprocess_compat.check_output(cmdline.split())
 
             # put the veth peer IF to the namespace that's just created.
             cmdline = "ip link set dev %s up netns %s" % (ifname_peer,
                                                           self._get_nsname())
             LOG.debug('VethNs: putting a veth to a ns: ' + cmdline)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
 
             # configure ipv4 address if any
             for addr in self._interface.get('ipv4_addr'):
@@ -208,7 +206,7 @@ class Netns(object):
         cmdline = "ip netns del " + self._get_nsname()
         LOG.debug('VethNs: deleting the ns: ' + cmdline)
         try:
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
         except subprocess.CalledProcessError as e:
             LOG.exception(e)
         except OSError as e:
@@ -292,7 +290,8 @@ class Netns(object):
         cmd_args = shlex.split(cmdline)
 
         LOG.debug('VethNs: Executing command interactively: %s', cmdline)
-        return Popen(cmd_args, shell=False, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return subprocess.Popen(cmd_args, shell=False, stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def expect(self, pcap_filter_string, timeout):
         """
@@ -379,15 +378,15 @@ class Trunk(Netns):
             cmdline =  "ip link add dev %s type veth peer name %s" % (
                 ifname, ifname_peer)
             LOG.debug('VethNs: creating a veth pair: ' + cmdline)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
 
             # add an end of the pair to bridge
             ifname_peer = self._get_peer_ifname()
             LOG.debug('Trunk: adding %s to %s' % (brname, ifname_peer))
             cmdline = "brctl addif %s %s" % (brname, ifname_peer)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
             cmdline = "ip link set dev %s up" % (ifname_peer,)
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
 
             return self._interface
 
@@ -406,7 +405,7 @@ class Trunk(Netns):
         cmdline = "brctl delif %s %s" % (brname, ifname_peer)
         LOG.debug('Trunk: deleting %s from %s' % (brname, ifname_peer))
         try:
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
         except subprocess.CalledProcessError:
             pass
         except OSError:
@@ -415,7 +414,7 @@ class Trunk(Netns):
         cmdline = "ip link delete " + ifname_peer
         LOG.debug('Trunk: deleting the iface: ' + ifname_peer)
         try:
-            subprocess.check_call(cmdline.split())
+            subprocess_compat.check_output(cmdline.split())
         except subprocess.CalledProcessError:
             pass
         except OSError:

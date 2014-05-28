@@ -2,6 +2,7 @@ import logging
 import subprocess
 import time
 
+from mdts.lib import subprocess_compat
 from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class NetifFailure(FailureBase):
             % (self._netns, self._interface)
         LOG.debug('set dev %s down in %s' \
                       % (self._interface, self._netns))
-        subprocess.check_call(cmdline.split())
+        subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)
 
     def eject(self):
@@ -33,5 +34,5 @@ class NetifFailure(FailureBase):
             % (self._netns, self._interface)
         LOG.debug('set dev %s up in %s' \
                       % (self._interface, self._netns))
-        subprocess.check_call(cmdline.split())
+        subprocess_compat.check_output(cmdline.split())
         time.sleep(self._wait)

@@ -3,7 +3,8 @@ from mdts.host.interface import InterfaceProxy
 from concurrent.futures import ThreadPoolExecutor
 import pdb
 import logging
-import subprocess
+
+from mdts.lib import subprocess_compat
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10
@@ -52,12 +53,12 @@ class LocalInterfaceProvider:
 
                 cmdline = 'ip link set %s netns %s' % (ifname, nsname)
                 LOG.debug('VethNs: putting host veth to MM ns ' + cmdline)
-                subprocess.check_call(cmdline.split())
+                subprocess_compat.check_output(cmdline.split())
 
                 cmdline = 'ip netns exec %s ip  link set %s up' % (nsname,
                                                                    ifname)
                 LOG.debug('VethNs: setting IF up ' + cmdline)
-                subprocess.check_call(cmdline.split())
+                subprocess_compat.check_output(cmdline.split())
             future.add_done_callback(put_veth_to_mm_ns)
         return future
 
