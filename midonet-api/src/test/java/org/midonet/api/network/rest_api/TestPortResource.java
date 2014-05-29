@@ -60,7 +60,7 @@ public class TestPortResource {
     @Before
     public void setUp() throws Exception {
         testObject = new PortResource(config, uriInfo, context, auth, validator,
-                 dataClient, factory);
+                 dataClient, factory, null);
     }
 
     @Test(expected = ForbiddenHttpException.class)
