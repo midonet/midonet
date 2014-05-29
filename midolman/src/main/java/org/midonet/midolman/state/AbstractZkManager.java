@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 

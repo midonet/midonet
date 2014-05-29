@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
 
 // TODO(jlm): Replace this with a wrapper around
