@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.rest_api;
 
