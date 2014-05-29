@@ -126,10 +126,14 @@ public class NetworkZkManager extends BaseZkManager {
             BridgeDhcpZkManager.Subnet config =
                     new BridgeDhcpZkManager.Subnet(subnet);
             dhcpZkManager.prepareCreateSubnet(ops, subnet.networkId, config);
-        } else {
+        } else if (subnet.isIpv6()) {
             BridgeDhcpV6ZkManager.Subnet6 config =
                     new BridgeDhcpV6ZkManager.Subnet6(subnet.ipv6Subnet());
             dhcpV6ZkManager.prepareCreateSubnet6(ops, subnet.networkId, config);
+        } else {
+            throw new IllegalArgumentException(
+                    "Subnet version is not recognized: " +
+                    subnet.getIpVersion());
         }
 
         String path = paths.getNeutronSubnetPath(subnet.id);
@@ -147,9 +151,13 @@ public class NetworkZkManager extends BaseZkManager {
         if (subnet.isIpv4()) {
             dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
                     subnet.intIpv4());
-        } else {
+        } else if (subnet.isIpv6()) {
             dhcpV6ZkManager.prepareDeleteSubnet6(ops, subnet.networkId,
                     subnet.ipv6Subnet());
+        } else {
+            throw new IllegalArgumentException(
+                    "Subnet version is not recognized: " +
+                    subnet.getIpVersion());
         }
 
         ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
@@ -163,10 +171,14 @@ public class NetworkZkManager extends BaseZkManager {
             BridgeDhcpZkManager.Subnet config =
                     new BridgeDhcpZkManager.Subnet(subnet);
             dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
-        } else {
+        } else if (subnet.isIpv6()) {
             BridgeDhcpV6ZkManager.Subnet6 config =
                     new BridgeDhcpV6ZkManager.Subnet6(subnet.ipv6Subnet());
             dhcpV6ZkManager.prepareUpdateSubnet6(ops, subnet.networkId, config);
+        } else {
+            throw new IllegalArgumentException(
+                    "Subnet version is not recognized: " +
+                    subnet.getIpVersion());
         }
 
         String path = paths.getNeutronSubnetPath(subnet.id);
@@ -233,11 +245,15 @@ public class NetworkZkManager extends BaseZkManager {
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareAddHost(ops, subnet,
                         new Host(port.macAddress, fixedIp.ipAddress));
-            } else{
+            } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareAddHost(ops, subnet.networkId,
                         subnet.ipv6Subnet(),
                         new BridgeDhcpV6ZkManager.Host(
                                 port.macAddress, fixedIp.ipv6Addr(), null));
+            } else {
+                throw new IllegalArgumentException(
+                        "Subnet version is not recognized: " +
+                        subnet.getIpVersion());
             }
         }
     }
@@ -323,9 +339,13 @@ public class NetworkZkManager extends BaseZkManager {
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
                         IntIPv4.fromString(subnet.cidr, "/"), port.macAddress);
-            } else {
+            } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareDeleteHost(ops, subnet.networkId,
                         subnet.ipv6Subnet(), port.macAddress);
+            } else {
+                throw new IllegalArgumentException(
+                        "Subnet version is not recognized: " +
+                                subnet.getIpVersion());
             }
         }
     }

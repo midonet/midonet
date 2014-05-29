@@ -86,4 +86,9 @@ public class FloatingIp {
         if (fixedIpAddress == null) return null;
         return IPv4Addr.fromString(fixedIpAddress);
     }
+
+    @JsonIgnore
+    public boolean isAssociated() {
+        return portId != null;
+    }
 }

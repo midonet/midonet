@@ -214,7 +214,7 @@ public abstract class Rule {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(t);
         return new ForwardNatRule(cond, RuleResult.Action.ACCEPT, chainId, 1,
-                false, targets);
+                true, targets);
     }
 
     public static Rule reverseSnatRule(UUID chainId, UUID portId, IPv4Addr ip) {

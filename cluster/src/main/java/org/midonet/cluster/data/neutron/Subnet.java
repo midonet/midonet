@@ -110,6 +110,16 @@ public class Subnet {
     }
 
     @JsonIgnore
+    public boolean isIpv6() {
+        return ipVersion == 6;
+    }
+
+    @JsonIgnore
+    public int getIpVersion() {
+        return ipVersion;
+    }
+
+    @JsonIgnore
     public IPv4Subnet ipv4Subnet() {
         if (cidr == null) return null;
 
