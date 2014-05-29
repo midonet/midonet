@@ -451,7 +451,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
     @Override
     public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         l3ZkManager.prepareCreateFloatingIp(ops, floatingIp);
@@ -642,10 +643,5 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     public List<SecurityGroupRule> getSecurityGroupRules()
             throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRules();
-    }
-
-    public ProviderRouter getProviderRouter() throws StateAccessException,
-            SerializationException {
-        return providerRouterZkManager.getSafe();
     }
 }

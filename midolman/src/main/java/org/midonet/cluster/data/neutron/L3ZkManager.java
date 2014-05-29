@@ -386,11 +386,15 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareCreateFloatingIp(List<Op> ops, FloatingIp floatingIp)
-            throws SerializationException {
-
+            throws SerializationException, StateAccessException,
+            org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
         String path = paths.getNeutronFloatingIpPath(floatingIp.id);
         ops.add(zk.getPersistentCreateOp(path,
-                serializer.serialize(floatingIp)));
+                        serializer.serialize(floatingIp)));
+        if (floatingIp.isAssociated()) {
+            prepareAssociateFloatingIp(ops, floatingIp);
+        }
+        ops.add(zk.getSetDataOp(path, serializer.serialize(floatingIp)));
     }
 
     public FloatingIp getFloatingIp(UUID floatingIpId)
@@ -418,8 +422,14 @@ public class L3ZkManager extends BaseZkManager {
         return floatingIps;
     }
 
-    public void prepareDeleteFloatingIp(List<Op> ops, UUID floatingIpId) {
+    public void prepareDeleteFloatingIp(List<Op> ops, UUID floatingIpId)
+            throws StateAccessException, SerializationException {
 
+        FloatingIp fip = getFloatingIp(floatingIpId);
+        Port port = networkZkManager.getPort(fip.portId);
+        if (port != null) {
+            prepareDisassociateFloatingIp(ops, port);
+        }
         String path = paths.getNeutronFloatingIpPath(floatingIpId);
         ops.add(zk.getDeleteOp(path));
     }
@@ -480,13 +490,13 @@ public class L3ZkManager extends BaseZkManager {
         FloatingIp oldFip = getFloatingIp(fip.id);
 
         // Disassociate if it's not associated with any fixed IP
-        if (fip.portId == null) {
+        if (oldFip.isAssociated() && !fip.isAssociated()) {
             Port oldPort = networkZkManager.getPort(oldFip.portId);
             prepareDisassociateFloatingIp(ops, oldPort);
-        } else if (oldFip.portId == null) {
+        } else if (!oldFip.isAssociated() && fip.isAssociated()) {
             // Associate fip to fixed
             prepareAssociateFloatingIp(ops, fip);
-        } else {
+        } else if (oldFip.isAssociated() && fip.isAssociated()) {
             // Association modified.  No need to change the provider router
             // route, but need to update the static NAT rules.
             RouterConfig rCfg = routerZkManager.get(fip.routerId);
@@ -500,6 +510,9 @@ public class L3ZkManager extends BaseZkManager {
                     rCfg.inboundFilter, gwPort.id,
                     oldFip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
                     fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
+        } else {
+            // the else case is a no-op because its an update of something
+            // other than the fixed/floating ip fields.
         }
 
         String path = paths.getNeutronFloatingIpPath(fip.id);

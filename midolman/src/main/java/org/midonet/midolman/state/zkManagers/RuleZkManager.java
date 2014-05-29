@@ -647,5 +647,4 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             SerializationException {
         zk.multi(prepareDelete(id));
     }
-
 }

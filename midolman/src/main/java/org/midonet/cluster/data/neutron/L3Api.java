@@ -88,7 +88,8 @@ public interface L3Api {
      * @return Created FloatingIp object
      */
     public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
 
     /**
      * Delete a floating IP. Nothing happens if the resource does not exist.

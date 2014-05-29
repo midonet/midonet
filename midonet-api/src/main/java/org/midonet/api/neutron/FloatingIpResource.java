@@ -49,7 +49,8 @@ public class FloatingIpResource extends AbstractResource {
     @Produces(NeutronMediaType.FLOATING_IP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(FloatingIp floatingIp)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
         log.info("FloatingIpResource.create entered {}", floatingIp);
 
         try {

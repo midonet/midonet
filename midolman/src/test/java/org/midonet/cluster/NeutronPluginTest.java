@@ -869,5 +869,186 @@ public class NeutronPluginTest {
         Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp2).size(), 0);
         Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
     }
+
+    @Test
+    public void testFIPCreateDelete() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
+
+        // Create the external network
+        Network network = createStockNetwork();
+        network.external = true;
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+        int cp1 = zkDir().createCheckPoint();
+
+        // Create a router and hook it up to the external network
+        Port port = createStockPort(subnet.id, network.id, null);
+        port.deviceOwner = DeviceOwner.ROUTER_GW;
+        port = plugin.createPort(port);
+        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        router.externalGatewayInfo.networkId = network.id;
+        router.gwPortId = port.id;
+        router = plugin.createRouter(router);
+
+        // Create a new network
+        Network network2 = createStockNetwork();
+        network2 = plugin.createNetwork(network2);
+        Subnet subnet2 = createStockSubnet();
+        subnet2.networkId = network2.id;
+        subnet2 = plugin.createSubnet(subnet2);
+
+        Port p = createStockPort(subnet2.id, network2.id, null);
+        p = plugin.createPort(p);
+
+        int cp2 = zkDir().createCheckPoint();
+        FloatingIp fip = new FloatingIp();
+        fip.routerId = router.id;
+        fip.fixedIpAddress = p.fixedIps.get(0).ipAddress;
+        fip.floatingIpAddress = "10.0.1.5";
+        fip.portId = p.id;
+        fip.floatingNetworkId = network.id;
+        fip.tenantId = "tenant";
+        fip.id = UUID.randomUUID();
+        fip = plugin.createFloatingIp(fip);
+
+        plugin.deleteFloatingIp(fip.id);
+        int cp3 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp2, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp2, cp3).size(), 0);
+    }
+
+    @Test
+    public void testFIPUpdate() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
+        // Create the external network
+        Network network = createStockNetwork();
+        network.external = true;
+        network = plugin.createNetwork(network);
+        Subnet subnet = createStockSubnet();
+        subnet.networkId = network.id;
+        subnet = plugin.createSubnet(subnet);
+
+        // Create a router and hook it up to the external network
+        Port port = createStockPort(subnet.id, network.id, null);
+        port.deviceOwner = DeviceOwner.ROUTER_GW;
+        port = plugin.createPort(port);
+        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        router.externalGatewayInfo.networkId = network.id;
+        router.gwPortId = port.id;
+        router = plugin.createRouter(router);
+
+        // Create a new network
+        Network network2 = createStockNetwork();
+        network2 = plugin.createNetwork(network2);
+        Subnet subnet2 = createStockSubnet();
+        subnet2.networkId = network2.id;
+        subnet2 = plugin.createSubnet(subnet2);
+
+        // Create a
+
+        Port port2 = createStockPort(subnet2.id, network2.id, null);
+        port2 = plugin.createPort(port2);
+
+        Port port3 = createStockPort(subnet2.id, network2.id, null);
+        port3.fixedIps = new ArrayList<>();
+        IPAllocation ip = new IPAllocation();
+        ip.ipAddress = "10.0.0.11";
+        ip.subnetId = subnet2.id;
+        port3.fixedIps.add(ip);
+        port3.macAddress = "01:23:45:67:89:ab";
+        port3 = plugin.createPort(port3);
+
+        // Create a floating IP not attached to a port
+        FloatingIp fip = new FloatingIp();
+        fip.routerId = router.id;
+        fip.floatingIpAddress = "10.0.1.5";
+        fip.floatingNetworkId = network.id;
+        fip.tenantId = "tenant";
+        fip.id = UUID.randomUUID();
+        fip = plugin.createFloatingIp(fip);
+        int cp1 = zkDir().createCheckPoint();
+
+        // update to associate
+        fip.fixedIpAddress = port2.fixedIps.get(0).ipAddress;
+        fip.portId = port2.id;
+        fip = plugin.updateFloatingIp(fip.id, fip);
+
+        // update to disassociate
+        fip.fixedIpAddress = null;
+        fip.portId = null;
+        fip = plugin.updateFloatingIp(fip.id, fip);
+        int cp2 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp2).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
+
+        // Update to associate
+        fip.fixedIpAddress = port3.fixedIps.get(0).ipAddress;
+        fip.portId = port3.id;
+        fip = plugin.updateFloatingIp(fip.id, fip);
+
+        // update to disassociate
+        fip.fixedIpAddress = null;
+        fip.portId = null;
+        fip = plugin.updateFloatingIp(fip.id, fip);
+        int cp3 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp1, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp1, cp3).size(), 0);
+        Assert.assertEquals(zkDir().getAddedPaths(cp1, cp3).size(), 0);
+
+        // Now try with a FIP created with a port attached
+        // Create a floating IP not attached to a port
+        FloatingIp fip2 = new FloatingIp();
+        fip2.routerId = router.id;
+        fip2.fixedIpAddress = port3.fixedIps.get(0).ipAddress;
+        fip2.floatingIpAddress = "10.0.1.5";
+        fip2.portId = port3.id;
+        fip2.floatingNetworkId = network.id;
+        fip2.tenantId = "tenant";
+        fip2.id = UUID.randomUUID();
+        fip2 = plugin.createFloatingIp(fip2);
+        int cp4 = zkDir().createCheckPoint();
+
+        // update to disassociate
+        fip2.fixedIpAddress = null;
+        fip2.portId = null;
+        fip2 = plugin.updateFloatingIp(fip2.id, fip2);
+        int cp5 = zkDir().createCheckPoint();
+
+        // update to associate
+        fip2.fixedIpAddress = port3.fixedIps.get(0).ipAddress;
+        fip2.portId = port3.id;
+        fip.floatingIpAddress = "10.0.1.5";
+        fip2 = plugin.updateFloatingIp(fip2.id, fip2);
+        int cp6 = zkDir().createCheckPoint();
+
+        // Added Paths needs to equal Removed paths. Although the content
+        // of the paths is logically the same, different UUIDs will be used
+        // for the new routes.
+        Assert.assertEquals(zkDir().getRemovedPaths(cp4, cp6).size(),
+                            zkDir().getAddedPaths(cp4, cp6).size(), 4);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp4, cp6).size(), 2);
+
+        // update to associate with a different port
+        fip2.fixedIpAddress = port2.fixedIps.get(0).ipAddress;
+        fip2.portId = port2.id;
+        fip2 = plugin.updateFloatingIp(fip2.id, fip2);
+
+        // associate back to the first port
+        fip2.fixedIpAddress = port3.fixedIps.get(0).ipAddress;
+        fip2.portId = port3.id;
+        fip2 = plugin.updateFloatingIp(fip2.id, fip2);
+        int cp7 = zkDir().createCheckPoint();
+
+        Assert.assertEquals(zkDir().getRemovedPaths(cp4, cp7).size(),
+                zkDir().getAddedPaths(cp4, cp7).size(), 4);
+        Assert.assertEquals(zkDir().getModifiedPaths(cp4, cp7).size(), 2);
+    }
 }
 
