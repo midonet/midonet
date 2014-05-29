@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2013 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.util.concurrent
 
