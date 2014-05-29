@@ -5,11 +5,9 @@ package org.midonet.api.network.rest_api;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,7 +39,6 @@ import org.midonet.api.network.PortGroupPort;
 import org.midonet.api.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
-import org.midonet.api.network.VxLanPort;
 import org.midonet.api.network.auth.BridgeAuthorizer;
 import org.midonet.api.network.auth.PortAuthorizer;
 import org.midonet.api.network.auth.PortGroupAuthorizer;
@@ -51,7 +48,9 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -71,13 +70,15 @@ public class PortResource extends AbstractResource {
 
     private final PortAuthorizer authorizer;
     private final ResourceFactory factory;
+    private final VtepClusterClient vtepClient;
 
     @Inject
     public PortResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, PortAuthorizer authorizer,
                         Validator validator, DataClient dataClient,
-                        ResourceFactory factory) {
+                        ResourceFactory factory, VtepClusterClient vtepClient) {
         super(config, uriInfo, context, dataClient, validator);
+        this.vtepClient = vtepClient;
         this.authorizer = authorizer;
         this.factory = factory;
     }
@@ -110,7 +111,11 @@ public class PortResource extends AbstractResource {
         Port port = PortFactory.convertToApiPort(portData);
         validate(port, Port.PortDeleteGroupSequence.class);
 
-        dataClient.portsDelete(id);
+        if (portData instanceof VxLanPort) {
+            vtepClient.deleteVxLanPort((VxLanPort)portData);
+        } else {
+            dataClient.portsDelete(id);
+        }
         portEvent.delete(id);
     }
 
@@ -242,7 +247,7 @@ public class PortResource extends AbstractResource {
 
         dataClient.portsLink(link.getPortId(), link.getPeerId());
 
-        org.midonet.cluster.data.Port portData = dataClient.portsGet(id);
+        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
         portEvent.link(id, portData);
 
         return Response.created(

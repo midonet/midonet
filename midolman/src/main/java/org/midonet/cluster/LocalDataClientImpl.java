@@ -3307,7 +3307,7 @@ public class LocalDataClientImpl implements DataClient {
             ops.addAll(bridgeZkManager.prepareUpdate(
                     bridgeId, bridgeConfig, false));
         } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
-            // Should never happen.
+            // This should never happen when userUpdate arg is false.
             throw new RuntimeException("Unexpected exception", ex);
         }
 

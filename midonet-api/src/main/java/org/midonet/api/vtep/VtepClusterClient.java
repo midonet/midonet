@@ -17,6 +17,7 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
@@ -30,6 +31,7 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 
 import com.google.inject.Inject;
@@ -141,14 +143,14 @@ public class VtepClusterClient {
      * provided VtepDataClient.
      */
     protected final List<PhysicalPort> getPhysicalPorts(
-            VtepDataClient vtepClient, org.midonet.cluster.data.VTEP vtep)
+            VtepDataClient vtepClient, IPv4Addr mgmtIp, int mgmtPort)
             throws StateAccessException
     {
         // Get the physical switch.
-        PhysicalSwitch ps = getPhysicalSwitch(vtepClient, vtep.getId());
+        PhysicalSwitch ps = getPhysicalSwitch(vtepClient, mgmtIp);
         if (ps == null) {
             throw new GatewayTimeoutHttpException(getMessage(
-                    VTEP_INACCESSIBLE, vtep.getId(), vtep.getMgmtPort()));
+                    VTEP_INACCESSIBLE, mgmtIp, mgmtPort));
         }
 
         // TODO: Handle error if this fails or returns null.
@@ -161,19 +163,19 @@ public class VtepClusterClient {
      * using the provided VtepDataClient.
      */
     protected final PhysicalPort getPhysicalPort(VtepDataClient vtepClient,
-                                                 VTEP vtep, String portName)
+            IPv4Addr mgmtIp, int mgmtPort, String portName)
             throws StateAccessException, SerializationException
     {
         // Find the requested port.
-        List<PhysicalPort> pports = getPhysicalPorts(vtepClient, vtep);
+        List<PhysicalPort> pports =
+                getPhysicalPorts(vtepClient, mgmtIp, mgmtPort);
         for (PhysicalPort pport : pports)
             if (pport.name.equals(portName))
                 return pport;
 
         // Switch doesn't have the specified port.
         throw new NotFoundHttpException(getMessage(
-                VTEP_PORT_NOT_FOUND, vtep.getId(), vtep.getMgmtPort(),
-                portName));
+                VTEP_PORT_NOT_FOUND, mgmtIp, mgmtPort, portName));
     }
 
 
@@ -195,7 +197,8 @@ public class VtepClusterClient {
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
 
         try {
-            PhysicalPort pp = getPhysicalPort(vtepClient, vtep, portName);
+            PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
+                                              vtep.getMgmtPort(), portName);
             UUID lsUuid = pp.vlanBindings.get((int)vlanId);
             if (lsUuid == null) {
                 throw new NotFoundHttpException(
@@ -235,7 +238,8 @@ public class VtepClusterClient {
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
         try {
-            return listVtepBindings(vtepClient, vtep, bridgeId);
+            return listVtepBindings(vtepClient, ipAddr,
+                                    vtep.getMgmtPort(), bridgeId);
         } finally {
             vtepClient.disconnect();
         }
@@ -247,8 +251,8 @@ public class VtepClusterClient {
      * This is so that operations which use listVtepBindings (e.g.
      * deletBinding) can reuse the VTEP and VtepDataClient.
      */
-    private List<VTEPBinding> listVtepBindings(
-            VtepDataClient vtepClient, VTEP vtep, java.util.UUID bridgeId)
+    private List<VTEPBinding> listVtepBindings(VtepDataClient vtepClient,
+            IPv4Addr mgmtIp, int mgmtPort, java.util.UUID bridgeId)
             throws SerializationException, StateAccessException {
 
         // Build map from OVSDB LogicalSwitch ID to Midonet Bridge ID.
@@ -258,7 +262,7 @@ public class VtepClusterClient {
         }
 
         List<VTEPBinding> bindings = new ArrayList<>();
-        for (PhysicalPort pp : getPhysicalPorts(vtepClient, vtep)) {
+        for (PhysicalPort pp : getPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
             for (Map.Entry<Integer, UUID> e : pp.vlanBindings.entrySet()) {
 
                 java.util.UUID bindingBridgeId =
@@ -269,7 +273,7 @@ public class VtepClusterClient {
                         (bridgeId == null ||
                                 bridgeId.equals(bindingBridgeId))) {
                     VTEPBinding b = new VTEPBinding(
-                            vtep.getId().toString(), pp.name,
+                            mgmtIp.toString(), pp.name,
                             e.getKey().shortValue(), bindingBridgeId);
                     bindings.add(b);
                 }
@@ -361,8 +365,8 @@ public class VtepClusterClient {
             // remember whether we saw any others with the same networkId.
             java.util.UUID affectedNwId = null;
             Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
-            List<VTEPBinding> bindings =
-                    listVtepBindings(vtepClient, vtep, null);
+            List<VTEPBinding> bindings = listVtepBindings(
+                    vtepClient, ipAddr, vtep.getMgmtPort(), null);
             for (VTEPBinding binding : bindings) {
                 java.util.UUID nwId = binding.getNetworkId();
                 if (binding.getPortName().equals(portName) &&
@@ -397,6 +401,22 @@ public class VtepClusterClient {
         }
     }
 
+    public void deleteVxLanPort(VxLanPort vxLanPort)
+            throws SerializationException, StateAccessException {
+
+        VtepDataClient vtepClient = getVtepClient(vxLanPort.getMgmtIpAddr(),
+                                                  vxLanPort.getMgmtPort());
+        try {
+            Status st = vtepClient.deleteLogicalSwitch(
+                    bridgeIdToLogicalSwitchName(vxLanPort.getDeviceId()));
+            throwIfFailed(st);
+
+            dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
+        } finally {
+            vtepClient.disconnect();
+        }
+    }
+
     /**
      * Converts the provided ODL Status object to the corresponding HTTP
      * exception and throws it. Does nothing if Status indicates success.
@@ -414,10 +434,9 @@ public class VtepClusterClient {
             case NOTFOUND:
                 throw new NotFoundHttpException(status.getDescription());
             default:
+                log.error("Unexpected response from VTEP: " + status);
+                throw new BadGatewayHttpException(status.getDescription());
         }
-
-        log.error("Unexpected response from VTEP: " + status);
-        throw new BadGatewayHttpException(status.getDescription());
     }
 
 
