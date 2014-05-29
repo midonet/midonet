@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.netlink.protos.NetlinkConnection;
 
 
 //@RunWith(PowerMockRunner.class)

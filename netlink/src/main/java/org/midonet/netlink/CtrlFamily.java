@@ -3,6 +3,11 @@
  */
 package org.midonet.netlink;
 
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import com.google.common.base.Function;
+
 /**
  * Abstraction for the NETLINK CTRL family of commands and attributes.
  */
@@ -45,6 +50,53 @@ public final class CtrlFamily {
         NetlinkMessage.AttrKey<Integer> MCAST_GRP_ID = NetlinkMessage.AttrKey.attr(2);
 
     }
+
+    public static ByteBuffer familyNameRequest(ByteBuffer buf, String name) {
+        NetlinkMessage.writeStringAttr(buf, AttrKey.FAMILY_NAME.getId(), name);
+        buf.flip();
+        return buf;
+    }
+
+    public static Function<List<ByteBuffer>, Integer> mcastGrpDeserializer(
+            final String groupName) {
+        return new Function<List<ByteBuffer>, Integer>() {
+            @Override
+            public Integer apply(List<ByteBuffer> input) {
+                if (input == null)
+                    return null;
+
+                NetlinkMessage res = new NetlinkMessage(input.get(0));
+                NetlinkMessage sub =
+                    res.getAttrValueNested(CtrlFamily.AttrKey.MCAST_GROUPS);
+
+                if (sub == null)
+                    return null;
+
+                sub.getShort();
+                sub.getShort();
+
+                String name =
+                    sub.getAttrValueString(CtrlFamily.AttrKey.MCAST_GRP_NAME);
+
+                if (name.equals(groupName))
+                    return sub.getAttrValueInt(CtrlFamily.AttrKey.MCAST_GRP_ID);
+
+                return null;
+            }
+        };
+    }
+
+    public static final Function<List<ByteBuffer>, Short> familyIdDeserializer =
+        new Function<List<ByteBuffer>, Short>() {
+            @Override
+            public Short apply(List<ByteBuffer> input) {
+                if (input == null || input.isEmpty() || input.get(0) == null)
+                    return 0;
+
+                return new NetlinkMessage(input.get(0))
+                              .getAttrValueShort(AttrKey.FAMILY_ID);
+            }
+        };
 
     private CtrlFamily() { }
 }
