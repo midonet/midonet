@@ -15,6 +15,7 @@ import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.netlink.AbstractNetlinkConnection;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.MockNetlinkChannel;
@@ -22,7 +23,6 @@ import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkProtocol;
 import org.midonet.netlink.NetlinkSelectorProvider;
-import org.midonet.netlink.protos.NetlinkConnection;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
@@ -34,7 +34,7 @@ import org.midonet.odp.flows.FlowAction;
 /**
  * OvsDatapath protocol implementation.
  */
-public abstract class OvsDatapathConnection extends NetlinkConnection {
+public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
 
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);

@@ -35,6 +35,8 @@ public abstract class AbstractNetlinkConnection {
     private static final int NETLINK_HEADER_LEN = 20;
     private static final int NETLINK_READ_BUFSIZE = 0x10000;
 
+    protected static final long DEF_REPLY_TIMEOUT = TimeUnit.SECONDS.toMillis(1);
+
     private AtomicInteger sequenceGenerator = new AtomicInteger(1);
 
     private Map<Integer, NetlinkRequest>
@@ -148,6 +150,40 @@ public abstract class AbstractNetlinkConnection {
             requestPool.release(req.releaseRequestPayload());
             dispatcher.submit(req.expired());
         }
+    }
+
+    public void getFamilyId(String familyName, Callback<Short> callback) {
+        getFamilyId(familyName, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void getFamilyId(String familyName,
+                            Callback<Short> callback, long timeoutMillis) {
+        sendNetlinkMessage(
+            CtrlFamily.Context.GetFamily,
+            NLFlag.REQUEST,
+            CtrlFamily.familyNameRequest(getBuffer(), familyName),
+            callback,
+            CtrlFamily.familyIdDeserializer,
+            timeoutMillis);
+    }
+
+    public void getMulticastGroup(String familyName,
+                                  String groupName,
+                                  Callback<Integer> callback) {
+        getMulticastGroup(familyName, groupName, callback, DEF_REPLY_TIMEOUT);
+    }
+
+    public void getMulticastGroup(String familyName,
+                                  String groupName,
+                                  Callback<Integer> callback,
+                                  long timeoutMillis) {
+        sendNetlinkMessage(
+            CtrlFamily.Context.GetFamily,
+            NLFlag.REQUEST,
+            CtrlFamily.familyNameRequest(getBuffer(), familyName),
+            callback,
+            CtrlFamily.mcastGrpDeserializer(groupName),
+            timeoutMillis);
     }
 
     protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
@@ -463,9 +499,8 @@ public abstract class AbstractNetlinkConnection {
         return to;
     }
 
-    protected abstract void handleNotification(short type, byte cmd,
-                                               int seq, int pid,
-                                               ByteBuffer buffers);
+    protected abstract void handleNotification(short type, byte cmd, int seq,
+                                               int pid, ByteBuffer buffer);
 
     private int serializeNetlinkHeader(ByteBuffer request, int seq,
                                        short family, byte version, byte cmd,

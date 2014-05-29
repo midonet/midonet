@@ -3,6 +3,7 @@
  */
 package org.midonet.odp.protos;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,6 +53,10 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         this.flowsTable = new ConcurrentHashMap<FlowMatch, Flow>();
         this.packetsSent = new ArrayList<Packet>();
     }
+
+    @Override
+    protected void handleNotification(short type, byte cmd, int seq,
+                                      int pid, ByteBuffer buffer) { /* no op */ }
 
     @Override
     public void initialize(Callback<Boolean> cb) {
