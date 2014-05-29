@@ -39,6 +39,11 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);
 
+    /** Initializes the state of this OvsDatapathConnection instance and
+     *  executes the initial discovery of command family parameters. Users
+     *  have to wait for the provided callback to be triggered before sending
+     *  any requests, as the state of the OvsDatapathConnection is not defined
+     *  during this initial setup phase . */
     public abstract void initialize(final Callback<Boolean> cb);
 
     public abstract boolean isInitialized();
