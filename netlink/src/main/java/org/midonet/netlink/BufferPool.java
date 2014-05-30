@@ -18,16 +18,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * guaranteed to be thread-safe and non-blocking.
  */
 public class BufferPool {
-    private static final Logger log = LoggerFactory
-            .getLogger(BufferPool.class);
 
-    private int maxBuffers;
-    private int bufSize;
+    private static final Logger log = LoggerFactory.getLogger(BufferPool.class);
 
+    /** dummy object used as the unique value in the concurrent buffer "set". */
     private static final Object PRESENT = new Object();
-    private ConcurrentMap<ByteBuffer, Object> bufferPool;
-    private BlockingQueue<ByteBuffer> availPool;
-    private AtomicInteger numBuffers;
+
+    private final int maxBuffers;
+    private final int bufSize;
+
+    private final ConcurrentMap<ByteBuffer, Object> bufferPool;
+    private final BlockingQueue<ByteBuffer> availPool;
+    private final AtomicInteger numBuffers;
 
     /**
      * @param minBuffers Initial number of buffers to allocate in the pool.
@@ -104,5 +106,13 @@ public class BufferPool {
             log.trace("released buffer ({}/{} free buffers)",
                      availPool.size(), numBuffers.get());
         }
+    }
+
+    public int available() {
+        return availPool.size();
+    }
+
+    public int allocated() {
+        return bufferPool.size();
     }
 }
