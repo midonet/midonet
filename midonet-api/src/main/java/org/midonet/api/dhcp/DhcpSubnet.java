@@ -13,9 +13,9 @@ import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IntIPv4;
 import org.midonet.util.version.Since;
 
 import javax.validation.constraints.Max;
@@ -26,8 +26,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DhcpSubnet extends RelativeUriResource {
+
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String subnetPrefix;
 
@@ -35,11 +36,11 @@ public class DhcpSubnet extends RelativeUriResource {
     @Max(32)
     private int subnetLength;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String defaultGateway;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String serverAddr;
 

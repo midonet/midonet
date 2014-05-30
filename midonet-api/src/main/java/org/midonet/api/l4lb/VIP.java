@@ -8,7 +8,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.VerifyEnumValue;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 import java.net.URI;
 import java.util.UUID;
@@ -25,7 +25,7 @@ public class VIP extends UriResource {
     private UUID loadBalancerId;
     @NotNull
     private UUID poolId;
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String address;
     @Min(0)

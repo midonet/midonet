@@ -7,7 +7,7 @@ import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -31,7 +31,7 @@ public abstract class IpAddrGroupAddr extends UriResource {
 
     // IP address in canonical form. Can be either IPv4 or IPv6.
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
             message = "is not a valid IP address")
     protected String addr;
 

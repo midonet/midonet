@@ -13,10 +13,9 @@ import javax.net.ssl.X509TrustManager;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.midonet.util.StringUtil;
 
 /**
  * An {@code X509TrustManager} that trust the server certificates based on
@@ -48,14 +47,14 @@ public class FingerprintTrustManager implements X509TrustManager {
     public void checkClientTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
         Preconditions.checkArgument(chain != null && chain.length > 0);
-        Preconditions.checkArgument(!StringUtil.isNullOrEmpty(authType));
+        Preconditions.checkArgument(!StringUtils.isEmpty(authType));
     }
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
         Preconditions.checkArgument(chain != null && chain.length > 0);
-        Preconditions.checkArgument(!StringUtil.isNullOrEmpty(authType));
+        Preconditions.checkArgument(!StringUtils.isEmpty(authType));
 
         MessageDigest messageDigest;
         try {

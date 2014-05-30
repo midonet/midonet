@@ -3,20 +3,21 @@
  */
 package org.midonet.api.auth.keystone.v2_0;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.*;
-import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
-import org.midonet.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
+import javax.servlet.http.HttpServletRequest;
+
+import com.google.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.auth.*;
+import org.midonet.api.auth.keystone.KeystoneConfig;
+import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
 
 /**
  * Keystone Service.
@@ -118,7 +119,7 @@ public class KeystoneService implements AuthService {
 
     private int parseLimit(HttpServletRequest request) {
         String limit = request.getParameter(KeystoneClient.LIMIT_QUERY);
-        if (StringUtil.isNullOrEmpty(limit)) {
+        if (StringUtils.isEmpty(limit)) {
             return 0;
         }
 
@@ -136,7 +137,7 @@ public class KeystoneService implements AuthService {
         log.debug("KeystoneService: entered getUserIdentityByToken. Token={}",
                 token);
 
-        if (StringUtil.isNullOrEmpty(token)) {
+        if (StringUtils.isEmpty(token)) {
             // Don't allow empty token
             throw new InvalidCredentialsException("No token was passed in.");
         }
@@ -155,11 +156,11 @@ public class KeystoneService implements AuthService {
         // For Keystone, since we need a scoped token, project is required.
         String project = request.getHeader(HEADER_X_AUTH_PROJECT);
 
-        if (StringUtil.isNullOrEmpty(project)) {
+        if (StringUtils.isEmpty(project)) {
             // the project was not specified in the request, so we need
             // to try and obtain it from the config.
             project = this.config.getAdminName();
-            if (StringUtil.isNullOrEmpty(project)) {
+            if (StringUtils.isEmpty(project)) {
                 throw new InvalidCredentialsException("Project missing");
             }
         }

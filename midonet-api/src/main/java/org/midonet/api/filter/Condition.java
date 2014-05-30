@@ -14,10 +14,10 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.odp.flows.IPFragmentType;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.Range;
-import org.midonet.util.StringUtil;
 import org.midonet.util.version.Since;
 
 import static org.midonet.packets.Unsigned.unsign;
@@ -25,7 +25,7 @@ import static org.midonet.midolman.rules.Condition.NO_MASK;
 
 /* Trace class */
 public abstract class Condition extends UriResource {
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String nwDstAddress;
 
@@ -33,7 +33,7 @@ public abstract class Condition extends UriResource {
     @Max(32)
     private int nwDstLength;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = "is an invalid IP format")
     private String nwSrcAddress;
 

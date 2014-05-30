@@ -29,6 +29,9 @@ public class MAC {
     public static final long MAC_MASK = 0x0000_FFFF_FFFF_FFFFL;
     public static final long MULTICAST_BIT = 0x1L << 40;
 
+    public final static String regex =
+        "^((([0-9]|[a-f]|[A-F]){2}):){5}([0-9]|[a-f]|[A-F]){2}$";
+
     private final long addr;
     private String sAddr = null; // not final to allow lazy init
 

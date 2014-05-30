@@ -6,7 +6,7 @@ package org.midonet.api.auth;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.midonet.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Class that holds the identity information of a user.
@@ -111,7 +111,7 @@ public class UserIdentity {
         sb.append(", token=" + this.token);
         sb.append(", tenantId=" + this.tenantId);
         sb.append(", tenantName=" + this.tenantName);
-        sb.append(", roles=" + StringUtil.join(this.roles, '|'));
+        sb.append(", roles=" + StringUtils.join(this.roles, '|'));
         return sb.toString();
     }
 }

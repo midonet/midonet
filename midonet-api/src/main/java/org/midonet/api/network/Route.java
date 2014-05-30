@@ -22,7 +22,7 @@ import org.midonet.api.validation.AllowedValue;
 import org.midonet.api.network.Route.RouteExtended;
 import org.midonet.api.network.validation.NextHopPortValid;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 
 /**
@@ -42,18 +42,18 @@ public class Route extends UriResource {
     private String attributes;
 
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = IPv4.regex)
     private String dstNetworkAddr;
 
     @Min(0)
     @Max(32)
     private int dstNetworkLength;
 
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = IPv4.regex)
     private String nextHopGateway;
 
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = IPv4.regex)
     private String srcNetworkAddr;
 
     @Min(0)

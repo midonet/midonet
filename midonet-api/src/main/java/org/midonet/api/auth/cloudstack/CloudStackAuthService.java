@@ -3,14 +3,15 @@
  */
 package org.midonet.api.auth.cloudstack;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
 import com.google.inject.Inject;
-import org.midonet.api.auth.*;
-import org.midonet.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import org.midonet.api.auth.*;
 
 /**
  * CloudStackAuthService Client.
@@ -68,7 +69,7 @@ public class CloudStackAuthService implements AuthService {
         log.debug("CloudStackAuthService: entered getUserIdentityByToken.  " +
                 "ApiKey={}", apiKey);
 
-        if (StringUtil.isNullOrEmpty(apiKey)) {
+        if (StringUtils.isEmpty(apiKey)) {
             // Don't allow empty apiKey
             throw new InvalidCredentialsException("No apiKey was passed in.");
         }
