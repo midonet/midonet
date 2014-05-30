@@ -22,7 +22,7 @@ public class VtepDataClientProvider {
     public static final Set<String> MOCK_VTEP_TUNNEL_IPS = Sets.newHashSet(
             "32.213.81.62", "197.132.120.121", "149.150.232.204");
     public static final String[] MOCK_VTEP_PORT_NAMES =
-            new String[]{"eth0", "eth1", "eth2"};
+            new String[]{"eth0", "eth1", "eth_2"};
 
 
     private final boolean useMock;
