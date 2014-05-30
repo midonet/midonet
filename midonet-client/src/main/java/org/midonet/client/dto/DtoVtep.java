@@ -18,8 +18,9 @@ public class DtoVtep {
     private String connectionState;
     private UUID tunnelZoneId;
     private List<String> tunnelIpAddrs;
-    private URI bindings;
     private URI uri;
+    private URI bindings;
+    private URI ports;
 
     public String getManagementIp() {
         return managementIp;
@@ -91,6 +92,14 @@ public class DtoVtep {
 
     public void setBindings(URI bindings) {
         this.bindings = bindings;
+    }
+
+    public URI getPorts() {
+        return ports;
+    }
+
+    public void setPorts(URI ports) {
+        this.ports = ports;
     }
 
     @Override

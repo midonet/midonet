@@ -498,9 +498,9 @@ public class ResourceUriBuilder {
                 .path(portName).path(Short.toString(vlanId)).build();
     }
 
-    public static URI getBridgeVxLanPort(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridgeId))
-                .path(VXLAN_PORT).build();
+    public static URI getVtepPorts(URI baseUri, String ipAddr) {
+        return UriBuilder.fromUri(getVtep(baseUri, ipAddr))
+                .path(PORTS).build();
     }
 
     public static URI getVxLanPortBindings(URI baseUri, UUID vxLanPortId) {

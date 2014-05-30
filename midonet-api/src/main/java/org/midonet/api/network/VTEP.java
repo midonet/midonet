@@ -135,4 +135,9 @@ public class VTEP extends UriResource {
         return (getBaseUri() == null || managementIp == null) ? null :
                 ResourceUriBuilder.getVtepBindings(getBaseUri(), managementIp);
     }
+
+    public URI getPorts() {
+        return (getBaseUri() == null || managementIp == null) ? null :
+                ResourceUriBuilder.getVtepPorts(getBaseUri(), managementIp);
+    }
 }

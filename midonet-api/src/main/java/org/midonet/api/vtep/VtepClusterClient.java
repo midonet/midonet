@@ -12,12 +12,12 @@ import java.util.Random;
 import java.util.Set;
 
 import org.midonet.api.network.VTEPBinding;
+import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.BadGatewayHttpException;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
@@ -31,7 +31,6 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 
 import com.google.inject.Inject;
@@ -138,11 +137,28 @@ public class VtepClusterClient {
         return null;
     }
 
+    public final List<VTEPPort> listPorts(IPv4Addr ipAddr)
+            throws SerializationException, StateAccessException {
+        VTEP vtep = getVtepOrThrow(ipAddr, false);
+        VtepDataClient vtepClient =
+                getVtepClient(vtep.getId(), vtep.getMgmtPort());
+        try {
+            List<PhysicalPort> pports =
+                    listPhysicalPorts(vtepClient, ipAddr, vtep.getMgmtPort());
+            List<VTEPPort> vtepPorts = new ArrayList<>(pports.size());
+            for (PhysicalPort pport : pports)
+                vtepPorts.add(new VTEPPort(pport.name, pport.description));
+            return vtepPorts;
+        } finally {
+            vtepClient.disconnect();
+        }
+    }
+
     /**
      * Gets a list of PhysicalPorts belonging to the specified VTEP using the
      * provided VtepDataClient.
      */
-    protected final List<PhysicalPort> getPhysicalPorts(
+    protected final List<PhysicalPort> listPhysicalPorts(
             VtepDataClient vtepClient, IPv4Addr mgmtIp, int mgmtPort)
             throws StateAccessException
     {
@@ -168,7 +184,7 @@ public class VtepClusterClient {
     {
         // Find the requested port.
         List<PhysicalPort> pports =
-                getPhysicalPorts(vtepClient, mgmtIp, mgmtPort);
+                listPhysicalPorts(vtepClient, mgmtIp, mgmtPort);
         for (PhysicalPort pport : pports)
             if (pport.name.equals(portName))
                 return pport;
@@ -192,7 +208,7 @@ public class VtepClusterClient {
             throws SerializationException, StateAccessException
     {
 
-        org.midonet.cluster.data.VTEP vtep = getVtepOrThrow(ipAddr, false);
+        VTEP vtep = getVtepOrThrow(ipAddr, false);
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
 
@@ -262,7 +278,8 @@ public class VtepClusterClient {
         }
 
         List<VTEPBinding> bindings = new ArrayList<>();
-        for (PhysicalPort pp : getPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
+        for (PhysicalPort pp :
+                listPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
             for (Map.Entry<Integer, UUID> e : pp.vlanBindings.entrySet()) {
 
                 java.util.UUID bindingBridgeId =

@@ -23,6 +23,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.network.VTEP;
+import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -104,6 +105,16 @@ public class VtepResource extends AbstractVtepResource {
     public void delete(@PathParam("ipAddr") String ipAddrStr)
             throws StateAccessException {
         // TODO: Verify that it has no bindings to Midonet networks.
+    }
+
+    @GET
+    @RolesAllowed({AuthRole.ADMIN})
+    @Path("{ipAddr}" + ResourceUriBuilder.PORTS)
+    @Produces({VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
+               MediaType.APPLICATION_JSON})
+    public List<VTEPPort> listPorts(@PathParam("ipAddr") String ipAddrStr)
+            throws SerializationException, StateAccessException {
+        return vtepClient.listPorts(parseIPv4Addr(ipAddrStr));
     }
 
     @Path("/{ipAddr}" + ResourceUriBuilder.BINDINGS)
