@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
-
 
 public class ClusterConditionManager extends ClusterManager<TraceConditionsBuilder> {
     private static final Logger log =
@@ -32,10 +32,9 @@ public class ClusterConditionManager extends ClusterManager<TraceConditionsBuild
         TraceConditionsBuilder builder = getBuilder(id);
         try {
             conditionList = conditionMgr.getConditions(watchConditionList(id));
-        } catch (StateAccessException e) {
-            log.error("Unable to get condition set: ", e);
-            conditionList = Collections.emptyList();
-        } catch (SerializationException e) {
+        } catch (NoStatePathException e) {
+            log.debug("Condition set {} has been deleted", id);
+        } catch (StateAccessException | SerializationException e) {
             log.error("Unable to get condition set: ", e);
             conditionList = Collections.emptyList();
         }
