@@ -60,8 +60,8 @@ public class ExternalNetZkManager extends BaseZkManager {
 
         // Add a route for the subnet in the gateway router
         routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-                new IPv4Subnet(0, 0), sub.ipv4Subnet(), rpCfg.id, null, 100,
-                prId, rpCfg);
+                new IPv4Subnet(0, 0), sub.ipv4Subnet(), rpCfg.id, null, prId,
+                rpCfg);
     }
 
     public void prepareUnlinkFromProvider(List<Op> ops, Subnet sub)
@@ -80,7 +80,8 @@ public class ExternalNetZkManager extends BaseZkManager {
      * that belong to the provider router.  When external network is removed,
      * call this method to clean up the dangling peer ports.
      */
-    public void prepareDeleteDanglingProviderPorts(List<Op> ops, Network net)
+    public void prepareDeleteDanglingProviderPorts(List<Op> ops,
+                                                         Network net)
             throws SerializationException, StateAccessException {
 
         UUID prId = providerRouterZkManager.getId();
@@ -132,8 +133,8 @@ public class ExternalNetZkManager extends BaseZkManager {
             }
 
             routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-                    new IPv4Subnet(0, 0), ip.ipv4Subnet(), rpCfg.id, null, 100,
-                    prId, rpCfg);
+                    new IPv4Subnet(0, 0), ip.ipv4Subnet(), rpCfg.id, null, prId,
+                    rpCfg);
         }
     }
 

@@ -21,7 +21,7 @@ import java.util.UUID;
 
 public class ProviderRouterZkManager extends BaseZkManager {
 
-    static final Logger log = LoggerFactory.getLogger(
+    static final Logger LOGGER = LoggerFactory.getLogger(
             ProviderRouterZkManager.class);
 
     private final RouterZkManager routerZkManager;
@@ -79,7 +79,8 @@ public class ProviderRouterZkManager extends BaseZkManager {
 
         try {
             ProviderRouter r = get();
-            log.debug("ProviderRouterZkManager.getId: provider router={}", r);
+            LOGGER.debug("ProviderRouterZkManager.getId: provider router={}",
+                    r);
             return r.id;
         } catch (NoStatePathException ex) {
             throw new IllegalStateException("Provider router not found");
@@ -100,7 +101,7 @@ public class ProviderRouterZkManager extends BaseZkManager {
      */
     public UUID ensureExists()
             throws StateAccessException, SerializationException {
-        log.debug("ProviderRouterZkManager.ensureExists entered");
+        LOGGER.debug("ProviderRouterZkManager.ensureExists entered");
         UUID id = getIdSafe();
         if (id != null) {
             return id;
@@ -114,7 +115,7 @@ public class ProviderRouterZkManager extends BaseZkManager {
         } catch (StatePathExistsException ex) {
             // Ignore because it's possible that we get a race here with
             // multiple calls at once to ZK.  As long as one exists, it's ok
-            log.warn("Provider already exists");
+            LOGGER.warn("Provider already exists");
 
         }
         return getId();

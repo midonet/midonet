@@ -49,7 +49,7 @@ public class Port {
     public List<UUID> securityGroups = new ArrayList<>();
 
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
 
         if (obj == this) return true;
 
@@ -96,12 +96,12 @@ public class Port {
     }
 
     @JsonIgnore
-    public boolean hasIp() {
+    public final boolean hasIp() {
         return fixedIps != null && fixedIps.size()> 0;
     }
 
     @JsonIgnore
-    public IPv4Addr firstIpv4Addr() {
+    public final IPv4Addr firstIpv4Addr() {
         if (!hasIp()) return null;
 
         String addr = fixedIps.get(0).ipAddress;
@@ -109,62 +109,62 @@ public class Port {
     }
 
     @JsonIgnore
-    public IPv4Subnet firstIpv4Subnet() {
+    public final IPv4Subnet firstIpv4Subnet() {
         if (!hasIp()) return null;
         return new IPv4Subnet(firstIpv4Addr(), 32);
     }
 
     @JsonIgnore
-    public MAC macAddress() {
+    public final MAC macAddress() {
         if (macAddress == null) return null;
         return MAC.fromString(macAddress);
     }
 
     @JsonIgnore
-    public boolean isDhcp() {
+    public final boolean isDhcp() {
         return deviceOwner == DeviceOwner.DHCP;
     }
 
     @JsonIgnore
-    public boolean isDhcp(UUID netId) {
+    public final boolean isDhcp(UUID netId) {
         return isDhcp() && Objects.equal(networkId, netId);
     }
 
     @JsonIgnore
-    public boolean isRouterInterface() {
+    public final boolean isRouterInterface() {
         return deviceOwner == DeviceOwner.ROUTER_INTF;
     }
 
     @JsonIgnore
-    public boolean isRouterGateway() {
+    public final boolean isRouterGateway() {
         return deviceOwner == DeviceOwner.ROUTER_GW;
     }
 
     @JsonIgnore
-    public boolean isFloatingIp() {
+    public final boolean isFloatingIp() {
         return deviceOwner == DeviceOwner.FLOATINGIP;
     }
 
     @JsonIgnore
-    public boolean isVif() {
+    public final boolean isVif() {
         return !(isDhcp() || isFloatingIp() || isRouterInterface()
                 || isRouterGateway());
     }
 
     @JsonIgnore
-    public String egressChainName() {
+    public final String egressChainName() {
         if (id == null) return null;
         return egressChainName(id);
     }
 
     @JsonIgnore
-    public String ingressChainName() {
+    public final String ingressChainName() {
         if (id == null) return null;
         return ingressChainName(id);
     }
 
     @JsonIgnore
-    public UUID deviceIdUuid() {
+    public final UUID deviceIdUuid() {
         if (deviceId == null) return null;
         return UUID.fromString(deviceId);
     }
