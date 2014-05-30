@@ -26,6 +26,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.ReplicatedMap;
@@ -66,7 +67,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     void getBridgeConf(final UUID id, final boolean isUpdate) {
         log.info("Updating configuration for bridge {}", id);
         BridgeBuilder builder = getBuilder(id);
-        if(builder == null){
+        if (builder == null) {
             log.error("Null builder for bridge {}", id.toString());
             return;
         }
@@ -96,16 +97,18 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
              * We would not want to add the watcher (with update=true) and
              * then find that the ZK calls for the rest of the data fail. */
             config = bridgeMgr.get(id, watchBridge(id, true));
+        } catch (NoStatePathException e) {
+            log.debug("Bridge {} has been deleted", id);
         } catch (StateAccessException e) {
-            log.warn("Cannot retrieve the configuration for bridge {}", id, e);
+            log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
             connectionWatcher.handleError(
                     id.toString(), watchBridge(id, isUpdate), e);
             return;
         } catch (SerializationException e) {
-            log.error("Could not deserialize bridge config: {}", id, e);
+            log.error("Could not deserialize bridge config: {} - {}", id, e);
             return;
         } catch (KeeperException e) {
-            log.warn("Cannot retrieve the configuration for bridge {}", id, e);
+            log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
             connectionWatcher.handleError(
                     id.toString(), watchBridge(id, isUpdate), e);
             return;
