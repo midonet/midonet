@@ -4,8 +4,6 @@
  */
 package org.midonet.midolman.serialization;
 
-import org.midonet.midolman.state.StateAccessException;
-
 /**
  * Exception class to indicate serialization error
  */

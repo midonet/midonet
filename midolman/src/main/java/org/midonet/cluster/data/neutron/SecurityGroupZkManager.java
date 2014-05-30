@@ -49,8 +49,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         this.ruleZkManager = ruleZkManager;
     }
 
-    private void prepareCreateChain(List<Op> ops, UUID chainId, String name,
-                                    List<Rule> rules)
+    private void prepareCreateChain(List<Op> ops, UUID chainId, String name, List<Rule> rules)
             throws SerializationException, StateAccessException {
 
         ChainConfig config = new ChainConfig(name);
@@ -58,8 +57,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         ruleZkManager.prepareCreateRulesInNewChain(ops, chainId, rules);
     }
 
-    private void preparePortChains(List<Op> ops, Port port,
-                                   UUID inboundChainId,
+    private void preparePortChains(List<Op> ops, Port port, UUID inboundChainId,
                                    UUID outboundChainId)
             throws StateAccessException, SerializationException {
 
@@ -76,16 +74,15 @@ public class SecurityGroupZkManager extends BaseZkManager {
         prepareCreateChain(ops, outboundChainId, name, outRules);
     }
 
-    private Rule createSgJumpRule(IpAddrGroupConfig gc,
-                                  RuleDirection dir, UUID chainId)
+    private Rule createSgJumpRule(IpAddrGroupConfig gc, RuleDirection dir, UUID chainId)
             throws StateAccessException, SerializationException {
         UUID jumpChainId = gc.getPropertyUuid(dir);
         ChainConfig jChain = chainZkManager.get(jumpChainId);
         return new JumpRule(chainId, jumpChainId, jChain.name);
     }
 
-    private void putPortChainRules(List<Rule> inRules, List<Rule> outRules,
-            Port port, UUID inChainId, UUID outChainId)
+    private void putPortChainRules(List<Rule> inRules, List<Rule> outRules, Port port,
+                                   UUID inChainId, UUID outChainId)
             throws SerializationException, StateAccessException {
 
         inRules.clear();
@@ -126,8 +123,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         outRules.add(Rule.dropAllExceptArpRule(outChainId));
     }
 
-    private void prepareUpdatePortChains(List<Op> ops, Port port,
-                                         PortConfig cfg)
+    private void prepareUpdatePortChains(List<Op> ops, Port port, PortConfig cfg)
             throws SerializationException, StateAccessException {
 
         List<Rule> inRules = new ArrayList<>();
@@ -140,8 +136,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         ruleZkManager.prepareReplaceRules(ops, cfg.outboundFilter, outRules);
     }
 
-    private void preparePortSecurityGroupBindings(List<Op> ops, Port port,
-                                                  boolean isRebuild)
+    private void preparePortSecurityGroupBindings(List<Op> ops, Port port, boolean isRebuild)
             throws SerializationException, StateAccessException {
 
         // Bind port to security groups
@@ -154,8 +149,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         }
     }
 
-    public void preparePortSecurityGroupBindings(List<Op> ops, Port port,
-                                                 PortConfig portConfig)
+    public void preparePortSecurityGroupBindings(List<Op> ops, Port port, PortConfig portConfig)
             throws StateAccessException, SerializationException {
 
         // Must be VIF port
@@ -187,8 +181,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         }
     }
 
-    private void prepareDeletePortSecurityGroupBindings(List<Op> ops,
-                                                        Port port)
+    private void prepareDeletePortSecurityGroupBindings(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
         // Removing the IPs from the IP address group.  Note that the
@@ -212,8 +205,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         prepareDeletePortChains(ops, cfg);
     }
 
-    public void prepareUpdatePortSecurityGroupBindings(List<Op> ops,
-                                                       Port newPort)
+    public void prepareUpdatePortSecurityGroupBindings(List<Op> ops, Port newPort)
             throws StateAccessException, SerializationException {
 
         Port p = networkZkManager.getPort(newPort.id);
@@ -253,7 +245,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
     }
 
     public void prepareUpdateSecurityGroup(List<Op> ops,
-                                           SecurityGroup newSg)
+                                                 SecurityGroup newSg)
             throws SerializationException {
         String path = paths.getNeutronSecurityGroupPath(newSg.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(newSg)));
@@ -342,8 +334,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         return rules;
     }
 
-    public void prepareCreateSecurityGroupRule(List<Op> ops,
-                                                   SecurityGroupRule rule)
+    public void prepareCreateSecurityGroupRule(List<Op> ops, SecurityGroupRule rule)
             throws SerializationException, StateAccessException,
             org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 

@@ -3,20 +3,15 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.rules.Condition;
-import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.packets.ARP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +26,7 @@ import java.util.UUID;
 @SuppressWarnings("unused")
 public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
-    private final static Logger log =
+    private static final Logger LOGGER =
             LoggerFactory.getLogger(NeutronPlugin.class);
 
     @Inject
@@ -54,15 +49,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
     private static void printOps(List<Op> ops) {
 
-        if (!log.isDebugEnabled()) return;
+        if (!LOGGER.isDebugEnabled()) return;
 
-        log.debug("******** BEGIN PRINTING ZK OPs *********");
+        LOGGER.debug("******** BEGIN PRINTING ZK OPs *********");
 
         for (Op op : ops) {
-            log.info(ZooDefs.opNames[op.getType()] + " " + op.getPath());
+            LOGGER.info(ZooDefs.opNames[op.getType()] + " " + op.getPath());
         }
 
-        log.debug("******** END PRINTING ZK OPs *********");
+        LOGGER.debug("******** END PRINTING ZK OPs *********");
     }
 
     private void commitOps(List<Op> ops) throws StateAccessException {
@@ -93,7 +88,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     }
 
     @Override
-    public List<Network> createNetworkBulk(@Nonnull List<Network> networks)
+    public List<Network> createNetworkBulk(
+            @Nonnull List<Network> networks)
             throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
@@ -488,8 +484,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
     }
 
     @Override
-    public FloatingIp updateFloatingIp(@Nonnull UUID id,
-                                       @Nonnull FloatingIp floatingIp)
+    public FloatingIp updateFloatingIp(@Nonnull UUID id, @Nonnull FloatingIp floatingIp)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException {
 

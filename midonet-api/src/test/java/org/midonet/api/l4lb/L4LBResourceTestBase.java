@@ -88,14 +88,6 @@ public class L4LBResourceTestBase {
                 Response.Status.CREATED.getStatusCode());
     }
 
-    protected static Router getStockRouter() {
-        Router router = new Router();
-        router.setId(UUID.randomUUID());
-        router.setName("lb_test_router" + new Random().nextInt());
-        router.setTenantId("dummy_tenant");
-        return router;
-    }
-
     protected static LoadBalancer getStockLoadBalancer() {
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setId(UUID.randomUUID());
