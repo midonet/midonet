@@ -11,7 +11,7 @@ import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
 import org.midonet.api.host.TunnelZoneHost.TunnelZoneHostUnique;
 import org.midonet.cluster.data.TunnelZone.HostConfig;
 import org.midonet.packets.IntIPv4;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
@@ -35,7 +35,7 @@ public class TunnelZoneHost extends UriResource {
     private UUID hostId;
 
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
             message = "is an invalid IP format")
     private String ipAddress;
 

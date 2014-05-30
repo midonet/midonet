@@ -11,17 +11,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.MAC;
 
 @XmlRootElement
 public class IP4MacPair extends RelativeUriResource {
 
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = IPv4.regex)
     private String ip;
 
     @NotNull
-    @Pattern(regexp = StringUtil.MAC_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = MAC.regex)
     protected String macAddr;
 
     /* Default constructor - for deserialization. */

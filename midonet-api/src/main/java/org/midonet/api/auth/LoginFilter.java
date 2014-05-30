@@ -6,9 +6,9 @@ package org.midonet.api.auth;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.midonet.api.HttpSupport;
 import org.midonet.api.rest_api.ResponseUtils;
-import org.midonet.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class LoginFilter implements Filter {
 
         // Get the Authorization header. 'getHeader' is case insensitive
         String authorization = request.getHeader("authorization");
-        if (StringUtil.isNullOrEmpty(authorization)) {
+        if (StringUtils.isEmpty(authorization)) {
             ResponseUtils.setAuthErrorResponse(response,
                     "Authorization header is not set.");
             return;
