@@ -24,6 +24,13 @@ import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.{Bucket, BatchCollector}
 
+/**
+ * The UpcallDatapathConnectionManager will create a new netlink channel
+ * (datapath connection) for each datapath port in the system. It then asks
+ * the datapath to send notifications (packets) for this port through this
+ * dedicated channel. IO for these channels is non-blocking and uses a
+ * select loop.
+ */
 trait UpcallDatapathConnectionManager {
 
     def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
@@ -33,6 +40,10 @@ trait UpcallDatapathConnectionManager {
         (implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean]
 }
 
+/**
+ * Base class for specific UpcallDatapathConnectionManager's, depending on
+ * the possible threading model.
+ */
 abstract class UpcallDatapathConnectionManagerBase(
         val config: MidolmanConfig,
         val tbPolicy: TokenBucketPolicy) extends UpcallDatapathConnectionManager {
@@ -189,6 +200,10 @@ abstract class UpcallDatapathConnectionManagerBase(
         }
 }
 
+/**
+ * UpcallDatapathConnectionManager with a one-to-one threading model: each
+ * channel gets its own thread and select loop.
+ */
 class OneToOneDpConnManager(c: MidolmanConfig,
                             tbPolicy: TokenBucketPolicy) extends
         UpcallDatapathConnectionManagerBase(c, tbPolicy) {
@@ -209,6 +224,10 @@ class OneToOneDpConnManager(c: MidolmanConfig,
     }
 }
 
+/**
+ * UpcallDatapathConnectionManager with a one-to-many threading model: a single
+ * thread and a single select loop is used for all the input channels.
+ */
 class OneToManyDpConnManager(c: MidolmanConfig,
                              tbPolicy: TokenBucketPolicy)
         extends UpcallDatapathConnectionManagerBase(c, tbPolicy) {
