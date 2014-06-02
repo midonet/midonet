@@ -45,10 +45,11 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     before {
         stateMgr = new DatapathStateManager(controller)(log)
         stateMgr.version should be (0)
-        stateMgr.tunnelGre should be (None)
-        stateMgr.tunnelVxLan should be (None)
-        stateMgr.greOutputAction should be (None)
-        stateMgr.vxLanOutputAction should be (None)
+        stateMgr.tunnelOverlayGre should be (None)
+        stateMgr.tunnelOverlayVxLan should be (None)
+        stateMgr.tunnelVtepVxLan should be (None)
+        stateMgr.overlayTunnellingOutputAction should be (None)
+        stateMgr.vtepTunnellingOutputAction should be (None)
         stateMgr.host should be (null)
         for (p <- peers) { stateMgr.peerTunnelInfo(p) should be (None) }
     }
@@ -71,17 +72,21 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         args.map(makePort(GreTunnelPort.make)).map(Some.apply)
             .foreach {
                 tun => checkVUp {
-                    stateMgr.setTunnelGre(tun)
-                    stateMgr.tunnelGre should be (tun)
-                    stateMgr.greOutputAction should be(tun map outputOf)
+                    stateMgr setTunnelOverlayGre tun
+                    stateMgr.tunnelOverlayGre shouldBe tun
+                    // until vxlan overlay tunnelling option is added, this
+                    // assertion should always pass
+                    stateMgr.overlayTunnellingOutputAction shouldBe (tun map outputOf)
             }
         }
         args.map(makePort(VxLanTunnelPort.make)).map(Some.apply)
             .foreach {
                 tun => checkVUp {
-                    stateMgr.setTunnelVxLan(tun)
-                    stateMgr.tunnelVxLan should be (tun)
-                    stateMgr.vxLanOutputAction should be(tun map outputOf)
+                    stateMgr.setTunnelOverlayVxLan(tun)
+                    stateMgr.tunnelOverlayVxLan shouldBe tun
+                    // until vxlan overlay tunnelling option is added, this
+                    // assertion should always fail
+                    //stateMgr.overlayTunnellingOutputAction shouldBe (tun map outputOf)
             }
         }
     }

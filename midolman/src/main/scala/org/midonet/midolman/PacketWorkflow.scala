@@ -327,7 +327,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
          *  we are dealing with vtep to midolman traffic. In the future, using
          *  vxlan encap for host2host tunnelling will break this assumption. */
         if (wcMatch.isFromTunnel) {
-            if (dpState isGrePort wcMatch.getInputPortNumber) {
+            if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet()
             } else {
                 val uuidOpt = VxLanPortMapper uuidOf wcMatch.getTunnelID.toInt

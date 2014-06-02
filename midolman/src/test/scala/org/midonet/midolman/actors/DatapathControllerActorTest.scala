@@ -75,7 +75,9 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     val initOnlyMessages = List[AnyRef](
         ExistingDatapathPorts(null, Set(dpPortGre,dpPortInt)),
         DatapathClear,
-        TunnelPortsReady(null, null)
+        GrePortReady(null),
+        VxLanPortReady(null),
+        VtepPortReady(null)
     )
 
     val allMessages = commonMessages ++ portRequests ++ portReplies ++ miscMessages
@@ -133,34 +135,20 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         }
 
         def ackTunnelPorts() {
-            (1 to 2) foreach { _ =>
-                expectMsgPF() {
-                    case _: GreTunnelPort => true
-                    case _: VxLanTunnelPort => true
-                }
-            }
+            val msgs = receiveN(3)
+            msgs.collect { case p: GreTunnelPort => p } should have size 1
+            msgs.collect { case p: VxLanTunnelPort => p } should have size 2
         }
 
         scenario("sends tunnel creation requests after a clear msg") {
             val (dpcInit, instance) = prepareDPC()
             instance.upcallConnManager = new MockManager(self)
             dpcInit ! DatapathClear
-            expectMsgType[GreTunnelPort]
-            expectMsg(CompleteInit)
-            expectNoMsg(Duration fromNanos 10000)
-            instance.dpState.tunnelGre should not be (None)
-            instance.dpState.tunnelVxLan shouldBe None
-        }
-
-        scenario("The DPC only creates a vxlan port when the udp port is set") {
-            val (dpcInit, instance) = prepareDPC(conf2)
-            instance.upcallConnManager = new MockManager(self)
-            dpcInit ! DatapathClear
             ackTunnelPorts()
             expectMsg(CompleteInit)
             expectNoMsg(Duration fromNanos 10000)
-            instance.dpState.tunnelGre should not be (None)
-            instance.dpState.tunnelVxLan should not be (None)
+            instance.dpState.overlayTunnellingOutputAction should not be (None)
+            instance.dpState.vtepTunnellingOutputAction should not be (None)
         }
 
         scenario("The DPC retries when the port creation fails") {
@@ -171,8 +159,8 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
             ackTunnelPorts()
             expectMsg(CompleteInit)
             expectNoMsg(Duration fromNanos 10000)
-            instance.dpState.tunnelGre should not be (None)
-            instance.dpState.tunnelVxLan should not be (None)
+            instance.dpState.overlayTunnellingOutputAction should not be (None)
+            instance.dpState.vtepTunnellingOutputAction should not be (None)
         }
     }
 
