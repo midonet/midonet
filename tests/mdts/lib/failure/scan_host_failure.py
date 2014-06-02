@@ -5,7 +5,7 @@ from mdts.lib.failure.failure_base import FailureBase
 
 LOG = logging.getLogger(__name__)
 
-class ScanFailure(FailureBase):
+class ScanHostFailure(FailureBase):
     """Emulate host/port scan using nmap
 
     @netns      network namespace name
@@ -19,8 +19,8 @@ class ScanFailure(FailureBase):
     NOTE: work in progress
     """
     def __init__(self, netns, target, timing=4):
-        super(ScanFailure, self).__init__("scan_failure %s %s %s" \
-                                              % (netns, target, timing))
+        super(ScanHostFailure, self)\
+            .__init__("scan_host_failure %s %s %s" % (netns, target, timing))
         self._netns = netns
         self._target = target
         self._timing = timing
