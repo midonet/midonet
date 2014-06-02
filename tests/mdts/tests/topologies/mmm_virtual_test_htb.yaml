@@ -1,0 +1,31 @@
+#
+# Virtual Topology
+#
+
+virtual_topology:
+  description: Virtual topology for test_htb
+
+  tenant_name: MMM-TEST-000-001
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: exterior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+          - port:
+              id: 4
+              type: exterior
+          - port:
+              id: 5
+              type: exterior
+          - port:
+              id: 6
+              type: exterior
