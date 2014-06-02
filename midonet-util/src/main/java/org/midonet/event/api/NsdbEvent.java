@@ -23,6 +23,6 @@ public class NsdbEvent extends AbstractEvent {
     }
 
     public void connExpire() {
-        handleEvent("DISCONNECT");
+        handleEvent("CONN_EXPIRE");
     }
 }
