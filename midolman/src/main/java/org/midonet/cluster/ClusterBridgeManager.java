@@ -121,6 +121,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setInFilter(config.inboundFilter)
                .setOutFilter(config.outboundFilter);
         builder.setTunnelKey(config.tunnelKey);
+        builder.setExteriorVxlanPortId(Option.apply(config.vxLanPortId));
         builder.build();
         log.info("Added watcher for bridge {}", id);
     }
@@ -142,13 +143,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         // This implementation won't keep the old tables and compute a diff
         // on the contrary it will create new tables every time
         // and pass them to the builder
-        Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<MAC, UUID>();
-        Map<IPAddr, MAC> rtrIpToMac =  new HashMap<IPAddr, MAC>();
+        Map<MAC, UUID> rtrMacToLogicalPortId = new HashMap<>();
+        Map<IPAddr, MAC> rtrIpToMac =  new HashMap<>();
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         UUID vlanBridgePeerPortId = null;
-        UUID exteriorVxlanPortId = null;
         Collection<UUID> logicalPortIDs;
-        Set<Short> currentVlans = new HashSet<Short>();
+        Set<Short> currentVlans = new HashSet<>();
         currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
 
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
@@ -220,21 +220,18 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                     vlanIdPortMap.add(bridgePortVlanId, id);
                     currentVlans.add(bridgePortVlanId);
                 }
-            } else if (peerPortCfg instanceof PortDirectory.VxLanPortConfig) {
-                exteriorVxlanPortId = id;
             } else {
-                log.warn("The peer isn't a router, vlan-bridge logical port, " +
-                         "or an exterior vxlan port");
+                log.warn("The peer isn't a router or vlan-bridge logical port");
             }
         }
 
         // Deal with VLAN changes
         Set<Short> oldVlans = builder.vlansInMacLearningTable();
 
-        Set<Short> deletedVlans = new HashSet<Short>(oldVlans);
+        Set<Short> deletedVlans = new HashSet<>(oldVlans);
         deletedVlans.removeAll(currentVlans);
 
-        Set<Short> createdVlans = new HashSet<Short>(currentVlans);
+        Set<Short> createdVlans = new HashSet<>(currentVlans);
         createdVlans.removeAll(oldVlans);
 
         ZkPathManager pathManager = new ZkPathManager(
@@ -260,7 +257,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         builder.setVlanBridgePeerPortId(Option.apply(vlanBridgePeerPortId));
-        builder.setExteriorVxlanPortId(Option.apply(exteriorVxlanPortId));
         builder.setLogicalPortsMap(rtrMacToLogicalPortId, rtrIpToMac);
         builder.setVlanPortMap(vlanIdPortMap);
     }
