@@ -561,8 +561,8 @@ public class TestVtep extends RestApiTestBase {
     public void testListVtepPorts() {
         DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
-                                                         VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
-                                                         DtoVtepPort[].class);
+                         VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
+                         DtoVtepPort[].class);
         assertThat(ports, arrayContainingInAnyOrder(
             new DtoVtepPort(MOCK_VTEP_PORT_NAMES[0],
                             MOCK_VTEP_PORT_NAMES[0] + "-desc"),

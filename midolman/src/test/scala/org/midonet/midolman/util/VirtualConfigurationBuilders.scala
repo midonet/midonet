@@ -14,7 +14,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRoute
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort}
+import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.data.zones.GreTunnelZone
@@ -249,6 +249,12 @@ trait VirtualConfigurationBuilders {
                    .portsCreate(Ports.bridgePort(bridge, jVlanId))
         Thread.sleep(50)
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
+    }
+
+    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort = {
+        port.setDeviceId(bridge.getId)
+        val uuid = clusterDataClient().portsCreate(port)
+        clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
     }
 
     def deletePort(port: Port[_, _], host: Host){
