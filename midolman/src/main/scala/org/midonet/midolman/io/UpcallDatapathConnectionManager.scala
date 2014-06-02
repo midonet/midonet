@@ -97,7 +97,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     def ensurePortPid(port: DpPort, dp: Datapath, con: OvsDatapathConnection)(
                       implicit ec: ExecutionContext) = {
         val dpConnOps = new OvsConnectionOps(con)
-        log.info("creating datapath port: {}", port.getName)
+        log.info("creating datapath {}", port)
         dpConnOps.createPort(port, dp) recoverWith {
             // Error code changed in OVS in May-2013 from EBUSY to EEXIST
             // http://openvswitch.org/pipermail/dev/2013-May/027947.html

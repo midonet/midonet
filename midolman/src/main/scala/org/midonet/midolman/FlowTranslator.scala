@@ -195,13 +195,13 @@ trait FlowTranslator {
     def outputActionsToPeers(key: Long, peerIds: Set[UUID],
                              actions: ListBuffer[FlowAction],
                              dpTags: mutable.Set[Any]) {
-        if (dpState.greOutputAction.isEmpty) {
-            log.warning("Gre Tunnel port was not found, could not translate " +
-                        "action to remote hosts {}", peerIds)
+        if (dpState.overlayTunnellingOutputAction.isEmpty) {
+            log.warning("No output tunnelling action was found, could not " +
+                        "translate action to remote hosts {}", peerIds)
             return
         }
         val peerIter = peerIds.iterator
-        val output = dpState.greOutputAction.get
+        val output = dpState.overlayTunnellingOutputAction.get
         while (peerIter.hasNext) {
             val peer = peerIter.next
             dpState.peerTunnelInfo(peer) match {
@@ -223,7 +223,7 @@ trait FlowTranslator {
     private def outputActionsToVtep(vni: Int, vtepIp: Int,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[Any]) {
-        if (dpState.vxLanOutputAction.isEmpty) {
+        if (dpState.vtepTunnellingOutputAction.isEmpty) {
             log.warning("VxLan tunnel port was not found, could not " +
                         "translate action to vtep peer {}", vtepIp)
             return
@@ -232,7 +232,7 @@ trait FlowTranslator {
         if (dpTags != null)
             dpTags += FlowTagger.invalidateTunnelPort((localIp, vtepIp))
         actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
-        actions += dpState.vxLanOutputAction.get
+        actions += dpState.vtepTunnellingOutputAction.get
     }
 
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs

@@ -483,8 +483,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         for (p <- allProbes()) { p.receiveOne(50.milliseconds) }
     }
 
-    def greTunnelId = dpController().underlyingActor.dpState.tunnelGre
-        .getOrElse(null).getPortNo.shortValue
+    def greTunnelId = dpController().underlyingActor.dpState
+                                    .overlayTunnellingOutputAction.get.getPortNumber
 
     def parseTunnelActions(acts: Seq[FlowAction]):
             (Seq[FlowActionOutput], Seq[FlowKeyTunnel]) = {

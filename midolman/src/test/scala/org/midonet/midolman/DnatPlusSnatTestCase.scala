@@ -140,7 +140,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         var pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         outPorts should have size(1)
-        outPorts should contain (3.toShort)
+        outPorts should contain (5.toShort)
         var eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(serverGwMac)
         eth.getDestinationMACAddress should (
@@ -164,7 +164,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
             serverGwMac, serverGw, snatPort)
         pktOut = requestOfType[PacketsExecute](packetEventsProbe)
         outPorts = getOutPacketPorts(pktOut)
-        outPorts should (have size(1) and contain (2.toShort))
+        outPorts should (have size(1) and contain (4.toShort))
         eth = applyOutPacketActions(pktOut)
         eth.getSourceMACAddress should be(clientGwMac)
         eth.getDestinationMACAddress should be(client1Mac)
