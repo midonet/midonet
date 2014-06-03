@@ -445,10 +445,10 @@ public class TestVtep extends RestApiTestBase {
         // Check bindings on each port.
         DtoVtepBinding[] b1ActualBindings = listBindings(vxLanPort1);
         assertThat(b1ActualBindings,
-                arrayContainingInAnyOrder(b1ExpectedBindings));
+                   arrayContainingInAnyOrder(b1ExpectedBindings));
         DtoVtepBinding[] b2ActualBindings = listBindings(vxLanPort2);
         assertThat(b2ActualBindings,
-                arrayContainingInAnyOrder(b2ExpectedBindings));
+                   arrayContainingInAnyOrder(b2ExpectedBindings));
 
         // Make sure we can get individual bindings via VxLanPort, as well.
         URI bindingUri = ResourceUriBuilder.getVxLanPortBinding(
