@@ -7,7 +7,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.layer3.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -28,16 +27,16 @@ import java.util.UUID;
 
 public class L3ZkManager extends BaseZkManager {
 
-    private final static Logger log =
+    private static final Logger LOGGER =
             LoggerFactory.getLogger(L3ZkManager.class);
 
-    protected final NetworkZkManager networkZkManager;
-    protected final ProviderRouterZkManager providerRouterZkManager;
-    protected final PortZkManager portZkManager;
-    protected final RouteZkManager routeZkManager;
-    protected final RouterZkManager routerZkManager;
-    protected final ChainZkManager chainZkManager;
-    protected final RuleZkManager ruleZkManager;
+    private final NetworkZkManager networkZkManager;
+    private final ProviderRouterZkManager providerRouterZkManager;
+    private final PortZkManager portZkManager;
+    private final RouteZkManager routeZkManager;
+    private final RouterZkManager routerZkManager;
+    private final ChainZkManager chainZkManager;
+    private final RuleZkManager ruleZkManager;
 
     @Inject
     public L3ZkManager(ZkManager zk,
@@ -60,8 +59,7 @@ public class L3ZkManager extends BaseZkManager {
         this.ruleZkManager = ruleZkManager;
     }
 
-    public Router getRouter(UUID routerId)
-            throws StateAccessException, SerializationException {
+    public Router getRouter(UUID routerId) throws StateAccessException, SerializationException {
 
         String path = paths.getNeutronRouterPath(routerId);
         if (!zk.exists(path)) {
@@ -71,8 +69,7 @@ public class L3ZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Router.class);
     }
 
-    public List<Router> getRouters()
-            throws StateAccessException, SerializationException {
+    public List<Router> getRouters() throws StateAccessException, SerializationException {
 
         String path = paths.getNeutronRoutersPath();
         Set<UUID> routerIds = getUuidSet(path);
@@ -162,8 +159,7 @@ public class L3ZkManager extends BaseZkManager {
                 serializer.serialize(router)));
     }
 
-    public void prepareCreateRouterInterface(List<Op> ops,
-                                             RouterInterface rInt)
+    public void prepareCreateRouterInterface(List<Op> ops, RouterInterface rInt)
             throws SerializationException, StateAccessException {
 
         Port port = networkZkManager.getPort(rInt.portId);
@@ -205,8 +201,8 @@ public class L3ZkManager extends BaseZkManager {
 
         // Add a route to this subnet
         routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-                new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, 100,
-                rInt.id, rpConfig);
+                new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, rInt.id,
+                rpConfig);
 
         // Add a route for the metadata server.
         // Not all VM images supports DHCP option 121.  Add a route for the
@@ -218,7 +214,7 @@ public class L3ZkManager extends BaseZkManager {
             routeZkManager.preparePersistPortRouteCreate(ops,
                     UUID.randomUUID(), new IPv4Subnet(0, 0),
                     MetaDataService.IPv4_SUBNET, rpId, dPort.firstIpv4Addr(),
-                    100, rInt.id, rpConfig);
+                    rInt.id, rpConfig);
         }
     }
 
@@ -234,7 +230,7 @@ public class L3ZkManager extends BaseZkManager {
     public void prepareDeleteGatewayPort(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
-        PortConfig p = networkZkManager.prepareDeletePortConfig(ops, port.id);
+        networkZkManager.prepareDeletePortConfig(ops, port.id);
 
         // Update the Neutron router to have gwPortId set to null.
         // This should also delete routes for these ports.
@@ -267,8 +263,7 @@ public class L3ZkManager extends BaseZkManager {
                 gwPort.firstIpv4Subnet());
     }
 
-    private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID portId,
-                                       IPv4Subnet cidr)
+    private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID portId, IPv4Subnet cidr)
             throws SerializationException, StateAccessException {
 
         UUID prId = providerRouterZkManager.getId();
@@ -286,16 +281,14 @@ public class L3ZkManager extends BaseZkManager {
 
         // Add a route to this gateway port on the provider router
         routeZkManager.preparePersistPortRouteCreate(ops, prId,
-                new IPv4Subnet(0, 0), cidr, rpCfg, null, 100);
+                new IPv4Subnet(0, 0), cidr, rpCfg, null);
 
-        routeZkManager.preparePersistDefaultRouteCreate(ops, rId, rpCfgPeer,
-                    100);
+        routeZkManager.preparePersistDefaultRouteCreate(ops, rId, rpCfgPeer);
 
         return rpCfgPeer.id;
     }
 
-    private void prepareCreateGatewayRouter(List<Op> ops, Router router,
-                                            UUID inboundChainId,
+    private void prepareCreateGatewayRouter(List<Op> ops, Router router, UUID inboundChainId,
                                             UUID outboundChainId)
             throws SerializationException, StateAccessException {
 
@@ -368,13 +361,16 @@ public class L3ZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
         return findFloatingIp(new Function<FloatingIp, Boolean>() {
             @Override
-            public Boolean apply(@Nullable FloatingIp floatingIp) {
+            public Boolean apply(FloatingIp floatingIp) {
+                if (floatingIp == null)
+                    throw new IllegalArgumentException("floatingIp must not be null");
                 return Objects.equal(floatingIp.portId, portId);
             }
         });
     }
 
-    private FloatingIp findFloatingIp(Function<FloatingIp, Boolean> matcher)
+    private FloatingIp findFloatingIp(
+            Function<FloatingIp, Boolean> matcher)
             throws SerializationException, StateAccessException {
         List<FloatingIp> fips = getFloatingIps();
         for (FloatingIp fip : fips) {
@@ -448,8 +444,8 @@ public class L3ZkManager extends BaseZkManager {
         RouterPortConfig prPortCfg = (RouterPortConfig) portZkManager.get(
                 gwPort.peerId);
         routeZkManager.preparePersistPortRouteCreate(ops, prId,
-                new IPv4Subnet(0, 0), fip.floatingIpv4Subnet(), prPortCfg, null,
-                100);
+                new IPv4Subnet(0, 0), fip.floatingIpv4Subnet(), prPortCfg,
+                null);
 
         // Add NAT rules on tenant router
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
@@ -465,7 +461,7 @@ public class L3ZkManager extends BaseZkManager {
         // TODO: Do something about this inefficiency
         FloatingIp fip = findFloatingIpByPort(port.id);
         if (fip == null) {
-            log.warn("Floating IP was not found for port {}", port);
+            LOGGER.warn("Floating IP was not found for port {}", port);
             return;
         }
 

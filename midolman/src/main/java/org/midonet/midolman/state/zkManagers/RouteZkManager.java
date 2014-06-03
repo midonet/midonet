@@ -102,8 +102,8 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
      * @return
      * @throws StateAccessException
      */
-    private List<String> getSubDirectoryRoutePaths(
-            UUID id, Route rtConfig, PortDirectory.RouterPortConfig portConfig)
+    private List<String> getSubDirectoryRoutePaths(UUID id, Route rtConfig,
+                                                   PortDirectory.RouterPortConfig portConfig)
             throws StateAccessException, SerializationException {
         // Determine whether to add the Route data under routers or ports.
         // Router routes and logical port routes should also be added to the
@@ -166,9 +166,8 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
      *                   right places.
      * @throws StateAccessException
      */
-    public List<Op> prepareRouteCreate(
-            UUID id, Route rtConfig, boolean persistent,
-            PortDirectory.RouterPortConfig portConfig)
+    public List<Op> prepareRouteCreate(UUID id, Route rtConfig, boolean persistent,
+                                       PortDirectory.RouterPortConfig portConfig)
             throws StateAccessException, SerializationException {
         CreateMode mode = persistent ? CreateMode.PERSISTENT
             : CreateMode.EPHEMERAL;
@@ -189,25 +188,47 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         return ops;
     }
 
+    public UUID preparePersistPortRouteCreate (
+            List<Op> ops, UUID routerId, IPv4Subnet src,  IPv4Subnet dst,
+            PortDirectory.RouterPortConfig cfg, IPv4Addr gwIp)
+            throws SerializationException, StateAccessException {
+        return preparePersistPortRouteCreate(ops, routerId, src, dst, cfg, gwIp,
+            Route.DEFAULT_WEIGHT);
+    }
+
     public UUID preparePersistPortRouteCreate(
             List<Op> ops, UUID routerId, IPv4Subnet src,  IPv4Subnet dst,
             PortDirectory.RouterPortConfig cfg, IPv4Addr gwIp, int weight)
             throws SerializationException, StateAccessException {
         UUID id = UUID.randomUUID();
-        Route rt = Route.nextHopPortRoute(src, dst, cfg.id, gwIp, weight,
-                routerId);
+        Route rt = Route.nextHopPortRoute(src, dst, cfg.id, gwIp, weight, routerId);
         ops.addAll(prepareRouteCreate(id, rt, true, cfg));
         return id;
     }
 
-    public UUID preparePersistDefaultRouteCreate(
-            List<Op> ops, UUID routerId, PortDirectory.RouterPortConfig cfg,
-            int weight)
+    public UUID preparePersistDefaultRouteCreate(List<Op> ops, UUID routerId,
+                                                 PortDirectory.RouterPortConfig cfg)
+            throws SerializationException, StateAccessException {
+        return preparePersistDefaultRouteCreate(ops, routerId, cfg,
+            Route.DEFAULT_WEIGHT);
+    }
+
+    public UUID preparePersistDefaultRouteCreate(List<Op> ops, UUID routerId,
+                                                 PortDirectory.RouterPortConfig cfg, int weight)
             throws SerializationException, StateAccessException {
         UUID id = UUID.randomUUID();
         Route rt = Route.defaultRoute(cfg.id, weight, routerId);
         ops.addAll(prepareRouteCreate(id, rt, true, cfg));
         return id;
+    }
+
+    public void preparePersistPortRouteCreate(
+            List<Op> ops, UUID id, IPv4Subnet src, IPv4Subnet dest,
+            UUID nextHopPortId, IPv4Addr nextHopAddr, UUID routerId,
+            PortDirectory.RouterPortConfig rpCfg)
+            throws SerializationException, StateAccessException {
+        preparePersistPortRouteCreate(ops, id, src, dest, nextHopPortId,
+                nextHopAddr, Route.DEFAULT_WEIGHT, routerId, rpCfg);
     }
 
     public void preparePersistPortRouteCreate(

@@ -22,7 +22,7 @@ public interface NetworkApi {
      * @param network Network object to create
      * @return Created Network object
      */
-    public Network createNetwork(@Nonnull Network network)
+    Network createNetwork(@Nonnull Network network)
             throws StateAccessException, SerializationException;
 
     /**
@@ -31,7 +31,7 @@ public interface NetworkApi {
      * @param networks Network objects to create
      * @return Created Network objects
      */
-    public List<Network> createNetworkBulk(@Nonnull List<Network> networks)
+    List<Network> createNetworkBulk(@Nonnull List<Network> networks)
             throws StateAccessException, SerializationException;
 
     /**
@@ -39,7 +39,7 @@ public interface NetworkApi {
      *
      * @param id ID of the Network object to delete
      */
-    public void deleteNetwork(@Nonnull UUID id)
+    void deleteNetwork(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -48,7 +48,7 @@ public interface NetworkApi {
      * @param id ID of the Network object to get
      * @return Network object
      */
-    public Network getNetwork(@Nonnull UUID id)
+    Network getNetwork(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -56,7 +56,7 @@ public interface NetworkApi {
      *
      * @return List of Network objects.
      */
-    public List<Network> getNetworks()
+    List<Network> getNetworks()
             throws StateAccessException, SerializationException;
 
     /**
@@ -66,7 +66,7 @@ public interface NetworkApi {
      * @param id ID of the Network object to update
      * @return Updated Network object
      */
-    public Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
+    Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
             throws StateAccessException, SerializationException,
             BridgeZkManager.VxLanPortIdUpdateException;
 
@@ -77,7 +77,7 @@ public interface NetworkApi {
      * @param subnet Network object to create
      * @return Created Subnet object
      */
-    public Subnet createSubnet(@Nonnull Subnet subnet)
+    Subnet createSubnet(@Nonnull Subnet subnet)
             throws StateAccessException, SerializationException;
 
     /**
@@ -86,7 +86,7 @@ public interface NetworkApi {
      * @param subnets Subnet objects to create
      * @return Created Subnet objects
      */
-    public List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
+    List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
             throws StateAccessException, SerializationException;
 
 
@@ -95,7 +95,7 @@ public interface NetworkApi {
      *
      * @param id ID of the Subnet object to delete
      */
-    public void deleteSubnet(@Nonnull UUID id)
+    void deleteSubnet(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -104,7 +104,7 @@ public interface NetworkApi {
      * @param id ID of the Subnet object to get
      * @return Subnet object
      */
-    public Subnet getSubnet(@Nonnull UUID id)
+    Subnet getSubnet(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -112,7 +112,7 @@ public interface NetworkApi {
      *
      * @return List of Subnet objects.
      */
-    public List<Subnet> getSubnets()
+    List<Subnet> getSubnets()
             throws StateAccessException, SerializationException;
 
     /**
@@ -122,7 +122,7 @@ public interface NetworkApi {
      * @param id ID of the Subnet object to update
      * @return Updated Subnet object
      */
-    public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
+    Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException;
 
     /**
@@ -132,7 +132,7 @@ public interface NetworkApi {
      * @param port port object to create
      * @return Created Port object
      */
-    public Port createPort(@Nonnull Port port)
+    Port createPort(@Nonnull Port port)
             throws StateAccessException, SerializationException;
 
     /**
@@ -141,7 +141,7 @@ public interface NetworkApi {
      * @param ports Port objects to create
      * @return Created Port objects
      */
-    public List<Port>  createPortBulk(@Nonnull List<Port> ports)
+    List<Port>  createPortBulk(@Nonnull List<Port> ports)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
     /**
@@ -149,7 +149,7 @@ public interface NetworkApi {
      *
      * @param id ID of the Port object to delete
      */
-    public void deletePort(@Nonnull UUID id)
+    void deletePort(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -158,7 +158,7 @@ public interface NetworkApi {
      * @param id ID of the Port object to delete
      * @return Port object
      */
-    public Port getPort(@Nonnull UUID id)
+    Port getPort(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -166,7 +166,7 @@ public interface NetworkApi {
      *
      * @return List of Port objects.
      */
-    public List<Port> getPorts()
+    List<Port> getPorts()
             throws StateAccessException, SerializationException;
 
     /**
@@ -176,7 +176,7 @@ public interface NetworkApi {
      * @param id ID of the Port object to update
      * @return Updated Port object
      */
-    public Port updatePort(@Nonnull UUID id, @Nonnull Port port)
+    Port updatePort(@Nonnull UUID id, @Nonnull Port port)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
 }
