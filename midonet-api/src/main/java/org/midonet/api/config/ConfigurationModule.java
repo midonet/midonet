@@ -3,11 +3,12 @@
  */
 package org.midonet.api.config;
 
+import javax.servlet.ServletContext;
+
 import com.google.inject.AbstractModule;
+
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
-
-import javax.servlet.ServletContext;
 
 /**
  * Guice module for configuration. Use ServletContext as the configuration
@@ -23,7 +24,7 @@ public class ConfigurationModule extends AbstractModule {
         this.provider = new ServletContextConfigProvider(context);
     }
 
-   public ConfigurationModule(String filePath) {
+    public ConfigurationModule(String filePath) {
         this.provider = ConfigProvider.fromIniFile(filePath);
     }
 

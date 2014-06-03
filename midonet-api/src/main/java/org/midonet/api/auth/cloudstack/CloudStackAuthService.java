@@ -3,6 +3,7 @@
  */
 package org.midonet.api.auth.cloudstack;
 
+import com.google.inject.Inject;
 import org.midonet.api.auth.*;
 import org.midonet.util.StringUtil;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ public class CloudStackAuthService implements AuthService {
      * @param client
      *            CloudStackClient object.
      */
+    @Inject
     public CloudStackAuthService(CloudStackClient client) {
         this.client = client;
     }
