@@ -182,7 +182,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             case Some(wf) =>
                 FlowController ! AddWildcardFlow(wf, flow, removalCallbacks, tags,
                     lastInvalidation, packet.getMatch, actionsCache.pending,
-                    actionsCache.getSlot())
+                    actionsCache.getSlot(cookieStr))
                 actionsCache.actions.put(packet.getMatch, flow.getActions)
         }
     }
@@ -236,7 +236,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                           "only fields, without a datapath flow", wildFlow)
                 FlowController ! AddWildcardFlow(wildFlow, null, removalCallbacks,
                     tags, lastInvalidation, packet.getMatch, actionsCache.pending,
-                    actionsCache.getSlot())
+                    actionsCache.getSlot(cookieStr))
                 actionsCache.actions.put(packet.getMatch, wildFlow.actions)
 
             case Some(_) =>
@@ -539,6 +539,6 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     private def addToActionsCacheAndInvalidate(actions: JList[FlowAction]): Unit = {
         val wm = packet.getMatch
         actionsCache.actions.put(wm, actions)
-        actionsCache.pending(actionsCache.getSlot()) = wm
+        actionsCache.pending(actionsCache.getSlot(cookieStr)) = wm
     }
 }
