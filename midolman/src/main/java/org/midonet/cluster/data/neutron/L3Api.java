@@ -20,7 +20,7 @@ public interface L3Api {
      * @param router Router object to create
      * @return Created Router object
      */
-    public Router createRouter(@Nonnull Router router)
+    Router createRouter(@Nonnull Router router)
             throws StateAccessException, SerializationException;
 
     /**
@@ -28,7 +28,7 @@ public interface L3Api {
      *
      * @param id ID of the Router object to delete
      */
-    public void deleteRouter(@Nonnull UUID id)
+    void deleteRouter(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -37,7 +37,7 @@ public interface L3Api {
      * @param id ID of the Router object to get
      * @return Router object
      */
-    public Router getRouter(@Nonnull UUID id)
+    Router getRouter(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -45,7 +45,7 @@ public interface L3Api {
      *
      * @return List of Router objects.
      */
-    public List<Router> getRouters()
+    List<Router> getRouters()
             throws StateAccessException, SerializationException;
 
     /**
@@ -55,7 +55,7 @@ public interface L3Api {
      * @param id ID of the Router object to update
      * @return Updated Router object
      */
-    public Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
+    Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
 
@@ -66,7 +66,7 @@ public interface L3Api {
      * @param routerInterface Router interface info
      * @return RouterInterface info created
      */
-    public RouterInterface addRouterInterface(
+    RouterInterface addRouterInterface(
             @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
             throws StateAccessException, SerializationException;
 
@@ -77,7 +77,7 @@ public interface L3Api {
      * @param routerInterface Router interface info
      * @return RouterInterface info removed
      */
-    public RouterInterface removeRouterInterface(
+    RouterInterface removeRouterInterface(
             @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface);
 
     /**
@@ -87,7 +87,7 @@ public interface L3Api {
      * @param floatingIp FloatingIp object to create
      * @return Created FloatingIp object
      */
-    public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
+    FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
 
@@ -96,7 +96,7 @@ public interface L3Api {
      *
      * @param id ID of the FloatingIp object to delete
      */
-    public void deleteFloatingIp(@Nonnull UUID id)
+    void deleteFloatingIp(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -105,7 +105,7 @@ public interface L3Api {
      * @param id ID of the FloatingIp object to get
      * @return Router object
      */
-    public FloatingIp getFloatingIp(@Nonnull UUID id)
+    FloatingIp getFloatingIp(@Nonnull UUID id)
             throws StateAccessException, SerializationException;
 
     /**
@@ -113,7 +113,7 @@ public interface L3Api {
      *
      * @return List of FloatingIp objects.
      */
-    public List<FloatingIp> getFloatingIps()
+    List<FloatingIp> getFloatingIps()
             throws StateAccessException, SerializationException;
 
     /**
@@ -123,8 +123,8 @@ public interface L3Api {
      * @param id ID of the FloatingIp object to update
      * @return Updated FloatingIp object
      */
-    public FloatingIp updateFloatingIp(@Nonnull UUID id,
-                                       @Nonnull FloatingIp floatingIp)
+    FloatingIp updateFloatingIp(@Nonnull UUID id,
+                                @Nonnull FloatingIp floatingIp)
             throws StateAccessException, SerializationException,
             Rule.RuleIndexOutOfBoundsException;
 }

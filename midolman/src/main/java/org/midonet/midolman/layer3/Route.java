@@ -20,6 +20,7 @@ public class Route implements Serializable {
 
     private static final long serialVersionUID = -5913569441176193396L;
     public static final int NO_GATEWAY = 0xffffffff;
+    public static final int DEFAULT_WEIGHT = 100;
 
     public enum NextHop {
         BLACKHOLE, REJECT, PORT, LOCAL;
