@@ -110,6 +110,10 @@ public class Bridge extends Entity.Base<UUID, Bridge.Data, Bridge>
         return getData().properties;
     }
 
+    public boolean hasTenantId(String tenantId) {
+        return Objects.equals(getProperty(Property.tenant_id), tenantId);
+    }
+
     public static class Data {
         public String name;
         public boolean adminStateUp = true;
