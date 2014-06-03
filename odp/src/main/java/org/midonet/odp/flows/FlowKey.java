@@ -26,29 +26,7 @@ public interface FlowKey extends BuilderAware {
      * to the datapath, and will also need to have all UserSpace-related actions
      * applied before being sent to the DP.
      */
-    interface UserSpaceOnly extends FlowKey {
-
-        /**
-         * Tells if the UserSpaceOnly key extends <pre>key</pre> with further
-         * fields. For example, this is the case of <pre>FlowKeyICMPError</pre>
-         * with respect to <pre>FlowKeyICMP</pre>: it provides additional
-         * matching fields.
-         *
-         * The goal of the method is to tell if this is a child of a given
-         * FlowKey, which will indicate to FlowMatches.replaceKey that key needs
-         * to be replaced by this.
-         *
-         * In other words: if FlowMatches says "hey FlowKeyICMPError, is this
-         * FlowKey your parent (e.g: less specific than yourself?)" we'll say
-         * yes so the parent gets replaced by this (which provides a more
-         * specific match).
-         *
-         * @param key
-         * @return
-         */
-        public boolean isChildOf(FlowKey key);
-
-    }
+    interface UserSpaceOnly extends FlowKey { }
 
     public interface FlowKeyAttr {
 
