@@ -495,7 +495,7 @@ public class ResourceUriBuilder {
     public static URI getVtepBinding(URI baseUri, String ipAddr,
                                      String portName, short vlanId) {
         return UriBuilder.fromUri(getVtepBindings(baseUri, ipAddr))
-                .path(portName).path(Short.toString(vlanId)).build();
+                .segment(portName).segment(Short.toString(vlanId)).build();
     }
 
     public static URI getVtepPorts(URI baseUri, String ipAddr) {
@@ -512,7 +512,7 @@ public class ResourceUriBuilder {
                                           String portName, short vlanId) {
         return UriBuilder.fromUri(getPort(baseUri, vxLanPortId))
                 .path(VTEP_BINDINGS)
-                .path(portName)
+                .segment(portName)
                 .path(Short.toString(vlanId))
                 .build();
     }
