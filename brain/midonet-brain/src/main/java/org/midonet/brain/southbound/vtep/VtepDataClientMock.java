@@ -124,6 +124,21 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
+    public LogicalSwitch getLogicalSwitch(UUID id) {
+        for (LogicalSwitch ls : this.logicalSwitches.values()) {
+            if (ls.uuid.equals(id)) {
+                return ls;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public LogicalSwitch getLogicalSwitch(String name) {
+        return this.logicalSwitches.get(name);
+    }
+
+    @Override
     public StatusWithUuid addLogicalSwitch(String name, int vni) {
         if (!connected)
             throw new IllegalStateException("VTEP client not connected.");
@@ -230,7 +245,15 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Observable<TableUpdates> observableLocalMacTable() {
+    public Status delUcastMacRemote(String mac, String lsName) {
+        if (this.ucastMacsRemote.remove(mac) == null) {
+            return new Status(StatusCode.NOTFOUND);
+        }
+        return new Status(StatusCode.SUCCESS);
+    }
+
+    @Override
+    public Observable<TableUpdates> observableUpdates() {
         return Observable.never(); // No tests use this for now.
     }
 
@@ -244,6 +267,11 @@ public class VtepDataClientMock implements VtepDataClient {
         } else {
             return new Status(StatusCode.SUCCESS);
         }
+    }
+
+    @Override
+    public PhysicalSwitch describe() {
+       return null;  // TODO: not needed by any test yet
     }
 
     private UUID getLocatorUuid(String ip) {

@@ -17,7 +17,6 @@ import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
@@ -40,8 +39,6 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.functions.Func1;
-
 import static org.midonet.brain.southbound.vtep.VtepConstants.UNKNOWN_DST;
 
 public class VtepDataClientImpl implements VtepDataClient {
@@ -54,13 +51,21 @@ public class VtepDataClientImpl implements VtepDataClient {
     private ConfigurationService cfgSrv = null;
     private Node node = null;
 
+    private IPv4Addr mgmtIp  = null;
+    private int mgmtPort;
+    private PhysicalSwitch myPhysicalSwitch = null;
+
     private static final int CNXN_TIMEOUT_MILLIS = 5000;
 
     @Override
     public void connect(final IPv4Addr mgmtIp, final int port) {
 
-        if (cnxnSrv == null)
+        this.mgmtIp = mgmtIp;
+        this.mgmtPort = port;
+
+        if (cnxnSrv == null) {
             cnxnSrv = new ConnectionService();
+        }
 
         cnxnSrv.init();
 
@@ -90,7 +95,12 @@ public class VtepDataClientImpl implements VtepDataClient {
                 Thread.interrupted();
             }
         }
-        if (!this.isReady()) {
+
+        if (this.isReady()) {
+            this.myPhysicalSwitch = this.loadVtepDetails();
+        }
+
+        if (!this.isReady() || this.myPhysicalSwitch == null) {
             throw new IllegalStateException("Could not complete connection");
         }
     }
@@ -110,9 +120,23 @@ public class VtepDataClientImpl implements VtepDataClient {
         return psTableCache != null && !psTableCache.isEmpty();
     }
 
-    /**
-     * Disconnects from the VTEP.
-     */
+    private PhysicalSwitch loadVtepDetails() {
+        List<PhysicalSwitch> pss = this.listPhysicalSwitches();
+        String sMgmtIp = this.mgmtIp.toString();
+        for (PhysicalSwitch ps : pss) {
+            if (ps.mgmtIps.contains(sMgmtIp)) {
+                return ps;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public PhysicalSwitch describe() {
+        return this.myPhysicalSwitch;
+    }
+
+    @Override
     public void disconnect() {
         cnxnSrv.disconnect(node);
     }
@@ -242,6 +266,30 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
+    public LogicalSwitch getLogicalSwitch(UUID id) {
+        log.debug("Fetching logical switch {}", id);
+        Map<String, Table<?>> tableCache =
+            getTableCache(Logical_Switch.NAME.getName());
+        for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
+            if (e.getKey().equals(id.toString())) {
+                log.debug("Found logical switch {} {}", e.getKey(), e.getValue());
+                return VtepModelTranslator.toMido((Logical_Switch)e.getValue(),
+                                                  new UUID(e.getKey()));
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public LogicalSwitch getLogicalSwitch(String name) {
+        Logical_Switch ls = cfgSrv.vtepGetLogicalSwitch(node, name);
+        if (ls == null) {
+            return null;
+        }
+        return VtepModelTranslator.toMido(ls, ls.getId());
+    }
+
+    @Override
     public StatusWithUuid addLogicalSwitch(String name, int vni) {
         log.debug("Add logical switch {} with vni {}", name, vni);
         StatusWithUuid st = cfgSrv.vtepAddLogicalSwitch(name, vni);
@@ -295,20 +343,21 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public Observable<TableUpdates> observableLocalMacTable() {
-       return this.cnxnSrv.observableUpdates().map(
-           new Func1<TableUpdates, TableUpdates>() {
-               @Override
-               public TableUpdates call(TableUpdates tableUpdates) {
-                   // TODO: implement this; the tricky (or annoying) bit is that
-                   // OVSDB seems to give us a full snapshot of the table, so
-                   // we'll have to compute a diff, so we'll have to keep the
-                   // latest snapshot in memory.. It also sends all updates from
-                   // all tables, so we need to filter relevant ones.
-                   log.warn("CANNOT UNDERSTAND VTEP EVENTS");
-                   return null;
-               }
-       });
+    public Status delUcastMacRemote(String mac, String lsName) {
+        log.debug("Deleting mac {} from logical switch {}", mac, lsName);
+        assert(MAC.fromString(mac) != null);
+        assert(lsName != null);
+        Status st = cfgSrv._vtepDelUcastMacRemote(mac, lsName);
+        if (!st.isSuccess()) {
+            log.error("Could not remove Ucast Mac Remote: {} - {}",
+                      st.getCode(), st.getDescription());
+        }
+        return st;
+    }
+
+    @Override
+    public Observable<TableUpdates> observableUpdates() {
+       return this.cnxnSrv.observableUpdates();
     }
 
     // TODO: this assumes that we have a single VTEP in the Physical_Switch
