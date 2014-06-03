@@ -7,16 +7,36 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.midonet.odp.flows.*;
-import org.midonet.packets.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeyEtherType;
+import org.midonet.odp.flows.FlowKeyICMP;
+import org.midonet.odp.flows.IPFragmentType;
+import org.midonet.odp.flows.IpProtocol;
+import org.midonet.packets.ARP;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.ICMP;
+import org.midonet.packets.IPacket;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv6;
+import org.midonet.packets.MAC;
+import org.midonet.packets.TCP;
+import org.midonet.packets.UDP;
 
-import static org.midonet.odp.flows.FlowKeys.*;
+import static org.midonet.odp.flows.FlowKeys.arp;
+import static org.midonet.odp.flows.FlowKeys.encap;
+import static org.midonet.odp.flows.FlowKeys.etherType;
+import static org.midonet.odp.flows.FlowKeys.ethernet;
+import static org.midonet.odp.flows.FlowKeys.icmp;
+import static org.midonet.odp.flows.FlowKeys.icmpEcho;
+import static org.midonet.odp.flows.FlowKeys.icmpError;
+import static org.midonet.odp.flows.FlowKeys.ipv4;
+import static org.midonet.odp.flows.FlowKeys.ipv6;
+import static org.midonet.odp.flows.FlowKeys.tcp;
+import static org.midonet.odp.flows.FlowKeys.udp;
+import static org.midonet.odp.flows.FlowKeys.vlan;
 
 public class FlowMatches {
-
-    private final static Logger log = LoggerFactory.getLogger(FlowMatches.class);
 
     public static FlowMatch tcpFlow(String macSrc, String macDst,
                                     String ipSrc, String ipDst,
@@ -112,41 +132,15 @@ public class FlowMatches {
     }
 
     public static void addUserspaceKeys (Ethernet ethPkt, FlowMatch match) {
-        for (FlowKey key: match.getKeys()) {
-            if (key instanceof FlowKeyICMP) {
-                ICMP icmpPkt = ICMP.class.cast(
-                        IPv4.class.cast(ethPkt.getPayload()).
-                                getPayload());
-                FlowKey.UserSpaceOnly icmpUserSpace = makeIcmpFlowKey(icmpPkt);
-                if (icmpUserSpace != null)
-                    replaceKey(match, icmpUserSpace);
-                return;
-            }
-        }
-    }
-
-    /**
-     * TODO (galo) really not sure about this function.. would like a faster
-     * way of replacing keys than risking various deletes in an ArrayList.
-     *
-     * However, in practise we're only going to call once, so it's actually
-     * better than making a fresh copy of the match of the key list for example.
-     *
-     * @param match
-     * @param key
-     */
-    private static void replaceKey(FlowMatch match, FlowKey.UserSpaceOnly key) {
         List<FlowKey> keys = match.getKeys();
-        int nKeys = keys.size();
-        for (int i = 0; i < nKeys; i++) {
-            FlowKey oldKey = keys.get(i);
-            if (key.isChildOf(oldKey)) {
-                // that cast is ugly, but hardly other way without refactoring
-                // the FlowKey hierarchy to accommodate UserSpaceOnly.
-                log.debug("Replacing key in FlowMatch: old {} new {}",
-                          oldKey, key);
-                keys.set(i, (FlowKey)key);
-                match.setUserSpaceOnly(true);
+        for (int i = 0; i < keys.size(); ++i) {
+            if (keys.get(i) instanceof FlowKeyICMP) {
+                ICMP icmpPkt = (ICMP) ethPkt.getPayload().getPayload();
+                FlowKey.UserSpaceOnly icmpUserSpace = makeIcmpFlowKey(icmpPkt);
+                if (icmpUserSpace != null) {
+                    match.replaceKey(i, icmpUserSpace);
+                    match.setUserSpaceOnly(true);
+                }
                 return;
             }
         }
@@ -222,5 +216,4 @@ public class FlowMatches {
                 break;
         }
     }
-
 }
