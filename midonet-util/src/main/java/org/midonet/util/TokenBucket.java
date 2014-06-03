@@ -12,55 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.copyOf;
 
-/*
+/**
  * This class implements a hierarchical token bucket. Starting from a root
  * bucket, it allows a tree of buckets to be created. Tokens go into the root
  * bucket according to the specified fill rate strategy and are distributed
  * recursively among the root's children. When all the buckets in a level of
  * the hierarchy are full, they accumulate in the parent bucket. Tokens can
- * only be retrieved from the leaf buckets, although you can wait for any
- * bucket to contain a specified number of tokens. The operation of the token
- * bucket is as follows:
- *
- *                  +–––––+
- *                  |     | root
- *                  |     |
- *                  +––+––+
- *                     |
- *             +–––––––+––––––+
- *             |              |
- *          +––+––+        +––+––+
- *  middle0 |     |        |     | middle1
- *          |     |        |     |
- *          +–––––+        +––+––+
- *                            |
- *                    +–––––––+–––––––+
- *                    |               |
- *                 +––+––+         +––+––+
- *           leaf0 |     |         |     | leaf1
- *                 |     |         |     |
- *                 +–––––+         +–––––+
- *
- * - When retrieving tokens from a leaf, we first look to see if the it
- *   contains the specified amount of tokens, and consume those tokens locally;
- * - If it does not, then we trigger a distribution of tokens. This entails
- *   going up to the root, getting the new tokens from the TokenBucketFillRate™
- *   and, together with any previously accumulated tokens, distribute them
- *   recursively. We evenly distribute tokens between the two middle buckets.
- * - In middle0, we just add the tokens to its current account and return the
- *   excess tokens over its allowed maximum. For middle1, we distribute evenly
- *   to the leafs and accumulate excess tokens in middle1. Again, if all the
- *   leafs and also middle1 are full, we return to the root the excess tokens.
- * - We do a fair distribution, meaning that, for this particular case, if the
- *   number of tokens is odd, than we always accumulate at least one token at
- *   middle1 or at the root.
- * - Again at the leaf, we try again to consume local tokens, assuming we
- *   distributed new ones. Note that we may have depleted the bucket and the
- *   distribution may have filled it up again, meaning that now we got two full
- *   bursts. This is okay, as it only happens when all the other buckets are full.
- * - We execute a fixed point algorithm, meaning that we loop around until we
- *   obtained all the requested tokens or until we are unable to distribute new
- *   tokens.
+ * only be retrieved from the leaf buckets.
  */
 public class TokenBucket {
     public static final int UNLINKED = -1;
