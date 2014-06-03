@@ -11,7 +11,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-import akka.event.LoggingReceive
+import akka.event.{LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cache.Cache
@@ -48,7 +48,8 @@ object DeduplicationActor {
     // the WildcardFlowTable. After updating the table, the FlowController
     // will place the FlowMatch in the pending ring buffer so the DDA can
     // evict the entry from the cache.
-    sealed class ActionsCache(var size: Int = 256) {
+    sealed class ActionsCache(var size: Int = 256,
+                              log: LoggingAdapter) {
         size = findNextPowerOfTwo(size)
         private val mask = size - 1
         val actions = new JHashMap[FlowMatch, JList[FlowAction]]()
@@ -72,9 +73,10 @@ object DeduplicationActor {
             cleared
         }
 
-        def getSlot(): Int = {
+        def getSlot(cookieStr: String): Int = {
             val res = free
             if (res - expecting == size) {
+                log.debug("{} Waiting for the FlowController to catch up", cookieStr)
                 var retries = 200
                 while (clearProcessedFlowMatches() == 0) {
                     if (retries > 100) {
@@ -86,6 +88,7 @@ object DeduplicationActor {
                         Thread.sleep(0)
                     }
                 }
+                log.debug("{} The FlowController has caught up", cookieStr)
             }
             free += 1
             index(res)
@@ -145,7 +148,7 @@ class DeduplicationActor(
     private val waitingRoom = new WaitingRoom[PacketHandler](
                                         (simulationExpireMillis millis).toNanos)
 
-    protected val actionsCache = new ActionsCache()
+    protected val actionsCache = new ActionsCache(log = log)
 
     override def receive = LoggingReceive {
 
@@ -158,30 +161,19 @@ class DeduplicationActor(
 
             var i = 0
             while (i < packets.length && packets(i) != null) {
-                try {
-                    handlePacket(packets(i))
-                } catch {
-                    case e: Exception =>
-                        log.error(e, "Packet workflow crashed for {}", packets(i))
-                }
+                handlePacket(packets(i))
                 i += 1
             }
 
         case RestartWorkflow(pw) if pw.idle =>
             metrics.packetsOnHold.dec()
             log.debug("Restarting workflow for {}", pw.cookieStr)
-            try {
-                startWorkflow(pw)
-            } catch {
-                case e: Exception =>
-                    log.error(e, "Packet workflow crashed for {}", pw.packet)
-            }
+            runWorkflow(pw)
 
         // This creates a new PacketWorkflow and
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            startWorkflow(workflow(Packet.fromEthernet(ethernet),
-                                   Right(egressPort)))
+            startWorkflow(Packet.fromEthernet(ethernet), Right(egressPort))
 
         case TraceConditions(newTraceConditions) =>
             log.debug("traceConditions updated to {}", newTraceConditions)
@@ -330,7 +322,20 @@ class DeduplicationActor(
         giveUpWorkflow(pw)
     }
 
-    protected def startWorkflow(pw: PacketHandler) {
+    protected def startWorkflow(packet: Packet,
+                                cookieOrEgressPort: Either[Int, UUID],
+                                parentCookie: Option[Int] = None): Unit =
+        try {
+            runWorkflow(workflow(packet, cookieOrEgressPort, parentCookie))
+        } catch {
+            case ex: Exception =>
+                log.error(ex, "Unable to execute workflow for {}", packet)
+        } finally {
+            if (cookieOrEgressPort.isLeft)
+                packetOut(1)
+        }
+
+    protected def runWorkflow(pw: PacketHandler): Unit =
         try {
             pw.start() match {
                 case Ready(path) => complete(path, pw)
@@ -338,11 +343,7 @@ class DeduplicationActor(
             }
         } catch {
             case ex: Exception => handleErrorOn(pw, ex)
-        } finally {
-            if (pw.runs == 1 && pw.cookie.isDefined)
-                packetOut(1)
         }
-    }
 
     private def handlePacket(packet: Packet) {
         val flowMatch = packet.getMatch
@@ -363,7 +364,7 @@ class DeduplicationActor(
                     dpMatchToCookie.put(flowMatch, newCookie)
                     cookieToDpMatch.put(newCookie, flowMatch)
                     cookieToPendedPackets.put(newCookie, mutable.Set.empty)
-                    startWorkflow(workflow(packet, Left(newCookie)))
+                    startWorkflow(packet, Left(newCookie))
 
                 case Some(cookie) =>
                     // Simulation in progress. Just pend the packet.

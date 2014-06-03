@@ -11,6 +11,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 import akka.actor._
+import akka.event.NoLogging
 import akka.testkit._
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -22,8 +23,6 @@ import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.midolman.DeduplicationActor.ActionsCache
-import com.sun.tools.javac.util.ListBuffer
-import scala.annotation.tailrec
 
 object PacketWorkflowTest {
     case object ExecPacket
@@ -41,7 +40,8 @@ object PacketWorkflowTest {
         dpCon.flowsSubscribe(flowListener)
         val dpState = new DatapathStateManager(null)(null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
-        new PacketWorkflow(dpCon, dpState, null, null, new ActionsCache(),
+        new PacketWorkflow(dpCon, dpState, null, null,
+                           new ActionsCache(log = NoLogging),
                            pkt, wcMatch, Left(cookie), None) {
             def runSimulation() =
                 throw new Exception("no Coordinator")
