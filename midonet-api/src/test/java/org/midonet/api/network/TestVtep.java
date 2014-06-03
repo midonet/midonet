@@ -172,8 +172,7 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testGetWithInvalidIP() {
         DtoError error = getVtepWithError("10.0.0.300", Status.BAD_REQUEST);
-        assertErrorMatches(error,
-                           MessageProperty.IP_ADDR_INVALID_WITH_PARAM,
+        assertErrorMatches(error, MessageProperty.IP_ADDR_INVALID_WITH_PARAM,
                            "10.0.0.300");
     }
 
@@ -286,18 +285,15 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(0, bindings.length);
     }
 
-    @Test
-    public void testAddRemoveMultipleBindingsOnSingleNetwork() {
+    private void testAddRemoveBinding(String portName) {
         DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
 
         assertEquals(0, listBindings(vtep).length);
 
         DtoBridge br = postBridge("network1");
-        DtoVtepBinding binding1 = addAndVerifyBinding(vtep, br,
-                                                      MOCK_VTEP_PORT_NAMES[0],
+        DtoVtepBinding binding1 = addAndVerifyBinding(vtep, br, portName,
                                                       (short) 1);
-        DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br,
-                                                      MOCK_VTEP_PORT_NAMES[0],
+        DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br, portName,
                                                       (short) 2);
 
         br = getBridge(binding1.getNetworkId());
@@ -325,6 +321,16 @@ public class TestVtep extends RestApiTestBase {
 
         bindings = listBindings(vtep);
         assertEquals(0, bindings.length);
+    }
+
+    @Test
+    public void testAddRemoveMultipleBindingsOnSingleNetwork() {
+        testAddRemoveBinding(MOCK_VTEP_PORT_NAMES[0]);
+    }
+
+    @Test
+    public void testAddRemoveBindingWithWeirdName() {
+        testAddRemoveBinding(MOCK_VTEP_PORT_NAMES[3]);
     }
 
     @Test
@@ -563,13 +569,14 @@ public class TestVtep extends RestApiTestBase {
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
                          VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
                          DtoVtepPort[].class);
-        assertThat(ports, arrayContainingInAnyOrder(
-            new DtoVtepPort(MOCK_VTEP_PORT_NAMES[0],
-                            MOCK_VTEP_PORT_NAMES[0] + "-desc"),
-            new DtoVtepPort(MOCK_VTEP_PORT_NAMES[1],
-                            MOCK_VTEP_PORT_NAMES[1] + "-desc"),
-            new DtoVtepPort(MOCK_VTEP_PORT_NAMES[2],
-                            MOCK_VTEP_PORT_NAMES[2] + "-desc")));
+
+        DtoVtepPort[] expectedPorts =
+                new DtoVtepPort[MOCK_VTEP_PORT_NAMES.length];
+        for (int i = 0; i < MOCK_VTEP_PORT_NAMES.length; i++)
+            expectedPorts[i] = new DtoVtepPort(
+                    MOCK_VTEP_PORT_NAMES[i], MOCK_VTEP_PORT_NAMES[i] + "-desc");
+
+        assertThat(ports, arrayContainingInAnyOrder(expectedPorts));
     }
 
     @Test
