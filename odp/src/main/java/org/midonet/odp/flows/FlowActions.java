@@ -3,6 +3,7 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -47,8 +48,9 @@ public class FlowActions {
         return new FlowActionSample(probability, actions);
     }
 
-    public static List<FlowAction> buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Actions,
-                                FlowAction.Builder);
+    public static List<FlowAction> buildFrom(ByteBuffer buf) {
+        return NetlinkMessage.getAttrValue(buf,
+                                           OpenVSwitch.Flow.Attr.Actions,
+                                           FlowAction.Builder);
     }
 }

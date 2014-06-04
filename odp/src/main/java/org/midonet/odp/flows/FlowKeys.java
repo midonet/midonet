@@ -3,6 +3,7 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -132,7 +133,9 @@ public class FlowKeys {
         return intern(new FlowKeyTunnel(tunnelId, Ipv4SrcAddr, ipv4DstAddr));
     }
 
-    public static List<FlowKey> buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Key, FlowKey.Builder);
+    public static List<FlowKey> buildFrom(ByteBuffer buf) {
+        return NetlinkMessage.getAttrValue(buf,
+                                           OpenVSwitch.Flow.Attr.Key,
+                                           FlowKey.Builder);
     }
 }

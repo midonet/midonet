@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
@@ -64,19 +63,15 @@ public class FlowKeyIPv6 implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            for (int i = 0; i < 4; i++) {
-                ipv6_src[i] = BytesUtil.instance.reverseBE(message.getInt());
-            }
-            for (int i = 0; i < 4; i++) {
-                ipv6_dst[i] = BytesUtil.instance.reverseBE(message.getInt());
-            }
-            ipv6_label = BytesUtil.instance.reverseBE(message.getInt());
-            ipv6_proto = message.getByte();
-            ipv6_tclass = message.getByte();
-            ipv6_hlimit = message.getByte();
-            ipv6_frag = message.getByte();
+            BytesUtil.instance.readBEIntsFrom(buf, ipv6_src);
+            BytesUtil.instance.readBEIntsFrom(buf, ipv6_dst);
+            ipv6_label = BytesUtil.instance.reverseBE(buf.getInt());
+            ipv6_proto = buf.get();
+            ipv6_tclass = buf.get();
+            ipv6_hlimit = buf.get();
+            ipv6_frag = buf.get();
             return true;
         } catch (Exception e) {
             return false;

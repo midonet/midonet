@@ -117,44 +117,47 @@ public class FlowKeyTunnel implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            Long tun_id = message.getAttrValueLong(TunnelAttr.Id);
+            Long tun_id = NetlinkMessage.getAttrValueLong(buf, TunnelAttr.Id);
             if (tun_id != null) {
                 this.tun_id = BytesUtil.instance.reverseBE(tun_id);
                 usedFields |= TUN_ID_MASK;
             }
 
-            Integer ipv4_src = message.getAttrValueInt(TunnelAttr.IPv4Src);
+            Integer ipv4_src =
+                NetlinkMessage.getAttrValueInt(buf, TunnelAttr.IPv4Src);
             if (ipv4_src != null) {
                 this.ipv4_src = BytesUtil.instance.reverseBE(ipv4_src);
                 usedFields |= IPV4_SRC_MASK;
             }
 
-            Integer ipv4_dst = message.getAttrValueInt(TunnelAttr.IPv4Dst);
+            Integer ipv4_dst =
+                NetlinkMessage.getAttrValueInt(buf, TunnelAttr.IPv4Dst);
             if (ipv4_dst != null) {
                 this.ipv4_dst = BytesUtil.instance.reverseBE(ipv4_dst);
                 usedFields |= IPV4_DST_MASK;
             }
 
-            Byte ipv4_tos = message.getAttrValueByte(TunnelAttr.TOS);
+            Byte ipv4_tos = NetlinkMessage.getAttrValueByte(buf, TunnelAttr.TOS);
             if (ipv4_tos != null) {
                 this.ipv4_tos = ipv4_tos;
                 usedFields |= IPV4_TOS_MASK;
             }
 
-            Byte ipv4_ttl = message.getAttrValueByte(TunnelAttr.TTL);
+            Byte ipv4_ttl = NetlinkMessage.getAttrValueByte(buf, TunnelAttr.TTL);
             if (ipv4_ttl != null) {
                 this.ipv4_ttl = ipv4_ttl;
                 usedFields |= IPV4_TTL_MASK;
             }
 
-            Boolean dontFrag = message.getAttrValueNone(TunnelAttr.DontFrag);
+            Boolean dontFrag =
+                NetlinkMessage.getAttrValueNone(buf, TunnelAttr.DontFrag);
             if (dontFrag != null ) {
                 tun_flags = (short)(tun_flags | OVS_TNL_F_DONT_FRAGMENT);
             }
 
-            Boolean csum = message.getAttrValueNone(TunnelAttr.CSum);
+            Boolean csum = NetlinkMessage.getAttrValueNone(buf, TunnelAttr.CSum);
             if (csum != null) {
                 tun_flags = (short)(tun_flags | OVS_TNL_F_CSUM);
             }

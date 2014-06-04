@@ -86,9 +86,9 @@ public abstract class DpPort {
         }
     }
 
-    protected void deserializeFrom(NetlinkMessage msg) {
-        this.portNo = msg.getAttrValueInt(Attr.PortNo);
-        this.stats = Stats.buildFrom(msg);
+    protected void deserializeFrom(ByteBuffer buf) {
+        this.portNo = NetlinkMessage.getAttrValueInt(buf, Attr.PortNo);
+        this.stats = Stats.buildFrom(buf);
     }
 
     @Override
@@ -122,18 +122,18 @@ public abstract class DpPort {
 
     /** Factory method which builds DpPort instances from NetlinkMessages.
      *  Consumes the underlying ByteBuffer.*/
-    public static DpPort buildFrom(NetlinkMessage msg) {
-        int actualDpIndex = msg.getInt(); // read the datapath id
+    public static DpPort buildFrom(ByteBuffer buf) {
+        int actualDpIndex = buf.getInt(); // read the datapath id
 
-        String name = msg.getAttrValueString(Attr.Name);
-        Integer type = msg.getAttrValueInt(Attr.Type);
+        String name = NetlinkMessage.getAttrValueString(buf, Attr.Name);
+        Integer type = NetlinkMessage.getAttrValueInt(buf, Attr.Type);
         if (type == null || name == null)
             return null;
 
         DpPort port = newPortByTypeId(type.shortValue(), name);
 
         if (port != null)
-            port.deserializeFrom(msg);
+            port.deserializeFrom(buf);
 
         return port;
     }
@@ -146,7 +146,7 @@ public abstract class DpPort {
             public DpPort apply(List<ByteBuffer> input) {
                 if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
-                return DpPort.buildFrom(new NetlinkMessage(input.get(0)));
+                return DpPort.buildFrom(input.get(0));
             }
         };
 
@@ -160,7 +160,7 @@ public abstract class DpPort {
                 if (input == null)
                     return ports;
                 for (ByteBuffer buffer : input) {
-                    ports.add(DpPort.buildFrom(new NetlinkMessage(buffer)));
+                    ports.add(DpPort.buildFrom(buffer));
                 }
                 ports.remove(null);
                 return ports;
@@ -247,16 +247,16 @@ public abstract class DpPort {
         public long getTxDropped() { return txDropped; }
 
         @Override
-        public boolean deserialize(NetlinkMessage message) {
+        public boolean deserialize(ByteBuffer buf) {
             try {
-                rxPackets = message.getLong();
-                txPackets = message.getLong();
-                rxBytes = message.getLong();
-                txBytes = message.getLong();
-                rxErrors = message.getLong();
-                txErrors = message.getLong();
-                rxDropped = message.getLong();
-                txDropped = message.getLong();
+                rxPackets = buf.getLong();
+                txPackets = buf.getLong();
+                rxBytes = buf.getLong();
+                txBytes = buf.getLong();
+                rxErrors = buf.getLong();
+                txErrors = buf.getLong();
+                rxDropped = buf.getLong();
+                txDropped = buf.getLong();
                 return true;
             } catch (Exception e) {
                 return false;
@@ -307,8 +307,8 @@ public abstract class DpPort {
                 '}';
         }
 
-        public static Stats buildFrom(NetlinkMessage msg) {
-            return msg.getAttrValue(Attr.Stats, new Stats());
+        public static Stats buildFrom(ByteBuffer buf) {
+            return NetlinkMessage.getAttrValue(buf, Attr.Stats, new Stats());
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
@@ -344,7 +344,7 @@ public abstract class DpPort {
             ByteBuffer buf = ByteBuffer.allocate(8 * 8);
             r.nextBytes(buf.array());
             Stats s = new Stats();
-            s.deserialize(new NetlinkMessage(buf));
+            s.deserialize(buf);
             return s;
         }
     }
