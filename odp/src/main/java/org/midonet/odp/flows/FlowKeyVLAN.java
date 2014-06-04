@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
@@ -20,6 +22,11 @@ public class FlowKeyVLAN implements CachedFlowKey {
 
     FlowKeyVLAN(short vlanTCI) {
         vlan = vlanTCI;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putShort(BytesUtil.instance.reverseBE(VLAN.setDEI(vlan)));
+        return 2;
     }
 
     @Override
@@ -40,6 +47,10 @@ public class FlowKeyVLAN implements CachedFlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyVLAN> getKey() {
         return FlowKeyAttr.VLAN;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.VLAN.getId();
     }
 
     @Override

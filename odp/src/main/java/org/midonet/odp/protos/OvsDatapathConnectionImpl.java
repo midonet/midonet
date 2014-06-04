@@ -16,14 +16,11 @@ import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
-import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.family.FlowFamily;
@@ -32,9 +29,6 @@ import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.util.BatchCollector;
 
-import static org.midonet.odp.family.FlowFamily.AttrKey;
-
-
 /**
  * Netlink transport aware implementation of a OvsDatapathConnection.
  */
@@ -42,9 +36,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnectionImpl.class);
-
-    public static final int FALLBACK_PORT_MULTICAT =
-        OpenVSwitch.Port.fallbackMCGroup;
 
     public OvsDatapathConnectionImpl(NetlinkChannel channel, BufferPool sendPool) {
         super(channel, sendPool);
@@ -354,14 +345,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             flowFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
-            message.getBuffer(),
+            Flow.selectAllRequest(getBuffer(), datapathId),
             callback,
             Flow.setDeserializer,
             timeoutMillis);
@@ -384,15 +371,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        builder.addAttrs(AttrKey.ACTIONS, flow.getActions());
-
         FlowMatch match = flow.getMatch();
-        if (match != null)
-            builder.addAttrs(AttrKey.KEY, match.getKeys());
-
-        NetlinkMessage message = builder.build();
 
         short flags = NLFlag.REQUEST | NLFlag.New.CREATE;
         if (callback != null) {
@@ -402,7 +381,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             flowFamily.contextNew,
             flags,
-            message.getBuffer(),
+            Flow.describeOneRequest(getBuffer(), datapathId,
+                                    match.getKeys(), flow.getActions()),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -427,23 +407,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         FlowMatch match = flow.getMatch();
 
-        if ( match == null ) {
+        if (match == null) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The flow to delete should have a non null FlowMatch attached"));
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        builder.addAttrs(AttrKey.KEY, match.getKeys());
-
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             flowFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ECHO,
-            message.getBuffer(),
+            Flow.selectOneRequest(getBuffer(), datapathId, match.getKeys()),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -466,14 +440,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        NetlinkMessage message = builder.build();
-
         sendNetlinkMessage(
             flowFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ACK,
-            message.getBuffer(),
+            Flow.selectAllRequest(getBuffer(), datapathId),
             callback,
             alwaysTrueTranslator,
             timeoutMillis);
@@ -495,14 +465,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        builder.addAttrs(AttrKey.KEY, match.getKeys());
-
         sendNetlinkMessage(
             flowFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            builder.build().getBuffer(),
+            Flow.selectOneRequest(getBuffer(), datapathId, match.getKeys()),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -526,9 +492,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch flowMatch = flow.getMatch();
+        FlowMatch match = flow.getMatch();
 
-        if (flowMatch == null || flowMatch.getKeys().isEmpty()) {
+        if (match == null || match.getKeys().isEmpty()) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The flow should have a FlowMatch object set up (with non empty key set)."
@@ -537,17 +503,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        builder.addAttrs(AttrKey.KEY, flowMatch.getKeys());
-
-        if (!flow.getActions().isEmpty())
-            builder.addAttrs(AttrKey.ACTIONS, flow.getActions());
-
         sendNetlinkMessage(
             flowFamily.contextSet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            builder.build().getBuffer(),
+            Flow.describeOneRequest(getBuffer(), datapathId,
+                                    match.getKeys(), flow.getActions()),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -578,9 +538,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch flowMatch = packet.getMatch();
+        FlowMatch match = packet.getMatch();
 
-        if (flowMatch.getKeys().isEmpty()) {
+        if (match.getKeys().isEmpty()) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
                 "The packet should have a FlowMatch object set up (with non empty key set).");
             propagateError(callback, ex);
@@ -594,19 +554,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        Builder builder = newMessage();
-        builder.addValue(datapathId);
-        builder.addAttrs(PacketFamily.AttrKey.KEY, flowMatch.getKeys());
-        builder.addAttrs(PacketFamily.AttrKey.ACTIONS, actions);
-        // TODO(pino): find out why ovs_packet_cmd_execute throws an
-        // EINVAL if we put the PACKET attribute right after the
-        // datapathId. I examined the ByteBuffers constructed with that
-        // ordering of attributes and compared it to this one, and found
-        // only the expected difference.
-        builder.addAttr(PacketFamily.AttrKey.PACKET, packet.getPacket());
-
-        NetlinkMessage message = builder.build();
-
         short flags = NLFlag.REQUEST;
         if (callback != null) {
             flags |= NLFlag.ACK;
@@ -615,7 +562,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             packetFamily.contextExec,
             flags,
-            message.getBuffer(),
+            Packet.execRequest(getBuffer(), datapathId, match.getKeys(),
+                               actions, packet.getPacket()),
             callback,
             alwaysTrueTranslator,
             timeoutMillis);

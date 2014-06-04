@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
@@ -29,6 +31,12 @@ public class FlowActionPushVLAN implements FlowAction {
         vlan_tpid = tagProtocolId;
     }
 
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putShort(BytesUtil.instance.reverseBE(vlan_tpid));
+        buffer.putShort(BytesUtil.instance.reverseBE(vlan_tci));
+        return 4;
+    }
+
     @Override
     public void serialize(Builder builder) {
         builder.addValue(BytesUtil.instance.reverseBE(vlan_tpid));
@@ -49,6 +57,10 @@ public class FlowActionPushVLAN implements FlowAction {
     @Override
     public NetlinkMessage.AttrKey<FlowActionPushVLAN> getKey() {
         return FlowActionAttr.PUSH_VLAN;
+    }
+
+    public short attrId() {
+        return FlowActionAttr.PUSH_VLAN.getId();
     }
 
     @Override

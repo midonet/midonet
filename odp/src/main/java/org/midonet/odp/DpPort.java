@@ -87,7 +87,7 @@ public abstract class DpPort {
 
         if (stats != null) {
             short statsAttrId = (short) OpenVSwitch.Port.Attr.Stats;
-            NetlinkMessage.write(buf, statsAttrId, stats, Stats.trans);
+            NetlinkMessage.writeAttr(buf, stats, Stats.trans);
         }
     }
 
@@ -334,6 +334,9 @@ public abstract class DpPort {
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
+            public short attrIdOf(Stats any) {
+                return (short) OpenVSwitch.Port.Attr.Stats;
+            }
             public int serializeInto(ByteBuffer receiver, Stats value) {
                 receiver.putLong(value.rxPackets)
                         .putLong(value.txPackets)

@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.Builder;
@@ -10,16 +12,14 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction {
 
-    /* u32 Netlink PID to receive upcalls. */
     public static final AttrKey<Integer> OVS_USERSPACE_ATTR_PID =
         AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.PID);
 
-    /* u64 optional user-specified cookie. */
     public static final AttrKey<Long> OVS_USERSPACE_ATTR_USERDATA =
         AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.Userdata);
 
-    private int uplinkPid;
-    private Long userData;
+    private int uplinkPid;  /* u32 Netlink PID to receive upcalls. */
+    private Long userData;  /* u64 optional user-specified cookie. */
 
     // This is used for deserialization purposes only.
     FlowActionUserspace() { }
@@ -31,6 +31,21 @@ public class FlowActionUserspace implements FlowAction {
     FlowActionUserspace(int uplinkPid, long userData) {
         this.uplinkPid = uplinkPid;
         this.userData = userData;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        int nBytes = 0;
+
+        short pidId = (short) OpenVSwitch.FlowAction.UserspaceAttr.PID;
+        nBytes += NetlinkMessage.writeIntAttr(buffer, pidId, uplinkPid);
+
+        if (userData == null)
+            return nBytes;
+
+        short userDataId = (short) OpenVSwitch.FlowAction.UserspaceAttr.Userdata;
+        nBytes += NetlinkMessage.writeLongAttr(buffer, userDataId, userData);
+
+        return nBytes;
     }
 
     @Override
@@ -50,6 +65,10 @@ public class FlowActionUserspace implements FlowAction {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public short attrId() {
+        return FlowActionAttr.USERSPACE.getId();
     }
 
     @Override

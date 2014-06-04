@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 
@@ -15,6 +17,11 @@ public class FlowKeyPriority implements FlowKey {
 
     FlowKeyPriority(int priority) {
         this.priority = priority;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putInt(priority);
+        return 4;
     }
 
     @Override
@@ -35,6 +42,10 @@ public class FlowKeyPriority implements FlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyPriority> getKey() {
         return FlowKeyAttr.PRIORITY;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.PRIORITY.getId();
     }
 
     @Override

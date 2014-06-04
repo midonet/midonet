@@ -38,7 +38,7 @@ public class NetlinkMessage {
         }
 
         public static <T> AttrKey<T> attrNested(int id) {
-            return new AttrKey<T>(id | NetlinkMessage.NLA_F_NESTED);
+            return new AttrKey<T>(nested((short)id));
         }
     }
 
@@ -227,7 +227,7 @@ public class NetlinkMessage {
 
     public interface AttributeParser {
         /**
-         * @param attributeType the type of attribute
+         * @param attributeType the type of attribute.
          * @param buffer the buffer with the data
          *
          * @return true if the next attribute is to be parsed, false if not.
@@ -332,17 +332,21 @@ public class NetlinkMessage {
         return buf.position() - startPos;
     }
 
-    public static <V> void write(ByteBuffer buffer, short id,
-                                 V value, Translator<V> translator) {
+    /** Generic attribute writing function that can write an arbitrary value
+     *  into a ByteBuffer, given a translator typeclass instance for that value
+     *  type. Padding for 4B alignement is added to the message. Returns the
+     *  total number of bytes written in the buffer. */
+    public static <V> int writeAttr(ByteBuffer buffer, V value,
+                                    Translator<V> translator) {
 
         int start = buffer.position();      // save position
 
+        short id = translator.attrIdOf(value);
         NetlinkMessage.setAttrHeader(buffer, id, 4); // space for nl_attr header
 
         int advertisedLen = translator.serializeInto(buffer, value);
         int len = buffer.position() - start;
 
-        assert len == 4 + advertisedLen;
         buffer.putShort(start, (short) len); // write nl_attr length field
 
         int padLen = NetlinkMessage.pad(len);
@@ -350,20 +354,79 @@ public class NetlinkMessage {
             buffer.put((byte)0);
             padLen--;
         }
+
+        return padLen;
     }
 
-    public static void writeIntAttr(ByteBuffer buf, short id, int value) {
+    /** Generic attribute sequence writing function that can write an arbitrary
+     *  sequence of value into a ByteBuffer as a netlink nested attribute, given
+     *  a translator typeclass instance for the type of these values and the id
+     *  of the nested attribute. The message is 4B aligned. Returns the total
+     *  number of bytes written in the buffer. */
+    public static <V> int writeAttrSeq(ByteBuffer buffer, short id,
+                                       Iterable<V> values,
+                                       Translator<V> translator) {
+
+        int start = buffer.position(); // save position for writing the
+                                       // nla_len field after iterating
+
+        int nByte = 4; // header length
+
+        // when writing the attribute id of a sequence or compound attribute (a
+        // struct of attributes), it needs to be flagged with the "nested" bit.
+        NetlinkMessage.setAttrHeader(buffer, nested(id), 0); // len yet unknown
+
+        for (V v : values) {
+            nByte += writeAttr(buffer, v, translator);
+        }
+
+        buffer.putShort(start, (short) (buffer.position() - start));
+
+        return nByte;
+    }
+
+    /** write an 8B long netlink attribute into a buffer, with header. */
+    public static int writeLongAttr(ByteBuffer buf, short id, long value) {
+        NetlinkMessage.setAttrHeader(buf, id, 12);
+        buf.putLong(value);
+        return 12;
+    }
+
+    /** write an 4B int netlink attribute into a buffer, with header. */
+    public static int writeIntAttr(ByteBuffer buf, short id, int value) {
         NetlinkMessage.setAttrHeader(buf, id, 8);
         buf.putInt(value);
+        return 8;
+    }
+
+    /** write an 2B int netlink attribute into a buffer, with header. Padding
+     *  for 4B alignement is added. */
+    public static int writeShortAttr(ByteBuffer buf, short id, short value) {
+        NetlinkMessage.setAttrHeader(buf, id, 8);
+        buf.putShort(value);
+        addPaddingForShort(buf);
+        return 8;
     }
 
     /** writes a short attribute with a header len field assuming no padding,
-     *  but adds the padding. */
-    public static void writeShortAttrNoPad(ByteBuffer buf,
-                                           short id, short value) {
+     *  but adds the padding for 4B alignement nonetheless (needed because of
+     *  a couple of quirks in the request validation code of the datapath). */
+    public static int writeShortAttrNoPad(ByteBuffer buf,
+                                          short id, short value) {
         NetlinkMessage.setAttrHeader(buf, id, 6);
         buf.putShort(value);
         addPaddingForShort(buf);
+        return 8;
+    }
+
+    /** writes a byte attribute with a header len field assuming no padding,
+     *  but adds the padding for 4B alignement nonetheless (needed because of
+     *  a couple of quirks in the request validation code of the datapath). */
+    public static int writeByteAttrNoPad(ByteBuffer buf, short id, byte value) {
+        NetlinkMessage.setAttrHeader(buf, id, 5);
+        buf.put(value);
+        addPaddingForByte(buf);
+        return 8;
     }
 
     public static int addAttribute(ByteBuffer buf, short id, byte[] value) {
@@ -386,6 +449,13 @@ public class NetlinkMessage {
     public static void addPaddingForShort(ByteBuffer buffer) {
         short padding = 0;
         buffer.putShort(padding);
+    }
+
+    static void addPaddingForByte(ByteBuffer buffer) {
+        byte padding = 0;
+        buffer.put(padding);
+        buffer.put(padding);
+        buffer.put(padding);
     }
 
     public static int pad(int len) {
@@ -423,5 +493,13 @@ public class NetlinkMessage {
 
     private static NetlinkMessage sliceFrom(ByteBuffer buffer) {
         return new NetlinkMessage(BytesUtil.instance.sliceOf(buffer));
+    }
+
+    public static short nested(short netlinkAttributeId) {
+        return (short)(netlinkAttributeId | NLA_F_NESTED);
+    }
+
+    public static boolean isNested(short netlinkAttributeId) {
+        return (netlinkAttributeId & NLA_F_NESTED) != 0;
     }
 }
