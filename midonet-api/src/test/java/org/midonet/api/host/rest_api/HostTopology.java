@@ -5,7 +5,6 @@ package org.midonet.api.host.rest_api;
 
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoCapwapTunnelZone;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
@@ -61,7 +60,6 @@ public class HostTopology {
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
         private final Map<String, DtoGreTunnelZone> greTunnelZones;
-        private final Map<String, DtoCapwapTunnelZone> capwapTunnelZones;
         private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
 
         private final Map<UUID, UUID> tagToHosts;
@@ -71,7 +69,6 @@ public class HostTopology {
             this.hostZkManager = hostZkManager;
             this.hosts = new HashMap<UUID, DtoHost>();
             this.greTunnelZones = new HashMap<String, DtoGreTunnelZone>();
-            this.capwapTunnelZones = new HashMap<String, DtoCapwapTunnelZone>();
             this.hostInterfacePorts = new HashMap<UUID, DtoHostInterfacePort>();
 
             this.tagToHosts = new HashMap<UUID, UUID>();
@@ -88,11 +85,6 @@ public class HostTopology {
 
         public Builder create(String tag, DtoGreTunnelZone obj) {
             this.greTunnelZones.put(tag, obj);
-            return this;
-        }
-
-        public Builder create(String tag, DtoCapwapTunnelZone obj) {
-            this.capwapTunnelZones.put(tag, obj);
             return this;
         }
 
@@ -170,17 +162,6 @@ public class HostTopology {
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoCapwapTunnelZone> entry
-                    : capwapTunnelZones.entrySet()) {
-
-                DtoCapwapTunnelZone obj = entry.getValue();
-
-                obj = resource.postAndVerifyCreated(app.getTunnelZones(),
-                        APPLICATION_TUNNEL_ZONE_JSON, obj,
-                        DtoCapwapTunnelZone.class);
-                entry.setValue(obj);
-            }
-
             return new HostTopology(this);
         }
     }
@@ -199,10 +180,6 @@ public class HostTopology {
 
     public DtoGreTunnelZone getGreTunnelZone(String tag) {
         return this.builder.greTunnelZones.get(tag);
-    }
-
-    public DtoCapwapTunnelZone getCapwapTunnelZone(String tag) {
-        return this.builder.capwapTunnelZones.get(tag);
     }
 
     /**

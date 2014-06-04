@@ -35,7 +35,6 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoCapwapTunnelZone;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoHost;
@@ -104,7 +103,6 @@ public class TestTunnelZoneHost {
 
         private DtoWebResource dtoResource;
         private HostTopology topologyGre;
-        private HostTopology topologyCapwap;
         private HostZkManager hostManager;
         private Injector injector = null;
 
@@ -135,14 +133,8 @@ public class TestTunnelZoneHost {
             DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
             tunnelZone1.setName("tz1-name");
 
-            DtoCapwapTunnelZone tunnelZone2 = new DtoCapwapTunnelZone();
-            tunnelZone2.setName("tz2-name");
-
             topologyGre = new HostTopology.Builder(dtoResource, hostManager)
                     .create(host1Id, host1).create("tz1", tunnelZone1).build();
-
-            topologyCapwap = new HostTopology.Builder(dtoResource, hostManager)
-                    .create(host2Id, host2).create("tz2", tunnelZone2).build();
         }
 
         @After
@@ -239,22 +231,9 @@ public class TestTunnelZoneHost {
         public void testCrudGre() throws Exception {
             DtoGreTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
-            testTypeMismatch(tz1,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON);
             testCrud(tz1,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
-        }
-
-        @Test
-        public void testCrudCapwap() throws Exception {
-            DtoCapwapTunnelZone tz2 = topologyCapwap.getCapwapTunnelZone("tz2");
-            Assert.assertNotNull(tz2);
-            testTypeMismatch(tz2,
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
-            testCrud(tz2,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON);
         }
 
         @Test
@@ -289,41 +268,6 @@ public class TestTunnelZoneHost {
 
             assertThat("There is one host entry under the tunnel zone.",
                        greTunnelZone.getHosts().size(), is(1));
-        }
-
-        @Test
-        public void testClientCapwap() throws Exception {
-
-            URI baseUri = resource().getURI();
-            MidonetApi api = new MidonetApi(baseUri.toString());
-            api.enableLogging();
-
-            UUID hostId = UUID.randomUUID();
-
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("test");
-            metadata.setAddresses(new InetAddress[]{
-                    InetAddress.getByAddress(
-                            new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
-            });
-
-            hostManager.createHost(hostId, metadata);
-            hostManager.makeAlive(hostId);
-
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
-
-            TunnelZone<DtoCapwapTunnelZone> capwapTunnelZone = api
-                    .addCapwapTunnelZone()
-                    .name("capwap-tunnel-zone-1")
-                    .create();
-
-            TunnelZoneHost tzHost = capwapTunnelZone.addTunnelZoneHost()
-                    .ipAddress("1.1.1.1")
-                    .hostId(hostId).create();
-
-            assertThat("There is one host entry under the tunnel zone.",
-                    capwapTunnelZone.getHosts().size(), is(1));
         }
     }
 

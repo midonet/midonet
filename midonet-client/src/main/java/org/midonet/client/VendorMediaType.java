@@ -148,13 +148,6 @@ public class VendorMediaType {
             APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".TunnelZoneHost-v1+json";
-    public static final String APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON =
-            "application/vnd.org.midonet" +
-                    ".CapwapTunnelZoneHost-v1+json";
-    public static final String
-            APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".CapwapTunnelZoneHost-v1+json";
     public static final String APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON =
             "application/vnd.org.midonet" +
                     ".GreTunnelZoneHost-v1+json";
@@ -162,13 +155,6 @@ public class VendorMediaType {
             APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON =
             "application/vnd.org.midonet.collection" +
                     ".GreTunnelZoneHost-v1+json";
-    public static final String APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON =
-            "application/vnd.org.midonet" +
-                    ".IpsecTunnelZoneHost-v1+json";
-    public static final String
-            APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection" +
-                    ".IpsecTunnelZoneHost-v1+json";
 
     // Host interface - port mapping
     public static final String APPLICATION_HOST_INTERFACE_PORT_JSON =

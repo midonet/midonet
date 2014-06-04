@@ -29,8 +29,6 @@ import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import org.midonet.cluster.data.zones.GreTunnelZone;
 import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -48,7 +46,6 @@ import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.midonet.cluster.client.TunnelZones.CapwapBuilder;
 import static org.midonet.cluster.client.TunnelZones.GreBuilder;
 
 
@@ -357,24 +354,6 @@ public class LocalClientImpl implements Client {
                     }
                 }
                 break;
-
-            case Capwap:
-                if (hostConfig instanceof CapwapTunnelZoneHost) {
-                    CapwapTunnelZoneHost config = (CapwapTunnelZoneHost) hostConfig;
-
-                    if (added) {
-                        buildersProvider
-                                .getCapwapZoneBuilder()
-                                .addHost(config.getId(), config);
-                    } else {
-                        buildersProvider
-                                .getCapwapZoneBuilder()
-                                .removeHost(config.getId(), config);
-                    }
-                }
-                break;
-
-            case Ipsec:
         }
     }
 
@@ -421,16 +400,6 @@ public class LocalClientImpl implements Client {
                         @Override
                         public GreTunnelZone getTunnelZoneConfig() {
                                     return greZone;
-                            }
-                        });
-        } else if (zone instanceof CapwapTunnelZone) {
-            final CapwapTunnelZone capwapZone = (CapwapTunnelZone) zone;
-            builders.getCapwapZoneBuilder()
-                    .setConfiguration(
-                            new CapwapBuilder.ZoneConfig() {
-                        @Override
-                        public CapwapTunnelZone getTunnelZoneConfig() {
-                                    return capwapZone;
                             }
                         });
         }
