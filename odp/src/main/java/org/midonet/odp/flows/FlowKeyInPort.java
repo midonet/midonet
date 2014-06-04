@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyInPort implements CachedFlowKey {
 
@@ -34,7 +35,7 @@ public class FlowKeyInPort implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.IN_PORT.getId();
+        return OpenVSwitch.FlowKey.Attr.InPort;
     }
 
     public int getInPort() {

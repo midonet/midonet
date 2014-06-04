@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
@@ -27,70 +26,6 @@ public interface FlowKey extends BuilderAware {
      * applied before being sent to the DP.
      */
     interface UserSpaceOnly extends FlowKey { }
-
-    public interface FlowKeyAttr {
-
-        /** Nested set of encapsulated attributes. */
-        AttrKey<FlowKeyEncap> ENCAP =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Encap);
-
-        /** u32 skb->priority */
-        AttrKey<FlowKeyPriority> PRIORITY =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Priority);
-
-        /** u32 OVS dp port number */
-        AttrKey<FlowKeyInPort> IN_PORT =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.InPort);
-
-        /** struct ovs_key_ethernet */
-        AttrKey<FlowKeyEthernet> ETHERNET =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Ethernet);
-
-        /** be16 VLAN TCI */
-        AttrKey<FlowKeyVLAN> VLAN =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.VLan);
-
-        /** be16 Ethernet type */
-        AttrKey<FlowKeyEtherType> ETHERTYPE =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.Ethertype);
-
-        /** struct ovs_key_ipv4 */
-        AttrKey<FlowKeyIPv4> IPv4 =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.IPv4);
-
-        /** struct ovs_key_ipv6 */
-        AttrKey<FlowKeyIPv6> IPv6 =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.IPv6);
-
-        /** struct ovs_key_tcp */
-        AttrKey<FlowKeyTCP> TCP =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.TCP);
-
-        /** struct ovs_key_udp */
-        AttrKey<FlowKeyUDP> UDP =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.UDP);
-
-        /** struct ovs_key_icmp */
-        AttrKey<FlowKeyICMP> ICMP =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ICMP);
-
-        /** struct ovs_key_icmpv6 */
-        AttrKey<FlowKeyICMPv6> ICMPv6 =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ICMPv6);
-
-        /** struct ovs_key_arp */
-        AttrKey<FlowKeyARP> ARP =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ARP);
-
-        /** struct ovs_key_nd */
-        AttrKey<FlowKeyND> ND =
-            AttrKey.attr(OpenVSwitch.FlowKey.Attr.ND);
-
-        /** struct ovs_key_ipv4_tunnel */
-        AttrKey<FlowKeyTunnel> TUNNEL =
-            AttrKey.attrNested(OpenVSwitch.FlowKey.Attr.Tunnel);
-
-    }
 
     static NetlinkMessage.CustomBuilder<FlowKey> Builder =
         new NetlinkMessage.CustomBuilder<FlowKey>() {

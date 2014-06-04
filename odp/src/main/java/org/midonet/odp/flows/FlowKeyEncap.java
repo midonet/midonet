@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyEncap implements FlowKey {
 
@@ -23,7 +24,7 @@ public class FlowKeyEncap implements FlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ENCAP.getId();
+        return OpenVSwitch.FlowKey.Attr.Encap;
     }
 
     public int serializeInto(ByteBuffer buffer) {

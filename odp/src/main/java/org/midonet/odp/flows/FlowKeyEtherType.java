@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyEtherType implements CachedFlowKey {
 
@@ -66,7 +67,7 @@ public class FlowKeyEtherType implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ETHERTYPE.getId();
+        return OpenVSwitch.FlowKey.Attr.Ethertype;
     }
 
     public short getEtherType() {

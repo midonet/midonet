@@ -38,21 +38,20 @@ public final class CtrlFamily {
 
     public interface AttrKey {
 
-        NetlinkMessage.AttrKey<Short> FAMILY_ID = NetlinkMessage.AttrKey.attr(1);
-        NetlinkMessage.AttrKey<String> FAMILY_NAME = NetlinkMessage.AttrKey.attr(2);
-        NetlinkMessage.AttrKey<String> FAMILY_VERSION = NetlinkMessage.AttrKey.attr(3);
-        NetlinkMessage.AttrKey<String> HDRSIZE = NetlinkMessage.AttrKey.attr(4);
-        NetlinkMessage.AttrKey<String> MAXATTR = NetlinkMessage.AttrKey.attr(5);
-        NetlinkMessage.AttrKey<String> OPS = NetlinkMessage.AttrKey.attr(6);
-        NetlinkMessage.AttrKey<NetlinkMessage> MCAST_GROUPS = NetlinkMessage.AttrKey.attr(7);
+        short FAMILY_ID       = (short) 1;
+        short FAMILY_NAME     = (short) 2;
+        short FAMILY_VERSION  = (short) 3;
+        short HDRSIZE         = (short) 4;
+        short MAXATTR         = (short) 5;
+        short OPS             = (short) 6;
+        short MCAST_GROUPS    = (short) 7;
 
-        NetlinkMessage.AttrKey<String> MCAST_GRP_NAME = NetlinkMessage.AttrKey.attr(1);
-        NetlinkMessage.AttrKey<Integer> MCAST_GRP_ID = NetlinkMessage.AttrKey.attr(2);
-
+        short MCAST_GRP_NAME  = (short) 1;
+        short MCAST_GRP_ID    = (short) 2;
     }
 
     public static ByteBuffer familyNameRequest(ByteBuffer buf, String name) {
-        NetlinkMessage.writeStringAttr(buf, AttrKey.FAMILY_NAME.getId(), name);
+        NetlinkMessage.writeStringAttr(buf, AttrKey.FAMILY_NAME, name);
         buf.flip();
         return buf;
     }
@@ -66,8 +65,7 @@ public final class CtrlFamily {
                     return null;
 
                 NetlinkMessage res = new NetlinkMessage(input.get(0));
-                NetlinkMessage sub =
-                    res.getAttrValueNested(CtrlFamily.AttrKey.MCAST_GROUPS);
+                NetlinkMessage sub = res.getAttrValueNested(AttrKey.MCAST_GROUPS);
 
                 if (sub == null)
                     return null;
@@ -75,11 +73,10 @@ public final class CtrlFamily {
                 sub.getShort();
                 sub.getShort();
 
-                String name =
-                    sub.getAttrValueString(CtrlFamily.AttrKey.MCAST_GRP_NAME);
+                String name = sub.getAttrValueString(AttrKey.MCAST_GRP_NAME);
 
                 if (name.equals(groupName))
-                    return sub.getAttrValueInt(CtrlFamily.AttrKey.MCAST_GRP_ID);
+                    return sub.getAttrValueInt(AttrKey.MCAST_GRP_ID);
 
                 return null;
             }

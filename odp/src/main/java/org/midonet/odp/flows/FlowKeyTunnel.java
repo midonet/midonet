@@ -7,39 +7,11 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.odp.OpenVSwitch;
+import org.midonet.odp.OpenVSwitch.FlowKey.TunnelAttr;
 import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyTunnel implements CachedFlowKey {
-
-    // OVS_TUNNEL_KEY_ATTR_ID
-    public static final AttrKey<Long> ID =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.Id);
-
-    // OVS_TUNNEL_KEY_ATTR_IPV4_SRC
-    public static final AttrKey<Integer> IPV4_SRC =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.IPv4Src);
-
-    // OVS_TUNNEL_KEY_ATTR_IPV4_DST
-    public static final AttrKey<Integer> IPV4_DST =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.IPv4Dst);
-
-    // OVS_TUNNEL_KEY_ATTR_TOS
-    public static final AttrKey<Byte> TOS =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.TOS);
-
-    // OVS_TUNNEL_KEY_ATTR_TTL
-    public static final AttrKey<Byte> TTL =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.TTL);
-
-    // OVS_TUNNEL_KEY_ATTR_DONT_FRAGMENT
-    public static final AttrKey<Boolean> DONT_FRAGMENT =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.DontFrag);
-
-    // OVS_TUNNEL_KEY_ATTR_CSUM
-    public static final AttrKey<Boolean> CSUM =
-        AttrKey.attr(OpenVSwitch.FlowKey.TunnelAttr.CSum);
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
@@ -92,33 +64,33 @@ public class FlowKeyTunnel implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.TUNNEL.getId();
+        return OpenVSwitch.FlowKey.Attr.Tunnel_N;
     }
 
     public int serializeInto(ByteBuffer buffer) {
         int nBytes = 0;
 
         if ((usedFields & TUN_ID_MASK) != 0)
-            nBytes += NetlinkMessage.writeLongAttr(
-                          buffer, ID.getId(),
-                          BytesUtil.instance.reverseBE(tun_id));
+            nBytes += NetlinkMessage.writeLongAttr(buffer, TunnelAttr.Id,
+                                                   BytesUtil.instance
+                                                            .reverseBE(tun_id));
 
         if ((usedFields & IPV4_SRC_MASK) != 0)
-            nBytes += NetlinkMessage.writeIntAttr(
-                          buffer, IPV4_SRC.getId(),
-                          BytesUtil.instance.reverseBE(ipv4_src));
+            nBytes += NetlinkMessage.writeIntAttr(buffer, TunnelAttr.IPv4Src,
+                                                  BytesUtil.instance
+                                                           .reverseBE(ipv4_src));
 
         /*
          * For flow-based tunneling, ipv4_dst has to be set, otherwise
          * the NL message will result in EINVAL
          */
         if ((usedFields & IPV4_DST_MASK) != 0)
-            nBytes += NetlinkMessage.writeIntAttr(
-                          buffer, IPV4_DST.getId(),
-                          BytesUtil.instance.reverseBE(ipv4_dst));
+            nBytes += NetlinkMessage.writeIntAttr(buffer, TunnelAttr.IPv4Dst,
+                                                  BytesUtil.instance
+                                                           .reverseBE(ipv4_dst));
 
         if ((usedFields & IPV4_TOS_MASK) != 0)
-            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TOS.getId(),
+            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TunnelAttr.TOS,
                                                         ipv4_tos);
 
         /*
@@ -126,18 +98,18 @@ public class FlowKeyTunnel implements CachedFlowKey {
          * in OVS kmod replying with error EINVAL
          */
         if ((usedFields & IPV4_TTL_MASK) != 0)
-            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TTL.getId(),
+            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TunnelAttr.TTL,
                                                         ipv4_ttl);
 
         //empty attribute
         if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT) {
-            NetlinkMessage.setAttrHeader(buffer, DONT_FRAGMENT.getId(), 0);
+            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.DontFrag, 0);
             nBytes += 4;
         }
 
         //empty attribute
         if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM) {
-            NetlinkMessage.setAttrHeader(buffer, CSUM.getId(), 0);
+            NetlinkMessage.setAttrHeader(buffer, TunnelAttr.CSum, 0);
             nBytes += 4;
         }
 
@@ -147,43 +119,43 @@ public class FlowKeyTunnel implements CachedFlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            Long tun_id = message.getAttrValueLong(ID);
+            Long tun_id = message.getAttrValueLong(TunnelAttr.Id);
             if (tun_id != null) {
                 this.tun_id = BytesUtil.instance.reverseBE(tun_id);
                 usedFields |= TUN_ID_MASK;
             }
 
-            Integer ipv4_src =
-                message.getAttrValueInt(IPV4_SRC);
+            Integer ipv4_src = message.getAttrValueInt(TunnelAttr.IPv4Src);
             if (ipv4_src != null) {
                 this.ipv4_src = BytesUtil.instance.reverseBE(ipv4_src);
                 usedFields |= IPV4_SRC_MASK;
             }
 
-            Integer ipv4_dst =
-                    message.getAttrValueInt(IPV4_DST);
+            Integer ipv4_dst = message.getAttrValueInt(TunnelAttr.IPv4Dst);
             if (ipv4_dst != null) {
                 this.ipv4_dst = BytesUtil.instance.reverseBE(ipv4_dst);
                 usedFields |= IPV4_DST_MASK;
             }
 
-            Byte ipv4_tos = message.getAttrValueByte(TOS);
+            Byte ipv4_tos = message.getAttrValueByte(TunnelAttr.TOS);
             if (ipv4_tos != null) {
                 this.ipv4_tos = ipv4_tos;
                 usedFields |= IPV4_TOS_MASK;
             }
 
-            Byte ipv4_ttl = message.getAttrValueByte(TTL);
+            Byte ipv4_ttl = message.getAttrValueByte(TunnelAttr.TTL);
             if (ipv4_ttl != null) {
                 this.ipv4_ttl = ipv4_ttl;
                 usedFields |= IPV4_TTL_MASK;
             }
 
-            if (message.getAttrValueNone(DONT_FRAGMENT) != null ) {
+            Boolean dontFrag = message.getAttrValueNone(TunnelAttr.DontFrag);
+            if (dontFrag != null ) {
                 tun_flags = (short)(tun_flags | OVS_TNL_F_DONT_FRAGMENT);
             }
 
-            if (message.getAttrValueNone(CSUM) != null) {
+            Boolean csum = message.getAttrValueNone(TunnelAttr.CSum);
+            if (csum != null) {
                 tun_flags = (short)(tun_flags | OVS_TNL_F_CSUM);
             }
 
