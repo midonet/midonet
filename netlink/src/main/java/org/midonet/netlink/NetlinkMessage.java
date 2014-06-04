@@ -54,11 +54,9 @@ public class NetlinkMessage {
     static public final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
 
     private ByteBuffer buf;
-    private ByteOrder byteOrder;
 
     public NetlinkMessage(ByteBuffer buf) {
         this.buf = buf;
-        this.byteOrder = buf.order();
     }
 
     public ByteBuffer getBuffer() {
@@ -73,48 +71,12 @@ public class NetlinkMessage {
         return buf.getShort();
     }
 
-    public short getShort(ByteOrder order) {
-        try {
-            buf.order(order);
-            return buf.getShort();
-        } finally {
-            buf.order(byteOrder);
-        }
-    }
-
     public int getInt() {
         return buf.getInt();
     }
 
-    public int getInt(ByteOrder byteOrder) {
-        try {
-            buf.order(byteOrder);
-            return buf.getInt();
-        } finally {
-            buf.order(this.byteOrder);
-        }
-    }
-
     public long getLong() {
         return buf.getLong();
-    }
-
-    public long getLong(ByteOrder byteOrder) {
-        try {
-            buf.order(byteOrder);
-            return buf.getLong();
-        } finally {
-            buf.order(this.byteOrder);
-        }
-    }
-
-    public int getInts(int[] bytes, ByteOrder newByteOrder) {
-        try {
-            buf.order(newByteOrder);
-            return getInts(bytes);
-        } finally {
-            buf.order(this.byteOrder);
-        }
     }
 
     public int getInts(int[] bytes) {
@@ -196,54 +158,6 @@ public class NetlinkMessage {
         }.parse(this);
     }
 
-    public Short getAttrValueShort(AttrKey<Short> attr, final ByteOrder order) {
-        return new SingleAttributeParser<Short>(attr) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                try {
-                    buffer.order(order);
-                    data = buffer.getShort();
-                } finally {
-                    buffer.order(byteOrder);
-                }
-
-                return false;
-            }
-        }.parse(this);
-    }
-
-    public Integer getAttrValueInt(AttrKey<Integer> attr, final ByteOrder order) {
-        return new SingleAttributeParser<Integer>(attr) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                try {
-                    buffer.order(order);
-                    data = buffer.getInt();
-                } finally {
-                    buffer.order(byteOrder);
-                }
-
-                return false;
-            }
-        }.parse(this);
-    }
-
-    public Long getAttrValueLong(AttrKey<Long> attr, final ByteOrder order) {
-        return new SingleAttributeParser<Long>(attr) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                try {
-                    buffer.order(order);
-                    data = buffer.getLong();
-                } finally {
-                    buffer.order(byteOrder);
-                }
-
-                return false;
-            }
-        }.parse(this);
-    }
-
     public String getAttrValueString(AttrKey<String> attr) {
         return new SingleAttributeParser<String>(attr) {
             @Override
@@ -290,7 +204,7 @@ public class NetlinkMessage {
         return new SingleAttributeParser<List<T>>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                final NetlinkMessage message = new NetlinkMessage(buffer.slice().order(buffer.order()));
+                final NetlinkMessage message = sliceFrom(buffer);
                 data = new ArrayList<T>();
                 message.iterateAttributes(new AttributeParser() {
                     @Override
@@ -328,12 +242,12 @@ public class NetlinkMessage {
 
         try {
             while (buf.hasRemaining()) {
-                char   len         = buf.getChar();
-                if ( len == 0 )
+                char len = buf.getChar();
+                if (len == 0)
                     return;
 
-                short   attrType    = (short) (buf.getShort() & NLA_TYPE_MASK);
-                int     pos         = buf.position();
+                short attrType = (short) (buf.getShort() & NLA_TYPE_MASK);
+                int pos = buf.position();
 
                 buf.limit(pos + len - 4);
 
@@ -343,12 +257,12 @@ public class NetlinkMessage {
 
                 buf.limit(limit);
                 buf.position(pos + pad(len) - 4);
-                buf.order(byteOrder);
+                buf.order(ByteOrder.nativeOrder());
             }
         } finally {
             buf.limit(limit);
-            buf.order(byteOrder);
             buf.reset();
+            buf.order(ByteOrder.nativeOrder());
         }
     }
 
@@ -357,7 +271,7 @@ public class NetlinkMessage {
         return new SingleAttributeParser<NetlinkMessage>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                data = new NetlinkMessage(buffer.slice().order(buffer.order()));
+                data = sliceFrom(buffer);
                 return false;
             }
         }.parse(this);
@@ -377,7 +291,7 @@ public class NetlinkMessage {
         return new SingleAttributeParser<T>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                final NetlinkMessage message = new NetlinkMessage(buffer.slice().order(buffer.order()));
+                NetlinkMessage message = sliceFrom(buffer);
                 instance.deserialize(message);
                 data = instance;
                 return false;
@@ -506,5 +420,8 @@ public class NetlinkMessage {
             return data;
         }
     }
-}
 
+    private static NetlinkMessage sliceFrom(ByteBuffer buffer) {
+        return new NetlinkMessage(BytesUtil.instance.sliceOf(buffer));
+    }
+}

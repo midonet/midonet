@@ -3,13 +3,13 @@
  */
 package org.midonet.odp.flows;
 
+import java.util.Arrays;
+
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
-
-import java.nio.ByteOrder;
-import java.util.Arrays;
 
 public class FlowKeyIPv6 implements FlowKey {
 
@@ -53,9 +53,13 @@ public class FlowKeyIPv6 implements FlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(ipv6_src, ByteOrder.BIG_ENDIAN);
-        builder.addValue(ipv6_dst, ByteOrder.BIG_ENDIAN);
-        builder.addValue(ipv6_label, ByteOrder.BIG_ENDIAN);
+        for (int x : ipv6_src) {
+            builder.addValue(BytesUtil.instance.reverseBE(x));
+        }
+        for (int x : ipv6_dst) {
+            builder.addValue(BytesUtil.instance.reverseBE(x));
+        }
+        builder.addValue(BytesUtil.instance.reverseBE(ipv6_label));
         builder.addValue(ipv6_proto);
         builder.addValue(ipv6_tclass);
         builder.addValue(ipv6_hlimit);
@@ -65,9 +69,13 @@ public class FlowKeyIPv6 implements FlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            message.getInts(ipv6_src, ByteOrder.BIG_ENDIAN);
-            message.getInts(ipv6_dst, ByteOrder.BIG_ENDIAN);
-            ipv6_label = message.getInt(ByteOrder.BIG_ENDIAN);
+            for (int i = 0; i < 4; i++) {
+                ipv6_src[i] = BytesUtil.instance.reverseBE(message.getInt());
+            }
+            for (int i = 0; i < 4; i++) {
+                ipv6_dst[i] = BytesUtil.instance.reverseBE(message.getInt());
+            }
+            ipv6_label = BytesUtil.instance.reverseBE(message.getInt());
             ipv6_proto = message.getByte();
             ipv6_tclass = message.getByte();
             ipv6_hlimit = message.getByte();
@@ -120,17 +128,16 @@ public class FlowKeyIPv6 implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyIPv6 that = (FlowKeyIPv6) o;
 
-        if (ipv6_frag != that.ipv6_frag) return false;
-        if (ipv6_hlimit != that.ipv6_hlimit) return false;
-        if (ipv6_label != that.ipv6_label) return false;
-        if (ipv6_proto != that.ipv6_proto) return false;
-        if (ipv6_tclass != that.ipv6_tclass) return false;
-        if (!Arrays.equals(ipv6_dst, that.ipv6_dst)) return false;
-        if (!Arrays.equals(ipv6_src, that.ipv6_src)) return false;
-
-        return true;
+        return (ipv6_frag == that.ipv6_frag)
+            && (ipv6_hlimit == that.ipv6_hlimit)
+            && (ipv6_label == that.ipv6_label)
+            && (ipv6_proto == that.ipv6_proto)
+            && (ipv6_tclass == that.ipv6_tclass)
+            && Arrays.equals(ipv6_dst, that.ipv6_dst)
+            && Arrays.equals(ipv6_src, that.ipv6_src);
     }
 
     @Override

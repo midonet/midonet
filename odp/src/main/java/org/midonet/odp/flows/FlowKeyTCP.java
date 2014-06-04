@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.TCP;
@@ -26,15 +25,15 @@ public class FlowKeyTCP implements FlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue((short)tcp_src, ByteOrder.BIG_ENDIAN);
-        builder.addValue((short)tcp_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE((short)tcp_src));
+        builder.addValue(BytesUtil.instance.reverseBE((short)tcp_dst));
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            tcp_src = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
-            tcp_dst = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
+            tcp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
+            tcp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
             return true;
         } catch (Exception e) {
             return false;
@@ -64,12 +63,10 @@ public class FlowKeyTCP implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyTCP that = (FlowKeyTCP) o;
 
-        if (tcp_dst != that.tcp_dst) return false;
-        if (tcp_src != that.tcp_src) return false;
-
-        return true;
+        return (tcp_dst == that.tcp_dst) && (tcp_src == that.tcp_src);
     }
 
     @Override

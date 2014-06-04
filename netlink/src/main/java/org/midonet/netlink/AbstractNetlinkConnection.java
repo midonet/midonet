@@ -51,7 +51,8 @@ public abstract class AbstractNetlinkConnection {
     // assume one read per call.
     private int maxBatchIoOps = DEFAULT_MAX_BATCH_IO_OPS;
 
-    private ByteBuffer reply = ByteBuffer.allocateDirect(NETLINK_READ_BUFSIZE);
+    private ByteBuffer reply =
+        BytesUtil.instance.allocateDirect(NETLINK_READ_BUFSIZE);
 
     private BufferPool requestPool;
 
@@ -328,7 +329,6 @@ public abstract class AbstractNetlinkConnection {
     private synchronized int processReadFromChannel(final TokenBucket tb)
             throws IOException {
         reply.clear();
-        reply.order(ByteOrder.LITTLE_ENDIAN);
 
         // channel.read() returns # of bytes read.
         final int nbytes = channel.read(reply);
@@ -391,8 +391,7 @@ public abstract class AbstractNetlinkConnection {
                     byte ver = reply.get();      // version
                     reply.getShort();            // reserved
 
-                    ByteBuffer payload = reply.slice();
-                    payload.order(ByteOrder.nativeOrder());
+                    ByteBuffer payload = BytesUtil.instance.sliceOf(reply);
 
                     if (seq == 0) {
                         // if the seq number is zero we are handling a PacketIn.
@@ -458,8 +457,7 @@ public abstract class AbstractNetlinkConnection {
 
     private ByteBuffer cloneBuffer(ByteBuffer from) {
         int origPos = from.position();
-        ByteBuffer to = ByteBuffer.allocate(from.remaining());
-        to.order(from.order());
+        ByteBuffer to = BytesUtil.instance.allocate(from.remaining());
         to.put(from);
         to.flip();
         from.position(origPos);
@@ -633,7 +631,6 @@ public abstract class AbstractNetlinkConnection {
 
     protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();
-        buf.order(ByteOrder.nativeOrder());
         buf.clear();
         buf.position(NETLINK_HEADER_LEN);
         return buf;
