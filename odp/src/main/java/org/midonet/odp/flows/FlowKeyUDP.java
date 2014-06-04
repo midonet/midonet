@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
@@ -21,6 +23,12 @@ public class FlowKeyUDP implements FlowKey {
         TCP.ensurePortInRange(destination);
         udp_src = source;
         udp_dst = destination;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        buffer.putShort(BytesUtil.instance.reverseBE((short)udp_src));
+        buffer.putShort(BytesUtil.instance.reverseBE((short)udp_dst));
+        return 4;
     }
 
     @Override
@@ -43,6 +51,10 @@ public class FlowKeyUDP implements FlowKey {
     @Override
     public NetlinkMessage.AttrKey<FlowKeyUDP> getKey() {
         return FlowKeyAttr.UDP;
+    }
+
+    public short attrId() {
+        return FlowKeyAttr.UDP.getId();
     }
 
     @Override

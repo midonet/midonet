@@ -3,9 +3,11 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
@@ -95,9 +97,62 @@ public class FlowKeyTunnel implements CachedFlowKey {
         return FlowKeyAttr.TUNNEL;
     }
 
+    public short attrId() {
+        return FlowKeyAttr.TUNNEL.getId();
+    }
+
     @Override
     public FlowKeyTunnel getValue() {
         return this;
+    }
+
+    public int serializeInto(ByteBuffer buffer) {
+        int nBytes = 0;
+
+        if ((usedFields & TUN_ID_MASK) != 0)
+            nBytes += NetlinkMessage.writeLongAttr(
+                          buffer, ID.getId(),
+                          BytesUtil.instance.reverseBE(tun_id));
+
+        if ((usedFields & IPV4_SRC_MASK) != 0)
+            nBytes += NetlinkMessage.writeIntAttr(
+                          buffer, IPV4_SRC.getId(),
+                          BytesUtil.instance.reverseBE(ipv4_src));
+
+        /*
+         * For flow-based tunneling, ipv4_dst has to be set, otherwise
+         * the NL message will result in EINVAL
+         */
+        if ((usedFields & IPV4_DST_MASK) != 0)
+            nBytes += NetlinkMessage.writeIntAttr(
+                          buffer, IPV4_DST.getId(),
+                          BytesUtil.instance.reverseBE(ipv4_dst));
+
+        if ((usedFields & IPV4_TOS_MASK) != 0)
+            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TOS.getId(),
+                                                        ipv4_tos);
+
+        /*
+         * For flow-based tunneling, ipv4_ttl of zero would also result
+         * in OVS kmod replying with error EINVAL
+         */
+        if ((usedFields & IPV4_TTL_MASK) != 0)
+            nBytes += NetlinkMessage.writeByteAttrNoPad(buffer, TTL.getId(),
+                                                        ipv4_ttl);
+
+        //empty attribute
+        if ((tun_flags & OVS_TNL_F_DONT_FRAGMENT) == OVS_TNL_F_DONT_FRAGMENT) {
+            NetlinkMessage.setAttrHeader(buffer, DONT_FRAGMENT.getId(), 0);
+            nBytes += 4;
+        }
+
+        //empty attribute
+        if ((tun_flags & OVS_TNL_F_CSUM) == OVS_TNL_F_CSUM) {
+            NetlinkMessage.setAttrHeader(buffer, CSUM.getId(), 0);
+            nBytes += 4;
+        }
+
+        return nBytes;
     }
 
     @Override
