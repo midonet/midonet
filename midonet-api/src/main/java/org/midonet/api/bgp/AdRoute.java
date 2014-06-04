@@ -168,7 +168,7 @@ public class AdRoute extends UriResource {
                     .setNwPrefix(InetAddress.getByName(this.nwPrefix))
                     .setPrefixLength(this.prefixLength);
         } catch (UnknownHostException e) {
-            throw new RuntimeException("Invalid nwPrefix: " + this.nwPrefix);
+            throw new RuntimeException("Invalid nwPrefix: " + this.nwPrefix, e);
         }
     }
 

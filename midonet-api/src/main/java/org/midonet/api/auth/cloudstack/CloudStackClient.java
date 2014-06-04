@@ -105,11 +105,9 @@ public class CloudStackClient {
             byte[] digest = mac.doFinal(command.getBytes());
             return new String(Base64.encodeBase64(digest));
         } catch (NoSuchAlgorithmException e) {
-            throw new CloudStackClientException("No algorithm found to do " +
-                    "SHA-1: " + command);
+            throw new CloudStackClientException("No algorithm found to do SHA-1: " + command, e);
         } catch (InvalidKeyException e) {
-            throw new CloudStackClientException("Invalid secret key: " +
-                    secretKey);
+            throw new CloudStackClientException("Invalid secret key: " + secretKey, e);
         }
     }
 
@@ -126,8 +124,7 @@ public class CloudStackClient {
             // Make sure the signature is URL safe
             return URLEncoder.encode(base64Digest, HttpSupport.UTF8_ENC);
         } catch (UnsupportedEncodingException ex) {
-            throw new CloudStackClientException("Error encoding command: " +
-                    command);
+            throw new CloudStackClientException("Error encoding command: " + command, ex);
         }
     }
 

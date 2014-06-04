@@ -46,8 +46,7 @@ public class RouteNextHopPortConstraintValidator implements
         } catch (StateAccessException e) {
             return false;
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization exception occurred in validation");
+            throw new RuntimeException("Serialization exception occurred in validation", e);
         }
     }
 }

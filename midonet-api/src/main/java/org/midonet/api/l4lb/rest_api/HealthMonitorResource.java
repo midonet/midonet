@@ -141,8 +141,8 @@ public class HealthMonitorResource extends AbstractResource {
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    RESOURCE_EXISTS, "health monitor", healthMonitor.getId()));
+            throw new ConflictHttpException(ex,
+                    getMessage(RESOURCE_EXISTS, "health monitor", healthMonitor.getId()));
         }
     }
 

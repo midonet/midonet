@@ -65,7 +65,7 @@ public class RouterResource extends AbstractResource {
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
 
@@ -125,7 +125,7 @@ public class RouterResource extends AbstractResource {
 
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
         }
     }
 
@@ -146,7 +146,7 @@ public class RouterResource extends AbstractResource {
 
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
         }
     }
 

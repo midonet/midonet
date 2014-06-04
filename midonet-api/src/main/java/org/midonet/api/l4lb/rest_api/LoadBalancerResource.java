@@ -177,8 +177,8 @@ public class LoadBalancerResource extends AbstractResource {
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    RESOURCE_EXISTS, "load balancer", loadBalancer.getId()));
+            throw new ConflictHttpException(ex,
+                getMessage(RESOURCE_EXISTS, "load balancer", loadBalancer.getId()));
         }
     }
 
@@ -204,8 +204,8 @@ public class LoadBalancerResource extends AbstractResource {
             dataClient.loadBalancerUpdate(loadBalancer.toData());
             loadBalancerEvent.update(id, dataClient.loadBalancerGet(id));
         } catch (InvalidStateOperationException ex) {
-            throw new BadRequestHttpException(
-                    getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
+            throw new BadRequestHttpException(ex,
+                getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
         }

@@ -35,7 +35,7 @@ public class HostIdValidator implements
         try {
             return dataClient.hostsExists(value);
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation host");
+            throw new RuntimeException("Error while validation host", e);
         }
 
     }
