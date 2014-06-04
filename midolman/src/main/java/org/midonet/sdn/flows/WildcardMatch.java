@@ -564,7 +564,8 @@ public class WildcardMatch implements Cloneable {
     @Nonnull
     public WildcardMatch setIcmpData(byte[] icmpData) {
         usedFields.add(Field.IcmpData);
-        this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
+        if (icmpData != null)
+            this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
         return this;
     }
 
