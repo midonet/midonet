@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.TCP;
@@ -26,15 +25,15 @@ public class FlowKeyUDP implements FlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue((short)udp_src, ByteOrder.BIG_ENDIAN);
-        builder.addValue((short)udp_dst, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE((short)udp_src));
+        builder.addValue(BytesUtil.instance.reverseBE((short)udp_dst));
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            udp_src = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
-            udp_dst = Unsigned.unsign(message.getShort(ByteOrder.BIG_ENDIAN));
+            udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
+            udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
             return true;
         } catch (Exception e) {
             return false;
@@ -64,19 +63,15 @@ public class FlowKeyUDP implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyUDP that = (FlowKeyUDP) o;
 
-        if (udp_dst != that.udp_dst) return false;
-        if (udp_src != that.udp_src) return false;
-
-        return true;
+        return (udp_dst == that.udp_dst) && (udp_src == that.udp_src);
     }
 
     @Override
     public int hashCode() {
-        int result = udp_src;
-        result = 31 * result + udp_dst;
-        return result;
+        return 31 * udp_src + udp_dst;
     }
 
     @Override

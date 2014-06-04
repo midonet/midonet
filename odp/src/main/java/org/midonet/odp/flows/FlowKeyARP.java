@@ -3,9 +3,9 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
@@ -35,9 +35,9 @@ public class FlowKeyARP implements CachedFlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(arp_sip, ByteOrder.BIG_ENDIAN);
-        builder.addValue(arp_tip, ByteOrder.BIG_ENDIAN);
-        builder.addValue(arp_op, ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE(arp_sip));
+        builder.addValue(BytesUtil.instance.reverseBE(arp_tip));
+        builder.addValue(BytesUtil.instance.reverseBE(arp_op));
         builder.addValue(arp_sha);
         builder.addValue(arp_tha);
         builder.addValue((short)0); // padding
@@ -46,9 +46,9 @@ public class FlowKeyARP implements CachedFlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            arp_sip = message.getInt(ByteOrder.BIG_ENDIAN);
-            arp_tip = message.getInt(ByteOrder.BIG_ENDIAN);
-            arp_op = message.getShort(ByteOrder.BIG_ENDIAN);
+            arp_sip = BytesUtil.instance.reverseBE(message.getInt());
+            arp_tip = BytesUtil.instance.reverseBE(message.getInt());
+            arp_op = BytesUtil.instance.reverseBE(message.getShort());
             message.getBytes(arp_sha);
             message.getBytes(arp_tha);
             this.hashCode = 0;
@@ -93,15 +93,14 @@ public class FlowKeyARP implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyARP that = (FlowKeyARP) o;
 
-        if (arp_op != that.arp_op) return false;
-        if (arp_sip != that.arp_sip) return false;
-        if (arp_tip != that.arp_tip) return false;
-        if (!Arrays.equals(arp_sha, that.arp_sha)) return false;
-        if (!Arrays.equals(arp_tha, that.arp_tha)) return false;
-
-        return true;
+        return (arp_op == that.arp_op)
+            && (arp_sip == that.arp_sip)
+            && (arp_tip == that.arp_tip)
+            && Arrays.equals(arp_sha, that.arp_sha)
+            && Arrays.equals(arp_tha, that.arp_tha);
     }
 
     @Override

@@ -3,10 +3,9 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
-import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
+import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
@@ -104,17 +103,17 @@ public class FlowKeyTunnel implements CachedFlowKey {
     @Override
     public void serialize(Builder builder) {
         if ((usedFields & TUN_ID_MASK) != 0)
-            builder.addAttr(ID, tun_id, ByteOrder.BIG_ENDIAN);
+            builder.addAttr(ID, BytesUtil.instance.reverseBE(tun_id));
 
         if ((usedFields & IPV4_SRC_MASK) != 0)
-            builder.addAttr(IPV4_SRC, ipv4_src, ByteOrder.BIG_ENDIAN);
+            builder.addAttr(IPV4_SRC, BytesUtil.instance.reverseBE(ipv4_src));
 
         /*
          * For flow-based tunneling, ipv4_dst has to be set, otherwise
          * the NL message will result in EINVAL
          */
         if ((usedFields & IPV4_DST_MASK) != 0)
-            builder.addAttr(IPV4_DST, ipv4_dst, ByteOrder.BIG_ENDIAN);
+            builder.addAttr(IPV4_DST, BytesUtil.instance.reverseBE(ipv4_dst));
 
         if ((usedFields & IPV4_TOS_MASK) != 0)
             builder.addAttrNoPad(TOS, ipv4_tos);
@@ -135,23 +134,23 @@ public class FlowKeyTunnel implements CachedFlowKey {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            Long tun_id = message.getAttrValueLong(ID, ByteOrder.BIG_ENDIAN);
+            Long tun_id = message.getAttrValueLong(ID);
             if (tun_id != null) {
-                this.tun_id = tun_id;
+                this.tun_id = BytesUtil.instance.reverseBE(tun_id);
                 usedFields |= TUN_ID_MASK;
             }
 
             Integer ipv4_src =
-                message.getAttrValueInt(IPV4_SRC, ByteOrder.BIG_ENDIAN);
+                message.getAttrValueInt(IPV4_SRC);
             if (ipv4_src != null) {
-                this.ipv4_src = ipv4_src;
+                this.ipv4_src = BytesUtil.instance.reverseBE(ipv4_src);
                 usedFields |= IPV4_SRC_MASK;
             }
 
             Integer ipv4_dst =
-                    message.getAttrValueInt(IPV4_DST, ByteOrder.BIG_ENDIAN);
+                    message.getAttrValueInt(IPV4_DST);
             if (ipv4_dst != null) {
-                this.ipv4_dst = ipv4_dst;
+                this.ipv4_dst = BytesUtil.instance.reverseBE(ipv4_dst);
                 usedFields |= IPV4_DST_MASK;
             }
 
@@ -211,16 +210,15 @@ public class FlowKeyTunnel implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyTunnel that = (FlowKeyTunnel) o;
 
-        if (tun_id != that.tun_id) return false;
-        if (ipv4_src != that.ipv4_src) return false;
-        if (ipv4_dst != that.ipv4_dst) return false;
-        if (tun_flags != that.tun_flags) return false;
-        if (ipv4_tos != that.ipv4_tos) return false;
-        if (ipv4_ttl != that.ipv4_ttl) return false;
-
-        return true;
+        return (tun_id == that.tun_id)
+            && (ipv4_src == that.ipv4_src)
+            && (ipv4_dst == that.ipv4_dst)
+            && (tun_flags == that.tun_flags)
+            && (ipv4_tos == that.ipv4_tos)
+            && (ipv4_ttl == that.ipv4_ttl);
     }
 
     @Override

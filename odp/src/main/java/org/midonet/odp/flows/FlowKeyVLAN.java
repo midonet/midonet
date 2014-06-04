@@ -3,8 +3,7 @@
  */
 package org.midonet.odp.flows;
 
-import java.nio.ByteOrder;
-
+import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.VLAN;
@@ -25,13 +24,13 @@ public class FlowKeyVLAN implements CachedFlowKey {
 
     @Override
     public void serialize(Builder builder) {
-        builder.addValue(VLAN.setDEI(vlan), ByteOrder.BIG_ENDIAN);
+        builder.addValue(BytesUtil.instance.reverseBE(VLAN.setDEI(vlan)));
     }
 
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            vlan = VLAN.unsetDEI(message.getShort(ByteOrder.BIG_ENDIAN));
+            vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(message.getShort()));
             return true;
         } catch (Exception e) {
             return false;
@@ -57,11 +56,10 @@ public class FlowKeyVLAN implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyVLAN that = (FlowKeyVLAN) o;
 
-        if (vlan != that.vlan) return false;
-
-        return true;
+        return vlan == that.vlan;
     }
 
     @Override

@@ -27,7 +27,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = ByteHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttr(attr, value) }
         val msg = bldr.build()
-        data foreach ByteHelper.bufferChecker(msg.getBuffer.slice)
+        data foreach ByteHelper.bufferChecker(sliceOf(msg))
         data foreach ByteHelper.checkMessage(msg)
     }
 
@@ -36,7 +36,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = ShortHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttrNoPad(attr, value) }
         val msg = bldr.build()
-        data foreach ShortHelper.bufferCheckerNoPad(msg.getBuffer.slice)
+        data foreach ShortHelper.bufferCheckerNoPad(sliceOf(msg))
     }
 
     def testWritingReadingShorts() {
@@ -44,7 +44,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = ShortHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttr(attr, value) }
         val msg = bldr.build()
-        data foreach ShortHelper.bufferChecker(msg.getBuffer().slice())
+        data foreach ShortHelper.bufferChecker(sliceOf(msg))
         data foreach ShortHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach ShortHelper.checkMessage(msg)
     }
@@ -54,7 +54,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = IntHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttr(attr, value) }
         val msg = bldr.build()
-        data foreach IntHelper.bufferChecker(msg.getBuffer.slice)
+        data foreach IntHelper.bufferChecker(sliceOf(msg))
         data foreach IntHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach IntHelper.checkMessage(msg)
     }
@@ -64,16 +64,16 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = LongHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttr(attr, value) }
         val msg = bldr.build()
-        data foreach LongHelper.bufferChecker(msg.getBuffer.slice)
+        data foreach LongHelper.bufferChecker(sliceOf(msg))
         data foreach LongHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach LongHelper.checkMessage(msg)
     }
 
     def makeNLMsg(size: Int = 1024) =
-        new NetlinkMessage(ByteBuffer.allocate(size))
+        new NetlinkMessage(BytesUtil.instance allocate size)
 
     def makeMsgBuilger(size: Int = 1024) =
-        new Builder(ByteBuffer.allocate(size))
+        new Builder(BytesUtil.instance allocate size)
 
     def readPadding(buf: ByteBuffer, byteNum: Int) {
         (0 until byteNum) foreach { _ => buf.get() }
@@ -170,7 +170,9 @@ class NetlinkMessageTest extends Suite with Matchers {
         val data = ByteHelper.makeData(4)
         data foreach { case (value, attr) => bldr.addAttrNoPad(attr, value) }
         val msg = bldr.build()
-        data foreach ByteHelper.bufferCheckerNoPad(msg.getBuffer.slice)
+        data foreach ByteHelper.bufferCheckerNoPad(sliceOf(msg))
     }
+
+    def sliceOf(msg: NetlinkMessage) = BytesUtil.instance sliceOf msg.getBuffer
 
 }

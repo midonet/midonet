@@ -4,7 +4,6 @@
 package org.midonet.netlink.messages;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.packets.Ethernet;
@@ -12,16 +11,8 @@ import org.midonet.packets.Ethernet;
 public class Builder {
 
     protected final ByteBuffer buffer;
-    protected final ByteOrder order;
 
     public Builder(ByteBuffer buffer) {
-        this.buffer = buffer;
-        this.order = buffer.order();
-    }
-
-    public Builder(ByteBuffer buffer, ByteOrder byteOrder) {
-        buffer.order(byteOrder);
-        this.order = byteOrder;
         this.buffer = buffer;
     }
 
@@ -76,26 +67,6 @@ public class Builder {
         buffer.putLong(value);
     }
 
-    public void addAttr(NetlinkMessage.AttrKey<Short> attr, short value,
-                           ByteOrder order) {
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
-        addValue(value, order);
-        short padding = 0;
-        addValue(padding); // Pad for 4-byte alignment
-    }
-
-    public void addAttr(NetlinkMessage.AttrKey<Integer> attr, int value,
-                           ByteOrder order) {
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 8);
-        addValue(value, order);
-    }
-
-    public void addAttr(NetlinkMessage.AttrKey<Long> attr, long value,
-                           ByteOrder order) {
-        NetlinkMessage.setAttrHeader(buffer, attr.getId(), 12);
-        addValue(value, order);
-    }
-
     public void addAttr(NetlinkMessage.AttrKey<String> attr, String value) {
         NetlinkMessage.addAttribute(buffer, attr.getId(), value);
     }
@@ -135,35 +106,17 @@ public class Builder {
         buffer.putShort(value);
     }
 
-    public void addValue(short value, ByteOrder order) {
-        buffer.order(order).putShort(value).order(this.order);
-    }
-
     public void addValue(int value) {
         buffer.putInt(value);
-    }
-
-    public void addValue(int value, ByteOrder order) {
-        buffer.order(order).putInt(value).order(this.order);
     }
 
     public void addValue(long value) {
         buffer.putLong(value);
     }
 
-    public void addValue(long value, ByteOrder order) {
-        buffer.order(order).putLong(value).order(this.order);
-    }
-
     public void addValue(int[] bytes) {
         for (int aByte : bytes) {
             buffer.putInt(aByte);
-        }
-    }
-
-    public void addValue(int[] ints, ByteOrder order) {
-        for (int anInt : ints) {
-            addValue(anInt, order);
         }
     }
 
