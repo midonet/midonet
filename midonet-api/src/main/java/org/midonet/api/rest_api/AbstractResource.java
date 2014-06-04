@@ -101,9 +101,8 @@ public abstract class AbstractResource {
     protected IPv4Addr parseIPv4Addr(String ipAddrStr) {
         try {
             return IPv4Addr$.MODULE$.fromString(ipAddrStr);
-        } catch (Exception ex) {
-            throw new BadRequestHttpException(
-                    getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
+        } catch (Exception e) {
+            throw new BadRequestHttpException(e, getMessage(IP_ADDR_INVALID_WITH_PARAM, ipAddrStr));
         }
     }
 

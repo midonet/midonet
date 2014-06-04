@@ -167,8 +167,8 @@ public class VipResource extends AbstractResource {
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    MessageProperty.RESOURCE_EXISTS, "VIP", vip.getId()));
+            throw new ConflictHttpException(ex,
+                getMessage(MessageProperty.RESOURCE_EXISTS, "VIP", vip.getId()));
         } catch (NoStatePathException ex) {
             throw new BadRequestHttpException(ex);
         } catch (MappingStatusException ex) {
@@ -262,8 +262,8 @@ public class VipResource extends AbstractResource {
                         ResourceUriBuilder.getVip(getBaseUri(), id))
                         .build();
             } catch (StatePathExistsException ex) {
-                throw new ConflictHttpException(getMessage(
-                        MessageProperty.RESOURCE_EXISTS, "VIP"));
+                throw new ConflictHttpException(ex,
+                    getMessage(MessageProperty.RESOURCE_EXISTS, "VIP"));
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             } catch (MappingStatusException ex) {

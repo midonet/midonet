@@ -88,7 +88,7 @@ public class InterfaceResource extends AbstractResource {
 
             return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (DataValidationException e) {
-            throw new BadRequestHttpException(e.getMessage());
+            throw new BadRequestHttpException(e, e.getMessage());
         }
     }
 
@@ -176,7 +176,7 @@ public class InterfaceResource extends AbstractResource {
                     .location(command.getUri())
                     .build();
         } catch (DataValidationException e) {
-            throw new BadRequestHttpException(e.getMessage());
+            throw new BadRequestHttpException(e, e.getMessage());
         }
     }
 }

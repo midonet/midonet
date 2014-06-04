@@ -66,8 +66,7 @@ public class VtepResource extends AbstractVtepResource {
             return Response.created(ResourceUriBuilder.getVtep(
                     getBaseUri(), dataVtep.getId().toString())).build();
         } catch(StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
-                    VTEP_EXISTS, vtep.getManagementIp()));
+            throw new ConflictHttpException(ex, getMessage(VTEP_EXISTS, vtep.getManagementIp()));
         }
     }
 

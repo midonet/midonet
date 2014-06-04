@@ -41,16 +41,14 @@ public class ChainNameConstraintValidator implements
                 MessageProperty.IS_UNIQUE_CHAIN_NAME).addNode("name")
                 .addConstraintViolation();
 
-        org.midonet.cluster.data.Chain chain = null;
+        org.midonet.cluster.data.Chain chain;
         try {
             chain = dataClient.chainsGetByName(value.getTenantId(),
                     value.getName());
         } catch (StateAccessException e) {
-            throw new RuntimeException(
-                    "State access exception occurred in validation");
+            throw new RuntimeException("State access exception occurred in validation", e);
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization exception occurred in validation");
+            throw new RuntimeException("Serialization exception occurred in validation", e);
         }
 
         // It's valid if the duplicate named chain does not exist, or

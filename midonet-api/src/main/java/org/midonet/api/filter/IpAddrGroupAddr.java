@@ -67,7 +67,7 @@ public abstract class IpAddrGroupAddr extends UriResource {
                 return ResourceUriBuilder.getIpAddrGroupVersionAddr(getBaseUri(),
                         ipAddrGroupId, getVersion(), getAddr());
             } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException("Invalid IP address format");
+                throw new RuntimeException("Invalid IP address format", e);
             }
         } else {
             return null;

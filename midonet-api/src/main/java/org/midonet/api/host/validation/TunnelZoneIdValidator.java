@@ -35,7 +35,7 @@ public class TunnelZoneIdValidator implements
         try {
             return dataClient.tunnelZonesExists(value);
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation tunnel zone");
+            throw new RuntimeException("Error while validation tunnel zone", e);
         }
 
     }

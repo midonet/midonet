@@ -103,8 +103,7 @@ public class IpAddrGroupResource extends AbstractResource {
         try {
             data = dataClient.ipAddrGroupsGet(id);
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throw new NotFoundHttpException(ex, "The requested resource was not found.");
         }
 
         // Convert to the REST API DTO
@@ -137,8 +136,8 @@ public class IpAddrGroupResource extends AbstractResource {
                     ResourceUriBuilder.getIpAddrGroup(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new BadRequestHttpException(MessageProperty.getMessage(
-                    MessageProperty.IP_ADDR_GROUP_ID_EXISTS, group.getId()));
+            throw new BadRequestHttpException(ex,
+                MessageProperty.getMessage(MessageProperty.IP_ADDR_GROUP_ID_EXISTS, group.getId()));
         }
     }
 
@@ -230,8 +229,7 @@ public class IpAddrGroupResource extends AbstractResource {
             try {
                 addrSet = dataClient.getAddrsByIpAddrGroup(id);
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(
-                        "IP address group does not exist: " + id);
+                throw new NotFoundHttpException(ex, "IP address group does not exist: " + id);
             }
 
             for (String addr : addrSet) {
@@ -259,10 +257,9 @@ public class IpAddrGroupResource extends AbstractResource {
             try {
                 dataClient.ipAddrGroupAddAddr(id, addr.getAddr());
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(
-                        "IP address group does not exist: " + id);
+                throw new NotFoundHttpException(ex, "IP address group does not exist: " + id);
             } catch (IllegalArgumentException ex) {
-                throw new BadRequestHttpException(ex.getMessage());
+                throw new BadRequestHttpException(ex, ex.getMessage());
             }
 
             addr.setBaseUri(getBaseUri());

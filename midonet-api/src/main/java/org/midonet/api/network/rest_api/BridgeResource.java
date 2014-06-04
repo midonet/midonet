@@ -232,8 +232,7 @@ public class BridgeResource extends AbstractResource {
         try {
             dataClient.bridgesUpdate(bridge.toData());
         } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
-            throw new BadRequestHttpException(getMessage(
-                    VXLAN_PORT_ID_NOT_SETTABLE));
+            throw new BadRequestHttpException(ex, getMessage(VXLAN_PORT_ID_NOT_SETTABLE));
         }
         bridgeEvent.update(id, dataClient.bridgesGet(id));
     }
@@ -736,8 +735,7 @@ public class BridgeResource extends AbstractResource {
         try {
             return ResourceUriBuilder.macFromUri(macAddress);
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestHttpException(
-                    getMessage(MessageProperty.MAC_URI_FORMAT));
+            throw new BadRequestHttpException(ex, getMessage(MessageProperty.MAC_URI_FORMAT));
         }
     }
 }

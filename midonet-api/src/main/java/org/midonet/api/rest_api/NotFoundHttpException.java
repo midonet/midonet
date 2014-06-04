@@ -31,8 +31,12 @@ public class NotFoundHttpException extends WebApplicationException {
      *            Error message.
      */
     public NotFoundHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(
-                Response.Status.NOT_FOUND.getStatusCode(), message));
+        super(ResponseUtils.buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(), message));
+    }
+
+    public NotFoundHttpException(Throwable throwable, String message) {
+        super(throwable,
+            ResponseUtils.buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(), message));
     }
 
     public NotFoundHttpException(NoStatePathException ex) {

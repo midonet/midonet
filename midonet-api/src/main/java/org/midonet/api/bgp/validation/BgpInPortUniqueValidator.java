@@ -42,10 +42,9 @@ public class BgpInPortUniqueValidator implements
                 return false;
             }
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validating bgp");
+            throw new RuntimeException("Error while validating bgp", e);
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization Error while validating bgp");
+            throw new RuntimeException("Serialization Error while validating bgp", e);
         }
 
         return true;

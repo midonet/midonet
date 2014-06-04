@@ -47,11 +47,9 @@ public class PortGroupNameConstraintValidator implements
             portGroup = dataClient.portGroupsGetByName(tenantId,
                     value.getName());
         } catch (StateAccessException e) {
-            throw new RuntimeException(
-                    "State access exception occurred in validation");
+            throw new RuntimeException("State access exception occurred in validation", e);
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization exception occurred in validation");
+            throw new RuntimeException("Serialization exception occurred in validation", e);
         }
 
         // It's valid if the duplicate named portGroup does not exist, or
