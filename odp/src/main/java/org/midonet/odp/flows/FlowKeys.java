@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.family.FlowFamily;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
@@ -132,6 +133,6 @@ public class FlowKeys {
     }
 
     public static List<FlowKey> buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(FlowFamily.AttrKey.KEY, FlowKey.Builder);
+        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Key, FlowKey.Builder);
     }
 }

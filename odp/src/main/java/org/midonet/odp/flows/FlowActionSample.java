@@ -7,16 +7,14 @@ import java.util.List;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionSample implements FlowAction {
 
-    private static final AttrKey<Integer> PROBABILITY =
-        AttrKey.attr(OpenVSwitch.FlowAction.SampleAttr.Probability);
-
-    private static final AttrKey<List<FlowAction>> ACTIONS =
-        AttrKey.attrNested(OpenVSwitch.FlowAction.SampleAttr.Actions);
+    private static final short probAttrId =
+        OpenVSwitch.FlowAction.SampleAttr.Probability;
+    private static final short actionsAttrId =
+        OpenVSwitch.FlowAction.SampleAttr.Actions;
 
     /**
      * u32 port number.
@@ -35,10 +33,8 @@ public class FlowActionSample implements FlowAction {
 
     public int serializeInto(ByteBuffer buffer) {
         int nBytes= 0;
-        short probId = (short) OpenVSwitch.FlowAction.SampleAttr.Probability;
-        short actionsId = (short) OpenVSwitch.FlowAction.SampleAttr.Actions;
-        nBytes += NetlinkMessage.writeIntAttr(buffer, probId, probability);
-        nBytes += NetlinkMessage.writeAttrSeq(buffer, actionsId, actions,
+        nBytes += NetlinkMessage.writeIntAttr(buffer, probAttrId, probability);
+        nBytes += NetlinkMessage.writeAttrSeq(buffer, actionsAttrId, actions,
                                               FlowAction.translator);
         return nBytes;
     }
@@ -46,8 +42,8 @@ public class FlowActionSample implements FlowAction {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            probability = message.getAttrValueInt(PROBABILITY);
-            actions = message.getAttrValue(ACTIONS, FlowAction.Builder);
+            probability = message.getAttrValueInt(probAttrId);
+            actions = message.getAttrValue(actionsAttrId, FlowAction.Builder);
             return true;
         } catch (Exception e) {
             return false;
@@ -55,7 +51,7 @@ public class FlowActionSample implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.SAMPLE.getId();
+        return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Sample);
     }
 
     public int getProbability() {

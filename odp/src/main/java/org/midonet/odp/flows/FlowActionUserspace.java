@@ -6,16 +6,15 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction {
 
-    public static final AttrKey<Integer> OVS_USERSPACE_ATTR_PID =
-        AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.PID);
+    public static final short pidAttrId =
+        OpenVSwitch.FlowAction.UserspaceAttr.PID;
 
-    public static final AttrKey<Long> OVS_USERSPACE_ATTR_USERDATA =
-        AttrKey.attr(OpenVSwitch.FlowAction.UserspaceAttr.Userdata);
+    public static final short userdataAttrId =
+        OpenVSwitch.FlowAction.UserspaceAttr.Userdata;
 
     private int uplinkPid;  /* u32 Netlink PID to receive upcalls. */
     private Long userData;  /* u64 optional user-specified cookie. */
@@ -35,14 +34,12 @@ public class FlowActionUserspace implements FlowAction {
     public int serializeInto(ByteBuffer buffer) {
         int nBytes = 0;
 
-        short pidId = (short) OpenVSwitch.FlowAction.UserspaceAttr.PID;
-        nBytes += NetlinkMessage.writeIntAttr(buffer, pidId, uplinkPid);
+        nBytes += NetlinkMessage.writeIntAttr(buffer, pidAttrId, uplinkPid);
 
         if (userData == null)
             return nBytes;
 
-        short userDataId = (short) OpenVSwitch.FlowAction.UserspaceAttr.Userdata;
-        nBytes += NetlinkMessage.writeLongAttr(buffer, userDataId, userData);
+        nBytes += NetlinkMessage.writeLongAttr(buffer, userdataAttrId, userData);
 
         return nBytes;
     }
@@ -50,8 +47,8 @@ public class FlowActionUserspace implements FlowAction {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            uplinkPid = message.getAttrValueInt(OVS_USERSPACE_ATTR_PID);
-            userData = message.getAttrValueLong(OVS_USERSPACE_ATTR_USERDATA);
+            uplinkPid = message.getAttrValueInt(pidAttrId);
+            userData = message.getAttrValueLong(userdataAttrId);
             return true;
         } catch (Exception e) {
             return false;
@@ -59,7 +56,7 @@ public class FlowActionUserspace implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.USERSPACE.getId();
+        return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Userspace);
     }
 
     @Override

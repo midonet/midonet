@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -59,7 +60,7 @@ public class FlowKeyARP implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ARP.getId();
+        return OpenVSwitch.FlowKey.Attr.ARP;
     }
 
     public byte[] getTha() {

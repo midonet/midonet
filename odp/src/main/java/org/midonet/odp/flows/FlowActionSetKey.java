@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionSetKey implements FlowAction {
 
@@ -41,7 +42,7 @@ public class FlowActionSetKey implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.SET.getId();
+        return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Set);
     }
 
     public FlowKey getFlowKey() {

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.VLAN;
 
 public class FlowActionPushVLAN implements FlowAction {
@@ -48,7 +49,7 @@ public class FlowActionPushVLAN implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.PUSH_VLAN.getId();
+        return OpenVSwitch.FlowAction.Attr.PushVLan;
     }
 
     public short getTagProtocolIdentifier() {

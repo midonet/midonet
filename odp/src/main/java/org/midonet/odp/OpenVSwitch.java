@@ -24,7 +24,7 @@ public interface OpenVSwitch {
         //#define OVS_DATAPATH_VERSION 0x1
         String Family       = "ovs_datapath";
         String MCGroup      = "ovs_datapath";
-        int version         = 0x01;
+        byte version        = (byte) 0x01;
 
         //enum ovs_datapath_cmd {
         //    OVS_DP_CMD_UNSPEC,
@@ -34,10 +34,10 @@ public interface OpenVSwitch {
         //    OVS_DP_CMD_SET
         //};
         public interface Cmd {
-            int New         = 1;
-            int Del         = 2;
-            int Get         = 3;
-            int Set         = 4;
+            byte New        = (byte) 1;
+            byte Del        = (byte) 2;
+            byte Get        = (byte) 3;
+            byte Set        = (byte) 4;
         }
 
         //enum ovs_datapath_attr {
@@ -48,9 +48,9 @@ public interface OpenVSwitch {
         //    __OVS_DP_ATTR_MAX
         //};
         public interface Attr {
-            int Name        = 1;
-            int UpcallPID   = 2;
-            int Stat        = 3;
+            short Name      = (short) 1;
+            short UpcallPID = (short) 2;
+            short Stat      = (short) 3;
         }
 
         //struct ovs_dp_stats {
@@ -67,7 +67,7 @@ public interface OpenVSwitch {
         //#define OVS_PACKET_FAMILY "ovs_packet"
         //#define OVS_PACKET_VERSION 0x1
         String Family       = "ovs_packet";
-        int version         = 0x01;
+        byte version        = (byte) 0x01;
 
         //enum ovs_packet_cmd {
         //	OVS_PACKET_CMD_UNSPEC,
@@ -80,9 +80,9 @@ public interface OpenVSwitch {
         //	OVS_PACKET_CMD_EXECUTE  /* Apply actions to a packet. */
         //};
         public interface Cmd {
-            int Miss        = 1;
-            int Action      = 2;
-            int Exec        = 3;
+            byte Miss       = (byte) 1;
+            byte Action     = (byte) 2;
+            byte Exec       = (byte) 3;
         }
 
         //enum ovs_packet_attr {
@@ -94,10 +94,10 @@ public interface OpenVSwitch {
         //	__OVS_PACKET_ATTR_MAX
         //};
         public interface Attr {
-            int Packet      = 1;
-            int Key         = 2;
-            int Actions     = 3;
-            int Userdata    = 4;
+            short Packet    = (short) 1;
+            short Key       = (short) 2;
+            short Actions   = (short) 3;
+            short Userdata  = (short) 4;
         }
 
     }
@@ -109,7 +109,7 @@ public interface OpenVSwitch {
         //#define OVS_VPORT_VERSION 0x1
         String Family       = "ovs_vport";
         String MCGroup      = "ovs_vport";
-        int version         = 0x01;
+        byte version        = (byte) 0x01;
 
         int fallbackMCGroup = 33;    // in include/openvswitch/datapath-compat.h
 
@@ -121,10 +121,10 @@ public interface OpenVSwitch {
         //	OVS_VPORT_CMD_SET
         //};
         public interface Cmd {
-            int New         = 1;
-            int Del         = 2;
-            int Get         = 3;
-            int Set         = 4;
+            byte New        = (byte) 1;
+            byte Del        = (byte) 2;
+            byte Get        = (byte) 3;
+            byte Set        = (byte) 4;
         }
 
         //enum ovs_vport_type {
@@ -138,12 +138,12 @@ public interface OpenVSwitch {
         //	__OVS_VPORT_TYPE_MAX
         //};
         public interface Type {
-            int Netdev      = 1;
-            int Internal    = 2;
-            int Gre         = 3;
-            int VXLan       = 4;
-            int Gre64       = 104;
-            int Lisp        = 105;
+            short Netdev    = (short) 1;
+            short Internal  = (short) 2;
+            short Gre       = (short) 3;
+            short VXLan     = (short) 4;
+            short Gre64     = (short) 104;
+            short Lisp      = (short) 105;
         }
 
         //enum ovs_vport_attr {
@@ -157,13 +157,12 @@ public interface OpenVSwitch {
         //	__OVS_VPORT_ATTR_MAX
         //};
         public interface Attr {
-            int PortNo      = 1;
-            int Type        = 2;
-            int Name        = 3;
-            int Options     = 4;
-            int Options_N   = Options | (1 << 15); // for deserialization
-            int UpcallPID   = 5;
-            int Stats       = 6;
+            short PortNo    = (short) 1;
+            short Type      = (short) 2;
+            short Name      = (short) 3;
+            short Options   = (short) 4;
+            short UpcallPID = (short) 5;
+            short Stats     = (short) 6;
         }
 
         //enum {
@@ -172,7 +171,7 @@ public interface OpenVSwitch {
         //	__OVS_TUNNEL_ATTR_MAX
         //};
         public interface VPortTunnelOptions {
-            int DstPort     = 1;                  // u16
+            short DstPort   = (short) 1;                  // u16
         }
 
         //struct ovs_vport_stats {
@@ -195,7 +194,7 @@ public interface OpenVSwitch {
         //#define OVS_FLOW_VERSION 0x1
         String Family       = "ovs_flow";
         String MCGroup      = "ovs_flow";
-        int version         = 0x01;
+        byte version        = (byte) 0x01;
 
         //enum ovs_flow_cmd {
         //	OVS_FLOW_CMD_UNSPEC,
@@ -205,10 +204,10 @@ public interface OpenVSwitch {
         //	OVS_FLOW_CMD_SET
         //};
         public interface Cmd {
-            int New         = 1;
-            int Del         = 2;
-            int Get         = 3;
-            int Set         = 4;
+            byte New        = (byte) 1;
+            byte Del        = (byte) 2;
+            byte Get        = (byte) 3;
+            byte Set        = (byte) 4;
         }
 
         //enum ovs_flow_attr {
@@ -223,13 +222,13 @@ public interface OpenVSwitch {
         //    __OVS_FLOW_ATTR_MAX
         //};
         public interface Attr {
-            int Key         = 1;
-            int Actions     = 2;
-            int Stats       = 3;
-            int TCPFlags    = 4;
-            int Used        = 5;
-            int Clear       = 6;
-            int Mask        = 7;
+            short Key       = (short) 1;
+            short Actions   = (short) 2;
+            short Stats     = (short) 3;
+            short TCPFlags  = (short) 4;
+            short Used      = (short) 5;
+            short Clear     = (short) 6;
+            short Mask      = (short) 7;
         }
 
         //struct ovs_flow_stats {
@@ -268,25 +267,25 @@ public interface OpenVSwitch {
         //	__OVS_KEY_ATTR_MAX
         //};
         public interface Attr {
-            int Encap       = 1;
-            int Priority    = 2;
-            int InPort      = 3;
-            int Ethernet    = 4;
-            int VLan        = 5;
-            int Ethertype   = 6;
-            int IPv4        = 7;
-            int IPv6        = 8;
-            int TCP         = 9;
-            int UDP         = 10;
-            int ICMP        = 11;
-            int ICMPv6      = 12;
-            int ARP         = 13;
-            int ND          = 14;
-            int SkbMark     = 15;
-            int Tunnel      = 16;
-            int Tunnel_N    = (1 << 15) | Tunnel;
-            int IPv4Tunnel  = 17;
-            int MPLS        = 62;
+            short Encap     = (short) 1;
+            short Priority  = (short) 2;
+            short InPort    = (short) 3;
+            short Ethernet  = (short) 4;
+            short VLan      = (short) 5;
+            short Ethertype = (short) 6;
+            short IPv4      = (short) 7;
+            short IPv6      = (short) 8;
+            short TCP       = (short) 9;
+            short UDP       = (short) 10;
+            short ICMP      = (short) 11;
+            short ICMPv6    = (short) 12;
+            short ARP       = (short) 13;
+            short ND        = (short) 14;
+            short SkbMark   = (short) 15;
+            short Tunnel    = (short) 16;
+            short Tunnel_N  = (short) ((1<<15) | Tunnel);
+            short IPv4Tunnel= (short) 17;
+            short MPLS      = (short) 62;
         }
 
         //enum ovs_tunnel_key_attr {
@@ -300,13 +299,13 @@ public interface OpenVSwitch {
         //    __OVS_TUNNEL_KEY_ATTR_MAX
         //};
         public interface TunnelAttr {
-            int Id          = 0;
-            int IPv4Src     = 1;
-            int IPv4Dst     = 2;
-            int TOS         = 3;
-            int TTL         = 4;
-            int DontFrag    = 5;
-            int CSum        = 6;
+            short Id        = (short) 0;
+            short IPv4Src   = (short) 1;
+            short IPv4Dst   = (short) 2;
+            short TOS       = (short) 3;
+            short TTL       = (short) 4;
+            short DontFrag  = (short) 5;
+            short CSum      = (short) 6;
         }
 
         //enum ovs_frag_type {
@@ -316,9 +315,9 @@ public interface OpenVSwitch {
         //    __OVS_FRAG_TYPE_MAX
         //};
         public interface FragType {
-            int None        = 0;
-            int First       = 1;
-            int Later       = 2;
+            short None      = (short) 0;
+            short First     = (short) 1;
+            short Later     = (short) 2;
         }
 
         //struct ovs_key_ethernet {
@@ -399,14 +398,14 @@ public interface OpenVSwitch {
         //    __OVS_ACTION_ATTR_MAX
         //};
         public interface Attr {
-            int Output      = 1;
-            int Userspace   = 2;
-            int Set         = 3;
-            int PushVLan    = 4;
-            int PopVLan     = 5;
-            int Sample      = 6;
-            int PushMPLS    = 7;
-            int PopMPLS     = 8;
+            short Output    = (short) 1;
+            short Userspace = (short) 2;
+            short Set       = (short) 3;
+            short PushVLan  = (short) 4;
+            short PopVLan   = (short) 5;
+            short Sample    = (short) 6;
+            short PushMPLS  = (short) 7;
+            short PopMPLS   = (short) 8;
         }
 
         //enum ovs_sample_attr {
@@ -416,8 +415,8 @@ public interface OpenVSwitch {
         //    __OVS_SAMPLE_ATTR_MAX,
         //};
         public interface SampleAttr {
-            int Probability = 1;
-            int Actions     = 2;
+            short Probability = (short) 1;
+            short Actions     = (short) 2;
         }
 
         //enum ovs_userspace_attr {
@@ -427,8 +426,8 @@ public interface OpenVSwitch {
         //    __OVS_USERSPACE_ATTR_MAX
         //};
         public interface UserspaceAttr {
-            int PID         = 1;
-            int Userdata    = 2;
+            short PID       = (short) 1;
+            short Userdata  = (short) 2;
         }
 
         //struct ovs_action_push_mpls {
@@ -441,5 +440,4 @@ public interface OpenVSwitch {
         //    __be16 vlan_tci;	/* 802.1Q TCI (VLAN ID and priority). */
         //};
     }
-
 }
