@@ -26,7 +26,6 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.CapwapTunnelZoneHost;
 import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHostFactory;
@@ -85,15 +84,6 @@ public class TunnelZoneHostResource extends AbstractResource {
         return createTunnelZoneHost(tunnelZoneHost);
     }
 
-    @POST
-    @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
-    public Response create(CapwapTunnelZoneHost tunnelZoneHost)
-            throws StateAccessException, SerializationException {
-
-        return createTunnelZoneHost(tunnelZoneHost);
-    }
-
     private List<TunnelZoneHost> listTunnelZoneHosts(
             Class<? extends TunnelZoneHost> clazz) throws StateAccessException {
         Set<TunnelZone.HostConfig<?, ?>> dataList =
@@ -130,16 +120,6 @@ public class TunnelZoneHostResource extends AbstractResource {
             StateAccessException {
 
         return listTunnelZoneHosts(GreTunnelZoneHost.class);
-    }
-
-    @GET
-    @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType
-            .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON })
-    public List<TunnelZoneHost> listCapwapTunnelZoneHosts() throws
-            StateAccessException {
-
-        return listTunnelZoneHosts(CapwapTunnelZoneHost.class);
     }
 
     private TunnelZoneHost getTunnelZoneHost(
@@ -179,17 +159,6 @@ public class TunnelZoneHostResource extends AbstractResource {
             StateAccessException, SerializationException {
 
         return getTunnelZoneHost(GreTunnelZoneHost.class, hostId);
-    }
-
-    @GET
-    @RolesAllowed({ AuthRole.ADMIN })
-    @Produces({ VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON })
-    @Path("/{hostId}")
-    public TunnelZoneHost getCapwapTunnelZoneHost(@PathParam("hostId")
-                                               UUID hostId) throws
-            StateAccessException, SerializationException {
-
-        return getTunnelZoneHost(CapwapTunnelZoneHost.class, hostId);
     }
 
     @DELETE

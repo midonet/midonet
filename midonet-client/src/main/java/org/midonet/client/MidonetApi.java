@@ -6,7 +6,6 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoCapwapTunnelZone;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.resource.*;
 
@@ -88,16 +87,6 @@ public class MidonetApi {
     public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
         ensureApplication();
         return application.addGreTunnelZone();
-    }
-
-    /**
-     * Adds a CAPWAP tunnel zone
-     *
-     * @return capwap tunnel zone resource
-     */
-    public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
-        ensureApplication();
-        return application.addCapwapTunnelZone();
     }
 
     /**

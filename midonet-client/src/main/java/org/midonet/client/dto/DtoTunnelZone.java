@@ -15,12 +15,8 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = DtoCapwapTunnelZone.class,
-                name = TunnelZoneType.CAPWAP),
         @JsonSubTypes.Type(value = DtoGreTunnelZone.class,
-                name = TunnelZoneType.GRE),
-        @JsonSubTypes.Type(value = DtoIpsecTunnelZone.class,
-                name = TunnelZoneType.IPSEC)})
+                name = TunnelZoneType.GRE)})
 public abstract class DtoTunnelZone {
 
     private UUID id;

@@ -226,20 +226,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Adds a tunnel zone
-     *
-     * @return new capwap tunnel zone.
-     */
-    public TunnelZone<DtoCapwapTunnelZone> addCapwapTunnelZone() {
-        return new TunnelZone<DtoCapwapTunnelZone>(resource,
-                principalDto.getTunnelZones(),
-                new DtoCapwapTunnelZone(),
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType
-                        .APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON);
-    }
-
-    /**
      * Returns an ad route
      *
      * @param id ID of ad route
@@ -469,18 +455,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 (DtoGreTunnelZone) tunnelZone,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
-            );
-        } else if (tunnelZone instanceof DtoCapwapTunnelZone) {
-            return new TunnelZone<DtoCapwapTunnelZone>(resource, null,
-                (DtoCapwapTunnelZone) tunnelZone,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_CAPWAP_TUNNEL_ZONE_HOST_COLLECTION_JSON
-            );
-        } else if (tunnelZone instanceof DtoIpsecTunnelZone) {
-            return new TunnelZone<DtoIpsecTunnelZone>(resource, null,
-                (DtoIpsecTunnelZone) tunnelZone,
-                VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_IPSEC_TUNNEL_ZONE_HOST_COLLECTION_JSON
             );
         } else {
             throw new IllegalArgumentException(
