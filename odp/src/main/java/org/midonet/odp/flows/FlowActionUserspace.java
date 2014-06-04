@@ -45,10 +45,10 @@ public class FlowActionUserspace implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            uplinkPid = message.getAttrValueInt(pidAttrId);
-            userData = message.getAttrValueLong(userdataAttrId);
+            uplinkPid = NetlinkMessage.getAttrValueInt(buf, pidAttrId);
+            userData = NetlinkMessage.getAttrValueLong(buf, userdataAttrId);
             return true;
         } catch (Exception e) {
             return false;

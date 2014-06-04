@@ -64,8 +64,9 @@ public final class CtrlFamily {
                 if (input == null)
                     return null;
 
-                NetlinkMessage res = new NetlinkMessage(input.get(0));
-                NetlinkMessage sub = res.getAttrValueNested(AttrKey.MCAST_GROUPS);
+                ByteBuffer sub =
+                    NetlinkMessage.getAttrValueNested(input.get(0),
+                                                      AttrKey.MCAST_GROUPS);
 
                 if (sub == null)
                     return null;
@@ -73,10 +74,13 @@ public final class CtrlFamily {
                 sub.getShort();
                 sub.getShort();
 
-                String name = sub.getAttrValueString(AttrKey.MCAST_GRP_NAME);
+                String name =
+                    NetlinkMessage.getAttrValueString(sub,
+                                                      AttrKey.MCAST_GRP_NAME);
 
                 if (name.equals(groupName))
-                    return sub.getAttrValueInt(AttrKey.MCAST_GRP_ID);
+                    return NetlinkMessage.getAttrValueInt(sub,
+                                                          AttrKey.MCAST_GRP_ID);
 
                 return null;
             }
@@ -90,8 +94,8 @@ public final class CtrlFamily {
                 if (input == null || input.isEmpty() || input.get(0) == null)
                     return 0;
 
-                return new NetlinkMessage(input.get(0))
-                              .getAttrValueShort(AttrKey.FAMILY_ID);
+                return NetlinkMessage.getAttrValueShort(input.get(0),
+                                                        AttrKey.FAMILY_ID);
             }
         };
 

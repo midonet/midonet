@@ -29,7 +29,7 @@ class DatapathTest extends FunSpec with Matchers {
                     val buf = getBuffer
                     NetlinkMessage writeAttr (buf, s, Datapath.Stats.trans)
                     buf.flip
-                    s shouldBe (Datapath.Stats buildFrom new NetlinkMessage(buf))
+                    s shouldBe (Datapath.Stats buildFrom buf)
                 }
             }
 
@@ -52,7 +52,7 @@ class DatapathTest extends FunSpec with Matchers {
                 buf.clear
                 dp serializeInto buf
                 buf.flip
-                dp shouldBe (Datapath buildFrom new NetlinkMessage(buf))
+                dp shouldBe (Datapath buildFrom buf)
             }
         }
 

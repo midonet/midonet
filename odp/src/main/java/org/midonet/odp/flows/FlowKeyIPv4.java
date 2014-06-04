@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
@@ -44,14 +43,14 @@ public class FlowKeyIPv4 implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            ipv4_src = BytesUtil.instance.reverseBE(message.getInt());
-            ipv4_dst = BytesUtil.instance.reverseBE(message.getInt());
-            ipv4_proto = message.getByte();
-            ipv4_tos = message.getByte();
-            ipv4_ttl = message.getByte();
-            ipv4_frag = message.getByte();
+            ipv4_src = BytesUtil.instance.reverseBE(buf.getInt());
+            ipv4_dst = BytesUtil.instance.reverseBE(buf.getInt());
+            ipv4_proto = buf.get();
+            ipv4_tos = buf.get();
+            ipv4_ttl = buf.get();
+            ipv4_frag = buf.get();
             hashCode = 0;
             return true;
         } catch (Exception e) {

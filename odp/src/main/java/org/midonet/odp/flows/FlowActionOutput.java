@@ -26,9 +26,9 @@ public class FlowActionOutput implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            portNumber = message.getInt();
+            portNumber = buf.getInt();
             return true;
         } catch (Exception e) {
             return false;

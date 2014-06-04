@@ -6,7 +6,6 @@ package org.midonet.sdn.flows;
 import java.nio.ByteBuffer;
 import java.util.UUID
 
-import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp.flows.FlowAction
 
 /** This objects holds various classes reprensenting "virtual" flow actions
@@ -28,6 +27,6 @@ object VirtualActions {
     trait VirtualFlowAction extends FlowAction {
         def attrId = 0
         def serializeInto(buf: ByteBuffer) = 0
-        def deserialize(message: NetlinkMessage) = false
+        def deserialize(buf: ByteBuffer) = false
     }
 }

@@ -133,19 +133,19 @@ public class Packet {
         return new Packet().setPacket(eth);
     }
 
-    public static Packet buildFrom(ByteBuffer buffer) {
+    public static Packet buildFrom(ByteBuffer buf) {
         Packet packet = new Packet();
-        NetlinkMessage msg = new NetlinkMessage(buffer);
 
-        int datapathIndex = msg.getInt(); // ignored
+        int datapathIndex = buf.getInt(); // ignored
 
-        packet.eth = msg.getAttrValueEthernet(Attr.Packet);
+        packet.eth = NetlinkMessage.getAttrValueEthernet(buf, Attr.Packet);
+
         if (packet.eth == null)
             return null;
 
-        packet.match =
-            new FlowMatch(msg.getAttrValue(Attr.Key, FlowKey.Builder));
-        packet.userData = msg.getAttrValueLong(Attr.Userdata);
+        packet.match = new FlowMatch(NetlinkMessage.getAttrValue(buf, Attr.Key,
+                                                                 FlowKey.Builder));
+        packet.userData = NetlinkMessage.getAttrValueLong(buf, Attr.Userdata);
 
         return packet;
     }
