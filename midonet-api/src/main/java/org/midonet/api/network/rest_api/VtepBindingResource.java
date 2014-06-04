@@ -5,7 +5,6 @@ package org.midonet.api.network.rest_api;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Random;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -20,6 +19,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
@@ -33,17 +34,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class VtepBindingResource extends AbstractVtepResource {
-
-    private static final Logger log = LoggerFactory.getLogger(
-        VtepBindingResource.class);
-
-    private final Random rand = new Random();
 
     /** The parent vtep where this binding belongs */
     private final String ipAddrStr;
@@ -64,13 +55,11 @@ public class VtepBindingResource extends AbstractVtepResource {
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                   VendorMediaType.APPLICATION_JSON})
     public Response create(VTEPBinding binding)
-        throws StateAccessException, SerializationException
-    {
+        throws StateAccessException, SerializationException {
         validate(binding);
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
         Bridge bridge = getBridgeOrThrow(binding.getNetworkId(), true);
         vtepClient.createBinding(binding, ipAddr, bridge);
-
         URI uri = ResourceUriBuilder.getVtepBinding(getBaseUri(),
                 ipAddrStr, binding.getPortName(), binding.getVlanId());
         return Response.created(uri).build();
