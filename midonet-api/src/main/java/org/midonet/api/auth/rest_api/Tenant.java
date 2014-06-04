@@ -104,6 +104,11 @@ public class Tenant extends UriResource {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hashCode(id, name);
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;

@@ -300,17 +300,13 @@ public class Route extends UriResource {
     }
 
     public org.midonet.cluster.data.Route toData () {
-        NextHop nextHop = null;
+        NextHop nextHop;
         String type = this.getType();
-        int gateway = org.midonet.midolman.layer3.Route.NO_GATEWAY;
         if (type.equals(Route.Reject)) {
             nextHop = NextHop.REJECT;
         } else if (type.equals(Route.BlackHole)) {
             nextHop = NextHop.BLACKHOLE;
         } else {
-            if (this.getNextHopGateway() != null) {
-                gateway = IPv4Addr.stringToInt(this.getNextHopGateway());
-            }
             nextHop = NextHop.PORT;
         }
 

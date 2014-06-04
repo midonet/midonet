@@ -42,4 +42,15 @@ public class ListUtil {
         return res;
     }
 
+    /**
+     * Returns a new list where each member is a convert from the old list according to p.
+     */
+    public static <T, NT> List<NT> map(List<T> list, Function<T, NT> p) {
+        List<NT> res = new ArrayList<>(list.size());
+        for (T t : list) {
+            res.add(p.apply(t));
+        }
+        return res;
+    }
+
 }
