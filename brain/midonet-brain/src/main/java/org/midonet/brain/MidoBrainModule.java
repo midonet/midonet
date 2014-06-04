@@ -7,6 +7,8 @@ import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 
@@ -30,6 +32,11 @@ public class MidoBrainModule extends PrivateModule {
             .toProvider(MidoBrainModule.MidoBrainConfigProvider.class)
             .asEagerSingleton();
         expose(MidoBrainConfig.class);
+
+        bind(VtepDataClient.class)
+            .toProvider(VtepDataClientProvider.class);
+
+        expose(VtepDataClient.class);
 
     }
 

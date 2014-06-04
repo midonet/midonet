@@ -13,10 +13,10 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientImpl;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
@@ -38,6 +38,9 @@ public class VxLanGatewayService extends AbstractService {
     // Client for Midonet configuration store
     private final DataClient midoClient;
 
+    // Provides vtep clients
+    private final Provider<VtepDataClient> vtepDataClientProvider;
+
     // Client for each VTEP configuration store, indexed by management IP
     private Map<IPv4Addr, VtepDataClient> vtepClients = new HashMap<>();
 
@@ -49,8 +52,10 @@ public class VxLanGatewayService extends AbstractService {
     private Map<IPv4Addr, VxLanGwBroker> vxlanGwBrokers = new HashMap<>();
 
     @Inject
-    public VxLanGatewayService(DataClient midoClient) {
+    public VxLanGatewayService(DataClient midoClient,
+                           Provider<VtepDataClient> vtepDataClientProvider) {
         this.midoClient = midoClient;
+        this.vtepDataClientProvider = vtepDataClientProvider;
     }
 
     @Override
@@ -116,7 +121,7 @@ public class VxLanGatewayService extends AbstractService {
             log.info("Initializing client for vtep: {}", vtep);
             // TODO: use a Guice Provider to chose implementation.
             try {
-                VtepDataClient vdc = new VtepDataClientImpl();
+                VtepDataClient vdc = vtepDataClientProvider.get();
                 vdc.connect(vtep.getId(), vtep.getMgmtPort());
                 vtepClients.put(vtep.getId(), vdc);
             } catch(Exception e) {
