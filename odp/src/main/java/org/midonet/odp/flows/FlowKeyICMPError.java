@@ -52,9 +52,4 @@ public class FlowKeyICMPError extends FlowKeyICMP
         return (icmp_data == null) ? null
                                    : Arrays.copyOf(icmp_data, icmp_data.length);
     }
-
-    @Override
-    public boolean isChildOf(FlowKey key) {
-        return key instanceof FlowKeyICMP;
-    }
 }

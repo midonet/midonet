@@ -54,9 +54,8 @@ public class FlowMatch {
 
     public FlowMatch setKeys(@Nonnull List<FlowKey> keys) {
         this.userSpaceOnly = false;
-        this.keys = (keys != null && keys.isEmpty()) ?
-                        keys : new ArrayList<FlowKey>(keys.size());
-        for (FlowKey key: keys) {
+        this.keys = keys.isEmpty() ? keys : new ArrayList<FlowKey>(keys.size());
+        for (FlowKey key : keys) {
             userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
             this.keys.add(FlowKeys.intern(key));
         }
@@ -125,4 +124,7 @@ public class FlowMatch {
         return new FlowMatch(FlowKeys.buildFrom(msg));
     }
 
+    public void replaceKey(int index, FlowKey flowKey) {
+        keys.set(index, flowKey);
+    }
 }
