@@ -12,6 +12,7 @@ from nose.tools import nottest
 import logging
 import time
 import pdb
+import random
 import re
 import subprocess
 
@@ -81,6 +82,13 @@ def _ping_to_mn(midoVmIface, exHostIface, count=3, do_arp=False):
     assert_that(midoVmIface, receives('dst host 172.16.0.1 and icmp',
                                       within_sec(5)))
     wait_on_futures([f1])
+
+def _send_random_udp_to_mn(midoVmIface, exHostIface, count=3):
+
+    exHostIface.send_udp(midoVmIface.get_mac_addr(), '172.16.0.1', 28,
+                         src_port=random.randint(61000, 65000),
+                         dst_port=random.randint(61000, 65000),
+                         count=count, sync=True)
 
 def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
     """
@@ -300,7 +308,7 @@ def test_failover_on_generic_failure_with_icmp_to_mn():
     _test_failover_on_generic_failure_with_icmp_to_mn()
 
 @nottest
-def _test_failback(test_failover, ping):
+def _test_failback(test_failover, ping, migrate=None):
 
     test_failover()
 
@@ -310,9 +318,11 @@ def _test_failback(test_failover, ping):
     midoVmIface = BM.get_iface_for_port('bridge-000-001-0001', 1)
     exHostIface = BM.get_iface(4,1)
 
-    # Emit an ARP request expecting a reply migrates the MAC
-    # back to trunk0
-    ping(midoVmIface, exHostIface, do_arp=True)
+    # Emit a random UDP expecting it to migrate the MAC back to trunk0
+    if migrate:
+        migrate(midoVmIface, exHostIface)
+
+    ping(midoVmIface, exHostIface)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -322,7 +332,7 @@ def test_failback_on_ifdown_with_icmp_from_mn():
            with ARP/ICMP from MidoNet VLAN
     """
     _test_failback(_test_failover_on_ifdown_with_icmp_from_mn,
-                   _ping_from_mn)
+                   _ping_from_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -332,7 +342,7 @@ def test_failback_on_ifdown_with_icmp_to_mn():
            with ARP/ICMP to MidoNet VLAN
     """
     _test_failback(_test_failover_on_ifdown_with_icmp_to_mn,
-                   _ping_to_mn)
+                   _ping_to_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -342,7 +352,7 @@ def test_failback_on_generic_failure_with_icmp_from_mn():
            with ARP/ICMP from MidoNet VLAN
     """
     _test_failback(_test_failover_on_generic_failure_with_icmp_from_mn,
-                   _ping_from_mn)
+                   _ping_from_mn, _send_random_udp_to_mn)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
@@ -352,4 +362,4 @@ def test_failback_on_generic_failure_with_icmp_to_mn():
            with ARP/ICMP to MidoNet VLAN
     """
     _test_failback(_test_failover_on_generic_failure_with_icmp_to_mn,
-                   _ping_to_mn)
+                   _ping_to_mn, _send_random_udp_to_mn)
