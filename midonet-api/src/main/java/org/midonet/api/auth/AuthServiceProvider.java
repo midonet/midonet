@@ -1,6 +1,6 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
- * Copyright 2013 Midokura PTE LTD.
+ * Copyright 2012-2013 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.auth;
 
