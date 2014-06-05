@@ -59,7 +59,8 @@ public class L3ZkManager extends BaseZkManager {
         this.ruleZkManager = ruleZkManager;
     }
 
-    public Router getRouter(UUID routerId) throws StateAccessException, SerializationException {
+    public Router getRouter(UUID routerId) throws StateAccessException,
+        SerializationException {
 
         String path = paths.getNeutronRouterPath(routerId);
         if (!zk.exists(path)) {
@@ -69,7 +70,8 @@ public class L3ZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Router.class);
     }
 
-    public List<Router> getRouters() throws StateAccessException, SerializationException {
+    public List<Router> getRouters() throws StateAccessException,
+        SerializationException {
 
         String path = paths.getNeutronRoutersPath();
         Set<UUID> routerIds = getUuidSet(path);
@@ -176,11 +178,13 @@ public class L3ZkManager extends BaseZkManager {
             networkZkManager.prepareUpdateNeutronPort(ops, port);
 
             if (bpConfig.inboundFilter != null) {
-                ops.addAll(chainZkManager.prepareDelete(bpConfig.inboundFilter));
+                ops.addAll(chainZkManager.prepareDelete(
+                    bpConfig.inboundFilter));
             }
 
             if (bpConfig.outboundFilter != null) {
-                ops.addAll(chainZkManager.prepareDelete(bpConfig.outboundFilter));
+                ops.addAll(chainZkManager.prepareDelete(
+                    bpConfig.outboundFilter));
             }
 
             networkZkManager.prepareDeleteDhcpHostEntries(ops, port);
@@ -263,7 +267,8 @@ public class L3ZkManager extends BaseZkManager {
                 gwPort.firstIpv4Subnet());
     }
 
-    private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID portId, IPv4Subnet cidr)
+    private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID portId,
+                                       IPv4Subnet cidr)
             throws SerializationException, StateAccessException {
 
         UUID prId = providerRouterZkManager.getId();
@@ -288,7 +293,8 @@ public class L3ZkManager extends BaseZkManager {
         return rpCfgPeer.id;
     }
 
-    private void prepareCreateGatewayRouter(List<Op> ops, Router router, UUID inboundChainId,
+    private void prepareCreateGatewayRouter(List<Op> ops, Router router,
+                                            UUID inboundChainId,
                                             UUID outboundChainId)
             throws SerializationException, StateAccessException {
 
@@ -363,7 +369,8 @@ public class L3ZkManager extends BaseZkManager {
             @Override
             public Boolean apply(FloatingIp floatingIp) {
                 if (floatingIp == null)
-                    throw new IllegalArgumentException("floatingIp must not be null");
+                    throw new IllegalArgumentException(
+                        "floatingIp must not be null");
                 return Objects.equal(floatingIp.portId, portId);
             }
         });
@@ -437,22 +444,21 @@ public class L3ZkManager extends BaseZkManager {
         UUID prId = providerRouterZkManager.getId();
 
         // Find the GW port
-        RouterPortConfig gwPort = portZkManager.findFirstRouterPortByPeer(
-                fip.routerId, prId);
+        RouterPortConfig gwPort =
+            portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
 
         // Add a route to this gateway port on the provider router
-        RouterPortConfig prPortCfg = (RouterPortConfig) portZkManager.get(
-                gwPort.peerId);
+        RouterPortConfig prPortCfg =
+            (RouterPortConfig) portZkManager.get(gwPort.peerId);
         routeZkManager.preparePersistPortRouteCreate(ops, prId,
-                new IPv4Subnet(0, 0), fip.floatingIpv4Subnet(), prPortCfg,
-                null);
+            new IPv4Subnet(0, 0), fip.floatingIpv4Subnet(), prPortCfg, null);
 
         // Add NAT rules on tenant router
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
         ruleZkManager.prepareCreateStaticSnatRule(ops, rCfg.outboundFilter,
-                gwPort.id, fip.fixedIpv4Addr(), fip.floatingIpv4Addr());
+            gwPort.id, fip.floatingIpv4Addr());
         ruleZkManager.prepareCreateStaticDnatRule(ops, rCfg.inboundFilter,
-                gwPort.id, fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
+            gwPort.id, fip.fixedIpv4Addr());
     }
 
     public void prepareDisassociateFloatingIp(List<Op> ops, Port port)
@@ -473,9 +479,9 @@ public class L3ZkManager extends BaseZkManager {
         // Go through router chains and remove all the NAT rules
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
         ruleZkManager.prepareDeleteDnatRules(ops, rCfg.inboundFilter,
-                fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
+            fip.fixedIpv4Addr());
         ruleZkManager.prepareDeleteSnatRules(ops, rCfg.outboundFilter,
-                fip.fixedIpv4Addr(), fip.floatingIpv4Addr());
+            fip.floatingIpv4Addr());
     }
 
     public void prepareUpdateFloatingIp(List<Op> ops, FloatingIp fip)
@@ -496,16 +502,12 @@ public class L3ZkManager extends BaseZkManager {
             // Association modified.  No need to change the provider router
             // route, but need to update the static NAT rules.
             RouterConfig rCfg = routerZkManager.get(fip.routerId);
-            RouterPortConfig gwPort = portZkManager.findFirstRouterPortByPeer(
-                    fip.routerId, prId);
-            ruleZkManager.prepareReplaceSnatRules(ops,
-                    rCfg.outboundFilter, gwPort.id,
-                    oldFip.fixedIpv4Addr(), oldFip.floatingIpv4Addr(),
-                    fip.fixedIpv4Addr(), fip.floatingIpv4Addr());
-            ruleZkManager.prepareReplaceDnatRules(ops,
-                    rCfg.inboundFilter, gwPort.id,
-                    oldFip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
-                    fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
+            RouterPortConfig gwPort =
+                portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
+            ruleZkManager.prepareReplaceSnatRules(ops, rCfg.outboundFilter,
+                gwPort.id, oldFip.floatingIpv4Addr(), fip.floatingIpv4Addr());
+            ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
+                gwPort.id, oldFip.fixedIpv4Addr(), fip.fixedIpv4Addr());
         } else {
             // the else case is a no-op because its an update of something
             // other than the fixed/floating ip fields.
