@@ -176,7 +176,7 @@ public class FlowMatchTest {
         assertTrue(match.getKeys().get(1) instanceof FlowKeyEtherType);
         assertTrue(match.getKeys().get(2) instanceof FlowKeyIPv4);
         assertTrue(match.getKeys().get(3) instanceof FlowKeyICMP);
-        FlowKeyICMP fkIcmp = (FlowKeyICMP)match.getKeys().get(3).getValue();
+        FlowKeyICMP fkIcmp = (FlowKeyICMP) match.getKeys().get(3);
         fkIcmp.getCode();
         assertEquals(fkIcmp.getType(), ICMP.TYPE_ROUTER_SOLICITATION);
         assertEquals(fkIcmp.getCode(), ICMP.CODE_NONE);

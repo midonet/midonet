@@ -12,8 +12,6 @@ import scala.util.Random
 
 import org.scalatest._
 
-import org.midonet.netlink.messages.Builder
-
 @org.junit.runner.RunWith(classOf[org.scalatest.junit.JUnitRunner])
 class NetlinkMessageTest extends Suite with Matchers {
 
@@ -23,57 +21,70 @@ class NetlinkMessageTest extends Suite with Matchers {
     type LongConsumer  = ((Long, NetlinkMessage.AttrKey[JLong])) => Unit
 
     def testWritingReadingBytes() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = ByteHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttr(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeByteAttr (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach ByteHelper.bufferChecker(sliceOf(msg))
         data foreach ByteHelper.checkMessage(msg)
     }
 
     def testWritingReadingShortsNoPadding() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = ShortHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttrNoPad(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeShortAttrNoPad (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach ShortHelper.bufferCheckerNoPad(sliceOf(msg))
     }
 
     def testWritingReadingShorts() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = ShortHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttr(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeShortAttr (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach ShortHelper.bufferChecker(sliceOf(msg))
         data foreach ShortHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach ShortHelper.checkMessage(msg)
     }
 
     def testWritingReadingInts() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = IntHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttr(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeIntAttr (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach IntHelper.bufferChecker(sliceOf(msg))
         data foreach IntHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach IntHelper.checkMessage(msg)
     }
 
     def testWritingReadingLongs() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = LongHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttr(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeLongAttr (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach LongHelper.bufferChecker(sliceOf(msg))
         data foreach LongHelper.checkMessage(msg)
         Random.shuffle(data.toSeq) foreach LongHelper.checkMessage(msg)
     }
 
-    def makeNLMsg(size: Int = 1024) =
-        new NetlinkMessage(BytesUtil.instance allocate size)
+    def makeNLMsg(size: Int = 1024) = new NetlinkMessage(makeBuffer(size))
 
-    def makeMsgBuilger(size: Int = 1024) =
-        new Builder(BytesUtil.instance allocate size)
+    def makeBuffer(size: Int = 1024) = BytesUtil.instance allocate size
 
     def readPadding(buf: ByteBuffer, byteNum: Int) {
         (0 until byteNum) foreach { _ => buf.get() }
@@ -166,10 +177,13 @@ class NetlinkMessageTest extends Suite with Matchers {
     }
 
     def testWritingReadingBytesNoPadding() {
-        val bldr = makeMsgBuilger()
+        val buf = makeBuffer()
         val data = ByteHelper.makeData(4)
-        data foreach { case (value, attr) => bldr.addAttrNoPad(attr, value) }
-        val msg = bldr.build()
+        data foreach { case (value, attr) =>
+            NetlinkMessage writeByteAttrNoPad (buf, attr.getId, value)
+        }
+        buf.flip
+        val msg = new NetlinkMessage(buf)
         data foreach ByteHelper.bufferCheckerNoPad(sliceOf(msg))
     }
 

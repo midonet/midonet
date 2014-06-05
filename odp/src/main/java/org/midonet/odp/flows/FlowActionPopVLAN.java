@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowActionPopVLAN implements FlowAction {
 
@@ -21,26 +20,12 @@ public class FlowActionPopVLAN implements FlowAction {
     }
 
     @Override
-    public void serialize(Builder builder) {
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         return true;
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowActionPopVLAN> getKey() {
-        return FlowActionAttr.POP_VLAN;
-    }
-
     public short attrId() {
         return FlowActionAttr.POP_VLAN.getId();
-    }
-
-    @Override
-    public FlowActionPopVLAN getValue() {
-        return this;
     }
 
     @Override

@@ -12,7 +12,6 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.netlink._
-import org.midonet.netlink.messages._
 import org.midonet.odp.family.DatapathFamily
 
 @RunWith(classOf[JUnitRunner])
@@ -27,9 +26,10 @@ class DatapathTest extends FunSpec with Matchers {
         describe("Stats") {
             it("should be invariant by serialization/deserialisation") {
                 stats foreach { s =>
-                    val bldr = new Builder(getBuffer)
-                    bldr addAttr(Datapath.StatsAttr, s)
-                    s shouldBe (Datapath.Stats buildFrom bldr.build())
+                    val buf = getBuffer
+                    NetlinkMessage writeAttr (buf, s, Datapath.Stats.trans)
+                    buf.flip
+                    s shouldBe (Datapath.Stats buildFrom new NetlinkMessage(buf))
                 }
             }
 

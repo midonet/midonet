@@ -3,20 +3,19 @@
 */
 package org.midonet.odp;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.math.BigInteger;
-import java.util.Random;
 import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
 
 import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.DatapathFamily;
 
@@ -72,7 +71,7 @@ public class Datapath {
         buf.putInt(index);
 
         short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
-        NetlinkMessage.addAttribute(buf, nameAttrId, name);
+        NetlinkMessage.writeStringAttr(buf, nameAttrId, name);
 
         if (stats != null) {
             NetlinkMessage.writeAttr(buf, stats, Stats.trans);
@@ -137,14 +136,6 @@ public class Datapath {
 
         public long getFlows() {
             return flows;
-        }
-
-        @Override
-        public void serialize(Builder builder) {
-            builder.addValue(hits);
-            builder.addValue(misses);
-            builder.addValue(lost);
-            builder.addValue(flows);
         }
 
         @Override
@@ -254,7 +245,7 @@ public class Datapath {
         buf.putInt(datapathId);
         if (datapathName != null) {
             short nameId = (short) OpenVSwitch.Datapath.Attr.Name;
-            NetlinkMessage.addAttribute(buf, nameId, datapathName);
+            NetlinkMessage.writeStringAttr(buf, nameId, datapathName);
         }
         buf.flip();
         return buf;
@@ -273,7 +264,7 @@ public class Datapath {
         NetlinkMessage.writeIntAttr(buf, pidAttrId, pid);
         if (datapathName != null) {
             short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
-            NetlinkMessage.addAttribute(buf, nameAttrId, datapathName);
+            NetlinkMessage.writeStringAttr(buf, nameAttrId, datapathName);
         }
         buf.flip();
         return buf;

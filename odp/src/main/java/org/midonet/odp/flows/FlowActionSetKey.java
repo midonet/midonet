@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowActionSetKey implements FlowAction {
 
@@ -21,11 +20,6 @@ public class FlowActionSetKey implements FlowAction {
 
     public int serializeInto(ByteBuffer buffer) {
         return NetlinkMessage.writeAttr(buffer, flowKey, FlowKey.translator);
-    }
-
-    @Override
-    public void serialize(Builder builder) {
-        builder.addAttr(flowKey.getKey(), flowKey);
     }
 
     @Override
@@ -48,16 +42,6 @@ public class FlowActionSetKey implements FlowAction {
 
     public short attrId() {
         return FlowActionAttr.SET.getId();
-    }
-
-    @Override
-    public NetlinkMessage.AttrKey<FlowActionSetKey> getKey() {
-        return FlowActionAttr.SET;
-    }
-
-    @Override
-    public FlowActionSetKey getValue() {
-        return this;
     }
 
     public FlowKey getFlowKey() {

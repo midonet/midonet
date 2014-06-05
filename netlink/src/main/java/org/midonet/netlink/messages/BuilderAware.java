@@ -9,8 +9,5 @@ import org.midonet.netlink.NetlinkMessage;
 * // TODO: mtoader ! Please explain yourself.
 */
 public interface BuilderAware {
-
-    public void serialize(Builder builder);
-
     public boolean deserialize(NetlinkMessage message);
 }

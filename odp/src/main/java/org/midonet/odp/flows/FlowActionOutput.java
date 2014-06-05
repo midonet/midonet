@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowActionOutput implements FlowAction {
 
@@ -26,11 +25,6 @@ public class FlowActionOutput implements FlowAction {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(portNumber);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             portNumber = message.getInt();
@@ -40,18 +34,8 @@ public class FlowActionOutput implements FlowAction {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowActionOutput> getKey() {
-        return FlowActionAttr.OUTPUT;
-    }
-
     public short attrId() {
         return FlowActionAttr.OUTPUT.getId();
-    }
-
-    @Override
-    public FlowActionOutput getValue() {
-        return this;
     }
 
     public int getPortNumber() {

@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.packets.MAC;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 
 public class FlowKeyEthernet implements CachedFlowKey {
 
@@ -32,12 +31,6 @@ public class FlowKeyEthernet implements CachedFlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(eth_src);
-        builder.addValue(eth_dst);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             message.getBytes(eth_src);
@@ -49,18 +42,8 @@ public class FlowKeyEthernet implements CachedFlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyEthernet> getKey() {
-        return FlowKeyAttr.ETHERNET;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ETHERNET.getId();
-    }
-
-    @Override
-    public FlowKeyEthernet getValue() {
-        return this;
     }
 
     public byte[] getSrc() {

@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionSample implements FlowAction {
@@ -45,12 +44,6 @@ public class FlowActionSample implements FlowAction {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addAttr(PROBABILITY, probability);
-        builder.addAttrs(ACTIONS, actions);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             probability = message.getAttrValueInt(PROBABILITY);
@@ -63,16 +56,6 @@ public class FlowActionSample implements FlowAction {
 
     public short attrId() {
         return FlowActionAttr.SAMPLE.getId();
-    }
-
-    @Override
-    public NetlinkMessage.AttrKey<FlowActionSample> getKey() {
-        return FlowActionAttr.SAMPLE;
-    }
-
-    @Override
-    public FlowActionSample getValue() {
-        return this;
     }
 
     public int getProbability() {
