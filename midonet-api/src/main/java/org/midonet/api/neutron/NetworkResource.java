@@ -12,6 +12,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.Network;
 import org.midonet.cluster.data.neutron.NetworkApi;
+import org.midonet.event.neutron.NetworkEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -34,6 +35,8 @@ public class NetworkResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             NetworkResource.class);
+    private final static NetworkEvent NETWORK_EVENT =
+            new NetworkEvent();
 
     private final NetworkApi api;
 
@@ -54,7 +57,7 @@ public class NetworkResource extends AbstractResource {
 
         try {
             Network net = api.createNetwork(network);
-
+            NETWORK_EVENT.create(net.id, net);
             log.info("NetworkResource.create exiting {}", net);
             return Response.created(
                     NeutronUriBuilder.getNetwork(
@@ -75,7 +78,9 @@ public class NetworkResource extends AbstractResource {
 
         try {
             List<Network> nets = api.createNetworkBulk(networks);
-
+            for (Network net : nets) {
+                NETWORK_EVENT.create(net.id, net);
+            }
             return Response.created(NeutronUriBuilder.getNetworks(
                     getBaseUri())).entity(nets).build();
         } catch (StatePathExistsException e) {
@@ -90,6 +95,7 @@ public class NetworkResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("NetworkResource.delete entered {}", id);
         api.deleteNetwork(id);
+        NETWORK_EVENT.delete(id);
     }
 
     @GET
@@ -130,7 +136,7 @@ public class NetworkResource extends AbstractResource {
 
         try {
             Network net = api.updateNetwork(id, network);
-
+            NETWORK_EVENT.update(id, net);
             log.info("NetworkResource.update exiting {}", net);
             return Response.ok(
                     NeutronUriBuilder.getNetwork(

@@ -13,6 +13,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.FloatingIp;
 import org.midonet.cluster.data.neutron.L3Api;
+import org.midonet.event.neutron.FloatingIpEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -34,6 +35,8 @@ public class FloatingIpResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             FloatingIpResource.class);
+    private final static FloatingIpEvent FLOATING_IP_EVENT =
+            new FloatingIpEvent();
 
     private final L3Api api;
 
@@ -56,7 +59,7 @@ public class FloatingIpResource extends AbstractResource {
         try {
 
             FloatingIp fip = api.createFloatingIp(floatingIp);
-
+            FLOATING_IP_EVENT.create(fip.id, fip);
             log.info("FloatingIpResource.create exiting {}", fip);
             return Response.created(
                     NeutronUriBuilder.getFloatingIp(
@@ -75,6 +78,7 @@ public class FloatingIpResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("FloatingIpResource.delete entered {}", id);
         api.deleteFloatingIp(id);
+        FLOATING_IP_EVENT.delete(id);
     }
 
     @GET
@@ -116,7 +120,7 @@ public class FloatingIpResource extends AbstractResource {
         try {
 
             FloatingIp fip = api.updateFloatingIp(id, floatingIp);
-
+            FLOATING_IP_EVENT.update(id, fip);
             log.info("FloatingIpResource.update exiting {}", fip);
             return Response.ok(
                     NeutronUriBuilder.getFloatingIp(
