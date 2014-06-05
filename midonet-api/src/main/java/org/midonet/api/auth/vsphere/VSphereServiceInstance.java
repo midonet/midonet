@@ -16,7 +16,6 @@ import com.jcabi.aspects.RetryOnFailure;
 import com.vmware.vim25.AuthorizationRole;
 import com.vmware.vim25.Permission;
 import com.vmware.vim25.mo.Datacenter;
-import com.vmware.vim25.mo.Folder;
 import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.ManagedEntity;
 import com.vmware.vim25.mo.ServiceInstance;
@@ -64,11 +63,17 @@ public class VSphereServiceInstance {
     }
 
     public String getSessionCookieId() throws VSphereAuthException {
-        /* A cookie is something like:
+        return getSessionCookieId(serviceInstance.getServerConnection()
+                .getVimService().getWsc().getCookie());
+    }
+
+    @VisibleForTesting String getSessionCookieId(String cookie)
+            throws VSphereAuthException {
+
+          /* A cookie is something like:
             "vmware_soap_session="52f8c71a-6737-51a1-886e-7863759142a6"; \
             Path=/; HttpOnly; Secure;"
         */
-        String cookie = getCookie();
         Matcher matcher = SOAP_SESSION_COOKIE_REGEX_PATTERN.matcher(cookie);
 
         if(matcher.find()) {
@@ -77,11 +82,6 @@ public class VSphereServiceInstance {
 
         log.debug("Cannot find a valid soap session cookie in " + cookie);
         throw new VSphereAuthException("Soap session cookie not found");
-    }
-
-    @VisibleForTesting String getCookie() {
-        return serviceInstance.getServerConnection()
-                .getVimService().getWsc().getCookie();
     }
 
     /**
@@ -101,12 +101,19 @@ public class VSphereServiceInstance {
         return Optional.absent();
     }
 
-    @RetryOnFailure(attempts=3, types=RemoteException.class)
+
     public Optional<Datacenter> getDatacenter(String datacenterId)
             throws RemoteException {
+        return getDatacenter(datacenterId,
+                new InventoryNavigator(serviceInstance.getRootFolder()));
+    }
+
+    @RetryOnFailure(attempts=3, types=RemoteException.class)
+    @VisibleForTesting Optional<Datacenter> getDatacenter(String datacenterId,
+                                               InventoryNavigator inventory)
+            throws RemoteException {
         ManagedEntity[] datacenters =
-                getInventoryNavigator(serviceInstance.getRootFolder())
-                        .searchManagedEntities("Datacenter");
+                inventory.searchManagedEntities("Datacenter");
         for (ManagedEntity managedDC: datacenters) {
             Datacenter datacenter = (Datacenter) managedDC;
             if(datacenter.getMOR().getVal().equals(datacenterId)) {
@@ -115,10 +122,6 @@ public class VSphereServiceInstance {
         }
 
         return Optional.absent();
-    }
-
-    @VisibleForTesting InventoryNavigator getInventoryNavigator(Folder folder) {
-        return new InventoryNavigator(folder);
     }
 
     @RetryOnFailure(attempts=3, types=RemoteException.class)
@@ -154,7 +157,6 @@ public class VSphereServiceInstance {
                 .add("ServiceInstance", serviceInstance)
                 .add("isSessionActive", isSessionActive())
                 .add("Username", getUserName())
-                .add("SessionCookie", getCookie())
                 .toString();
     }
 }
