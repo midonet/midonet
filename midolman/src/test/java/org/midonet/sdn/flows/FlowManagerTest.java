@@ -36,7 +36,7 @@ public class FlowManagerTest {
     int dpFlowRemoveBatchSize = 2;
     final FlowManagerHelperImpl flowManagerHelper = new FlowManagerHelperImpl();
     FlowManager flowManager;
-    int timeOut = 4000;
+    int timeOut = 100;
     long idleFlowToleranceInterval = 2;
     Mutex updateFlowLock = new Mutex();
 
@@ -192,7 +192,7 @@ public class FlowManagerTest {
         // value > timeOut/2
         FlowMatch flowMatch1 =
             new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200))
-                .addKey(FlowKeys.tcp(1000, 1002));
+                           .addKey(FlowKeys.tcp(1000, 1002));
         Flow flow2 =
             new Flow().setActions(actionsAsJava(wflow)).setMatch(flowMatch1);
 
@@ -490,5 +490,4 @@ public class FlowManagerTest {
             }
         }
     }
-
 }
