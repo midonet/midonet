@@ -105,20 +105,23 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
 
         @Override
         public void run() {
-                // Update the value and re-register for ZK notifications.
-                try {
-                    PortConfig config = portMgr.get(portID, this);
-                    put(portID, config);
-                    notifyWatchers(portID);
-                } catch (StateAccessException e) {
-                    // If the ZK lookup fails, the cache keeps the old value.
-                    log.warn("Exception refreshing PortConfig", e);
-                    connectionWatcher.handleError(
-                            "PortWatcher:" + portID.toString(), this, e);
-                } catch (SerializationException e) {
-                    log.error("Could not serialize PortConfig {}",
-                            portID.toString());
-                }
+            // Update the value and re-register for ZK notifications.
+            try {
+                PortConfig config = portMgr.get(portID, this);
+                put(portID, config);
+                notifyWatchers(portID);
+            } catch (NoStatePathException e) {
+                log.debug("Port {} has been deleted", portID);
+                put(portID, null);
+            } catch (StateAccessException e) {
+                // If the ZK lookup fails, the cache keeps the old value.
+                log.warn("Exception refreshing PortConfig", e);
+                connectionWatcher.handleError(
+                        "PortWatcher:" + portID.toString(), this, e);
+            } catch (SerializationException e) {
+                log.error("Could not serialize PortConfig {}",
+                        portID.toString());
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.ReplicatedSet;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
@@ -101,6 +102,8 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
              * We would not want to add the watcher (with update=true) and
              * then find that the ZK calls for the rest of the data fail. */
              config = routerMgr.get(id, watchRouter(id, true));
+        } catch (NoStatePathException e) {
+            log.debug("Router {} has been deleted", id);
         } catch (StateAccessException e) {
             if (routeSet != null)
                 mapRouterIdToRoutes.remove(id);
