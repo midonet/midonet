@@ -134,7 +134,10 @@ public class FlowMatchTest {
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
         assertNotSame(m1, m4);
-
+        assertTrue(m1.isUserSpaceOnly());
+        assertTrue(m2.isUserSpaceOnly());
+        assertTrue(m3.isUserSpaceOnly());
+        assertTrue(m4.isUserSpaceOnly());
     }
 
     private Ethernet makeFrame(MAC srcMac, MAC dstMac,
