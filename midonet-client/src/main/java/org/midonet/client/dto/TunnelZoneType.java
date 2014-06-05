@@ -9,4 +9,5 @@ package org.midonet.client.dto;
  */
 public class TunnelZoneType {
     public static final String GRE = "gre";
+    public static final String VxLAN = "vxlan";
 }
