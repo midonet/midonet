@@ -56,9 +56,9 @@ public class ReporterVmMetricsTest extends AbstractModule {
 
         startTime = System.currentTimeMillis();
         MidoReporter reporter = new MidoReporter(store);
-        reporter.start(1000, TimeUnit.MILLISECONDS);
+        reporter.start(100, TimeUnit.MILLISECONDS);
 
-        Thread.sleep(10000);
+        Thread.sleep(1000);
         List<String> metrics = store.getMetricsForType(
             VMMetricsCollection.class.getSimpleName());
         assertThat("We saved all the metrics in VMMetricsCollection",
