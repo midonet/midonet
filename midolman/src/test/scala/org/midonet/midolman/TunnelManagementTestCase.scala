@@ -109,8 +109,8 @@ class TunnelManagementTestCase extends MidolmanTestCase
         // assert that the VTP got a TunnelZoneRequest message for the proper zone
         tzRequest.zoneId should be (greZone.getId)
 
-        fishForReplyOfType[GreZoneMembers](vtpProbe())
-        fishForReplyOfType[GreZoneChanged](vtpProbe())
+        fishForReplyOfType[ZoneMembers](vtpProbe())
+        fishForReplyOfType[ZoneChanged](vtpProbe())
 
         // check that the route was correctly indexed by the DPC
         val route = dpState() peerTunnelInfo host2.getId
@@ -147,7 +147,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
         // delete this host from the tunnel zone
         clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host1.getId)
-        fishForReplyOfType[GreZoneChanged](vtpProbe())
+        fishForReplyOfType[ZoneChanged](vtpProbe())
 
         Thread.sleep(500) // guard against spurious failures
 

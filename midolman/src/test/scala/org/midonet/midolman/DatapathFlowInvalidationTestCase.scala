@@ -24,8 +24,7 @@ import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneMembers
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.{TestHelpers, RouterHelper}
@@ -229,8 +228,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             tunnelZone.getId,
             new TunnelZone.HostConfig(host2.getId).setIp(dstIp1.toIntIPv4))
 
-        fishForReplyOfType[GreZoneMembers](vtpProbe())
-        fishForReplyOfType[GreZoneChanged](vtpProbe())
+        fishForReplyOfType[ZoneMembers](vtpProbe())
+        fishForReplyOfType[ZoneChanged](vtpProbe())
 
         // assert that the tunnel route was added
         (dpState() peerTunnelInfo host2.getId) shouldBe Some(route1)

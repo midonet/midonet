@@ -78,25 +78,27 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
 
             val subscriber = subscribe(TunnelZoneRequest(zone.getId))
             subscriber.getAndClear() should be (List(
-                GreZoneMembers(zone.getId, Set(tunnelZoneHost))))
+                ZoneMembers(zone.getId, TunnelZone.Type.gre, Set(tunnelZoneHost))))
 
-            VirtualToPhysicalMapper ! GreZoneChanged(
-                    zone.getId, tunnelZoneHost, HostConfigOperation.Deleted)
+            VirtualToPhysicalMapper ! ZoneChanged(
+                    zone.getId, zone.getType, tunnelZoneHost, HostConfigOperation.Deleted)
             subscriber.getAndClear() should be (List(
-                GreZoneChanged(zone.getId, tunnelZoneHost,
+                ZoneChanged(zone.getId, zone.getType, tunnelZoneHost,
                                HostConfigOperation.Deleted)))
 
-            VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, tunnelZoneHost,
-                                                     HostConfigOperation.Added)
+            VirtualToPhysicalMapper ! ZoneChanged(zone.getId, zone.getType,
+                                                  tunnelZoneHost,
+                                                  HostConfigOperation.Added)
+
             subscriber.getAndClear() should be (List(
-                GreZoneChanged(zone.getId, tunnelZoneHost,
+                ZoneChanged(zone.getId, zone.getType, tunnelZoneHost,
                                HostConfigOperation.Added)))
 
             val other = new TunnelZone.HostConfig(UUID.randomUUID())
-            VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, other,
+            VirtualToPhysicalMapper ! ZoneChanged(zone.getId, zone.getType, other,
                                                      HostConfigOperation.Added)
             subscriber.getAndClear() should be (List(
-                GreZoneChanged(zone.getId, other,
+                ZoneChanged(zone.getId, zone.getType, other,
                                HostConfigOperation.Added)))
         }
     }

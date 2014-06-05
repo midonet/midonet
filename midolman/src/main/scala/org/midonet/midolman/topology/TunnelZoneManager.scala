@@ -10,7 +10,7 @@ import akka.actor.ActorRef
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.TunnelZones
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.ZoneChanged
 import org.midonet.packets.IPv4
 import org.midonet.util.collection.MapperToFirstCall
 
@@ -41,12 +41,12 @@ class TunnelZoneManager(clusterClient: Client,
         }
 
         override def addHost(hostId: UUID, hostConfig: TunnelZone.HostConfig): LocalZoneBuilder = {
-            actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Added)
+            actor ! ZoneChanged(zone.getId, zone.getType, hostConfig, HostConfigOperation.Added)
             this
         }
 
         override def removeHost(hostId: UUID, hostConfig: TunnelZone.HostConfig): LocalZoneBuilder = {
-            actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Deleted)
+            actor ! ZoneChanged(zone.getId, zone.getType, hostConfig, HostConfigOperation.Deleted)
             this
         }
 
