@@ -312,21 +312,19 @@ public class LocalDataClientImpl implements DataClient {
         return bgps;
     }
 
-    public List<Bridge> bridgesFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException {
+    public List<Bridge> bridgesFindByTenant(String tenantId) throws StateAccessException,
+        SerializationException {
         log.debug("bridgesFindByTenant entered: tenantId={}", tenantId);
 
         List<Bridge> bridges = bridgesGetAll();
 
-        for (Iterator<Bridge> it = bridges.iterator(); it.hasNext();){
-            if (!it.next().getProperty(
-                    Bridge.Property.tenant_id).equals(tenantId)) {
+        for (Iterator<Bridge> it = bridges.iterator(); it.hasNext();) {
+            if (!it.next().hasTenantId(tenantId)) {
                 it.remove();
             }
         }
 
-        log.debug("bridgesFindByTenant exiting: {} bridges found",
-                bridges.size());
+        log.debug("bridgesFindByTenant exiting: {} bridges found", bridges.size());
         return bridges;
     }
 
@@ -2952,21 +2950,19 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public List<Router> routersFindByTenant(String tenantId)
-            throws StateAccessException, SerializationException {
+    public List<Router> routersFindByTenant(String tenantId) throws StateAccessException,
+        SerializationException {
         log.debug("routersFindByTenant entered: tenantId={}", tenantId);
 
         List<Router> routers = routersGetAll();
 
-        for (Iterator<Router> it = routers.iterator(); it.hasNext();){
-            if (!it.next().getProperty(
-                    Router.Property.tenant_id).equals(tenantId)) {
+        for (Iterator<Router> it = routers.iterator(); it.hasNext();) {
+            if (!it.next().hasTenantId(tenantId)) {
                 it.remove();
             }
         }
 
-        log.debug("routersFindByTenant exiting: {} routers found",
-                routers.size());
+        log.debug("routersFindByTenant exiting: {} routers found", routers.size());
         return routers;
     }
 
