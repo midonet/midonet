@@ -276,6 +276,27 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         String path = paths.getNeutronSecurityGroupPath(sg.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(sg)));
+
+        List<Rule> ingressRules = new ArrayList<>();
+        List<Rule> egressRules = new ArrayList<>();
+
+        for (SecurityGroupRule sgr : sg.securityGroupRules) {
+            if (sgr.isEgress()) {
+                Rule r = Rule.acceptRule(sgr, inboundChainId);
+                r.getCondition().id = sgr.id;
+                egressRules.add(r);
+            } else {
+                Rule r = Rule.acceptRule(sgr, outboundChainId);
+                r.getCondition().id = sgr.id;
+                ingressRules.add(r);
+            }
+            String rulePath = paths.getNeutronSecurityGroupRulePath(sgr.id);
+            ops.add(zk.getPersistentCreateOp(rulePath, serializer.serialize(sgr)));
+        }
+
+        ruleZkManager.prepareCreateRulesInNewChain(ops, inboundChainId, egressRules);
+        ruleZkManager.prepareCreateRulesInNewChain(ops, outboundChainId, ingressRules);
+
     }
 
     public SecurityGroup getSecurityGroup(UUID securityGroupId)
