@@ -13,6 +13,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.SecurityGroupApi;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.event.neutron.SecurityGroupRuleEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -33,6 +34,9 @@ public class SecurityGroupRuleResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SecurityGroupRuleResource.class);
+    private final static
+    SecurityGroupRuleEvent SECURITY_GROUP_RULE_EVENT =
+            new SecurityGroupRuleEvent();
 
     private final SecurityGroupApi api;
 
@@ -56,7 +60,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
         try {
 
             SecurityGroupRule r = api.createSecurityGroupRule(rule);
-
+            SECURITY_GROUP_RULE_EVENT.create(r.id, r);
             log.info("SecurityGroupRuleResource.get exiting {}", r);
             return Response.created(
                     NeutronUriBuilder.getSecurityGroupRule(
@@ -79,7 +83,9 @@ public class SecurityGroupRuleResource extends AbstractResource {
         try {
             List<SecurityGroupRule> outRules =
                     api.createSecurityGroupRuleBulk(rules);
-
+            for (SecurityGroupRule r : outRules) {
+                SECURITY_GROUP_RULE_EVENT.create(r.id, r);
+            }
             return Response.created(NeutronUriBuilder.getSecurityGroupRules(
                     getBaseUri())).entity(outRules).build();
         } catch (StatePathExistsException e) {
@@ -94,6 +100,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupRuleResource.delete entered {}", id);
         api.deleteSecurityGroupRule(id);
+        SECURITY_GROUP_RULE_EVENT.delete(id);
     }
 
     @GET

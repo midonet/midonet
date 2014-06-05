@@ -12,9 +12,9 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.L3Api;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
 import org.midonet.cluster.data.neutron.Router;
 import org.midonet.cluster.data.neutron.RouterInterface;
+import org.midonet.event.neutron.RouterEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -36,6 +36,8 @@ public class RouterResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             RouterResource.class);
+    private final static RouterEvent ROUTER_EVENT =
+            new RouterEvent();
 
     private final L3Api api;
 
@@ -57,7 +59,7 @@ public class RouterResource extends AbstractResource {
         try {
 
             Router r = api.createRouter(router);
-
+            ROUTER_EVENT.create(r.id, r);
             log.info("RouterResource.create exiting {}", r);
             return Response.created(
                     NeutronUriBuilder.getRouter(
@@ -76,6 +78,7 @@ public class RouterResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("RouterResource.delete entered {}", id);
         api.deleteRouter(id);
+        ROUTER_EVENT.delete(id);
     }
 
     @GET
@@ -117,7 +120,7 @@ public class RouterResource extends AbstractResource {
         try {
 
             Router r = api.updateRouter(id, router);
-
+            ROUTER_EVENT.update(id, r);
             log.info("RouterResource.update exiting {}", r);
             return Response.ok(
                     NeutronUriBuilder.getRouter(
@@ -142,8 +145,8 @@ public class RouterResource extends AbstractResource {
         try {
 
             RouterInterface ri = api.addRouterInterface(id, intf);
+            ROUTER_EVENT.interfaceUpdate(ri.id, ri);
             log.info("RouterResource.addRouterInterface exiting {}", ri);
-
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
             throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
@@ -160,6 +163,7 @@ public class RouterResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("RouterResource.removeRouterInterface entered {}", intf);
         RouterInterface ri = api.removeRouterInterface(id, intf);
+        ROUTER_EVENT.interfaceUpdate(ri.id, ri);
         log.info("RouterResource.removeRouterInterface exiting {}", ri);
     }
 }

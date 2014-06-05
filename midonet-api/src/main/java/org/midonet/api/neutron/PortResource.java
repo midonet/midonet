@@ -13,6 +13,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Port;
+import org.midonet.event.neutron.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -35,6 +36,8 @@ public class PortResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             PortResource.class);
+    private final static PortEvent PORT_EVENT =
+            new PortEvent();
 
     private final NetworkApi api;
 
@@ -56,7 +59,7 @@ public class PortResource extends AbstractResource {
         try {
 
             Port p = api.createPort(port);
-
+            PORT_EVENT.create(p.id, p);
             log.info("PortResource.create exiting {}", p);
             return Response.created(
                     NeutronUriBuilder.getPort(
@@ -79,7 +82,9 @@ public class PortResource extends AbstractResource {
 
         try {
             List<Port> outPorts = api.createPortBulk(ports);
-
+            for (Port p : outPorts) {
+                PORT_EVENT.create(p.id, p);
+            }
             return Response.created(NeutronUriBuilder.getPorts(
                     getBaseUri())).entity(outPorts).build();
         } catch (StatePathExistsException e) {
@@ -94,6 +99,7 @@ public class PortResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("PortResource.delete entered {}", id);
         api.deletePort(id);
+        PORT_EVENT.delete(id);
     }
 
     @GET
@@ -136,7 +142,7 @@ public class PortResource extends AbstractResource {
         try {
 
             Port p = api.updatePort(id, port);
-
+            PORT_EVENT.update(id, p);
             log.info("PortResource.update exiting {}", p);
             return Response.ok(
                     NeutronUriBuilder.getPort(

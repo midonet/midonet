@@ -13,6 +13,7 @@ import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.SecurityGroup;
 import org.midonet.cluster.data.neutron.SecurityGroupApi;
+import org.midonet.event.neutron.SecurityGroupEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -34,6 +35,8 @@ public class SecurityGroupResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SecurityGroupResource.class);
+    private final static SecurityGroupEvent SECURITY_GROUP_EVENT =
+            new SecurityGroupEvent();
 
     private final SecurityGroupApi api;
 
@@ -57,7 +60,7 @@ public class SecurityGroupResource extends AbstractResource {
         try {
 
             SecurityGroup s = api.createSecurityGroup(sg);
-
+            SECURITY_GROUP_EVENT.create(s.id, s);
             log.info("SecurityGroupResource.create exiting {}", s);
             return Response.created(
                     NeutronUriBuilder.getSecurityGroup(
@@ -81,7 +84,9 @@ public class SecurityGroupResource extends AbstractResource {
         try {
             List<SecurityGroup> outSgs =
                     api.createSecurityGroupBulk(sgs);
-
+            for (SecurityGroup s : outSgs) {
+                SECURITY_GROUP_EVENT.create(s.id, s);
+            }
             return Response.created(NeutronUriBuilder.getSecurityGroups(
                     getBaseUri())).entity(outSgs).build();
         } catch (StatePathExistsException e) {
@@ -96,6 +101,7 @@ public class SecurityGroupResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("SecurityGroupResource.delete entered {}", id);
         api.deleteSecurityGroup(id);
+        SECURITY_GROUP_EVENT.delete(id);
     }
 
     @GET
@@ -137,7 +143,7 @@ public class SecurityGroupResource extends AbstractResource {
         try {
 
             SecurityGroup s = api.updateSecurityGroup(id, sg);
-
+            SECURITY_GROUP_EVENT.update(id, s);
             log.info("SecurityGroupResource.update exiting {}", s);
             return Response.ok(
                     NeutronUriBuilder.getSecurityGroup(
