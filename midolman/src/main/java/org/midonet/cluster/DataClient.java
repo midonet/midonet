@@ -970,6 +970,14 @@ public interface DataClient {
                                   @Nonnull String portName, short vlanId)
             throws StateAccessException;
 
+    /**
+     * Returns a list containing all the bindings configured in the given VTEP,
+     * by fetching them from the storage (not the VTEP itself).
+     *
+     * @param ipAddr the management IP that identifies the VTEP.
+     * @return a list that is never null
+     * @throws StateAccessException
+     */
     public List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
             throws StateAccessException;
 
