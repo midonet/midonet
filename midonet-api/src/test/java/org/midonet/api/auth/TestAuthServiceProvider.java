@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.auth;
 
@@ -19,6 +19,8 @@ import org.midonet.api.auth.cloudstack.CloudStackAuthService;
 import org.midonet.api.auth.cloudstack.CloudStackConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.api.auth.vsphere.VSphereConfig;
+import org.midonet.api.auth.vsphere.VSphereSSOService;
 import org.midonet.api.config.ConfigurationModule;
 import org.midonet.cluster.DataClient;
 import org.midonet.config.ConfigProvider;
@@ -36,6 +38,7 @@ import static org.mockito.Mockito.when;
  *
  * - Keystone
  * - CloudStack
+ * - vSphere
  * - Mock
  */
 public class TestAuthServiceProvider {
@@ -51,6 +54,8 @@ public class TestAuthServiceProvider {
     private ServletContext mockServletContext;
     @Mock
     private AuthConfig mockAuthConfig;
+    @Mock
+    private VSphereConfig mockVSphereConfig;
 
     @Before
     public void setUp() {
@@ -83,6 +88,7 @@ public class TestAuthServiceProvider {
                         bind(DataClient.class).toInstance(mockDataClient);
                         bind(ConfigProvider.class)
                                 .toInstance(mockConfigProvider);
+
                     }
                 },
                 Modules.override(new AuthModule()).with(
@@ -98,6 +104,7 @@ public class TestAuthServiceProvider {
 //                        bind(AuthService.class)
 //                                .toProvider(AuthServiceProvider.class)
 //                                .asEagerSingleton();
+
                         }
                     }
                 )
@@ -123,7 +130,6 @@ public class TestAuthServiceProvider {
                 customConfigProviderInjector.getProvider(AuthService.class);
 
         assertTrue(authServiceProvider.get() instanceof KeystoneService);
-
     }
 
     @Test
@@ -152,10 +158,30 @@ public class TestAuthServiceProvider {
         assertTrue(authServiceProvider.get() instanceof MockAuthService);
     }
 
+    @Test
+    public void testInstalledVSpherePlugin() {
+        when(mockAuthConfig.getAuthProvider())
+                .thenReturn(AuthServiceProvider.VSPHERE_PLUGIN);
+        when(mockConfigProvider.getConfig(VSphereConfig.class))
+                .thenReturn(mockVSphereConfig);
+        when(mockVSphereConfig.getServiceSdkUrl())
+                .thenReturn("https://localhost/sdk");
+        when(mockVSphereConfig.getServiceSSLCertFingerprint())
+                .thenReturn("");
+        when(mockVSphereConfig.ignoreServerCert())
+                .thenReturn("true");
+
+        Provider<AuthService> authServiceProvider =
+                customConfigProviderInjector.getProvider(AuthService.class);
+
+        assertTrue(authServiceProvider.get() instanceof VSphereSSOService);
+    }
+
     @Test(expected=com.google.inject.ProvisionException.class)
     public void testUnsupportedPlugin() {
         when(mockAuthConfig.getAuthProvider())
                 .thenReturn("org.midonet.api.auth.UNSUPPORTED");
+
         customConfigProviderInjector.getInstance(AuthService.class);
     }
 

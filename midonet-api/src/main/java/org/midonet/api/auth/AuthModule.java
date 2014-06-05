@@ -3,6 +3,8 @@
  */
 package org.midonet.api.auth;
 
+import java.net.MalformedURLException;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
@@ -17,6 +19,10 @@ import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.api.auth.vsphere.VSphereClient;
+import org.midonet.api.auth.vsphere.VSphereConfig;
+import org.midonet.api.auth.vsphere.VSphereConfigurationException;
+import org.midonet.api.auth.vsphere.VSphereSSOService;
 import org.midonet.api.bgp.auth.AdRouteAuthorizer;
 import org.midonet.api.bgp.auth.BgpAuthorizer;
 import org.midonet.api.filter.auth.ChainAuthorizer;
@@ -51,19 +57,27 @@ public class AuthModule extends AbstractModule {
         bind(RouterAuthorizer.class).asEagerSingleton();
         bind(RuleAuthorizer.class).asEagerSingleton();
 
-        MapBinder<String, AuthService> registeredAuthServices
-                = MapBinder.newMapBinder(binder(), String.class, AuthService.class);
+        MapBinder<String, AuthService> registeredAuthServices =
+                MapBinder.newMapBinder(binder(), String.class, AuthService.class);
 
-        registeredAuthServices.addBinding(AuthServiceProvider.KEYSTONE_PLUGIN)
+        registeredAuthServices
+                .addBinding(AuthServiceProvider.KEYSTONE_PLUGIN)
                 .to(KeystoneService.class);
 
-        registeredAuthServices.addBinding(AuthServiceProvider.CLOUDSTACK_PLUGIN)
+        registeredAuthServices
+                .addBinding(AuthServiceProvider.CLOUDSTACK_PLUGIN)
                 .to(CloudStackAuthService.class);
 
-        registeredAuthServices.addBinding(AuthServiceProvider.MOCK_PLUGIN)
+        registeredAuthServices
+                .addBinding(AuthServiceProvider.VSPHERE_PLUGIN)
+                .to(VSphereSSOService.class);
+
+        registeredAuthServices
+                .addBinding(AuthServiceProvider.MOCK_PLUGIN)
                 .to(MockAuthService.class);
     }
 
+    // -- Keystone --
     @Provides @Singleton
     @Inject
     KeystoneConfig provideKeystoneConfig(ConfigProvider provider) {
@@ -80,13 +94,14 @@ public class AuthModule extends AbstractModule {
                 keystoneConfig.getAdminToken());
     }
 
+    // -- CloudStack --
     @Provides @Singleton
     @Inject
     CloudStackConfig provideCloudStackConfig(ConfigProvider provider) {
         return provider.getConfig(CloudStackConfig.class);
     }
 
-    @Provides @Singleton
+    @Provides
     @Inject
     CloudStackClient provideCloudStackClient(CloudStackConfig cloudStackConfig) {
         return new CloudStackClient(
@@ -97,6 +112,33 @@ public class AuthModule extends AbstractModule {
                 new CloudStackJsonParser());
     }
 
+    // -- vSphere --
+    @Provides @Singleton
+    @Inject
+    VSphereConfig provideVSphereConfig(ConfigProvider provider) {
+        return provider.getConfig(VSphereConfig.class);
+    }
+
+    @Provides
+    @Inject
+    VSphereClient provideVSphereClient(VSphereConfig vSphereConfig)
+            throws MalformedURLException, AuthException {
+        String ignoreServerCertificate =
+                vSphereConfig.ignoreServerCert();
+
+        if(ignoreServerCertificate.equalsIgnoreCase("true")) {
+            return new VSphereClient(vSphereConfig.getServiceSdkUrl());
+        }
+        else if(ignoreServerCertificate.equalsIgnoreCase("false")) {
+            return new VSphereClient(vSphereConfig.getServiceSdkUrl(),
+                    vSphereConfig.getServiceSSLCertFingerprint());
+        }
+
+        throw new VSphereConfigurationException("Unrecognized option for " +
+                "ignore_server_cert: " + ignoreServerCertificate);
+    }
+
+    // -- Mock --
     @Provides @Singleton
     @Inject
     MockAuthConfig provideMockAuthConfig(ConfigProvider provider) {
