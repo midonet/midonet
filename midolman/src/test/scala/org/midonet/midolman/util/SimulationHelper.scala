@@ -314,8 +314,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         portNums.foreach( portNum =>
             actions.filter {
                 x => x.isInstanceOf[FlowActionOutput]}.toList map { action =>
-                    action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
-                    action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
+                    action.asInstanceOf[FlowActionOutput].getPortNumber
                 } should contain (portNum)
         )
 
@@ -324,10 +323,9 @@ trait SimulationHelper { this: MidolmanTestCase =>
         vlanIdsPush.foreach( vlanId =>
             actions.filter {
                 x => x.isInstanceOf[FlowActionPushVLAN]}.toList map { action =>
-                    action.getKey should be (FlowAction.FlowActionAttr.PUSH_VLAN)
                     // The VlanId is just 12 bits in that field
-                    (action.getValue.asInstanceOf[FlowActionPushVLAN]
-                        .getTagControlIdentifier & 0x0fff).toShort
+                    (action.asInstanceOf[FlowActionPushVLAN]
+                           .getTagControlIdentifier & 0x0fff).toShort
                 } should contain (vlanId)
         )
 

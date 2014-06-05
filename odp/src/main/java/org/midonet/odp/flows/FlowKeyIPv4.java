@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyIPv4 implements FlowKey {
@@ -44,16 +43,6 @@ public class FlowKeyIPv4 implements FlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(BytesUtil.instance.reverseBE(ipv4_src));
-        builder.addValue(BytesUtil.instance.reverseBE(ipv4_dst));
-        builder.addValue(ipv4_proto);
-        builder.addValue(ipv4_tos);
-        builder.addValue(ipv4_ttl);
-        builder.addValue(ipv4_frag);
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             ipv4_src = BytesUtil.instance.reverseBE(message.getInt());
@@ -69,18 +58,8 @@ public class FlowKeyIPv4 implements FlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyIPv4> getKey() {
-        return FlowKeyAttr.IPv4;
-    }
-
     public short attrId() {
         return FlowKeyAttr.IPv4.getId();
-    }
-
-    @Override
-    public FlowKeyIPv4 getValue() {
-        return this;
     }
 
     @Override

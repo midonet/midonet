@@ -10,8 +10,7 @@ import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
-public interface FlowAction
-        extends BuilderAware, NetlinkMessage.Attr<FlowAction> {
+public interface FlowAction extends BuilderAware {
 
     /** write the action into a bytebuffer, without its header. */
     int serializeInto(ByteBuffer buf);

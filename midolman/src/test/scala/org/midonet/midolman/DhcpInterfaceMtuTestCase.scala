@@ -178,9 +178,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         pktOut.actions.size should equal (1)
 
         pktOut.actions.toList map { action =>
-            action.getKey should be (FlowAction.FlowActionAttr.OUTPUT)
-            action.getValue.getClass() should be (classOf[FlowActionOutput])
-            action.getValue.asInstanceOf[FlowActionOutput].getPortNumber
+            action.getClass() should be (classOf[FlowActionOutput])
+            action.asInstanceOf[FlowActionOutput].getPortNumber
         } should contain (portNum)
 
         pktOut.packet.getPacket

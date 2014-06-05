@@ -10,7 +10,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.midonet.netlink.clib.cLibrary;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.MalformedPacketException;
@@ -40,13 +39,6 @@ public class NetlinkMessage {
         public static <T> AttrKey<T> attrNested(int id) {
             return new AttrKey<T>(nested((short)id));
         }
-    }
-
-    public interface Attr<T> {
-
-        public AttrKey<? extends T> getKey();
-
-        public T getValue();
     }
 
     static public final short NLA_F_NESTED = (short) (1 << 15);
@@ -200,7 +192,7 @@ public class NetlinkMessage {
         T newInstance(short type);
     }
 
-    public <T extends Attr & BuilderAware> List<T> getAttrValue(AttrKey<List<T>> attr, final CustomBuilder<T> builder) {
+    public <T extends BuilderAware> List<T> getAttrValue(AttrKey<List<T>> attr, final CustomBuilder<T> builder) {
         return new SingleAttributeParser<List<T>>(attr) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -311,10 +303,11 @@ public class NetlinkMessage {
         buffer.putShort(id);
     }
 
-    public static int addAttribute(ByteBuffer buf, short id, String value) {
+    /** write a C String attribute with null terminator, with header. */
+    public static int writeStringAttr(ByteBuffer buf, short id, String value) {
 
         int startPos = buf.position();
-        int strLen = value.length() + 1;
+        int strLen = value.length() + 1;    // add one for null terminator
 
         setAttrHeader(buf, id, 4 + strLen);
 
@@ -385,21 +378,21 @@ public class NetlinkMessage {
         return nByte;
     }
 
-    /** write an 8B long netlink attribute into a buffer, with header. */
+    /** write a 8B long netlink attribute into a buffer, with header. */
     public static int writeLongAttr(ByteBuffer buf, short id, long value) {
         NetlinkMessage.setAttrHeader(buf, id, 12);
         buf.putLong(value);
         return 12;
     }
 
-    /** write an 4B int netlink attribute into a buffer, with header. */
+    /** write a 4B int netlink attribute into a buffer, with header. */
     public static int writeIntAttr(ByteBuffer buf, short id, int value) {
         NetlinkMessage.setAttrHeader(buf, id, 8);
         buf.putInt(value);
         return 8;
     }
 
-    /** write an 2B int netlink attribute into a buffer, with header. Padding
+    /** write a 2B short netlink attribute into a buffer, with header. Padding
      *  for 4B alignement is added. */
     public static int writeShortAttr(ByteBuffer buf, short id, short value) {
         NetlinkMessage.setAttrHeader(buf, id, 8);
@@ -408,7 +401,7 @@ public class NetlinkMessage {
         return 8;
     }
 
-    /** writes a short attribute with a header len field assuming no padding,
+    /** writes a 2B short attribute with a header len field assuming no padding,
      *  but adds the padding for 4B alignement nonetheless (needed because of
      *  a couple of quirks in the request validation code of the datapath). */
     public static int writeShortAttrNoPad(ByteBuffer buf,
@@ -416,6 +409,15 @@ public class NetlinkMessage {
         NetlinkMessage.setAttrHeader(buf, id, 6);
         buf.putShort(value);
         addPaddingForShort(buf);
+        return 8;
+    }
+
+    /** write a one byte netlink attribute into a buffer, with header. Padding
+     *  for 4B alignement is added. */
+    public static int writeByteAttr(ByteBuffer buf, short id, byte value) {
+        NetlinkMessage.setAttrHeader(buf, id, 8);
+        buf.put(value);
+        addPaddingForByte(buf);
         return 8;
     }
 
@@ -429,7 +431,8 @@ public class NetlinkMessage {
         return 8;
     }
 
-    public static int addAttribute(ByteBuffer buf, short id, byte[] value) {
+    /** write an attribute as a raw stream of bytes, with header. */
+    public static int writeRawAttribute(ByteBuffer buf, short id, byte[] value) {
         // save position
         int start = buf.position();
 

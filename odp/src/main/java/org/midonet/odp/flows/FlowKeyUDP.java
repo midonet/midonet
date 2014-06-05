@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
@@ -32,12 +31,6 @@ public class FlowKeyUDP implements FlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(BytesUtil.instance.reverseBE((short)udp_src));
-        builder.addValue(BytesUtil.instance.reverseBE((short)udp_dst));
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
@@ -48,18 +41,8 @@ public class FlowKeyUDP implements FlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyUDP> getKey() {
-        return FlowKeyAttr.UDP;
-    }
-
     public short attrId() {
         return FlowKeyAttr.UDP.getId();
-    }
-
-    @Override
-    public FlowKeyUDP getValue() {
-        return this;
     }
 
     public int getUdpSrc() {

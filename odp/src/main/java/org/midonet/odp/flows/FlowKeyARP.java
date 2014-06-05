@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -45,16 +44,6 @@ public class FlowKeyARP implements CachedFlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(BytesUtil.instance.reverseBE(arp_sip));
-        builder.addValue(BytesUtil.instance.reverseBE(arp_tip));
-        builder.addValue(BytesUtil.instance.reverseBE(arp_op));
-        builder.addValue(arp_sha);
-        builder.addValue(arp_tha);
-        builder.addValue((short)0); // padding
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             arp_sip = BytesUtil.instance.reverseBE(message.getInt());
@@ -69,18 +58,8 @@ public class FlowKeyARP implements CachedFlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyARP> getKey() {
-        return FlowKeyAttr.ARP;
-    }
-
     public short attrId() {
         return FlowKeyAttr.ARP.getId();
-    }
-
-    @Override
-    public FlowKeyARP getValue() {
-        return this;
     }
 
     public byte[] getTha() {

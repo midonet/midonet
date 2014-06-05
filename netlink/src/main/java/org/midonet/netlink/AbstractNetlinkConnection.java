@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.TokenBucket;
 import org.midonet.util.io.SelectorInputQueue;
@@ -634,9 +633,5 @@ public abstract class AbstractNetlinkConnection {
         buf.clear();
         buf.position(NETLINK_HEADER_LEN);
         return buf;
-    }
-
-    protected Builder newMessage() {
-        return new Builder(getBuffer());
     }
 }

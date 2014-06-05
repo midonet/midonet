@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.NetlinkMessage.AttrKey;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionUserspace implements FlowAction {
@@ -49,14 +48,6 @@ public class FlowActionUserspace implements FlowAction {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addAttr(OVS_USERSPACE_ATTR_PID, uplinkPid);
-        if (userData != null) {
-            builder.addAttr(OVS_USERSPACE_ATTR_USERDATA, userData);
-        }
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             uplinkPid = message.getAttrValueInt(OVS_USERSPACE_ATTR_PID);
@@ -69,16 +60,6 @@ public class FlowActionUserspace implements FlowAction {
 
     public short attrId() {
         return FlowActionAttr.USERSPACE.getId();
-    }
-
-    @Override
-    public NetlinkMessage.AttrKey<FlowActionUserspace> getKey() {
-        return FlowActionAttr.USERSPACE;
-    }
-
-    @Override
-    public FlowActionUserspace getValue() {
-        return this;
     }
 
     @Override

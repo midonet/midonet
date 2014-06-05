@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.Builder;
 import org.midonet.packets.VLAN;
 
 public class FlowKeyVLAN implements CachedFlowKey {
@@ -30,11 +29,6 @@ public class FlowKeyVLAN implements CachedFlowKey {
     }
 
     @Override
-    public void serialize(Builder builder) {
-        builder.addValue(BytesUtil.instance.reverseBE(VLAN.setDEI(vlan)));
-    }
-
-    @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
             vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(message.getShort()));
@@ -44,18 +38,8 @@ public class FlowKeyVLAN implements CachedFlowKey {
         }
     }
 
-    @Override
-    public NetlinkMessage.AttrKey<FlowKeyVLAN> getKey() {
-        return FlowKeyAttr.VLAN;
-    }
-
     public short attrId() {
         return FlowKeyAttr.VLAN.getId();
-    }
-
-    @Override
-    public FlowKeyVLAN getValue() {
-        return this;
     }
 
     public short getVLAN() {
