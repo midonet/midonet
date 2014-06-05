@@ -59,11 +59,12 @@ test run.
 
 ## The test reports server
 
-Its address is: http://perftests.midokura.com:8080
+Its address is: http://119.15.112.105:8080/
 
-The SSH key that perftest.sh uses to post reports is found under the midokura
-account at 176.28.127.122. Copying this key or adding a new public key to the
-server is needed when adding a new VM that should be able to post reports.
+The SSH key that perftest.sh uses to post reports, id_rsa_testreports, is found
+under the midokura account at bcn10.bcn.midokura.com. Copying this key or adding
+a new public key to the server is needed when adding a new VM that should be
+able to post reports.
 
 ## Setting up a performance test environment
 
@@ -73,7 +74,7 @@ The following dependencies need to be installed:
 * Python-midonetclient
 * Nmap
 * Ovs kmod
-* Jmxtrans (jmxtrans package is available in ~/debs/ directory at 176.28.127.122.)
+* Jmxtrans
 * RRDtool
 * Zookeeper
 * Cassandra
@@ -82,8 +83,7 @@ Also,
 * Packages in this source tree have been built prior to invokation of
   perftests.sh.
 * the SSH key mentioned above is required to post results to
-  perftests.midokura.com. (Copy 176.28.127.122:/home/midokura/id_rsa_testreports to
-  /home/midokura/ on the local machine.)
+  perftests.midokura.com.
 
 ## Running a performance test
 
