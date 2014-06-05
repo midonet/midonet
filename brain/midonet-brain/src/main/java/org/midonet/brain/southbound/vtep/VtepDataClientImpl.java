@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.southbound.vtep;
 
@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.google.inject.Inject;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
@@ -110,7 +111,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         cfgSrv.setDefaultNode(node);
 
         log.debug("Connecting to VTEP on {}:{}, node {}",
-                 new Object[]{mgmtIp, port, node.getID()});
+                  new Object[]{mgmtIp, port, node.getID()});
 
         long timeoutAt = System.currentTimeMillis() + CNXN_TIMEOUT_MILLIS;
         while (!this.isReady() && System.currentTimeMillis() < timeoutAt) {
@@ -152,11 +153,13 @@ public class VtepDataClientImpl implements VtepDataClient {
     private PhysicalSwitch loadVtepDetails() {
         List<PhysicalSwitch> pss = this.listPhysicalSwitches();
         String sMgmtIp = this.mgmtIp.toString();
+        log.debug("Loading VTEP details, known VTEPs: {}", pss);
         for (PhysicalSwitch ps : pss) {
             if (ps.mgmtIps.contains(sMgmtIp)) {
                 return ps;
             }
         }
+        log.warn("Could not find physical switch!");
         return null;
     }
 
@@ -323,8 +326,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Add logical switch {} with vni {}", name, vni);
         StatusWithUuid st = cfgSrv.vtepAddLogicalSwitch(name, vni);
         if (!st.isSuccess()) {
-            log.warn("Add logical switch failed: {} - {}", st.getCode(),
-                                                           st.getDescription());
+            log.warn("Add logical switch failed: {}", st);
         }
         return st;
     }
@@ -337,8 +339,19 @@ public class VtepDataClientImpl implements VtepDataClient {
                   new Object[]{lsName, portName, vlan, vni, floodIps});
         Status st = cfgSrv.vtepBindVlan(lsName, portName, vlan, vni, floodIps);
         if (!st.isSuccess()) {
-            log.warn("Bind vlan failed: {} - {}", st.getCode(),
-                                                  st.getDescription());
+            log.warn("Bind vlan failed: {}", st);
+        }
+        return st;
+    }
+
+    @Override
+    public Status addBindings(UUID lsUuid,
+                              List<Pair<String, Integer>> portVlanPairs) {
+        log.debug("Bind logical switch {} to port-vlans {}",
+                  lsUuid, portVlanPairs);
+        Status st = cfgSrv.vtepAddBindings(lsUuid, portVlanPairs);
+        if (!st.isSuccess()) {
+            log.warn("Add bindings failed: {}", st);
         }
         return st;
     }
@@ -351,8 +364,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         assert (MAC.fromString(mac) != null);
         StatusWithUuid st = cfgSrv.vtepAddUcastRemote(lsName, mac, ip, null);
         if (!st.isSuccess()) {
-            log.error("Could not add Ucast Mac Remote: {} - {}",
-                      st.getCode(), st.getDescription());
+            log.error("Could not add Ucast Mac Remote: {}", st);
         }
         return st;
     }
@@ -423,4 +435,15 @@ public class VtepDataClientImpl implements VtepDataClient {
         }
         return st;
     }
+
+    @Override
+    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID lsUuid) {
+        return cfgSrv.vtepPortVlanBindings(lsUuid);
+    }
+
+    @Override
+    public Status clearBindings(UUID lsUuid) {
+        return cfgSrv.vtepClearBindings(lsUuid);
+    }
+
 }
