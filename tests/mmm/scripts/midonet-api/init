@@ -11,12 +11,4 @@ else
         -i /usr/share/midonet-api/WEB-INF/web.xml
 fi
 
-if test x"$CASSANDRA_STANDALONE" = xyes; then
-    sed "s/\(localhost:9160\|10.0.0.5:9160,10.0.0.6:9160,10.0.0.7:9160\)/10.0.0.5:9160/" \
-        -i /usr/share/midonet-api/WEB-INF/web.xml
-else
-    sed "s/\(localhost:9160\|10.0.0.5:9160\)/10.0.0.5:9160,10.0.0.6:9160,10.0.0.7:9160/" \
-        -i /usr/share/midonet-api/WEB-INF/web.xml
-fi
-
 sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
