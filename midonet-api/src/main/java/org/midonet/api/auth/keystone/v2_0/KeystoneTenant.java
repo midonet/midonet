@@ -87,6 +87,11 @@ public class KeystoneTenant {
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hashCode(id, name, description, enabled);
+        }
+
+        @Override
         public boolean equals(Object other) {
 
             if (other == this) {
