@@ -4,6 +4,7 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ComparisonChain;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.midonet.packets.ICMP;
@@ -12,7 +13,7 @@ import org.midonet.util.Range;
 
 import java.util.UUID;
 
-public class SecurityGroupRule {
+public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
 
     public UUID id;
 
@@ -39,6 +40,22 @@ public class SecurityGroupRule {
 
     @JsonProperty("tenant_id")
     public String tenantId;
+
+    @Override
+    public int compareTo(SecurityGroupRule other) {
+
+        return ComparisonChain.start()
+                .compare(id, other.id)
+                .compare(securityGroupId, other.securityGroupId)
+                .compare(direction, other.direction)
+                .compare(tenantId, other.tenantId)
+                .compare(remoteGroupId, other.remoteGroupId)
+                .compare(protocol, other.protocol)
+                .compare(portRangeMin, other.portRangeMin)
+                .compare(portRangeMax, other.portRangeMax)
+                .compare(remoteIpPrefix, other.remoteIpPrefix)
+                .compare(ethertype, other.ethertype).result();
+    }
 
     @Override
     public boolean equals(Object obj) {
