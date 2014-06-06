@@ -82,8 +82,8 @@ public class VtepClusterClient {
             return vtepClient;
         } catch (IllegalStateException ex) {
             log.warn("Unable to connect to VTEP: ", ex);
-            throw new GatewayTimeoutHttpException(getMessage(
-                    VTEP_INACCESSIBLE, mgmtIp, mgmtPort));
+            throw new GatewayTimeoutHttpException(getMessage(VTEP_INACCESSIBLE, mgmtIp, mgmtPort),
+                ex);
         }
     }
 

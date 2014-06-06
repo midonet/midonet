@@ -51,6 +51,10 @@ public class BadRequestHttpException extends WebApplicationException {
                 Response.Status.BAD_REQUEST.getStatusCode(), message));
     }
 
+    public BadRequestHttpException(Throwable e) {
+        super(e);
+    }
+
     public <T> BadRequestHttpException(Set<ConstraintViolation<T>> violations) {
         super(ResponseUtils.buildValidationErrorResponse(violations));
     }

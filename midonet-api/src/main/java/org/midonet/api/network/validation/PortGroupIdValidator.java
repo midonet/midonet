@@ -35,7 +35,7 @@ public class PortGroupIdValidator implements
         try {
             return dataClient.portGroupsExists(value);
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation port");
+            throw new RuntimeException("Error while validation port", e);
         }
 
     }

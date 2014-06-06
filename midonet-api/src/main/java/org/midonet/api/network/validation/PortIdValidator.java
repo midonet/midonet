@@ -35,7 +35,7 @@ public class PortIdValidator implements
         try {
             return dataClient.portsExists(value);
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation port");
+            throw new RuntimeException("Error while validation port", e);
         }
 
     }
