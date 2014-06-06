@@ -65,7 +65,7 @@ public class SecurityGroupResource extends AbstractResource {
 
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
 
@@ -85,7 +85,7 @@ public class SecurityGroupResource extends AbstractResource {
             return Response.created(NeutronUriBuilder.getSecurityGroups(
                     getBaseUri())).entity(outSgs).build();
         } catch (StatePathExistsException e) {
-            throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
 
@@ -144,8 +144,8 @@ public class SecurityGroupResource extends AbstractResource {
                             getBaseUri(), s.id)).entity(s).build();
 
         } catch (NoStatePathException e) {
-            log.error("Resource does not exist", e);
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            log.error("Resource does not exist");
+            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
         }
     }
 }

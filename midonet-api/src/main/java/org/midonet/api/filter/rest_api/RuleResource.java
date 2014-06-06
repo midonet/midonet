@@ -186,10 +186,9 @@ public class RuleResource extends AbstractResource {
                         ResourceUriBuilder.getRule(getBaseUri(), id))
                         .build();
             } catch (RuleIndexOutOfBoundsException e) {
-                throw new BadRequestHttpException("Invalid rule position.");
-            } catch (MAC.InvalidMacMaskException |
-                     MAC.InvalidMacException e) {
-                throw new BadRequestHttpException(e.getMessage());
+                throw new BadRequestHttpException(e, "Invalid rule position.");
+            } catch (MAC.InvalidMacMaskException | MAC.InvalidMacException e) {
+                throw new BadRequestHttpException(e, e.getMessage());
             }
         }
 
@@ -217,7 +216,7 @@ public class RuleResource extends AbstractResource {
             try {
                 ruleDataList = dataClient.rulesFindByChain(chainId);
             } catch (NoStatePathException e) {
-                throw new NotFoundHttpException("No such chain" + chainId);
+                throw new NotFoundHttpException(e, "No such chain" + chainId);
             }
 
             List<Rule> rules = new ArrayList<>();

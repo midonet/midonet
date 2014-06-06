@@ -35,6 +35,11 @@ public class ConflictHttpException extends WebApplicationException {
                 Response.Status.CONFLICT.getStatusCode(), message));
     }
 
+    public ConflictHttpException(Throwable throwable, String message) {
+        super(throwable,
+            ResponseUtils.buildErrorResponse(Response.Status.CONFLICT.getStatusCode(), message));
+    }
+
     public ConflictHttpException(StatePathExistsException ex) {
         this(getMessage(ex));
     }

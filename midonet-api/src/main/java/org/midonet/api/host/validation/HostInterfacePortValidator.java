@@ -48,10 +48,9 @@ public class HostInterfacePortValidator implements
             return (mapping == null) ||
                     mapping.getVirtualPortId().equals(value.getPortId());
         } catch (StateAccessException e) {
-            throw new RuntimeException("Error while validation host");
+            throw new RuntimeException("Error while validation host", e);
         } catch (SerializationException e) {
-            throw new RuntimeException("Serialization error "  +
-                    "while validating host");
+            throw new RuntimeException("Serialization error while validating host", e);
         }
 
     }

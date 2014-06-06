@@ -63,7 +63,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
                             getBaseUri(), r.id)).entity(r).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
 
@@ -83,7 +83,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
             return Response.created(NeutronUriBuilder.getSecurityGroupRules(
                     getBaseUri())).entity(outRules).build();
         } catch (StatePathExistsException e) {
-            throw new ConflictHttpException(getMessage(RESOURCE_EXISTS));
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
 

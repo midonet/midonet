@@ -109,7 +109,7 @@ public class KeystoneService implements AuthService {
                 token.setExpires(df.parse(expiredSrc));
             } catch (ParseException e) {
                 throw new KeystoneInvalidFormatException(
-                        "Unrecognizable keystone expired date format.");
+                    "Unrecognizable keystone expired date format.", e);
             }
         }
 

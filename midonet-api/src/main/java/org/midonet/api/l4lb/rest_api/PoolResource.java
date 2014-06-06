@@ -147,7 +147,7 @@ public class PoolResource extends AbstractResource {
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(
+            throw new ConflictHttpException(ex,
                     getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
         } catch (NoStatePathException ex) {
             throw new BadRequestHttpException(ex);
@@ -172,8 +172,8 @@ public class PoolResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingViolationException ex) {
-            throw new BadRequestHttpException(
-                    MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED);
+            throw new BadRequestHttpException(ex,
+                MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED);
         } catch (MappingStatusException ex) {
             throw new ServiceUnavailableHttpException(ex);
         }
@@ -258,7 +258,7 @@ public class PoolResource extends AbstractResource {
                         ResourceUriBuilder.getPool(getBaseUri(), id))
                         .build();
             } catch (StatePathExistsException ex) {
-                throw new ConflictHttpException(
+                throw new ConflictHttpException(ex,
                         getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
             } catch (NoStatePathException ex) {
                 throw badReqOrNotFoundException(ex, loadBalancerId);

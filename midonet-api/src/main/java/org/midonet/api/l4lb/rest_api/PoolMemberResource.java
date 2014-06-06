@@ -147,7 +147,7 @@ public class PoolMemberResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             throw new BadRequestHttpException(ex);
         } catch (StatePathExistsException ex) {
-            throw new ConflictHttpException(getMessage(
+            throw new ConflictHttpException(ex, getMessage(
                     RESOURCE_EXISTS, "pool member", poolMember.getId()));
         } catch (MappingStatusException ex) {
             throw new ServiceUnavailableHttpException(ex);
@@ -248,7 +248,7 @@ public class PoolMemberResource extends AbstractResource {
                         ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                         .build();
             } catch (StatePathExistsException ex) {
-                throw new ConflictHttpException(getMessage(
+                throw new ConflictHttpException(ex, getMessage(
                         MessageProperty.RESOURCE_EXISTS, "pool member"));
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);

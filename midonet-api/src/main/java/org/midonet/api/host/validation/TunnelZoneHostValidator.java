@@ -51,11 +51,9 @@ public class TunnelZoneHostValidator implements
             return dataClient.tunnelZonesGetMembership(
                     tzh.getTunnelZoneId(), tzh.getHostId()) == null;
         } catch (StateAccessException e) {
-            throw new RuntimeException(
-                    "State Access Error while validating tunnel zone host");
+            throw new RuntimeException("State Access Error while validating tunnel zone host", e);
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization Error while validating tunnel zone host");
+            throw new RuntimeException("Serialization Error while validating tunnel zone host", e);
         }
 
     }

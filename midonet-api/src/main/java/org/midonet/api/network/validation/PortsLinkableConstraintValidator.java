@@ -55,10 +55,9 @@ public class PortsLinkableConstraintValidator implements
                 throw new IllegalArgumentException("Peer port does not exist");
             }
         } catch (StateAccessException e) {
-            throw new RuntimeException("Data access error while validating");
+            throw new RuntimeException("Data access error while validating", e);
         } catch (SerializationException e) {
-            throw new RuntimeException(
-                    "Serialization exception occurred in validation");
+            throw new RuntimeException("Serialization exception occurred in validation", e);
         }
 
         Port port = PortFactory.convertToApiPort(portData);
