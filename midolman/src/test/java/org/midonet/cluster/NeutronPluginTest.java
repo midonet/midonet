@@ -524,7 +524,9 @@ public class NeutronPluginTest {
 
         // Create a security group and a port
         SecurityGroup csg = createStockSecurityGroup();
+        Collections.sort(csg.securityGroupRules);
         SecurityGroup sg = plugin.createSecurityGroup(csg);
+        Collections.sort(sg.securityGroupRules);
         Assert.assertTrue(Objects.equal(sg, csg));
 
         Port port = createStockPort(subnet.id, network.id, sg.id);
