@@ -14,8 +14,9 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.HostVersion;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.util.collection.ListUtil;
+
+import com.google.common.base.Function;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -25,7 +26,6 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Root Resource class for System State Data
@@ -33,12 +33,9 @@ import java.util.UUID;
 @RequestScoped
 public class HostVersionResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(HostVersionResource.class);
-
     @Inject
-    public HostVersionResource(RestApiConfig config, UriInfo uriInfo,
-                         SecurityContext context, DataClient dataClient) {
+    public HostVersionResource(RestApiConfig config, UriInfo uriInfo, SecurityContext context,
+        DataClient dataClient) {
         super(config, uriInfo, context, dataClient);
     }
 
@@ -50,23 +47,22 @@ public class HostVersionResource extends AbstractResource {
      */
     @GET
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType.APPLICATION_HOST_VERSION_JSON,
-                  MediaType.APPLICATION_JSON})
-    public List<HostVersion> get()
-        throws StateAccessException {
-        List<org.midonet.cluster.data.HostVersion> hostVersionsData =
-                dataClient.hostVersionsGet();
-        List<HostVersion> hostVersionList =
-                new ArrayList<>(hostVersionsData.size());
-        if (hostVersionsData != null) {
-            for (org.midonet.cluster.data.HostVersion hostVersionData :
-                    hostVersionsData) {
-                HostVersion hostVersion = new HostVersion(hostVersionData);
-                hostVersion.setHost(ResourceUriBuilder.getHost(
-                        getBaseUri(), hostVersion.getHostId()));
-                hostVersionList.add(hostVersion);
-            }
+    @Produces({VendorMediaType.APPLICATION_HOST_VERSION_JSON, MediaType.APPLICATION_JSON})
+    public List<HostVersion> get() throws StateAccessException {
+        List<org.midonet.cluster.data.HostVersion> hostVersionsData = dataClient.hostVersionsGet();
+        if (hostVersionsData == null) {
+            return new ArrayList<>();
         }
-        return hostVersionList;
+
+        return ListUtil.map(hostVersionsData,
+            new Function<org.midonet.cluster.data.HostVersion, HostVersion>() {
+                @Override
+                public HostVersion apply(org.midonet.cluster.data.HostVersion hostVersionData) {
+                    HostVersion hostVersion = new HostVersion(hostVersionData);
+                    hostVersion.setHost(ResourceUriBuilder.getHost(getBaseUri(),
+                        hostVersion.getHostId()));
+                    return hostVersion;
+                }
+            });
     }
 }
