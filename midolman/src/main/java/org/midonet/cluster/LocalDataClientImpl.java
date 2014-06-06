@@ -32,7 +32,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
-import org.midonet.midolman.state.zkManagers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +92,7 @@ import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.zkManagers.LicenseZkManager;
 import org.midonet.midolman.state.ZkUtil;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
@@ -3459,6 +3459,12 @@ public class LocalDataClientImpl implements DataClient {
                 portConfig.device_id));
 
         zkManager.multi(ops);
+    }
+
+    @Override
+    public boolean portWatch(UUID portId, Directory.TypedWatcher typedWatcher)
+        throws StateAccessException, SerializationException {
+        return null != portZkManager.get(portId, typedWatcher);
     }
 
     @Override
