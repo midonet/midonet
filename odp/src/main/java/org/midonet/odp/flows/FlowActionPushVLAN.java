@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.VLAN;
 
@@ -38,10 +37,10 @@ public class FlowActionPushVLAN implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            vlan_tpid = BytesUtil.instance.reverseBE(message.getShort());
-            vlan_tci = BytesUtil.instance.reverseBE(message.getShort());
+            vlan_tpid = BytesUtil.instance.reverseBE(buf.getShort());
+            vlan_tci = BytesUtil.instance.reverseBE(buf.getShort());
             return true;
         } catch (Exception e) {
             return false;

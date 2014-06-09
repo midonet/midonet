@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyInPort implements CachedFlowKey {
@@ -25,9 +24,9 @@ public class FlowKeyInPort implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            portNo = message.getInt();
+            portNo = buf.getInt();
             return true;
         } catch (Exception e) {
             return false;

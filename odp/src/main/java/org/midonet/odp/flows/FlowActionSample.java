@@ -40,10 +40,11 @@ public class FlowActionSample implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            probability = message.getAttrValueInt(probAttrId);
-            actions = message.getAttrValue(actionsAttrId, FlowAction.Builder);
+            probability = NetlinkMessage.getAttrValueInt(buf, probAttrId);
+            actions = NetlinkMessage.getAttrValue(buf, actionsAttrId,
+                                                  FlowAction.Builder);
             return true;
         } catch (Exception e) {
             return false;

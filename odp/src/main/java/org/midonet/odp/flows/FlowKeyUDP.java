@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
@@ -32,10 +31,10 @@ public class FlowKeyUDP implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
-            udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(message.getShort()));
+            udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
+            udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
             return true;
         } catch (Exception e) {
             return false;

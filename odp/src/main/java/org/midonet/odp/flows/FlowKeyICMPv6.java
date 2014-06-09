@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 import static org.midonet.packets.Unsigned.unsign;
@@ -29,10 +28,10 @@ public class FlowKeyICMPv6 implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            icmpv6_type = message.getByte();
-            icmpv6_code = message.getByte();
+            icmpv6_type = buf.get();
+            icmpv6_code = buf.get();
             return true;
         } catch (Exception e) {
             return false;

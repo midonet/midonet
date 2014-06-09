@@ -20,6 +20,16 @@ class NetlinkMessageTest extends Suite with Matchers {
     type IntConsumer   = ((Int,Short)) => Unit
     type LongConsumer  = ((Long,Short)) => Unit
 
+    def testWritingReadingBytesNoPadding() {
+        val buf = makeBuffer()
+        val data = ByteHelper makeData 4
+        data foreach { case (value, id) =>
+            NetlinkMessage writeByteAttrNoPad (buf, id, value)
+        }
+        buf.flip
+        data foreach (ByteHelper bufferCheckerNoPad buf)
+    }
+
     def testWritingReadingBytes() {
         val buf = makeBuffer()
         val data = ByteHelper makeData 4
@@ -27,10 +37,9 @@ class NetlinkMessageTest extends Suite with Matchers {
             NetlinkMessage writeByteAttr (buf, id, value)
         }
         buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (ByteHelper bufferChecker sliceOf(msg))
-        data foreach (ByteHelper checkMessage msg)
-        (Random shuffle data.toSeq) foreach (ByteHelper checkMessage msg)
+        data foreach (ByteHelper bufferChecker (BytesUtil.instance sliceOf buf))
+        data foreach (ByteHelper checkMessage buf)
+        (Random shuffle data.toSeq) foreach (ByteHelper checkMessage buf)
     }
 
     def testWritingReadingShortsNoPadding() {
@@ -40,8 +49,7 @@ class NetlinkMessageTest extends Suite with Matchers {
             NetlinkMessage writeShortAttrNoPad (buf, id, value)
         }
         buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (ShortHelper bufferCheckerNoPad sliceOf(msg))
+        data foreach (ShortHelper bufferCheckerNoPad buf)
     }
 
     def testWritingReadingShorts() {
@@ -51,10 +59,9 @@ class NetlinkMessageTest extends Suite with Matchers {
             NetlinkMessage writeShortAttr (buf, id, value)
         }
         buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (ShortHelper bufferChecker sliceOf(msg))
-        data foreach (ShortHelper checkMessage msg)
-        (Random shuffle data.toSeq) foreach (ShortHelper checkMessage msg)
+        data foreach (ShortHelper bufferChecker (BytesUtil.instance sliceOf buf))
+        data foreach (ShortHelper checkMessage buf)
+        (Random shuffle data.toSeq) foreach (ShortHelper checkMessage buf)
     }
 
     def testWritingReadingInts() {
@@ -64,10 +71,9 @@ class NetlinkMessageTest extends Suite with Matchers {
             NetlinkMessage writeIntAttr (buf, id, value)
         }
         buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (IntHelper bufferChecker sliceOf(msg))
-        data foreach (IntHelper checkMessage msg)
-        (Random shuffle data.toSeq) foreach (IntHelper checkMessage msg)
+        data foreach (IntHelper bufferChecker (BytesUtil.instance sliceOf buf))
+        data foreach (IntHelper checkMessage buf)
+        (Random shuffle data.toSeq) foreach (IntHelper checkMessage buf)
     }
 
     def testWritingReadingLongs() {
@@ -77,13 +83,10 @@ class NetlinkMessageTest extends Suite with Matchers {
             NetlinkMessage writeLongAttr (buf, id, value)
         }
         buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (LongHelper bufferChecker sliceOf(msg))
-        data foreach (LongHelper checkMessage msg)
-        (Random shuffle data.toSeq) foreach (LongHelper checkMessage msg)
+        data foreach (LongHelper bufferChecker (BytesUtil.instance sliceOf buf))
+        data foreach (LongHelper checkMessage buf)
+        (Random shuffle data.toSeq) foreach (LongHelper checkMessage buf)
     }
-
-    def makeNLMsg(size: Int = 1024) = new NetlinkMessage(makeBuffer(size))
 
     def makeBuffer(size: Int = 1024) = BytesUtil.instance allocate size
 
@@ -111,8 +114,9 @@ class NetlinkMessageTest extends Suite with Matchers {
                 buf.get() shouldBe value
                 readPadding(buf, 3)
         }
-        def checkMessage(msg: NetlinkMessage): ByteConsumer = {
-            case (value, id) => (msg getAttrValueByte id) shouldBe value
+        def checkMessage(buf: ByteBuffer): ByteConsumer = {
+            case (value, id) =>
+                (NetlinkMessage getAttrValueByte (buf, id)) shouldBe value
         }
     }
 
@@ -136,8 +140,9 @@ class NetlinkMessageTest extends Suite with Matchers {
                 buf.getShort() shouldBe value
                 readPadding(buf, 2)
         }
-        def checkMessage(msg: NetlinkMessage): ShortConsumer = {
-            case (value, id) => (msg getAttrValueShort id) shouldBe value
+        def checkMessage(buf: ByteBuffer): ShortConsumer = {
+            case (value, id) =>
+                (NetlinkMessage getAttrValueShort (buf, id)) shouldBe value
         }
     }
 
@@ -153,8 +158,9 @@ class NetlinkMessageTest extends Suite with Matchers {
                 buf.getShort() shouldBe id
                 buf.getInt() shouldBe value
         }
-        def checkMessage(msg: NetlinkMessage): IntConsumer = {
-            case (value, id) => (msg getAttrValueInt id) shouldBe value
+        def checkMessage(buf: ByteBuffer): IntConsumer = {
+            case (value, id) =>
+                (NetlinkMessage getAttrValueInt (buf, id)) shouldBe value
         }
     }
 
@@ -170,23 +176,9 @@ class NetlinkMessageTest extends Suite with Matchers {
                 buf.getShort() shouldBe id
                 buf.getLong() shouldBe value
         }
-        def checkMessage(msg: NetlinkMessage): LongConsumer = {
+        def checkMessage(buf: ByteBuffer): LongConsumer = {
             case (value, id) =>
-                (msg getAttrValueLong id) shouldBe value
+                (NetlinkMessage getAttrValueLong (buf, id)) shouldBe value
         }
     }
-
-    def testWritingReadingBytesNoPadding() {
-        val buf = makeBuffer()
-        val data = ByteHelper makeData 4
-        data foreach { case (value, id) =>
-            NetlinkMessage writeByteAttrNoPad (buf, id, value)
-        }
-        buf.flip
-        val msg = new NetlinkMessage(buf)
-        data foreach (ByteHelper bufferCheckerNoPad sliceOf(msg))
-    }
-
-    def sliceOf(msg: NetlinkMessage) = BytesUtil.instance sliceOf msg.getBuffer
-
 }

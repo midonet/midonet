@@ -97,14 +97,14 @@ public class Flow {
         return this;
     }
 
-    public static Flow buildFrom(NetlinkMessage msg) {
-        int actualDpIndex = msg.getInt(); // read datapath index;
+    public static Flow buildFrom(ByteBuffer buf) {
+        int actualDpIndex = buf.getInt(); // read datapath index;
         Flow flow = new Flow();
-        flow.setStats(FlowStats.buildFrom(msg));
-        flow.setTcpFlags(msg.getAttrValueByte(Attr.TCPFlags));
-        flow.setLastUsedTime(msg.getAttrValueLong(Attr.Used));
-        flow.setActions(FlowActions.buildFrom(msg));
-        flow.setMatch(FlowMatch.buildFrom(msg));
+        flow.setStats(FlowStats.buildFrom(buf));
+        flow.setTcpFlags(NetlinkMessage.getAttrValueByte(buf, Attr.TCPFlags));
+        flow.setLastUsedTime(NetlinkMessage.getAttrValueLong(buf, Attr.Used));
+        flow.setActions(FlowActions.buildFrom(buf));
+        flow.setMatch(FlowMatch.buildFrom(buf));
         return flow;
     }
 
@@ -116,7 +116,7 @@ public class Flow {
             public Flow apply(List<ByteBuffer> input) {
                 if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
-                return Flow.buildFrom(new NetlinkMessage(input.get(0)));
+                return Flow.buildFrom(input.get(0));
             }
         };
 
@@ -129,7 +129,7 @@ public class Flow {
                 Set<Flow> flows = new HashSet<>();
                 if (input != null) {
                   for (ByteBuffer buffer : input) {
-                      flows.add(Flow.buildFrom(new NetlinkMessage(buffer)));
+                      flows.add(Flow.buildFrom(buffer));
                   }
                 }
                 return flows;

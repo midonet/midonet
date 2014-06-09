@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyPriority implements FlowKey {
@@ -24,9 +23,9 @@ public class FlowKeyPriority implements FlowKey {
         return 4;
     }
 
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            priority = message.getInt();
+            priority = buf.getInt();
             return true;
         } catch (Exception e) {
             return false;

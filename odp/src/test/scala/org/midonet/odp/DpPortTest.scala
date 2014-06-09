@@ -29,7 +29,7 @@ class DpPortTest extends FunSpec with Matchers {
                     val buf = getBuffer
                     NetlinkMessage writeAttr (buf, s, DpPort.Stats.trans)
                     buf.flip
-                    s shouldBe (DpPort.Stats buildFrom new NetlinkMessage(buf))
+                    s shouldBe (DpPort.Stats buildFrom buf)
                 }
             }
 
@@ -53,7 +53,7 @@ class DpPortTest extends FunSpec with Matchers {
                 buf putInt 42 // write datapath index
                 p serializeInto buf
                 buf.flip
-                p shouldBe (DpPort buildFrom new NetlinkMessage(buf))
+                p shouldBe (DpPort buildFrom buf)
             }
         }
 

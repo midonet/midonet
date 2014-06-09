@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.ports;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
@@ -30,10 +32,10 @@ public class VxLanTunnelPortOptions implements BuilderAware {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
             short portId = OpenVSwitch.Port.VPortTunnelOptions.DstPort;
-            int port = message.getAttrValueShort(portId);
+            int port = NetlinkMessage.getAttrValueShort(buf, portId);
             setDestinationPort(port);
         } catch (Exception e) {
             return false;
