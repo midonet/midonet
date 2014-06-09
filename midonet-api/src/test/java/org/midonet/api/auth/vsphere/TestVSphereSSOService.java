@@ -127,6 +127,20 @@ public class TestVSphereSSOService {
         vSphereSSOService.getUserIdentityByToken(sessionId);
     }
 
+    @Test(expected=VSphereAuthException.class)
+    public void getUserIdentityByTokenNullToken()
+            throws RemoteException, AuthException {
+
+        vSphereSSOService.getUserIdentityByToken(null);
+    }
+
+    @Test(expected=VSphereAuthException.class)
+    public void getUserIdentityByTokenEmptyToken()
+            throws RemoteException, AuthException {
+
+        vSphereSSOService.getUserIdentityByToken("");
+    }
+
     @Test
     public void getTenants() throws AuthException {
         List<Tenant> tenants =
@@ -134,5 +148,19 @@ public class TestVSphereSSOService {
 
         assertEquals(1, tenants.size());
         assertEquals("Datacenter Admin", tenants.get(0).getId());
+    }
+
+    @Test
+    public void authenticateWithAdminToken() throws AuthException {
+        String adminToken = "admin_token";
+
+        when(mockVSphereConfig.getAdminToken()).thenReturn(adminToken);
+
+        UserIdentity userIdentity =
+                vSphereSSOService.getUserIdentityByToken(adminToken);
+
+        assertTrue(userIdentity.hasRole(AuthRole.ADMIN));
+        assertEquals("admin", userIdentity.getUserId());
+        assertEquals(adminToken, userIdentity.getToken());
     }
 }

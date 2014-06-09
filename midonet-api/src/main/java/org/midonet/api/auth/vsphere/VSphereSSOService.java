@@ -25,6 +25,7 @@ import org.midonet.api.auth.MockAuthService;
 import org.midonet.api.auth.Tenant;
 import org.midonet.api.auth.Token;
 import org.midonet.api.auth.UserIdentity;
+import org.midonet.util.StringUtil;
 
 public class VSphereSSOService implements AuthService {
 
@@ -50,12 +51,30 @@ public class VSphereSSOService implements AuthService {
         this.vSphereClient = vSphereClient;
         this.vSphereConfig = vSphereConfig;
 
-        log.info("Using the following configuration: {}", vSphereConfig);
+        log.debug("Using the following configuration: {}",
+                Objects.toStringHelper(vSphereConfig)
+                        .add("AdminToken", vSphereConfig.getAdminToken())
+                        .add("Datacenter ID", vSphereConfig.getServiceDCId())
+                        .add("Service URL", vSphereConfig.getServiceSdkUrl())
+                        .add("Cert Fingerprint",
+                                vSphereConfig.getServiceSSLCertFingerprint())
+                        .add("Ignore server cert",
+                                vSphereConfig.ignoreServerCert())
+                        .toString());
     }
 
     @Override
     public UserIdentity getUserIdentityByToken(String token)
             throws AuthException {
+
+        if(StringUtil.isNullOrEmpty(token)) {
+            throw new VSphereAuthException("Authentication token is required");
+        }
+
+        // Authenticate via the ADMIN token
+        if(token.equals(vSphereConfig.getAdminToken())) {
+            return getUserIdentity("admin", token, AuthRole.ADMIN);
+        }
 
         VSphereServiceInstance vSphereServiceInstance;
         try {

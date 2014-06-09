@@ -15,6 +15,7 @@ public interface VSphereConfig extends AuthConfig {
 
     String GROUP_NAME = "vsphere";
 
+    public static final String ADMIN_TOKEN = "admin_token";
     public static final String SERVICE_SDK_URL = "sdk_url";
     public static final String SERVICE_DC_ID= "service_datacenter_id";
     public static final String IGNORE_SERVER_CERT = "ignore_server_cert";
@@ -47,4 +48,11 @@ public interface VSphereConfig extends AuthConfig {
      */
     @ConfigString(key = SERVICE_SSL_CERT_SHA1_FINGERPRINT, defaultValue = "")
     public String getServiceSSLCertFingerprint();
+
+    /**
+    * The ADMIN authentication token. Useful for script authentication.
+    * This token will authenticate to the API with the ADMIN role
+    */
+    @ConfigString(key = ADMIN_TOKEN)
+    public String getAdminToken();
 }
