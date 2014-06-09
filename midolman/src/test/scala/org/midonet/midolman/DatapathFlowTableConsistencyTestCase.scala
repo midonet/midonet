@@ -28,7 +28,6 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
     var datapath: MockOvsDatapathConnection = null
     var flowManager: FlowManager = null
-    val flowExpiration: Long = 60000
 
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("bridge.mac_port_mapping_expire_millis", 60000)
@@ -90,17 +89,17 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
         val tcpMatch = findMatch[FlowKeyTCP]
         tcpMatch should not be (None)
-        flowManager.getNumDpFlows should be (1)
+        flowManager.getNumDpFlows shouldBe 1
 
         // remove flow, from the datapath
-        tcpMatch.foreach{datapath.flowsTable.remove(_)}
-        findMatch[FlowKeyTCP] should be (None)
+        datapath.flowsTable remove tcpMatch.get
+        findMatch[FlowKeyTCP] shouldBe None
 
-        // call flowsGet(), need to wait IDLE_EXPIRATION. That's 60 secs.
-        Thread.sleep(flowExpiration)
+        // instead of waiting for IDLE_EXPIRATION for 60 secs, expire the flow
+        flowManager.oldestIdleFlow setLastUsedTimeMillis Long.MinValue
+
         flowManager.checkFlowsExpiration()
-
-        flowManager.getNumDpFlows should be (0)
+        flowManager.getNumDpFlows shouldBe 0
     }
 
 
