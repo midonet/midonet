@@ -303,38 +303,15 @@ public class NetlinkMessage {
         buffer.putShort(id);
     }
 
-    /** write a C String attribute with null terminator, with header. */
-    public static int writeStringAttr(ByteBuffer buf, short id, String value) {
-
-        int startPos = buf.position();
-        int strLen = value.length() + 1;    // add one for null terminator
-
-        setAttrHeader(buf, id, 4 + strLen);
-
-        // put the string
-        buf.put(value.getBytes());
-        buf.put((byte) 0);                  // put a null terminator
-
-        // pad
-        int padLen = pad(strLen);
-        while (padLen != strLen) {
-            buf.put((byte)0);
-            padLen--;
-        }
-
-        return buf.position() - startPos;
-    }
-
     /** Generic attribute writing function that can write an arbitrary value
      *  into a ByteBuffer, given a translator typeclass instance for that value
      *  type. Padding for 4B alignement is added to the message. Returns the
      *  total number of bytes written in the buffer. */
-    public static <V> int writeAttr(ByteBuffer buffer, V value,
-                                    Translator<V> translator) {
+    public static <V> int writeAttrWithId(ByteBuffer buffer, short id, V value,
+                                          Translator<V> translator) {
 
         int start = buffer.position();      // save position
 
-        short id = translator.attrIdOf(value);
         NetlinkMessage.setAttrHeader(buffer, id, 4); // space for nl_attr header
 
         int advertisedLen = translator.serializeInto(buffer, value);
@@ -349,6 +326,22 @@ public class NetlinkMessage {
         }
 
         return padLen;
+    }
+
+    public static <V> int writeAttr(ByteBuffer buffer, V value,
+                                    Translator<V> translator) {
+        short id = translator.attrIdOf(value);
+        return writeAttrWithId(buffer, id, value, translator);
+    }
+
+    /** write a C String attribute with null terminator, with header. */
+    public static int writeStringAttr(ByteBuffer buf, short id, String value) {
+        return writeAttrWithId(buf, id, value, stringSerializer);
+    }
+
+    /** write an attribute as a raw stream of bytes, with header. */
+    public static int writeRawAttribute(ByteBuffer buf, short id, byte[] value) {
+        return writeAttrWithId(buf, id, value, bytesSerializer);
     }
 
     /** Generic attribute sequence writing function that can write an arbitrary
@@ -431,24 +424,6 @@ public class NetlinkMessage {
         return 8;
     }
 
-    /** write an attribute as a raw stream of bytes, with header. */
-    public static int writeRawAttribute(ByteBuffer buf, short id, byte[] value) {
-        // save position
-        int start = buf.position();
-
-        // put a nl_attr header
-        buf.putShort((short) 0);
-        buf.putShort(id); // nla_type
-
-        // write the message
-        buf.put(value);
-
-        // update the nl_attr length
-        buf.putShort(start, (short) (buf.position() - start));
-
-        return buf.position() - start;
-    }
-
     public static void addPaddingForShort(ByteBuffer buffer) {
         short padding = 0;
         buffer.putShort(padding);
@@ -505,4 +480,33 @@ public class NetlinkMessage {
     public static boolean isNested(short netlinkAttributeId) {
         return (netlinkAttributeId & NLA_F_NESTED) != 0;
     }
+
+    private static final Translator<String> stringSerializer =
+        new Translator<String>() {
+            public short attrIdOf(String any) {
+                throw new UnsupportedOperationException();
+            }
+            public int serializeInto(ByteBuffer receiver, String value) {
+                receiver.put(value.getBytes());
+                receiver.put((byte) 0);       // put a null terminator
+                return value.length() + 1;    // add one for null terminator
+            }
+            public String deserializeFrom(ByteBuffer source) {
+                throw new UnsupportedOperationException();
+            }
+        };
+
+    private static final Translator<byte[]> bytesSerializer =
+        new Translator<byte[]>() {
+            public short attrIdOf(byte[] any) {
+                throw new UnsupportedOperationException();
+            }
+            public int serializeInto(ByteBuffer receiver, byte[] value) {
+                receiver.put(value);
+                return value.length;
+            }
+            public byte[] deserializeFrom(ByteBuffer source) {
+                throw new UnsupportedOperationException();
+            }
+        };
 }
