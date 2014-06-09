@@ -50,10 +50,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.*;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
@@ -253,6 +251,214 @@ public class TestPort {
         }
     }
 
+
+    public static class TestAllPortCrudSuccess extends JerseyTest {
+
+        private DtoWebResource dtoResource;
+        private Topology topology;
+        private URI portsUri;
+        private int portCounter;
+
+        public TestAllPortCrudSuccess() {
+            super(FuncTest.appDesc);
+        }
+
+        @Before
+        public void setUp() {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
+
+            // Create a router
+            DtoRouter r1 = new DtoRouter();
+            r1.setName("router1-name");
+            r1.setTenantId("tenant1-id");
+
+            DtoRouter r2 = new DtoRouter();
+            r2.setName("router2-name");
+            r2.setTenantId("tenant1-id");
+
+            // Create a bridge
+            DtoBridge b = new DtoBridge();
+            b.setName("bridge1-name");
+            b.setTenantId("tenant1-id");
+
+            topology = new Topology.Builder(dtoResource)
+                    .create("router1", r1)
+                    .create("router2", r2)
+                    .create("bridge1", b)
+                    .build();
+
+            DtoApplication app = topology.getApplication();
+            portsUri = app.getPorts();
+            portCounter = 0;
+        }
+
+        private void verifyPortNumber(int num) {
+            DtoPort[] ports = dtoResource.getAndVerifyOk(portsUri,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    DtoPort[].class);
+            assertEquals(num, ports.length);
+        }
+
+        @Test
+        public void testCrudOnTheSameBridge() {
+            DtoBridge b = topology.getBridge("bridge1");
+            verifyPortNumber(portCounter);
+
+            // Create an exterior bridge port.
+            DtoBridgePort bridgePort1 = new DtoBridgePort();
+            bridgePort1.setDeviceId(b.getId());
+            bridgePort1 = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_V2_JSON, bridgePort1, DtoBridgePort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Create another exterior bridge port.
+            DtoBridgePort bridgePort2 = new DtoBridgePort();
+            bridgePort2.setDeviceId(b.getId());
+            bridgePort2 = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_V2_JSON, bridgePort2, DtoBridgePort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Delete the first bridge port
+            dtoResource.deleteAndVerifyNoContent(bridgePort1.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+
+            // Delete the second bridge port
+            dtoResource.deleteAndVerifyNoContent(bridgePort2.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+        }
+
+        @Test
+        public void testCrudOnTheSameRouter() {
+            DtoRouter r = topology.getRouter("router1");
+            verifyPortNumber(portCounter);
+
+            // Create a router port.
+            DtoRouterPort routerPort1 = createRouterPort(null, r.getId(),
+                    "10.0.0.0", 24, "10.0.0.1");
+            routerPort1 = dtoResource.postAndVerifyCreated(r.getPorts(),
+                    APPLICATION_PORT_V2_JSON, routerPort1, DtoRouterPort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Create another router port.
+            DtoRouterPort routerPort2 = createRouterPort(null, r.getId(),
+                    "10.0.0.0", 24, "10.0.0.2");
+            routerPort2 = dtoResource.postAndVerifyCreated(r.getPorts(),
+                    APPLICATION_PORT_V2_JSON, routerPort2, DtoRouterPort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Delete the first router port.
+            dtoResource.deleteAndVerifyNoContent(routerPort1.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+
+            // Delete the second router port.
+            dtoResource.deleteAndVerifyNoContent(routerPort2.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+        }
+
+        @Test
+        public void testCrudOnTheDifferentDevices() {
+            DtoRouter r = topology.getRouter("router1");
+            DtoBridge b = topology.getBridge("bridge1");
+            verifyPortNumber(portCounter);
+
+            // Create an exterior bridge port.
+            DtoBridgePort bridgePort = new DtoBridgePort();
+            bridgePort.setDeviceId(b.getId());
+            bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Create a router port.
+            DtoRouterPort routerPort = createRouterPort(null, r.getId(),
+                    "10.0.0.0", 24, "10.0.0.1");
+            routerPort = dtoResource.postAndVerifyCreated(r.getPorts(),
+                    APPLICATION_PORT_V2_JSON, routerPort, DtoRouterPort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Delete the bridge port.
+            dtoResource.deleteAndVerifyNoContent(bridgePort.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+
+            // Delete the router port.
+            dtoResource.deleteAndVerifyNoContent(routerPort.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+        }
+
+        @Test
+        public void testCrudOfDuplicatedPortsOnTheDifferentDevices() {
+            DtoRouter r1 = topology.getRouter("router1");
+            DtoRouter r2 = topology.getRouter("router2");
+            DtoBridge b = topology.getBridge("bridge1");
+            verifyPortNumber(portCounter);
+
+            // Create an exterior bridge port.
+            DtoBridgePort bridgePort = new DtoBridgePort();
+            bridgePort.setDeviceId(b.getId());
+            bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
+                    APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Create a router port.
+            DtoRouterPort routerPort1 = createRouterPort(null, r1.getId(),
+                    "10.0.0.0", 24, "10.0.0.1");
+            routerPort1 = dtoResource.postAndVerifyCreated(r1.getPorts(),
+                    APPLICATION_PORT_V2_JSON, routerPort1, DtoRouterPort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Create another router port.
+            DtoRouterPort routerPort2 = createRouterPort(null, r1.getId(),
+                    "10.0.0.0", 24, "10.0.0.1");
+            routerPort2 = dtoResource.postAndVerifyCreated(r2.getPorts(),
+                    APPLICATION_PORT_V2_JSON, routerPort2, DtoRouterPort.class);
+            portCounter++;
+            verifyPortNumber(portCounter);
+
+            // Delete the bridge port.
+            dtoResource.deleteAndVerifyNoContent(bridgePort.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+
+            // Delete the first router port.
+            dtoResource.deleteAndVerifyNoContent(routerPort1.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+
+            // Delete the second router port.
+            dtoResource.deleteAndVerifyNoContent(routerPort2.getUri(),
+                    APPLICATION_PORT_V2_JSON);
+            portCounter--;
+            verifyPortNumber(portCounter);
+        }
+
+        @After
+        public void resetDirectory() throws Exception {
+            StaticMockDirectory.clearDirectoryInstance();
+        }
+    }
+
     public static class TestBridgePortCrudSuccess extends JerseyTest {
 
         private DtoWebResource dtoResource;
@@ -267,7 +473,7 @@ public class TestPort {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            // Create a router
+            // Create a bridge
             DtoBridge b = new DtoBridge();
             b.setName("bridge1-name");
             b.setTenantId("tenant1-id");
@@ -605,11 +811,8 @@ public class TestPort {
             DtoRuleChain c2 = topology.getChain("chain2");
 
             // Create a Interior router port
-            DtoRouterPort r1Lp1 = createRouterPort(null,
-                                                                   r.getId(),
-                                                                   "10.0.0.0",
-                                                                   24,
-                                                                   "10.0.0.1");
+            DtoRouterPort r1Lp1 = createRouterPort(null, r.getId(), "10.0.0.0",
+                    24, "10.0.0.1");
             r1Lp1 = dtoResource.postAndVerifyCreated(r.getPorts(),
                     APPLICATION_PORT_V2_JSON, r1Lp1, DtoRouterPort.class);
 

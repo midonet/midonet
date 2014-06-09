@@ -1415,6 +1415,27 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public List<Port<?, ?>> portsGetAll()
+            throws StateAccessException, SerializationException {
+        log.debug("portsGetAll entered");
+        List<Port<?, ?>> ports = new ArrayList<>();
+
+        String path = pathBuilder.getPortsPath();
+        if (zkManager.exists(path)) {
+            Set<String> portIds = zkManager.getChildren(path);
+            for (String id : portIds) {
+                Port<?, ?> port = portsGet(UUID.fromString(id));
+                if (port != null) {
+                    ports.add(port);
+                }
+            }
+        }
+
+        log.debug("portsGetAll exiting: {} routers found", ports.size());
+        return ports;
+    }
+
+    @Override
     public @CheckForNull Port portsGet(UUID id)
             throws StateAccessException, SerializationException {
         Port port = null;

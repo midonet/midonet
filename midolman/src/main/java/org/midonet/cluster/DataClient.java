@@ -541,6 +541,18 @@ public interface DataClient {
     List<Port<?, ?>> portsFindPeersByRouter(UUID routerId)
             throws StateAccessException, SerializationException;
 
+    /**
+     * Gets all ports in the topology.
+     *
+     * @return The list of the ports.
+     * @throws StateAccessException An exception thrown when the ZooKeeper
+     *                              access failed.
+     * @throws SerializationException An exception thrown when the serialization
+     *                                failed.
+     */
+    List<Port<?, ?>> portsGetAll()
+            throws StateAccessException, SerializationException;
+
     @CheckForNull Port<?, ?> portsGet(UUID id)
             throws StateAccessException, SerializationException;
 
