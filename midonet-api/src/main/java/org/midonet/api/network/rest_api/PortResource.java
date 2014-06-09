@@ -183,6 +183,41 @@ public class PortResource extends AbstractResource {
         return port;
     }
 
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON,
+            MediaType.APPLICATION_JSON})
+    public List<Port> list()
+            throws StateAccessException, SerializationException {
+        List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+                dataClient.portsGetAll();
+        List<Port> ports = new ArrayList<>();
+        for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
+            Port port = PortFactory.convertToApiPort(portData);
+            port.setBaseUri(getBaseUri());
+            ports.add(port);
+        }
+
+        return ports;
+    }
+
+    @GET
+    @RolesAllowed({ AuthRole.ADMIN })
+    @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON })
+    public List<Port> listV1()
+            throws StateAccessException, SerializationException {
+        List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+                dataClient.portsGetAll();
+        List<Port> ports = new ArrayList<>();
+        for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
+            Port port = PortFactory.convertToApiPortV1(portData);
+            port.setBaseUri(getBaseUri());
+            ports.add(port);
+        }
+
+        return ports;
+    }
+
     /**
      * Handler to updating a port.
      *
