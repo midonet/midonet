@@ -3,9 +3,8 @@
 */
 package org.midonet.midolman
 
-import java.lang.Thread
 import scala.collection.JavaConversions._
-import scala.Some
+import scala.util.Try
 
 import akka.testkit.TestProbe
 import org.slf4j.LoggerFactory
@@ -99,15 +98,22 @@ trait VMsBehindRouterFixture extends SimulationHelper with
     }
 
     def ensureAllPortsUp(vmPorts: IndexedSeq[BridgePort]): IndexedSeq[Int] = {
-        Thread.sleep(1000) // wait 1 sec to allow DPC to process ports
-        vmPorts map { port =>
-            vifToLocalPortNumber(port.getId) match {
-                case Some(portNo : Short) => portNo
-                case None =>
-                    fail("Unable to find data port number for " + port.getInterfaceName)
-                    0
-            }
+        def checkPorts() = vmPorts map {
+            port =>
+                vifToLocalPortNumber(port.getId) match {
+                    case Some(portNo : Short) => portNo
+                    case None =>
+                        fail("Unable to find data port number for " +
+                             port.getInterfaceName)
+                        0
+                }
         }
+        def pollPorts(nTry: Int = 20): IndexedSeq[Int] = {
+            Thread sleep 50
+            val t = Try(checkPorts())
+            if (nTry == 0) t.get else t.getOrElse(pollPorts(nTry-1))
+        }
+        pollPorts()
     }
 
     def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {

@@ -124,16 +124,19 @@ public class LocalClientImplTest {
             new BridgeZkManager.BridgeConfig("test", null, null));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
         client.getBridge(bridgeId, bridgeBuilder);
-        Thread.sleep(2000);
+
+        pollCallCounts(bridgeBuilder, 1);
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(),
                    equalTo(1));
+
         // let's cause a bridge update
         getBridgeZkManager().update(bridgeId,
                                     new BridgeZkManager.BridgeConfig("test1",
                                             getRandomChainId(),
                                             getRandomChainId()),
                                     true);
-        Thread.sleep(2000);
+
+        pollCallCounts(bridgeBuilder, 2);
         assertThat("Bridge update was notified",
                    bridgeBuilder.getBuildCallsCount(), equalTo(2));
 
@@ -148,16 +151,19 @@ public class LocalClientImplTest {
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
-        Thread.sleep(2000);
+
+        pollCallCounts(routerBuilder, 1);
         assertThat("Build is called", routerBuilder.getBuildCallsCount(),
                    equalTo(1));
+
         // let's cause a router update
         getRouterZkManager().update(routerId,
                                     new RouterZkManager.RouterConfig("test1",
                                             getRandomChainId(),
                                             getRandomChainId(),
                                             null));
-        Thread.sleep(2000);
+
+        pollCallCounts(routerBuilder, 2);
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(2));
 
@@ -170,7 +176,8 @@ public class LocalClientImplTest {
         UUID routerId = getRouterZkManager().create();
         TestRouterBuilder routerBuilder = new TestRouterBuilder();
         client.getRouter(routerId, routerBuilder);
-        Thread.sleep(2000);
+
+        pollCallCounts(routerBuilder, 1);
         assertThat("Build is called", routerBuilder.getBuildCallsCount(),
                    equalTo(1));
 
@@ -179,8 +186,7 @@ public class LocalClientImplTest {
         // add an entry in the arp cache.
         routerBuilder.addNewArpEntry(ipAddr, arpEntry);
 
-        Thread.sleep(2000);
-
+        pollCallCounts(routerBuilder, 1);
         assertEquals(arpEntry, routerBuilder.getArpEntryForIp(ipAddr));
         assertThat("Router update was notified",
                    routerBuilder.getBuildCallsCount(), equalTo(1));
@@ -196,7 +202,8 @@ public class LocalClientImplTest {
                     getRandomChainId()));
         TestBridgeBuilder bridgeBuilder = new TestBridgeBuilder();
         client.getBridge(bridgeId, bridgeBuilder);
-        Thread.sleep(2000);
+
+        pollCallCounts(bridgeBuilder, 1);
         assertThat("Build is called", bridgeBuilder.getBuildCallsCount(), equalTo(1));
 
         // and a new packet.
@@ -208,7 +215,8 @@ public class LocalClientImplTest {
         bridgeBuilder.simulateNewPacket(mac,portUUID);
         ///////////
 
-        Thread.sleep(2000);
+        pollCallCounts(bridgeBuilder, 3);
+
         // make sure the  notifications sent what we expected.
         assertEquals(bridgeBuilder.getNotifiedMAC(), mac);
         assertNull(bridgeBuilder.getNotifiedUUID()[0]);
@@ -219,8 +227,10 @@ public class LocalClientImplTest {
 
         // remove the port.
         bridgeBuilder.removePort(mac, portUUID);
-        // make sure the  notifications sent what we expected.
-        Thread.sleep(2000);
+
+        pollCallCounts(bridgeBuilder, 5);
+
+        // make sure the notifications sent what we expected.
         assertEquals(bridgeBuilder.getNotifiedMAC(), mac);
         assertEquals(portUUID, bridgeBuilder.getNotifiedUUID()[0]);
         assertNull(bridgeBuilder.getNotifiedUUID()[1]);
@@ -232,7 +242,7 @@ public class LocalClientImplTest {
     }
 
     // hint could modify this class so we can get the map from it.
-    class TestBridgeBuilder implements BridgeBuilder {
+    class TestBridgeBuilder implements BridgeBuilder, BuildCallCounter {
         int buildCallsCount = 0;
         Option<UUID> vlanBridgePeerPortId = Option.apply(null);
         Option<UUID> exteriorVxlanPortId = Option.apply(null);
@@ -253,11 +263,6 @@ public class LocalClientImplTest {
         public UUID getPort(MAC mac) {
             final UUID result[] = new UUID[1];
             result[0] = mlTable.get(mac);
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
             return result[0];
         }
 
@@ -352,7 +357,7 @@ public class LocalClientImplTest {
 
     }
 
-    class TestRouterBuilder implements RouterBuilder {
+    class TestRouterBuilder implements RouterBuilder, BuildCallCounter {
         int buildCallsCount = 0;
         ArpCache arpCache;
         UUID loadBalancerId;
@@ -410,5 +415,19 @@ public class LocalClientImplTest {
         public void removeRoute(Route rt) {
             // TODO Auto-generated method stub
 
-        }}
+        }
+    }
+
+    interface BuildCallCounter {
+        int getBuildCallsCount();
+    }
+
+    public static void pollCallCounts(BuildCallCounter bldr, int nCalls)
+            throws InterruptedException {
+        for (int i = 0; i < 20; i++) {
+            Thread.sleep(100);
+            if (bldr.getBuildCallsCount() == nCalls)
+                break;
+        }
+    }
 }

@@ -451,6 +451,11 @@ public class FlowManager {
         manageDPFlowTableSpace();
     }
 
+    // used in test to manipulate flows idle/hard expiration time values
+    public ManagedWildcardFlow oldestIdleFlow() {
+        return idleTimeOutQueue.peek();
+    }
+
     public void forgetFlow(FlowMatch flowMatch) {
         FlowMetadata metadata = dpFlowTable.remove(flowMatch);
         if (metadata != null) {
