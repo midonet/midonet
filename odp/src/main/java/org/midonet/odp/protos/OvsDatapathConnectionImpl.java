@@ -4,6 +4,7 @@
 package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -328,7 +329,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doFlowsCreate(@Nonnull final Datapath datapath,
                                   @Nonnull final Flow flow,
-                                  final Callback<Flow> callback,
+                                  Callback<Flow> callback,
                                   final long timeoutMillis) {
         int datapathId = datapath.getIndex();
 
@@ -340,6 +341,14 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         FlowMatch match = flow.getMatch();
+
+        // allows to see failing flow create requests if debug logging is on.
+        if (callback == null && log.isDebugEnabled()) {
+            callback = new LoggingCallback<Flow>() {
+                public String requestString() { return "flow create"; }
+                public String dataString() { return flow.toString(); }
+            };
+        }
 
         short flags = NLFlag.REQUEST | NLFlag.New.CREATE;
         if (callback != null) {
@@ -478,8 +487,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doPacketsExecute(@Nonnull Datapath datapath,
-                                     @Nonnull Packet packet,
-                                     @Nonnull List<FlowAction> actions,
+                                     @Nonnull final Packet packet,
+                                     @Nonnull final List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
         int datapathId = datapath.getIndex();
@@ -505,6 +514,18 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     "The packet should have an action set up.");
             propagateError(callback, ex);
             return;
+        }
+
+        // allows to see failing packet execute requests if debug logging is on.
+        if (callback == null && log.isDebugEnabled()) {
+            callback = new LoggingCallback<Boolean>() {
+                public String requestString() {
+                    return "packet execute";
+                }
+                public String dataString() {
+                    return Arrays.toString(actions.toArray()) + " on " + packet;
+                }
+            };
         }
 
         short flags = NLFlag.REQUEST;
@@ -621,6 +642,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         public void onError(NetlinkException ex) {
             if (statusCallback != null)
                 statusCallback.onError(ex);
+        }
+    }
+
+    /** Used for debugging failing requests that do not register callbacks. */
+    private static abstract class LoggingCallback<T> implements Callback<T> {
+        public abstract String requestString();
+        public abstract String dataString();
+        public void onSuccess(T any) { }
+        public void onError(NetlinkException ex) {
+            log.error(requestString() + " request for " +
+                      dataString() + " failed", ex);
         }
     }
 }
