@@ -150,14 +150,13 @@ public class TestIPv4 {
             // Once checksums have been filled, the arrays should be equal.
             Assert.assertArrayEquals(ipBytes, bytes);
 
-            // Now deserializae/serialize the same packet from a
-            // larger-than-needed
-            // buffer.
+            // Now deserialize/serialize the same packet from a
+            // larger-than-needed buffer.
             byte[] longBuffer = Arrays.copyOf(ipBytes, ipBytes.length + 100);
             ipPkt = new IPv4();
-            bb = ByteBuffer.wrap(longBuffer, 0, longBuffer.length);
+            bb = ByteBuffer.wrap(longBuffer);
             ipPkt.deserialize(bb);
-            Assert.assertArrayEquals(ipBytes, ipPkt.serialize());
+            Assert.assertEquals(longBuffer.length, ipPkt.totalLength);
 
             // Now deserialize/serialize an incomplete packet
             byte[] truncatedIpBytes = Arrays.copyOf(ipBytes, ipBytes.length - 20);
@@ -322,7 +321,7 @@ public class TestIPv4 {
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(longBuffer, 0, longBuffer.length);
             ipPkt.deserialize(bb);
-            Assert.assertArrayEquals(data, ipPkt.serialize());
+            Assert.assertEquals(longBuffer.length, ipPkt.totalLength);
 
             // Now try deserializaing/serializing a truncated packet.
             byte[] truncatedData = Arrays.copyOf(data, data.length - 30);
@@ -419,8 +418,8 @@ public class TestIPv4 {
                     testHeader.length + 2);
             totalLenTooSmall[3] = (byte) 0x15;
             IPv4 totalLenTooSmallIPv4 = copyIPv4(templateIPv4);
-            totalLenTooSmallIPv4.setTotalLength(testHeader.length + 1);
-            totalLenTooSmallIPv4.setPayload(createData(totalLenTooSmall, 20, 21));
+            totalLenTooSmallIPv4.setTotalLength(testHeader.length + 2);
+            totalLenTooSmallIPv4.setPayload(createData(totalLenTooSmall, 20, 22));
 
             // For empty payload with options
             byte[] headerOnlyWithOptions = Arrays.copyOf(testHeaderWithOptions,
@@ -462,14 +461,16 @@ public class TestIPv4 {
             truncatedWithOptionsIPv4.setPayload(createData(
                     truncatedWithOptions, 24, 25));
 
-            Object[][] data = new Object[][] { { headerOnly, templateIPv4 },
+            Object[][] data = new Object[][] {
+                    { headerOnly, templateIPv4 },
                     { oneByte, oneByteIPv4 }, { maxLen, maxLenIPv4 },
                     { truncated, truncatedIPv4 },
                     { totalLenTooSmall, totalLenTooSmallIPv4 },
                     { headerOnlyWithOptions, headerOnlyWithOptionsIPv4 },
                     { oneByteWithOptions, oneByteWithOptionsIPv4 },
                     { maxLenWithOptions, maxLenWithOptionsIPv4 },
-                    { truncatedWithOptions, truncatedWithOptionsIPv4 } };
+                    { truncatedWithOptions, truncatedWithOptionsIPv4 }
+            };
 
             return Arrays.asList(data);
         }
