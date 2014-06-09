@@ -20,6 +20,7 @@ import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.*;
 import org.midonet.cluster.data.rules.JumpRule;
+import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -173,7 +174,8 @@ public class NeutronPluginTest {
         return subnet;
     }
 
-    public Port createStockPort(UUID subnetId, UUID networkId, UUID defaultSgId) {
+    public Port createStockPort(UUID subnetId, UUID networkId,
+                                UUID defaultSgId) {
         Port port = new Port();
         port.adminStateUp = true;
         List<IPAllocation> ips = new ArrayList<>();
@@ -694,8 +696,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testAddRouterInterfaceCreateDelete() throws StateAccessException,
-        SerializationException {
+    public void testAddRouterInterfaceCreateDelete()
+        throws StateAccessException, SerializationException {
         Network network = createStockNetwork();
         network = plugin.createNetwork(network);
         Subnet subnet = createStockSubnet();
@@ -818,11 +820,11 @@ public class NeutronPluginTest {
         }
 
         for (org.midonet.cluster.data.Rule r : outboundRules) {
-            System.out.println();
             Set<org.midonet.midolman.rules.NatTarget> targets
                     = ((org.midonet.cluster.data.rules.ForwardNatRule) r).getTargets();
             for (NatTarget nt : targets) {
-                if (nt.getNwEnd().equals(snatIp) && nt.getNwStart().equals(snatIp)) {
+                if (nt.getNwEnd().equals(snatIp) &&
+                    nt.getNwStart().equals(snatIp)) {
                     foundRevSnat = true;
                 }
             }
@@ -831,9 +833,54 @@ public class NeutronPluginTest {
         Assert.assertTrue(foundSnat && foundRevSnat);
     }
 
+    private void verifyStaticNat(FloatingIp floatingIp, Port port,
+                                 org.midonet.cluster.data.neutron.Router router)
+            throws StateAccessException, SerializationException {
+        boolean snatRuleFound = false;
+        boolean dnatRuleFound = false;
+
+        Router zkRouter = dataClient.routersGet(router.id);
+
+        List<Rule<?,?>> outRules =
+            dataClient.rulesFindByChain(zkRouter.getInboundFilter());
+        List<Rule<?,?>> inRules =
+            dataClient.rulesFindByChain(zkRouter.getOutboundFilter());
+
+        for (Rule r : inRules) {
+            if (r instanceof ForwardNatRule) {
+                ForwardNatRule fnr = (ForwardNatRule)r;
+                for (NatTarget target : fnr.getTargets()) {
+                    if (Objects.equal(target.getNwStart(),
+                                      floatingIp.floatingIpAddress) &&
+                        Objects.equal(target.getNwEnd(),
+                                      floatingIp.floatingIpAddress) &&
+                        target.tpEnd == 0 && target.tpStart == 0) {
+                        snatRuleFound = true;
+                    }
+                }
+            }
+        }
+        Assert.assertTrue(snatRuleFound);
+        for (Rule r : outRules) {
+            if (r instanceof ForwardNatRule) {
+                ForwardNatRule fnr = (ForwardNatRule)r;
+                for (NatTarget target : fnr.getTargets()) {
+                    if (Objects.equal(target.getNwStart(),
+                                      port.fixedIps.get(0).ipAddress) &&
+                            Objects.equal(target.getNwEnd(),
+                                          port.fixedIps.get(0).ipAddress) &&
+                            target.tpEnd == 0 && target.tpStart == 0) {
+                        dnatRuleFound = true;
+                    }
+                }
+            }
+        }
+        Assert.assertTrue(dnatRuleFound);
+    }
+
     @Test
-    public void testRouterGatewayUpdate() throws StateAccessException, SerializationException,
-        Rule.RuleIndexOutOfBoundsException {
+    public void testRouterGatewayUpdate() throws StateAccessException,
+        SerializationException, Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network.external = true;
         network = plugin.createNetwork(network);
@@ -899,7 +946,7 @@ public class NeutronPluginTest {
 
     @Test
     public void testFIPCreateDelete() throws StateAccessException,
-            SerializationException, Rule.RuleIndexOutOfBoundsException {
+        SerializationException, Rule.RuleIndexOutOfBoundsException {
 
         // Create the external network
         Network network = createStockNetwork();
@@ -939,6 +986,7 @@ public class NeutronPluginTest {
         fip.tenantId = "tenant";
         fip.id = UUID.randomUUID();
         fip = plugin.createFloatingIp(fip);
+        verifyStaticNat(fip, p, router);
 
         plugin.deleteFloatingIp(fip.id);
         int cp3 = zkDir().createCheckPoint();

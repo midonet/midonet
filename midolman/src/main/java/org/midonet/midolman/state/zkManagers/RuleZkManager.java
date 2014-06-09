@@ -495,49 +495,39 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     public UUID prepareReplaceDnatRules(List<Op> ops, UUID chainId, UUID portId,
-                                        IPv4Addr oldFromIp, IPv4Addr oldToIp,
-                                        IPv4Addr newFromIp, IPv4Addr newToIp)
+                                        IPv4Addr oldTarget, IPv4Addr newTarget)
             throws SerializationException, StateAccessException {
-        Rule r = Rule.staticDnatRule(chainId, portId, newFromIp, newToIp);
+        Rule r = Rule.staticDnatRule(chainId, portId, newTarget);
         return prepareReplaceRules(ops, chainId,
-                new RuleMatcher.DnatRuleMatcher(oldFromIp, oldToIp), r);
+            new RuleMatcher.DnatRuleMatcher(oldTarget), r);
     }
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
-                                        IPv4Addr oldFromIp, IPv4Addr oldToIp,
-                                        IPv4Addr newFromIp, IPv4Addr newToIp)
+                                        IPv4Addr oldTarget, IPv4Addr target)
             throws SerializationException, StateAccessException {
-        Rule r = Rule.staticSnatRule(chainId, portId, newFromIp, newToIp);
+        Rule r = Rule.staticSnatRule(chainId, portId, target);
         return prepareReplaceRules(ops, chainId,
-                new RuleMatcher.SnatRuleMatcher(oldFromIp, oldToIp), r);
+            new RuleMatcher.SnatRuleMatcher(oldTarget), r);
     }
 
     public void prepareDeleteDnatRules(List<Op> ops, UUID chainId,
-                                       IPv4Addr src, IPv4Addr target)
+                                       IPv4Addr target)
             throws SerializationException, StateAccessException {
         prepareDeleteRules(ops, chainId,
-                new RuleMatcher.DnatRuleMatcher(src, target));
+            new RuleMatcher.DnatRuleMatcher(target));
     }
 
     public void prepareDeleteSnatRules(List<Op> ops, UUID chainId,
                                        IPv4Addr addr)
             throws SerializationException, StateAccessException {
-        prepareDeleteRules(ops, chainId,
-                new RuleMatcher.SnatRuleMatcher(addr));
-    }
-
-    public void prepareDeleteSnatRules(List<Op> ops, UUID chainId,
-                                       IPv4Addr src, IPv4Addr target)
-            throws SerializationException, StateAccessException {
-        prepareDeleteRules(ops, chainId,
-                new RuleMatcher.SnatRuleMatcher(src, target));
+        prepareDeleteRules(ops, chainId, new RuleMatcher.SnatRuleMatcher(addr));
     }
 
     public void prepareDeleteReverseSnatRules(List<Op> ops, UUID chainId,
                                               IPv4Addr addr)
             throws SerializationException, StateAccessException {
         prepareDeleteRules(ops, chainId,
-                new RuleMatcher.ReverseSnatRuleMatcher(addr));
+            new RuleMatcher.ReverseSnatRuleMatcher(addr));
     }
 
     public void prepareDeleteRules(List<Op> ops, UUID chainId,
@@ -598,30 +588,28 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     public UUID prepareCreateStaticSnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr matchIp,
-                                            IPv4Addr targetIp)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
+                                            UUID portId, IPv4Addr targetIp)
+        throws RuleIndexOutOfBoundsException, SerializationException,
+        StateAccessException {
 
         Rule rule = Rule.staticSnatRule(chainId, portId,
-                new NatTarget(matchIp, targetIp));
+            new NatTarget(targetIp, 0, 0));
         return prepareCreateRuleFirstPosition(ops, rule);
     }
 
     public UUID prepareCreateStaticDnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr matchIp,
-                                            IPv4Addr targetIp)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
+                                            UUID portId, IPv4Addr targetIp)
+        throws RuleIndexOutOfBoundsException, SerializationException,
+        StateAccessException {
         Rule rule = Rule.staticDnatRule(chainId, portId,
-                new NatTarget(matchIp, targetIp));
+            new NatTarget(targetIp, 0, 0));
         return prepareCreateRuleFirstPosition(ops, rule);
     }
 
     public UUID prepareCreateDynamicSnatRule(List<Op> ops, UUID chainId,
                                              UUID portId, IPv4Addr addr)
             throws SerializationException, StateAccessException,
-            RuleIndexOutOfBoundsException {
+        RuleIndexOutOfBoundsException {
         Rule r = Rule.dynamicSnatRule(chainId, portId, addr);
         return prepareCreateRuleFirstPosition(ops, r);
     }
@@ -629,7 +617,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     public UUID prepareCreateReverseSnatRule(List<Op> ops, UUID chainId,
                                              UUID portId, IPv4Addr addr)
             throws SerializationException, StateAccessException,
-            RuleIndexOutOfBoundsException {
+        RuleIndexOutOfBoundsException {
         Rule r = Rule.reverseSnatRule(chainId, portId, addr);
         return prepareCreateRuleFirstPosition(ops, r);
     }
@@ -643,8 +631,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
      *            ID of the rule to delete.
      * @throws StateAccessException
      */
-    public void delete(UUID id) throws StateAccessException,
-            SerializationException {
+    public void delete(UUID id) throws StateAccessException, SerializationException {
         zk.multi(prepareDelete(id));
     }
 }
