@@ -140,6 +140,18 @@ public class Application extends UriResource {
     }
 
     /**
+     * @return the ports URI
+     */
+    @Since("5")
+    public URI getPorts() {
+        if (getBaseUri() != null) {
+            return ResourceUriBuilder.getPorts(getBaseUri());
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * @return the VIP URI
      */
     @Since("4")
