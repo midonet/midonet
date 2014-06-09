@@ -65,7 +65,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 notificationHandler.submit(packet);
             }
         } else {
-            super.handleNotification(type, cmd, seq, pid, buffer);
+            log.error("Cannot handle notification for: {family: {}, cmd: {}}",
+                      type, cmd);
         }
     }
 
