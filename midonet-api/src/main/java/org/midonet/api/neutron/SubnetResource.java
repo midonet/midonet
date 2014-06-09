@@ -12,6 +12,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.event.neutron.SubnetEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -34,6 +35,8 @@ public class SubnetResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
             SubnetResource.class);
+    private final static SubnetEvent SUBNET_EVENT =
+            new SubnetEvent();
 
     private final NetworkApi api;
 
@@ -55,7 +58,7 @@ public class SubnetResource extends AbstractResource {
         try {
 
             Subnet sub = api.createSubnet(subnet);
-
+            SUBNET_EVENT.create(sub.id, sub);
             log.info("SubnetResource.create exiting {}", sub);
             return Response.created(
                     NeutronUriBuilder.getSubnet(
@@ -77,7 +80,9 @@ public class SubnetResource extends AbstractResource {
 
         try {
             List<Subnet> nets = api.createSubnetBulk(subnets);
-
+            for (Subnet subnet : nets) {
+                SUBNET_EVENT.create(subnet.id, subnet);
+            }
             return Response.created(NeutronUriBuilder.getSubnets(
                     getBaseUri())).entity(nets).build();
         } catch (StatePathExistsException e) {
@@ -92,6 +97,7 @@ public class SubnetResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("SubnetResource.delete entered {}", id);
         api.deleteSubnet(id);
+        SUBNET_EVENT.delete(id);
     }
 
     @GET
@@ -133,7 +139,7 @@ public class SubnetResource extends AbstractResource {
         try {
 
             Subnet sub = api.updateSubnet(id, subnet);
-
+            SUBNET_EVENT.update(id, sub);
             log.info("SubnetResource.update exiting {}", sub);
             return Response.ok(
                     NeutronUriBuilder.getSubnet(
