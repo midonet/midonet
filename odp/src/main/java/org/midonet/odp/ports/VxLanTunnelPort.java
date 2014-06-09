@@ -54,10 +54,10 @@ public class VxLanTunnelPort extends DpPort {
             // padding (4b), and whose own header takes 4b. Note that the header
             // of the port attribute has its len field written without padding
             buf.putShort((short)12);
-            buf.putShort((short)OpenVSwitch.Port.Attr.Options);
+            buf.putShort(NetlinkMessage.nested(OpenVSwitch.Port.Attr.Options));
             // The datapath code checks for a u16 attribute written without
             // padding, therefore the len field of the header should be 6b.
-            short portAttrId = (short)OpenVSwitch.Port.VPortTunnelOptions.DstPort;
+            short portAttrId = OpenVSwitch.Port.VPortTunnelOptions.DstPort;
             short dstPort = options.getDestinationPort();
             NetlinkMessage.writeShortAttrNoPad(buf, portAttrId, dstPort);
         }
@@ -66,7 +66,7 @@ public class VxLanTunnelPort extends DpPort {
     @Override
     protected void deserializeFrom(NetlinkMessage msg) {
         super.deserializeFrom(msg);
-        this.options = msg.getAttrValue(PortFamily.Attr.VXLANOPTIONS,
+        this.options = msg.getAttrValue(OpenVSwitch.Port.Attr.Options,
                                         new VxLanTunnelPortOptions());
     }
 

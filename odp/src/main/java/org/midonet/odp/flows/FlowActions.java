@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.util.List;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.odp.family.FlowFamily;
+import org.midonet.odp.OpenVSwitch;
 
 /**
  * Builder class to allow easier building of FlowAction instances.
@@ -48,6 +48,7 @@ public class FlowActions {
     }
 
     public static List<FlowAction> buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(FlowFamily.AttrKey.ACTIONS, FlowAction.Builder);
+        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Actions,
+                                FlowAction.Builder);
     }
 }

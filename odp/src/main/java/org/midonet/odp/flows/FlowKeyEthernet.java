@@ -6,8 +6,9 @@ package org.midonet.odp.flows;
 import java.util.Arrays;
 import java.nio.ByteBuffer;
 
-import org.midonet.packets.MAC;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
+import org.midonet.packets.MAC;
 
 public class FlowKeyEthernet implements CachedFlowKey {
 
@@ -43,7 +44,7 @@ public class FlowKeyEthernet implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ETHERNET.getId();
+        return OpenVSwitch.FlowKey.Attr.Ethernet;
     }
 
     public byte[] getSrc() {

@@ -17,7 +17,7 @@ import com.google.common.primitives.Longs;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
-import org.midonet.odp.OpenVSwitch;
+import org.midonet.odp.OpenVSwitch.Port.Attr;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
@@ -43,10 +43,10 @@ public abstract class DpPort {
         Gre64(OpenVSwitch.Port.Type.Gre64),
         Lisp(OpenVSwitch.Port.Type.Lisp);       // not yet supported
 
-        public int attrId;
+        public short typeId;
 
-        Type(int attr) {
-            this.attrId = attr;
+        Type(short typeId) {
+            this.typeId = typeId;
         }
     }
 
@@ -73,25 +73,21 @@ public abstract class DpPort {
     }
 
     public void serializeInto(ByteBuffer buf) {
-        short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
-        NetlinkMessage.writeStringAttr(buf, nameAttrId, getName());
+        NetlinkMessage.writeStringAttr(buf, Attr.Name, getName());
 
-        short portTypeAttrId = (short) OpenVSwitch.Port.Attr.Type;
-        NetlinkMessage.writeIntAttr(buf, portTypeAttrId, getType().attrId);
+        NetlinkMessage.writeIntAttr(buf, Attr.Type, getType().typeId);
 
         if (getPortNo() != null) {
-            short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
-            NetlinkMessage.writeIntAttr(buf, portNoAttrId, getPortNo());
+            NetlinkMessage.writeIntAttr(buf, Attr.PortNo, getPortNo());
         }
 
         if (stats != null) {
-            short statsAttrId = (short) OpenVSwitch.Port.Attr.Stats;
             NetlinkMessage.writeAttr(buf, stats, Stats.trans);
         }
     }
 
     protected void deserializeFrom(NetlinkMessage msg) {
-        this.portNo = msg.getAttrValueInt(PortFamily.Attr.PORT_NO);
+        this.portNo = msg.getAttrValueInt(Attr.PortNo);
         this.stats = Stats.buildFrom(msg);
     }
 
@@ -129,12 +125,12 @@ public abstract class DpPort {
     public static DpPort buildFrom(NetlinkMessage msg) {
         int actualDpIndex = msg.getInt(); // read the datapath id
 
-        String name = msg.getAttrValueString(PortFamily.Attr.NAME);
-        Integer type = msg.getAttrValueInt(PortFamily.Attr.PORT_TYPE);
+        String name = msg.getAttrValueString(Attr.Name);
+        Integer type = msg.getAttrValueInt(Attr.Type);
         if (type == null || name == null)
             return null;
 
-        DpPort port = newPortByTypeId(type, name);
+        DpPort port = newPortByTypeId(type.shortValue(), name);
 
         if (port != null)
             port.deserializeFrom(msg);
@@ -171,7 +167,7 @@ public abstract class DpPort {
             }
         };
 
-    private static DpPort newPortByTypeId(Integer type, String name) {
+    private static DpPort newPortByTypeId(short type, String name) {
         switch (type) {
 
             case OpenVSwitch.Port.Type.Netdev:
@@ -198,17 +194,14 @@ public abstract class DpPort {
                                         String portName, Integer portId) {
         buf.putInt(datapathId);
 
-        short upcallPidAttrId = (short) OpenVSwitch.Port.Attr.UpcallPID;
-        NetlinkMessage.writeIntAttr(buf, upcallPidAttrId, pid);
+        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
 
         if (portId != null) {
-            short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
-            NetlinkMessage.writeIntAttr(buf, portNoAttrId, portId);
+            NetlinkMessage.writeIntAttr(buf, Attr.PortNo, portId);
         }
 
         if (portName != null) {
-            short nameAttrId = (short) OpenVSwitch.Port.Attr.Name;
-            NetlinkMessage.writeStringAttr(buf, nameAttrId, portName);
+            NetlinkMessage.writeStringAttr(buf, Attr.Name, portName);
         }
 
         buf.flip();
@@ -218,8 +211,7 @@ public abstract class DpPort {
     public static ByteBuffer createRequest(ByteBuffer buf, int datapathId,
                                            int pid, DpPort port) {
         buf.putInt(datapathId);
-        short upcallPidAttrId = (short) OpenVSwitch.Port.Attr.UpcallPID;
-        NetlinkMessage.writeIntAttr(buf, upcallPidAttrId, pid);
+        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
         port.serializeInto(buf);
         buf.flip();
         return buf;
@@ -228,8 +220,7 @@ public abstract class DpPort {
     public static ByteBuffer deleteRequest(ByteBuffer buf, int datapathId,
                                            DpPort port) {
         buf.putInt(datapathId);
-        short portNoAttrId = (short) OpenVSwitch.Port.Attr.PortNo;
-        NetlinkMessage.writeIntAttr(buf, portNoAttrId, port.getPortNo());
+        NetlinkMessage.writeIntAttr(buf, Attr.PortNo, port.getPortNo());
         buf.flip();
         return buf;
     }
@@ -317,12 +308,12 @@ public abstract class DpPort {
         }
 
         public static Stats buildFrom(NetlinkMessage msg) {
-            return msg.getAttrValue(PortFamily.Attr.STATS, new Stats());
+            return msg.getAttrValue(Attr.Stats, new Stats());
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
             public short attrIdOf(Stats any) {
-                return (short) OpenVSwitch.Port.Attr.Stats;
+                return Attr.Stats;
             }
             public int serializeInto(ByteBuffer receiver, Stats value) {
                 receiver.putLong(value.rxPackets)
@@ -360,20 +351,20 @@ public abstract class DpPort {
 
     /** mock method used in MockOvsDatapathConnection. */
     public static DpPort fakeFrom(DpPort port, int portNo) {
-        DpPort fake = newPortByTypeId(port.getType().attrId, port.getName());
+        DpPort fake = newPortByTypeId(port.getType().typeId, port.getName());
         fake.portNo = portNo;
         fake.stats = new DpPort.Stats();
         return fake;
     }
 
     public static DpPort random() {
-        int[] types = new int[]{
+        short[] types = new short[]{
             OpenVSwitch.Port.Type.Netdev,
             OpenVSwitch.Port.Type.Internal,
             OpenVSwitch.Port.Type.Gre,
             OpenVSwitch.Port.Type.VXLan
         };
-        int type = types[r.nextInt(types.length)];
+        short type = types[r.nextInt(types.length)];
         String name = new BigInteger(100, r).toString(32);
         DpPort port = newPortByTypeId(type, name);
         port.portNo = r.nextInt(100);

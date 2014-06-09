@@ -4,15 +4,11 @@
 package org.midonet.odp.ports;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.NetlinkMessage.AttrKey;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
 
 public class VxLanTunnelPortOptions implements BuilderAware {
-
-    public static final NetlinkMessage.AttrKey<Short> OVS_TUNNEL_ATTR_DST_PORT =
-        AttrKey.attr(OpenVSwitch.Port.VPortTunnelOptions.DstPort);
 
     public static short VXLAN_DEFAULT_DST_PORT = 4789;
 
@@ -36,7 +32,8 @@ public class VxLanTunnelPortOptions implements BuilderAware {
     @Override
     public boolean deserialize(NetlinkMessage message) {
         try {
-            int port = message.getAttrValueShort(OVS_TUNNEL_ATTR_DST_PORT);
+            short portId = OpenVSwitch.Port.VPortTunnelOptions.DstPort;
+            int port = message.getAttrValueShort(portId);
             setDestinationPort(port);
         } catch (Exception e) {
             return false;

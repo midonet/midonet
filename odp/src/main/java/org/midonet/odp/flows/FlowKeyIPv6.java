@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
 
@@ -84,7 +85,7 @@ public class FlowKeyIPv6 implements FlowKey {
 
     @Override
     public short attrId() {
-        return FlowKeyAttr.IPv6.getId();
+        return OpenVSwitch.FlowKey.Attr.IPv6;
     }
 
     public int[] getSrc() {

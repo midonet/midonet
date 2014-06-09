@@ -18,17 +18,12 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.family.DatapathFamily;
+import org.midonet.odp.OpenVSwitch.Datapath.Attr;
 
 /**
  * Java representation of an OpenVSwitch Datapath object.
  */
 public class Datapath {
-
-    private static final NetlinkMessage.AttrKey<String> NameAttr =
-        NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Name);
-
-    public static final NetlinkMessage.AttrKey<Datapath.Stats> StatsAttr =
-        NetlinkMessage.AttrKey.attr(OpenVSwitch.Datapath.Attr.Stat);
 
     public Datapath(int index, String name) {
         this.name = name;
@@ -60,7 +55,7 @@ public class Datapath {
 
     public static Datapath buildFrom(NetlinkMessage msg) {
         int index = msg.getInt();
-        String name = msg.getAttrValueString(NameAttr);
+        String name = msg.getAttrValueString(Attr.Name);
         Stats stats = Stats.buildFrom(msg);
         return new Datapath(index, name, stats);
     }
@@ -70,8 +65,7 @@ public class Datapath {
     public void serializeInto(ByteBuffer buf) {
         buf.putInt(index);
 
-        short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
-        NetlinkMessage.writeStringAttr(buf, nameAttrId, name);
+        NetlinkMessage.writeStringAttr(buf, Attr.Name, name);
 
         if (stats != null) {
             NetlinkMessage.writeAttr(buf, stats, Stats.trans);
@@ -184,12 +178,12 @@ public class Datapath {
         }
 
         public static Stats buildFrom(NetlinkMessage msg) {
-            return msg.getAttrValue(StatsAttr, new Stats());
+            return msg.getAttrValue(Attr.Stat, new Stats());
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {
             public short attrIdOf(Stats any) {
-                return (short) OpenVSwitch.Datapath.Attr.Stat;
+                return Attr.Stat;
             }
             public int serializeInto(ByteBuffer receiver, Stats value) {
                 receiver.putLong(value.hits)
@@ -241,11 +235,10 @@ public class Datapath {
     }
 
     public static ByteBuffer getRequest(ByteBuffer buf, int datapathId,
-                                        String datapathName) {
+                                        String name) {
         buf.putInt(datapathId);
-        if (datapathName != null) {
-            short nameId = (short) OpenVSwitch.Datapath.Attr.Name;
-            NetlinkMessage.writeStringAttr(buf, nameId, datapathName);
+        if (name != null) {
+            NetlinkMessage.writeStringAttr(buf, Attr.Name, name);
         }
         buf.flip();
         return buf;
@@ -258,13 +251,11 @@ public class Datapath {
     }
 
     public static ByteBuffer createRequest(ByteBuffer buf, int pid,
-                                           String datapathName) {
+                                           String name) {
         buf.putInt(0);
-        short pidAttrId = (short) OpenVSwitch.Datapath.Attr.UpcallPID;
-        NetlinkMessage.writeIntAttr(buf, pidAttrId, pid);
-        if (datapathName != null) {
-            short nameAttrId = (short) OpenVSwitch.Datapath.Attr.Name;
-            NetlinkMessage.writeStringAttr(buf, nameAttrId, datapathName);
+        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
+        if (name != null) {
+            NetlinkMessage.writeStringAttr(buf, Attr.Name, name);
         }
         buf.flip();
         return buf;

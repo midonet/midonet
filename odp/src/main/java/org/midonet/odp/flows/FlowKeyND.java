@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
 
@@ -50,7 +51,7 @@ public class FlowKeyND implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ND.getId();
+        return OpenVSwitch.FlowKey.Attr.ND;
     }
 
     public int[] getTarget() {
