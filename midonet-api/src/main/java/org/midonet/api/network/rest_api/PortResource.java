@@ -493,13 +493,11 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.ports.BridgePort> portDataList =
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.ports.BridgePort portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPort(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.ports.BridgePort portData :
+                portDataList) {
+                Port port = PortFactory.convertToApiPort(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -549,13 +547,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPortV1(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPortV1(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -581,13 +576,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPort(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPort(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -707,13 +699,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPortV1(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPortV1(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -737,13 +726,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPort(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                 Port port = PortFactory.convertToApiPort(portData);
+                 port.setBaseUri(getBaseUri());
+                 ports.add(port);
             }
             return ports;
         }
@@ -793,13 +779,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPortV1(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPortV1(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
@@ -825,13 +808,10 @@ public class PortResource extends AbstractResource {
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
-            if (portDataList != null) {
-                for (org.midonet.cluster.data.Port<?, ?> portData :
-                        portDataList) {
-                    Port port = PortFactory.convertToApiPort(portData);
-                    port.setBaseUri(getBaseUri());
-                    ports.add(port);
-                }
+            for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
+                Port port = PortFactory.convertToApiPort(portData);
+                port.setBaseUri(getBaseUri());
+                ports.add(port);
             }
             return ports;
         }
