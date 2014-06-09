@@ -225,7 +225,7 @@ public class FlowManager {
      */
     public boolean add(Flow flow, ManagedWildcardFlow wildFlow) {
         if (dpFlowTable.containsKey(flow.getMatch())) {
-            log.warning("Tried to add a duplicate DP flow");
+            log.debug("Tried to add a duplicate DP flow");
             forgetFlow(flow.getMatch());
         }
         // check if there's enough space
