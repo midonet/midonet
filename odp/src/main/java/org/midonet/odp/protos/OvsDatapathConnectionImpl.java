@@ -75,15 +75,17 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         this.notificationHandler = notificationHandler;
     }
 
-    DatapathFamily datapathFamily;
-    PortFamily portFamily;
-    FlowFamily flowFamily;
-    PacketFamily packetFamily;
+    private DatapathFamily datapathFamily;
+    private PortFamily portFamily;
+    private FlowFamily flowFamily;
+    private PacketFamily packetFamily;
 
-    int datapathMulticast;
-    int portMulticast;
+    private int datapathMulticast;
+    private int portMulticast;
 
     private BatchCollector<Packet> notificationHandler;
+
+    private boolean initialized = false;
 
     @Override
     protected void endBatch() {
@@ -95,9 +97,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsGet(String name,
                                    @Nonnull Callback<Datapath> callback,
                                    long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
                 "given datapath name was null"));
@@ -117,9 +116,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsGet(int datapathId,
                                    @Nonnull Callback<Datapath> callback,
                                    long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         if (datapathId == 0) {
             callback.onError(new OvsDatapathInvalidParametersException(
                 "datapath id should not be 0"));
@@ -138,9 +134,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         sendNetlinkMessage(
             datapathFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP,
@@ -154,9 +147,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsCreate(@Nonnull String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int localPid = getChannel().getLocalAddress().getPid();
 
         sendNetlinkMessage(
@@ -172,9 +162,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsDelete(String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         if (name == null) {
             callback.onError(new OvsDatapathInvalidParametersException(
                 "given datapath name was null"));
@@ -194,9 +181,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doDatapathsDelete(int datapathId,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         if (datapathId == 0) {
             callback.onError(new OvsDatapathInvalidParametersException(
                 "datapath id should not be 0"));
@@ -218,9 +202,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                final @Nullable Datapath datapath,
                                final @Nonnull Callback<DpPort> callback,
                                final long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         if (name == null && portId == null) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
@@ -271,9 +252,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                @Nullable final Datapath datapath,
                                @Nonnull final Callback<DpPort> callback,
                                final long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath == null ? 0 : datapath.getIndex();
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -298,9 +276,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
                                      @Nonnull Callback<Set<DpPort>> callback,
                                      long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         sendNetlinkMessage(
             portFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
@@ -315,9 +290,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull DpPort port,
                                   @Nonnull Callback<DpPort> callback,
                                   long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
         int localPid = getChannel().getLocalAddress().getPid();
 
@@ -334,9 +306,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doFlowsEnumerate(@Nonnull Datapath datapath,
                                      @Nonnull Callback<Set<Flow>> callback,
                                      long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
@@ -360,9 +329,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull final Flow flow,
                                   final Callback<Flow> callback,
                                   final long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
@@ -394,9 +360,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull final Flow flow,
                                   @Nonnull final Callback<Flow> callback,
                                   final long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
@@ -429,9 +392,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doFlowsFlush(@Nonnull final Datapath datapath,
                                  @Nonnull final Callback<Boolean> callback,
                                  long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
@@ -453,9 +413,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doFlowsGet(@Nonnull Datapath datapath, @Nonnull FlowMatch match,
                                @Nonnull Callback<Flow> callback, long timeoutMillis) {
-
-        if (!validateState(callback))
-            return;
 
         int datapathId = datapath.getIndex();
 
@@ -480,9 +437,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                @Nonnull final Flow flow,
                                @Nonnull final Callback<Flow> callback,
                                long timeoutMillis) {
-
-        if (!validateState(callback))
-            return;
 
         int datapathId = datapath.getIndex();
 
@@ -527,9 +481,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                      @Nonnull List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
-        if (!validateState(callback))
-            return;
-
         int datapathId = datapath.getIndex();
 
         if (datapathId == 0) {
@@ -570,46 +521,37 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             timeoutMillis);
     }
 
-    private enum State {
-        Initializing, ErrorInInitialization, Initialized
-    }
-
-    private State state;
-    private NetlinkException stateInitializationEx;
-
     @Override
     public void initialize(final Callback<Boolean> initStatusCallback) {
-        state = State.Initializing;
-
         final Callback<Integer> portMulticastCallback =
-            new StateAwareCallback<Integer>(initStatusCallback) {
+            new ChainedCallback<Integer>(initStatusCallback) {
                 @Override
                 public void onSuccess(Integer data) {
 
                     log.debug("Got port multicast group: {}.", data);
                     if (data != null) {
-                        OvsDatapathConnectionImpl.this.portMulticast = data;
+                        portMulticast = data;
                     } else {
                         log.info(
                             "Setting the port multicast group to fallback value: {}",
                             PortFamily.FALLBACK_MC_GROUP);
 
-                        OvsDatapathConnectionImpl.this.portMulticast =
+                        portMulticast =
                             PortFamily.FALLBACK_MC_GROUP;
                     }
 
-                    state = State.Initialized;
+                    initialized = true;
                     initStatusCallback.onSuccess(true);
                 }
             };
 
         final Callback<Integer> datapathMulticastCallback =
-            new StateAwareCallback<Integer>(initStatusCallback) {
+            new ChainedCallback<Integer>(initStatusCallback) {
                 @Override
                 public void onSuccess(Integer data) {
                     log.debug("Got datapath multicast group: {}.", data);
                     if (data != null)
-                        OvsDatapathConnectionImpl.this.datapathMulticast = data;
+                        datapathMulticast = data;
 
                     getMulticastGroup(PortFamily.NAME, PortFamily.MC_GROUP,
                                       portMulticastCallback);
@@ -617,7 +559,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
 
         final Callback<Short> packetFamilyBuilder =
-            new StateAwareCallback<Short>(initStatusCallback) {
+            new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
                     packetFamily = new PacketFamily(data);
@@ -629,7 +571,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
 
         final Callback<Short> flowFamilyBuilder =
-            new StateAwareCallback<Short>(initStatusCallback) {
+            new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
                     flowFamily = new FlowFamily(data);
@@ -639,7 +581,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
 
         final Callback<Short> portFamilyBuilder =
-            new StateAwareCallback<Short>(initStatusCallback) {
+            new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
                     portFamily = new PortFamily(data);
@@ -649,7 +591,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
 
         final Callback<Short> datapathFamilyBuilder =
-            new StateAwareCallback<Short>(initStatusCallback) {
+            new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
                     datapathFamily = new DatapathFamily(data);
@@ -661,47 +603,23 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         getFamilyId(DatapathFamily.NAME, datapathFamilyBuilder);
     }
 
+    @Override
     public boolean isInitialized() {
-        return state == State.Initialized;
+        return initialized;
     }
 
-    private boolean validateState(Callback<?> callback) {
-        switch (state) {
-            case ErrorInInitialization:
-                propagateError(callback, stateInitializationEx);
-                return false;
-            case Initializing:
-                propagateError(callback, new OvsDatapathNotInitializedException());
-                return false;
-        }
+    private static abstract class ChainedCallback<T> implements Callback<T> {
 
-        return true;
-    }
+        private final Callback<Boolean> statusCallback;
 
-    private class StateAwareCallback<T> implements Callback<T> {
-
-        Callback<Boolean> statusCallback;
-
-        public StateAwareCallback() {
-            this(null);
-        }
-
-        public StateAwareCallback(Callback<Boolean> statusCallback) {
+        public ChainedCallback(Callback<Boolean> statusCallback) {
             this.statusCallback = statusCallback;
         }
 
         @Override
-        public void onSuccess(T data) {
-            statusCallback.onSuccess(Boolean.TRUE);
-        }
-
-        @Override
         public void onError(NetlinkException ex) {
-            state = State.ErrorInInitialization;
-            stateInitializationEx = ex;
             if (statusCallback != null)
                 statusCallback.onError(ex);
         }
     }
-
 }
