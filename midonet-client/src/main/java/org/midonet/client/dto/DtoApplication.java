@@ -7,7 +7,6 @@ package org.midonet.client.dto;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
-import java.net.URL;
 import java.util.UUID;
 
 @XmlRootElement
@@ -34,6 +33,7 @@ public class DtoApplication {
     private URI loadBalancers;
     private URI pools;
     private URI poolMembers;
+    private URI ports;
     private URI vips;
     private URI vteps;
     private String adRouteTemplate;
@@ -245,6 +245,14 @@ public class DtoApplication {
 
     public void setPoolMembers(URI poolMembers) {
         this.poolMembers = poolMembers;
+    }
+
+    public URI getPorts() {
+        return this.ports;
+    }
+
+    public void setPorts(URI ports) {
+        this.ports = ports;
     }
 
     public URI getVips() {
