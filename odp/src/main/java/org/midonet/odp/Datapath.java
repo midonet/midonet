@@ -53,10 +53,10 @@ public class Datapath {
         return stats;
     }
 
-    public static Datapath buildFrom(NetlinkMessage msg) {
-        int index = msg.getInt();
-        String name = msg.getAttrValueString(Attr.Name);
-        Stats stats = Stats.buildFrom(msg);
+    public static Datapath buildFrom(ByteBuffer buf) {
+        int index = buf.getInt();
+        String name = NetlinkMessage.getAttrValueString(buf, Attr.Name);
+        Stats stats = Stats.buildFrom(buf);
         return new Datapath(index, name, stats);
     }
 
@@ -80,7 +80,7 @@ public class Datapath {
             public Datapath apply(List<ByteBuffer> input) {
                 if (input == null || input.isEmpty() || input.get(0) == null)
                     return null;
-                return buildFrom(new NetlinkMessage(input.get(0)));
+                return buildFrom(input.get(0));
             }
         };
 
@@ -94,7 +94,7 @@ public class Datapath {
                 if (input == null)
                     return datapaths;
                 for (ByteBuffer buffer : input) {
-                    datapaths.add(buildFrom(new NetlinkMessage(buffer)));
+                    datapaths.add(buildFrom(buffer));
                 }
                 return datapaths;
             }
@@ -133,12 +133,12 @@ public class Datapath {
         }
 
         @Override
-        public boolean deserialize(NetlinkMessage message) {
+        public boolean deserialize(ByteBuffer buf) {
             try {
-                hits = message.getLong();
-                misses = message.getLong();
-                lost = message.getLong();
-                flows = message.getLong();
+                hits = buf.getLong();
+                misses = buf.getLong();
+                lost = buf.getLong();
+                flows = buf.getLong();
                 return true;
             } catch (Exception e) {
                 return false;
@@ -177,8 +177,8 @@ public class Datapath {
                 '}';
         }
 
-        public static Stats buildFrom(NetlinkMessage msg) {
-            return msg.getAttrValue(Attr.Stat, new Stats());
+        public static Stats buildFrom(ByteBuffer buf) {
+            return NetlinkMessage.getAttrValue(buf, Attr.Stat, new Stats());
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {

@@ -3,6 +3,8 @@
  */
 package org.midonet.odp.flows;
 
+import java.nio.ByteBuffer;
+
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
@@ -24,10 +26,10 @@ public class FlowStats implements BuilderAware {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            n_packets = message.getLong();
-            n_bytes = message.getLong();
+            n_packets = buf.getLong();
+            n_bytes = buf.getLong();
             return true;
         } catch (Exception e) {
             return false;
@@ -70,7 +72,9 @@ public class FlowStats implements BuilderAware {
             '}';
     }
 
-    public static FlowStats buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Stats, new FlowStats());
+    public static FlowStats buildFrom(ByteBuffer buf) {
+        return NetlinkMessage.getAttrValue(buf,
+                                           OpenVSwitch.Flow.Attr.Stats,
+                                           new FlowStats());
     }
 }

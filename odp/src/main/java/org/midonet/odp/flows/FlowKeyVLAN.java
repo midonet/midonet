@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.VLAN;
 
@@ -30,9 +29,9 @@ public class FlowKeyVLAN implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(message.getShort()));
+            vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(buf.getShort()));
             return true;
         } catch (Exception e) {
             return false;

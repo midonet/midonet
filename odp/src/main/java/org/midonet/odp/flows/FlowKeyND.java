@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Net;
@@ -35,15 +34,12 @@ public class FlowKeyND implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
             nd_target = new int[4];
-            for (int i = 0; i < 4; i++) {
-                nd_target[i] =
-                    BytesUtil.instance.reverseBE(message.getInt());
-            }
-            message.getBytes(nd_sll);
-            message.getBytes(nd_tll);
+            BytesUtil.instance.readBEIntsFrom(buf, nd_target);
+            buf.get(nd_sll);
+            buf.get(nd_tll);
             return true;
         } catch (Exception e) {
             return false;

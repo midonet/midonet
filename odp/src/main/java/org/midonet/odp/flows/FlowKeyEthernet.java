@@ -6,7 +6,6 @@ package org.midonet.odp.flows;
 import java.util.Arrays;
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.MAC;
 
@@ -32,10 +31,10 @@ public class FlowKeyEthernet implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            message.getBytes(eth_src);
-            message.getBytes(eth_dst);
+            buf.get(eth_src);
+            buf.get(eth_dst);
             hashCode = 0;
             return true;
         } catch (Exception e) {

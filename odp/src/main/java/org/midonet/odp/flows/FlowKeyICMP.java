@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyICMP implements FlowKey {
@@ -27,10 +26,10 @@ public class FlowKeyICMP implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            icmp_type = message.getByte();
-            icmp_code = message.getByte();
+            icmp_type = buf.get();
+            icmp_code = buf.get();
             return true;
         } catch (Exception e) {
             return false;

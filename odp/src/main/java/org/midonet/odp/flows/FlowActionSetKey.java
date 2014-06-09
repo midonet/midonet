@@ -24,14 +24,14 @@ public class FlowActionSetKey implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
-
-        message.iterateAttributes(new NetlinkMessage.AttributeParser() {
+    public boolean deserialize(ByteBuffer buf) {
+        NetlinkMessage.iterateAttributes(buf,
+                                         new NetlinkMessage.AttributeParser() {
             @Override
             public boolean processAttribute(short attributeType, ByteBuffer buffer) {
                 flowKey = FlowKey.Builder.newInstance(attributeType);
                 if (flowKey != null) {
-                    flowKey.deserialize(new NetlinkMessage(buffer));
+                    flowKey.deserialize(buffer);
                 }
 
                 return flowKey == null;

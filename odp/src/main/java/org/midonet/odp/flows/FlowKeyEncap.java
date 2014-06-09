@@ -36,14 +36,14 @@ public class FlowKeyEncap implements FlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
-
-        message.iterateAttributes(new NetlinkMessage.AttributeParser() {
+    public boolean deserialize(ByteBuffer buf) {
+        NetlinkMessage.iterateAttributes(buf,
+                                         new NetlinkMessage.AttributeParser() {
             @Override
             public boolean processAttribute(short attributeType, ByteBuffer buffer) {
                 FlowKey flowKey = FlowKey.Builder.newInstance(attributeType);
                 if (flowKey != null) {
-                    flowKey.deserialize(new NetlinkMessage(buffer));
+                    flowKey.deserialize(buffer);
                     keys.add(flowKey);
                 }
 

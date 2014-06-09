@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
@@ -45,13 +44,13 @@ public class FlowKeyARP implements CachedFlowKey {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         try {
-            arp_sip = BytesUtil.instance.reverseBE(message.getInt());
-            arp_tip = BytesUtil.instance.reverseBE(message.getInt());
-            arp_op = BytesUtil.instance.reverseBE(message.getShort());
-            message.getBytes(arp_sha);
-            message.getBytes(arp_tha);
+            arp_sip = BytesUtil.instance.reverseBE(buf.getInt());
+            arp_tip = BytesUtil.instance.reverseBE(buf.getInt());
+            arp_op = BytesUtil.instance.reverseBE(buf.getShort());
+            buf.get(arp_sha);
+            buf.get(arp_tha);
             this.hashCode = 0;
             return true;
         } catch (Exception e) {

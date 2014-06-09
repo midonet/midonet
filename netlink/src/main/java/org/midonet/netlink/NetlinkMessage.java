@@ -19,53 +19,17 @@ import org.midonet.packets.MalformedPacketException;
  * of netlink messages (using the same target buffer) and easy way to deserialize
  * a message.
  */
-public class NetlinkMessage {
+public final class NetlinkMessage {
+    private NetlinkMessage() { }
 
     static public final short NLA_F_NESTED = (short) (1 << 15);
     static public final short NLA_F_NET_BYTEORDER = (1 << 14);
     static public final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
 
-    private ByteBuffer buf;
-
-    public NetlinkMessage(ByteBuffer buf) {
-        this.buf = buf;
-    }
-
-    public ByteBuffer getBuffer() {
-        return buf;
-    }
-
-    public byte getByte() {
-        return buf.get();
-    }
-
-    public short getShort() {
-        return buf.getShort();
-    }
-
-    public int getInt() {
-        return buf.getInt();
-    }
-
-    public long getLong() {
-        return buf.getLong();
-    }
-
-    public int getInts(int[] bytes) {
+    public static void getInts(ByteBuffer buf, int[] bytes) {
         for (int i = 0, bytesLength = bytes.length; i < bytesLength; i++) {
-            bytes[i] = getInt();
+            bytes[i] = buf.getInt();
         }
-
-        return bytes.length;
-    }
-
-    public int getBytes(byte[] bytes) {
-        buf.get(bytes);
-        return bytes.length;
-    }
-
-    public boolean hasRemaining() {
-        return buf.hasRemaining();
     }
 
     /*
@@ -80,69 +44,69 @@ public class NetlinkMessage {
      * buffer iteration - this has nothing to do with the Boolean this
      * method returns
      */
-    public Boolean getAttrValueNone(short attrId) {
+    public static Boolean getAttrValueNone(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Boolean>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 data = new Boolean(Boolean.TRUE);
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public Byte getAttrValueByte(short attrId) {
+    public static Byte getAttrValueByte(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Byte>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 data = buffer.get();
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public Short getAttrValueShort(short attrId) {
+    public static Short getAttrValueShort(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Short>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 data = buffer.getShort();
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public Integer getAttrValueInt(short attrId) {
+    public static Integer getAttrValueInt(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Integer>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 data = buffer.getInt();
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public Long getAttrValueLong(short attrId) {
+    public static Long getAttrValueLong(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Long>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 data = buffer.getLong();
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public String getAttrValueString(short attrId) {
+    public static String getAttrValueString(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<String>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
                 byte[] bytes = new byte[buffer.remaining()];
-                buf.get(bytes);
+                buffer.get(bytes);
                 data = new String(bytes, 0, bytes.length - 1);
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
-    public byte[] getAttrValueBytes(short attrId) {
+    public static byte[] getAttrValueBytes(ByteBuffer buf, short attrId) {
        return new SingleAttributeParser<byte[]>(attrId) {
            @Override
            protected boolean parseBuffer(ByteBuffer buffer) {
@@ -150,10 +114,10 @@ public class NetlinkMessage {
                buffer.get(data);
                return false;
            }
-       }.parse(this);
+       }.parse(buf);
     }
 
-    public Ethernet getAttrValueEthernet(short attrId) {
+    public static Ethernet getAttrValueEthernet(ByteBuffer buf, short attrId) {
         return new SingleAttributeParser<Ethernet>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
@@ -165,27 +129,30 @@ public class NetlinkMessage {
                 }
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
     public interface CustomBuilder<T> {
         T newInstance(short type);
     }
 
-    public <T extends BuilderAware> List<T> getAttrValue(short attrId,
-                                                         final CustomBuilder<T> builder) {
+    public static <T extends BuilderAware> List<T> getAttrValue(
+                                                        ByteBuffer buf,
+                                                        short attrId,
+                                                        final CustomBuilder<T> builder) {
         return new SingleAttributeParser<List<T>>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                final NetlinkMessage message = sliceFrom(buffer);
+                final ByteBuffer subBuffer = BytesUtil.instance.sliceOf(buffer);
                 data = new ArrayList<T>();
-                message.iterateAttributes(new AttributeParser() {
+                iterateAttributes(subBuffer, new AttributeParser() {
                     @Override
-                    public boolean processAttribute(short attributeType, ByteBuffer buffer) {
+                    public boolean processAttribute(short attributeType,
+                                                    ByteBuffer buffer) {
                         T value = builder.newInstance(attributeType);
 
                         if (value != null) {
-                            value.deserialize(message);
+                            value.deserialize(subBuffer);
                             data.add(value);
                         }
 
@@ -195,7 +162,7 @@ public class NetlinkMessage {
 
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
     public interface AttributeParser {
@@ -208,7 +175,8 @@ public class NetlinkMessage {
         boolean processAttribute(short attributeType, ByteBuffer buffer);
     }
 
-    public void iterateAttributes(AttributeParser attributeParser) {
+    public static void iterateAttributes(ByteBuffer buf,
+                                         AttributeParser attributeParser) {
 
         int limit = buf.limit();
         buf.mark();
@@ -239,15 +207,14 @@ public class NetlinkMessage {
         }
     }
 
-
-    public NetlinkMessage getAttrValueNested(short attrId) {
-        return new SingleAttributeParser<NetlinkMessage>(attrId) {
+    public static ByteBuffer getAttrValueNested(ByteBuffer buf, short attrId) {
+        return new SingleAttributeParser<ByteBuffer>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                data = sliceFrom(buffer);
+                data = BytesUtil.instance.sliceOf(buffer);
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
     /**
@@ -260,17 +227,17 @@ public class NetlinkMessage {
      * @return the updated instance if deserialization was successful of null if not
      */
     @Nullable
-    public <T extends BuilderAware> T getAttrValue(short attrId,
-                                                   final T instance) {
+    public static <T extends BuilderAware> T getAttrValue(ByteBuffer buf,
+                                                          short attrId,
+                                                          final T instance) {
         return new SingleAttributeParser<T>(attrId) {
             @Override
             protected boolean parseBuffer(ByteBuffer buffer) {
-                NetlinkMessage message = sliceFrom(buffer);
-                instance.deserialize(message);
+                instance.deserialize(BytesUtil.instance.sliceOf(buffer));
                 data = instance;
                 return false;
             }
-        }.parse(this);
+        }.parse(buf);
     }
 
     /** Write onto a ByteBuffer a netlink attribute header.
@@ -445,14 +412,10 @@ public class NetlinkMessage {
 
         protected abstract boolean parseBuffer(ByteBuffer buffer);
 
-        public T parse(NetlinkMessage message) {
-            message.iterateAttributes(this);
+        public T parse(ByteBuffer buffer) {
+            iterateAttributes(buffer, this);
             return data;
         }
-    }
-
-    private static NetlinkMessage sliceFrom(ByteBuffer buffer) {
-        return new NetlinkMessage(BytesUtil.instance.sliceOf(buffer));
     }
 
     public static short nested(short netlinkAttributeId) {

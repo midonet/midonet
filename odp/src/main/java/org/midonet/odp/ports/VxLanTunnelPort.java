@@ -64,9 +64,11 @@ public class VxLanTunnelPort extends DpPort {
     }
 
     @Override
-    protected void deserializeFrom(NetlinkMessage msg) {
-        super.deserializeFrom(msg);
-        this.options = msg.getAttrValue(OpenVSwitch.Port.Attr.Options,
+    protected void deserializeFrom(ByteBuffer buf) {
+        super.deserializeFrom(buf);
+        this.options =
+            NetlinkMessage.getAttrValue(buf,
+                                        OpenVSwitch.Port.Attr.Options,
                                         new VxLanTunnelPortOptions());
     }
 

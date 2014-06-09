@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionPopVLAN implements FlowAction {
@@ -21,7 +20,7 @@ public class FlowActionPopVLAN implements FlowAction {
     }
 
     @Override
-    public boolean deserialize(NetlinkMessage message) {
+    public boolean deserialize(ByteBuffer buf) {
         return true;
     }
 

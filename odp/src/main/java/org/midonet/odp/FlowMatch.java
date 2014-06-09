@@ -3,6 +3,7 @@
 */
 package org.midonet.odp;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -120,8 +121,8 @@ public class FlowMatch {
        userSpaceOnly = isUserSpaceOnly;
     }
 
-    public static FlowMatch buildFrom(NetlinkMessage msg) {
-        return new FlowMatch(FlowKeys.buildFrom(msg));
+    public static FlowMatch buildFrom(ByteBuffer buf) {
+        return new FlowMatch(FlowKeys.buildFrom(buf));
     }
 
     public void replaceKey(int index, FlowKey flowKey) {
