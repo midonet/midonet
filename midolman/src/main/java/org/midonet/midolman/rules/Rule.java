@@ -37,7 +37,8 @@ public abstract class Rule {
         this(condition, action, null, -1);
     }
 
-    public Rule(Condition condition, Action action, UUID chainId, int position) {
+    public Rule(Condition condition, Action action, UUID chainId,
+                int position) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
@@ -59,10 +60,12 @@ public abstract class Rule {
      * apply the rule.
      *
      * @param fwdInfo      the PacketContext for the packet being processed
-     * @param res          contains a match of the packet after all transformations
-     *                     preceding this rule. This may be modified.
+     * @param res          contains a match of the packet after all
+     *                     transformations preceding this rule. This may be
+     *                     modified.
      * @param natMapping   NAT state of the element using this chain.
-     * @param isPortFilter whether the rule is being processed in a port filter context
+     * @param isPortFilter whether the rule is being processed in a port filter
+     *                     context
      */
     public void process(ChainPacketContext fwdInfo, RuleResult res,
                         NatMapping natMapping, boolean isPortFilter) {
@@ -80,8 +83,9 @@ public abstract class Rule {
      * Apply this rule to the packet specified by res.pmatch.
      *
      * @param fwdInfo    the PacketContext for the packet being processed.
-     * @param res        contains a match of the packet after all transformations
-     *                   preceding this rule. This may be modified.
+     * @param res        contains a match of the packet after all
+     *                   transformations preceding this rule. This may be
+     *                   modified.
      * @param natMapping NAT state of the element using this chain.
      */
     protected abstract void apply(ChainPacketContext fwdInfo,
@@ -184,12 +188,12 @@ public abstract class Rule {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(t);
         return new ForwardNatRule(cond, RuleResult.Action.ACCEPT, chainId, 1,
-                false, targets);
+            false, targets);
     }
 
     public static Rule staticSnatRule(UUID chainId, UUID portId,
-                                      IPv4Addr src, IPv4Addr target) {
-        return staticSnatRule(chainId, portId, new NatTarget(src, target));
+                                      IPv4Addr target) {
+        return staticSnatRule(chainId, portId, new NatTarget(target, 0, 0));
     }
 
     public static Rule staticSnatRule(UUID chainId, UUID portId, NatTarget t) {
@@ -199,12 +203,12 @@ public abstract class Rule {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(t);
         return new ForwardNatRule(cond, RuleResult.Action.ACCEPT, chainId, 1,
-                false, targets);
+            false, targets);
     }
 
     public static Rule staticDnatRule(UUID chainId, UUID portId,
-                                      IPv4Addr src, IPv4Addr target) {
-        return staticDnatRule(chainId, portId, new NatTarget(src, target));
+                                      IPv4Addr target) {
+        return staticDnatRule(chainId, portId, new NatTarget(target, 0, 0));
     }
 
     public static Rule staticDnatRule(UUID chainId, UUID portId, NatTarget t) {

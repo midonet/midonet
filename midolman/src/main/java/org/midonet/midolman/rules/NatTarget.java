@@ -40,6 +40,10 @@ public class NatTarget {
         this(ipAddr, ipAddr);
     }
 
+    public NatTarget(IPAddr ipAddr, int tpStart, int tpEnd) {
+        this(ipAddr, ipAddr, tpStart, tpEnd);
+    }
+
     // Default constructor for the Jackson deserialization.
     public NatTarget() { super(); }
 

@@ -29,7 +29,7 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
         }
 
         public SnatRuleMatcher(IPAddr addr) {
-            this(new NatTarget(addr));
+            this(new NatTarget(addr, 0, 0));
         }
 
         @Override
@@ -55,7 +55,7 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
         }
 
         public DnatRuleMatcher(IPAddr addr) {
-            this(new NatTarget(addr));
+            this(new NatTarget(addr, 0, 0));
         }
 
         @Override
