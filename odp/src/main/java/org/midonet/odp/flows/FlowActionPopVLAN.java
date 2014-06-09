@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionPopVLAN implements FlowAction {
 
@@ -25,7 +26,7 @@ public class FlowActionPopVLAN implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.POP_VLAN.getId();
+        return OpenVSwitch.FlowAction.Attr.PopVLan;
     }
 
     @Override

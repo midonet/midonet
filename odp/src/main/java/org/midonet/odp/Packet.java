@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch.Packet.Attr;
 import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
@@ -138,13 +139,13 @@ public class Packet {
 
         int datapathIndex = msg.getInt(); // ignored
 
-        packet.eth = msg.getAttrValueEthernet(PacketFamily.AttrKey.PACKET);
+        packet.eth = msg.getAttrValueEthernet(Attr.Packet);
         if (packet.eth == null)
             return null;
 
-        packet.match = new FlowMatch(
-            msg.getAttrValue(PacketFamily.AttrKey.KEY, FlowKey.Builder));
-        packet.userData = msg.getAttrValueLong(PacketFamily.AttrKey.USERDATA);
+        packet.match =
+            new FlowMatch(msg.getAttrValue(Attr.Key, FlowKey.Builder));
+        packet.userData = msg.getAttrValueLong(Attr.Userdata);
 
         return packet;
     }
@@ -156,21 +157,18 @@ public class Packet {
                                          Iterable<FlowAction> actions,
                                          Ethernet packet) {
         buf.putInt(datapathId);
-// todo: find out about this !
         // TODO(pino): find out why ovs_packet_cmd_execute throws an
         // EINVAL if we put the PACKET attribute right after the
         // datapathId. I examined the ByteBuffers constructed with that
         // ordering of attributes and compared it to this one, and found
         // only the expected difference.
 
-        short keyId = PacketFamily.AttrKey.KEY.getId();
-        NetlinkMessage.writeAttrSeq(buf, keyId, keys, FlowKey.translator);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKey.translator);
 
-        short actId = PacketFamily.AttrKey.ACTIONS.getId();
-        NetlinkMessage.writeAttrSeq(buf, actId, actions, FlowAction.translator);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
+                                    actions, FlowAction.translator);
 
-        short pktId = PacketFamily.AttrKey.PACKET.getId();
-        NetlinkMessage.writeRawAttribute(buf, pktId, packet.serialize());
+        NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
 
         buf.flip();
         return buf;

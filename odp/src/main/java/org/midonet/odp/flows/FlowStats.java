@@ -5,7 +5,7 @@ package org.midonet.odp.flows;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.messages.BuilderAware;
-import org.midonet.odp.family.FlowFamily;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowStats implements BuilderAware {
 
@@ -71,6 +71,6 @@ public class FlowStats implements BuilderAware {
     }
 
     public static FlowStats buildFrom(NetlinkMessage msg) {
-        return msg.getAttrValue(FlowFamily.AttrKey.STATS, new FlowStats());
+        return msg.getAttrValue(OpenVSwitch.Flow.Attr.Stats, new FlowStats());
     }
 }

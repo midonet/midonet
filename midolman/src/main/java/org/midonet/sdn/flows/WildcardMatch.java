@@ -1087,7 +1087,7 @@ public class WildcardMatch implements Cloneable {
                     // XXX(jlm, s3wong): Neighbor Discovery
                     break;
 
-                case ((short)OpenVSwitch.FlowKey.Attr.Tunnel_N):
+                case OpenVSwitch.FlowKey.Attr.Tunnel_N:
                     // since ovs 1.9, required for ovs 1.10+
                     // matched in "nested" flagged type id:
                     // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )

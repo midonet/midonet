@@ -17,6 +17,7 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
@@ -532,12 +533,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     if (data != null) {
                         portMulticast = data;
                     } else {
+                        portMulticast = OpenVSwitch.Port.fallbackMCGroup;
                         log.info(
                             "Setting the port multicast group to fallback value: {}",
-                            PortFamily.FALLBACK_MC_GROUP);
+                            portMulticast);
 
-                        portMulticast =
-                            PortFamily.FALLBACK_MC_GROUP;
                     }
 
                     initialized = true;
@@ -553,7 +553,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                     if (data != null)
                         datapathMulticast = data;
 
-                    getMulticastGroup(PortFamily.NAME, PortFamily.MC_GROUP,
+                    getMulticastGroup(OpenVSwitch.Datapath.Family,
+                                      OpenVSwitch.Datapath.MCGroup,
                                       portMulticastCallback);
                 }
             };
@@ -564,8 +565,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 public void onSuccess(Short data) {
                     packetFamily = new PacketFamily(data);
                     log.debug("Got packet family id: {}.", data);
-                    getMulticastGroup(DatapathFamily.NAME,
-                                      DatapathFamily.MC_GROUP,
+                    getMulticastGroup(OpenVSwitch.Datapath.Family,
+                                      OpenVSwitch.Datapath.MCGroup,
                                       datapathMulticastCallback);
                 }
             };
@@ -576,7 +577,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 public void onSuccess(Short data) {
                     flowFamily = new FlowFamily(data);
                     log.debug("Got flow family id: {}.", data);
-                    getFamilyId(PacketFamily.NAME, packetFamilyBuilder);
+                    getFamilyId(OpenVSwitch.Packet.Family, packetFamilyBuilder);
                 }
             };
 
@@ -586,7 +587,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 public void onSuccess(Short data) {
                     portFamily = new PortFamily(data);
                     log.debug("Got port family id: {}.", data);
-                    getFamilyId(FlowFamily.NAME, flowFamilyBuilder);
+                    getFamilyId(OpenVSwitch.Flow.Family, flowFamilyBuilder);
                 }
             };
 
@@ -596,11 +597,11 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                 public void onSuccess(Short data) {
                     datapathFamily = new DatapathFamily(data);
                     log.debug("Got datapath family id: {}.", data);
-                    getFamilyId(PortFamily.NAME, portFamilyBuilder);
+                    getFamilyId(OpenVSwitch.Port.Family, portFamilyBuilder);
                 }
             };
 
-        getFamilyId(DatapathFamily.NAME, datapathFamilyBuilder);
+        getFamilyId(OpenVSwitch.Datapath.Family, datapathFamilyBuilder);
     }
 
     @Override

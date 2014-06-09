@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
@@ -42,7 +43,7 @@ public class FlowKeyUDP implements FlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.UDP.getId();
+        return OpenVSwitch.FlowKey.Attr.UDP;
     }
 
     public int getUdpSrc() {

@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyPriority implements FlowKey {
 
@@ -33,7 +34,7 @@ public class FlowKeyPriority implements FlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.PRIORITY.getId();
+        return OpenVSwitch.FlowKey.Attr.Priority;
     }
 
     public int getPriority() {

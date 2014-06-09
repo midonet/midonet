@@ -5,12 +5,12 @@ package org.midonet.odp.family;
 
 import org.midonet.netlink.NetlinkRequestContext;
 
-abstract class OvsBaseContext implements NetlinkRequestContext {
+public abstract class OvsBaseContext implements NetlinkRequestContext {
     final short commandFamily;
     final byte command;
-    public OvsBaseContext(int familyId, int command) {
-        this.commandFamily = (short) familyId;
-        this.command = (byte) command;
+    public OvsBaseContext(short familyId, byte command) {
+        this.commandFamily = familyId;
+        this.command = command;
     }
     public short commandFamily() { return commandFamily; }
     public byte command() { return command; }

@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Function;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch.Flow.Attr;
 import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActions;
@@ -100,8 +101,8 @@ public class Flow {
         int actualDpIndex = msg.getInt(); // read datapath index;
         Flow flow = new Flow();
         flow.setStats(FlowStats.buildFrom(msg));
-        flow.setTcpFlags(msg.getAttrValueByte(FlowFamily.AttrKey.TCP_FLAGS));
-        flow.setLastUsedTime(msg.getAttrValueLong(FlowFamily.AttrKey.USED));
+        flow.setTcpFlags(msg.getAttrValueByte(Attr.TCPFlags));
+        flow.setLastUsedTime(msg.getAttrValueLong(Attr.Used));
         flow.setActions(FlowActions.buildFrom(msg));
         flow.setMatch(FlowMatch.buildFrom(msg));
         return flow;
@@ -239,8 +240,7 @@ public class Flow {
         // the actions list is allowed to be empty (drop flow). Nevertheless the
         // actions nested attribute header needs to be written otherwise the
         // datapath will answer back with EINVAL
-        short actionsId = FlowFamily.AttrKey.ACTIONS.getId();
-        NetlinkMessage.writeAttrSeq(buf, actionsId, actions,
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions,
                                     FlowAction.translator);
 
         buf.flip();
@@ -248,7 +248,7 @@ public class Flow {
     }
 
     public static void addKeys(ByteBuffer buf, Iterable<FlowKey> keys) {
-        short keysId = FlowFamily.AttrKey.KEY.getId();
-        NetlinkMessage.writeAttrSeq(buf, keysId, keys, FlowKey.translator);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys,
+                                    FlowKey.translator);
     }
 }

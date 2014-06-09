@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.VLAN;
 
 public class FlowKeyVLAN implements CachedFlowKey {
@@ -39,7 +40,7 @@ public class FlowKeyVLAN implements CachedFlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.VLAN.getId();
+        return OpenVSwitch.FlowKey.Attr.VLan;
     }
 
     public short getVLAN() {

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyIPv4 implements FlowKey {
@@ -59,7 +60,7 @@ public class FlowKeyIPv4 implements FlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.IPv4.getId();
+        return OpenVSwitch.FlowKey.Attr.IPv4;
     }
 
     @Override

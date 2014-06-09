@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionOutput implements FlowAction {
 
@@ -35,7 +36,7 @@ public class FlowActionOutput implements FlowAction {
     }
 
     public short attrId() {
-        return FlowActionAttr.OUTPUT.getId();
+        return OpenVSwitch.FlowAction.Attr.Output;
     }
 
     public int getPortNumber() {

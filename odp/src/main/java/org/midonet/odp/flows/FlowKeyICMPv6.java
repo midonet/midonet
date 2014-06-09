@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OpenVSwitch;
 
 import static org.midonet.packets.Unsigned.unsign;
 
@@ -39,7 +40,7 @@ public class FlowKeyICMPv6 implements FlowKey {
     }
 
     public short attrId() {
-        return FlowKeyAttr.ICMPv6.getId();
+        return OpenVSwitch.FlowKey.Attr.ICMPv6;
     }
 
     public byte getType() {
