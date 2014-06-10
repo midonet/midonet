@@ -60,7 +60,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public void connect(IPv4Addr mgmtIp, int port) {
-        if (this.connected)
+        if (connected)
             throw new IllegalStateException("VTEP client already connected.");
         if (!this.mgmtIp.equals(mgmtIp.toString()) || this.mgmtPort != port)
             throw new IllegalStateException("Could not complete connection.");
@@ -69,62 +69,55 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public void disconnect() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         this.connected = false;
     }
 
     @Override
     public List<PhysicalSwitch> listPhysicalSwitches() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(physicalSwitches.values());
     }
 
     @Override
     public List<LogicalSwitch> listLogicalSwitches() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(logicalSwitches.values());
     }
 
     @Override
     public List<PhysicalPort> listPhysicalPorts(UUID psUuid) {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(physicalPorts.values());
     }
 
     @Override
     public List<McastMac> listMcastMacsLocal() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(mcastMacsLocal.values());
     }
 
     @Override
     public List<McastMac> listMcastMacsRemote() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(mcastMacsRemote.values());
     }
 
     @Override
     public List<UcastMac> listUcastMacsLocal() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(ucastMacsLocal.values());
     }
 
     @Override
     public List<UcastMac> listUcastMacsRemote() {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
         return new ArrayList<>(ucastMacsRemote.values());
     }
 
     @Override
     public LogicalSwitch getLogicalSwitch(UUID id) {
+        assertConnected();
         for (LogicalSwitch ls : this.logicalSwitches.values()) {
             if (ls.uuid.equals(id)) {
                 return ls;
@@ -135,13 +128,13 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public LogicalSwitch getLogicalSwitch(String name) {
+        assertConnected();
         return this.logicalSwitches.get(name);
     }
 
     @Override
     public StatusWithUuid addLogicalSwitch(String name, int vni) {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
 
         LogicalSwitch ls = logicalSwitches.get(name);
         if (ls != null) {
@@ -159,8 +152,7 @@ public class VtepDataClientMock implements VtepDataClient {
     @Override
     public Status bindVlan(String lsName, String portName,
                            int vlan, Integer vni, List<String> floodIps) {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
 
         PhysicalPort pp = physicalPorts.get(portName);
         if (pp == null)
@@ -182,6 +174,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Status deleteLogicalSwitch(String name) {
+        assertConnected();
 
         LogicalSwitch ls = logicalSwitches.remove(name);
         if (ls == null) {
@@ -212,8 +205,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Status addUcastMacRemote(String lsName, String mac, String ip) {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
         if (lsUuid == null)
@@ -227,8 +219,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Status addMcastMacRemote(String lsName, String mac, String ip) {
-        if (!connected)
-            throw new IllegalStateException("VTEP client not connected.");
+        assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
         if (lsUuid == null)
@@ -246,6 +237,8 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Status delUcastMacRemote(String mac, String lsName) {
+        assertConnected();
+
         if (this.ucastMacsRemote.remove(mac) == null) {
             return new Status(StatusCode.NOTFOUND);
         }
@@ -254,10 +247,13 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Observable<TableUpdates> observableUpdates() {
+        assertConnected();
         return Observable.never(); // No tests use this for now.
     }
 
     public Status deleteBinding(String portName, int vlanId) {
+        assertConnected();
+
         PhysicalPort pport = physicalPorts.get(portName);
         if (pport == null) {
             return new Status(StatusCode.NOTFOUND, "Port not found");
@@ -271,15 +267,23 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public PhysicalSwitch describe() {
-       return null;  // TODO: not needed by any test yet
+        assertConnected();
+        return null;  // TODO: not needed by any test yet
     }
 
     private UUID getLocatorUuid(String ip) {
+        assertConnected();
+
         UUID locatorUuid = locatorUuids.get(ip);
         if (locatorUuid == null) {
             locatorUuid = new UUID(java.util.UUID.randomUUID().toString());
             locatorUuids.put(ip, locatorUuid);
         }
         return locatorUuid;
+    }
+
+    private void assertConnected() {
+        if (!connected)
+            throw new IllegalStateException("VTEP client not connected");
     }
 }

@@ -32,12 +32,6 @@ public class MidoBrainModule extends PrivateModule {
             .toProvider(MidoBrainModule.MidoBrainConfigProvider.class)
             .asEagerSingleton();
         expose(MidoBrainConfig.class);
-
-        bind(VtepDataClient.class)
-            .toProvider(VtepDataClientProvider.class);
-
-        expose(VtepDataClient.class);
-
     }
 
     public static class MidolmanConfigProvider

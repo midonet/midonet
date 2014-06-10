@@ -2,12 +2,15 @@ package org.midonet.api.vtep;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import org.midonet.packets.IPv4Addr;
 import org.opendaylight.ovsdb.plugin.ConfigurationService;
 import org.opendaylight.ovsdb.plugin.ConnectionService;
 import org.opendaylight.ovsdb.plugin.InventoryService;
@@ -23,7 +26,7 @@ import org.midonet.packets.IPv4Addr$;
  * in the API are dependant on the ExtendedZookeeperConfig, but modules are not
  * customized on tests.
  */
-public class VtepDataClientProvider implements Provider<VtepDataClient> {
+public class VtepDataClientProvider {
 
     public static final String MOCK_VTEP_MGMT_IP = "250.132.36.225";
     public static final int MOCK_VTEP_MGMT_PORT = 12345;
@@ -36,6 +39,7 @@ public class VtepDataClientProvider implements Provider<VtepDataClient> {
 
     private final boolean useMock;
     private VtepDataClientMock mockInstance;
+    private Map<IPv4Addr, VtepDataClient> clientMap;
 
     @Inject
     private Provider<ConnectionService> cnxnServiceProvider;
@@ -49,6 +53,7 @@ public class VtepDataClientProvider implements Provider<VtepDataClient> {
     @Inject
     public VtepDataClientProvider(ExtendedZookeeperConfig zkConfig) {
         useMock = zkConfig.getUseMock();
+        clientMap = new HashMap<>();
     }
 
     private VtepDataClientMock getMockInstance() {
@@ -68,15 +73,30 @@ public class VtepDataClientProvider implements Provider<VtepDataClient> {
             mockInstance.addLogicalSwitch("NonMidonetLS", 123456);
             mockInstance.bindVlan("NonMidonetLS", "eth2", 4000,
                                   123456, new ArrayList<String>());
-            mockInstance.disconnect();
         }
         return mockInstance;
     }
 
-    public VtepDataClient get() {
-        return useMock ? getMockInstance() :
-            new VtepDataClientImpl(cfgServiceProvider.get(),
-                                   cnxnServiceProvider.get(),
-                                   invServiceProvider.get());
+    public synchronized VtepDataClient getClient(IPv4Addr mgmtIp,
+                                                 int mgmtPort) {
+        if (useMock) {
+            // Currently support mock only for MOCK_VTEP_MGMT_IP.
+            if (!mgmtIp.toString().equals(MOCK_VTEP_MGMT_IP) ||
+                    mgmtPort != MOCK_VTEP_MGMT_PORT) {
+                throw new IllegalStateException("Could not connect to VTEP");
+            }
+            return getMockInstance();
+        }
+
+        VtepDataClient client = clientMap.get(mgmtIp);
+        if (client != null)
+            return client;
+
+        client = new VtepDataClientImpl(cfgServiceProvider.get(),
+                                        cnxnServiceProvider.get(),
+                                        invServiceProvider.get());
+        client.connect(mgmtIp, mgmtPort);
+        clientMap.put(mgmtIp, client);
+        return client;
     }
 }

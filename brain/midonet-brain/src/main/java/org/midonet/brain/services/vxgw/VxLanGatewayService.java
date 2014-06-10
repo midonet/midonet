@@ -17,6 +17,7 @@ import com.google.inject.Provider;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
@@ -39,7 +40,7 @@ public class VxLanGatewayService extends AbstractService {
     private final DataClient midoClient;
 
     // Provides vtep clients
-    private final Provider<VtepDataClient> vtepDataClientProvider;
+    private final VtepDataClientProvider vtepDataClientProvider;
 
     // Client for each VTEP configuration store, indexed by management IP
     private Map<IPv4Addr, VtepDataClient> vtepClients = new HashMap<>();
@@ -53,7 +54,7 @@ public class VxLanGatewayService extends AbstractService {
 
     @Inject
     public VxLanGatewayService(DataClient midoClient,
-                           Provider<VtepDataClient> vtepDataClientProvider) {
+                               VtepDataClientProvider vtepDataClientProvider) {
         this.midoClient = midoClient;
         this.vtepDataClientProvider = vtepDataClientProvider;
     }

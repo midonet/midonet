@@ -76,14 +76,12 @@ public class VtepClusterClient {
      * @throws GatewayTimeoutHttpException when failing to connect to the VTEP.
      */
     private VtepDataClient getVtepClient(IPv4Addr mgmtIp, int mgmtPort) {
-        VtepDataClient vtepClient = provider.get();
         try {
-            vtepClient.connect(mgmtIp, mgmtPort);
-            return vtepClient;
+            return provider.getClient(mgmtIp, mgmtPort);
         } catch (IllegalStateException ex) {
             log.warn("Unable to connect to VTEP: ", ex);
-            throw new GatewayTimeoutHttpException(getMessage(VTEP_INACCESSIBLE, mgmtIp, mgmtPort),
-                ex);
+            throw new GatewayTimeoutHttpException(
+                    getMessage(VTEP_INACCESSIBLE, mgmtIp, mgmtPort), ex);
         }
     }
 
@@ -113,11 +111,7 @@ public class VtepClusterClient {
     public final PhysicalSwitch getPhysicalSwitch(IPv4Addr mgmtIp,
                                                   int mgmtPort) {
         VtepDataClient client = getVtepClient(mgmtIp, mgmtPort);
-        try {
-            return getPhysicalSwitch(client, mgmtIp);
-        } finally {
-            client.disconnect();
-        }
+        return getPhysicalSwitch(client, mgmtIp);
     }
 
     /**
@@ -143,16 +137,13 @@ public class VtepClusterClient {
         VTEP vtep = getVtepOrThrow(ipAddr, false);
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
-        try {
-            List<PhysicalPort> pports =
-                    listPhysicalPorts(vtepClient, ipAddr, vtep.getMgmtPort());
-            List<VTEPPort> vtepPorts = new ArrayList<>(pports.size());
-            for (PhysicalPort pport : pports)
-                vtepPorts.add(new VTEPPort(pport.name, pport.description));
-            return vtepPorts;
-        } finally {
-            vtepClient.disconnect();
-        }
+
+        List<PhysicalPort> pports =
+                listPhysicalPorts(vtepClient, ipAddr, vtep.getMgmtPort());
+        List<VTEPPort> vtepPorts = new ArrayList<>(pports.size());
+        for (PhysicalPort pport : pports)
+            vtepPorts.add(new VTEPPort(pport.name, pport.description));
+        return vtepPorts;
     }
 
     /**
@@ -210,26 +201,22 @@ public class VtepClusterClient {
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
 
-        try {
-            PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
-                                              vtep.getMgmtPort(), portName);
-            UUID lsUuid = pp.vlanBindings.get((int)vlanId);
-            if (lsUuid == null) {
-                throw new NotFoundHttpException(
-                        getMessage(VTEP_BINDING_NOT_FOUND,
-                                vtep.getId(), vlanId, portName));
-            }
-
-            for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
-                if (lswitch.uuid.equals(lsUuid))
-                    return logicalSwitchNameToBridgeId(lswitch.name);
-            }
-
-            throw new IllegalStateException("Logical switch with ID " + lsUuid +
-                    " should exist but was not returned from VTEP client.");
-        } finally {
-            vtepClient.disconnect();
+        PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
+                                          vtep.getMgmtPort(), portName);
+        UUID lsUuid = pp.vlanBindings.get((int)vlanId);
+        if (lsUuid == null) {
+            throw new NotFoundHttpException(
+                    getMessage(VTEP_BINDING_NOT_FOUND,
+                            vtep.getId(), vlanId, portName));
         }
+
+        for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
+            if (lswitch.uuid.equals(lsUuid))
+                return logicalSwitchNameToBridgeId(lswitch.name);
+        }
+
+        throw new IllegalStateException("Logical switch with ID " + lsUuid +
+                " should exist but was not returned from VTEP client.");
     }
 
 
@@ -251,12 +238,8 @@ public class VtepClusterClient {
         VTEP vtep = getVtepOrThrow(ipAddr, false);
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
-        try {
-            return listVtepBindings(vtepClient, ipAddr,
-                                    vtep.getMgmtPort(), bridgeId);
-        } finally {
-            vtepClient.disconnect();
-        }
+        return listVtepBindings(vtepClient, ipAddr,
+                                vtep.getMgmtPort(), bridgeId);
     }
 
     /**
@@ -346,40 +329,36 @@ public class VtepClusterClient {
             ));
         }
 
-        try {
-            Integer newPortVni = null;
-            String lsName = bridgeIdToLogicalSwitchName(binding.getNetworkId());
-            if (bridge.getVxLanPortId() == null) {
-                newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
-                // TODO: Make VTEP client take UUID instead of name.
-                StatusWithUuid status =
-                        vtepClient.addLogicalSwitch(lsName, newPortVni);
-                throwIfFailed(status);
-            }
-
-            // TODO: fill this list with all the host ips where we want
-            // the VTEP to flood unknown dst mcasts. Not adding all host's
-            // IPs because we'd send the same packet to all of them, so
-            // for now we add none and will just populate ucasts.
-            List<String> floodToIps = new ArrayList<>();
-
-            Status status = vtepClient.bindVlan(lsName, binding.getPortName(),
-                    binding.getVlanId(), newPortVni, floodToIps);
+        Integer newPortVni = null;
+        String lsName = bridgeIdToLogicalSwitchName(binding.getNetworkId());
+        if (bridge.getVxLanPortId() == null) {
+            newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
+            // TODO: Make VTEP client take UUID instead of name.
+            StatusWithUuid status =
+                    vtepClient.addLogicalSwitch(lsName, newPortVni);
             throwIfFailed(status);
+        }
 
-            // For all known macs, instruct the vtep to add a ucast
-            // MAC entry to tunnel packets over to the right host.
-            if (newPortVni != null) {
-                log.debug("Preseeding macs from bridge {}",
-                        binding.getNetworkId());
-                VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
-                        bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
-                feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
-                log.debug("New VxLan port created, uuid: {}, vni: {}",
-                        vxlanPort.getId(), newPortVni);
-            }
-        } finally {
-            vtepClient.disconnect();
+        // TODO: fill this list with all the host ips where we want
+        // the VTEP to flood unknown dst mcasts. Not adding all host's
+        // IPs because we'd send the same packet to all of them, so
+        // for now we add none and will just populate ucasts.
+        List<String> floodToIps = new ArrayList<>();
+
+        Status status = vtepClient.bindVlan(lsName, binding.getPortName(),
+                binding.getVlanId(), newPortVni, floodToIps);
+        throwIfFailed(status);
+
+        // For all known macs, instruct the vtep to add a ucast
+        // MAC entry to tunnel packets over to the right host.
+        if (newPortVni != null) {
+            log.debug("Preseeding macs from bridge {}",
+                    binding.getNetworkId());
+            VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
+                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
+            feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
+            log.debug("New VxLan port created, uuid: {}, vni: {}",
+                    vxlanPort.getId(), newPortVni);
         }
     }
 
@@ -395,46 +374,43 @@ public class VtepClusterClient {
 
         VTEP vtep = getVtepOrThrow(ipAddr, true);
         VtepDataClient vtepClient = getVtepClient(ipAddr, vtep.getMgmtPort());
-        try {
-            // Go through all the bindings and find the one with the
-            // specified portName and vlanId. Get its networkId, and
-            // remember whether we saw any others with the same networkId.
-            java.util.UUID affectedNwId = null;
-            Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
-            List<VTEPBinding> bindings = listVtepBindings(
-                    vtepClient, ipAddr, vtep.getMgmtPort(), null);
-            for (VTEPBinding binding : bindings) {
-                java.util.UUID nwId = binding.getNetworkId();
-                if (binding.getPortName().equals(portName) &&
-                        binding.getVlanId() == vlanId) {
-                    affectedNwId = nwId;
-                } else {
-                    boundLogicalSwitchUuids.add(nwId);
-                }
+
+        // Go through all the bindings and find the one with the
+        // specified portName and vlanId. Get its networkId, and
+        // remember whether we saw any others with the same networkId.
+        java.util.UUID affectedNwId = null;
+        Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
+        List<VTEPBinding> bindings = listVtepBindings(
+                vtepClient, ipAddr, vtep.getMgmtPort(), null);
+        for (VTEPBinding binding : bindings) {
+            java.util.UUID nwId = binding.getNetworkId();
+            if (binding.getPortName().equals(portName) &&
+                    binding.getVlanId() == vlanId) {
+                affectedNwId = nwId;
+            } else {
+                boundLogicalSwitchUuids.add(nwId);
             }
-
-            if (affectedNwId == null) {
-                log.warn("No bindings found for port {} and vlan {}",
-                         portName, vlanId);
-                throw new NotFoundHttpException(getMessage(
-                        VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
-            }
-
-            // Delete the binding.
-            Status st = vtepClient.deleteBinding(portName, vlanId);
-            throwIfFailed(st);
-
-            // If that was the only binding for this network, delete
-            // the VXLAN port.
-            if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
-                dataClient.bridgeDeleteVxLanPort(affectedNwId);
-            }
-
-            log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
-                    new Object[]{ipAddr, portName, vlanId});
-        } finally {
-            vtepClient.disconnect();
         }
+
+        if (affectedNwId == null) {
+            log.warn("No bindings found for port {} and vlan {}",
+                     portName, vlanId);
+            throw new NotFoundHttpException(getMessage(
+                    VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
+        }
+
+        // Delete the binding.
+        Status st = vtepClient.deleteBinding(portName, vlanId);
+        throwIfFailed(st);
+
+        // If that was the only binding for this network, delete
+        // the VXLAN port.
+        if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
+            dataClient.bridgeDeleteVxLanPort(affectedNwId);
+        }
+
+        log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
+                new Object[]{ipAddr, portName, vlanId});
     }
 
     public void deleteVxLanPort(VxLanPort vxLanPort)
@@ -442,15 +418,11 @@ public class VtepClusterClient {
 
         VtepDataClient vtepClient = getVtepClient(vxLanPort.getMgmtIpAddr(),
                                                   vxLanPort.getMgmtPort());
-        try {
-            Status st = vtepClient.deleteLogicalSwitch(
-                    bridgeIdToLogicalSwitchName(vxLanPort.getDeviceId()));
-            throwIfFailed(st);
+        Status st = vtepClient.deleteLogicalSwitch(
+                bridgeIdToLogicalSwitchName(vxLanPort.getDeviceId()));
+        throwIfFailed(st);
 
-            dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
-        } finally {
-            vtepClient.disconnect();
-        }
+        dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
     }
 
     /**
