@@ -21,6 +21,7 @@ public class DtoVtep {
     private URI uri;
     private URI bindings;
     private URI ports;
+    private String vtepBindingTemplate;
 
     public String getManagementIp() {
         return managementIp;
@@ -121,5 +122,13 @@ public class DtoVtep {
     public int hashCode() {
         return Objects.hash(managementIp, managementPort, name, tunnelZoneId,
                             description, connectionState, tunnelIpAddrs);
+    }
+
+    public String getVtepBindingTemplate() {
+        return vtepBindingTemplate;
+    }
+
+    public void setVtepBindingTemplate(String vtepBindingTemplate) {
+        this.vtepBindingTemplate = vtepBindingTemplate;
     }
 }
