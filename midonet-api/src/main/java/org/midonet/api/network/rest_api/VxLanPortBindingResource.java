@@ -42,9 +42,6 @@ import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class VxLanPortBindingResource extends AbstractVtepResource {
 
-    private static final Logger log = LoggerFactory.getLogger(
-            VxLanPortBindingResource.class);
-
     /** ID of VXLAN port to get bindings for. */
     private UUID vxLanPortId;
 

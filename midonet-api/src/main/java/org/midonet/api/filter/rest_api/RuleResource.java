@@ -48,8 +48,6 @@ import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 @RequestScoped
 public class RuleResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RuleResource.class);
     private final static RuleEvent ruleEvent = new RuleEvent();
 
     private final RuleAuthorizer authorizer;

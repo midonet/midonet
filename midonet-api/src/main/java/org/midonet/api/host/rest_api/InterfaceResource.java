@@ -39,9 +39,6 @@ import java.util.UUID;
 @RequestScoped
 public class InterfaceResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-        .getLogger(InterfaceResource.class);
-
     private final UUID hostId;
 
     @Inject

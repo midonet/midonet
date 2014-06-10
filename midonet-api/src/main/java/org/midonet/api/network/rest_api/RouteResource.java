@@ -45,8 +45,6 @@ public class RouteResource extends AbstractResource {
      * Implements REST API endpoints for routes.
      */
 
-    private final static Logger log = LoggerFactory
-            .getLogger(RouteResource.class);
     private final static RouterEvent routerEvent = new RouterEvent();
 
     private final RouteAuthorizer authorizer;

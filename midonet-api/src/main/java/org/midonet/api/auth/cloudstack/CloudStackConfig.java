@@ -15,29 +15,28 @@ public interface CloudStackConfig extends AuthConfig {
 
     String GROUP_NAME = "cloudstack";
 
-    public static final String API_BASE_URI = "api_base_uri";
-    public static final String API_PATH = "api_path";
-    public static final String API_KEY = "api_key";
-    public static final String SECRET_KEY = "secret_key";
+    String API_BASE_URI = "api_base_uri";
+    String API_PATH = "api_path";
+    String API_KEY = "api_key";
+    String SECRET_KEY = "secret_key";
 
     /**
      * The base URI of the API.  It should not end with '/'
      * TODO: Make it more robust
      */
     @ConfigString(key = API_BASE_URI, defaultValue = "http://localhost:8080")
-    public String getApiBaseUri();
+    String getApiBaseUri();
 
     /**
      * The API path.  It must begin with '/' and end with '?'
      * TODO: Make it more robust
      */
     @ConfigString(key = API_PATH, defaultValue = "/client/api?")
-    public String getApiPath();
+    String getApiPath();
 
     @ConfigString(key = API_KEY, defaultValue = "")
-    public String getApiKey();
+    String getApiKey();
 
     @ConfigString(key = SECRET_KEY, defaultValue = "")
-    public String getSecretKey();
-
+    String getSecretKey();
 }

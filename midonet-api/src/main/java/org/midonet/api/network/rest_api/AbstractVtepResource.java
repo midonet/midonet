@@ -25,9 +25,6 @@ import org.slf4j.LoggerFactory;
 
 abstract public class AbstractVtepResource extends AbstractResource {
 
-    private static final Logger log = LoggerFactory.getLogger(
-        AbstractVtepResource.class);
-
     protected final VtepClusterClient vtepClient;
     protected final ResourceFactory factory;
 

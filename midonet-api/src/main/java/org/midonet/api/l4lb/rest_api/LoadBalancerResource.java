@@ -51,8 +51,6 @@ import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 @RequestScoped
 public class LoadBalancerResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(LoadBalancerResource.class);
     private final LoadBalancerEvent loadBalancerEvent = new LoadBalancerEvent();
 
     private final ResourceFactory factory;

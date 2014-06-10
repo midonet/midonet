@@ -31,9 +31,6 @@ import javax.ws.rs.core.UriInfo;
 @RequestScoped
 public class WriteVersionResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(WriteVersionResource.class);
-
     @Inject
     public WriteVersionResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {

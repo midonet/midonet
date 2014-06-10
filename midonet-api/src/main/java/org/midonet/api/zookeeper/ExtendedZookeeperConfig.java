@@ -13,9 +13,9 @@ import org.midonet.midolman.config.ZookeeperConfig;
 @ConfigGroup(ZookeeperConfig.GROUP_NAME)
 public interface ExtendedZookeeperConfig extends ZookeeperConfig {
 
-    public static final String USE_MOCK_KEY = "use_mock";
+    String USE_MOCK_KEY = "use_mock";
 
     @ConfigBool(key = USE_MOCK_KEY, defaultValue = false)
-    public boolean getUseMock();
+    boolean getUseMock();
 
 }

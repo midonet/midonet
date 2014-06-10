@@ -15,25 +15,24 @@ public interface AuthConfig {
 
     String GROUP_NAME = "auth";
 
-    public static final String AUTH_PROVIDER = "auth_provider";
-    public static final String ADMIN_ROLE_KEY = "admin_role";
-    public static final String TENANT_ADMIN_ROLE_KEY = "tenant_admin_role";
-    public static final String TENANT_USER_ROLE_KEY = "tenant_user_role";
+    String AUTH_PROVIDER = "auth_provider";
+    String ADMIN_ROLE_KEY = "admin_role";
+    String TENANT_ADMIN_ROLE_KEY = "tenant_admin_role";
+    String TENANT_USER_ROLE_KEY = "tenant_user_role";
 
     @ConfigString(key = AUTH_PROVIDER,
-            defaultValue =
-                    "org.midonet.api.auth.MockAuthService")
-    public String getAuthProvider();
+            defaultValue = "org.midonet.api.auth.MockAuthService")
+    String getAuthProvider();
 
     @ConfigString(key = ADMIN_ROLE_KEY, defaultValue = "mido_admin")
-    public String getAdminRole();
+    String getAdminRole();
 
     @ConfigString(key = TENANT_ADMIN_ROLE_KEY,
             defaultValue = "mido_tenant_admin")
-    public String getTenantAdminRole();
+    String getTenantAdminRole();
 
     @ConfigString(key = TENANT_USER_ROLE_KEY,
             defaultValue = "mido_tenant_user")
-    public String getTenantUserRole();
+    String getTenantUserRole();
 
 }
