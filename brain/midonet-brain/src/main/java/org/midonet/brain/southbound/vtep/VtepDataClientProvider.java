@@ -11,7 +11,7 @@ import org.opendaylight.ovsdb.plugin.ConfigurationService;
 import org.opendaylight.ovsdb.plugin.ConnectionService;
 import org.opendaylight.ovsdb.plugin.InventoryService;
 
-public class VtepDataClientProvider implements Provider<VtepDataClient> {
+public class VtepDataClientProvider {
 
     @Inject
     private Provider<ConnectionService> cnxnServiceProvider;
