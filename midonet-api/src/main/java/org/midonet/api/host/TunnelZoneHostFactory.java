@@ -14,20 +14,10 @@ public class TunnelZoneHostFactory {
             TunnelZone.HostConfig<?, ?> data) {
 
         if (data instanceof
-                org.midonet.cluster.data.zones.CapwapTunnelZoneHost) {
-            return new CapwapTunnelZoneHost(tunnelZoneId,
-                    (org.midonet.cluster.data.zones
-                            .CapwapTunnelZoneHost) data);
-        } else if (data instanceof
                 org.midonet.cluster.data.zones.GreTunnelZoneHost) {
             return new GreTunnelZoneHost(tunnelZoneId,
                     (org.midonet.cluster.data.zones.GreTunnelZoneHost)
                             data);
-        } else if (data instanceof
-                org.midonet.cluster.data.zones.IpsecTunnelZoneHost) {
-            return new IpsecTunnelZoneHost(tunnelZoneId,
-                    (org.midonet.cluster.data.zones
-                            .IpsecTunnelZoneHost) data);
         } else {
             throw new UnsupportedOperationException(
                     "Cannot instantiate this tunnel zone host type.");

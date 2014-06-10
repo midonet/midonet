@@ -24,12 +24,8 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZoneHost;
 import org.midonet.cluster.data.zones.GreTunnelZone;
 import org.midonet.cluster.data.zones.GreTunnelZoneHost;
-import org.midonet.cluster.data.zones.IpsecTunnelZone;
-import org.midonet.cluster.data.zones.IpsecTunnelZoneHost;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
@@ -83,16 +79,6 @@ public class TunnelZoneZkManager
             return new GreTunnelZone(zoneId, greData);
         }
 
-        if (data instanceof IpsecTunnelZone.Data) {
-            IpsecTunnelZone.Data ipsecData = (IpsecTunnelZone.Data) data;
-            return new IpsecTunnelZone(zoneId, ipsecData);
-        }
-
-        if (data instanceof CapwapTunnelZone.Data) {
-            CapwapTunnelZone.Data capwapData = (CapwapTunnelZone.Data) data;
-            return new CapwapTunnelZone(zoneId, capwapData);
-        }
-
         return null;
     }
 
@@ -120,18 +106,6 @@ public class TunnelZoneZkManager
             return new GreTunnelZoneHost(
                 hostId,
                 (GreTunnelZoneHost.Data) data);
-        }
-
-        if (data instanceof IpsecTunnelZoneHost.Data) {
-            return new IpsecTunnelZoneHost(
-                hostId,
-                (IpsecTunnelZoneHost.Data) data);
-        }
-
-        if (data instanceof CapwapTunnelZoneHost.Data) {
-            return new CapwapTunnelZoneHost(
-                hostId,
-                (CapwapTunnelZoneHost.Data) data);
         }
 
         return null;

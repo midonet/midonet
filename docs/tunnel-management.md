@@ -2,7 +2,7 @@
 
 ### Motivation
 
-MidoNet uses tunnels (e.g. GRE, CAPWAP) to move virtual network traffic across
+MidoNet uses tunnels (e.g. GRE) to move virtual network traffic across
 the physical network. For example, if VM-A on Host-A emits a packet which should
 traverse the virtual network topology and arrive at VM-B on Host-B, then
 the packet needs to traverse the physical network from Host-A to Host-B.

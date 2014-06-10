@@ -9,15 +9,10 @@ import akka.actor.ActorRef
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.TunnelZones
-import org.midonet.cluster.client.TunnelZones.{CapwapBuilder,
-                                                        IpsecBuilder,
-                                                        GreBuilder}
-import org.midonet.cluster.data.zones.{CapwapTunnelZoneHost,
-                                                CapwapTunnelZone,
-                                                GreTunnelZoneHost,
-                                                GreTunnelZone}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{CapwapZoneChanged,
-                                                               GreZoneChanged}
+import org.midonet.cluster.client.TunnelZones.GreBuilder
+import org.midonet.cluster.data.zones.{GreTunnelZoneHost,
+                                       GreTunnelZone}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
 import org.midonet.packets.IPv4
 import org.midonet.util.collection.MapperToFirstCall
 
@@ -34,14 +29,6 @@ class TunnelZoneManager(clusterClient: Client,
 
         def getGreZoneBuilder: TunnelZones.GreBuilder = mapOnce(classOf[GreBuilder]) {
             new LocalGreZoneBuilder(actor, zoneId)
-        }
-
-        def getIpsecZoneBuilder: TunnelZones.IpsecBuilder = mapOnce(classOf[IpsecBuilder]) {
-            null
-        }
-
-        def getCapwapZoneBuilder: TunnelZones.CapwapBuilder = mapOnce(classOf[CapwapBuilder]) {
-            new LocalCapwapZoneBuilder(actor, zoneId)
         }
     }
 
@@ -70,31 +57,4 @@ class TunnelZoneManager(clusterClient: Client,
         def build() {
         }
     }
-
-    class LocalCapwapZoneBuilder(actor: ActorRef, host: UUID) extends TunnelZones.CapwapBuilder {
-
-        var zone: CapwapTunnelZone = null
-        val hosts = mutable.Map[UUID, IPv4]()
-
-        def setConfiguration(configuration: CapwapBuilder.ZoneConfig): LocalCapwapZoneBuilder = {
-            zone = configuration.getTunnelZoneConfig
-            this
-        }
-
-        def addHost(hostId: UUID, hostConfig: CapwapTunnelZoneHost): LocalCapwapZoneBuilder = {
-            actor ! CapwapZoneChanged(zone.getId, hostConfig, HostConfigOperation.Added)
-            this
-        }
-
-        def removeHost(hostId: UUID, hostConfig: CapwapTunnelZoneHost): LocalCapwapZoneBuilder = {
-            actor ! CapwapZoneChanged(zone.getId, hostConfig, HostConfigOperation.Deleted)
-            this
-        }
-
-        def start() = null
-
-        def build() {
-        }
-    }
-
 }

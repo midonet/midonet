@@ -18,7 +18,7 @@ public abstract class TunnelZone<
     > extends Entity.Base<UUID, ZoneData, Zone> {
 
     public static enum Type {
-        Gre, Ipsec, Capwap
+        Gre
     }
 
     public abstract Type getType();
@@ -43,13 +43,7 @@ public abstract class TunnelZone<
         {
             @JsonSubTypes.Type(
                 value = GreTunnelZone.Data.class,
-                name = "gre"),
-            @JsonSubTypes.Type(
-                value = IpsecTunnelZone.Data.class,
-                name = "ipsec"),
-            @JsonSubTypes.Type(
-                value = CapwapTunnelZone.Data.class,
-                name = "capwap")
+                name = "gre")
         }
     )
     public static class Data {
@@ -121,14 +115,7 @@ public abstract class TunnelZone<
             {
             @JsonSubTypes.Type(
                                 value = GreTunnelZoneHost.Data.class,
-                                name = "gre"),
-                        @JsonSubTypes.Type(
-                                value = IpsecTunnelZoneHost.Data.class,
-                                name = "ipsec"),
-                        @JsonSubTypes.Type(
-                                value = CapwapTunnelZoneHost.Data.class,
-                                name = "capwap")
-                }
+                                name = "gre")}
         )
         public static class Data {
             IntIPv4 ip;

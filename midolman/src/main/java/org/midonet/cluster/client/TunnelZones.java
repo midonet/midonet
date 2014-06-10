@@ -13,10 +13,6 @@ public interface TunnelZones {
 
     interface BuildersProvider {
         GreBuilder getGreZoneBuilder();
-
-        IpsecBuilder getIpsecZoneBuilder();
-
-        CapwapBuilder getCapwapZoneBuilder();
     }
 
     /**
@@ -56,24 +52,5 @@ public interface TunnelZones {
         interface ZoneConfig extends Builder.ZoneConfig<GreTunnelZone> {
 
         }
-    }
-
-    interface IpsecBuilder extends Builder<
-        IpsecBuilder.ZoneConfig, IpsecBuilder.HostConfig, IpsecBuilder> {
-
-        interface ZoneConfig extends Builder.ZoneConfig<IpsecTunnelZone> {
-        }
-
-        interface HostConfig extends Builder.HostConfig {
-            IPv4 getAddress();
-        }
-    }
-
-    interface CapwapBuilder extends Builder<
-        CapwapBuilder.ZoneConfig, CapwapTunnelZoneHost, CapwapBuilder> {
-
-        interface ZoneConfig extends Builder.ZoneConfig<CapwapTunnelZone> {
-        }
-
     }
 }

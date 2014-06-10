@@ -81,8 +81,6 @@ object ZoneMembers {
     def apply(id: UUID, tzType: TunnelZone.Type): ZoneMembers[_] =
         tzType match {
             case TunnelZone.Type.Gre => GreZoneMembers(id, Set())
-            case TunnelZone.Type.Ipsec => IpsecZoneMembers(id, Set())
-            case TunnelZone.Type.Capwap => CapwapZoneMembers(id, Set())
             case _ => GreZoneMembers(id, Set())
         }
 
@@ -134,33 +132,9 @@ object VirtualToPhysicalMapper extends Referenceable {
         val zoneType = TunnelZone.Type.Gre
     }
 
-    case class IpsecZoneChanged(zone: UUID, hostConfig: IpsecTunnelZoneHost,
-                              op: HostConfigOperation.Value)
-            extends ZoneChanged[IpsecTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Ipsec
-    }
-
-    case class CapwapZoneChanged(zone: UUID, hostConfig: CapwapTunnelZoneHost,
-                              op: HostConfigOperation.Value)
-            extends ZoneChanged[CapwapTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Capwap
-    }
-
     case class GreZoneMembers(zone: UUID, members: ROSet[GreTunnelZoneHost])
             extends ZoneMembers[GreTunnelZoneHost] {
         val zoneType = TunnelZone.Type.Gre
-        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
-    }
-
-    case class CapwapZoneMembers(zone: UUID, members: ROSet[CapwapTunnelZoneHost])
-            extends ZoneMembers[CapwapTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Capwap
-        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
-    }
-
-    case class IpsecZoneMembers(zone: UUID, members: ROSet[IpsecTunnelZoneHost])
-            extends ZoneMembers[IpsecTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Ipsec
         def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
     }
 
