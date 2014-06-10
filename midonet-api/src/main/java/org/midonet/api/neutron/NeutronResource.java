@@ -23,9 +23,6 @@ import java.net.URI;
 @Path(NeutronUriBuilder.NEUTRON)
 public class NeutronResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory.getLogger(
-            NeutronResource.class);
-
     private final NeutronResourceFactory factory;
 
     @Inject

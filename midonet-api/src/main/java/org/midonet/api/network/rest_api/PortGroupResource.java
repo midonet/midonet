@@ -41,9 +41,6 @@ import java.util.UUID;
 @RequestScoped
 public class PortGroupResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PortGroupResource.class);
-
     private final PortGroupAuthorizer authorizer;
     private final ResourceFactory factory;
 

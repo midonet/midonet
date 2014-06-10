@@ -42,8 +42,6 @@ import java.util.UUID;
 @RequestScoped
 public class AdRouteResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(AdRouteResource.class);
     private final static BgpEvent bgpEvent = new BgpEvent();
 
     private final AdRouteAuthorizer authorizer;

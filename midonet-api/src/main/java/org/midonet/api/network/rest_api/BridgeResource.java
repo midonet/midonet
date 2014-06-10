@@ -59,8 +59,6 @@ import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 @RequestScoped
 public class BridgeResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeResource.class);
     private final BridgeEvent bridgeEvent = new BridgeEvent();
 
     private final BridgeAuthorizer authorizer;
@@ -720,15 +718,6 @@ public class BridgeResource extends AbstractResource {
         if (!dataClient.bridgeHasMacTable(id, vlanId))
             throw new NotFoundHttpException(
                     getMessage(MessageProperty.BRIDGE_HAS_VLAN, vlanId));
-    }
-
-    private void assertBridgeHasMacPort(UUID id, Short vlanId,
-                                        String macAddress, UUID portId)
-            throws StateAccessException {
-        if (!dataClient.bridgeHasMacPort(
-                id, vlanId, MAC.fromString(macAddress), portId))
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.BRIDGE_HAS_MAC_PORT));
     }
 
     private MAC validateMacAddress(String macAddress) {

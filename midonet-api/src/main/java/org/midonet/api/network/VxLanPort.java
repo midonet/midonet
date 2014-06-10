@@ -14,7 +14,6 @@ public class VxLanPort extends Port {
     private String mgmtIpAddr;
     private int mgmtPort;
     private int vni;
-    private List<VTEPBinding> bindings;
 
     public VxLanPort(org.midonet.cluster.data.ports.VxLanPort vxLanPort) {
         super(vxLanPort);

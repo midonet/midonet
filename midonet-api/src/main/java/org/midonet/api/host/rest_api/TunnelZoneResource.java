@@ -44,8 +44,6 @@ import org.slf4j.LoggerFactory;
 @RequestScoped
 public class TunnelZoneResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(TunnelZoneResource.class);
     private final static TunnelZoneEvent tunnelZoneEvent =
             new TunnelZoneEvent();
 

@@ -56,8 +56,6 @@ import static org.midonet.api.validation.MessageProperty.getMessage;
 @RequestScoped
 public class HealthMonitorResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(HealthMonitorResource.class);
     private final static HealthMonitorEvent healthMonitorEvent
             = new HealthMonitorEvent();
 
