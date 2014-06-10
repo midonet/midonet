@@ -24,12 +24,8 @@ import java.util.UUID;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = CapwapTunnelZone.class,
-                name = TunnelZoneType.CAPWAP),
         @JsonSubTypes.Type(value = GreTunnelZone.class,
-                name = TunnelZoneType.GRE),
-        @JsonSubTypes.Type(value = IpsecTunnelZone.class,
-                name = TunnelZoneType.IPSEC)})
+                name = TunnelZoneType.GRE)})
 public abstract class TunnelZone extends UriResource {
 
     public static final int MIN_TUNNEL_ZONE_NAME_LEN = 1;

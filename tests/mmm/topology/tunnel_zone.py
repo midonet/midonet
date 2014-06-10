@@ -15,9 +15,6 @@ class TunnelZone(ResourceBase):
         if self.type == 'gre':
             zone = api.add_gre_tunnel_zone().name(self.name).create()
             tx.append(zone)
-        elif self.type == 'capwap':
-            zone = api.add_capwap_tunnel_zone().name(self.name).create()
-            tx.append(zone)
 
         if zone:
             for host in hosts:

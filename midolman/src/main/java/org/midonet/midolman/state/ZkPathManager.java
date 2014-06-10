@@ -84,7 +84,7 @@ public class ZkPathManager {
     }
 
     /**
-     * Get tunnel (GRE/CAPWAP) path.
+     * Get tunnel (GRE) path.
      *
      * @return /gre
      */
@@ -98,7 +98,7 @@ public class ZkPathManager {
     }
 
     /**
-     * Get tunnel (GRE/CAPWAP) key path.
+     * Get tunnel (GRE) key path.
      *
      * @param tunnelKeyId is the tunnel key ID
      * @return /gre/tunnelKeyId

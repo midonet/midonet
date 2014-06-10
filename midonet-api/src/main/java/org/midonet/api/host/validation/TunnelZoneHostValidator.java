@@ -5,12 +5,10 @@ package org.midonet.api.host.validation;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.api.host.CapwapTunnelZoneHost;
 import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.CapwapTunnelZone;
 import org.midonet.cluster.data.zones.GreTunnelZone;
 
 import com.google.inject.Inject;
@@ -44,8 +42,6 @@ public class TunnelZoneHostValidator implements
 
             TunnelZone<?, ?> tz = dataClient.tunnelZonesGet(tzh.getTunnelZoneId());
             if (tz instanceof GreTunnelZone && !(tzh instanceof GreTunnelZoneHost))
-                return false;
-            if (tz instanceof CapwapTunnelZone && !(tzh instanceof CapwapTunnelZoneHost))
                 return false;
 
             return dataClient.tunnelZonesGetMembership(
