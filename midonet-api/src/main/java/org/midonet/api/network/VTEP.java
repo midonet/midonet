@@ -140,4 +140,10 @@ public class VTEP extends UriResource {
         return (getBaseUri() == null || managementIp == null) ? null :
                 ResourceUriBuilder.getVtepPorts(getBaseUri(), managementIp);
     }
+
+    public String getVtepBindingTemplate() {
+        return getBaseUri() == null ? null :
+                ResourceUriBuilder.getVtepBindingTemplate(getBaseUri(),
+                                                          getManagementIp());
+    }
 }
