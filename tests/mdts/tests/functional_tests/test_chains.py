@@ -146,13 +146,13 @@ def test_dst_mac_masking():
     # masked MAC rule should drop it since it has the multicast bit set.
     f1 = async_assert_that(if2, should_NOT_receive(rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if1.send_udp("01:23:45:67:89:ab", if2_ip_addr, 29)
+    f2 = if1.send_udp("01:23:45:67:89:ab", if2_ip_addr, 41)
     wait_on_futures([f1, f2])
 
     ## If2's actual MAC address should work, since it doesn't have the bit set.
     f1 = async_assert_that(if2, receives(rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 29)
+    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 41)
     wait_on_futures([f1, f2])
 
     # Change to the chain that allows only multicast addresses.
@@ -163,14 +163,14 @@ def test_dst_mac_masking():
     # time the rule should allow it through.
     f1 = async_assert_that(if2, receives(rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if1.send_udp("01:23:45:67:89:ab", if2_ip_addr, 29)
+    f2 = if1.send_udp("01:23:45:67:89:ab", if2_ip_addr, 41)
     wait_on_futures([f1, f2])
 
     # If2's actual MAC address should be blocked, since it doesn't
     # have the multicast bit set.
     f1 = async_assert_that(if2, should_NOT_receive(rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 29)
+    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 41)
     wait_on_futures([f1, f2])
 
 @attr(version="v1.2.0", slow=False)
@@ -213,12 +213,12 @@ def test_src_mac_masking():
     # should be dropped.
     f1 = async_assert_that(if1, should_NOT_receive(if1_rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if2.send_udp(if1_hw_addr, if1_ip_addr, 29)
+    f2 = if2.send_udp(if1_hw_addr, if1_ip_addr, 41)
     wait_on_futures([f1, f2])
 
     # If1 has an odd MAC (ends with 1), so traffic from if1 to if2
     # should go through.
     f1 = async_assert_that(if2, receives(if2_rcv_filter, within_sec(5)))
     time.sleep(1)
-    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 29)
+    f2 = if1.send_udp(if2_hw_addr, if2_ip_addr, 41)
     wait_on_futures([f1, f2])

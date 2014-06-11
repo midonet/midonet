@@ -281,7 +281,8 @@ def assert_traffic_to(vip, assertion):
     dst_ip, dst_port = vip
     sender_router_port = VTM.get_router('router-000-001').get_port(1)
     sender_router_mac = sender_router_port.get_mn_resource().get_port_mac()
-    f1 = SENDER.send_tcp(sender_router_mac, dst_ip, 29,
+    # 41 bytes = 20 min IPv4 header + 20 min TCP header + 1 "trivial-test-udp"
+    f1 = SENDER.send_tcp(sender_router_mac, dst_ip, 41,
                          src_port=source_port, dst_port=dst_port)
     f2 = async_assert_that(backend_if, assertion(recv_filter,
                                    within_sec(5)))

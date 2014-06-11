@@ -449,7 +449,8 @@ public class IPv4 extends BasePacket {
 
         int payloadLen = this.totalLength - (4 * this.headerLength);
         if (bb.remaining() > payloadLen) {
-            bb.limit(this.totalLength);
+            // Assume byte buffer is correct
+            this.totalLength = bb.remaining() + (4 * this.headerLength);
         }
 
         // TODO: Currently we treat packets that have less data than
