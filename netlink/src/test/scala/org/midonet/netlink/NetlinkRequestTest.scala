@@ -4,7 +4,7 @@
 package org.midonet.netlink
 
 import java.nio.ByteBuffer
-import java.util.{List => JList}
+import java.util.{Set => JSet}
 import scala.util.Try
 
 import com.google.common.base.Function;
@@ -16,8 +16,6 @@ import org.midonet.netlink.exceptions.NetlinkException;
 
 @RunWith(classOf[JUnitRunner])
 class NetlinkRequestTest extends FunSpec with Matchers {
-
-    import AbstractNetlinkConnection.NetlinkRequest
 
     describe("NetlinkRequest") {
 
@@ -118,7 +116,7 @@ class NetlinkRequestTest extends FunSpec with Matchers {
 
         describe("Request comparator") {
 
-            val comp = AbstractNetlinkConnection.requestComparator
+            val comp = NetlinkRequest.comparator
             val a = requestFor(null)
             val b = requestFor(null)
             val c = requestFor(null)
@@ -145,7 +143,55 @@ class NetlinkRequestTest extends FunSpec with Matchers {
                 comp.compare(null,null) shouldBe 0
             }
         }
+    }
 
+    describe("MultiNetlinkRequest") {
+
+        it("gives back an empty set of object when there is no answers") {
+            val cb = new SetCallback
+
+            (NetlinkRequest makeMulti (cb, trans, null, 1000)).successful.run
+
+            cb.set should have size(0)
+        }
+
+        it("constructs a set from the deserialized answer fragments it gets") {
+            val cb = new SetCallback
+            val req = NetlinkRequest makeMulti (cb, trans, null, 1000)
+            val buf = ByteBuffer allocate 256
+
+            (1 to 10) foreach { i =>
+                buf.putInt(i)
+                buf.flip
+                req.addAnswerFragment(buf)
+                buf.flip
+            }
+
+            req.successful.run
+
+            (1 to 10) foreach { cb.set should contain(_) }
+        }
+
+        class SetCallback extends Callback[JSet[Int]] {
+            var set: JSet[Int] = null
+            override def onSuccess(data: JSet[Int]) { set = data }
+            override def onError(e: NetlinkException) { }
+        }
+    }
+
+    describe("SingleNetlinkRequest") {
+
+        it("forces a deserialisation call with null when ACK only") {
+            val cb = new IntCallback
+            requestFor(cb).successful.run
+            cb.x shouldBe 0
+        }
+
+        class IntCallback extends Callback[Int] {
+            var x: Int = -1
+            override def onSuccess(data: Int) { x = data }
+            override def onError(e: NetlinkException) { }
+        }
     }
 
     class InspectableCallback extends Callback[Int] {
@@ -157,14 +203,13 @@ class NetlinkRequestTest extends FunSpec with Matchers {
     }
 
     def requestFor(cb: Callback[Int], buf: ByteBuffer = null) = {
-        val req = NetlinkRequest make (cb, trans, buf, 1000)
+        val req = NetlinkRequest makeSingle (cb, trans, buf, 1000)
         req.seq = getSeq()
         req
     }
 
-    val trans = new Function[JList[ByteBuffer],Int] {
-        override def apply(ls: JList[ByteBuffer]): Int =
-            Try { ls.get(0).getInt } getOrElse 0
+    val trans = new Function[ByteBuffer,Int] {
+        override def apply(ls: ByteBuffer): Int = Try { ls.getInt } getOrElse 0
     }
 
     var seq: Int = 0

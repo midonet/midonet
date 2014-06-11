@@ -6,7 +6,6 @@ package org.midonet.odp;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -72,31 +71,15 @@ public class Datapath {
         }
     }
 
-    /** Static stateless deserializer which builds a single Datapath instance.
-     *  Only consumes the head ByteBuffer in the given input List. */
-    public static final Function<List<ByteBuffer>,Datapath> deserializer =
-        new Function<List<ByteBuffer>, Datapath>() {
+    /** Static stateless deserializer which builds a single Datapath instance
+     *  and consumes the given ByteBuffer. */
+    public static final Function<ByteBuffer,Datapath> deserializer =
+        new Function<ByteBuffer, Datapath>() {
             @Override
-            public Datapath apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
+            public Datapath apply(ByteBuffer buf) {
+                if (buf == null)
                     return null;
-                return buildFrom(input.get(0));
-            }
-        };
-
-    /** Static stateless deserializer which builds a set of Datapath instances.
-     *  Consumes all ByteBuffers in the given input List. */
-    public static final Function<List<ByteBuffer>,Set<Datapath>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<Datapath>>() {
-            @Override
-            public Set<Datapath> apply(List<ByteBuffer> input) {
-                Set<Datapath> datapaths = new HashSet<Datapath>();
-                if (input == null)
-                    return datapaths;
-                for (ByteBuffer buffer : input) {
-                    datapaths.add(buildFrom(buffer));
-                }
-                return datapaths;
+                return buildFrom(buf);
             }
         };
 

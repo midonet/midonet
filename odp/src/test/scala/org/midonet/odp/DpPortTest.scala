@@ -5,7 +5,6 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.ArrayList
 
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -63,26 +62,6 @@ class DpPortTest extends FunSpec with Matchers {
             }
         }
 
-        describe("setDeserializer") {
-            it("should deserialize a set of port message correctly") {
-                val portSet = ports.toSet
-                val buffers = portSet.foldLeft(new ArrayList[ByteBuffer]()) {
-                    case (ls,p) =>
-                        val buf = getBuffer
-                        buf putInt 42 // write datapath index
-                        p serializeInto buf
-                        buf.flip
-                        ls.add(buf)
-                        ls
-                }
-                val deserializedPortSet = DpPort.setDeserializer apply buffers
-                deserializedPortSet should have size portSet.size
-                portSet foreach { p =>
-                    deserializedPortSet should contain(p)
-                }
-            }
-        }
-
         describe("deserializer") {
             it("should deserialize a port correctly") {
                 val buf = getBuffer
@@ -91,9 +70,7 @@ class DpPortTest extends FunSpec with Matchers {
                     buf putInt 42 // write datapath index
                     p serializeInto buf
                     buf.flip
-                    val ls = new ArrayList[ByteBuffer]()
-                    ls.add(buf)
-                    p shouldBe (DpPort.deserializer apply ls)
+                    p shouldBe (DpPort.deserializer apply buf)
                 }
             }
         }

@@ -5,7 +5,6 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Objects;
 import java.util.Random;
@@ -138,32 +137,15 @@ public abstract class DpPort {
         return port;
     }
 
-    /** Stateless static deserializer function which builds single ports once
-     *  at a time. Consumes the head ByteBuffer of the input List.*/
-    public static final Function<List<ByteBuffer>, DpPort> deserializer =
-        new Function<List<ByteBuffer>, DpPort>() {
+    /** Stateless static deserializer function which builds a single DpPort
+     *  instance by consumming the given ByteBuffer. */
+    public static final Function<ByteBuffer, DpPort> deserializer =
+        new Function<ByteBuffer, DpPort>() {
             @Override
-            public DpPort apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
+            public DpPort apply(ByteBuffer buf) {
+                if (buf == null)
                     return null;
-                return DpPort.buildFrom(input.get(0));
-            }
-        };
-
-    /** Stateless static deserializer function which builds sets of ports.
-     *  Consumes all ByteBuffer in the input List.*/
-    public static final Function<List<ByteBuffer>, Set<DpPort>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<DpPort>>() {
-            @Override
-            public Set<DpPort> apply(List<ByteBuffer> input) {
-                Set<DpPort> ports = new HashSet<>();
-                if (input == null)
-                    return ports;
-                for (ByteBuffer buffer : input) {
-                    ports.add(DpPort.buildFrom(buffer));
-                }
-                ports.remove(null);
-                return ports;
+                return DpPort.buildFrom(buf);
             }
         };
 

@@ -136,12 +136,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
-        sendNetlinkMessage(
+        sendMultiAnswerNetlinkMessage(
             datapathFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP,
             Datapath.enumRequest(getBuffer()),
             callback,
-            Datapath.setDeserializer,
+            Datapath.deserializer,
             timeoutMillis);
     }
 
@@ -278,12 +278,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
                                      @Nonnull Callback<Set<DpPort>> callback,
                                      long timeoutMillis) {
-        sendNetlinkMessage(
+        sendMultiAnswerNetlinkMessage(
             portFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
             DpPort.enumRequest(getBuffer(), datapath.getIndex()),
             callback,
-            DpPort.setDeserializer,
+            DpPort.deserializer,
             timeoutMillis);
     }
 
@@ -317,12 +317,12 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
+        sendMultiAnswerNetlinkMessage(
             flowFamily.contextGet,
             NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
             Flow.selectAllRequest(getBuffer(), datapathId),
             callback,
-            Flow.setDeserializer,
+            Flow.deserializer,
             timeoutMillis);
     }
 

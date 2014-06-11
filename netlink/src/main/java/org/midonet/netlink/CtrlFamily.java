@@ -4,7 +4,6 @@
 package org.midonet.netlink;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import com.google.common.base.Function;
 
@@ -56,17 +55,16 @@ public final class CtrlFamily {
         return buf;
     }
 
-    public static Function<List<ByteBuffer>, Integer> mcastGrpDeserializer(
+    public static Function<ByteBuffer, Integer> mcastGrpDeserializer(
             final String groupName) {
-        return new Function<List<ByteBuffer>, Integer>() {
+        return new Function<ByteBuffer, Integer>() {
             @Override
-            public Integer apply(List<ByteBuffer> input) {
-                if (input == null)
+            public Integer apply(ByteBuffer buf) {
+                if (buf == null)
                     return null;
 
                 ByteBuffer sub =
-                    NetlinkMessage.getAttrValueNested(input.get(0),
-                                                      AttrKey.MCAST_GROUPS);
+                    NetlinkMessage.getAttrValueNested(buf, AttrKey.MCAST_GROUPS);
 
                 if (sub == null)
                     return null;
@@ -87,15 +85,14 @@ public final class CtrlFamily {
         };
     }
 
-    public static final Function<List<ByteBuffer>, Short> familyIdDeserializer =
-        new Function<List<ByteBuffer>, Short>() {
+    public static final Function<ByteBuffer, Short> familyIdDeserializer =
+        new Function<ByteBuffer, Short>() {
             @Override
-            public Short apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
+            public Short apply(ByteBuffer buf) {
+                if (buf == null)
                     return 0;
 
-                return NetlinkMessage.getAttrValueShort(input.get(0),
-                                                        AttrKey.FAMILY_ID);
+                return NetlinkMessage.getAttrValueShort(buf, AttrKey.FAMILY_ID);
             }
         };
 
