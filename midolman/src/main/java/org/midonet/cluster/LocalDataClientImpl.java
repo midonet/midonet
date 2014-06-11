@@ -6,6 +6,7 @@ package org.midonet.cluster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,6 +16,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,6 +25,7 @@ import javax.inject.Named;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -51,8 +54,8 @@ import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.WriteVersion;
-import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
 import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
@@ -96,23 +99,23 @@ import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
 import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ConfigGetter;
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.LoadBalancerConfigWithId;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.PoolMemberConfigWithId;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.VipConfigWithId;
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
 import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
@@ -123,11 +126,11 @@ import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
-import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Addr$;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -136,6 +139,7 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
@@ -326,6 +330,32 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesFindByTenant exiting: {} bridges found", bridges.size());
         return bridges;
+    }
+
+    @Override
+    public Map<VlanMacPort, IPv4Addr> bridgeGetMacPortsWithVxTunnelEndpoint(
+        @Nonnull UUID bridgeId) throws StateAccessException,
+                                       SerializationException {
+
+        Bridge bridge = bridgesGet(bridgeId);
+        if (bridge.getVxLanPortId() == null) {
+            log.warn("Requesting ports with vxlan tunnel port for a bridge " +
+                     "that is not bound to a VTEP: {}", bridgeId);
+            return new HashMap<>();
+        }
+
+        List<VlanMacPort> allPorts = bridgeGetMacPorts(bridgeId);
+        Map<VlanMacPort, IPv4Addr> filtered = new HashMap<>();
+        for (VlanMacPort vmp : allPorts) {
+            Port<?, ?> p = portsGet(vmp.portId);
+            if (p == null || !p.isExterior()) {
+               continue;
+            }
+            filtered.put(vmp,
+                         vxlanTunnelEndpointForWithoutVerification(bridge,
+                                                                   (BridgePort) p));
+        }
+        return filtered;
     }
 
     /**
@@ -3265,6 +3295,26 @@ public class LocalDataClientImpl implements DataClient {
                                                "endpoint on bridge not bound " +
                                                "to a vtep: " + b.getId());
         }
+
+        return vxlanTunnelEndpointForWithoutVerification(b, port);
+    }
+
+    /*
+     * Utility method to use internaly. It will not perform any verifications to
+     * ensure that the passed bridge and port meet expectations. These are
+     * assumed to be verified by the caller. It's convenient to slice this out
+     * so other methods can fetch the parameters as they prefer, and then use
+     * this to retrieve the vxlan tunnel endpoing.
+     *
+     * @param b a bridge, that must exist, be bound to a VTEP, and contain the
+     *          given port
+     * @param port a bridge port on the given bridge, that must be exterior
+     * @return the IP address of the bound host's membership in the VTEP's
+     * tunnel zone.
+     */
+    private IPv4Addr vxlanTunnelEndpointForWithoutVerification(Bridge b,
+                                                               BridgePort port)
+    throws SerializationException, StateAccessException {
 
         VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortId());
         IPv4Addr vtepMgmtIp = vxlanPort.getMgmtIpAddr();

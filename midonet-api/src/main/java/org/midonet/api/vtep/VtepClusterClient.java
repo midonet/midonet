@@ -32,9 +32,7 @@ import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.VTEP;
-import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
@@ -495,19 +493,19 @@ public class VtepClusterClient {
     private void feedUcastRemote(VtepDataClient vtepClient,
                                  java.util.UUID bridgeId, String lsName)
             throws StateAccessException, SerializationException {
-        for (VlanMacPort vmp : dataClient.bridgeGetMacPorts(bridgeId)) {
-            Port<?, ?> p = dataClient.portsGet(vmp.portId);
-            if (p != null && p.isExterior()) {
-                IPv4Addr hostIp =
-                        dataClient.vxlanTunnelEndpointFor((BridgePort)p);
-                if (hostIp == null) {
-                    log.warn("No VxLAN tunnel endpoint for port {}", p.getId());
-                } else {
-                    log.debug("MAC {} is at host {}", vmp.macAddress, hostIp);
-                    vtepClient.addUcastMacRemote(lsName,
-                            vmp.macAddress.toString(),
-                            hostIp.toString());
-                }
+
+        Map<VlanMacPort, IPv4Addr> mappings =
+            dataClient.bridgeGetMacPortsWithVxTunnelEndpoint(bridgeId);
+
+        for (Map.Entry<VlanMacPort, IPv4Addr> e : mappings.entrySet()) {
+            VlanMacPort vmp = e.getKey();
+            IPv4Addr hostIp = e.getValue();
+            if (hostIp == null) {
+                log.warn("No VxLAN tunnel endpoint for port {}", vmp.portId);
+            } else {
+                log.debug("MAC {} is at host {}", vmp.macAddress, hostIp);
+                vtepClient.addUcastMacRemote(lsName, vmp.macAddress.toString(),
+                                             hostIp.toString());
             }
         }
     }
