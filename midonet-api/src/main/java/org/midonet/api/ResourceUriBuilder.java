@@ -659,11 +659,12 @@ public class ResourceUriBuilder {
     }
 
     public static String getVtepBindingsTemplate(URI baseUri) {
-        return getVtepTemplate(baseUri) + VTEP_BINDINGS;
+        return getVtepTemplate(baseUri) + BINDINGS;
     }
 
-    public static String getVtepBindingTemplate(URI baseUri) {
-        return getVtepBindingsTemplate(baseUri) + PORT_NAME + VLAN_ID;
+    public static String getVtepBindingTemplate(URI baseUri, String ipAddr) {
+        return getVtepBindings(baseUri, ipAddr).toString() +
+                PORT_NAME + VLAN_ID;
     }
 
     /**
