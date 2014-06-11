@@ -1352,7 +1352,12 @@ public class LocalDataClientImpl implements DataClient {
         Collection<UUID> ids = portZkManager.getBridgePortIDs(bridgeId);
         List<BridgePort> ports = new ArrayList<BridgePort>();
         for (UUID id : ids) {
-            ports.add((BridgePort) portsGet(id));
+            Port<?, ?> port = portsGet(id);
+            if (port instanceof BridgePort) {
+                // Skip the VxLanPort, since it's not really a
+                // BridgePort and is accessible in other ways.
+                ports.add((BridgePort) portsGet(id));
+            }
         }
 
         ids = portZkManager.getBridgeLogicalPortIDs(bridgeId);
