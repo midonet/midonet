@@ -108,31 +108,15 @@ public class Flow {
         return flow;
     }
 
-    /** Static stateless deserializer which builds one Flow instance. Only
-     *  consumes the head ByteBuffer in the given input List. */
-    public static final Function<List<ByteBuffer>, Flow> deserializer =
-        new Function<List<ByteBuffer>, Flow>() {
+    /** Static stateless deserializer which builds one Flow instance and
+     *  consumes data from the given ByteBuffer. */
+    public static final Function<ByteBuffer, Flow> deserializer =
+        new Function<ByteBuffer, Flow>() {
             @Override
-            public Flow apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
+            public Flow apply(ByteBuffer buf) {
+                if (buf == null)
                     return null;
-                return Flow.buildFrom(input.get(0));
-            }
-        };
-
-    /** Static stateless deserializer which builds a set of Flow instance.
-     *  Consumes all the ByteBuffers contained in the given input List. */
-    public static final Function<List<ByteBuffer>, Set<Flow>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<Flow>>() {
-            @Override
-            public Set<Flow> apply(List<ByteBuffer> input) {
-                Set<Flow> flows = new HashSet<>();
-                if (input != null) {
-                  for (ByteBuffer buffer : input) {
-                      flows.add(Flow.buildFrom(buffer));
-                  }
-                }
-                return flows;
+                return Flow.buildFrom(buf);
             }
         };
 
