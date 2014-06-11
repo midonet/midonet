@@ -214,8 +214,13 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         val dstIp1 = IPv4Addr("192.168.125.1")
         val dstIp2 = IPv4Addr("192.168.210.1")
 
-        val ipPair1 = (srcIp.toInt, dstIp1.toInt)
-        val ipPair2 = (srcIp.toInt, dstIp2.toInt)
+        val tag1 = FlowTagger invalidateTunnelRoute (srcIp.toInt, dstIp1.toInt)
+        val tag2 = FlowTagger invalidateTunnelRoute (srcIp.toInt, dstIp2.toInt)
+
+        val output = dpState().asInstanceOf[DatapathStateManager]
+                              .overlayTunnellingOutputAction
+        val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output.get)
+        val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output.get)
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
@@ -228,11 +233,10 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         fishForReplyOfType[GreZoneChanged](vtpProbe())
 
         // assert that the tunnel route was added
-        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair1))
+        (dpState() peerTunnelInfo host2.getId) shouldBe Some(route1)
 
         // assert that a invalidateFlowByTag where tag is the route info is sent
-        flowProbe().fishForMessage(3 seconds,
-            "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
+        flowProbe().fishForMessage(3 seconds,"Tag")(matchATagInvalidation(tag1))
 
         val wildcardFlow = WildcardFlow(
             wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
@@ -241,7 +245,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         dpProbe().testActor ! AddVirtualWildcardFlow(
             wildcardFlow, Nil, Set.empty)
 
-        val flowToInvalidate = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
+        val flow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // update the gre ip of the second host
         val secondGreConfig =
@@ -252,19 +256,17 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             tunnelZone.getId, secondGreConfig)
 
         // assert that the old route was removed and a invalidateFlowByTag is sent
-        flowProbe().fishForMessage(3 seconds,
-            "Tag")(matchATagInvalidation(FlowTagger.invalidateTunnelPort(ipPair1)))
+        flowProbe().fishForMessage(3 seconds,"Tag")(matchATagInvalidation(tag1))
 
         // assert that the flow gets deleted
         val flowRemoved = wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        flowRemoved.f.getMatch should be(flowToInvalidate.f.getMatch)
+        flowRemoved.f.getMatch shouldBe flow.f.getMatch
 
         // assert that a flow invalidation by tag is sent with new tunnel route
-        flowProbe().expectMsg(new InvalidateFlowsByTag(
-            FlowTagger.invalidateTunnelPort(ipPair2)))
+        flowProbe().expectMsg(new InvalidateFlowsByTag(tag2))
 
         // at that point, the tunnel route should be in place, assert it
-        dpState().peerTunnelInfo(host2.getId()) should be (Some(ipPair2))
+        (dpState() peerTunnelInfo host2.getId) shouldBe Some(route2)
     }
 
     def matchATagInvalidation(tagToTest: Any): PartialFunction[Any, Boolean] = {
