@@ -195,25 +195,21 @@ trait FlowTranslator {
     def outputActionsToPeers(key: Long, peerIds: Set[UUID],
                              actions: ListBuffer[FlowAction],
                              dpTags: mutable.Set[Any]) {
-        if (dpState.overlayTunnellingOutputAction.isEmpty) {
-            log.warning("No output tunnelling action was found, could not " +
-                        "translate action to remote hosts {}", peerIds)
-            return
-        }
         val peerIter = peerIds.iterator
-        val output = dpState.overlayTunnellingOutputAction.get
         while (peerIter.hasNext) {
             val peer = peerIter.next
-            dpState.peerTunnelInfo(peer) match {
-                case None => log.warning("Unable to tunnel to peer UUID" +
-                    " {} - check that the peer host is in the same tunnel" +
-                    " zone as the current node.", peer)
-                case Some(route) =>
-                    dpTags += FlowTagger.invalidateTunnelPort(route)
-                    // Each FlowActionSetKey must be followed by a corresponding
-                    // FlowActionOutput.
-                    actions += setKey(FlowKeys.tunnel(key, route._1, route._2))
-                    actions += output
+            val routeInfo = dpState.peerTunnelInfo(peer)
+            if (routeInfo.isEmpty) {
+                log.warning("Unable to tunnel to peer {}, is the peer in the " +
+                            "same tunnel zone as the current node ?", peer)
+            } else {
+                val src = routeInfo.get.srcIp
+                val dst = routeInfo.get.dstIp
+                dpTags += FlowTagger.invalidateTunnelRoute(src, dst)
+                // Each FlowActionSetKey must be followed by a corresponding
+                // FlowActionOutput.
+                actions += setKey(FlowKeys.tunnel(key, src, dst))
+                actions += routeInfo.get.output
             }
         }
     }
@@ -230,7 +226,7 @@ trait FlowTranslator {
         }
         val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
         if (dpTags != null)
-            dpTags += FlowTagger.invalidateTunnelPort((localIp, vtepIp))
+            dpTags += FlowTagger.invalidateTunnelRoute(localIp, vtepIp)
         actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
         actions += dpState.vtepTunnellingOutputAction.get
     }

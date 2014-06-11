@@ -64,8 +64,8 @@ object FlowTagger {
         INSTANCE_POOL.sharedRef(tag)
     }
 
-    def invalidateTunnelPort(route: (Int,Int)): AnyRef =
-        INSTANCE_POOL.sharedRef("tunnel: " + route)
+    def invalidateTunnelRoute(srcIp: Int, dstIp: Int): AnyRef =
+        INSTANCE_POOL.sharedRef("tunnel: (" + srcIp + "," + dstIp + ")")
 
     def invalidateByTunnelKey(key: Long): AnyRef = {
         val tag = "tun_key:" + key.toString

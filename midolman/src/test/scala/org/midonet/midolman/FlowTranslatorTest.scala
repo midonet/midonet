@@ -24,6 +24,7 @@ import org.midonet.midolman.topology.{LocalPortActive, FlowTagger,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
 import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.DpPort
@@ -57,8 +58,10 @@ class FlowTranslatorTest extends MidolmanSpec {
         def local(binding: (UUID, Integer)): Unit =
             dpState.dpPortNumberForVport += binding
 
-        def peer(binding: (UUID, (Int, Int))): Unit =
-            dpState.peerTunnels += binding
+        def peer(binding: (UUID, (Int, Int))): Unit = {
+            val (peer,(src,dst)) = binding
+            dpState.peerTunnels += (peer -> Route(src,dst,output(dpState.grePort)))
+        }
 
         def input(id: UUID): Unit =
            inPortUUID = Some(id)
@@ -141,21 +144,21 @@ class FlowTranslatorTest extends MidolmanSpec {
             val port = makePort(remoteHost) { _
                 .setInterfaceName("if")
             }
-            ctx peer remoteHost -> (1, 2)
             ctx grePort 1342
+            ctx peer remoteHost -> (1, 2)
 
             ctx translate FlowActionOutputToVrnPort(port.getId)
             ctx verify (List(setKey(FlowKeys.tunnel(port.getTunnelKey, 1, 2)),
                                    output(1342)),
-                        Set(FlowTagger.invalidateTunnelPort((1, 2))))
+                        Set(FlowTagger.invalidateTunnelRoute(1, 2)))
         }
 
         translationScenario("The port is remote but interior") { ctx =>
             val remoteHost = UUID.randomUUID()
             val port = makePort(remoteHost)(identity) // makes isExterior be false
 
-            ctx peer remoteHost -> (1, 2)
             ctx grePort 1342
+            ctx peer remoteHost -> (1, 2)
 
             ctx translate FlowActionOutputToVrnPort(port.getId)
             ctx verify (List.empty, Set.empty)
@@ -210,9 +213,9 @@ class FlowTranslatorTest extends MidolmanSpec {
                         Set.empty)
             ctx input inPort
             ctx local inPort -> 9
+            ctx grePort 1342
             ctx peer remoteHost0 -> (1, 2)
             ctx peer remoteHost1 -> (3, 4)
-            ctx grePort 1342
 
             ctx translate FlowActionOutputToVrnPortSet(bridge.getId)
             ctx verify (List(setKey(FlowKeys.tunnel(bridge.getTunnelKey, 1, 2)),
@@ -221,8 +224,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                              output(1342)),
                         Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
                                                                 bridge.getId),
-                            FlowTagger.invalidateTunnelPort((1, 2)),
-                            FlowTagger.invalidateTunnelPort((3, 4))))
+                            FlowTagger.invalidateTunnelRoute(1, 2),
+                            FlowTagger.invalidateTunnelRoute(3, 4)))
         }
 
         translationScenario("The port set has a vxlan port") { ctx =>
@@ -268,7 +271,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                 Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
                                                         bridge.getId),
                     FlowTagger.invalidateFlowsByDevice(port0.getId),
-                    FlowTagger.invalidateTunnelPort(hostIp.toInt, vtepIp.toInt),
+                    FlowTagger.invalidateTunnelRoute(hostIp.toInt, vtepIp.toInt),
                     FlowTagger.invalidateDPPort(7),
                     FlowTagger.invalidateDPPort(8)
                 )
@@ -291,9 +294,9 @@ class FlowTranslatorTest extends MidolmanSpec {
             makePortSet(bridge.getId, Set(rport0.getHostId, rport1.getHostId),
                         Set(lport0, lport1))
 
+            ctx grePort 1342
             ctx peer remoteHost0 -> (1, 2)
             ctx peer remoteHost1 -> (3, 4)
-            ctx grePort 1342
             ctx local lport0.getId -> 2
             ctx local lport1.getId -> 3
 
@@ -311,8 +314,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                             FlowTagger.invalidateFlowsByDevice(lport1.getId),
                             FlowTagger.invalidateDPPort(2),
                             FlowTagger.invalidateDPPort(3),
-                            FlowTagger.invalidateTunnelPort((1, 2)),
-                            FlowTagger.invalidateTunnelPort((3, 4))))
+                            FlowTagger.invalidateTunnelRoute(1, 2),
+                            FlowTagger.invalidateTunnelRoute(3, 4)))
         }
     }
 
@@ -360,8 +363,8 @@ class FlowTranslatorTest extends MidolmanSpec {
             }
 
             ctx local port0 -> 3
-            ctx peer remoteHost -> (1, 2)
             ctx grePort 1342
+            ctx peer remoteHost -> (1, 2)
 
             ctx translate List(FlowActionOutputToVrnPort(port0),
                                FlowActionOutputToVrnPort(port1.getId))
@@ -369,7 +372,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                              setKey(FlowKeys.tunnel(port1.getTunnelKey, 1, 2)),
                              output(1342)),
                         Set(FlowTagger.invalidateDPPort(3),
-                            FlowTagger.invalidateTunnelPort((1, 2))))
+                            FlowTagger.invalidateTunnelRoute(1, 2)))
         }
     }
 
@@ -400,7 +403,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         var version: Long = 0
         var host: Host = null
         var dpPortNumberForVport = mutable.Map[UUID, Integer]()
-        var peerTunnels = mutable.Map[UUID, (Int, Int)]()
+        var peerTunnels = mutable.Map[UUID,Route]()
         var grePort: Int = _
 
         def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
@@ -410,8 +413,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             Some(FlowActions.output(grePort))
         var vtepTunnellingOutputAction: Option[FlowActionOutput] = None
 
-        def peerTunnelInfo(peer: UUID): Option[(Int, Int)] =
-            peerTunnels get peer
+        def peerTunnelInfo(peer: UUID) = peerTunnels get peer
 
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
