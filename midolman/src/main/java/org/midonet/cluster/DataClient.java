@@ -153,6 +153,16 @@ public interface DataClient {
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
         throws StateAccessException;
 
+    /**
+     * Returns the list of VlanMacPort pairs that correspond *only* to exterior
+     * ports in the bridge, associated to the VxLan tunnel end point of their
+     * host. If the bridge has no binding to a VTEP, then it'll return an empty
+     * map.
+     */
+    Map<VlanMacPort, IPv4Addr> bridgeGetMacPortsWithVxTunnelEndpoint(
+        @Nonnull UUID bridgeId) throws StateAccessException,
+                                       SerializationException;
+
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
         throws StateAccessException;
 
@@ -954,4 +964,5 @@ public interface DataClient {
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
         throws StateAccessException;
+
 }
