@@ -14,9 +14,9 @@ public interface RestApiConfig {
 
     String GROUP_NAME = "rest_api";
 
-    public static final String BASE_URI = "base_uri";
+    String BASE_URI = "base_uri";
 
     @ConfigString(key = BASE_URI)
-    public String getBaseUri();
+    String getBaseUri();
 
 }

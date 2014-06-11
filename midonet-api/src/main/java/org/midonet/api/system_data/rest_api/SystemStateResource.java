@@ -31,9 +31,6 @@ import javax.ws.rs.core.UriInfo;
 @RequestScoped
 public class SystemStateResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(SystemStateResource.class);
-
     @Inject
     public SystemStateResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {

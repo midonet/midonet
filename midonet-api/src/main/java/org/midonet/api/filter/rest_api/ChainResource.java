@@ -40,8 +40,6 @@ import java.util.UUID;
 @RequestScoped
 public class ChainResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(ChainResource.class);
     private final static ChainEvent chainEvent = new ChainEvent();
 
     private final ChainAuthorizer authorizer;

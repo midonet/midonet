@@ -54,8 +54,6 @@ import static org.midonet.api.validation.MessageProperty.getMessage;
 @RequestScoped
 public class PoolMemberResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PoolMemberResource.class);
     private final PoolMemberEvent poolMemberEvent = new PoolMemberEvent();
 
     @Inject

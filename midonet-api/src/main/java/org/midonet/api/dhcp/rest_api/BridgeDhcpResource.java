@@ -42,9 +42,6 @@ import java.util.UUID;
 @RequestScoped
 public class BridgeDhcpResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BridgeDhcpResource.class);
-
     private final UUID bridgeId;
     private final BridgeAuthorizer authorizer;
     private final ResourceFactory factory;

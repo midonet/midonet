@@ -10,6 +10,6 @@ import java.util.List;
  */
 public interface TenantList {
 
-    public List<? extends Tenant> get();
+    List<? extends Tenant> get();
 
 }

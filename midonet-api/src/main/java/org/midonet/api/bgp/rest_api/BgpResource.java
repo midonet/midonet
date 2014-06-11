@@ -44,8 +44,6 @@ import java.util.UUID;
 @RequestScoped
 public class BgpResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(BgpResource.class);
     private final static BgpEvent bgpEvent = new BgpEvent();
 
     private final BgpAuthorizer authorizer;

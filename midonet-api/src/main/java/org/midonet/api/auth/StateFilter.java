@@ -30,9 +30,6 @@ public final class StateFilter implements Filter {
     @Inject
     private DataClient dataClient;
 
-    @Inject
-    private PathBuilder paths;
-
     /**
      * Called by the web container to indicate to a filter that it is being
      * placed into service.
