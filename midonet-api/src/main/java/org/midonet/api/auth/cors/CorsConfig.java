@@ -14,27 +14,23 @@ public interface CorsConfig {
 
     String GROUP_NAME = "cors";
 
-    public static final String ALLOW_ORIGIN_KEY =
-            "access_control_allow_origin";
-    public static final String ALLOW_HEADERS_KEY =
-            "access_control_allow_headers";
-    public static final String ALLOW_METHODS_KEY =
-            "access_control_allow_methods";
-    public static final String EXPOSE_HEADERS_KEY =
-            "access_control_expose_headers";
+    String ALLOW_ORIGIN_KEY = "access_control_allow_origin";
+    String ALLOW_HEADERS_KEY = "access_control_allow_headers";
+    String ALLOW_METHODS_KEY = "access_control_allow_methods";
+    String EXPOSE_HEADERS_KEY = "access_control_expose_headers";
 
     @ConfigString(key = ALLOW_ORIGIN_KEY, defaultValue = "*")
-    public String getAccessControlAllowOrigin();
+    String getAccessControlAllowOrigin();
 
     @ConfigString(key = ALLOW_HEADERS_KEY,
             defaultValue = "Origin, X-Auth-Token, Content-Type, Accept")
-    public String getAccessControlAllowHeaders();
+    String getAccessControlAllowHeaders();
 
     @ConfigString(key = ALLOW_METHODS_KEY,
             defaultValue = "GET, POST, PUT, DELETE, OPTIONS")
-    public String getAccessControlAllowMethods();
+    String getAccessControlAllowMethods();
 
     @ConfigString(key = EXPOSE_HEADERS_KEY, defaultValue = "Location")
-    public String getAccessControlExposeHeaders();
+    String getAccessControlExposeHeaders();
 
 }

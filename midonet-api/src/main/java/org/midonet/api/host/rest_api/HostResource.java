@@ -42,9 +42,6 @@ import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 @RequestScoped
 public class HostResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(HostResource.class);
-
     private final ResourceFactory factory;
 
     @Inject

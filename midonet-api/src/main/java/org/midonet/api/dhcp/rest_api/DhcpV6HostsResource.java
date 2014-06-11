@@ -40,9 +40,6 @@ import java.util.UUID;
 @RequestScoped
 public class DhcpV6HostsResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(DhcpV6HostsResource.class);
-
     private final UUID bridgeId;
     private final IPv6Subnet prefix;
     private final BridgeAuthorizer authorizer;

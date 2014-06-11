@@ -10,8 +10,7 @@ package org.midonet.api.auth;
  */
 public interface Tenant {
 
-    public String getId();
+    String getId();
 
-    public String getName();
-
+    String getName();
 }

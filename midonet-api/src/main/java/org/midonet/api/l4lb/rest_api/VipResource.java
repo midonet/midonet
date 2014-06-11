@@ -53,8 +53,6 @@ import static org.midonet.api.validation.MessageProperty.getMessage;
 @RequestScoped
 public class VipResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(VIP.class);
     private final VipEvent vipEvent = new VipEvent();
 
     @Inject

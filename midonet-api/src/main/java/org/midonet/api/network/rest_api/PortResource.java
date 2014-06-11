@@ -64,8 +64,6 @@ import org.slf4j.LoggerFactory;
 @RequestScoped
 public class PortResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(PortResource.class);
     private final static PortEvent portEvent = new PortEvent();
 
     private final PortAuthorizer authorizer;

@@ -15,18 +15,18 @@ public interface ExteriorPort {
     /**
      * @return VIF ID
      */
-    public UUID getVifId();
+    UUID getVifId();
 
     /**
      * @param vifId
      *            VIF ID to set
      */
-    public void setVifId(UUID vifId);
+    void setVifId(UUID vifId);
 
     /**
      * Getter to be used to generate "host-interface-port" property's value.
      *
      * @return the URI of the host-interface-port binding
      */
-    public URI getHostInterfacePort();
+    URI getHostInterfacePort();
 }

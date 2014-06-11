@@ -18,9 +18,7 @@ public interface AuthService {
      *            Token to validate.
      * @return UserIdentity object if valid if token is valid, null if invalid.
      */
-    public UserIdentity getUserIdentityByToken(String token)
-            throws AuthException;
-
+    UserIdentity getUserIdentityByToken(String token) throws AuthException;
 
     /**
      * Generate a token from username/password
@@ -31,8 +29,7 @@ public interface AuthService {
      * @return Token object
      * @throws AuthException
      */
-    public Token login(String username, String password,
-                       HttpServletRequest request)
+    Token login(String username, String password, HttpServletRequest request)
         throws AuthException;
 
     /**
@@ -42,7 +39,7 @@ public interface AuthService {
      * @return {@link Tenant} object
      * @throws AuthException
      */
-    public Tenant getTenant(String id) throws AuthException;
+    Tenant getTenant(String id) throws AuthException;
 
     /**
      * Get a list of all the Tenant objects in the identity system.
@@ -51,6 +48,5 @@ public interface AuthService {
      *                tenants.
      * @return List of Tenant objects
      */
-    public List<Tenant> getTenants(HttpServletRequest request)
-            throws AuthException;
+    List<Tenant> getTenants(HttpServletRequest request) throws AuthException;
 }
