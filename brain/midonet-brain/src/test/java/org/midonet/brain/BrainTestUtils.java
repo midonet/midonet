@@ -11,7 +11,6 @@ import com.google.inject.Module;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.midonet.brain.guice.BrainModule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -73,7 +72,6 @@ public class BrainTestUtils {
      */
     public static List<Module> modules(HierarchicalConfiguration config) {
         List<Module> modules = new ArrayList<>();
-        modules.add(new BrainModule());  // For MidolmanConfig
         // For VtepUpdaterTest
         modules.add(new VersionModule());  // For Comparator
         modules.add(new SerializationModule());  // For Serializer

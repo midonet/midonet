@@ -9,14 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.McastMac;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
-import org.midonet.brain.southbound.vtep.model.UcastMac;
-import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
+import com.google.inject.Inject;
+
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
@@ -38,7 +32,18 @@ import org.opendaylight.ovsdb.plugin.InventoryServiceInternal;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import rx.Observable;
+
+import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.McastMac;
+import org.midonet.brain.southbound.vtep.model.PhysicalPort;
+import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+
 import static org.midonet.brain.southbound.vtep.VtepConstants.UNKNOWN_DST;
 
 public class VtepDataClientImpl implements VtepDataClient {
@@ -47,47 +52,59 @@ public class VtepDataClientImpl implements VtepDataClient {
         LoggerFactory.getLogger(VtepDataClientImpl.class);
     private static final String VTEP_NODE_NAME= "vtep";
 
-    private ConnectionService cnxnSrv = null;
-    private ConfigurationService cfgSrv = null;
+    private final ConnectionService cnxnSrv;
+    private final ConfigurationService cfgSrv;
+    private final InventoryService invSrv;
+
     private Node node = null;
 
     private IPv4Addr mgmtIp  = null;
     private int mgmtPort;
     private PhysicalSwitch myPhysicalSwitch = null;
 
+    private boolean started = false;
+
     private static final int CNXN_TIMEOUT_MILLIS = 5000;
 
+    @Inject
+    public VtepDataClientImpl(ConfigurationService confService,
+                              ConnectionService cnxnService,
+                              InventoryService invService) {
+        this.cnxnSrv = cnxnService;
+        this.cfgSrv = confService;
+        this.invSrv = invService;
+    }
+
     @Override
-    public void connect(final IPv4Addr mgmtIp, final int port) {
+    public synchronized void connect(final IPv4Addr mgmtIp, final int port) {
+
+        if (started) {
+            throw new IllegalStateException("Already started");
+        }
 
         this.mgmtIp = mgmtIp;
         this.mgmtPort = port;
-
-        if (cnxnSrv == null) {
-            cnxnSrv = new ConnectionService();
-        }
-
-        cnxnSrv.init();
 
         Map<ConnectionConstants, String> params = new HashMap<>();
         params.put(ConnectionConstants.ADDRESS, mgmtIp.toString());
         params.put(ConnectionConstants.PORT, Integer.toString(port));
 
-        InventoryService is = new InventoryService();
-        is.init();
+        cnxnSrv.init();
+        invSrv.init();
 
-        cnxnSrv.setInventoryServiceInternal(is);
-        node = cnxnSrv.connect(VTEP_NODE_NAME, params);
-        log.info("Connecting to VTEP on {}:{}, node {}",
-                 new Object[]{mgmtIp, port, node.getID()});
-        cfgSrv = new ConfigurationService();
-        cfgSrv.setInventoryServiceInternal(is);
+        cnxnSrv.setInventoryServiceInternal(invSrv);
+        cfgSrv.setInventoryServiceInternal(invSrv);
         cfgSrv.setConnectionServiceInternal(cnxnSrv);
+
+        node = cnxnSrv.connect(VTEP_NODE_NAME, params);
         cfgSrv.setDefaultNode(node);
+
+        log.debug("Connecting to VTEP on {}:{}, node {}",
+                 new Object[]{mgmtIp, port, node.getID()});
 
         long timeoutAt = System.currentTimeMillis() + CNXN_TIMEOUT_MILLIS;
         while (!this.isReady() && System.currentTimeMillis() < timeoutAt) {
-            log.info("Waiting for inventory service initialization");
+            log.debug("Waiting for inventory service initialization");
             try {
                 Thread.sleep(CNXN_TIMEOUT_MILLIS / 10);
             } catch (InterruptedException e) {
@@ -100,13 +117,15 @@ public class VtepDataClientImpl implements VtepDataClient {
             this.myPhysicalSwitch = this.loadVtepDetails();
         }
 
-        if (!this.isReady() || this.myPhysicalSwitch == null) {
+        if (this.myPhysicalSwitch == null) {
             throw new IllegalStateException("Could not complete connection");
         }
+
+        this.started = true;
     }
 
     public boolean isReady() {
-        ConcurrentMap<String, ConcurrentMap<String, Table<?>>> cache =
+        Map<String, ConcurrentMap<String, Table<?>>> cache =
             this.cnxnSrv.getInventoryServiceInternal().getCache(node);
         if (cache == null) {
             return false;
@@ -137,8 +156,13 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public void disconnect() {
+    public synchronized void disconnect() {
+        if (!started) {
+            log.warn("Trying to disconnect client, but not connected");
+        }
+        log.info("Disconnecting..");
         cnxnSrv.disconnect(node);
+        this.started = false;
     }
 
     /**
@@ -319,7 +343,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Adding Ucast Mac Remote: {} {} {}",
                   new Object[]{lsName, mac, ip});
         assert(IPv4Addr.fromString(ip) != null);
-        assert (UNKNOWN_DST.equals(mac) || (MAC.fromString(mac) != null));
+        assert (MAC.fromString(mac) != null);
         StatusWithUuid st = cfgSrv.vtepAddUcastRemote(lsName, mac, ip, null);
         if (!st.isSuccess()) {
             log.error("Could not add Ucast Mac Remote: {} - {}",
@@ -368,8 +392,8 @@ public class VtepDataClientImpl implements VtepDataClient {
         Map<String, Table<?>> psCache =
             this.getTableCache(Physical_Switch.NAME.getName());
         if (psCache == null || psCache.isEmpty()) {
-            log.error("Cannot find any physical switches in database");
-            return new Status(StatusCode.NOTFOUND);
+            log.warn("Cannot find any physical switches in VTEP db");
+            return new Status(StatusCode.NOTFOUND, "Physical Switch missing");
         } else if (psCache.size() > 1) {
             log.warn("Physical_Switch table contains more than one entry, " +
                      "this is still not supported, and may have unexpected " +

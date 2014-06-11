@@ -12,6 +12,13 @@ import java.util.Random;
 import java.util.Set;
 
 import com.google.inject.Inject;
+
+import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.network.VTEPBinding;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.BadGatewayHttpException;
@@ -33,11 +40,6 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.plugin.StatusWithUuid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.midonet.api.validation.MessageProperty.NETWORK_ALREADY_BOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
@@ -76,7 +78,7 @@ public class VtepClusterClient {
      * @throws GatewayTimeoutHttpException when failing to connect to the VTEP.
      */
     private VtepDataClient getVtepClient(IPv4Addr mgmtIp, int mgmtPort) {
-        VtepDataClient vtepClient = provider.makeClient();
+        VtepDataClient vtepClient = provider.get();
         try {
             vtepClient.connect(mgmtIp, mgmtPort);
             return vtepClient;
@@ -161,8 +163,7 @@ public class VtepClusterClient {
      */
     protected final List<PhysicalPort> listPhysicalPorts(
             VtepDataClient vtepClient, IPv4Addr mgmtIp, int mgmtPort)
-            throws StateAccessException
-    {
+            throws StateAccessException {
         // Get the physical switch.
         PhysicalSwitch ps = getPhysicalSwitch(vtepClient, mgmtIp);
         if (ps == null) {
@@ -205,8 +206,7 @@ public class VtepClusterClient {
      */
     public final java.util.UUID getBoundBridgeId(
             IPv4Addr ipAddr, String portName, short vlanId)
-            throws SerializationException, StateAccessException
-    {
+            throws SerializationException, StateAccessException {
 
         VTEP vtep = getVtepOrThrow(ipAddr, false);
         VtepDataClient vtepClient =
@@ -494,8 +494,7 @@ public class VtepClusterClient {
      */
     private void feedUcastRemote(VtepDataClient vtepClient,
                                  java.util.UUID bridgeId, String lsName)
-            throws StateAccessException, SerializationException
-    {
+            throws StateAccessException, SerializationException {
         for (VlanMacPort vmp : dataClient.bridgeGetMacPorts(bridgeId)) {
             Port<?, ?> p = dataClient.portsGet(vmp.portId);
             if (p != null && p.isExterior()) {
