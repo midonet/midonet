@@ -78,8 +78,7 @@ class MidolmanActorsService extends AbstractService {
         try {
             log.info("Booting up actors service")
 
-            _system = ActorSystem.create("MidolmanActors",
-                ConfigFactory.load().getConfig("midolman"))
+            _system = createActorSystem()
 
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
@@ -143,6 +142,10 @@ class MidolmanActorsService extends AbstractService {
         log.debug("Request for starting actor {}", name)
         (supervisorActor ? StartChild(props, name)).mapTo[ActorRef]
     }
+
+    protected def createActorSystem(): ActorSystem =
+        ActorSystem.create("MidolmanActors", ConfigFactory.load()
+                .getConfig("midolman"))
 
     def initProcessing() {
         log.debug("Sending Initialization message to datapath controller.")
