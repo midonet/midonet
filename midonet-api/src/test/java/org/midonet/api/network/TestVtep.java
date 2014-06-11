@@ -35,6 +35,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
@@ -603,6 +604,23 @@ public class TestVtep extends RestApiTestBase {
                                              APPLICATION_PORT_V2_JSON);
         bindings = listBindings(vtep);
         assertThat(bindings, arrayContainingInAnyOrder(br2bi1, br2bi2));
+    }
+
+    @Test
+    public void testListBridgePortsExcludesVxlanPort() {
+        DtoBridge bridge = postBridge("bridge1");
+        DtoBridgePort bridgePort = postBridgePort(
+                createBridgePort(null, bridge.getId(), null, null, null),
+                bridge);
+
+        DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
+        postBinding(vtep, makeBinding(MOCK_VTEP_PORT_NAMES[0],
+                                      (short)0, bridge.getId()));
+
+        DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
+                bridge.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
+                DtoBridgePort[].class);
+        assertThat(bridgePorts, arrayContainingInAnyOrder(bridgePort));
     }
 
     private DtoVtep makeVtep(String mgmtIpAddr, int mgmtPort,
