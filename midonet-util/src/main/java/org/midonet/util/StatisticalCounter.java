@@ -4,6 +4,9 @@
 
 package org.midonet.util;
 
+import org.midonet.Util;
+import sun.misc.Unsafe;
+
 import java.util.concurrent.CyclicBarrier;
 
 /**
@@ -12,10 +15,19 @@ import java.util.concurrent.CyclicBarrier;
  * aggregated on reads. As such, it is not a precise counter.
  */
 public class StatisticalCounter {
-    // This is used to pad the counters so they fall on different cache lines,
-    // to prevent those lines from ping-ponging across CPUs. We assume 64 byte
-    // cache lines.
+    /* This is used to pad the counters so they fall on different cache lines,
+     * to prevent those lines from ping-ponging across CPUs. We assume 64 byte
+     * cache lines.
+     */
     private static final int PADDING = 8;
+
+    /* Unsafe enables atomic operations on the individual contents of an array.
+     * We need the base offset of the long[] class, as well as the amount of
+     * memory each entry takes.
+     */
+    private static final Unsafe UNSAFE = Util.getUnsafe();
+    private static final long BASE  = UNSAFE.arrayBaseOffset(long[].class);
+    private static final long SCALE = UNSAFE.arrayIndexScale(long[].class);
 
     private final long[] counters;
 
@@ -23,12 +35,20 @@ public class StatisticalCounter {
         this.counters = new long[counters * PADDING];
     }
 
-    public long incAndGet(int index) {
-        return addAndGet(index, 1);
-    }
-
     public long addAndGet(int index, int count) {
         return counters[index * PADDING] += count;
+    }
+
+    public long addAndGetAtomic(int index, int count) {
+        long bufferAddress = BASE + (index * PADDING * SCALE);
+        long c, nc;
+        do {
+            // We need a volatile read to avoid the compiler hoisting
+            // this outside the loop.
+            c = UNSAFE.getLongVolatile(counters, bufferAddress);
+            nc = c + count;
+        } while (!UNSAFE.compareAndSwapLong(counters, bufferAddress, c, nc));
+        return nc;
     }
 
     public long getValue() {
@@ -76,7 +96,8 @@ public class StatisticalCounter {
                     }
 
                     for (int i = 0; i < iterations; ++i) {
-                        counter.incAndGet(c);
+                        //counter.addAndGet(c, 1);
+                        counter.addAndGetAtomic(c, 1);
                         if ((i % 1000) == c) {
                             Thread.yield();
                         }

@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.odp.protos.OvsDatapathConnection;
-
+import org.midonet.util.Bucket;
 
 public class OneToOneConnectionPool implements DatapathConnectionPool {
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -23,7 +23,8 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
 
     private SelectorBasedDatapathConnection[] conns;
 
-    public OneToOneConnectionPool(String name, int numChannels, MidolmanConfig config) {
+    public OneToOneConnectionPool(String name, int numChannels,
+                                  MidolmanConfig config) {
         this.name = name;
         this.config = config;
 
@@ -31,7 +32,7 @@ public class OneToOneConnectionPool implements DatapathConnectionPool {
         for (int i=0; i<numChannels; i++) {
             conns[i] =
                 new SelectorBasedDatapathConnection(name + ".channel-" + i,
-                                                    config, false, null);
+                                             config, false, Bucket.BOTTOMLESS);
         }
     }
 

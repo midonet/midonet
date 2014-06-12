@@ -18,4 +18,8 @@ public class TokenBucketTestRate implements TokenBucketFillRate {
     public void setNewTokens(int tokens) {
         this.tokens = tokens;
     }
+
+    public void addTokens(int tokens) {
+        this.tokens += tokens;
+    }
 }

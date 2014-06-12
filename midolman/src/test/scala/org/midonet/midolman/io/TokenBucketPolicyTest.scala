@@ -13,7 +13,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.{DatapathConfig, MidolmanConfig}
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort, GreTunnelPort}
-import org.midonet.util.TokenBucketTestRate
+import org.midonet.util.{TokenBucket, Bucket, TokenBucketTestRate}
 import java.util
 
 @RunWith(classOf[JUnitRunner])
@@ -22,20 +22,22 @@ class TokenBucketPolicyTest extends FeatureSpec
                             with ShouldMatchers
                             with OneInstancePerTest {
     var policy: TokenBucketPolicy = _
+    val multiplier = 2
 
     before {
         val configuration = new HierarchicalConfiguration
         configuration.addNodes(DatapathConfig.GROUP_NAME, util.Arrays.asList(
             new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 1),
             new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 1),
-            new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 1),
+            new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 8),
             new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 1)))
 
         val provider = ConfigProvider.providerForIniConfig(configuration)
 
         policy = new TokenBucketPolicy(
             provider.getConfig(classOf[MidolmanConfig]),
-            new TokenBucketTestRate)
+            new TokenBucketTestRate, multiplier,
+            new Bucket(_, 1, null, 0, false))
     }
 
     feature("Buckets are correctly linked") {
@@ -43,21 +45,25 @@ class TokenBucketPolicyTest extends FeatureSpec
             val tbgre = policy link new GreTunnelPort("gre")
             val tbvxlan = policy link new VxLanTunnelPort("vxlan")
 
-            tbgre.getName should be ("midolman-root/gre")
-            tbvxlan.getName should be ("midolman-root/vxlan")
+            tbgre.underlyingTokenBucket.getCapacity should be (4)
+            tbgre.underlyingTokenBucket.getName should be ("midolman-root/gre")
+            tbvxlan.underlyingTokenBucket.getCapacity should be (1)
+            tbvxlan.underlyingTokenBucket.getName should be ("midolman-root/vxlan")
         }
 
         scenario("VM ports result in a leaf bucket under the VMs bucket") {
             val tb = policy link new NetDevPort("vm")
-            tb.getName should be ("midolman-root/vms/vm")
+            tb.underlyingTokenBucket.getCapacity should be (1)
+            tb.underlyingTokenBucket.getName should be ("midolman-root/vms/vm")
         }
 
-        scenario("Additional tokens are added to the root") {
+        scenario("The policy ensures the capacity of the root is greater or " +
+                 "equal to the capacity of all leaf buckets") {
             val tb1 = policy link new NetDevPort("vm1")
             val tb2 = policy link new NetDevPort("vm2")
 
-            tb1.tryGet(1) should be (1)
-            tb2.tryGet(1) should be (1)
+            tb1.underlyingTokenBucket.tryGet(1) should be (1)
+            tb2.underlyingTokenBucket.tryGet(1) should be (1)
         }
     }
 
@@ -71,8 +77,8 @@ class TokenBucketPolicyTest extends FeatureSpec
             policy unlink grePort
             policy unlink vxlanPort
 
-            tbgre.getParent should be (null)
-            tbvxlan.getParent should be (null)
+            tbgre.underlyingTokenBucket.getNumTokens should be (TokenBucket.UNLINKED)
+            tbvxlan.underlyingTokenBucket.getNumTokens should be (TokenBucket.UNLINKED)
         }
 
         scenario("VM ports are correctly unlinked") {
@@ -81,7 +87,7 @@ class TokenBucketPolicyTest extends FeatureSpec
 
             policy unlink port
 
-            tb.getParent should be (null)
+            tb.underlyingTokenBucket.getNumTokens should be (TokenBucket.UNLINKED)
         }
     }
 }

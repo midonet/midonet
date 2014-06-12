@@ -16,10 +16,10 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Netlink;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.util.Bucket;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
-import org.midonet.util.TokenBucket;
 
 public class SelectorThreadPair {
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -70,7 +70,7 @@ public class SelectorThreadPair {
         return writeLoop;
     }
 
-    public ManagedDatapathConnection addConnection(final TokenBucket tb,
+    public ManagedDatapathConnection addConnection(final Bucket bucket,
             final BufferPool sendPool) throws Exception {
 
         final OvsDatapathConnection conn =
@@ -86,7 +86,7 @@ public class SelectorThreadPair {
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleReadEvent(tb);
+                        conn.handleReadEvent(bucket);
                     }
                 });
 

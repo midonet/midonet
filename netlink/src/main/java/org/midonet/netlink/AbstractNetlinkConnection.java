@@ -7,7 +7,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.SelectionKey;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.netlink.clib.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.util.BatchCollector;
-import org.midonet.util.TokenBucket;
+import org.midonet.util.Bucket;
 import org.midonet.util.io.SelectorInputQueue;
 
 /**
@@ -55,9 +61,8 @@ public abstract class AbstractNetlinkConnection {
     private ByteBuffer reply =
         BytesUtil.instance.allocateDirect(NETLINK_READ_BUFSIZE);
 
-    private BufferPool requestPool;
-
-    private NetlinkChannel channel;
+    private final BufferPool requestPool;
+    private final NetlinkChannel channel;
     protected BatchCollector<Runnable> dispatcher;
 
     private SelectorInputQueue<NetlinkRequest> writeQueue =
@@ -283,7 +288,7 @@ public abstract class AbstractNetlinkConnection {
 
         try {
             while (!ongoingTransaction.isEmpty()) {
-                if (processReadFromChannel(null) <= 0)
+                if (processReadFromChannel(Bucket.BOTTOMLESS) <= 0)
                     break;
             }
         } catch (IOException e) {
@@ -338,10 +343,11 @@ public abstract class AbstractNetlinkConnection {
         return bytes;
     }
 
-    public void handleReadEvent(final TokenBucket tb) throws IOException {
+    public void handleReadEvent(final Bucket bucket) throws IOException {
         try {
+            bucket.prepare();
             for (int i = 0; i < maxBatchIoOps; i++) {
-                final int ret = processReadFromChannel(tb);
+                final int ret = processReadFromChannel(bucket);
                 if (ret <= 0) {
                     if (ret < 0) {
                         log.info("NETLINK read() error: {}",
@@ -353,6 +359,7 @@ public abstract class AbstractNetlinkConnection {
         } catch (IOException e) {
             log.error("NETLINK read() exception: {}", e);
         } finally {
+            bucket.done();
             if (!usingSharedNotificationHandler)
                 endBatch();
             dispatcher.endBatch();
@@ -361,7 +368,7 @@ public abstract class AbstractNetlinkConnection {
 
     protected void endBatch() {}
 
-    private synchronized int processReadFromChannel(final TokenBucket tb)
+    private synchronized int processReadFromChannel(final Bucket bucket)
             throws IOException {
         reply.clear();
 
@@ -430,7 +437,7 @@ public abstract class AbstractNetlinkConnection {
 
                     if (seq == 0) {
                         // if the seq number is zero we are handling a PacketIn.
-                        if (tb == null || tb.tryGet(1) == 1)
+                        if (bucket.consumeToken())
                             handleNotification(type, cmd, seq, pid, payload);
                         else
                             log.debug("Failed to get token; dropping packet");

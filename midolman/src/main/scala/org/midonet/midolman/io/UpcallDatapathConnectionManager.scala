@@ -3,9 +3,8 @@
  */
 package org.midonet.midolman.io
 
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.ReentrantLock
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.mutable
 import scala.util.{Failure, Success}
 
@@ -17,13 +16,13 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
-import org.midonet.netlink.{BufferPool, Callback}
+import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.{TokenBucket, BatchCollector}
+import org.midonet.util.{Bucket, BatchCollector}
 
 trait UpcallDatapathConnectionManager {
 
@@ -40,7 +39,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     protected val log: Logger
 
-    protected def makeConnection(name: String, tb: TokenBucket)
+    protected def makeConnection(name: String, bucket: Bucket)
     : ManagedDatapathConnection
 
     protected def stopConnection(conn: ManagedDatapathConnection)
@@ -198,8 +197,8 @@ class OneToOneDpConnManager(c: MidolmanConfig,
 
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
-    override def makeConnection(name: String, tb: TokenBucket) =
-        new SelectorBasedDatapathConnection(name, config, true, tb, makeBufferPool())
+    override def makeConnection(name: String, bucket: Bucket) =
+        new SelectorBasedDatapathConnection(name, config, true, bucket, makeBufferPool())
 
     override def stopConnection(conn: ManagedDatapathConnection) {
         conn.stop()
@@ -226,10 +225,10 @@ class OneToManyDpConnManager(c: MidolmanConfig,
 
     private var upcallHandler: BatchCollector[Packet] = null
 
-    override def makeConnection(name: String, tb: TokenBucket) = {
+    override def makeConnection(name: String, bucket: Bucket) = {
         if (!threadPair.isRunning)
             threadPair.start()
-        val conn = threadPair.addConnection(tb, sendPool)
+        val conn = threadPair.addConnection(bucket, sendPool)
         conn.getConnection.setUsingSharedNotificationHandler(true)
         conn
     }
