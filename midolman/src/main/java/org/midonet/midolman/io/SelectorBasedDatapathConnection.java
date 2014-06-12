@@ -16,11 +16,10 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.protos.OvsDatapathConnection;
+import org.midonet.util.Bucket;
 import org.midonet.util.eventloop.SelectListener;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
-import org.midonet.util.TokenBucket;
-
 
 public class SelectorBasedDatapathConnection implements ManagedDatapathConnection {
     private final static Logger log =
@@ -37,32 +36,32 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
     private BufferPool sendPool;
     private OvsDatapathConnection conn = null;
     private final boolean singleThreaded;
-    private final TokenBucket tb;
+    private final Bucket bucket;
 
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
                                            boolean singleThreaded,
-                                           TokenBucket tb,
+                                           Bucket bucket,
                                            BufferPool sendPool) {
         this.config = config;
         this.name = name;
         this.singleThreaded = singleThreaded;
-        this.tb = tb;
+        this.bucket = bucket;
         this.sendPool = sendPool;
     }
 
     public SelectorBasedDatapathConnection(String name,
                                            MidolmanConfig config,
                                            boolean singleThreaded,
-                                           TokenBucket tb) {
-        this(name, config, singleThreaded, tb,
+                                           Bucket bucket) {
+        this(name, config, singleThreaded, bucket,
              new BufferPool(config.getSendBufferPoolInitialSize(),
                             config.getSendBufferPoolMaxSize(),
                             config.getSendBufferPoolBufSizeKb() * 1024));
     }
 
     public SelectorBasedDatapathConnection(String name, MidolmanConfig config) {
-        this(name, config, false, null);
+        this(name, config, false, Bucket.BOTTOMLESS);
     }
 
     public OvsDatapathConnection getConnection() {
@@ -126,7 +125,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                     @Override
                     public void handleEvent(SelectionKey key)
                             throws IOException {
-                        conn.handleReadEvent(tb);
+                        conn.handleReadEvent(bucket);
                     }
                 });
 

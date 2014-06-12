@@ -17,10 +17,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp._
 import org.midonet.odp.ports._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.IntegrationTests
-import org.midonet.util.StatisticalCounter;
-import org.midonet.util.TokenBucket
-import org.midonet.util.TokenBucketSystemRate;
+import org.midonet.util._
 
 object UpcallChannelsTest {
 
@@ -42,8 +39,9 @@ object UpcallChannelsTest {
     }
 
     def tbPolicy(conf: MidolmanConfig) = {
-        val counter = new StatisticalCounter(conf.getSimulationThreads());
-        new TokenBucketPolicy(conf, new TokenBucketSystemRate(counter))
+        val counter = new StatisticalCounter(conf.getSimulationThreads)
+        new TokenBucketPolicy(conf, new TokenBucketSystemRate(counter), 1,
+                              _ => Bucket.BOTTOMLESS)
     }
 
     def main(args: Array[String]) {

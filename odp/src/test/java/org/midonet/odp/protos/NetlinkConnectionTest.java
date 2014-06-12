@@ -3,19 +3,15 @@
 */
 package org.midonet.odp.protos;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.exceptions.NetlinkException;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 //@RunWith(PowerMockRunner.class)
 public class NetlinkConnectionTest extends AbstractNetlinkProtocolTest {

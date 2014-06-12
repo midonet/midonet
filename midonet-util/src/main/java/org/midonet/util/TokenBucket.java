@@ -6,137 +6,85 @@ package org.midonet.util;
 
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.util.Arrays.copyOf;
 
-/*
+/**
  * This class implements a hierarchical token bucket. Starting from a root
  * bucket, it allows a tree of buckets to be created. Tokens go into the root
  * bucket according to the specified fill rate strategy and are distributed
  * recursively among the root's children. When all the buckets in a level of
  * the hierarchy are full, they accumulate in the parent bucket. Tokens can
- * only be retrieved from the leaf buckets, although you can wait for any
- * bucket to contain a specified number of tokens. The operation of the token
- * bucket is as follows:
- *
- *                  +–––––+
- *                  |     | root
- *                  |     |
- *                  +––+––+
- *                     |
- *             +–––––––+––––––+
- *             |              |
- *          +––+––+        +––+––+
- *  middle0 |     |        |     | middle1
- *          |     |        |     |
- *          +–––––+        +––+––+
- *                            |
- *                    +–––––––+–––––––+
- *                    |               |
- *                 +––+––+         +––+––+
- *           leaf0 |     |         |     | leaf1
- *                 |     |         |     |
- *                 +–––––+         +–––––+
- *
- * - When retrieving tokens from a leaf, we first look to see if the it
- *   contains the specified amount of tokens, and consume those tokens locally;
- * - If it does not, then we trigger a distribution of tokens. This entails
- *   going up to the root, getting the new tokens from the TokenBucketFillRate™
- *   and, together with any previously accumulated tokens, distribute them
- *   recursively. We evenly distribute tokens between the two middle buckets.
- * - In middle0, we just add the tokens to its current account and return the
- *   excess tokens over its allowed maximum. For middle1, we distribute evenly
- *   to the leafs and accumulate excess tokens in middle1. Again, if all the
- *   leafs and also middle1 are full, we return to the root the excess tokens.
- * - We do a fair distribution, meaning that, for this particular case, if the
- *   number of tokens is odd, than we always accumulate at least one token at
- *   middle1 or at the root.
- * - Again at the leaf, we try again to consume local tokens, assuming we
- *   distributed new ones. Note that we may have depleted the bucket and the
- *   distribution may have filled it up again, meaning that now we got two full
- *   bursts. This is okay, as it only happens when all the other buckets are full.
- * - We execute a fixed point algorithm, meaning that we loop around until we
- *   obtained all the requested tokens or until we are unable to distribute new
- *   tokens.
+ * only be retrieved from the leaf buckets.
  */
-public abstract class TokenBucket {
-    public static final int TIMEOUT = -1;
-    private static final int UNLINKED = -1;
+public class TokenBucket {
+    public static final int UNLINKED = -1;
 
-    private static final Logger log = LoggerFactory
+    protected static final Logger log = LoggerFactory
             .getLogger(TokenBucket.class);
+    protected static final boolean isTraceEnabled = log.isTraceEnabled();
 
     protected final PaddedAtomicInteger numTokens = new PaddedAtomicInteger();
-    private final String name;
-    protected int maxTokens;
+    protected final String name;
+    private final RootTokenBucket root;
+    private final TokenBucket parent;
 
-    private final ReentrantLock lock = new ReentrantLock();
-    protected TokenBucket parent;
-    protected int numChildren;
+    protected int capacity;
+    private int numChildren;
     protected TokenBucket[] children = new TokenBucket[0];
+    /* As we ensure the size of the children array is always a multiple of 2,
+     * we can use the bitwise & operator to implement the modulo operation
+     * instead of the much more expensive % operator. We do that by doing a
+     * bitwise & between the index and the mask.f
+     */
+    private int mask;
 
-    protected int distributabilityAllotment = 1;
+    /* To amortize the costs of having multiple distribution iterations, we keep
+     * this distribution-private counter at each bucket where we accumulate this
+     * bucket's reserved tokens. At the end of the distribution, we atomically
+     * add those reserved tokens to the running, thread-safe capacity counter.
+     */
+    private int reservedTokens;
+    // This field enables round-robin distributions, needed for fairness
+    private int distributionIndex;
 
-    protected TokenBucket(int maxTokens, String name) {
-        this.maxTokens = maxTokens;
+    protected TokenBucket(int capacity, String name, TokenBucket parent) {
+        this.capacity = capacity;
         this.name = name;
+        this.parent = parent;
+        TokenBucket tb;
+        for (tb = this; tb.parent != null; tb = tb.parent) ;
+        root = (RootTokenBucket)tb;
     }
 
-    public static TokenBucket create(int maxTokens,
+    /* Creates a new TokenBucket root to which other buckets can be linked.
+     */
+    public static TokenBucket create(int capacity,
                                      String name,
                                      TokenBucketFillRate rate) {
-        return new RootTokenBucket(maxTokens, name, rate);
-    }
-
-    public static TokenBucket bottomless() {
-        return new TokenBucket(Integer.MAX_VALUE, "bottomless") {
-            @Override
-            public int tryGet(int tokens) {
-                return tokens;
-            }
-        };
+        return new RootTokenBucket(capacity, name, rate);
     }
 
     public void dumpToLog() {
-        log.info("name:{} cap:{} tokens:{} minDA:{}",
-            new Object[] { name, maxTokens, numTokens.get(),
-                           distributabilityAllotment});
+        log.info("name:{} cap:{} tokens:{}",
+            new Object[] { name, capacity, numTokens.get() });
 
-        for (int i = 0; i < children.length; i++) {
-            TokenBucket child = children[i];
+        for (TokenBucket child : children) {
             if (child != null)
                 child.dumpToLog();
         }
     }
 
-    public int getDistributabilityAllotment() {
-        return distributabilityAllotment;
-    }
-
-    private void updateDistributabilityAllotment() {
-        int max = 0;
-        TokenBucket[] cs = children;
-        for (int i = 0; i < cs.length; i++) {
-            TokenBucket child = cs[i];
-            if (child != null && child.distributabilityAllotment > max)
-                max = child.distributabilityAllotment;
-        }
-        distributabilityAllotment = max * numChildren;
-
-        if (parent != null)
-            parent.updateDistributabilityAllotment();
-    }
-
-    public final TokenBucket link(int maxTokens, String name) {
-        lock.lock();
+    /* Creates a new TokenBucket and links it as a child of this bucket.
+     */
+    public final TokenBucket link(int capacity, String name) {
+        root.lock();
         try {
-            String n = getName() + "/" + name;
-            TokenBucketImpl ntb = new TokenBucketImpl(maxTokens, n, this);
+            String n = this.name + "/" + name;
+            TokenBucket ntb = new TokenBucket(capacity, n, this);
             int idx = findFreeIndex();
             if (idx < 0) {
                 idx = children.length;
@@ -148,47 +96,51 @@ public abstract class TokenBucket {
 
             return ntb;
         } finally {
-            updateDistributabilityAllotment();
-            lock.unlock();
+            root.unlock();
+            root.tryDistribute();
         }
     }
 
-    public final int unlink(TokenBucket tb) {
-        lock.lock();
+    /* Unlinks this TokenBucket from its parent and returns the amount of
+     * tokens that it held.
+     */
+    public final int unlink() {
+        root.lock();
         try {
-            if (tb.isUnlinked())
+            if (isUnlinked() || parent == null)
                 return 0;
 
-            for (int i = 0; i < children.length; ++i) {
-                if (children[i] == tb) {
-                    children[i] = null;
-                    tb.parent = null;
-                    numChildren -= 1;
-                    return tb.numTokens.getAndSet(UNLINKED);
+            TokenBucket[] siblings = parent.children;
+            for (int i = 0; i < siblings.length; ++i) {
+                if (siblings[i] == this) {
+                    siblings[i] = null;
+                    parent.numChildren -= 1;
+                    return numTokens.getAndSet(UNLINKED);
                 }
             }
 
             return 0;
         } finally {
-            updateDistributabilityAllotment();
-            lock.unlock();
+            root.unlock();
+            root.tryDistribute();
         }
     }
 
-    public final int getMaxTokens() {
-        return maxTokens;
+    public final int getCapacity() {
+        return capacity;
     }
 
-    public final void setMaxTokens(int maxTokens) {
-        lock.lock();
+    public final void setCapacity(int capacity) {
+        root.lock();
         try {
-            this.maxTokens = maxTokens;
+            this.capacity = capacity;
             int ts;
             do {
                 ts = numTokens.get();
-            } while (ts > maxTokens && !numTokens.compareAndSet(ts, maxTokens));
+            } while (ts > capacity && !numTokens.compareAndSet(ts, capacity));
         } finally {
-            lock.unlock();
+            root.unlock();
+            root.tryDistribute();
         }
     }
 
@@ -204,6 +156,10 @@ public abstract class TokenBucket {
         return numTokens.get();
     }
 
+    /* Tries to get the specified amount of tokens from this leaf bucket. It
+     * returns the amount of tokens actually retrieved in the closed interval
+     * [0, tokens]. The method is thread-safe and wait-free.
+     */
     public int tryGet(int tokens) {
         if (numChildren > 0)
             throw new IllegalArgumentException("Can only get tokens " +
@@ -213,49 +169,26 @@ public abstract class TokenBucket {
         int oldRemaining = -1;
         while (remaining > 0 && remaining != oldRemaining) {
             oldRemaining = remaining;
-            parent.distribute();
+            root.tryDistribute();
             remaining -= tryTakeTokens(remaining);
         }
 
         int acquired = tokens - remaining;
-        if (log.isTraceEnabled()) {
-            log.trace("Bucket {} got {}/{} tokens",
-                      new Object[] { name, acquired, tokens });
+        if (isTraceEnabled) {
+            log.trace("[{}|{}] got {}/{} tokens", new Object[] {
+                    Thread.currentThread().getId(), name, acquired, tokens });
         }
         return acquired;
     }
 
-    public static int getAny(final TokenBucket[] buckets,
-                             final int[] tokens,
-                             final int timeoutMillis) {
-        long time = TimeUnit.MILLISECONDS.toNanos(1);
-        long deadline = TimeUnit.MILLISECONDS.toNanos(timeoutMillis) +
-                        System.nanoTime();
-
-        while (System.nanoTime() < deadline) {
-            for (int i = 0; i < buckets.length; ++i) {
-                TokenBucket tb = buckets[i];
-                if (tb.numTokens.get() >= tokens[i])
-                    return i;
-
-                tb.distribute();
-                if (tb.numTokens.get() >= tokens[i])
-                    return i;
-            }
-            LockSupport.parkNanos(time);
-        }
-
-        return TIMEOUT;
-    }
-
+    /* Tries to add the specified amount of tokens, returning the excess
+     * amount of tokens that would go over the bucket's capacity.
+     */
     public final int addTokens(int tokens) {
         int ts;
-        while ((ts = numTokens.get()) < maxTokens) {
-            if (ts == UNLINKED)
-                break;
-
+        while ((ts = numTokens.get()) < capacity && ts != UNLINKED) {
             int sumTs = ts + tokens;
-            int nts = Math.min(maxTokens, sumTs);
+            int nts = Math.min(capacity, sumTs);
             if (numTokens.compareAndSet(ts, nts))
                 return sumTs - nts;
         }
@@ -264,6 +197,7 @@ public abstract class TokenBucket {
 
     private void growArray() {
         children = copyOf(children, Math.max(4, children.length << 1));
+        mask = children.length - 1;
     }
 
     private int findFreeIndex() {
@@ -278,32 +212,6 @@ public abstract class TokenBucket {
         return numTokens.get() == UNLINKED;
     }
 
-    private boolean isFull() {
-        if (hasChildren()) {
-            TokenBucket[] cs = children;
-            for (int i = 0; i < cs.length; ++i) {
-                TokenBucket tb = cs[i];
-                if (tb != null && !cs[i].isFull())
-                    return false;
-            }
-            return true;
-        }
-        return numTokens.get() == maxTokens;
-    }
-
-    // There's a race between distributing excess tokens and linking or
-    // unlinking a token bucket, which we ignore. There's also a race
-    // between a thread that's distributing tokens and a thread that calls
-    // borrowTokens(); we also ignore it and let the callers fallback to
-    // waiting.
-    protected void distribute() {
-        parent.distribute();
-    }
-
-    private boolean hasChildren() {
-        return numChildren > 0;
-    }
-
     protected final int tryTakeTokens(int tokens) {
         int ts;
         while ((ts = numTokens.get()) > 0) {
@@ -314,97 +222,111 @@ public abstract class TokenBucket {
         return 0;
     }
 
-    // FIXME: duarte ! document return values and parameters because they are not obvious
+    /* This method performs a distribution of the specified amount of tokens
+     * among this bucket's children. It returns any excess tokens that couldn't
+     * be distributed.
+     */
     protected final int doDistribution(int tokens) {
-        if (tokens < distributabilityAllotment) {
-            if (log.isTraceEnabled()) {
-                log.trace("[{}|{}] skipping distribution of {} new tokens, minDA:{}",
-                    new Object[] { Thread.currentThread().getId(), name, tokens,
-                                   distributabilityAllotment});
-            }
-            return tokens;
-        }
-
-        if (log.isTraceEnabled()) {
-            log.trace("[{}|{}] distributing {} new tokens",
-                      new Object[] { Thread.currentThread().getId(), name, tokens });
-        }
-
-        int previousTokens = -1;
-        while (tokens > 0 && tokens != previousTokens) {
-            previousTokens = tokens;
-            TokenBucket[] cs = children;
-
-            int nonFullChildren = 0;
-            for (int i = 0; i < cs.length; ++i) {
-                TokenBucket tb = cs[i];
-                if (tb != null && !tb.isFull())
-                    nonFullChildren += 1;
-            }
-
-            if (nonFullChildren == 0)
-                break;
-
-            int tokensPerBucket = tokens / nonFullChildren;
-            int excess = tokens % nonFullChildren;
-
-            if (log.isTraceEnabled()) {
-                log.trace("Loop to distribute tokens:{} children:{} tokens-per-child:{} excess:{}",
-                          new Object[] { tokens, nonFullChildren, tokensPerBucket, excess });
-            }
-
-            /* We don't distribute if the number of tokens to give is smaller
-             * than the number of buckets that want tokens. */
-            if (tokensPerBucket == 0)
-                break;
-
-            for (int i = 0; i < cs.length; ++i) {
-                TokenBucket tb = cs[i];
-                if (tb != null && !tb.isFull()) {
-                    int localExcess = tb.giveTokens(tokensPerBucket);
-                    excess += localExcess;
-
-                    if (log.isTraceEnabled()) {
-                        if (localExcess == tokensPerBucket) {
-                            log.trace("[{}|{}] bucket {} is full",
-                                      new Object[] { Thread.currentThread().getId(), name, tb.name});
-                        } else {
-                            int given = tokensPerBucket - localExcess;
-                            log.trace("[{}|{}] bucket {} got {} tokens",
-                                      new Object[] { Thread.currentThread().getId(), name, tb.name, given});
-                        }
+        boolean hasNonFullChildren;
+        do {
+            /* Give tokens to each non-full bucket. Note that a full bucket
+             * may concurrently become non-full.
+             */
+            hasNonFullChildren = false;
+            for (int i = 0; i < children.length; ++i) {
+                TokenBucket tb = children[(distributionIndex + i) & mask];
+                if (tb != null && tb.reserve()) {
+                    hasNonFullChildren = true;
+                    if ((tokens -= 1) == 0) {
+                        distributionIndex += i + 1;
+                        return 0;
                     }
                 }
             }
-
-            tokens = excess;
-        }
-
-        if (log.isTraceEnabled()) {
-            log.trace("[{}|{}] finished distribution with {} excess tokens",
-                      new Object[] { Thread.currentThread().getId(), name, tokens });
-        }
-
+        } while (hasNonFullChildren);
         return tokens;
     }
 
-    // FIXME: duarte ! document return values and parameters because they are not obvious
-    private int giveTokens(final int tokens) {
-        if (hasChildren()) {
-            int newTokens = tokens + numTokens.getAndSet(0);
-            int excess = doDistribution(newTokens);
-            return excess == 0 ? 0 : addTokens(excess);
+    /* This method adds one token to this subtree, which becomes reserved and
+     * cannot be consumed by any of its leaf buckets. If the bucket has children
+     * then a distribution is triggered. The tokens that couldn't be distributed
+     * are reserved in this bucket. The method returns false if the new token
+     * couldn't be reserved due to the bucket's capacity. After the reservation
+     * stage, the tokens are made effective at end of the outermost distribution
+     * so we can save atomic instructions.
+     */
+    private boolean reserve() {
+        if (numChildren > 0) {
+            int tokens = 1 + getAndClearAccumulatedTokens() +
+                         getAndClearReservedTokens();
+            int toAccumulate = doDistribution(tokens);
+
+            // We can only go over capacity by one
+            if (toAccumulate > capacity) {
+                reservedTokens = capacity;
+                return false;
+            }
+            reservedTokens = toAccumulate;
+            return true;
         }
 
-        return addTokens(tokens);
+        if (reservedTokens + numTokens.get() == capacity)
+            return false;
+        reservedTokens += 1;
+        return true;
+    }
+
+    /* This method adds the reserved tokens to the running token counter.
+     * As only one distribution happens at a time, we are guaranteed there
+     * will be space for the reserved tokens. We are also guaranteed buckets
+     * aren't concurrently unlinked.
+     */
+    protected final void applyReserved() {
+        if (isTraceEnabled) {
+            log.trace("[{}|{}] got {} new tokens", new Object[] {
+                    Thread.currentThread().getId(), name, reservedTokens });
+        }
+
+        if (reservedTokens > 0) {
+            if (numChildren > 0) {
+                // This is called under the distribution lock, so we don't need
+                // atomic operations on numTokens.
+                numTokens.set(reservedTokens);
+            }
+            else {
+                numTokens.addAndGet(reservedTokens);
+            }
+
+            reservedTokens = 0;
+        }
+
+        for (TokenBucket tb : children) {
+            if (tb != null)
+                tb.applyReserved();
+        }
+    }
+
+    private int getAndClearAccumulatedTokens() {
+        // This is called under the distribution lock, so we don't need
+        // atomic operations on numTokens.
+        int tokens = numTokens.get();
+        if (tokens > 0)
+            numTokens.set(0);
+        return tokens;
+    }
+
+    private int getAndClearReservedTokens() {
+        int tokens = reservedTokens;
+        reservedTokens = 0;
+        return tokens;
     }
 
     /*
     private static final int PADDING = 8;
 
     public static void main(String[] args) {
-        final long WARMUP_ITERATIONS = 100L * 1000L;
-        final long ITERATIONS = 125L * 1000L * 1000L;
+        final int WARMUP_ITERATIONS = 100 * 1000;
+        final int ITERATIONS = 250 * 1000 * 1000;
         final int NUM_THREADS = 4;
 
         executeTest(WARMUP_ITERATIONS, NUM_THREADS);
@@ -415,18 +337,22 @@ public abstract class TokenBucket {
 
         System.out.printf("%d threads, duration %,d (ms)\n",
                 NUM_THREADS, TimeUnit.NANOSECONDS.toMillis(duration));
-        int tk = 0;
+        int b = 0;
         for (int i = 0; i < res.length; i += PADDING) {
-            System.out.printf("token %d got %d tokens\n", tk++, res[i]);
+            System.out.printf("bucket %d got %d tokens\n", b++, res[i]);
         }
         System.out.printf("%,d ns/op\n", duration / (ITERATIONS * NUM_THREADS));
         System.out.printf("%,d ops/s\n",
                 (ITERATIONS * NUM_THREADS * 1000000000L) / duration);
     }
 
-    private static long[] executeTest(final long iterations, int numThreads) {
-        final TokenBucketTestRate rate = new TokenBucketTestRate();
-        final TokenBucket root = TokenBucket.create(1_000, "test-root", rate);
+    private static long[] executeTest(final int requests, int numThreads) {
+        final StatisticalCounter c = new StatisticalCounter(numThreads);
+        final int tokenMultiplier = 8;
+        final TokenBucketFillRate rate = new TokenBucketSystemRate(c, tokenMultiplier);
+        int capacity = requests / tokenMultiplier;
+        final TokenBucket root = TokenBucket.create(capacity, "test-root", rate);
+        root.addTokens(capacity);
         Thread[] ts = new Thread[numThreads];
         final long[] tokens = new long[numThreads * PADDING];
         final CyclicBarrier barrier = new CyclicBarrier(numThreads);
@@ -436,18 +362,19 @@ public abstract class TokenBucket {
             ts[i] = new Thread() {
                 @Override
                 public void run() {
-                    TokenBucket tb = root.link(100_000_000, "test-" + x);
+                    TokenBucket tb = root.link(100, "test-" + x);
                     try {
                         barrier.await();
                     } catch (Exception e) {
                         // do nothing
                     }
 
-                    for (int i = 0; i < iterations; ++i) {
-                        while (tb.tryGet(1) != 1) {
-                            rate.setNewTokens(100);
+                    for (int i = 0; i < requests / tokenMultiplier; ++i) {
+                        while (tb.tryGet(1) != 1) ;
+                        for (int j = 0; j < tokenMultiplier; ++j) {
+                            tokens[x * 8] += 1;
+                            c.addAndGet(x, 1);
                         }
-                        tokens[x * 8] += 1;
                     }
                 }
             };
@@ -472,27 +399,75 @@ public abstract class TokenBucket {
 
 final class RootTokenBucket extends TokenBucket {
     private final TokenBucketFillRate rate;
+    /* We use an atomic integer to lock the distribution. We don't use a
+     * ReentrantLock because we want the lock word to be on its own cache line
+     * and because we take advantage of weaker consistency on unlock. We only
+     * require a store-store barrier to ensure that a thread that sees the lock
+     * unlocked will also see the excess tokens stored in numTokens. We don't
+     * require a stronger volatile-store or a full fence (CAS) that would flush
+     * the CPU's store buffers.
+     */
+    private final PaddedAtomicInteger distributionInProgress;
 
-    RootTokenBucket(int maxTokens, String name, TokenBucketFillRate rate) {
-        super(maxTokens, name);
+    RootTokenBucket(int capacity, String name, TokenBucketFillRate rate) {
+        super(capacity, name, null);
         this.rate = rate;
+        distributionInProgress = new PaddedAtomicInteger();
     }
 
-    @Override
-    protected void distribute() {
-        int newTokens = rate.getNewTokens() + numTokens.getAndSet(0);
-        if (newTokens > 0) {
-            int excess = doDistribution(newTokens);
-            if (excess > 0)
-                addTokens(excess);
+    /* Triggers a distribution. A distribution is performed under a lock,
+     * ensuring that only one distribution is happening at any given time.
+     */
+    final void tryDistribute() {
+        if (tryLock()) {
+            int newTokens = rate.getNewTokens() + numTokens.get();
+            if (newTokens > 0) {
+                if (isTraceEnabled) {
+                    log.trace("[{}|{}] distributing {} new tokens", new Object[] {
+                            Thread.currentThread().getId(), name, newTokens });
+                }
+
+                int excess = doDistribution(newTokens);
+                if (excess > 0)
+                    numTokens.set(Math.min(excess, capacity));
+
+                for (TokenBucket tb : children) {
+                    if (tb != null)
+                        tb.applyReserved();
+                }
+
+                if (isTraceEnabled) {
+                    log.trace("[{}|{}] finished distribution with {} excess tokens",
+                            new Object[] { Thread.currentThread().getId(), name, excess });
+                }
+            }
+
+            unlock();
+        } else {
+            // Distribution should be very fast, so we spin for a while
+            // waiting for it to be done before we try to grab more tokens.
+            // TODO: When we apply back-pressure in the kernel, packets
+            // won't be read unless we have tokens, so we can just fail here
+            // and let the thread go process other channels. It will come back
+            // to this channel and it will hopefully have tokens so the packets
+            // aren't dropped.
+            for (int retries = 0; retries < 100; ++retries) ;
         }
     }
-}
 
-final class TokenBucketImpl extends TokenBucket {
+    /* Prevents distributions from happening. Note that concurrent tryGet
+     * operations are still possible.
+     */
+    final void lock() {
+        while (!tryLock())
+            Thread.yield();
+    }
 
-    TokenBucketImpl(int maxTokens, String name, TokenBucket parent) {
-        super(maxTokens, name);
-        this.parent = parent;
+    final boolean tryLock() {
+        return distributionInProgress.compareAndSet(0, 1);
+    }
+
+    final void unlock() {
+        distributionInProgress.lazySet(0);
     }
 }

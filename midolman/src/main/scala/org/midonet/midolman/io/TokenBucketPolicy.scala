@@ -5,20 +5,15 @@
 package org.midonet.midolman.io
 
 import java.util.concurrent.locks.ReentrantLock
-import scala.collection.mutable.Map
+
+import scala.collection.mutable
 
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.util.{TokenBucketFillRate, TokenBucket}
+import org.midonet.util.{Bucket, TokenBucketFillRate, TokenBucket}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.{VxLanTunnelPort, GreTunnelPort}
-
-object TokenBucketPolicy {
-    private def tunnel(port: DpPort): Boolean =
-        port.isInstanceOf[GreTunnelPort] ||
-        port.isInstanceOf[VxLanTunnelPort]
-}
 
 /**
  * This class contains a policy to assign token buckets to datapath ports.
@@ -26,37 +21,34 @@ object TokenBucketPolicy {
  * in the hierarchy.
  */
 class TokenBucketPolicy(config: MidolmanConfig,
-                        tbRate: TokenBucketFillRate) {
-    import TokenBucketPolicy.tunnel
-
+                        tbRate: TokenBucketFillRate,
+                        multiplier: Int,
+                        factory: TokenBucket => Bucket) {
     private val log: Logger = LoggerFactory.getLogger(classOf[TokenBucketPolicy])
 
-    private val root = TokenBucket.create(config.getGlobalIncomingBurstCapacity,
+    private val root = TokenBucket.create(adjust(config.getGlobalIncomingBurstCapacity),
                                           "midolman-root",
                                           tbRate)
-    root.addTokens(config.getGlobalIncomingBurstCapacity)
+    root addTokens root.getCapacity
 
-    log.info("Creating root bucket with {} tokens",
-             config.getGlobalIncomingBurstCapacity)
+    log.info("Creating root bucket with {} tokens", root.getCapacity)
 
     private val vmBuckets = root.link(0, "vms")
 
-    private val tokenBuckets: Map[String, TokenBucket] = Map.empty
+    private val tokenBuckets = mutable.Map[String, TokenBucket]()
     private val lock = new ReentrantLock
 
-    def calculateMinimumSystemTokens: Int = {
-        tokenBuckets.foldLeft(0)(_ + _._2.getMaxTokens) +
-            root.getDistributabilityAllotment
-    }
+    def calculateMinimumSystemTokens: Int =
+        tokenBuckets.foldLeft(0)(_ + _._2.getCapacity)
 
-    def link(port: DpPort): TokenBucket = {
+    def link(port: DpPort): Bucket = {
         val tb = port match {
             case p: GreTunnelPort if config.getTunnelIncomingBurstCapacity > 0 =>
-                root.link(config.getTunnelIncomingBurstCapacity, port.getName)
+                root.link(adjust(config.getTunnelIncomingBurstCapacity), port.getName)
             case p: VxLanTunnelPort if config.getVtepIncomingBurstCapacity > 0 =>
-                root.link(config.getVtepIncomingBurstCapacity, port.getName)
+                root.link(adjust(config.getVtepIncomingBurstCapacity), port.getName)
             case p if config.getVmIncomingBurstCapacity > 0 =>
-                vmBuckets.link(config.getVmIncomingBurstCapacity, port.getName)
+                vmBuckets.link(adjust(config.getVmIncomingBurstCapacity), port.getName)
             case _ =>
                 return null
         }
@@ -64,10 +56,10 @@ class TokenBucketPolicy(config: MidolmanConfig,
         lock.lock()
         try {
             tokenBuckets.put(port.getName, tb)
-            val curMax = root.getMaxTokens
+            val curMax = root.getCapacity
             val newMax = calculateMinimumSystemTokens
             if (newMax > curMax) {
-                root.setMaxTokens(newMax)
+                root.setCapacity(newMax)
                 root.addTokens(newMax - curMax)
             }
 
@@ -77,7 +69,7 @@ class TokenBucketPolicy(config: MidolmanConfig,
             lock.unlock()
         }
 
-        tb
+        factory(tb)
     }
 
     def unlink(port: DpPort): Unit = {
@@ -85,20 +77,22 @@ class TokenBucketPolicy(config: MidolmanConfig,
         try {
             tokenBuckets.remove(port.getName) match {
                 case Some(tb) =>
-                    val tokens = (if (tunnel(port)) root else vmBuckets).unlink(tb)
+                    val tokens = tb.unlink()
                     val newMax = calculateMinimumSystemTokens
-                    if (newMax >= config.getGlobalIncomingBurstCapacity)
-                        root.setMaxTokens(newMax)
+                    if (newMax >= adjust(config.getGlobalIncomingBurstCapacity))
+                        root.setCapacity(newMax)
                     else
                         root.addTokens(tokens)
 
                     log.info("HTB updated")
                     root.dumpToLog()
                 case None =>
-                    log.info("Port was deleted but not found in HTB: {}", port.getName)
+                    log.warn("Port was deleted but not found in HTB: {}", port.getName)
             }
         } finally {
             lock.unlock()
         }
     }
+
+    private def adjust(tokens: Int): Int = Math.max(1, tokens / multiplier)
 }
