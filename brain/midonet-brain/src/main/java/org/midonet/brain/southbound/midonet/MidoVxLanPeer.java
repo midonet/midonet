@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -39,13 +41,15 @@ import org.midonet.packets.MAC;
  */
 public class MidoVxLanPeer implements VxLanPeer {
 
+    static private final int WATCHER_MAX_REINSTALL_RETRIES = 5;
+
     private final static Logger log =
         LoggerFactory.getLogger(MidoVxLanPeer.class);
 
     /* A table from a bridge UUID to the bridge's logical switch context */
-    private final Map<UUID, LogicalSwitchContext> lsContexts;
+    private final ConcurrentMap<UUID, LogicalSwitchContext> lsContexts;
 
-    /* Bus for all mac-port updates from all observed bridges */
+    /* Aggregate Observable of all mac-port updates from all observed bridges */
     private final Subject<MacLocation, MacLocation> allUpdates;
 
     /* The logical switch monitoring context: its distributed MacPortMap table,
@@ -55,6 +59,21 @@ public class MidoVxLanPeer implements VxLanPeer {
         final MacPortMap macPortMap;
         final VxLanPortRemovalWatcher ripper;
         final ReplicatedMap.Watcher<MAC, UUID> forwarder;
+
+        /**
+         * Create the Logical switch context.
+         *
+         * @param vxLanPortId is the id of the vxlan port.
+         * @param macPortMap is the replicated map containing the bridge's
+         *                   table between MAC addresses and the port where
+         *                   they have been detected.
+         * @param ripper is a zookeeper watcher responsible for removing the
+         *               logical switch context and stopping any associated
+         *               services when the vxlan port is removed.
+         * @param forwarder is a MacPortMap (ReplicatedMap) watcher responsible
+         *                  for detecting Mac-port updates and forwarding them
+         *                  to subscribers by emitting them via an observable.
+         */
         public LogicalSwitchContext(UUID vxLanPortId,
                                     MacPortMap macPortMap,
                                     VxLanPortRemovalWatcher ripper,
@@ -73,14 +92,13 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     private static class VxLanPortRemovalWatcher
         extends Directory.DefaultTypedWatcher {
-        private static final int WATCHER_MAX_REINSTALL_RETRIES = 5;
         private final MidoVxLanPeer peer;
         private final UUID bridgeId;
         private final UUID vxLanPortId;
 
         public VxLanPortRemovalWatcher(MidoVxLanPeer peer,
-                                     UUID bridgeId,
-                                     UUID vxLanPortId) {
+                                       UUID bridgeId,
+                                       UUID vxLanPortId) {
             this.peer = peer;
             this.bridgeId = bridgeId;
             this.vxLanPortId = vxLanPortId;
@@ -96,34 +114,52 @@ public class MidoVxLanPeer implements VxLanPeer {
          */
         @Override
         public void run() {
-            int retries = WATCHER_MAX_REINSTALL_RETRIES;
-            while (retries-- > 0) {
-                try {
-                    if (peer.dataClient.portWatch(vxLanPortId, this))
-                        return;
-                    log.warn("Failed to reinstall watcher for vxlan port {} " +
-                             "at bridge {}", vxLanPortId, bridgeId);
-                } catch (StateAccessException | SerializationException e) {
-                    log.warn("Failed to reinstall watcher for vxlan port {} " +
-                             "at bridge {}",
-                             new Object[]{vxLanPortId, bridgeId, e});
-                }
-            }
-            log.error("Cannot reset watcher for vxlan port {} at bridge {} ",
-                      vxLanPortId, bridgeId);
+            peer.setVxLanPortMonitor(vxLanPortId, this);
         }
     }
 
     /* Interface to the Midonet configuration backend store */
     private final DataClient dataClient;
 
-    private boolean started = false;
+    /* The MidoVxLanPeer is started on creation, then new bridges can be
+     * added for watching at any time
+     */
+    private boolean started = true;
 
     @Inject
     public MidoVxLanPeer(DataClient dataClient) {
-        this.lsContexts = Maps.newHashMap();
         this.dataClient = dataClient;
+        this.lsContexts = new ConcurrentHashMap<>();
         this.allUpdates = PublishSubject.create();
+    }
+
+    /**
+     * Register the monitor for a bridge's vxlan port.
+     *
+     * NOTE: in case of exception, the method retries several times to
+     * install the watcher; this should help avoiding the effects of
+     * temporary failures.
+     *
+     * @param ripper is the monitor code.
+     * @return true if the monitor was successfully set, false otherwise.
+     */
+    private boolean setVxLanPortMonitor(UUID vxLanPortId,
+                                        VxLanPortRemovalWatcher ripper) {
+        int retries = WATCHER_MAX_REINSTALL_RETRIES;
+        while (retries-- > 0) {
+            try {
+                if (dataClient.portWatch(vxLanPortId, ripper))
+                    return true;
+                log.warn("watcher not set: port {} does not exist anymore",
+                         vxLanPortId);
+                return false;
+            } catch (StateAccessException | SerializationException e) {
+                log.warn("failed to set watcher for port {}",
+                         new Object[]{vxLanPortId, e});
+            }
+        }
+        log.error("cannot install watcher for port {}", vxLanPortId);
+        return false;
     }
 
     /*
@@ -178,37 +214,39 @@ public class MidoVxLanPeer implements VxLanPeer {
     }
 
     /**
-     * Starts monitoring all given bridge ids and prepares the Observable that
-     * can be subscribed to in order to listen for updates.
+     * Start monitoring a bridge, binding it to the Observable that can be
+     * subscribed to in order to listen for updates.
+     * @param bridgeId is the bridge to be added to the watch list.
+     * @return true if the bridge was added monitoring or false if it was
+     * discarded (e.g. due to not having a vxlan port or other errors)
      */
-    public synchronized void watch(Collection<UUID> bridgeIds) {
-        if (this.started) {
-            log.warn("Broker is already started");
-            return;
+    public synchronized boolean watch(UUID bridgeId) {
+        if (!started) {
+            log.error("Adding bridge {} to a stopped MidoVxLanPeer",
+                      bridgeId);
+            throw new IllegalStateException(String.format(
+                "Adding bridge %s to a stopped MidoVxLanPeer", bridgeId));
         }
-        this.started = true;
-        for (final UUID bridgeId : bridgeIds) {
-            log.info("Configure watcher for bridge {}", bridgeId);
-            LogicalSwitchContext ctx = createContext(bridgeId);
-            if (ctx == null)
-                continue;
+        LogicalSwitchContext ctx = lsContexts.get(bridgeId);
+        if (ctx != null) {
+            log.warn("Bridge is already being monitored: {}", bridgeId);
+            return false;
+        }
 
-            this.lsContexts.put(bridgeId, ctx);
-            try {
-                if (!dataClient.portWatch(ctx.vxLanPortId, ctx.ripper)) {
-                    log.error("Vxlan port {} at bridge {} does not exist " +
-                              "anymore, bridge will be skipped",
-                              ctx.vxLanPortId, bridgeId);
-                    forgetBridge(bridgeId);
-                }
-            } catch (StateAccessException | SerializationException e) {
-                log.error("Cannot set watcher for vxlan port {} " +
-                          "at bridge {}, bridge will be skipped",
-                          new Object[]{ctx.vxLanPortId, bridgeId, e});
-                forgetBridge(bridgeId);
-            }
+        ctx = createContext(bridgeId);
+        if (ctx == null)
+            return false;
+
+        lsContexts.put(bridgeId, ctx);
+        if (!setVxLanPortMonitor(ctx.vxLanPortId, ctx.ripper)) {
+            /* vxlanport not available: rollback */
+            forgetBridge(bridgeId);
+            return false;
         }
+
+        return true;
     }
+
 
     /**
      * Creates the context for the logical switch, including
@@ -242,11 +280,18 @@ public class MidoVxLanPeer implements VxLanPeer {
             return null;
         }
 
+        /* Create and activate the mac tables watcher, which may start pushing
+         * values to the subject *after* the initial ones set just above
+         */
         ReplicatedMap.Watcher<MAC, UUID> watcher =
             makeWatcher(bridgeId, vxLanPortId);
         macTable.addWatcher(watcher);
         macTable.start();
 
+        /* Create the wxlan port removal monitor.
+         * To avoid race conditions, it must be activated once the context
+         * has been added to the macPortTables.
+         */
         VxLanPortRemovalWatcher ripper =
             new VxLanPortRemovalWatcher(this, bridgeId, vxLanPortId);
 
@@ -257,9 +302,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      * Stop watching a bridge
      * @param bridgeId is the bridge to be removed from the watch list.
      */
-    /* TODO: find a better synchronization strategy */
-    /* ('synchronized' will be removed in next patch */
-    private synchronized void forgetBridge(UUID bridgeId) {
+    private void forgetBridge(UUID bridgeId) {
         log.debug("Removing bridge " + bridgeId + " from MidoVxLanPeer",
                   bridgeId);
         LogicalSwitchContext ctx = lsContexts.remove(bridgeId);
@@ -267,6 +310,11 @@ public class MidoVxLanPeer implements VxLanPeer {
             log.warn("Bridge " + bridgeId + " was not being monitored");
             return;
         }
+        /* NOTE: removing the vxlan port watchers requires triggering them and
+         * not resetting them - which occurs naturally when the vxlan port
+         * disappears. This should have happened already (otherwise
+         * we should not be 'forgetting' the bridge.
+         */
         /* NOTE: it is not necessary to remove entries from
          * ctx.macPortMap: they will expire by themselves.
          */
@@ -329,18 +377,21 @@ public class MidoVxLanPeer implements VxLanPeer {
 
     /**
      * Clean up the local mac table copies.
+     * NOTE: once the 'stop' method is called, the rx.Observable with mac-port
+     * updates is 'Complete'; it is assumed that a 'stopped' MidoVxLanPeer
+     * cannot be re-used.
      */
     public synchronized void stop() {
         if (!this.started) {
             log.warn("Broker already stopped");
             return;
         }
+        this.started = false;
         for (Map.Entry<UUID, LogicalSwitchContext> e :
             this.lsContexts.entrySet()) {
             UUID bridgeId = e.getKey();
             log.info("Closing mac-port table monitor {}", bridgeId);
-            LogicalSwitchContext logicalSwitchContext = e.getValue();
-            logicalSwitchContext.macPortMap.stop();
+            forgetBridge(bridgeId);
         }
         this.allUpdates.onCompleted();
         this.lsContexts.clear();
@@ -351,7 +402,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      * Returns IDs of all the Mido bridges. Primarily for unit testing.
      * @return A set of all the Mido bridges.
      */
-    Set<UUID> getMacTableOwnerIds() {
+    public Set<UUID> getMacTableOwnerIds() {
         return this.lsContexts.keySet();
     }
 

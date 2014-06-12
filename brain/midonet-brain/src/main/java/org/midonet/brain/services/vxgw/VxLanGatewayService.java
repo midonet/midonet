@@ -3,20 +3,21 @@
  */
 package org.midonet.brain.services.vxgw;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import rx.Observable;
+import rx.Subscription;
+import rx.functions.Action1;
+import rx.functions.Func1;
 
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
@@ -28,6 +29,8 @@ import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 /**
@@ -41,18 +44,29 @@ public class VxLanGatewayService extends AbstractService {
     // Client for Midonet configuration store
     private final DataClient midoClient;
 
+    // Zookeeper connection watcher
+    private ZookeeperConnectionWatcher zkConnWatcher;
+
     // Provides vtep clients
     private final VtepDataClientProvider vtepDataClientProvider;
 
     // Client for each VTEP configuration store, indexed by management IP
     private Map<IPv4Addr, VtepDataClient> vtepClients = new HashMap<>();
 
-    // Index of HW VTEP management IP to all bridges bound to a port in it
-    private Multimap<IPv4Addr, UUID> vtepToBridgeIds =
-        ArrayListMultimap.create();
+    // VTEP Peer object for each VTEP, indexed by management IP
+    private Map<IPv4Addr, VtepBroker> vtepPeers = new HashMap<>();
+
+    // Midonet Peer object for each VTEP, indexed by management IP
+    private Map<IPv4Addr, MidoVxLanPeer> midoPeers = new HashMap<>();
 
     // Index of VxlanGwBrokers for each VTEP
     private Map<IPv4Addr, VxLanGwBroker> vxlanGwBrokers = new HashMap<>();
+
+    // Subscription to bridge update observables
+    private Subscription bridgeSubscription;
+
+    // Bridge monitor
+    private BridgeMonitor bridgeMon = null;
 
     public class VtepConfigurationException extends RuntimeException {
         private static final long serialVersionUID = -1;
@@ -64,23 +78,49 @@ public class VxLanGatewayService extends AbstractService {
 
     @Inject
     public VxLanGatewayService(DataClient midoClient,
-                               VtepDataClientProvider vtepDataClientProvider) {
+                               VtepDataClientProvider vtepDataClientProvider,
+                               ZookeeperConnectionWatcher zkConnWatcher) {
         this.midoClient = midoClient;
         this.vtepDataClientProvider = vtepDataClientProvider;
+        this.zkConnWatcher = zkConnWatcher;
     }
 
     @Override
     protected void doStart() {
         log.info("Starting up..");
 
+        // Set-up vxlan peer pairings
+        setVxLanPeers();
+
+        // Set-up bridge monitoring
         try {
-            loadBridges();
-        } catch (SerializationException | StateAccessException e) {
-            failStartup("Could not load bridges", e);
+            bridgeMon = new BridgeMonitor(this.midoClient, this.zkConnWatcher);
+        } catch (BridgeMonitor.BridgeMonitorException e) {
+            log.warn("Service failed");
+            shutdown();
+            notifyFailed(e);
             return;
         }
+        Observable<UUID> bridgeUpdates = Observable.merge(
+            bridgeMon.created(),
+            bridgeMon.updated().map(
+                new Func1<Bridge, UUID> () {
+                    @Override
+                    public UUID call(Bridge b) {
+                        return b.getId();
+                    }
+            }));
+        bridgeSubscription = bridgeUpdates.subscribe(new Action1<UUID>() {
+            @Override
+            public void call(UUID id) {
+                assignBridgeToPeer(id);
+            }
+        });
 
-        startVxGwBrokers();
+        // Make sure we get all the initial state
+        for (UUID id : bridgeMon.getCurrentBridgeIds()) {
+            assignBridgeToPeer(id);
+        }
 
         log.info("Service started");
         notifyStarted();
@@ -88,6 +128,18 @@ public class VxLanGatewayService extends AbstractService {
 
     @Override
     protected void doStop() {
+        log.info("Service stopped");
+        shutdown();
+        notifyStopped();
+    }
+
+    /* Cleanup service state */
+    private synchronized void shutdown() {
+        if (bridgeSubscription != null) {
+            bridgeSubscription.unsubscribe();
+            bridgeSubscription = null;
+        }
+        bridgeMon = null;
         for(Map.Entry<IPv4Addr, VxLanGwBroker> e : vxlanGwBrokers.entrySet()) {
             log.info("Unsubscribing broker from VTEP: {}", e.getKey());
             e.getValue().shutdown();
@@ -99,47 +151,12 @@ public class VxLanGatewayService extends AbstractService {
                 cli.disconnect();
             }
         }
-        notifyStopped();
-    }
-
-    private void failStartup(String msg, Throwable e) {
-        log.error("Failed to start service: " + msg, e);
-        notifyFailed(e);
-        doStop();
-    }
-
-    /**
-     * During initialisation, loads all the bridges with a vxlan port
-     * configured. It will just read the vxlan bound bridges once, and not
-     * monitor for changes resulting from new bindings or removals. This will
-     * be implemented in the future.
-     */
-    private void loadBridges()
-            throws SerializationException, StateAccessException {
-        log.debug("Loading bridges");
-        vtepToBridgeIds = ArrayListMultimap.create();
-        for (Bridge b : midoClient.bridgesGetAllWithVxlanPort()) {
-            VxLanPort vxlanPort;
-            try {
-                vxlanPort = (VxLanPort)midoClient.portsGet(b.getVxLanPortId());
-            } catch (SerializationException | StateAccessException e) {
-                log.warn("Could not load vxlan port from bridge {}", b);
-                continue;
-            }
-            if (vxlanPort == null) {
-                log.warn("Bridge {} has no vxlan port", b);
-                continue;
-            }
-            IPv4Addr hwVtepIp = vxlanPort.getMgmtIpAddr();
-            vtepToBridgeIds.put(hwVtepIp, b.getId());
-            log.debug("Bridge {} bound to vtep {}", b.getId(), hwVtepIp);
-        }
     }
 
     /**
      * Initialises the processes to synchronize data accross VxGW peers.
      */
-    private void startVxGwBrokers() {
+    private void setVxLanPeers() {
         List<VTEP> vteps;
         try {
             vteps = midoClient.vtepsGetAll();
@@ -147,24 +164,16 @@ public class VxLanGatewayService extends AbstractService {
             throw new VtepConfigurationException(e);
         }
 
-        log.info("Starting VxGW Brokers");
+        log.info("Configuring VxLan Peers");
 
-        Collection<UUID> expectedBridgeIds =
-            Lists.newArrayList(vtepToBridgeIds.values());
         for (VTEP vtep : vteps) {
-
-            log.debug("Starting VxGW broker for VTEP: {}", vtep.getId());
+            log.debug("Starting VxGW pairing for VTEP {}", vtep.getId());
             IPv4Addr mgmtIp = vtep.getId();
 
-            // Configure the VxlanPeers
+            // Configure VxLan Peers
             VtepDataClient vtepClient = vtepDataClientProvider.get();
-            vtepClients.put(mgmtIp, vtepClient);
-
-            Collection<UUID> bridgeIds = vtepToBridgeIds.get(mgmtIp);
-            expectedBridgeIds.removeAll(bridgeIds);
-
-            MidoVxLanPeer midoPeer = new MidoVxLanPeer(midoClient);
             VtepBroker vtepPeer = new VtepBroker(vtepClient);
+            MidoVxLanPeer midoPeer = new MidoVxLanPeer(midoClient);
 
             // Wire them
             VxLanGwBroker vxGwBroker = new VxLanGwBroker(vtepPeer, midoPeer);
@@ -176,21 +185,74 @@ public class VxLanGatewayService extends AbstractService {
             try {
                 vtepClient.connect(mgmtIp, vtep.getMgmtPort());
                 vxlanGwBrokers.put(mgmtIp, vxGwBroker);
+                vtepClients.put(mgmtIp, vtepClient);
+                vtepPeers.put(mgmtIp, vtepPeer);
+                midoPeers.put(mgmtIp, midoPeer);
             } catch (Exception ex) {
                 log.warn("Failed connecting to {}", mgmtIp, ex);
             }
-
-            // The VTEP is already broadcasting its updates before the midoPeer
-            // is watching bridge ids, so we might lose some MAC-port updates
-            midoPeer.watch(bridgeIds);
-
-            vtepPeer.advertiseMacs(); // Re-advertise from the VTEP
         }
 
-        if (!expectedBridgeIds.isEmpty()) {
-            log.warn("Some bridges were bound to unknown VTEPs: ",
-                     expectedBridgeIds);
-        }
     }
 
+    /**
+     * Assign a bridge to a midonet. vxlan peer
+     */
+    private void assignBridgeToPeerInternal(final UUID bridgeId)
+        throws StateAccessException, SerializationException {
+        Bridge bridge = midoClient.bridgesGet(bridgeId);
+        if (bridge == null) {
+            log.warn("Bridge {} not found", bridgeId);
+            return;
+        }
+
+        UUID vxLanPortId = bridge.getVxLanPortId();
+        if (vxLanPortId == null)
+            return;
+        VxLanPort vxLanPort = (VxLanPort)midoClient.portsGet(vxLanPortId);
+        if (vxLanPort == null) {
+            log.warn("Cannot retrieve vxlan port state {}", vxLanPortId);
+            return;
+        }
+
+        MidoVxLanPeer peer = midoPeers.get(vxLanPort.getMgmtIpAddr());
+        if (null == peer) {
+            log.warn("Unknown VTEP with IP {}", vxLanPort.getMgmtIpAddr());
+            return;
+        }
+        VtepBroker vtepPeer = vtepPeers.get(vxLanPort.getMgmtIpAddr());
+        if (null == vtepPeer) {
+            // Something very bad has happened if we are here...
+            log.error("Missing VTEP broker for {}", vxLanPort.getMgmtIpAddr());
+            return;
+        }
+
+        log.info("Monitoring bridge {} for mac updates", bridge.getId());
+        if (peer.watch(bridge.getId()))
+            // TODO: do we need to do this every time? - looks like yes...
+            vtepPeer.advertiseMacs();
+    }
+
+    /**
+     * Handle storage exceptions fo bridge assigning.
+     */
+    private void assignBridgeToPeer(final UUID bridgeId) {
+        try {
+            assignBridgeToPeerInternal(bridgeId);
+        } catch (NoStatePathException e) {
+            log.warn("Resource {} does not exist in storage", bridgeId, e);
+        } catch (StateAccessException e) {
+            log.warn("Cannot retrieve resource state {} from storage",
+                     bridgeId, e);
+            zkConnWatcher.handleError(
+                "VxLanGatewayService assigning vxlan bridge " + bridgeId,
+                new Runnable () {
+                    @Override
+                    public void run() {assignBridgeToPeer(bridgeId);}
+                },
+                e);
+        } catch (SerializationException e) {
+            log.warn("Failed to deserialize resource state {}", bridgeId, e);
+        }
+    }
 }
