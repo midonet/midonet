@@ -291,6 +291,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     case None =>
                         log.warning("Failed to add wildcard flow, no capacity")
                     case Some(managedFlow) =>
+                        wildFlow.getMatch.unsetInputPortUUID() // Not used for flow matching
                         managedFlow.reset(wildFlow)
                         // the FlowController's ref
                         managedFlow.ref()
@@ -321,6 +322,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 pendingFlowMatches(index) = flowMatch
 
         case FlowAdded(dpFlow, wcMatch) =>
+            wcMatch.unsetInputPortUUID() // Not used for flow matching
             handleFlowAddedForExistingWildcard(dpFlow, wcMatch)
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
