@@ -23,6 +23,7 @@ import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
 import org.midonet.api.zookeeper.ZookeeperModule;
+import org.midonet.brain.MidoBrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
@@ -79,6 +80,8 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         install(new NetworkModule());
         install(new FilterModule());
+
+        install(new MidoBrainModule());
 
         // Register filters - the order matters here.  Make sure that CORS
         // filter is registered first because Auth would reject OPTION
