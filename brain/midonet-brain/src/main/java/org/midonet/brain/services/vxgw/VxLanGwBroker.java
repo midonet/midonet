@@ -82,6 +82,10 @@ public class VxLanGwBroker extends Thread {
         leftSubscription = wirePeers(right, left);
     }
 
+    /**
+     * Wires the two VxlanPeers so they start exchanging MACs.
+     */
+    @Override
     public void run() {
 
         running = true;
@@ -92,7 +96,7 @@ public class VxLanGwBroker extends Thread {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                log.error("Interrupted - shutting down..");
+                log.error("Interrupted - shutting down..", e);
                 shutdown();
             }
         }

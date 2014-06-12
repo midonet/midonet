@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.guice.CacheModule;
@@ -13,8 +17,6 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This is the main application that starts a MidoBrain process running all

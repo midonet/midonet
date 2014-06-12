@@ -8,20 +8,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
+import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.controller.sal.utils.StatusCode;
+import org.opendaylight.ovsdb.lib.message.TableUpdates;
+import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
+
+import rx.Observable;
+
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
-
-import com.google.common.collect.Sets;
-import org.opendaylight.controller.sal.utils.Status;
-import org.opendaylight.controller.sal.utils.StatusCode;
-import org.opendaylight.ovsdb.lib.message.TableUpdates;
-import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.plugin.StatusWithUuid;
-import rx.Observable;
 
 public class VtepDataClientMock implements VtepDataClient {
 
@@ -56,6 +58,16 @@ public class VtepDataClientMock implements VtepDataClient {
             PhysicalPort pp = new PhysicalPort(portName + "-desc", portName);
             physicalPorts.put(portName, pp);
         }
+    }
+
+    @Override
+    public IPv4Addr getManagementIp() {
+        return IPv4Addr.fromString(this.mgmtIp);
+    }
+
+    @Override
+    public int getManagementPort() {
+        return this.mgmtPort;
     }
 
     @Override
@@ -263,12 +275,6 @@ public class VtepDataClientMock implements VtepDataClient {
         } else {
             return new Status(StatusCode.SUCCESS);
         }
-    }
-
-    @Override
-    public PhysicalSwitch describe() {
-        assertConnected();
-        return null;  // TODO: not needed by any test yet
     }
 
     private UUID getLocatorUuid(String ip) {
