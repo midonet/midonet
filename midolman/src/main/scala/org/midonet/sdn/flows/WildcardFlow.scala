@@ -142,44 +142,38 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     override type PooledType = ManagedWildcardFlow
     override def self = this
 
-    private[this] val _wcmatch: WildcardMatch = new WildcardMatch()
-    private[this] var _actions: List[FlowAction] = Nil
-    private[this] var _hardExpirationMillis: Int = 0
-    private[this] var _idleExpirationMillis: Int = 0
-    private[this] var _priority: Short = 0
-
     var creationTimeMillis: Long = 0L
     var lastUsedTimeMillis: Long = 0L
     var callbacks: Array[Callback0] = null
     var tags: Array[Any] = null
     val dpFlows = new java.util.HashSet[FlowMatch](4)
 
-    override def wcmatch = _wcmatch
-    override def actions = _actions
-    override def hardExpirationMillis = _hardExpirationMillis
-    override def idleExpirationMillis = _idleExpirationMillis
-    override def priority = _priority
+    val wcmatch = new WildcardMatch()
+    var actions: List[FlowAction] = Nil
+    var hardExpirationMillis = 0
+    var idleExpirationMillis = 0
+    var priority: Short = 0
 
     def reset(wflow: WildcardFlow): ManagedWildcardFlow = {
-        this._wcmatch.reset(wflow.wcmatch)
-        this._actions = ManagedWildcardFlow.actionsPool.sharedRef(wflow.actions)
-        this._hardExpirationMillis = wflow.hardExpirationMillis
-        this._idleExpirationMillis = wflow.idleExpirationMillis
-        this._priority = wflow.priority
+        this.wcmatch.reset(wflow.wcmatch)
+        this.actions = ManagedWildcardFlow.actionsPool.sharedRef(wflow.actions)
+        this.hardExpirationMillis = wflow.hardExpirationMillis
+        this.idleExpirationMillis = wflow.idleExpirationMillis
+        this.priority = wflow.priority
         this.dpFlows.clear()
         this
     }
 
     def clear() {
-        this._wcmatch.clear()
-        this._actions = Nil
+        this.wcmatch.clear()
+        this.actions = Nil
         this.callbacks = null
         this.tags = null
         this.dpFlows.clear()
     }
 
-    def immutable = WildcardFlow(_wcmatch, _actions, _hardExpirationMillis,
-                                 _idleExpirationMillis, _priority)
+    def immutable = WildcardFlow(wcmatch, actions, hardExpirationMillis,
+                                 idleExpirationMillis, priority)
 
     def getLastUsedTimeMillis = lastUsedTimeMillis
     def getCreationTimeMillis = creationTimeMillis
