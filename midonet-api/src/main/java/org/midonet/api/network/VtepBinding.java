@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 
-public class VTEPBinding extends UriResource {
+public class VtepBinding extends UriResource {
 
     // Not included in DTO. Used only to generate URI.
     private String mgmtIp;
@@ -27,9 +27,9 @@ public class VTEPBinding extends UriResource {
     @NotNull
     private UUID networkId;
 
-    public VTEPBinding() {}
+    public VtepBinding() {}
 
-    public VTEPBinding(String mgmtIp, String portName,
+    public VtepBinding(String mgmtIp, String portName,
                        short vlanId, UUID networkId) {
         setMgmtIp(mgmtIp);
         setPortName(portName);

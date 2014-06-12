@@ -26,6 +26,7 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -932,6 +933,22 @@ public interface DataClient {
 
     public List<VTEP> vtepsGetAll()
             throws StateAccessException, SerializationException;
+
+    public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
+                               @Nonnull String portName, short vlanId,
+                               @Nonnull UUID networkId)
+            throws StateAccessException;
+
+    public void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
+                                  @Nonnull String portName, short vlanId)
+            throws StateAccessException;
+
+    public List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
+            throws StateAccessException;
+
+    public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
+                                      @Nonnull String portName, short vlanId)
+            throws StateAccessException;
 
     public VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)

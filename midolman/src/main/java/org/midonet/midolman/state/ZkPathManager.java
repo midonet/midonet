@@ -14,6 +14,9 @@ import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.UUID;
 
 /**
@@ -25,6 +28,8 @@ public class ZkPathManager {
     public static final String TUNNEL_ZONES = "tunnel_zones";
     public static final String MEMBERSHIPS = "memberships";
     public static final String FLOODING_PROXY_WEIGHT = "/flooding_proxy_weight";
+
+    private static final String UTF8 = "UTF-8";
 
     protected String basePath = null;
 
@@ -1712,6 +1717,28 @@ public class ZkPathManager {
         return buildVtepPath(ipAddr).toString();
     }
 
+    private StringBuilder buildVtepBindingsPath(IPv4Addr ipAddr) {
+        return buildVtepPath(ipAddr).append("/bindings");
+    }
+
+    public String getVtepBindingsPath(IPv4Addr ipAddr) {
+        return buildVtepBindingsPath(ipAddr).toString();
+    }
+
+    private StringBuilder buildVtepBindingPath(IPv4Addr ipAddr, String portName,
+                                               short vlanId, UUID networkId) {
+        return buildVtepBindingsPath(ipAddr).append('/')
+                .append(vlanId).append('_')
+                .append(networkId).append('_')
+                .append(encodePathSegment(portName));
+    }
+
+    public String getVtepBindingPath(IPv4Addr ipAddr, String portName,
+                                     short vlanId, UUID networkId) {
+        return buildVtepBindingPath(ipAddr, portName,
+                                    vlanId, networkId).toString();
+    }
+
     private StringBuilder buildVxLanPortIdsPath() {
         return basePath().append("/vxlan_port_ids");
     }
@@ -1871,5 +1898,29 @@ public class ZkPathManager {
 
     public String getNeutronSecurityGroupRulePath(UUID id) {
         return buildNeutronSecurityGroupRulePath(id).toString();
+    }
+
+    /**
+     * URL-encode a path segment that may contain forward slashes.
+     */
+    public static String encodePathSegment(String segment) {
+        try {
+            return URLEncoder.encode(segment, UTF8);
+        } catch (UnsupportedEncodingException ex) {
+            // If UTF-8 isn't supported, the end times are upon us.
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Decode a path segment encoded with encodePathSegment().
+     */
+    public static String decodePathSegment(String encoded) {
+        try {
+            return URLDecoder.decode(encoded, UTF8);
+        } catch (UnsupportedEncodingException ex) {
+            // The world has come unmoored.
+            throw new RuntimeException(ex);
+        }
     }
 }
