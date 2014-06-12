@@ -90,8 +90,8 @@ import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.LicenseZkManager;
 import org.midonet.midolman.state.ZkUtil;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
@@ -106,6 +106,7 @@ import org.midonet.midolman.state.zkManagers.ConfigGetter;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
+import org.midonet.midolman.state.zkManagers.LicenseZkManager;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
@@ -553,6 +554,27 @@ public class LocalDataClientImpl implements DataClient {
                 }
             }
         );
+    }
+
+    @Override
+    public EntityMonitor<BridgeConfig, Bridge> bridgesGetMonitor(
+        ZookeeperConnectionWatcher zkConnection) {
+        return new EntityMonitor<>(bridgeZkManager, zkConnection,
+            new EntityMonitor.Transformer<BridgeConfig, Bridge> () {
+                @Override
+                public Bridge transform(UUID id, BridgeConfig data) {
+                    Bridge bridge = Converter.fromBridgeConfig(data);
+                    bridge.setId(id);
+                    return bridge;
+                }
+            });
+    }
+
+    @Override
+    public EntityIdSetMonitor bridgesGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection)
+        throws StateAccessException {
+        return new EntityIdSetMonitor(bridgeZkManager, zkConnection);
     }
 
     @Override

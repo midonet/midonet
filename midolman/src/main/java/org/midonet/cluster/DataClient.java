@@ -47,6 +47,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.MacPortMap;
@@ -117,6 +118,18 @@ public interface DataClient {
      */
     List<Bridge> bridgesGetAllWithVxlanPort() throws StateAccessException,
                                                      SerializationException;
+
+    /**
+     * Get an entity monitor for individual bridges
+     */
+    EntityMonitor<?, Bridge> bridgesGetMonitor(
+        ZookeeperConnectionWatcher zkConnection);
+
+    /**
+     * Get an entity monitor for the set of bridges
+     */
+    EntityIdSetMonitor bridgesGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<UUID> bridgesGetAllIds() throws StateAccessException,
             SerializationException;

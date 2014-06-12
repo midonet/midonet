@@ -3,7 +3,6 @@
 */
 package org.midonet.brain.southbound.midonet;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 
@@ -12,6 +11,7 @@ import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.midolman.state.MacPortMap;
 import rx.Observable;
 
 import org.midonet.brain.BrainTestUtils;
@@ -148,7 +148,11 @@ public class MidoVxLanPeerTest {
         UUID bridgePort1 = addPort(bridgeId1, mac1);
         UUID bridgePort2 = addPort(bridgeId2, mac2);
 
-        midoVxLanPeer.watch(Arrays.asList(bridgeId1, bridgeId2));
+        assertTrue(midoVxLanPeer.watch(bridgeId1));
+        assertTrue(midoVxLanPeer.watch(bridgeId2));
+
+        // Check that a bridge cannot be watched twice.
+        assertTrue(!midoVxLanPeer.watch(bridgeId1));
 
         // MidoVtep has local copies of those bridges' Mac tables.
         Set<UUID> midoBridges = midoVxLanPeer.getMacTableOwnerIds();
@@ -170,43 +174,33 @@ public class MidoVxLanPeerTest {
         throws Exception {
         // Create two bridges and one bridge port per each.
         UUID bridgeId1 = makeBridge("bridge1");
-
-        midoVxLanPeer.watch(Arrays.asList(bridgeId1));
-
-        // MidoVtep has local copies of those bridges' Mac tables.
-        Set<UUID> midoBridges = midoVxLanPeer.getMacTableOwnerIds();
-        assertThat(midoBridges, containsInAnyOrder(bridgeId1));
-
-        // Removing the vxlan port should stop bridge from being monitored
-        dataClient.bridgeDeleteVxLanPort(bridgeId1);
-
-        assertThat(midoBridges, emptyIterable());
-    }
-
-    @Test
-    public void testBridgeVxLanPortRemovalIgnoreUpdates()
-        throws Exception {
-        // Create two bridges and one bridge port per each.
-        UUID bridgeId1 = makeBridge("bridge1");
         UUID bridgeId2 = makeBridge("bridge2");
 
-        midoVxLanPeer.watch(Arrays.asList(bridgeId1, bridgeId2));
+        assertTrue(midoVxLanPeer.watch(bridgeId1));
+        assertTrue(midoVxLanPeer.watch(bridgeId2));
 
         // MidoVtep has local copies of those bridges' Mac tables.
         Set<UUID> midoBridges = midoVxLanPeer.getMacTableOwnerIds();
         assertThat(midoBridges, containsInAnyOrder(bridgeId1, bridgeId2));
 
         // updating the bridge1 vxlanport should maintain the monitoring
+        // by reinstalling the watch (allowing the detection of vxlan
+        // port removals occurring afterwards.
         UUID vxLanPortId1 = dataClient.bridgesGet(bridgeId1).getVxLanPortId();
         VxLanPort vxLanPort1 = (VxLanPort)dataClient.portsGet(vxLanPortId1);
         dataClient.portsUpdate(vxLanPort1);
         assertThat(midoBridges, containsInAnyOrder(bridgeId1, bridgeId2));
 
-        // Removing the vxlan port should stop bridge from being monitored
+        // Removing the vxlan port should remove the bridge from the monitored
+        // list
         dataClient.bridgeDeleteVxLanPort(bridgeId1);
-
         assertThat(midoBridges, containsInAnyOrder(bridgeId2));
 
+        // Removing the vxlan port should remove the bridge from the monitored
+        // list
+        dataClient.bridgeDeleteVxLanPort(bridgeId2);
+
+        assertThat(midoBridges, emptyIterable());
     }
 
     @Test
@@ -214,7 +208,7 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = makeBridge("bridge");
         UUID bridgePortId = addPort(bridgeId, mac1);
 
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
         assertTrue("A new mac-port entry is added to the backend bridge.",
                    dataClient.bridgeHasMacPort(bridgeId,
@@ -231,7 +225,7 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = makeBridge("bridge");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
 
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
         RxTestUtils.TestedObservable<MacLocation> testedObs =
             RxTestUtils.test(midoVxLanPeer.observableUpdates());
         testedObs.expect(
@@ -261,7 +255,7 @@ public class MidoVxLanPeerTest {
     public void testMacLocationApplies() throws Exception {
         UUID bridgeId = makeBridge("bridge");
         String  lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
         UUID vxLanPortId = dataClient.bridgesGet(bridgeId).getVxLanPortId();
 
         MacLocation ml;
@@ -280,11 +274,50 @@ public class MidoVxLanPeerTest {
 
     }
 
+    @Test
+    public void testMacLocationFlow() throws Exception {
+        UUID bridgeId = makeBridge("bridge");
+        String  lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
+        assertTrue(midoVxLanPeer.watch(bridgeId));
+        UUID vxLanPortId = dataClient.bridgesGet(bridgeId).getVxLanPortId();
+
+        // extract the observable and test it
+        Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
+        RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
+        testedObs.expect(new MacLocation(mac2, lsName, tunnelZoneHostIP))
+                 .noErrors()
+                 .completes()
+                 .subscribe();
+
+        MacLocation ml;
+
+        // add a mapping
+        // update from the vtep should not be forwarded via observable
+        ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
+        midoVxLanPeer.apply(ml);
+        assertEquals("Port is correctly mapped", vxLanPortId,
+                     midoVxLanPeer.getPort(bridgeId, mac1));
+
+        // remove the mapping
+        // update from the vtep should not be forwarded via observable
+        ml = new MacLocation(mac1, lsName, null);
+        midoVxLanPeer.apply(ml);
+        assertEquals("Port is correctly unmapped", null,
+                     midoVxLanPeer.getPort(bridgeId, mac1));
+
+        // add a mapping not from the vtep
+        addPort(bridgeId, mac2);
+
+        midoVxLanPeer.stop();
+
+        testedObs.evaluate();
+    }
+
    @Test
     public void testSubscriptionLifecycle() throws Exception {
 
         UUID bridgeId = makeBridge("bridge");
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
        // add a port before subscribing, should go unnoticed
        addPort(bridgeId, mac1);
@@ -307,7 +340,7 @@ public class MidoVxLanPeerTest {
 
         UUID bridgeId = makeBridge("bridge");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
         // extract the observable
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
@@ -336,7 +369,7 @@ public class MidoVxLanPeerTest {
 
         UUID bridgeId = makeBridge("bridge");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
         // extract the observable
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
@@ -363,7 +396,7 @@ public class MidoVxLanPeerTest {
         MidoVxLanPeer altPeer = new MidoVxLanPeer(this.dataClient);
         dataClient.bridgeCreateVxLanPort(bridgeId, tunnelZoneVtepIPAlt,
                                          vtepMgmtPortAlt, bridgePortVNIAlt);
-        altPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(altPeer.watch(bridgeId));
 
         // extract the observable
         Observable<MacLocation> obsAlt = altPeer.observableUpdates();
@@ -387,7 +420,7 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = makeBridge("bridge");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
 
-        midoVxLanPeer.watch(Arrays.asList(bridgeId));
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);

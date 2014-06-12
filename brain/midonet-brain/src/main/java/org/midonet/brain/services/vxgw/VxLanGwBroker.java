@@ -115,5 +115,4 @@ public class VxLanGwBroker extends Thread {
             leftSubscription.unsubscribe();
         }
     }
-
 }
