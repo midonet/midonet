@@ -37,7 +37,7 @@ public class HostIdInTunnelZonesValidator implements
 
         try {
             return dataClient.hostsExists(value) &&
-                    dataClient.doesTunnelZonesContainHost(value);
+                    dataClient.tunnelZonesContainHost(value);
         } catch (StateAccessException | SerializationException e) {
             throw new RuntimeException("Error while validation host", e);
         }
