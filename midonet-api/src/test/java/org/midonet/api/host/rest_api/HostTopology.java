@@ -8,6 +8,7 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
+import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -18,7 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.midonet.client.VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
@@ -60,56 +63,99 @@ public class HostTopology {
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
         private final Map<String, DtoGreTunnelZone> greTunnelZones;
+        private final Map<UUID, DtoTunnelZoneHost> tunnelZoneHosts;
         private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
 
         private final Map<UUID, UUID> tagToHosts;
+        private final Map<UUID, String> tagToTunnelZone;
 
         public Builder(DtoWebResource resource, HostZkManager hostZkManager) {
             this.resource = resource;
             this.hostZkManager = hostZkManager;
             this.hosts = new HashMap<UUID, DtoHost>();
             this.greTunnelZones = new HashMap<String, DtoGreTunnelZone>();
+            this.tunnelZoneHosts = new HashMap<UUID, DtoTunnelZoneHost>();
             this.hostInterfacePorts = new HashMap<UUID, DtoHostInterfacePort>();
 
             this.tagToHosts = new HashMap<UUID, UUID>();
+            this.tagToTunnelZone = new HashMap<UUID, String>();
         }
 
         public DtoWebResource getResource() {
             return this.resource;
         }
 
-        public Builder create(UUID id, DtoHost obj) {
-            this.hosts.put(id, obj);
+        /**
+         * Create the mock topology of the host.
+         *
+         * @param tag  The host's UUID.
+         * @param host The host's client-side DTO object.
+         * @return This builder object.
+         */
+        public Builder create(UUID tag, DtoHost host) {
+            this.hosts.put(tag, host);
             return this;
         }
 
-        public Builder create(String tag, DtoGreTunnelZone obj) {
-            this.greTunnelZones.put(tag, obj);
+        /**
+         * Create the mock topology of the GRE tunnel zone.
+         *
+         * @param tag        The name of tunnel zone.
+         * @param tunnelZone A client-side DTO object of the tunnel zone.
+         * @return This builde object.
+         */
+        public Builder create(String tag, DtoGreTunnelZone tunnelZone) {
+            this.greTunnelZones.put(tag, tunnelZone);
             return this;
         }
 
         /**
          * Create the mock topology of the host-interface-port binding.
          *
-         * @param hostTag an UUID of the host which the port-interface-port
-         *                binding is associated
-         * @param tag     an UUID of the port-interface-port.
-         * @param obj     a client-side DTO of the port-host-interface.
-         * @return        this builder object
+         * @param hostTag           A UUID of the host with which the
+         *                          port-interface-port binding is associated
+         * @param tag               An UUID of the port-interface-port.
+         * @param hostInterfacePort A client-side DTO object of the
+         *                          port-host-interface.
+         * @return This builder object.
          */
         public Builder create(UUID hostTag, UUID tag,
-                              DtoHostInterfacePort obj) {
-            this.hostInterfacePorts.put(tag, obj);
+                              DtoHostInterfacePort hostInterfacePort) {
+            this.hostInterfacePorts.put(tag, hostInterfacePort);
             this.tagToHosts.put(tag, hostTag);
+            return this;
+        }
+
+        /**
+         * Create the mock topology of the tunnel zone host.
+         *
+         * @param tunnelZoneTag  A UUID of the tunnel zone to which the host
+         *                       belongs.
+         * @param tag            The host's UUID.
+         * @param tunnelZoneHost A client-side DTO object of the tunnel zone
+         *                       host.
+         * @return This builder object.
+         */
+        public Builder create(String tunnelZoneTag, UUID tag,
+                              DtoTunnelZoneHost tunnelZoneHost) {
+            this.tunnelZoneHosts.put(tag, tunnelZoneHost);
+            this.tagToTunnelZone.put(tag, tunnelZoneTag);
             return this;
         }
 
         public HostTopology build()
                 throws StateAccessException, SerializationException {
-
-
             this.app = resource.getWebResource().path("/")
                     .type(APPLICATION_JSON_V5).get(DtoApplication.class);
+
+            for (Map.Entry<String, DtoGreTunnelZone> entry
+                    : greTunnelZones.entrySet()) {
+                DtoGreTunnelZone tunnelZone = entry.getValue();
+                tunnelZone = resource.postAndVerifyCreated(app.getTunnelZones(),
+                        APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
+                        DtoGreTunnelZone.class);
+                entry.setValue(tunnelZone);
+            }
 
             if (hosts.size() > 0) {
                 for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {
@@ -134,6 +180,22 @@ public class HostTopology {
                     entry.setValue(hostMap.get(entry.getKey()));
                 }
 
+                for (Map.Entry<UUID, DtoTunnelZoneHost> entry :
+                        tunnelZoneHosts.entrySet()) {
+                    DtoTunnelZoneHost tunnelZoneHost = entry.getValue();
+                    // Set the tunnel zone ID.
+                    String tunnelZoneTag = tagToTunnelZone.get(entry.getKey());
+                    DtoGreTunnelZone tunnelZone =
+                            greTunnelZones.get(tunnelZoneTag);
+                    tunnelZoneHost.setTunnelZoneId(tunnelZone.getId());
+                    tunnelZoneHost = resource.postAndVerifyCreated(
+                            tunnelZone.getHosts(),
+                            APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                            tunnelZoneHost,
+                            DtoTunnelZoneHost.class);
+                    entry.setValue(tunnelZoneHost);
+                }
+
                 // Initialize the topology of the host-interface-port bindings.
                 for (Map.Entry<UUID, DtoHostInterfacePort> entry
                         : hostInterfacePorts.entrySet()) {
@@ -144,22 +206,13 @@ public class HostTopology {
                     hostInterfacePort.setInterfaceName(host.getName());
                     // Set the host ID.
                     hostInterfacePort.setHostId(host.getId());
-                    hostInterfacePort = resource.postAndVerifyCreated(host.getPorts(),
-                            APPLICATION_HOST_INTERFACE_PORT_JSON, hostInterfacePort,
+                    hostInterfacePort = resource.postAndVerifyCreated(
+                            host.getPorts(),
+                            APPLICATION_HOST_INTERFACE_PORT_JSON,
+                            hostInterfacePort,
                             DtoHostInterfacePort.class);
                     entry.setValue(hostInterfacePort);
                 }
-            }
-
-            for (Map.Entry<String, DtoGreTunnelZone> entry
-                    : greTunnelZones.entrySet()) {
-
-                DtoGreTunnelZone obj = entry.getValue();
-
-                obj = resource.postAndVerifyCreated(app.getTunnelZones(),
-                        APPLICATION_TUNNEL_ZONE_JSON, obj,
-                        DtoGreTunnelZone.class);
-                entry.setValue(obj);
             }
 
             return new HostTopology(this);

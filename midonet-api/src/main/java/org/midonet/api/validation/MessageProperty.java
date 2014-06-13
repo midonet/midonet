@@ -30,6 +30,8 @@ public class MessageProperty {
             "{midokura.javarx.HostIdIsInvalid.message}";
     public static final String HOST_INTERFACE_IS_USED =
             "{midokura.javarx.HostInterfaceIsAlreadyUsed.message}";
+    public static final String HOST_IS_NOT_IN_ANY_TUNNEL_ZONE =
+            "{midokura.javarx.HostIsNotInAnyTunnelZone.message}";
     public static final String IP_ADDR_GROUP_ID_EXISTS =
             "{midokura.javarx.IpAddrGroupIdExists.message}";
     public static final String IP_ADDR_INVALID =
