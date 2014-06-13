@@ -222,18 +222,20 @@ public class SimpleSelectLoop implements SelectLoop {
                         continue;
                     int ops = sk.readyOps();
                     SelectableChannel ch = sk.channel();
-                    for (Registration reg: registrations.get(ch)) {
-                        if (ops == 0) {
-                            break;
-                        } else if ((reg.ops & ops) != 0) {
-                            try {
-                                reg.listener.handleEvent(sk);
-                            } catch (Exception e) {
-                                log.error("Callback threw an exception", e);
+                    synchronized (registerLock) {
+                        for (Registration reg: registrations.get(ch)) {
+                            if (ops == 0) {
+                                break;
+                            } else if ((reg.ops & ops) != 0) {
+                                try {
+                                    reg.listener.handleEvent(sk);
+                                } catch (Exception e) {
+                                    log.error("Callback threw an exception", e);
+                                }
+                                // We report each ready-op once, so after
+                                // dispatching the event we clear it from ops.
+                                ops &= ~reg.ops;
                             }
-                            // We report each ready-op once, so after
-                            // dispatching the event we clear it from ops.
-                            ops &= ~reg.ops;
                         }
                     }
                 }
