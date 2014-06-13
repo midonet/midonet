@@ -790,6 +790,20 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public boolean doesTunnelZonesContainHost(UUID hostId)
+            throws StateAccessException, SerializationException {
+        List<TunnelZone<?, ?>> tunnelZones = tunnelZonesGetAll();
+        boolean doesExistHostInAnyTunnelZone = false;
+        for (TunnelZone<?, ?> tunnelZone : tunnelZones) {
+            if (tunnelZonesMembershipExists(tunnelZone.getId(), hostId)) {
+                doesExistHostInAnyTunnelZone = true;
+                break;
+            }
+        }
+        return doesExistHostInAnyTunnelZone;
+    }
+
+    @Override
     public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(
             final UUID uuid)
         throws StateAccessException {

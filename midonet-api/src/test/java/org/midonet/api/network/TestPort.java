@@ -1335,6 +1335,19 @@ public class TestPort {
             port1 = topology.getRouterPort("port1");
             port2 = topology.getBridgePort("port2");
 
+            DtoGreTunnelZone tunnelZone = new DtoGreTunnelZone();
+            tunnelZone.setName("tz1-name");
+
+            DtoTunnelZoneHost tzh1 = new DtoTunnelZoneHost();
+            tzh1.setHostId(host1.getId());
+            tzh1.setIpAddress("192.168.100.1");
+            tzh1.setTunnelZoneId(tunnelZone.getId());
+
+            DtoTunnelZoneHost tzh2 = new DtoTunnelZoneHost();
+            tzh2.setHostId(host2.getId());
+            tzh2.setIpAddress("192.168.100.2");
+            tzh2.setTunnelZoneId(tunnelZone.getId());
+
             // Create a host-interface-port binding finally.
             hostInterfacePort1 = createHostInterfacePort(
                     host1.getId(), interface1.getName(), port1.getId());
@@ -1342,10 +1355,13 @@ public class TestPort {
             hostInterfacePort2 = createHostInterfacePort(
                     host2.getId(), interface2.getName(), port2.getId());
             hostTopology = new HostTopology.Builder(dtoResource, hostManager)
+                    .create("tz1", tunnelZone)
                     .create(host1.getId(), host1)
+                    .create("tz1", tzh1.getHostId(), tzh1)
                     .create(hostInterfacePort1.getHostId(),
                             hostInterfacePort1.getPortId(), hostInterfacePort1)
                     .create(host2.getId(), host2)
+                    .create("tz1", tzh2.getHostId(), tzh2)
                     .create(hostInterfacePort2.getHostId(),
                             hostInterfacePort2.getPortId(), hostInterfacePort2)
                     .build();
