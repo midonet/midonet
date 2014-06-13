@@ -328,6 +328,9 @@ public interface DataClient {
             UUID uuid, UUID hostId)
             throws StateAccessException, SerializationException;
 
+    boolean doesTunnelZonesContainHost(UUID hostId)
+            throws StateAccessException, SerializationException;
+
     UUID tunnelZonesAddMembership(
             @Nonnull UUID zoneId,
             @Nonnull TunnelZone.HostConfig<?, ?> hostConfig)

@@ -7,6 +7,7 @@ package org.midonet.api.network;
 import com.google.inject.*;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.type.JavaType;
+import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.client.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -504,44 +505,6 @@ public class TestRouter {
                     = injector.getInstance(FiltersZkManager.class);
             filtersMgr.addSnatReservation(resRouter.getId(),
                                  new IPv4Addr(0x0a000001), 100);
-            dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
-        }
-
-        @Test
-        public void testRouterDeleteWithBoundExteriorPort() throws Exception {
-            // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id",
-                    false, false, 2);
-            // Add an exterior port.
-            DtoRouterPort port = new DtoRouterPort();
-            port.setNetworkAddress("10.0.0.0");
-            port.setNetworkLength(24);
-            port.setPortAddress("10.0.0.1");
-            DtoRouterPort resPort =
-                dtoResource.postAndVerifyCreated(resRouter.getPorts(),
-                    APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
-            // Create a host (this is not allowed via the API).
-            HostZkManager hostManager = injector.getInstance(HostZkManager.class);
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("semporiki");
-            UUID hostId = UUID.randomUUID();
-            hostManager.createHost(hostId, metadata);
-            // Get the host DTO.
-            DtoHost[] hosts = dtoResource.getAndVerifyOk(
-                topology.getApplication().getHosts(),
-                APPLICATION_HOST_COLLECTION_JSON, DtoHost[].class);
-            Assert.assertEquals(1, hosts.length);
-            DtoHost resHost = hosts[0];
-            // Bind the exterior port to an interface on the host.
-            DtoHostInterfacePort hostBinding = new DtoHostInterfacePort();
-            hostBinding.setHostId(resHost.getId());
-            hostBinding.setInterfaceName("eth0");
-            hostBinding.setPortId(resPort.getId());
-            DtoHostInterfacePort resPortBinding =
-                dtoResource.postAndVerifyCreated(resHost.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
-                    DtoHostInterfacePort.class);
             dtoResource.deleteAndVerifyNoContent(
                 resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
