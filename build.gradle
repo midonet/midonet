@@ -1,5 +1,3 @@
-checkUserConfig()
-
 project.ext {
     midonetVersion = "1.5-SNAPSHOT"
     vendor = 'Midokura'
@@ -138,6 +136,16 @@ project.ext {
 
 }
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
+    }
+}
+
 allprojects {
     apply plugin: 'idea'
 
@@ -164,16 +172,25 @@ idea.project {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
     apply from: "${rootProject.projectDir}/git.gradle"
 
     sourceCompatibility = versions.java
     version = midonetVersion
     group = 'org.midonet'
 
-    configurations { provided }
+    configurations {
+        provided
+        perfCompile.extendsFrom compile
+        perfRuntime.extendsFrom runtime
+    }
 
-    sourceSets.test.compileClasspath += configurations.provided
-    sourceSets.main.compileClasspath += configurations.provided
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        test.compileClasspath += configurations.provided
+        perf.compileClasspath += sourceSets.main.output
+        perf.compileClasspath += sourceSets.test.output
+    }
 
     repositories {
         mavenCentral()
@@ -182,6 +199,9 @@ subprojects {
         maven { url "http://maven.restlet.org" }
     }
 
+    tasks.build {
+        dependsOn(perfClasses)
+    }
 
     dependencies {
         compile libraries.slf4j
@@ -189,18 +209,72 @@ subprojects {
         compile libraries.findbugs
         testCompile libraries.test_frameworks
         runtime libraries.logback
+        perfCompile 'org.openjdk.jmh:jmh-core:0.9'
+        perfCompile 'org.openjdk.jmh:jmh-generator-bytecode:0.9'
     }
 
     idea.module {
+        scopes.PROVIDED.plus += configurations.perfCompile
         scopes.PROVIDED.plus += configurations.provided
         inheritOutputDirs = false
         outputDir = file("${rootDir}/idea/out/${project.name}")
         testOutputDir = file("${rootDir}/idea/test/${project.name}")
     }
+
+    // The JMH annotation processor doesn't support Scala (yet?), so
+    // we use the bytecode generator, which requires these two tasks.
+    def benchOutput = sourceSets.perf.output.classesDir.absolutePath + '/generated-sources'
+
+    task cleanPerf(type: Delete) {
+        delete benchOutput
+    }
+
+    task generateBenchmarks(type: JavaExec) {
+        main = 'org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator'
+        classpath = sourceSets.perf.compileClasspath
+        args += sourceSets.perf.output.classesDir // compiled-bytecode-dir
+        args += benchOutput  // output-source-dir
+        args += benchOutput // output-resource-dir
+        args += 'asm'
+
+        dependsOn(perfClasses, cleanPerf)
+    }
+
+    task compileBenchmarks(type: JavaCompile) {
+        classpath = sourceSets.perf.runtimeClasspath
+        source = benchOutput
+        destinationDir = file(benchOutput)
+
+        dependsOn(generateBenchmarks)
+    }
+
+    task benchmarks(type: JavaExec) {
+        main = 'org.openjdk.jmh.Main'
+        classpath = sourceSets.perf.runtimeClasspath  + sourceSets.main.output +
+                    sourceSets.test.output + files(benchOutput)
+        maxHeapSize = "1024m"
+        description 'Executes the specified benchmarks. By default runs all. ' +
+                    'Example command: ./gradlew :midonet-util:benchmarks \'-Pjmh=.*Statistical.*\''
+
+        if (project.hasProperty('jmh')) {
+            args(jmh.split(' '))
+        }
+
+        dependsOn(compileBenchmarks)
+    }
+
+    shadowJar {
+        archiveName = "benchmarks.jar"
+        from sourceSets.perf.output + sourceSets.test.output + files(benchOutput)
+        from configurations.perfRuntime
+
+        appendManifest {
+            attributes 'Main-Class': 'org.openjdk.jmh.Main'
+        }
+    }
 }
 
-
-// Utiilty methods start here
+// Utility methods start here
 
 def addScalaLangLevelToIdea(iml) {
     def facets = iml.asNode().component.find { it.@name == 'FacetManager' } ?:
@@ -238,6 +312,9 @@ def reorderIdeaJdkBootstrapDependency(iml) {
     }
 }
 
-def checkUserConfig() {
-    def fail = false
+// Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle
+task wrapper(type: Wrapper) {
+    description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
+    gradleVersion = '1.12'
+    distributionUrl = "https://github.com/10QueensRoad/gradle/releases/download/REL_${gradleVersion}-java8/gradle-${gradleVersion}-bin.zip"
 }
