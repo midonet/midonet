@@ -422,6 +422,10 @@ public final class NetlinkMessage {
         return (short)(netlinkAttributeId | NLA_F_NESTED);
     }
 
+    public static short unnest(short netlinkAttributeId) {
+        return (short)(netlinkAttributeId & NLA_TYPE_MASK);
+    }
+
     public static boolean isNested(short netlinkAttributeId) {
         return (netlinkAttributeId & NLA_F_NESTED) != 0;
     }
@@ -446,4 +450,82 @@ public final class NetlinkMessage {
             return value.length;
         }
     };
+
+    /** Iterates over a ByteBuffer containing a sequence of netlink attributes
+     *  and calls a user given handler for every attributes, aligning the buffer
+     *  position and limit at the edges of the attribute values before every
+     *  calls to the handler. This function allows to process and deserialize a
+     *  netlink message in one traversal. It is assumed that the buffer original
+     *  position is pointing at a valid netlink header. */
+    public static void scanAttributes(ByteBuffer buf, AttributeHandler handler) {
+        int start = buf.position();
+        int end = buf.limit();
+        while (buf.remaining() > 0) {
+            // read attribute header
+            short attrLen = buf.getShort();
+            short attrId = unnest(buf.getShort());
+
+            // enforce attribute length to avoid overflow
+            int current = buf.position();
+            int next = current + attrLen - 4;
+            buf.limit(next);
+            handler.use(buf, attrId);
+
+            // restore original limit and move position to next attribute
+            buf.limit(end);
+            buf.position(align(next));
+        }
+        buf.position(start);
+    }
+
+    /** Scans through a ByteBuffer containing a sequence of netlink attributes
+     *  and stop when the user given attribute id is found, returning the
+     *  position within the ByteBuffer of the attribute value associated to
+     *  this id. If no mathing id is found, returns -1. It is assumed that the
+     *  buffer original position is pointing at a valid netlink header. */
+    public static int seekAttribute(ByteBuffer buf, short id) {
+        id = unnest(id);
+        int start = buf.position();
+        while (buf.remaining() > 0) {
+            // read attribute header
+            short attrLen = buf.getShort();
+            short attrId = unnest(buf.getShort());
+
+            int current = buf.position();
+            if (attrId == id) {
+                buf.position(start);
+                return current;
+            }
+
+            // move to next attr header
+            buf.position(align(current + attrLen - 4));
+        }
+        buf.position(start);
+        return -1;
+    }
+
+    /** Reads a cstring contained in a ByteBuffer at the given offset and
+     *  returns a java String, removing the trailing null byte if it is present.
+     *  It is assumed that the cstring is an attribute value with a matching
+     *  netlink header in the 4 bytes immediately before the given offset. The
+     *  length read in the buffer is used to determine the length of the cstring
+     *  instead of assuming a terminating null byte. */
+    public static String parseStringAttr(ByteBuffer buf, int index) {
+        int start = buf.position();
+        int slen = buf.getShort(index - 4) - 4;
+        byte[] cstring = new byte[slen];
+        buf.position(index);
+        buf.get(cstring, 0, slen);    // 2nd arg is write offset in the array !
+        buf.position(start);
+        if (cstring[slen - 1] == 0)
+            return new String(cstring, 0, slen - 1);
+        else
+            return new String(cstring);
+    }
+
+    /** Returns the first 4B aligned index after the given one (branch free). */
+    public static int align(int index) {
+        // previous_aligned_index + if (last 2 LSB of index == 0) then 0 else 4
+        return (index & ~3) + (4 & ((index << 1) | (index << 2)));
+    }
 }

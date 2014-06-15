@@ -181,4 +181,92 @@ class NetlinkMessageTest extends Suite with Matchers {
                 (NetlinkMessage getAttrValueLong (buf, id)) shouldBe value
         }
     }
+
+    def testAlign() {
+        def trivialAlign(x: Int): Int = if ((x & 3) == 0) x else (x & ~3) + 4
+        List.fill(1000) { Random nextInt 0x10000 }
+            .map { x => (NetlinkMessage align x, trivialAlign(x)) }
+            .foreach { case (x,y) => x shouldBe y }
+    }
+
+    def testSeekIntAttribute() {
+        val buf = ByteBuffer allocate 1024
+        (1 to 1000) foreach { _ =>
+            val l = generateIntAttrs(2 + (Random nextInt 10))
+            l foreach { case (id,attr) =>
+                NetlinkMessage writeIntAttr (buf, id, attr)
+            }
+            buf.flip
+            (Random shuffle l) foreach { case (id,attr) =>
+                val pos = NetlinkMessage seekAttribute (buf,id)
+                pos should not be < (0)
+                (buf getInt pos) shouldBe attr
+            }
+            buf.clear
+        }
+    }
+
+    def testSeekStringAttribute() {
+        val buf = ByteBuffer allocate 1024
+        (1 to 1000) foreach { _ =>
+            val l = generateStringAttrs(2 + (Random nextInt 10))
+            l foreach { case (id,s) =>
+                NetlinkMessage writeStringAttr (buf, id, s)
+            }
+            buf.flip
+            (Random shuffle l) foreach { case (id,s) =>
+                val pos = NetlinkMessage seekAttribute (buf,id)
+                pos should not be < (0)
+                (NetlinkMessage parseStringAttr (buf,pos)) shouldBe s
+            }
+            buf.clear
+        }
+    }
+
+    def testScanIntAttributes() {
+        val buf = ByteBuffer allocate 1024
+        (1 to 1000) foreach { _ =>
+            val l = generateIntAttrs(2 + (Random nextInt 10))
+            l foreach { case (id,attr) =>
+                NetlinkMessage writeIntAttr (buf, id, attr)
+            }
+            buf.flip
+            val handler = new Handler(_.getInt)
+            NetlinkMessage scanAttributes (buf, handler)
+            handler.set should have size(l.size)
+            l foreach { handler.set should contain(_) }
+            buf.clear
+        }
+    }
+
+    def testScanStringAttributes() {
+        val buf = ByteBuffer allocate 1024
+        (1 to 1000) foreach { _ =>
+            val l = generateStringAttrs(2 + (Random nextInt 10))
+            l foreach { case (id,s) =>
+                NetlinkMessage writeStringAttr (buf, id, s)
+            }
+            buf.flip
+            val handler = new Handler ( buf =>
+                NetlinkMessage parseStringAttr (buf,buf.position)
+            )
+            NetlinkMessage scanAttributes (buf, handler)
+            handler.set should have size(l.size)
+            l foreach { handler.set should contain(_) }
+            buf.clear
+        }
+    }
+
+    class Handler[T](trans: ByteBuffer => T) extends AttributeHandler {
+        var set = Set.empty[(Short,T)]
+        def use(buf: ByteBuffer, id: Short) { set += Tuple2(id, trans(buf)) }
+    }
+
+    def generateIntAttrs(n: Int): List[(Short,Int)] =
+        Random shuffle List.tabulate(n) { i: Int => (i.toShort, i) }
+
+    def generateStringAttrs(n: Int): List[(Short,String)] =
+        Random shuffle List.tabulate(n) { i: Int =>
+            (i.toShort, Random.alphanumeric.take(4 + (Random nextInt 10)) mkString "")
+        }
 }
