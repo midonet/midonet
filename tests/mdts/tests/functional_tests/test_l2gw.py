@@ -321,6 +321,9 @@ def _test_failback(test_failover, ping, migrate=None):
     # Emit a random UDP expecting it to migrate the MAC back to trunk0
     if migrate:
         migrate(midoVmIface, exHostIface)
+        # Give midolman some time to migrate MAC
+        # See also MN-1819
+        time.sleep(1)
 
     ping(midoVmIface, exHostIface)
 
