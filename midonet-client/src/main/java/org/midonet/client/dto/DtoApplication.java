@@ -4,10 +4,10 @@
 
 package org.midonet.client.dto;
 
-import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoApplication {
@@ -36,6 +36,9 @@ public class DtoApplication {
     private URI ports;
     private URI vips;
     private URI vteps;
+    private URI licenses;
+    private URI licenseStatus;
+    private URI installLicense;
     private String adRouteTemplate;
     private String bgpTemplate;
     private String bridgeTemplate;
@@ -58,6 +61,7 @@ public class DtoApplication {
     private String poolMemberTemplate;
     private String vipTemplate;
     private String vtepTemplate;
+    private String licenseTemplate;
 
     public String getVersion() {
         return version;
@@ -451,5 +455,37 @@ public class DtoApplication {
 
     public void setVtepTemplate(String vtepTemplate) {
         this.vtepTemplate = vtepTemplate;
+    }
+
+    public URI getLicenses() {
+        return licenses;
+    }
+
+    public void setLicenses(URI licenses) {
+        this.licenses = licenses;
+    }
+
+    public URI getLicenseStatus() {
+        return licenseStatus;
+    }
+
+    public void setLicenseStatus(URI licenseStatus) {
+        this.licenseStatus = licenseStatus;
+    }
+
+    public URI getInstallLicense() {
+        return installLicense;
+    }
+
+    public void setInstallLicense(URI installLicense) {
+        this.installLicense = installLicense;
+    }
+
+    public String getLicenseTemplate() {
+        return licenseTemplate;
+    }
+
+    public void setLicenseTemplate(String licenseTemplate) {
+        this.licenseTemplate = licenseTemplate;
     }
 }
