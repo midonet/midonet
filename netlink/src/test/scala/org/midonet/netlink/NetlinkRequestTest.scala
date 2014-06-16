@@ -157,7 +157,8 @@ class NetlinkRequestTest extends FunSpec with Matchers {
     }
 
     def requestFor(cb: Callback[Int], buf: ByteBuffer = null) = {
-        val req = NetlinkRequest make (cb, trans, buf, getSeq, 1000)
+        val req = NetlinkRequest make (cb, trans, buf, 1000)
+        req.seq = getSeq()
         req
     }
 
