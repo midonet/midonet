@@ -27,29 +27,7 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
-import org.midonet.midolman.state.zkManagers.BgpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.ChainZkManager;
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
-import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
-import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
-import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.RuleZkManager;
-import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
-import org.midonet.midolman.state.zkManagers.TenantZkManager;
-import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
-import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager;
-import org.midonet.midolman.state.zkManagers.VtepZkManager;
+import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.util.eventloop.Reactor;
 
 import java.lang.reflect.Constructor;
@@ -137,6 +115,7 @@ public class DataClientModule extends PrivateModule {
         managers.add(PoolZkManager.class);
         managers.add(VipZkManager.class);
         managers.add(VtepZkManager.class);
+        managers.add(LicenseZkManager.class);
 
         for (Class<? extends BaseZkManager> managerClass : managers) {
             //noinspection unchecked

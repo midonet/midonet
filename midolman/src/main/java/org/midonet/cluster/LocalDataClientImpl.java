@@ -32,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.midonet.midolman.state.zkManagers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -238,6 +239,9 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private VtepZkManager vtepZkManager;
+
+    @Inject
+    private LicenseZkManager licenseZkManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -3426,5 +3430,27 @@ public class LocalDataClientImpl implements DataClient {
                                      Directory.TypedWatcher watcher)
             throws StateAccessException {
         portZkManager.getVxLanPortIdsAsync(callback, watcher);
+    }
+
+    @Override
+    public void licenseCreate(UUID licenseId, byte[] licenseData)
+            throws StateAccessException {
+        licenseZkManager.create(new LicenseZkManager.LicenseConfig(licenseId,
+                                                                   licenseData));
+    }
+
+    @Override
+    public void licenseDelete(UUID licenseId) throws StateAccessException {
+        licenseZkManager.delete(licenseId);
+    }
+
+    @Override
+    public byte[] licenseSelect(UUID licenseId) throws StateAccessException {
+        return licenseZkManager.select(licenseId);
+    }
+
+    @Override
+    public Collection<UUID> licenseList() throws StateAccessException {
+        return licenseZkManager.list();
     }
 }
