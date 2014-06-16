@@ -25,6 +25,7 @@
         <module>brain</module>
         <module>midonet-client</module>
         <module>midonet-api</module>
+        <module>tools</module>
     </modules>
 
     <properties>
@@ -263,9 +264,15 @@
             <version>${project.version}</version>
         </dependency>
 
-         <dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>midonet-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>keylib</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -369,7 +376,7 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.2</version>
+            <version>1.7</version>
         </dependency>
 
         <!-- jackson -->
@@ -620,6 +627,13 @@
             <artifactId>equalsverifier</artifactId>
             <version>1.4.1</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- licensing -->
+        <dependency>
+            <groupId>net.java.truelicense</groupId>
+            <artifactId>truelicense-json</artifactId>
+            <version>2.3.3</version>
         </dependency>
 
    </dependencies> </dependencyManagement>
