@@ -145,7 +145,6 @@ trait FlowTranslator {
         if (inPortUUID.isDefined) {
             dpState.getDpPortNumberForVport(inPortUUID.get) match {
                 case Some(portNo) =>
-                    wMatch.unsetInputPortUUID() // Not used for flow matching
                     wMatch.setInputPortNumber(portNo.shortValue)
                     dpTags += FlowTagger.invalidateDPPort(portNo.shortValue)
                 case None =>
