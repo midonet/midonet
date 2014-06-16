@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.license;
 
@@ -80,7 +80,7 @@ public class LicenseResource extends AbstractResource {
 
     @GET
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType.APPLICATION_LICENSE_LIST_JSON_V1})
+    @Produces({VendorMediaType.APPLICATION_LICENSE_COLLECTION_JSON_V1})
     public List<License> list() {
         try {
             List<License> licenses = manager.list();

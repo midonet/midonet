@@ -271,7 +271,8 @@ public class TestLicense extends JerseyTest {
         ClientResponse response =
             resource.getAndVerifyStatus(
                 ResourceUriBuilder.getLicenses(app.getUri()),
-                VendorMediaType.APPLICATION_LICENSE_LIST_JSON_V1, STATUS_OK);
+                VendorMediaType.APPLICATION_LICENSE_COLLECTION_JSON_V1,
+                STATUS_OK);
         return response.getEntity(new GenericType<List<License>>() { });
     }
 
