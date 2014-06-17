@@ -48,12 +48,12 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     before {
         stateMgr = new DatapathStateManager(controller)(log)
         stateMgr.version shouldBe 0
-        stateMgr.tunnelOverlayGre shouldBe None
-        stateMgr.tunnelOverlayVxLan shouldBe None
-        stateMgr.tunnelVtepVxLan shouldBe None
-        stateMgr.greOverlayTunnellingOutputAction shouldBe None
-        stateMgr.vxlanOverlayTunnellingOutputAction shouldBe None
-        stateMgr.vtepTunnellingOutputAction shouldBe None
+        stateMgr.tunnelOverlayGre shouldBe null
+        stateMgr.tunnelOverlayVxLan shouldBe null
+        stateMgr.tunnelVtepVxLan shouldBe null
+        stateMgr.greOverlayTunnellingOutputAction shouldBe null
+        stateMgr.vxlanOverlayTunnellingOutputAction shouldBe null
+        stateMgr.vtepTunnellingOutputAction shouldBe null
         stateMgr.host shouldBe null
         for (p <- peers) { (stateMgr peerTunnelInfo p) shouldBe None }
     }
@@ -67,26 +67,25 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     }
 
     def testTunnelSet {
-        def outputOf(port: DpPort) = port.toOutputAction
-        def makePort(factory: (String) => DpPort): ((String, Int)) => DpPort = {
+        def makePort[P <: DpPort](factory: (String) => P): ((String, Int)) => P = {
             case (name, portNo) =>
-                DpPort.fakeFrom(factory(name), portNo)
+                DpPort.fakeFrom(factory(name), portNo).asInstanceOf[P]
             }
         val args = List(("gre", 0),("foo", 1),("bar", 2))
-        args.map(makePort(GreTunnelPort.make)).map(Some.apply)
+        args.map(makePort(GreTunnelPort.make))
             .foreach {
                 tun => checkVUp {
                     stateMgr setTunnelOverlayGre tun
                     stateMgr.tunnelOverlayGre shouldBe tun
-                    stateMgr.greOverlayTunnellingOutputAction shouldBe (tun map outputOf)
+                    stateMgr.greOverlayTunnellingOutputAction shouldBe tun.toOutputAction
             }
         }
-        args.map(makePort(VxLanTunnelPort.make)).map(Some.apply)
+        args.map(makePort(VxLanTunnelPort.make))
             .foreach {
                 tun => checkVUp {
                     stateMgr.setTunnelOverlayVxLan(tun)
                     stateMgr.tunnelOverlayVxLan shouldBe tun
-                    stateMgr.vxlanOverlayTunnellingOutputAction shouldBe (tun map outputOf)
+                    stateMgr.vxlanOverlayTunnellingOutputAction shouldBe tun.toOutputAction
             }
         }
     }
@@ -105,7 +104,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddRemoveOnePeer {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = Some(output)
+        stateMgr.greOverlayTunnellingOutputAction = output
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -125,7 +124,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testMultipleZonesOnePeer {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = Some(output)
+        stateMgr.greOverlayTunnellingOutputAction = output
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -145,10 +144,6 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             stateMgr.peerTunnelInfo(peer) shouldBe Some(route1)
 
             stateMgr.addPeer(peer, zone2, src2, dst2) should contain(tag2)
-            /*
-            Set(None, Some(route1), Some(route2)) should contain(
-                stateMgr peerTunnelInfo peer)
-                */
 
             stateMgr.removePeer(peer, zone1) shouldBe Some(tag1)
             stateMgr.peerTunnelInfo(peer) shouldBe Some(route2)
@@ -161,7 +156,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testMultipleZonesMultiplePeer {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = Some(output)
+        stateMgr.greOverlayTunnellingOutputAction = output
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peerI = r nextInt peers.length
@@ -200,7 +195,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddMultipleRoutesToPeer1 {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = Some(output)
+        stateMgr.greOverlayTunnellingOutputAction = output
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -236,7 +231,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     def testAddMultipleRoutesToPeer2 {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = Some(output)
+        stateMgr.greOverlayTunnellingOutputAction = output
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r.nextInt(peers.length))
