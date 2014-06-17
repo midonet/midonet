@@ -19,6 +19,7 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.TunnelZone
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -30,6 +31,7 @@ import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports._
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.ZoneChanged
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
@@ -39,8 +41,8 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     import DatapathController._
     import DatapathController.Internal._
     import PacketWorkflow.AddVirtualWildcardFlow
-    import VirtualToPhysicalMapper.GreZoneChanged
-    import VirtualToPhysicalMapper.GreZoneMembers
+    import VirtualToPhysicalMapper.ZoneChanged
+    import VirtualToPhysicalMapper.ZoneMembers
 
     val dpc = TestActorRef[DatapathController]("TestDPCActor")
 
@@ -62,8 +64,8 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     val miscMessages = List[AnyRef](
         DpPortStatsRequest(UUID.randomUUID),
         InterfacesUpdate(emptyJSet),
-        GreZoneChanged(UUID.randomUUID, null, HostConfigOperation.Added),
-        GreZoneMembers(UUID.randomUUID, Set()),
+        ZoneChanged(UUID.randomUUID, TunnelZone.Type.gre, null, HostConfigOperation.Added),
+        ZoneMembers(UUID.randomUUID, TunnelZone.Type.gre, Set()),
         AddVirtualWildcardFlow(null, Nil, Set())
     )
 
