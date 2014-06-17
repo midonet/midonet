@@ -76,13 +76,15 @@ object UpcallChannelsTest {
         val con = new OvsConnectionOps(DatapathClient.createConnection())
         val dp = Await.result(con.ensureDp(dpName), 2 seconds)
 
+        val t = VirtualMachine
+
         val name1 = "ovstest-foo"
         val name2 = "ovstest-bar"
         val name3 = "ovstest-baz"
         val ports = List(name1, name2, name3) map { new NetDevPort(_) }
 
         val portCr8Fut =
-            Future.traverse(ports) { mngr createAndHookDpPort(dp, _) }
+            Future.traverse(ports) { mngr createAndHookDpPort(dp, _, t) }
 
         val portDelFut = portCr8Fut flatMap {
             case ports =>
@@ -102,13 +104,13 @@ object UpcallChannelsTest {
         }
 
         val grePortFut =
-            mngr createAndHookDpPort(dp, GreTunnelPort.make("tngre-mm"))
+            mngr createAndHookDpPort(dp, GreTunnelPort.make("tngre-mm"), t)
 
         val grePortDelFut =
             grePortFut flatMap { case (p,_) => mngr deleteDpPort(dp, p) }
 
         val vxLanPortFut =
-            mngr createAndHookDpPort(dp, VxLanTunnelPort.make("tnvxlan-mm"))
+            mngr createAndHookDpPort(dp, VxLanTunnelPort.make("tnvxlan-mm"), t)
 
         val vxLanPortDelFut =
             vxLanPortFut flatMap { case (p,_) => mngr deleteDpPort(dp, p) }

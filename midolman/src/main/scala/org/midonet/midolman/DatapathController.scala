@@ -368,19 +368,20 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                   .map { _ => DatapathClear } pipeTo self
 
         case DatapathClear =>
-            makeTunnelPort { () => GreTunnelPort make "tngre-overlay" }
-                .map { GrePortReady(_) } pipeTo self
+            makeTunnelPort(OverlayTunnel) {() =>
+                GreTunnelPort make "tngre-overlay"
+            } map { GrePortReady(_) } pipeTo self
 
         case GrePortReady(gre) =>
             dpState setTunnelOverlayGre gre
-            makeTunnelPort { () =>
+            makeTunnelPort(OverlayTunnel) { () =>
                 val overlayUdpPort = midolmanConfig.getVxLanOverlayUdpPort
                 VxLanTunnelPort make ("tnvxlan-overlay", overlayUdpPort)
             } map { VxLanPortReady(_) } pipeTo self
 
         case VxLanPortReady(vxlan) =>
             dpState setTunnelOverlayVxLan vxlan
-            makeTunnelPort { () =>
+            makeTunnelPort(VtepTunnel) { () =>
                 val vtepUdpPort = midolmanConfig.getVxLanVtepUdpPort
                 VxLanTunnelPort make ("tnvxlan-vtep", vtepUdpPort)
             } map { VtepPortReady(_) } pipeTo self
@@ -407,15 +408,16 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 after(1 second, system.scheduler)(ensureDeletePort(port, conn))
         }
 
-    def makeTunnelPort[P <: DpPort](portFact: () => P)(implicit tag: ClassTag[P]): Future[P] =
+    def makeTunnelPort[P <: DpPort](t: ChannelType)(portFact: () => P)
+                                   (implicit tag: ClassTag[P]): Future[P] =
         Future { portFact() } flatMap {
-            upcallConnManager.createAndHookDpPort(datapath, _)
+            upcallConnManager.createAndHookDpPort(datapath, _, t)
         } map {
             case (p, _) => p.asInstanceOf[P]
         } recoverWith {
             case ex: Throwable =>
                 log.warning(tag + " creation failed: {} => retrying", ex)
-                after(1 second, system.scheduler)(makeTunnelPort(portFact))
+                after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
         }
 
     /**
@@ -689,7 +691,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             pendingUpdateCount += 1
         log.info("creating port: {} (by request of: {})", request.port, caller)
 
-        upcallConnManager.createAndHookDpPort(datapath, request.port) onComplete {
+        val t = VirtualMachine
+        upcallConnManager.createAndHookDpPort(datapath, request.port, t) onComplete {
             case Success((port, pid)) =>
                 caller ! DpPortCreateSuccess(request, port, pid)
 

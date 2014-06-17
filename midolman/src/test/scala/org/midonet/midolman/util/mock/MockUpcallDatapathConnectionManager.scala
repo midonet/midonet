@@ -11,10 +11,9 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.io.{ManagedDatapathConnection, MockManagedDatapathConnection,
-                                UpcallDatapathConnectionManagerBase, TokenBucketPolicy}
-import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
+import org.midonet.midolman.io._
 import org.midonet.odp.protos.OvsDatapathConnection
+import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
 import org.midonet.util._
 
 class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
@@ -44,18 +43,18 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         conn.datapathsSetNotificationHandler(upcallHandler)
     }
 
-    override def createAndHookDpPort(datapath: Datapath, port: DpPort)(
+    override def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)(
             implicit ec: ExecutionContext, as: ActorSystem)
     : Future[(DpPort,Int)] = {
         initialize()
         val ovsConOps = new OvsConnectionOps(conn.getConnection)
-        ovsConOps createPort (port, datapath) map { (_, 1) }
+        ovsConOps createPort (port, dp) map { (_, 1) }
     }
 
-    override def deleteDpPort(datapath: Datapath, port: DpPort)(
+    override def deleteDpPort(dp: Datapath, port: DpPort)(
             implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean] = {
         val ovsConOps = new OvsConnectionOps(conn.getConnection)
-        ovsConOps delPort(port, datapath) map { _ => true }
+        ovsConOps delPort(port, dp) map { _ => true }
     }
 
 }
