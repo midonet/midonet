@@ -26,7 +26,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
-import org.midonet.odp.ports.GreTunnelPort
+import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.packets.IPv4Addr
 
@@ -118,7 +118,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
                 testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             }
             And("the min MTU should be the interface one")
-            DatapathController.minMtu should be (ifmtu - GreTunnelPort.TunnelOverhead)
+            DatapathController.minMtu should be (ifmtu - VxLanTunnelPort.TunnelOverhead)
 
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true

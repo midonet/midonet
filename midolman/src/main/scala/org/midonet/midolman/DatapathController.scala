@@ -13,6 +13,7 @@ import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
+import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
@@ -60,7 +61,7 @@ trait UnderlayResolver {
     /** pair of IPv4 addresses from current host to remote peer host.
      *  None if information not available or peer outside of tunnel Zone. */
 
-    /** looks for a tunnel route to a remote peer and return a pair of IPv4
+    /** Looks up a tunnel route to a remote peer and return a pair of IPv4
      *  addresses as 4B int from current host to remote peer host.
      *  @param  peer a peer midolman UUID
      *  @return first possible tunnel route, or None if unknown peer or no
@@ -68,23 +69,19 @@ trait UnderlayResolver {
      */
     def peerTunnelInfo(peer: UUID): Option[(Int,Int)]
 
-    /** reference to the datapath GRE tunnel port.
-     *  None if port is not available. */
-    def tunnelGre: Option[DpPort]
+    /** Return the FlowAction for emitting traffic on the vxlan tunnelling port
+     *  towards other midolman peers. */
+    def overlayTunnellingOutputAction: Option[FlowActionOutput]
 
-    def greOutputAction: Option[FlowActionOutput]
-
-    /** reference to the datapath VxLan tunnel port.
-     *  None if port is not available. */
-    def tunnelVxLan: Option[DpPort]
-
-    def vxLanOutputAction: Option[FlowActionOutput]
+    /** Return the FlowAction for emitting traffic on the vxlan tunnelling port
+     *  towards vtep peers. */
+    def vtepTunnellingOutputAction: Option[FlowActionOutput]
 
     /** tells if the given portNumber points to the vtep tunnel port. */
-    def isVtepPort(portNumber: Short): Boolean
+    def isVtepTunnellingPort(portNumber: Short): Boolean
 
-    /** tells if the given portNumber points to the gre tunnel port. */
-    def isGrePort(portNumber: Short): Boolean
+    /** tells if the given portNumber points to the overlay tunnel port. */
+    def isOverlayTunnellingPort(portNumber: Short): Boolean
 }
 
 trait VirtualPortsResolver {
@@ -198,10 +195,17 @@ object DatapathController extends Referenceable {
         /** Signals that the ports in the datapath were cleared */
         case object DatapathClear
 
-        /** Signals that the tunnels port have been created. The vxlan tunnel
-         *  port is created (case Some(port)) only if a valid udp port value is
-         *  set in the config, otherwise it not used (case None). */
-        case class TunnelPortsReady(gre: DpPort, vxlanOption: Option[DpPort])
+        /** Signals that the gre port for overlay traffic tunnelling has been
+         *  created. */
+        case class GrePortReady(gre: GreTunnelPort)
+
+        /** Signals that the vxlan port for overlay traffic tunnelling has been
+         *  created. */
+        case class VxLanPortReady(vxlan: VxLanTunnelPort)
+
+        /** Signals that the vxlan port for vtep traffic tunnelling has been
+         *  created. */
+        case class VtepPortReady(vtep: VxLanTunnelPort)
     }
 
     private var cachedMinMtu: Short = DEFAULT_MTU
@@ -364,13 +368,25 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                   .map { _ => DatapathClear } pipeTo self
 
         case DatapathClear =>
-            makeGrePort().zip(makeVxLanPort())
-                         .map { case (p,q) => TunnelPortsReady(p,q) }
-                         .pipeTo(self)
+            makeTunnelPort { () => GreTunnelPort make "tngre-overlay" }
+                .map { GrePortReady(_) } pipeTo self
 
-        case TunnelPortsReady(grePort, vxlanPortOption) =>
-            dpState setTunnelGre Some(grePort)
-            dpState setTunnelVxLan vxlanPortOption
+        case GrePortReady(gre) =>
+            dpState setTunnelOverlayGre Some(gre)
+            makeTunnelPort { () =>
+                val overlayUdpPort = midolmanConfig.getVxLanOverlayUdpPort
+                VxLanTunnelPort make ("tnvxlan-overlay", overlayUdpPort)
+            } map { VxLanPortReady(_) } pipeTo self
+
+        case VxLanPortReady(vxlan) =>
+            dpState setTunnelOverlayVxLan Some(vxlan)
+            makeTunnelPort { () =>
+                val vtepUdpPort = midolmanConfig.getVxLanVtepUdpPort
+                VxLanTunnelPort make ("tnvxlan-vtep", vtepUdpPort)
+            } map { VtepPortReady(_) } pipeTo self
+
+        case VtepPortReady(vtep) =>
+            dpState setTunnelVtepVxLan Some(vtep)
             completeInitialization()
     }
 
@@ -391,34 +407,16 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 after(1 second, system.scheduler)(ensureDeletePort(port, conn))
         }
 
-    def makeGrePort(): Future[DpPort] = {
-        val grePort = GreTunnelPort.make("tngre-mm")
-        upcallConnManager.createAndHookDpPort(datapath, grePort) map {
-          case (p, _) => p
+    def makeTunnelPort[P <: DpPort](portFact: () => P)(implicit tag: ClassTag[P]): Future[P] =
+        Future { portFact() } flatMap {
+            upcallConnManager.createAndHookDpPort(datapath, _)
+        } map {
+            case (p, _) => p.asInstanceOf[P]
         } recoverWith {
             case ex: Throwable =>
-                log.warning(
-                    "GRE port creation failed: {} => retrying", ex)
-                after(1 second, system.scheduler)(makeGrePort())
+                log.warning(tag + " creation failed: {} => retrying", ex)
+                after(1 second, system.scheduler)(makeTunnelPort(portFact))
         }
-    }
-
-    def makeVxLanPort(): Future[Option[DpPort]] = {
-        val vxlanUdpPort = midolmanConfig.getVxLanUdpPort
-        if (TCP.isPortInRange(vxlanUdpPort)) {
-            val vxLanPort = VxLanTunnelPort.make("tnvxlan-mm", vxlanUdpPort)
-            upcallConnManager.createAndHookDpPort(datapath, vxLanPort) map {
-                case (p, _) => Some(p)
-            } recoverWith {
-                case ex: Throwable =>
-                    log.warning(
-                        "VxLan port creation failed: {} => retrying", ex)
-                    after(1 second, system.scheduler)(makeVxLanPort())
-            }
-        } else {
-            Future successful None
-        }
-    }
 
     /**
      * Complete initialization and notify the actor that requested init.
@@ -740,10 +738,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             ByteBuffer.wrap(inetAddress.getAddress).getInt == ip.addressAsInt()
 
         var minMtu = Short.MaxValue
-        val overhead = if (dpState.tunnelVxLan.isDefined)
-            VxLanTunnelPort.TunnelOverhead
-        else
-            GreTunnelPort.TunnelOverhead
+        val overhead = VxLanTunnelPort.TunnelOverhead
 
         for { intf <- interfaces.asScala
               inetAddress <- intf.getInetAddresses.asScala
@@ -1277,33 +1272,44 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     def dpPortForget(port: DpPort) =
         versionUp { _vportMgr = _vportMgr.datapathPortForget(port) }
 
-    var tunnelGre: Option[DpPort] = None
+    var tunnelOverlayGre: Option[DpPort] = None
+    var tunnelOverlayVxLan: Option[DpPort] = None
+    var tunnelVtepVxLan: Option[DpPort] = None
 
-    var greOutputAction: Option[FlowActionOutput] = None
+    var greOverlayTunnellingOutputAction: Option[FlowActionOutput] = None
+    var vxlanOverlayTunnellingOutputAction: Option[FlowActionOutput] = None
+    var vtepTunnellingOutputAction: Option[FlowActionOutput] = None
+
+    def overlayTunnellingOutputAction = greOverlayTunnellingOutputAction
 
     /** set the DPC reference to the gre tunnel port bound in the datapath */
-    def setTunnelGre(p: Option[DpPort]) = versionUp {
-        tunnelGre = p
-        greOutputAction = tunnelGre.map{ _.toOutputAction }
-        log.info("gre tunnel port was assigned to {}", p)
+    def setTunnelOverlayGre(p: Option[DpPort]) = versionUp {
+        tunnelOverlayGre = p
+        greOverlayTunnellingOutputAction =
+            tunnelOverlayGre.map{ _.toOutputAction }
+        log.info("gre overlay tunnel port was assigned to {}", p)
     }
-
-    var tunnelVxLan: Option[DpPort] = None
-
-    var vxLanOutputAction: Option[FlowActionOutput] = None
 
     /** set the DPC reference to the vxlan tunnel port bound in the datapath */
-    def setTunnelVxLan(p: Option[DpPort]) = versionUp {
-        tunnelVxLan = p
-        vxLanOutputAction = tunnelVxLan.map{ _.toOutputAction }
-        log.info("vxlan tunnel port was assigned to {}", p)
+    def setTunnelOverlayVxLan(p: Option[DpPort]) = versionUp {
+        tunnelOverlayVxLan = p
+        vxlanOverlayTunnellingOutputAction =
+            tunnelOverlayVxLan.map{ _.toOutputAction }
+        log.info("vxlan overlay tunnel port was assigned to {}", p)
     }
 
-    def isVtepPort(dpPortId: Short): Boolean =
-      if (tunnelVxLan.isEmpty) false else tunnelVxLan.get.getPortNo == dpPortId
+    /** set the DPC reference to the vxlan tunnel port bound in the datapath */
+    def setTunnelVtepVxLan(p: Option[DpPort]) = versionUp {
+        tunnelVtepVxLan = p
+        vtepTunnellingOutputAction = tunnelVtepVxLan.map{ _.toOutputAction }
+        log.info("vxlan vtep tunnel port was assigned to {}", p)
+    }
 
-    def isGrePort(dpPortId: Short): Boolean =
-      if (tunnelGre.isEmpty) false else tunnelGre.get.getPortNo == dpPortId
+    def isVtepTunnellingPort(portNumber: Short) =
+      tunnelVtepVxLan.isDefined && tunnelVtepVxLan.get.getPortNo == portNumber
+
+    def isOverlayTunnellingPort(portNumber: Short) =
+      tunnelOverlayGre.isDefined && tunnelOverlayGre.get.getPortNo == portNumber
 
     /** reference to the current host information. Used to query this host ip
      *  when adding tunnel routes to peer host for given zone uuid. */

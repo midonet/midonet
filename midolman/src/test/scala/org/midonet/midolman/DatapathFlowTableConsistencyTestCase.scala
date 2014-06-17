@@ -83,7 +83,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
     def testFlowGetMiss() {
         // cause flow to be installed.
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+        expectPacketAllowed(vmPortNumbers(0)-3, vmPortNumbers(1)-3,
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
 
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -102,10 +102,9 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         flowManager.getNumDpFlows shouldBe 0
     }
 
-
     def testMultipleTCPPacketIn() {
         // cause flow to be installed.
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+        expectPacketAllowed(vmPortNumbers(0)-3, vmPortNumbers(1)-3,
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
         requestOfType[WildcardFlowAdded](wflowAddedProbe)
 
@@ -118,7 +117,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
         drainProbes()
         // resend packet and check that the flow is re-added
-        expectPacketAllowed(vmPortNumbers(0), vmPortNumbers(1),
+        expectPacketAllowed(vmPortNumbers(0)-3, vmPortNumbers(1)-3,
             tcpBetweenPorts(_:Int, _:Int, 9009, 80))
 
         fishForRequestOfType[FlowController.FlowAdded](flowProbe())

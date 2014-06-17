@@ -148,10 +148,12 @@ class TunnelManagementTestCase extends MidolmanTestCase
         dp should not be (null)
 
         val ports = datapathPorts(dp)
-        ports should have size 3
+        ports should have size 5
         ports should contain key ("midonet")
         ports should contain key ("port1")
-        ports should contain key ("tngre-mm")
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
 
         // delete this host from the tunnel zone
         clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host1.getId)

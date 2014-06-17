@@ -39,8 +39,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     }
 
     def checkGreTunnel() {
-        dpState.tunnelGre should not be (None)
-        dpState.greOutputAction should not be (None)
+        dpState.overlayTunnellingOutputAction should not be (None)
+        dpState.vtepTunnellingOutputAction should not be (None)
     }
 
     def testDatapathEmptyDefault() {
@@ -60,8 +60,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         datapaths.head should have('name("midonet"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 2
-        ports should contain key ("tngre-mm")
+        ports should have size 4
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("midonet")
         checkGreTunnel()
     }
@@ -83,8 +85,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         datapaths.head should have('name("test"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 2
-        ports should contain key ("tngre-mm")
+        ports should have size 4
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("test")
         checkGreTunnel()
     }
@@ -116,8 +120,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         datapaths.head should have('name("test"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 3
-        ports should contain key ("tngre-mm")
+        ports should have size 5
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("test")
         ports should contain key ("port1")
         checkGreTunnel()
@@ -155,8 +161,10 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         datapaths.head should have('name("test"))
 
         val ports = datapathPorts(datapaths.head)
-        ports should have size 3
-        ports should contain key ("tngre-mm")
+        ports should have size 5
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("test")
         ports should contain key ("port1")
         checkGreTunnel()
@@ -184,20 +192,23 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         datapaths.head should have('name("test"))
 
         var ports = datapathPorts(datapaths.head)
-        ports should have size 3
-        ports should contain key ("tngre-mm")
+        ports should have size 5
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("test")
         ports should contain key ("netdev")
         checkGreTunnel()
 
-        val netdevPortWithPorNo = DpPort.fakeFrom(netdevPort, 3).asInstanceOf[NetDevPort]
-        val nextRequest = DpPortDeleteNetdev(netdevPortWithPorNo, None)
-        opReply = askAndAwait[DpPortReply](dpController(), nextRequest)
-        opReply should not be (null)
+        val delRequest =
+            DpPortDeleteNetdev(ports("netdev").asInstanceOf[NetDevPort], None)
+        askAndAwait[DpPortReply](dpController(), delRequest) should not be(null)
 
         ports = datapathPorts(datapaths.head)
-        ports should have size 2
-        ports should contain key ("tngre-mm")
+        ports should have size 4
+        ports should contain key ("tngre-overlay")
+        ports should contain key ("tnvxlan-overlay")
+        ports should contain key ("tnvxlan-vtep")
         ports should contain key ("test")
         checkGreTunnel()
     }
@@ -223,7 +234,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         ports should contain key ("port1")
         val port1DpId = ports("port1").getPortNo
 
-        dpState().getDpPortNumberForVport(port1.getId) should be (Some(port1DpId))
+        dpState.getDpPortNumberForVport(port1.getId) shouldBe (Some(port1DpId))
 
         requestOfType[HostRequest](vtpProbe())
         val rcuHost = replyOfType[RCUHost](vtpProbe())
@@ -247,8 +258,8 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         newPorts should contain key ("port2")
         val port2DpId = newPorts("port2").getPortNo
 
-        dpState().getDpPortNumberForVport(port1.getId) should equal(Some(port1DpId))
-        dpState().getDpPortNumberForVport(port2.getId) should equal(Some(port2DpId))
+        dpState.getDpPortNumberForVport(port1.getId) shouldBe Some(port1DpId)
+        dpState.getDpPortNumberForVport(port2.getId) shouldBe Some(port2DpId)
     }
 
 }

@@ -47,7 +47,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
     val ip3 = IPv4Addr("192.168.150.1")
 
     var bridge: Bridge = null
-    var tunnelId = 0
+    var tunnelPortNo = 0
 
     private val log = LoggerFactory.getLogger(
         classOf[FlowManagementForPortSetTestCase])
@@ -71,7 +71,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
-        tunnelId = dpState.tunnelGre.get.getPortNo
+        tunnelPortNo = dpState.overlayTunnellingOutputAction.get.getPortNumber
     }
 
     def testInstallFlowForPortSet() {
@@ -143,7 +143,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         outputs should have size(3)
         outputs.contains(
-            output(tunnelId)) should be (true)
+            output(tunnelPortNo)) should be (true)
         outputs.contains(
             output(localPortNumber3)) should be (true)
         outputs.contains(
@@ -207,7 +207,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         val dpMatch = new FlowMatch()
                 .addKey(ethernet(srcMAC.getAddress, dstMAC.getAddress))
-                .addKey(inPort(tunnelId))
+                .addKey(inPort(tunnelPortNo))
                 .addKey(tunnel(bridge.getTunnelKey, 42, 142))
 
         val eth = new Ethernet().
@@ -223,7 +223,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         addFlowMsg should not be null
         addFlowMsg.f.getMatch.getInputPortUUID should be (null)
-        addFlowMsg.f.getMatch.getInputPortNumber should be (tunnelId)
+        addFlowMsg.f.getMatch.getInputPortNumber should be (tunnelPortNo)
 
         val flowActs = addFlowMsg.f.getActions.toList
 

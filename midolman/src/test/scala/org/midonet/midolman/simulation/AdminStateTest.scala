@@ -389,10 +389,8 @@ class AdminStateTest extends MidolmanSpec {
         protected val dpState: DatapathState = new DatapathState {
             def host: rcu.Host = null
             def peerTunnelInfo(peer: UUID): Option[(Int, Int)] = null
-            def tunnelGre: Option[DpPort] = None
-            def tunnelVxLan: Option[DpPort] = None
-            def greOutputAction: Option[FlowActionOutput] = None
-            def vxLanOutputAction: Option[FlowActionOutput] = None
+            def overlayTunnellingOutputAction: Option[FlowActionOutput] = None
+            def vtepTunnellingOutputAction: Option[FlowActionOutput] = None
             def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
                 Some(1)
             def getDpPortForInterface(itfName: String): Option[DpPort] = null
@@ -400,8 +398,8 @@ class AdminStateTest extends MidolmanSpec {
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L
             def uplinkPid: Int = 0
-            def isVtepPort(dpPortId: Short): Boolean = false
-            def isGrePort(dpPortId: Short): Boolean = false
+            def isVtepTunnellingPort(portNumber: Short): Boolean = false
+            def isOverlayTunnellingPort(portNumber: Short): Boolean = false
         }
 
         def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[Any]) = {
