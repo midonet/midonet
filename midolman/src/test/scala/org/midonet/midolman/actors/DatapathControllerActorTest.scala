@@ -1,8 +1,6 @@
-/******************************************************************************
- *                                                                            *
- *      Copyright (c) 2013 Midokura SARL, All Rights Reserved.         *
- *                                                                            *
- ******************************************************************************/
+/*
+ * Copyright (c) 2013 Midokura SARL, All Rights Reserved.
+ */
 
 package org.midonet.midolman
 
@@ -149,8 +147,9 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
             ackTunnelPorts()
             expectMsg(CompleteInit)
             expectNoMsg(Duration fromNanos 10000)
-            instance.dpState.overlayTunnellingOutputAction should not be (None)
-            instance.dpState.vtepTunnellingOutputAction should not be (None)
+            instance.dpState.greOverlayTunnellingOutputAction should not be (null)
+            instance.dpState.vxlanOverlayTunnellingOutputAction should not be (null)
+            instance.dpState.vtepTunnellingOutputAction should not be (null)
         }
 
         scenario("The DPC retries when the port creation fails") {
@@ -161,8 +160,9 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
             ackTunnelPorts()
             expectMsg(CompleteInit)
             expectNoMsg(Duration fromNanos 10000)
-            instance.dpState.overlayTunnellingOutputAction should not be (None)
-            instance.dpState.vtepTunnellingOutputAction should not be (None)
+            instance.dpState.greOverlayTunnellingOutputAction should not be (null)
+            instance.dpState.vxlanOverlayTunnellingOutputAction should not be (null)
+            instance.dpState.vtepTunnellingOutputAction should not be (null)
         }
     }
 

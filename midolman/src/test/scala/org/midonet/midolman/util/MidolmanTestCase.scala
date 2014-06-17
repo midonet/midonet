@@ -484,7 +484,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     def greTunnelId = dpController().underlyingActor.dpState
-                                    .overlayTunnellingOutputAction.getPortNumber
+                                    .greOverlayTunnellingOutputAction
+                                    .getPortNumber
 
     def parseTunnelActions(acts: Seq[FlowAction]):
             (Seq[FlowActionOutput], Seq[FlowKeyTunnel]) = {
