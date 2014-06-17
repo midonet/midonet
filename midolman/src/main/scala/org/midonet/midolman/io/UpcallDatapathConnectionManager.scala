@@ -26,7 +26,7 @@ import org.midonet.util.{Bucket, BatchCollector}
 
 trait UpcallDatapathConnectionManager {
 
-    def createAndHookDpPort(dp: Datapath, port: DpPort)
+    def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
         (implicit ec: ExecutionContext, as: ActorSystem): Future[(DpPort, Int)]
 
     def deleteDpPort(datapath: Datapath, port: DpPort)
@@ -62,7 +62,7 @@ abstract class UpcallDatapathConnectionManagerBase(
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
 
-    def createAndHookDpPort(datapath: Datapath, port: DpPort)
+    def createAndHookDpPort(datapath: Datapath, port: DpPort, t: ChannelType)
                            (implicit ec: ExecutionContext, as: ActorSystem)
     : Future[(DpPort, Int)] = {
 
@@ -71,7 +71,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
         var conn: ManagedDatapathConnection = null
         try {
-            conn = makeConnection(connName, tbPolicy.link(port))
+            conn = makeConnection(connName, tbPolicy.link(port, t))
         } catch {
             case e: Throwable =>
                 tbPolicy.unlink(port)

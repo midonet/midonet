@@ -42,25 +42,28 @@ class TokenBucketPolicyTest extends FeatureSpec
 
     feature("Buckets are correctly linked") {
         scenario("Tunnel ports result in a leaf bucket under the root") {
-            val tbgre = policy link new GreTunnelPort("gre")
-            val tbvxlan = policy link new VxLanTunnelPort("vxlan")
+            val tbgre = policy link (new GreTunnelPort("gre"), OverlayTunnel)
+            val tbvxlan = policy link (new VxLanTunnelPort("vxlan"), OverlayTunnel)
+            val tbvtep = policy link (new VxLanTunnelPort("vtep"), VtepTunnel)
 
             tbgre.underlyingTokenBucket.getCapacity should be (4)
             tbgre.underlyingTokenBucket.getName should be ("midolman-root/gre")
-            tbvxlan.underlyingTokenBucket.getCapacity should be (1)
+            tbvxlan.underlyingTokenBucket.getCapacity should be (4)
             tbvxlan.underlyingTokenBucket.getName should be ("midolman-root/vxlan")
+            tbvtep.underlyingTokenBucket.getCapacity should be (1)
+            tbvtep.underlyingTokenBucket.getName should be ("midolman-root/vtep")
         }
 
         scenario("VM ports result in a leaf bucket under the VMs bucket") {
-            val tb = policy link new NetDevPort("vm")
+            val tb = policy link (new NetDevPort("vm"), VirtualMachine)
             tb.underlyingTokenBucket.getCapacity should be (1)
             tb.underlyingTokenBucket.getName should be ("midolman-root/vms/vm")
         }
 
         scenario("The policy ensures the capacity of the root is greater or " +
                  "equal to the capacity of all leaf buckets") {
-            val tb1 = policy link new NetDevPort("vm1")
-            val tb2 = policy link new NetDevPort("vm2")
+            val tb1 = policy link (new NetDevPort("vm1"), VirtualMachine)
+            val tb2 = policy link (new NetDevPort("vm2"), VirtualMachine)
 
             tb1.underlyingTokenBucket.tryGet(1) should be (1)
             tb2.underlyingTokenBucket.tryGet(1) should be (1)
@@ -70,9 +73,9 @@ class TokenBucketPolicyTest extends FeatureSpec
     feature("Buckets are correctly unlinked") {
         scenario("Tunnel ports are correctly unlinked") {
             val grePort = new GreTunnelPort("gre")
-            val tbgre = policy.link(grePort)
+            val tbgre = policy link (grePort, OverlayTunnel)
             val vxlanPort = new VxLanTunnelPort("vxlan")
-            val tbvxlan = policy.link(vxlanPort)
+            val tbvxlan = policy link (vxlanPort, OverlayTunnel)
 
             policy unlink grePort
             policy unlink vxlanPort
@@ -83,7 +86,7 @@ class TokenBucketPolicyTest extends FeatureSpec
 
         scenario("VM ports are correctly unlinked") {
             val port = new NetDevPort("port")
-            val tb = policy.link(port)
+            val tb = policy link (port, VirtualMachine)
 
             policy unlink port
 

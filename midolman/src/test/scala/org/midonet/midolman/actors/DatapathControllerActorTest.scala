@@ -22,6 +22,7 @@ import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
+import org.midonet.midolman.io.ChannelType
 import org.midonet.midolman.topology.HostConfigOperation
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.rcu.Host
@@ -167,7 +168,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     }
 
     class MockManager(testKit: ActorRef) extends UpcallDatapathConnectionManager {
-        def createAndHookDpPort(dp: Datapath, port: DpPort)
+        def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
                 (implicit ec: ExecutionContext, as: ActorSystem) = {
             testKit ! port
             Future.successful((DpPort.fakeFrom(port, 0), 0))
@@ -179,7 +180,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     class FailOnceManager(testKit: ActorRef) extends UpcallDatapathConnectionManager {
         var ports = Set.empty[DpPort]
-        def createAndHookDpPort(dp: Datapath, port: DpPort)
+        def createAndHookDpPort(dp: Datapath, port: DpPort, t: ChannelType)
                 (implicit ec: ExecutionContext, as: ActorSystem) = {
             if (ports contains port) {
                 testKit ! port

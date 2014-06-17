@@ -41,13 +41,13 @@ class TokenBucketPolicy(config: MidolmanConfig,
     def calculateMinimumSystemTokens: Int =
         tokenBuckets.foldLeft(0)(_ + _._2.getCapacity)
 
-    def link(port: DpPort): Bucket = {
-        val tb = port match {
-            case p: GreTunnelPort if config.getTunnelIncomingBurstCapacity > 0 =>
+    def link(port: DpPort, t: ChannelType): Bucket = {
+        val tb = t match {
+            case OverlayTunnel if config.getTunnelIncomingBurstCapacity > 0 =>
                 root.link(adjust(config.getTunnelIncomingBurstCapacity), port.getName)
-            case p: VxLanTunnelPort if config.getVtepIncomingBurstCapacity > 0 =>
+            case VtepTunnel if config.getVtepIncomingBurstCapacity > 0 =>
                 root.link(adjust(config.getVtepIncomingBurstCapacity), port.getName)
-            case p if config.getVmIncomingBurstCapacity > 0 =>
+            case VirtualMachine if config.getVmIncomingBurstCapacity > 0 =>
                 vmBuckets.link(adjust(config.getVmIncomingBurstCapacity), port.getName)
             case _ =>
                 return null
