@@ -33,8 +33,11 @@ public interface DatapathConfig {
     @ConfigInt(key = "max_wildcard_flow_count", defaultValue = 10000)
     public int getDatapathMaxWildcardFlowCount();
 
-    @ConfigInt(key = "vxlan_udp_port", defaultValue = -1)
-    public int getVxLanUdpPort();
+    @ConfigInt(key = "vxlan_vtep_udp_port", defaultValue = 4789)
+    public int getVxLanVtepUdpPort();
+
+    @ConfigInt(key = "vxlan_overlay_udp_port", defaultValue = 6677)
+    public int getVxLanOverlayUdpPort();
 
     @ConfigInt(key = "global_incoming_burst_capacity", defaultValue = 20000)
     public int getGlobalIncomingBurstCapacity();

@@ -65,7 +65,7 @@ class FlowTranslatorTest extends MidolmanSpec {
            inPortUUID = Some(id)
 
         def vxlanPort(num: Integer): Unit =
-            dpState.vxLanOutputAction = Some(output(num))
+            dpState.vtepTunnellingOutputAction = Some(output(num))
 
         def translate(action: FlowAction): Unit = translate(List(action))
 
@@ -407,21 +407,18 @@ class FlowTranslatorTest extends MidolmanSpec {
         def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
             dpPortNumberForVport get vportId
 
-        def greOutputAction: Option[FlowActionOutput] =
+        def overlayTunnellingOutputAction: Option[FlowActionOutput] =
             Some(FlowActions.output(grePort))
+        var vtepTunnellingOutputAction: Option[FlowActionOutput] = None
 
         def peerTunnelInfo(peer: UUID): Option[(Int, Int)] =
             peerTunnels get peer
 
-        def tunnelGre: Option[DpPort] = None
-        def tunnelVxLan: Option[DpPort] = None
-
-        var vxLanOutputAction: Option[FlowActionOutput] = None
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
         def getDpPortName(num: Integer): Option[String] = None
-        def isVtepPort(dpPortId: Short): Boolean = false
-        def isGrePort(dpPortId: Short): Boolean = false
+        def isVtepTunnellingPort(portNumber: Short): Boolean = false
+        def isOverlayTunnellingPort(portNumber: Short): Boolean = false
     }
 
     def translationScenario(name: String)

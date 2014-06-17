@@ -186,8 +186,8 @@ def test_dhcp():
     #TODO(tomoe): assert for default gw and static routes with opt 121
     assert iface.get_num_routes() > 0
 
-    # MTU should be 1454
-    assert iface.get_mtu() == "1454"
+    # MTU should be 1450 (interface mtu minus 50B, the max of gre/vxlan overhead)
+    assert iface.get_mtu() == "1450"
 
 
 @attr(version="v1.2.0", slow=False)
