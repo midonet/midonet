@@ -47,44 +47,6 @@ sealed trait VTPMRequest[D] {
     def getCached: Option[D]
 }
 
-sealed trait ZoneChanged {
-    val zone: UUID
-    val zoneType: TunnelZone.Type
-    val hostConfig: TunnelZone.HostConfig
-    val op: HostConfigOperation.Value
-}
-
-sealed trait ZoneMembers {
-    val zone: UUID
-    val zoneType: TunnelZone.Type
-    val members: ROSet[TunnelZone.HostConfig]
-
-    def change(change: ZoneChanged): ZoneMembers
-
-    protected def memberOp(change: ZoneChanged): ROSet[TunnelZone.HostConfig] =
-        if (this.zoneType == change.zoneType)
-            change.op match {
-                case HostConfigOperation.Added =>
-                    members + change.hostConfig
-                case HostConfigOperation.Deleted =>
-                    members - change.hostConfig
-            }
-        else
-            members
-}
-
-object ZoneMembers {
-
-    import VirtualToPhysicalMapper._
-
-    def apply(id: UUID, tzType: TunnelZone.Type): ZoneMembers =
-        tzType match {
-            case TunnelZone.Type.`gre` => GreZoneMembers(id, Set())
-            case _ => GreZoneMembers(id, Set())
-        }
-
-}
-
 /**
  * Send this message to the VirtualToPhysicalMapper to let it know when
  * an exterior virtual network port is 'active' - meaning that it may emit
@@ -125,15 +87,23 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class TunnelZoneUnsubscribe(zoneId: UUID)
 
-    case class GreZoneChanged(zone: UUID, hostConfig: TunnelZone.HostConfig,
-                              op: HostConfigOperation.Value) extends ZoneChanged {
-        val zoneType = TunnelZone.Type.gre
-    }
+    case class ZoneChanged(zone: UUID,
+                           zoneType: TunnelZone.Type,
+                           hostConfig: TunnelZone.HostConfig,
+                           op: HostConfigOperation.Value)
 
-    case class GreZoneMembers(zone: UUID, members: ROSet[TunnelZone.HostConfig])
-            extends ZoneMembers {
-        val zoneType = TunnelZone.Type.gre
-        override def change(change: ZoneChanged) = copy(members=memberOp(change))
+    case class ZoneMembers(zone: UUID, zoneType: TunnelZone.Type,
+                           members: ROSet[TunnelZone.HostConfig] = Set.empty) {
+
+        def change(change: ZoneChanged) = copy(
+            zoneType = change.zoneType,
+            members = change.op match {
+                        case HostConfigOperation.Added =>
+                            members + change.hostConfig
+                        case HostConfigOperation.Deleted =>
+                            members - change.hostConfig
+                    }
+        )
     }
 
     /**

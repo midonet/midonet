@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory
 import org.midonet.Subscription
 import org.midonet.cluster.client
 import org.midonet.cluster.client.Port
-import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.event.agent.InterfaceEvent
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
@@ -36,8 +35,8 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneRequest
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
+    ZoneMembers, HostRequest, TunnelZoneRequest}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
@@ -525,11 +524,10 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 }
             }
 
-        case m: ZoneChanged =>
+        case m@ZoneChanged(zone, zoneType, hostConfig, op) =>
             log.debug("ZoneChanged: {}", m)
-            val config = m.hostConfig.asInstanceOf[TZHostConfig]
-            if (dpState.host.zones contains m.zone)
-                handleZoneChange(m.zone, config, m.op)
+            if (dpState.host.zones contains zone)
+                handleZoneChange(zone, hostConfig, op)
 
         case req: DpPortCreate =>
             log.debug("Got {} from {}", req, sender)
