@@ -109,9 +109,7 @@ public class Converter {
     }
 
     public static ChainConfig toChainConfig(Chain chain) {
-        ChainConfig chainConfig = new ChainConfig();
-
-        chainConfig.name = chain.getName();
+        ChainConfig chainConfig = new ChainConfig(chain.getName());
         chainConfig.properties = new HashMap<String, String>(
                 chain.getProperties());
 

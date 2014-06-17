@@ -3,36 +3,57 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import collection.JavaConversions._
-import collection.mutable
 import java.util
 import java.util.UUID
+import scala.collection.JavaConversions._
+import scala.collection.mutable
 
-import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
-import org.midonet.midolman.rules.{JumpRule, Rule}
-import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, IPAddrGroupRequest, Unsubscribe, ChainRequest}
+import akka.actor.{ActorRef, Actor}
+
 import org.midonet.cluster.Client
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.cluster.client.ChainBuilder
-import org.midonet.midolman.topology.ChainManager._
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.rules.{JumpRule, Rule}
+import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
+import org.midonet.midolman.topology.ChainManager._
 
 object ChainManager {
-    // Needed because we can't match a received message
-    // against List[Rule] due to type erasure.
+
+    class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
+        def setRules(rules: util.List[Rule]) {
+            chainMgr ! RulesUpdate(rules)
+        }
+
+        def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {
+            val orderedRules = ruleOrder.map(x => rules.get(x))
+            setRules(orderedRules)
+        }
+
+        def setName(name: String) {
+            chainMgr ! ChainName(name)
+        }
+    }
+
     case class RulesUpdate(rules: util.List[Rule])
+    case class ChainName(name: String)
 }
 
 class ChainManager(val id: UUID, val clusterClient: Client)
         extends Actor with ActorLogWithoutPath {
-    import ChainManager._
+
     import context.system // Used implicitly. Don't delete.
+    import ChainManager._
+    import VirtualTopologyActor.DeviceRequest
+    import VirtualTopologyActor.IPAddrGroupRequest
+    import VirtualTopologyActor.Unsubscribe
+    import VirtualTopologyActor.ChainRequest
 
     override def preStart() {
         clusterClient.getChain(id, new ChainBuilderImpl(self))
     }
 
+    private var chainName: Option[String] = None
     // Store the chains that these rules jump to.
     private val idToChain = mutable.Map[UUID, Chain]()
     // Store the IP address groups that rules reference.
@@ -41,6 +62,16 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     private val idToRefCount = mutable.Map[UUID, Int]()
     // Number of resources (Chain or IPAddrGroup) we're waiting for.
     private var waitingForResources: Int = 0
+    // when publishing a new chain, this variables tells if an invalidation msg
+    // should be sent along.
+    private var publishingNeedsInvalidation: Boolean = true //false
+
+    // an internal flag that tells if the manager needs to wait for the chain
+    // name. This flag should only be set to true when an update to Jump targets
+    // or rules has been called before the name update.
+    private var waitingForName: Boolean = false
+
+    private var rules: util.List[Rule] = Nil
 
     override val toString = "ChainManager[id=" + id + "]"
 
@@ -70,8 +101,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                 idToRefCount.put(id, refCount + 1)
             case None =>
                 waitingForResources += 1
-                log.debug("{} now tracking IPAddrGroup {}. " +
-                        "Now waiting for {} resources.",
+                log.debug(
+                    "{} now tracking IPAddrGroup {}, waiting for {} resources.",
                     this, id, waitingForResources)
                 VirtualTopologyActor ! reqFactory(id)
                 idToRefCount.put(id, 1)
@@ -101,9 +132,10 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                                    idToResource: mutable.Map[UUID, _]): Unit = {
         idToRefCount.get(refId) match {
             case Some(refCount) if refCount > 1 =>
+                val newRefCount = refCount - 1
                 log.debug("Decrementing {}'s refcount for {} {} to {}",
-                    this, refType, refId, refCount - 1)
-                idToRefCount.put(refId, refCount - 1)
+                    this, refType, refId, newRefCount)
+                idToRefCount.put(refId, newRefCount)
 
             case Some(refCount) if refCount == 1 =>
                 // That was the last reference, so stop tracking this resource.
@@ -112,10 +144,10 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                 idToResource.remove(refId) match {
                     // If it wasn't in the cache we must have been waiting for it.
                     case None => waitingForResources -= 1
-                    case Some(_) =>  // do nothing
+                    case _ =>  // do nothing
                 }
-                log.debug("{} no longer tracking {} {}. " +
-                        "Now waiting for {} resources.",
+                log.debug(
+                    "{} no longer tracking {} {}, waiting for {} resources.",
                     this, refType, refId, waitingForResources)
 
             case unexpected =>
@@ -124,8 +156,6 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                           this, refId, unexpected)
         }
     }
-
-    var rules: util.List[Rule] = Nil
 
     /**
      * Increments refcounts for objects on which the specified Rule
@@ -137,12 +167,10 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         // Increment refcounts for any Chain dependencies.
         if (r.isInstanceOf[JumpRule]) {
             val targetId = r.asInstanceOf[JumpRule].jumpToChainID
-            targetId match {
-                case null =>
-                    log.warning("New jump rule with null target {}", r)
-                case _ =>
-                    incrChainRefCount(targetId)
-            }
+            if (targetId == null)
+                log.warning("New jump rule with null target {}", r)
+            else
+                incrChainRefCount(targetId)
         }
 
         // Increment refcounts for any IPAddrGroup dependencies.
@@ -165,12 +193,10 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         // Decrement refcounts for any Chain dependencies.
         if (r.isInstanceOf[JumpRule]) {
             val targetId = r.asInstanceOf[JumpRule].jumpToChainID
-            targetId match {
-                case null =>
-                    log.warning("Old jump rule with null target {}", r)
-                case _ =>
-                    decrChainRefCount(targetId)
-            }
+            if (targetId == null)
+                log.warning("Old jump rule with null target {}", r)
+            else
+                decrChainRefCount(targetId)
         }
 
         // Decrement refcounts for any IPAddrGroup dependencies.
@@ -222,19 +248,36 @@ class ChainManager(val id: UUID, val clusterClient: Client)
      * waiting for any responses from Zookeeper.
      */
     private def publishUpdateIfReady() {
-        if (0 == waitingForResources) {
+        if (isNotWaitingForResource) {
             log.debug("Publishing Chain {} to VTA.", id)
-            val chain = new Chain(id, rules.toList, idToChain.toMap,
-                "TODO: need name", context.system.eventStream)
-            VirtualTopologyActor ! chain
-            VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            VirtualTopologyActor ! createChain()
+            sendInvalidationIfNeeded()
         } else {
             log.debug("Not publishing Chain {}. Still waiting for {} resources",
                       id, waitingForResources)
         }
     }
 
-    private def chainUpdate(chain: Chain): Unit = {
+    private def sendInvalidationIfNeeded() {
+        if (publishingNeedsInvalidation) {
+            VirtualTopologyActor !
+                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            publishingNeedsInvalidation = false
+        }
+    }
+
+    private def withInvalidation(block: => Unit) {
+        publishingNeedsInvalidation = true
+        block
+    }
+
+    private def createChain() = {
+        val eventStream = context.system.eventStream
+        val name = chainName getOrElse "unknown"
+        new Chain(id, rules.toList, idToChain.toMap, name, eventStream)
+    }
+
+    private def updateJumpChain(chain: Chain): Unit = {
         if (!idToRefCount.contains(chain.id)) {
             log.debug("{} ignoring update for Chain {} " +
                       "because its refcount is 0", this, chain.id)
@@ -252,27 +295,42 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         publishUpdateIfReady()
     }
 
+    /** Updates the name of the managed chain. Publication of the chain should
+     *  not happen in the general case, because for certain message ordering in
+     *  the manager mailbox, it is possible that the name gets updated before
+     *  the manager ever has the occation to set the waitingForResources value
+     *  to something else than 0. Therefore, publication can only happen if
+     *  the manager was left waiting for the chain name only. */
+    private def updateChainName(name: String): Unit = {
+        chainName = Some(name)
+        if (waitingForName) {
+            waitingForName = false
+            publishUpdateIfReady()
+        }
+    }
+
+    /** Check if the chain can be published. In case that the chain name is not
+     *  already set, the associated flag is set to true. */
+    private def isNotWaitingForResource: Boolean = {
+        if (chainName.isEmpty) {
+            waitingForName = true
+            return false
+        }
+        0 == waitingForResources
+    }
+
     override def receive = {
         // Each of these message types notifies us of an update to one
         // of the Chain's dependencies. In particular, note that the
         // Chain that can be received is not the Chain managed
         // directly by this ChainManager, but rather a Chain which is
         // a target of one of this Chain's JumpRules.
-        case RulesUpdate(rules) => updateRules(rules)
-        case chain: Chain => chainUpdate(chain)
-        case ipAddrGroup: IPAddrGroup => updateIpAddrGroup(ipAddrGroup)
-        case unexpected => log.error(
-            "{} received an unexpected message: {}", this, unexpected)
-    }
-}
-
-class ChainBuilderImpl(val chainMgr: ActorRef) extends ChainBuilder {
-    def setRules(rules: util.List[Rule]) {
-        chainMgr ! RulesUpdate(rules)
-    }
-
-    def setRules(ruleOrder: util.List[UUID], rules: util.Map[UUID, Rule]) {
-        val orderedRules = ruleOrder.map(x => rules.get(x))
-        setRules(orderedRules)
+        case RulesUpdate(rules) => withInvalidation { updateRules(rules) }
+        case ChainName(name) => updateChainName(name)
+        case chain: Chain => withInvalidation { updateJumpChain(chain) }
+        case ipAddrGroup: IPAddrGroup =>
+            withInvalidation { updateIpAddrGroup(ipAddrGroup) }
+        case unexpected =>
+            log.error("{} received an unexpected message: {}", this, unexpected)
     }
 }
