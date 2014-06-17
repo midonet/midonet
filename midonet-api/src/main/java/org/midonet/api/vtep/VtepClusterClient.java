@@ -12,14 +12,13 @@ import java.util.Random;
 import java.util.Set;
 
 import com.google.inject.Inject;
-
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.network.VTEPBinding;
+import org.midonet.api.network.VtepBinding;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.BadGatewayHttpException;
 import org.midonet.api.rest_api.BadRequestHttpException;
@@ -197,26 +196,14 @@ public class VtepClusterClient {
             IPv4Addr ipAddr, String portName, short vlanId)
             throws SerializationException, StateAccessException {
 
-        VTEP vtep = getVtepOrThrow(ipAddr, false);
-        VtepDataClient vtepClient =
-                getVtepClient(vtep.getId(), vtep.getMgmtPort());
-
-        PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
-                                          vtep.getMgmtPort(), portName);
-        UUID lsUuid = pp.vlanBindings.get((int)vlanId);
-        if (lsUuid == null) {
-            throw new NotFoundHttpException(
-                    getMessage(VTEP_BINDING_NOT_FOUND,
-                            vtep.getId(), vlanId, portName));
+        org.midonet.cluster.data.VtepBinding dataBinding =
+                dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+        if (dataBinding == null) {
+            throw new NotFoundHttpException(getMessage(
+                    VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
         }
 
-        for (LogicalSwitch lswitch : vtepClient.listLogicalSwitches()) {
-            if (lswitch.uuid.equals(lsUuid))
-                return logicalSwitchNameToBridgeId(lswitch.name);
-        }
-
-        throw new IllegalStateException("Logical switch with ID " + lsUuid +
-                " should exist but was not returned from VTEP client.");
+        return dataBinding.getNetworkId();
     }
 
 
@@ -230,16 +217,23 @@ public class VtepClusterClient {
      * @param bridgeId ID of bridge to get bindings for. Will return all
      *                 bindings if bridgeId is null.
      */
-    public final List<VTEPBinding> listVtepBindings(IPv4Addr ipAddr,
+    public final List<VtepBinding> listVtepBindings(IPv4Addr ipAddr,
                                                     java.util.UUID bridgeId)
             throws SerializationException, StateAccessException {
 
-        // Get VTEP client.
-        VTEP vtep = getVtepOrThrow(ipAddr, false);
-        VtepDataClient vtepClient =
-                getVtepClient(vtep.getId(), vtep.getMgmtPort());
-        return listVtepBindings(vtepClient, ipAddr,
-                                vtep.getMgmtPort(), bridgeId);
+        List<org.midonet.cluster.data.VtepBinding> dataBindings =
+                dataClient.vtepGetBindings(ipAddr);
+        List<VtepBinding> apiBindings = new ArrayList<>();
+        for (org.midonet.cluster.data.VtepBinding dataBinding : dataBindings) {
+            if (bridgeId == null ||
+                    bridgeId.equals(dataBinding.getNetworkId())) {
+                apiBindings.add(new VtepBinding(
+                        ipAddr.toString(), dataBinding.getPortName(),
+                        dataBinding.getVlanId(), dataBinding.getNetworkId()));
+            }
+        }
+
+        return apiBindings;
     }
 
     /**
@@ -248,7 +242,7 @@ public class VtepClusterClient {
      * This is so that operations which use listVtepBindings (e.g.
      * deletBinding) can reuse the VTEP and VtepDataClient.
      */
-    private List<VTEPBinding> listVtepBindings(VtepDataClient vtepClient,
+    private List<VtepBinding> listVtepBindings(VtepDataClient vtepClient,
             IPv4Addr mgmtIp, int mgmtPort, java.util.UUID bridgeId)
             throws SerializationException, StateAccessException {
 
@@ -258,7 +252,7 @@ public class VtepClusterClient {
             lsToBridge.put(ls.uuid, logicalSwitchNameToBridgeId(ls.name));
         }
 
-        List<VTEPBinding> bindings = new ArrayList<>();
+        List<VtepBinding> bindings = new ArrayList<>();
         for (PhysicalPort pp :
                 listPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
             for (Map.Entry<Integer, UUID> e : pp.vlanBindings.entrySet()) {
@@ -270,7 +264,7 @@ public class VtepClusterClient {
                 if (bindingBridgeId != null &&
                         (bridgeId == null ||
                                 bridgeId.equals(bindingBridgeId))) {
-                    VTEPBinding b = new VTEPBinding(
+                    VtepBinding b = new VtepBinding(
                             mgmtIp.toString(), pp.name,
                             e.getKey().shortValue(), bindingBridgeId);
                     bindings.add(b);
@@ -288,12 +282,15 @@ public class VtepClusterClient {
      * @param ipAddr VTEP's management IP address.
      * @param bridge Binding's target bridge.
      */
-    public final void createBinding(VTEPBinding binding,
+    public final void createBinding(VtepBinding binding,
                                     IPv4Addr ipAddr, Bridge bridge)
             throws SerializationException, StateAccessException {
 
+        VTEP vtep = getVtepOrThrow(ipAddr, true);
+
         // Get the VXLAN port and make sure it's not already bound
         // to another VTEP.
+        Integer newPortVni = null;
         if (bridge.getVxLanPortId() != null) {
             VxLanPort vxlanPort =
                     (VxLanPort)dataClient.portsGet(bridge.getVxLanPortId());
@@ -303,9 +300,20 @@ public class VtepClusterClient {
             }
             log.info("Found VxLanPort {}, vni {}",
                     vxlanPort.getId(), vxlanPort.getVni());
+        } else {
+            // Need to create a VXLAN port.
+            newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
+            VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
+                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
+            log.debug("New VxLan port created, uuid: {}, vni: {}",
+                    vxlanPort.getId(), newPortVni);
         }
 
-        VTEP vtep = getVtepOrThrow(ipAddr, true);
+        // Create the binding in Midonet.
+        dataClient.vtepAddBinding(
+                ipAddr, binding.getPortName(),
+                binding.getVlanId(), binding.getNetworkId());
+
         VtepDataClient vtepClient =
                 getVtepClient(vtep.getId(), vtep.getMgmtPort());
 
@@ -319,7 +327,7 @@ public class VtepClusterClient {
             ));
         }
 
-        UUID lsUuid = pp.vlanBindings.get((int)binding.getVlanId());
+        UUID lsUuid = pp.vlanBindings.get((int) binding.getVlanId());
         if (lsUuid != null) {
             // TODO: when the new getLogicalSwitch operation gets merged, we
             // should use it here to include it in the error message
@@ -329,14 +337,22 @@ public class VtepClusterClient {
             ));
         }
 
-        Integer newPortVni = null;
+        // Create the logical switch on the VTEP if necessary.
         String lsName = bridgeIdToLogicalSwitchName(binding.getNetworkId());
-        if (bridge.getVxLanPortId() == null) {
-            newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
-            // TODO: Make VTEP client take UUID instead of name.
+        if (newPortVni != null) {
             StatusWithUuid status =
                     vtepClient.addLogicalSwitch(lsName, newPortVni);
             throwIfFailed(status);
+
+            // For all known macs, instruct the vtep to add a ucast
+            // MAC entry to tunnel packets over to the right host.
+            log.debug("Preseeding macs from bridge {}",
+                    binding.getNetworkId());
+            try {
+                feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
+            } catch (Exception ex) {
+                log.error("Call to feedUcastRemote failed.", ex);
+            }
         }
 
         // TODO: fill this list with all the host ips where we want
@@ -344,22 +360,9 @@ public class VtepClusterClient {
         // IPs because we'd send the same packet to all of them, so
         // for now we add none and will just populate ucasts.
         List<String> floodToIps = new ArrayList<>();
-
         Status status = vtepClient.bindVlan(lsName, binding.getPortName(),
                 binding.getVlanId(), newPortVni, floodToIps);
         throwIfFailed(status);
-
-        // For all known macs, instruct the vtep to add a ucast
-        // MAC entry to tunnel packets over to the right host.
-        if (newPortVni != null) {
-            log.debug("Preseeding macs from bridge {}",
-                    binding.getNetworkId());
-            VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
-                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
-            feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
-            log.debug("New VxLan port created, uuid: {}, vni: {}",
-                    vxlanPort.getId(), newPortVni);
-        }
     }
 
     /**
@@ -380,9 +383,9 @@ public class VtepClusterClient {
         // remember whether we saw any others with the same networkId.
         java.util.UUID affectedNwId = null;
         Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
-        List<VTEPBinding> bindings = listVtepBindings(
+        List<VtepBinding> bindings = listVtepBindings(
                 vtepClient, ipAddr, vtep.getMgmtPort(), null);
-        for (VTEPBinding binding : bindings) {
+        for (VtepBinding binding : bindings) {
             java.util.UUID nwId = binding.getNetworkId();
             if (binding.getPortName().equals(portName) &&
                     binding.getVlanId() == vlanId) {
@@ -399,15 +402,18 @@ public class VtepClusterClient {
                     VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
         }
 
-        // Delete the binding.
-        Status st = vtepClient.deleteBinding(portName, vlanId);
-        throwIfFailed(st);
+        // Delete the binding in Midonet.
+        dataClient.vtepDeleteBinding(ipAddr, portName, vlanId);
 
         // If that was the only binding for this network, delete
         // the VXLAN port.
         if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
             dataClient.bridgeDeleteVxLanPort(affectedNwId);
         }
+
+        // Delete the binding on the VTEP.
+        Status st = vtepClient.deleteBinding(portName, vlanId);
+        throwIfFailed(st);
 
         log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
                 new Object[]{ipAddr, portName, vlanId});
@@ -416,13 +422,17 @@ public class VtepClusterClient {
     public void deleteVxLanPort(VxLanPort vxLanPort)
             throws SerializationException, StateAccessException {
 
+        // Delete Midonet VXLAN port. This also deletes all
+        // associated bindings.
+        dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
+
+        // Delete the corresponding logical switch on the VTEP.
         VtepDataClient vtepClient = getVtepClient(vxLanPort.getMgmtIpAddr(),
                                                   vxLanPort.getMgmtPort());
         Status st = vtepClient.deleteLogicalSwitch(
                 bridgeIdToLogicalSwitchName(vxLanPort.getDeviceId()));
         throwIfFailed(st);
 
-        dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
     }
 
     /**

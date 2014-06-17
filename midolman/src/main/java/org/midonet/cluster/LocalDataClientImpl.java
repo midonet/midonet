@@ -54,6 +54,7 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -3293,6 +3294,36 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
+                               @Nonnull String portName, short vlanId,
+                               @Nonnull UUID networkId)
+            throws StateAccessException {
+        zkManager.multi(vtepZkManager.prepareCreateBinding(ipAddr, portName,
+                                                           vlanId, networkId));
+    }
+
+    @Override
+    public void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
+                                  @Nonnull String portName, short vlanId)
+            throws StateAccessException {
+        zkManager.multi(
+                vtepZkManager.prepareDeleteBinding(ipAddr, portName, vlanId));
+    }
+
+    @Override
+    public List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
+            throws StateAccessException {
+        return vtepZkManager.getBindings(ipAddr);
+    }
+
+    @Override
+    public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
+                                      @Nonnull String portName, short vlanId)
+            throws StateAccessException {
+        return vtepZkManager.getBinding(ipAddr, portName, vlanId);
+    }
+
+    @Override
     public IPv4Addr vxlanTunnelEndpointFor(UUID id)
         throws SerializationException, StateAccessException {
         return vxlanTunnelEndpointFor((BridgePort)portsGet(id));
@@ -3421,6 +3452,11 @@ public class LocalDataClientImpl implements DataClient {
         VxLanPortConfig portConfig =
                 (VxLanPortConfig)portZkManager.get(vxLanPortId);
         ops.addAll(portZkManager.prepareDelete(vxLanPortId, portConfig));
+
+        // Delete its bindings in Zookeeper.
+        ops.addAll(vtepZkManager.prepareDeleteAllBindings(
+                IPv4Addr$.MODULE$.fromString(portConfig.mgmtIpAddr),
+                portConfig.device_id));
 
         zkManager.multi(ops);
     }

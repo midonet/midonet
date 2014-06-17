@@ -24,7 +24,7 @@ import com.google.inject.assistedinject.Assisted;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VTEPBinding;
+import org.midonet.api.network.VtepBinding;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
@@ -54,7 +54,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                   VendorMediaType.APPLICATION_JSON})
-    public Response create(VTEPBinding binding)
+    public Response create(VtepBinding binding)
         throws StateAccessException, SerializationException {
         validate(binding);
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
@@ -70,13 +70,13 @@ public class VtepBindingResource extends AbstractVtepResource {
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                VendorMediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
-    public VTEPBinding get(@PathParam("portName") String portName,
+    public VtepBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
         throws SerializationException, StateAccessException {
 
         java.util.UUID bridgeId = vtepClient.getBoundBridgeId(
                 parseIPv4Addr(ipAddrStr), portName, vlanId);
-        VTEPBinding b = new VTEPBinding(ipAddrStr, portName, vlanId, bridgeId);
+        VtepBinding b = new VtepBinding(ipAddrStr, portName, vlanId, bridgeId);
         b.setBaseUri(getBaseUri());
         return b;
     }
@@ -85,7 +85,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<VTEPBinding> list() throws StateAccessException,
+    public List<VtepBinding> list() throws StateAccessException,
                                            SerializationException {
         return listVtepBindings(this.ipAddrStr, null);
     }
@@ -95,8 +95,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @Path("{portName}/{vlanId}")
     public void delete(@PathParam("portName") String portName,
                        @PathParam("vlanId") short vlanId)
-        throws StateAccessException, SerializationException
-    {
+            throws StateAccessException, SerializationException {
         vtepClient.deleteBinding(parseIPv4Addr(ipAddrStr), portName, vlanId);
     }
 
