@@ -29,8 +29,6 @@ import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -46,7 +44,6 @@ import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.midonet.cluster.client.TunnelZones.GreBuilder;
 
 
 /**
@@ -194,9 +191,9 @@ public class LocalClientImpl implements Client {
             @Override
             public void run() {
                 try {
-                    TunnelZone<?, ?> zone = readTunnelZone(zoneID, builders);
+                    TunnelZone zone = readTunnelZone(zoneID, builders);
                     readHosts(zone,
-                            new HashMap<UUID, TunnelZone.HostConfig<?, ?>>(),
+                            new HashMap<UUID, TunnelZone.HostConfig>(),
                             builders);
 
                 } catch (StateAccessException e) {
@@ -258,8 +255,8 @@ public class LocalClientImpl implements Client {
         bgpManager.registerNewBuilder(portID, builder);
     }
 
-    private void readHosts(final TunnelZone<?, ?> zone,
-                           final Map<UUID, TunnelZone.HostConfig<?, ?>> zoneHosts,
+    private void readHosts(final TunnelZone zone,
+                           final Map<UUID, TunnelZone.HostConfig> zoneHosts,
                            final TunnelZones.BuildersProvider builders) {
 
         Set<UUID> currentList = null;
@@ -289,8 +286,8 @@ public class LocalClientImpl implements Client {
         }
 
         try {
-            Set<TunnelZone.HostConfig<?, ?>> newMemberships =
-                    new HashSet<TunnelZone.HostConfig<?, ?>>();
+            Set<TunnelZone.HostConfig> newMemberships =
+                    new HashSet<TunnelZone.HostConfig>();
 
             for (UUID uuid : currentList) {
                 if (!zoneHosts.containsKey(uuid)) {
@@ -308,7 +305,7 @@ public class LocalClientImpl implements Client {
                 }
             }
 
-            for (TunnelZone.HostConfig<?, ?> newHost : newMemberships) {
+            for (TunnelZone.HostConfig newHost : newMemberships) {
                 triggerZoneMembershipChange(zone, newHost, builders, true);
                 zoneHosts.put(newHost.getId(), newHost);
             }
@@ -334,34 +331,26 @@ public class LocalClientImpl implements Client {
         }
     }
 
-    private void triggerZoneMembershipChange(TunnelZone<?, ?> zone,
-                                             TunnelZone.HostConfig<?, ?> hostConfig,
+    private void triggerZoneMembershipChange(TunnelZone zone,
+                                             TunnelZone.HostConfig hostConfig,
                                              TunnelZones.BuildersProvider buildersProvider,
                                              boolean added) {
-        switch (zone.getType()) {
-            case Gre:
-                if (hostConfig instanceof GreTunnelZoneHost) {
-                    GreTunnelZoneHost greConfig = (GreTunnelZoneHost) hostConfig;
-
-                    if (added) {
-                        buildersProvider
-                                .getGreZoneBuilder()
-                                .addHost(greConfig.getId(), greConfig);
-                    } else {
-                        buildersProvider
-                                .getGreZoneBuilder()
-                                .removeHost(greConfig.getId(), greConfig);
-                    }
-                }
-                break;
+        if (added) {
+            buildersProvider
+                    .getZoneBuilder()
+                    .addHost(hostConfig.getId(), hostConfig);
+        } else {
+            buildersProvider
+                    .getZoneBuilder()
+                    .removeHost(hostConfig.getId(), hostConfig);
         }
     }
 
-    private TunnelZone<?, ?> readTunnelZone(final UUID zoneID,
+    private TunnelZone readTunnelZone(final UUID zoneID,
             final TunnelZones.BuildersProvider builders)
             throws StateAccessException, SerializationException {
 
-        TunnelZone<?, ?> zone;
+        TunnelZone zone;
         try {
             zone = tunnelZoneZkManager.getZone(
                     zoneID,
@@ -392,18 +381,7 @@ public class LocalClientImpl implements Client {
             throw e;
         }
 
-        if (zone instanceof GreTunnelZone) {
-            final GreTunnelZone greZone = (GreTunnelZone) zone;
-            builders.getGreZoneBuilder()
-                    .setConfiguration(
-                            new GreBuilder.ZoneConfig() {
-                        @Override
-                        public GreTunnelZone getTunnelZoneConfig() {
-                                    return greZone;
-                            }
-                        });
-        }
-
+        builders.getZoneBuilder().setConfiguration(zone);
         return zone;
     }
 
@@ -641,8 +619,8 @@ public class LocalClientImpl implements Client {
         }
 
         try {
-            Map<UUID, TunnelZone.HostConfig<?, ?>> hostTunnelZones =
-                    new HashMap<UUID, TunnelZone.HostConfig<?, ?>>();
+            Map<UUID, TunnelZone.HostConfig> hostTunnelZones =
+                    new HashMap<UUID, TunnelZone.HostConfig>();
             for (UUID uuid : newZones) {
                 hostTunnelZones.put(
                         uuid,

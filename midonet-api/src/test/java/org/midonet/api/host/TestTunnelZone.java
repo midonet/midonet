@@ -32,7 +32,6 @@ import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -128,16 +127,16 @@ public class TestTunnelZone {
             URI tunnelZonesUri = app.getTunnelZones();
 
             // Get tunnel zones and verify there is none
-            DtoGreTunnelZone tunnelZone = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1-name");
             tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
-                    DtoGreTunnelZone.class);
+                    DtoTunnelZone.class);
             Assert.assertNotNull(tunnelZone.getId());
             Assert.assertEquals("tz1-name", tunnelZone.getName());
 
             // Do not allow duplicates
-            DtoGreTunnelZone tunnelZone2 = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone2 = new DtoTunnelZone();
             tunnelZone2.setName("tz1-name");
             DtoError error = dtoResource.postAndVerifyBadRequest(tunnelZonesUri,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone2);
@@ -154,7 +153,7 @@ public class TestTunnelZone {
             tunnelZone.setName("tz1-name-updated");
             tunnelZone = dtoResource.putAndVerifyNoContent(tunnelZone.getUri(),
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
-                    DtoGreTunnelZone.class);
+                    DtoTunnelZone.class);
             Assert.assertEquals("tz1-name-updated", tunnelZone.getName());
 
             // List and make sure that there is one
@@ -165,11 +164,11 @@ public class TestTunnelZone {
             Assert.assertEquals(1, tunnelZones.length);
 
             // Get the tunnel zone building the URI by hand.
-            DtoGreTunnelZone tZone = dtoResource.getAndVerifyOk(
+            DtoTunnelZone tZone = dtoResource.getAndVerifyOk(
                     UriBuilder.fromUri(tunnelZonesUri)
                         .path(tunnelZone.getId().toString()).build(),
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
-                    DtoGreTunnelZone.class);
+                    DtoTunnelZone.class);
             Assert.assertEquals(tunnelZone.getType(), tZone.getType());
             Assert.assertEquals(tunnelZone.getName(), tZone.getName());
 
@@ -201,11 +200,11 @@ public class TestTunnelZone {
 
             DtoApplication app = topology.getApplication();
             URI tunnelZonesUri = app.getTunnelZones();
-            DtoGreTunnelZone tunnelZone = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1");
             tunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                       VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
-                      DtoGreTunnelZone.class);
+                      DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
             vtep.setManagementIp(VtepDataClientProvider.MOCK_VTEP_MGMT_IP);
             vtep.setManagementPort(VtepDataClientProvider.MOCK_VTEP_MGMT_PORT);

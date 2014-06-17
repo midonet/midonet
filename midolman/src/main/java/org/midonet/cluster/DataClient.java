@@ -302,7 +302,7 @@ public interface DataClient {
      */
     void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb);
 
-    UUID tunnelZonesCreate(@Nonnull TunnelZone<?, ?> zone)
+    UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException;
 
     void tunnelZonesDelete(UUID uuid)
@@ -310,22 +310,22 @@ public interface DataClient {
 
     boolean tunnelZonesExists(UUID uuid) throws StateAccessException;
 
-    @CheckForNull TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
+    @CheckForNull TunnelZone tunnelZonesGet(UUID uuid)
             throws StateAccessException, SerializationException;
 
-    List<TunnelZone<?, ?>> tunnelZonesGetAll()
+    List<TunnelZone> tunnelZonesGetAll()
             throws StateAccessException, SerializationException;
 
-    void tunnelZonesUpdate(@Nonnull TunnelZone<?, ?> zone)
+    void tunnelZonesUpdate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException;
 
     boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
         throws StateAccessException;
 
-    Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(UUID uuid)
+    Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
         throws StateAccessException;
 
-    @CheckForNull TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(
+    @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(
             UUID uuid, UUID hostId)
             throws StateAccessException, SerializationException;
 
@@ -334,7 +334,7 @@ public interface DataClient {
 
     UUID tunnelZonesAddMembership(
             @Nonnull UUID zoneId,
-            @Nonnull TunnelZone.HostConfig<?, ?> hostConfig)
+            @Nonnull TunnelZone.HostConfig hostConfig)
             throws StateAccessException, SerializationException;
 
     void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)

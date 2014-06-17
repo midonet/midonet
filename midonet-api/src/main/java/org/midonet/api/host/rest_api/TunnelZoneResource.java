@@ -27,7 +27,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.host.TunnelZone;
-import org.midonet.api.host.TunnelZoneFactory;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -64,12 +63,12 @@ public class TunnelZoneResource extends AbstractResource {
     public List<TunnelZone> list() throws StateAccessException,
             SerializationException {
 
-        List<org.midonet.cluster.data.TunnelZone<?, ?>>
+        List<org.midonet.cluster.data.TunnelZone>
                 tunnelZoneDataList = dataClient.tunnelZonesGetAll();
         List<TunnelZone> tunnelZones = new ArrayList<>();
-        for (org.midonet.cluster.data.TunnelZone<?, ?> zoneData :
+        for (org.midonet.cluster.data.TunnelZone zoneData :
                 tunnelZoneDataList) {
-            TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
+            TunnelZone zone = new TunnelZone(zoneData);
             zone.setBaseUri(getBaseUri());
             tunnelZones.add(zone);
         }
@@ -88,9 +87,9 @@ public class TunnelZoneResource extends AbstractResource {
             throw new NotFoundHttpException();
         }
 
-        org.midonet.cluster.data.TunnelZone<?, ?> zoneData =
+        org.midonet.cluster.data.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
-        TunnelZone zone = TunnelZoneFactory.createTunnelZone(zoneData);
+        TunnelZone zone = new TunnelZone(zoneData);
         zone.setBaseUri(getBaseUri());
 
         return zone;
@@ -102,7 +101,7 @@ public class TunnelZoneResource extends AbstractResource {
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.TunnelZone<?, ?> zoneData =
+        org.midonet.cluster.data.TunnelZone zoneData =
                 dataClient.tunnelZonesGet(id);
         if (zoneData == null) {
             return;

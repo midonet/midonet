@@ -16,7 +16,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Port, Bridge, Chain}
+import org.midonet.cluster.data.{TunnelZone, Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
@@ -35,7 +35,6 @@ import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
                                              FlowActionOutputToVrnPortSet}
 import org.midonet.util.concurrent.ExecutionContextOps
 import org.midonet.packets.IPv4Addr
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
@@ -245,7 +244,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             val rcuHost: Host = new Host(
                 hostId(), "midonet",
                 Map(inPort.getId -> "in", port0.getId -> "port0"),
-                Map(UUID.randomUUID() -> new GreTunnelZoneHost()
+                Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
                                              .setIp(hostIp.toIntIPv4))
             )
 

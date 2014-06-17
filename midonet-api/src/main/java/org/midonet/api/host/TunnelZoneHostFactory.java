@@ -11,16 +11,7 @@ import java.util.UUID;
 public class TunnelZoneHostFactory {
 
     public static TunnelZoneHost createTunnelZoneHost(UUID tunnelZoneId,
-            TunnelZone.HostConfig<?, ?> data) {
-
-        if (data instanceof
-                org.midonet.cluster.data.zones.GreTunnelZoneHost) {
-            return new GreTunnelZoneHost(tunnelZoneId,
-                    (org.midonet.cluster.data.zones.GreTunnelZoneHost)
-                            data);
-        } else {
-            throw new UnsupportedOperationException(
-                    "Cannot instantiate this tunnel zone host type.");
-        }
+            TunnelZone.HostConfig data) {
+        return new TunnelZoneHost(tunnelZoneId, data);
     }
 }

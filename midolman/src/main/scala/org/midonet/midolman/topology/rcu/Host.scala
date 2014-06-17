@@ -10,4 +10,4 @@ import org.midonet.cluster.data.TunnelZone
 
 case class Host(id: UUID, datapath: String,
                 ports: immutable.Map[UUID, String],
-                zones: immutable.Map[UUID, TunnelZone.HostConfig[_, _]])
+                zones: immutable.Map[UUID, TunnelZone.HostConfig])

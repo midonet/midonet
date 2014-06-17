@@ -18,7 +18,7 @@ public class ValidationModule extends AbstractModule {
         bind(Validator.class).toProvider(
                 ValidatorProvider.class).asEagerSingleton();
         bind(GuiceConstraintValidatorFactory.class).asEagerSingleton();
-        bind(AllowedValueConstraintValidator.class).asEagerSingleton();
+        bind(AllowedValueConstraintValidator.class);
 
     }
 

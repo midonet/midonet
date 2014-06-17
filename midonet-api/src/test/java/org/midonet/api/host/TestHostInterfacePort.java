@@ -133,7 +133,7 @@ public class TestHostInterfacePort {
             DtoBridgePort bridgePort1 = new DtoBridgePort();
             DtoBridgePort bridgePort2 = new DtoBridgePort();
 
-            DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
             topology = new Topology.Builder(dtoResource)
@@ -159,7 +159,7 @@ public class TestHostInterfacePort {
         }
 
         private void bindHostToTunnelZone(UUID hostId) {
-            DtoGreTunnelZone tz = hostTopology.getGreTunnelZone("tz1");
+            DtoTunnelZone tz = hostTopology.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz);
             // Map a tunnel zone to a host
             DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();

@@ -9,9 +9,7 @@ import akka.actor.ActorRef
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.TunnelZones
-import org.midonet.cluster.client.TunnelZones.GreBuilder
-import org.midonet.cluster.data.zones.{GreTunnelZoneHost,
-                                       GreTunnelZone}
+import org.midonet.cluster.data.TunnelZone
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.GreZoneChanged
 import org.midonet.packets.IPv4
 import org.midonet.util.collection.MapperToFirstCall
@@ -27,27 +25,27 @@ class TunnelZoneManager(clusterClient: Client,
     class ZoneBuildersProvider(val actor: ActorRef, val zoneId:UUID)
             extends TunnelZones.BuildersProvider with MapperToFirstCall {
 
-        def getGreZoneBuilder: TunnelZones.GreBuilder = mapOnce(classOf[GreBuilder]) {
-            new LocalGreZoneBuilder(actor, zoneId)
+        def getZoneBuilder: TunnelZones.Builder = mapOnce(classOf[TunnelZones.Builder]) {
+            new LocalZoneBuilder(actor, zoneId)
         }
     }
 
-    class LocalGreZoneBuilder(actor: ActorRef, host: UUID) extends TunnelZones.GreBuilder {
+    class LocalZoneBuilder(actor: ActorRef, host: UUID) extends TunnelZones.Builder {
 
-        var zone: GreTunnelZone = null
+        var zone: TunnelZone = null
         val hosts = mutable.Map[UUID, IPv4]()
 
-        def setConfiguration(configuration: GreBuilder.ZoneConfig): LocalGreZoneBuilder = {
-            zone = configuration.getTunnelZoneConfig
+        override def setConfiguration(configuration: TunnelZone): LocalZoneBuilder = {
+            zone = configuration
             this
         }
 
-        def addHost(hostId: UUID, hostConfig: GreTunnelZoneHost): LocalGreZoneBuilder = {
+        override def addHost(hostId: UUID, hostConfig: TunnelZone.HostConfig): LocalZoneBuilder = {
             actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Added)
             this
         }
 
-        def removeHost(hostId: UUID, hostConfig: GreTunnelZoneHost): LocalGreZoneBuilder = {
+        override def removeHost(hostId: UUID, hostConfig: TunnelZone.HostConfig): LocalZoneBuilder = {
             actor ! GreZoneChanged(zone.getId, hostConfig, HostConfigOperation.Deleted)
             this
         }

@@ -3,29 +3,17 @@
  */
 package org.midonet.client.dto;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
 import java.util.UUID;
 
 @XmlRootElement
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = DtoGreTunnelZone.class,
-                name = TunnelZoneType.GRE)})
-public abstract class DtoTunnelZone {
+public class DtoTunnelZone {
 
     private UUID id;
     private String name;
-
-    /**
-     * @return The tunnel zone type
-     */
-    public abstract String getType();
+    private String type = TunnelZoneType.GRE;
 
     @XmlTransient
     private URI uri;
@@ -39,6 +27,14 @@ public abstract class DtoTunnelZone {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public URI getUri() {

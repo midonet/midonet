@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.zones._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.layer3.Route
@@ -30,6 +29,7 @@ import org.midonet.midolman.util.guice.OutgoingMessage
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.packets._
+import org.midonet.cluster.data.TunnelZone
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -98,10 +98,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
         val greZone = greTunnelZone("default")
 
-        val myGreConfig = new GreTunnelZoneHost(host.getId)
+        val myGreConfig = new TunnelZone.HostConfig(host.getId)
             .setIp(IPv4Addr(ipString).toIntIPv4)
 
-        val peerGreConfig = new GreTunnelZoneHost(host2.getId)
+        val peerGreConfig = new TunnelZone.HostConfig(host2.getId)
             .setIp(IPv4Addr("192.168.200.1").toIntIPv4)
 
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)

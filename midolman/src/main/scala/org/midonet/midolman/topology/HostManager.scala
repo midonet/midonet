@@ -24,7 +24,7 @@ class HostManager(clusterClient: Client,
 
         var hostLocalPorts = mutable.Map[UUID, String]()
         var hostLocalDatapath: String = ""
-        var hostTunnelZoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig[_, _]]()
+        var hostTunnelZoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig]()
 
 
         def setDatapathName(datapathName: String): HostBuilder = {
@@ -42,7 +42,7 @@ class HostManager(clusterClient: Client,
             this
         }
 
-        def setTunnelZones(zoneConfigs: util.Map[UUID, TunnelZone.HostConfig[_, _]]): HostBuilder = {
+        def setTunnelZones(zoneConfigs: util.Map[UUID, TunnelZone.HostConfig]): HostBuilder = {
             hostTunnelZoneConfigs.clear()
             hostTunnelZoneConfigs ++= zoneConfigs
             this

@@ -10,7 +10,6 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
@@ -19,6 +18,7 @@ import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.cluster.data.TunnelZone
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -44,10 +44,10 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
           "port2")
 
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId, new GreTunnelZoneHost(host1.getId).setIp(srcIp.toIntIPv4))
+            tunnelZone.getId, new TunnelZone.HostConfig(host1.getId).setIp(srcIp.toIntIPv4))
 
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId, new GreTunnelZoneHost(host2.getId).setIp(dstIp.toIntIPv4))
+            tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp.toIntIPv4))
 
         initializeDatapath() should not be (null)
 

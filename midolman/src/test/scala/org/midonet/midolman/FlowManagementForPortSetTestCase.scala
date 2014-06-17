@@ -14,8 +14,7 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
-import org.midonet.cluster.data.{Port, Bridge}
+import org.midonet.cluster.data.{TunnelZone, Port, Bridge}
 import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -36,7 +35,7 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 @RunWith(classOf[JUnitRunner])
 class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
-    var tunnelZone: GreTunnelZone = null
+    var tunnelZone: TunnelZone = null
 
     var host1: Host = null
     var host2: Host = null
@@ -63,7 +62,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         for ( (host, ip) <- List(host1,host2,host3).zip(List(ip1,ip2,ip3)) ) {
             val zoneId = tunnelZone.getId
-            val greHost = new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4)
+            val greHost = new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4)
             clusterDataClient().tunnelZonesAddMembership(zoneId, greHost)
         }
 

@@ -3,31 +3,42 @@
 */
 package org.midonet.cluster.data;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.cluster.data.zones.*;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.midonet.packets.IntIPv4;
 
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
 
-public abstract class TunnelZone<
-    Zone extends TunnelZone<Zone, ZoneData>,
-    ZoneData extends TunnelZone.Data
-    > extends Entity.Base<UUID, ZoneData, Zone> {
+public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
 
     public static enum Type {
-        Gre
+        gre, vxlan
     }
 
-    public abstract Type getType();
+    public Type getType() {
+        return getData().type;
+    }
 
-    protected TunnelZone(UUID uuid, @Nonnull ZoneData data) {
+    public TunnelZone setType(Type type) {
+        getData().type = type;
+        return self();
+    }
+
+    public TunnelZone(UUID uuid, @Nonnull Data data) {
         super(uuid, data);
     }
 
-    public Zone setName(String name) {
+    public TunnelZone() {
+        super(null, new Data());
+    }
+
+    @Override
+    protected TunnelZone self() {
+        return this;
+    }
+
+    public TunnelZone setName(String name) {
         getData().name = name;
         return self();
     }
@@ -36,18 +47,11 @@ public abstract class TunnelZone<
         return getData().name;
     }
 
-    @JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY, property = "@type")
-    @JsonSubTypes(
-        {
-            @JsonSubTypes.Type(
-                value = GreTunnelZone.Data.class,
-                name = "gre")
-        }
-    )
     public static class Data {
         String name;
+
+        @JsonProperty("@type")
+        Type type;
 
         @Override
         public boolean equals(Object o) {
@@ -59,35 +63,51 @@ public abstract class TunnelZone<
             if (name != null ? !name.equals(data.name) : data.name != null)
                 return false;
 
+            if (type != null ? !type.equals(data.type) : data.type != null)
+                return false;
+
             return true;
         }
 
         @Override
         public int hashCode() {
-            return name != null ? name.hashCode() : 0;
+            int result = name != null ? name.hashCode() : 0;
+            return 31 * result +
+                   (type != null ? type.hashCode() : 0);
         }
 
         @Override
         public String toString() {
             return "Data{" +
                 "name='" + name + '\'' +
+                ",type='" + type + '\'' +
                 '}';
         }
     }
 
 
-    public abstract static class HostConfig<
-        ActualHostConfig extends HostConfig<ActualHostConfig, HostConfigData>,
-        HostConfigData extends HostConfig.Data>
-        extends Entity.Base<UUID, HostConfigData, ActualHostConfig> {
+    public static class HostConfig extends Entity.Base<UUID, HostConfig.Data, HostConfig> {
 
-        protected HostConfig(UUID uuid, @Nonnull HostConfigData hostConfigData) {
+        public HostConfig(UUID uuid, @Nonnull HostConfig.Data hostConfigData) {
             super(uuid, hostConfigData);
         }
 
-        public ActualHostConfig setIp(IntIPv4 ip) {
+        public HostConfig(UUID uuid) {
+            this(uuid, new Data());
+        }
+
+        public HostConfig() {
+            this(null, new Data());
+        }
+
+        public HostConfig setIp(IntIPv4 ip) {
             getData().ip = ip;
             return self();
+        }
+
+        @Override
+        protected HostConfig self() {
+            return this;
         }
 
         public IntIPv4 getIp() {
@@ -108,17 +128,21 @@ public abstract class TunnelZone<
             return getData().equals(hostConfig.getData());
         }
 
-        @JsonTypeInfo(
-            use = JsonTypeInfo.Id.NAME,
-            include = JsonTypeInfo.As.PROPERTY, property = "@type")
-        @JsonSubTypes(
-            {
-            @JsonSubTypes.Type(
-                                value = GreTunnelZoneHost.Data.class,
-                                name = "gre")}
-        )
+        /*
+         * For backwards compatibility, since zone members are not really typed
+         * anymore, hard-code type to gre.
+         */
+        public String getType() { return "gre"; }
+
+        public void setType(String type) {
+            // IGNORE
+        }
+
         public static class Data {
             IntIPv4 ip;
+
+            @JsonProperty("@type")
+            final String type = "gre";
 
             @Override
             public boolean equals(Object o) {

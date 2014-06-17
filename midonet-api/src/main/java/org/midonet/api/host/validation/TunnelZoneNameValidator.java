@@ -35,7 +35,7 @@ public class TunnelZoneNameValidator implements
         ).addConstraintViolation();
 
         try {
-            for (TunnelZone<?, ?> tz : dataClient.tunnelZonesGetAll()) {
+            for (TunnelZone tz : dataClient.tunnelZonesGetAll()) {
                 if (tz.getName().equalsIgnoreCase(tzName)) {
                     return false;
                 }
