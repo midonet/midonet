@@ -17,7 +17,6 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
-import org.midonet.cluster.data.zones.GreTunnelZone
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
@@ -214,8 +213,10 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().ipAddrGroupsDelete(id)
     }
 
-    def greTunnelZone(name: String): GreTunnelZone = {
-        val tunnelZone = new GreTunnelZone().setName("default")
+    def greTunnelZone(name: String): TunnelZone = {
+        val tunnelZone = new TunnelZone().
+            setName("default").
+            setType(TunnelZone.Type.gre)
         clusterDataClient().tunnelZonesCreate(tunnelZone)
         Thread.sleep(50)
         tunnelZone

@@ -14,10 +14,9 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.Router
+import org.midonet.cluster.data.{TunnelZone, Router}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
@@ -58,7 +57,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
     val macSource = "02:11:22:33:44:11"
 
-    var tunnelZone: GreTunnelZone = null
+    var tunnelZone: TunnelZone = null
     var routeId: UUID = null
     val inPortName = "inPort"
     val outPortName = "outPort"
@@ -220,10 +219,10 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new GreTunnelZoneHost(host1.getId).setIp(srcIp.toIntIPv4))
+            new TunnelZone.HostConfig(host1.getId).setIp(srcIp.toIntIPv4))
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new GreTunnelZoneHost(host2.getId).setIp(dstIp1.toIntIPv4))
+            new TunnelZone.HostConfig(host2.getId).setIp(dstIp1.toIntIPv4))
 
         fishForReplyOfType[GreZoneMembers](vtpProbe())
         fishForReplyOfType[GreZoneChanged](vtpProbe())
@@ -246,7 +245,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         // update the gre ip of the second host
         val secondGreConfig =
-            new GreTunnelZoneHost(host2.getId).setIp(dstIp2.toIntIPv4)
+            new TunnelZone.HostConfig(host2.getId).setIp(dstIp2.toIntIPv4)
         clusterDataClient().tunnelZonesDeleteMembership(
             tunnelZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(

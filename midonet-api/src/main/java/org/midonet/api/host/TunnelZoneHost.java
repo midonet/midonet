@@ -26,7 +26,7 @@ import java.util.UUID;
  */
 @IsUniqueTunnelZoneMember(groups = TunnelZoneHostUnique.class)
 @XmlRootElement
-public abstract class TunnelZoneHost extends UriResource {
+public class TunnelZoneHost extends UriResource {
 
     @IsValidTunnelZoneId
     private UUID tunnelZoneId;
@@ -45,7 +45,7 @@ public abstract class TunnelZoneHost extends UriResource {
     public TunnelZoneHost() {
     }
 
-    public TunnelZoneHost(UUID tunnelZoneId, HostConfig<?, ?> data) {
+    public TunnelZoneHost(UUID tunnelZoneId, HostConfig data) {
         this(tunnelZoneId, UUID.fromString(data.getId().toString()));
         this.ipAddress = data.getIp().toString();
     }
@@ -71,7 +71,11 @@ public abstract class TunnelZoneHost extends UriResource {
         this.ipAddress = ipAddress;
     }
 
-    public abstract HostConfig<?, ?> toData();
+    public HostConfig toData() {
+        HostConfig data = new HostConfig(null, new HostConfig.Data());
+        setData(data);
+        return data;
+    }
 
     /**
      * Get tunnel zone ID.
@@ -111,7 +115,7 @@ public abstract class TunnelZoneHost extends UriResource {
         this.hostId = hostId;
     }
 
-    protected void setData(HostConfig<?, ?> data) {
+    protected void setData(HostConfig data) {
         data.setId(hostId);
         data.setIp(IntIPv4.fromString(ipAddress));
     }

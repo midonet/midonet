@@ -18,8 +18,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cache.Cache
 import org.midonet.cache.MockCache
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
@@ -85,7 +84,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
                 clusterDataClient().tunnelZonesAddMembership(tunnelZone.getId,
-                    new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4))
+                    new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4))
         }
 
         bridgeTunnelTo2 =

@@ -5,11 +5,8 @@ package org.midonet.api.host.validation;
 
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZone;
 
 import com.google.inject.Inject;
 import javax.validation.ConstraintValidator;
@@ -38,10 +35,6 @@ public class TunnelZoneHostValidator implements
 
         try {
             if (! dataClient.tunnelZonesExists(tzh.getTunnelZoneId()))
-                return false;
-
-            TunnelZone<?, ?> tz = dataClient.tunnelZonesGet(tzh.getTunnelZoneId());
-            if (tz instanceof GreTunnelZone && !(tzh instanceof GreTunnelZoneHost))
                 return false;
 
             return dataClient.tunnelZonesGetMembership(

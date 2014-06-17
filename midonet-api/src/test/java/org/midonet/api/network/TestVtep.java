@@ -18,7 +18,7 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoGreTunnelZone;
+import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
@@ -72,11 +72,11 @@ public class TestVtep extends RestApiTestBase {
     @Before
     public void before() {
         URI tunnelZonesUri = app.getTunnelZones();
-        DtoGreTunnelZone tz = new DtoGreTunnelZone();
+        DtoTunnelZone tz = new DtoTunnelZone();
         tz.setName("tz");
         tz = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                   VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tz,
-                  DtoGreTunnelZone.class);
+                  DtoTunnelZone.class);
         assertNotNull(tz.getId());
         goodTunnelZone = tz.getId();
         assertEquals("tz", tz.getName());

@@ -735,7 +735,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID tunnelZonesCreate(@Nonnull TunnelZone<?, ?> zone)
+    public UUID tunnelZonesCreate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException {
         return zonesZkManager.createZone(zone, null);
     }
@@ -752,17 +752,17 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull TunnelZone<?, ?> tunnelZonesGet(UUID uuid)
+    public @CheckForNull TunnelZone tunnelZonesGet(UUID uuid)
             throws StateAccessException, SerializationException {
         return zonesZkManager.getZone(uuid, null);
     }
 
     @Override
-    public List<TunnelZone<?, ?>> tunnelZonesGetAll()
+    public List<TunnelZone> tunnelZonesGetAll()
             throws StateAccessException, SerializationException {
         Collection<UUID> ids = zonesZkManager.getZoneIds();
 
-        List<TunnelZone<?, ?>> tunnelZones = new ArrayList<TunnelZone<?, ?>>();
+        List<TunnelZone> tunnelZones = new ArrayList<TunnelZone>();
 
         for (UUID id : ids) {
             TunnelZone zone = tunnelZonesGet(id);
@@ -775,7 +775,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void tunnelZonesUpdate(@Nonnull TunnelZone<?, ?> zone)
+    public void tunnelZonesUpdate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException {
         zonesZkManager.updateZone(zone);
     }
@@ -787,7 +787,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull TunnelZone.HostConfig<?, ?> tunnelZonesGetMembership(UUID id,
+    public @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(UUID id,
                                                                 UUID hostId)
             throws StateAccessException, SerializationException {
         return zonesZkManager.getZoneMembership(id, hostId, null);
@@ -796,9 +796,9 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public boolean tunnelZonesContainHost(UUID hostId)
             throws StateAccessException, SerializationException {
-        List<TunnelZone<?, ?>> tunnelZones = tunnelZonesGetAll();
+        List<TunnelZone> tunnelZones = tunnelZonesGetAll();
         boolean hostExistsInTunnelZone = false;
-        for (TunnelZone<?, ?> tunnelZone : tunnelZones) {
+        for (TunnelZone tunnelZone : tunnelZones) {
             if (tunnelZonesMembershipExists(tunnelZone.getId(), hostId)) {
                 hostExistsInTunnelZone = true;
                 break;
@@ -808,15 +808,15 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public Set<TunnelZone.HostConfig<?, ?>> tunnelZonesGetMemberships(
+    public Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(
             final UUID uuid)
         throws StateAccessException {
 
         return CollectionFunctors.map(
                 zonesZkManager.getZoneMemberships(uuid, null),
-                new Functor<UUID, TunnelZone.HostConfig<?, ?>>() {
+                new Functor<UUID, TunnelZone.HostConfig>() {
                     @Override
-                    public TunnelZone.HostConfig<?, ?> apply(UUID arg0) {
+                    public TunnelZone.HostConfig apply(UUID arg0) {
                         try {
                             return zonesZkManager.getZoneMembership(uuid, arg0,
                                     null);
@@ -829,12 +829,12 @@ public class LocalDataClientImpl implements DataClient {
 
                     }
                 },
-                new HashSet<TunnelZone.HostConfig<?, ?>>()
+                new HashSet<TunnelZone.HostConfig>()
         );
     }
 
     @Override
-    public UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
+    public UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig hostConfig)
             throws StateAccessException, SerializationException {
         return zonesZkManager.addMembership(zoneId, hostConfig);
     }
@@ -3349,7 +3349,7 @@ public class LocalDataClientImpl implements DataClient {
         // Let's get the tunnel zone this host should be in, and get the IP of
         // the host in that tunnel zone.
         UUID tzId = vtepGet(vtepMgmtIp).getTunnelZoneId();
-        TunnelZone.HostConfig<?, ?> hostCfg =
+        TunnelZone.HostConfig hostCfg =
             this.tunnelZonesGetMembership(tzId, hostId);
         if (hostCfg == null) {
             throw new IllegalStateException(String.format(

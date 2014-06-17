@@ -216,10 +216,10 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      *
      * @return new gre tunnel zone.
      */
-    public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
-        return new TunnelZone<DtoGreTunnelZone>(resource,
+    public TunnelZone addGreTunnelZone() {
+        return new TunnelZone(resource,
                 principalDto.getTunnelZones(),
-                new DtoGreTunnelZone(),
+                new DtoTunnelZone(),
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
                 VendorMediaType
                         .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
@@ -444,21 +444,14 @@ public class Application extends ResourceBase<Application, DtoApplication> {
      * @param id ID of tunnel zone
      * @return TunnelZone
      */
-    public TunnelZone<? extends DtoTunnelZone> getTunnelZone(UUID id) {
+    public TunnelZone getTunnelZone(UUID id) {
         URI uri = createUriFromTemplate(
                 principalDto.getTunnelZoneTemplate(), ID_TOKEN,
                 id);
         DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
-        if (tunnelZone instanceof DtoGreTunnelZone) {
-            return new TunnelZone<DtoGreTunnelZone>(resource, null,
-                (DtoGreTunnelZone) tunnelZone,
+        return new TunnelZone(resource, null, tunnelZone,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON
-            );
-        } else {
-            throw new IllegalArgumentException(
-                    "No tunnel zone with ID (" + id + ") exists.");
-        }
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 }

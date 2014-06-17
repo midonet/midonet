@@ -10,7 +10,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
+import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.DatapathController.Initialize
@@ -27,7 +27,7 @@ import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.ports.VxLanTunnelPort
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
+import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -86,7 +86,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
         host should not be null
 
         clusterDataClient().tunnelZonesAddMembership(zone.getId,
-            new GreTunnelZoneHost(host.getId).setIp(ip.toIntIPv4))
+            new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4))
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null

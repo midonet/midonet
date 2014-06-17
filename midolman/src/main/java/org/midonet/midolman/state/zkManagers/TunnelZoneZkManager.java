@@ -24,8 +24,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
@@ -65,21 +63,14 @@ public class TunnelZoneZkManager
         return getUuidList(paths.getTunnelZonesPath());
     }
 
-    public TunnelZone<?, ?> getZone(UUID zoneId, Directory.TypedWatcher watcher)
+    public TunnelZone getZone(UUID zoneId, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
         if (!exists(zoneId)) {
             return null;
         }
 
-        TunnelZone.Data data = super.get(zoneId, watcher);
-
-        if (data instanceof GreTunnelZone.Data) {
-            GreTunnelZone.Data greData = (GreTunnelZone.Data) data;
-            return new GreTunnelZone(zoneId, greData);
-        }
-
-        return null;
+        return new TunnelZone(zoneId, super.get(zoneId, watcher));
     }
 
     public boolean membershipExists(UUID zoneId, UUID hostId)
@@ -87,7 +78,7 @@ public class TunnelZoneZkManager
         return zk.exists(paths.getTunnelZoneMembershipPath(zoneId, hostId));
     }
 
-    public TunnelZone.HostConfig<?, ?> getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)
+    public TunnelZone.HostConfig getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
         String zoneMembershipPath =
@@ -102,13 +93,7 @@ public class TunnelZoneZkManager
                 serializer.deserialize(bytes,
                         TunnelZone.HostConfig.Data.class);
 
-        if (data instanceof GreTunnelZoneHost.Data) {
-            return new GreTunnelZoneHost(
-                hostId,
-                (GreTunnelZoneHost.Data) data);
-        }
-
-        return null;
+        return new TunnelZone.HostConfig(hostId, data);
     }
 
     public Set<UUID> getZoneMemberships(UUID zoneId, Directory.TypedWatcher watcher)
@@ -131,7 +116,7 @@ public class TunnelZoneZkManager
         );
     }
 
-    public void updateZone(TunnelZone<?, ?> zone) throws StateAccessException,
+    public void updateZone(TunnelZone zone) throws StateAccessException,
             SerializationException {
 
         List<Op> updateMulti = new ArrayList<Op>();
@@ -158,7 +143,7 @@ public class TunnelZoneZkManager
      * with the same name. This same check is done in the API but added here
      * for extra safety.
      */
-    public UUID createZone(TunnelZone<?, ?> zone, Directory.TypedWatcher watcher)
+    public UUID createZone(TunnelZone zone, Directory.TypedWatcher watcher)
             throws StateAccessException, SerializationException {
 
         log.debug("Creating availability zone {}", zone);
@@ -194,7 +179,7 @@ public class TunnelZoneZkManager
         return zoneId;
     }
 
-    public UUID addMembership(UUID zoneId, TunnelZone.HostConfig<?, ?> hostConfig)
+    public UUID addMembership(UUID zoneId, TunnelZone.HostConfig hostConfig)
             throws StateAccessException, SerializationException {
         log.debug("Adding to tunnel zone {} <- {}", zoneId, hostConfig);
         String zonePath = paths.getTunnelZonePath(zoneId);

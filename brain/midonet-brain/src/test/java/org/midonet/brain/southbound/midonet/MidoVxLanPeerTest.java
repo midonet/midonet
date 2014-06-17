@@ -23,8 +23,6 @@ import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.ports.BridgePort;
-import org.midonet.cluster.data.zones.GreTunnelZone;
-import org.midonet.cluster.data.zones.GreTunnelZoneHost;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
@@ -77,10 +75,10 @@ public class MidoVxLanPeerTest {
         host.setName("MidoMacBrokerTestHost");
         hostId = dataClient.hostsCreate(UUID.randomUUID(), host);
 
-        TunnelZone<?, ?> tz = new GreTunnelZone();
+        TunnelZone tz = new TunnelZone();
         tz.setName("test");
         UUID tzId = dataClient.tunnelZonesCreate(tz);
-        GreTunnelZoneHost zoneHost = new GreTunnelZoneHost(hostId);
+        TunnelZone.HostConfig zoneHost = new TunnelZone.HostConfig(hostId);
         zoneHost.setIp(tunnelZoneHostIP.toIntIPv4());
         dataClient.tunnelZonesAddMembership(tzId, zoneHost);
 

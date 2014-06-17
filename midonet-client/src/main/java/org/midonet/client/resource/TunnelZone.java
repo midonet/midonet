@@ -17,14 +17,13 @@ import org.midonet.client.dto.DtoTunnelZoneHost;
  * Date: 9/13/12
  * Time: 11:09 PM
  */
-public class TunnelZone<T extends DtoTunnelZone>
-        extends ResourceBase<TunnelZone<T>, T> {
+public class TunnelZone extends ResourceBase<TunnelZone, DtoTunnelZone> {
 
     private String tunnelZoneHostMediaType = null;
     private String tunnelZoneHostListMediaType = null;
 
     public TunnelZone(WebResource resource, URI uriForCreation,
-                      T tunnelZone, String tunnelZoneHostMediaType,
+                      DtoTunnelZone tunnelZone, String tunnelZoneHostMediaType,
                                     String tunnelZoneHostListMediaType) {
         super(resource, uriForCreation, tunnelZone,
               VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
@@ -50,7 +49,7 @@ public class TunnelZone<T extends DtoTunnelZone>
         return principalDto.getId();
     }
 
-    public TunnelZone<T> name(String name) {
+    public TunnelZone name(String name) {
         principalDto.setName(name);
         return this;
     }

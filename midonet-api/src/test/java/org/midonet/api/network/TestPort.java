@@ -1335,7 +1335,7 @@ public class TestPort {
             port1 = topology.getRouterPort("port1");
             port2 = topology.getBridgePort("port2");
 
-            DtoGreTunnelZone tunnelZone = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone = new DtoTunnelZone();
             tunnelZone.setName("tz1-name");
 
             DtoTunnelZoneHost tzh1 = new DtoTunnelZoneHost();

@@ -19,7 +19,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.zones.GreTunnelZoneHost
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.topology.rcu.PortSet
@@ -53,7 +52,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
             newHost("myself", hostId())
 
             val host = Host(hostId(), "midonet", Map[UUID, String](),
-                            Map[UUID, TunnelZone.HostConfig[_, _]]())
+                            Map[UUID, TunnelZone.HostConfig]())
 
             val subscriber = subscribe(HostRequest(hostId()))
             subscriber.getAndClear() should be (List(host))
@@ -72,7 +71,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
         scenario("Subscribe to a tunnel zone.") {
             val zone = greTunnelZone("twilight-zone")
             val host = newHost("myself", hostId(), Set(zone.getId))
-            val tunnelZoneHost = new GreTunnelZoneHost(host.getId)
+            val tunnelZoneHost = new TunnelZone.HostConfig(host.getId)
                                  .setIp(IPv4Addr("1.1.1.1").toIntIPv4)
             clusterDataClient().tunnelZonesAddMembership(zone.getId,
                                                          tunnelZoneHost)
@@ -93,7 +92,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
                 GreZoneChanged(zone.getId, tunnelZoneHost,
                                HostConfigOperation.Added)))
 
-            val other = new GreTunnelZoneHost(UUID.randomUUID())
+            val other = new TunnelZone.HostConfig(UUID.randomUUID())
             VirtualToPhysicalMapper ! GreZoneChanged(zone.getId, other,
                                                      HostConfigOperation.Added)
             subscriber.getAndClear() should be (List(

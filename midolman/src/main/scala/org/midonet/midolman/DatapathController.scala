@@ -28,7 +28,6 @@ import org.midonet.cluster.client
 import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
-import org.midonet.cluster.data.zones._
 import org.midonet.event.agent.InterfaceEvent
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
@@ -466,8 +465,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     }
 
     private def doDatapathZonesUpdate(
-            oldZones: Map[UUID, TZHostConfig[_, _]],
-            newZones: Map[UUID, TZHostConfig[_, _]]) {
+            oldZones: Map[UUID, TZHostConfig],
+            newZones: Map[UUID, TZHostConfig]) {
         val dropped = oldZones.keySet.diff(newZones.keySet)
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
@@ -516,19 +515,18 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             this.nextHost = h
             processNextHost()
 
-        case zoneMembers: ZoneMembers[_] =>
+        case zoneMembers: ZoneMembers =>
             log.debug("ZoneMembers event: {}", zoneMembers)
             if (dpState.host.zones contains zoneMembers.zone) {
                 val zone = zoneMembers.zone
                 for (member <- zoneMembers.members) {
-                    val config = member.asInstanceOf[TZHostConfig[_,_]]
-                    handleZoneChange(zone, config, HostConfigOperation.Added)
+                    handleZoneChange(zone, member, HostConfigOperation.Added)
                 }
             }
 
-        case m: ZoneChanged[_] =>
+        case m: ZoneChanged =>
             log.debug("ZoneChanged: {}", m)
-            val config = m.hostConfig.asInstanceOf[TZHostConfig[_,_]]
+            val config = m.hostConfig.asInstanceOf[TZHostConfig]
             if (dpState.host.zones contains m.zone)
                 handleZoneChange(m.zone, config, m.op)
 
@@ -572,7 +570,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             setTunnelMtu(interfaces)
     }
 
-    def handleZoneChange(zone: UUID, config: TZHostConfig[_,_],
+    def handleZoneChange(zone: UUID, config: TZHostConfig,
                          op: HostConfigOperation.Value) {
 
         if (config.getId == dpState.host.id)
@@ -745,7 +743,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
               if inetAddress.getAddress.length == 4
               zone <- host.zones
               if addressesMatch(inetAddress, zone._2.getIp) &&
-                 zone._2.isInstanceOf[GreTunnelZoneHost]
+                 zone._2.isInstanceOf[TZHostConfig]
         } {
             val tunnelMtu = (intf.getMtu - overhead).toShort
             minMtu = minMtu.min(tunnelMtu)

@@ -26,7 +26,6 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.GreTunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHost;
 import org.midonet.api.host.TunnelZoneHostFactory;
 import org.midonet.api.rest_api.AbstractResource;
@@ -78,7 +77,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
-    public Response create(GreTunnelZoneHost tunnelZoneHost)
+    public Response create(TunnelZoneHost tunnelZoneHost)
             throws StateAccessException, SerializationException {
 
         return createTunnelZoneHost(tunnelZoneHost);
@@ -86,11 +85,11 @@ public class TunnelZoneHostResource extends AbstractResource {
 
     private List<TunnelZoneHost> listTunnelZoneHosts(
             Class<? extends TunnelZoneHost> clazz) throws StateAccessException {
-        Set<TunnelZone.HostConfig<?, ?>> dataList =
+        Set<TunnelZone.HostConfig> dataList =
                 dataClient.tunnelZonesGetMemberships(tunnelZoneId);
         List<TunnelZoneHost> tunnelZoneHosts = new ArrayList<>(dataList.size());
 
-        for (TunnelZone.HostConfig<?, ?> data : dataList) {
+        for (TunnelZone.HostConfig data : dataList) {
             TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
                             tunnelZoneId, data);
             if (clazz == null || tzh.getClass().equals(clazz)) {
@@ -119,13 +118,13 @@ public class TunnelZoneHostResource extends AbstractResource {
     public List<TunnelZoneHost> listGreTunnelZoneHosts() throws
             StateAccessException {
 
-        return listTunnelZoneHosts(GreTunnelZoneHost.class);
+        return listTunnelZoneHosts(TunnelZoneHost.class);
     }
 
     private TunnelZoneHost getTunnelZoneHost(
             Class<? extends TunnelZoneHost> clazz,
             UUID hostId) throws StateAccessException, SerializationException {
-        TunnelZone.HostConfig<?, ?> data =
+        TunnelZone.HostConfig data =
                 dataClient.tunnelZonesGetMembership(tunnelZoneId, hostId);
         if (data == null) {
             throw new NotFoundHttpException("The resource was not found");
@@ -158,7 +157,7 @@ public class TunnelZoneHostResource extends AbstractResource {
                                                UUID hostId) throws
             StateAccessException, SerializationException {
 
-        return getTunnelZoneHost(GreTunnelZoneHost.class, hostId);
+        return getTunnelZoneHost(TunnelZoneHost.class, hostId);
     }
 
     @DELETE
@@ -167,7 +166,7 @@ public class TunnelZoneHostResource extends AbstractResource {
     public void delete(@PathParam("hostId") UUID hostId)
             throws StateAccessException, SerializationException {
 
-        TunnelZone.HostConfig<?, ?> data = dataClient
+        TunnelZone.HostConfig data = dataClient
                 .tunnelZonesGetMembership(tunnelZoneId, hostId);
         if (data == null) {
             return;

@@ -25,7 +25,6 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.data.zones._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman._
@@ -48,27 +47,27 @@ sealed trait VTPMRequest[D] {
     def getCached: Option[D]
 }
 
-sealed trait ZoneChanged[H] {
+sealed trait ZoneChanged {
     val zone: UUID
     val zoneType: TunnelZone.Type
-    val hostConfig: H
+    val hostConfig: TunnelZone.HostConfig
     val op: HostConfigOperation.Value
 }
 
-sealed trait ZoneMembers[H] {
+sealed trait ZoneMembers {
     val zone: UUID
     val zoneType: TunnelZone.Type
-    val members: ROSet[H]
+    val members: ROSet[TunnelZone.HostConfig]
 
-    def change[G](change: ZoneChanged[G]): ZoneMembers[H]
+    def change(change: ZoneChanged): ZoneMembers
 
-    protected def memberOp[G](change: ZoneChanged[G]): ROSet[H] =
+    protected def memberOp(change: ZoneChanged): ROSet[TunnelZone.HostConfig] =
         if (this.zoneType == change.zoneType)
             change.op match {
                 case HostConfigOperation.Added =>
-                    members + change.hostConfig.asInstanceOf[H]
+                    members + change.hostConfig
                 case HostConfigOperation.Deleted =>
-                    members - change.hostConfig.asInstanceOf[H]
+                    members - change.hostConfig
             }
         else
             members
@@ -78,9 +77,9 @@ object ZoneMembers {
 
     import VirtualToPhysicalMapper._
 
-    def apply(id: UUID, tzType: TunnelZone.Type): ZoneMembers[_] =
+    def apply(id: UUID, tzType: TunnelZone.Type): ZoneMembers =
         tzType match {
-            case TunnelZone.Type.Gre => GreZoneMembers(id, Set())
+            case TunnelZone.Type.`gre` => GreZoneMembers(id, Set())
             case _ => GreZoneMembers(id, Set())
         }
 
@@ -119,23 +118,22 @@ object VirtualToPhysicalMapper extends Referenceable {
         protected[topology] val tag = classTag[rcu.PortSet]
         override def getCached = DeviceCaches.portSet(portSetId)
     }
-    case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers[_]] {
-        protected[topology] val tag = classTag[ZoneMembers[_]]
+    case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers] {
+        protected[topology] val tag = classTag[ZoneMembers]
         override def getCached = DeviceCaches.tunnelZone(zoneId)
     }
 
     case class TunnelZoneUnsubscribe(zoneId: UUID)
 
-    case class GreZoneChanged(zone: UUID, hostConfig: GreTunnelZoneHost,
-                              op: HostConfigOperation.Value)
-            extends ZoneChanged[GreTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Gre
+    case class GreZoneChanged(zone: UUID, hostConfig: TunnelZone.HostConfig,
+                              op: HostConfigOperation.Value) extends ZoneChanged {
+        val zoneType = TunnelZone.Type.gre
     }
 
-    case class GreZoneMembers(zone: UUID, members: ROSet[GreTunnelZoneHost])
-            extends ZoneMembers[GreTunnelZoneHost] {
-        val zoneType = TunnelZone.Type.Gre
-        def change[G](change: ZoneChanged[G]) = copy(members=memberOp(change))
+    case class GreZoneMembers(zone: UUID, members: ROSet[TunnelZone.HostConfig])
+            extends ZoneMembers {
+        val zoneType = TunnelZone.Type.gre
+        override def change(change: ZoneChanged) = copy(members=memberOp(change))
     }
 
     /**
@@ -198,7 +196,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
         @volatile private var hosts: Map[UUID, Host] = Map.empty
         @volatile private var portSets: Map[UUID, rcu.PortSet] = Map.empty
-        @volatile private var tunnelZones: Map[UUID, ZoneMembers[_]] = Map.empty
+        @volatile private var tunnelZones: Map[UUID, ZoneMembers] = Map.empty
         @volatile private var tunnelKeyToPortSet: Map[Long, UUID] = Map.empty
 
         def host(id: UUID) = hosts get id
@@ -213,7 +211,7 @@ object VirtualToPhysicalMapper extends Referenceable {
         def addhost(id: UUID, h: Host) { hosts += id -> h }
 
         protected[topology]
-        def putTunnelZone(id: UUID, tz: ZoneMembers[_]) {
+        def putTunnelZone(id: UUID, tz: ZoneMembers) {
             tunnelZones += id -> tz
         }
 
@@ -502,7 +500,7 @@ abstract class VirtualToPhysicalMapperBase
         )
 
     private lazy val tunnelZonesMgr =
-        new DeviceHandlersManager[ZoneMembers[_]](
+        new DeviceHandlersManager[ZoneMembers](
             makeTunnelZoneManager(self),
             DeviceCaches.tunnelZone,
             DeviceCaches.putTunnelZone
@@ -567,7 +565,7 @@ abstract class VirtualToPhysicalMapperBase
         case TunnelZoneUnsubscribe(zoneId) =>
             tunnelZonesMgr.removeSubscriber(zoneId, sender)
 
-        case zoneChanged: ZoneChanged[_] =>
+        case zoneChanged: ZoneChanged =>
             /* If this is the first time we get a ZoneChanged for this
              * tunnel zone we will send a complete list of members to our
              * observers. From the second time on we will just send diffs

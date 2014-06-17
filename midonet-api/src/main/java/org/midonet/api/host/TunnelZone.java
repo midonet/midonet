@@ -8,6 +8,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.midonet.api.validation.AllowedValue;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
@@ -21,12 +22,7 @@ import java.util.UUID;
  * Class representing Tunnel zone.
  */
 @XmlRootElement
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-        property = "type")
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = GreTunnelZone.class,
-                name = TunnelZoneType.GRE)})
-public abstract class TunnelZone extends UriResource {
+public class TunnelZone extends UriResource {
 
     public static final int MIN_TUNNEL_ZONE_NAME_LEN = 1;
     public static final int MAX_TUNNEL_ZONE_NAME_LEN = 255;
@@ -38,6 +34,10 @@ public abstract class TunnelZone extends UriResource {
     @Size(min = MIN_TUNNEL_ZONE_NAME_LEN, max = MAX_TUNNEL_ZONE_NAME_LEN)
     @UniqueTunnelZoneName
     private String name;
+
+    @NotNull
+    @AllowedValue(values = { TunnelZoneType.GRE })
+    private String type;
 
     /**
      * Constructor.
@@ -52,11 +52,14 @@ public abstract class TunnelZone extends UriResource {
      *            ID of the tunnel zone.
      * @param name
      *            Name of the tunnel zone.
+     * @param type
+     *            Type of the tunnel zone.
      */
-    public TunnelZone(UUID id, String name) {
+    public TunnelZone(UUID id, String name, String type) {
         super();
         this.id = id;
         this.name = name;
+        this.type = type;
     }
 
     /**
@@ -66,9 +69,9 @@ public abstract class TunnelZone extends UriResource {
      *            TunnelZone data object
      */
     public TunnelZone(
-            org.midonet.cluster.data.TunnelZone<?, ?> tunnelZoneData) {
+            org.midonet.cluster.data.TunnelZone tunnelZoneData) {
         this(UUID.fromString(tunnelZoneData.getId().toString()),
-                tunnelZoneData.getName());
+                tunnelZoneData.getName(), tunnelZoneData.getType().toString());
     }
 
     /**
@@ -112,9 +115,30 @@ public abstract class TunnelZone extends UriResource {
     /**
      * @return The tunnel zone type
      */
-    public abstract String getType();
+    public String getType() {
+        return type;
+    }
 
-    public abstract org.midonet.cluster.data.TunnelZone<?, ?> toData();
+    /**
+     * Set TunnelZone type ID.
+     *
+     * @param type
+     *            Type of the tunnel zone
+     */
+    public void setType(String type) { this.type = type; }
+
+
+    public org.midonet.cluster.data.TunnelZone toData() {
+        org.midonet.cluster.data.TunnelZone.Type t = org.midonet.cluster.data.TunnelZone.Type.gre;
+
+        if (this.type.equals(TunnelZoneType.GRE))
+            t = org.midonet.cluster.data.TunnelZone.Type.gre;
+
+        return new org.midonet.cluster.data.TunnelZone()
+                .setId(this.id)
+                .setName(this.name)
+                .setType(t);
+    }
 
     /**
      * @return the self URI
@@ -139,14 +163,14 @@ public abstract class TunnelZone extends UriResource {
     /**
      * Convert this object to tunnel zone data object
      */
-    public void setConfig(org.midonet.cluster.data.TunnelZone<?, ?> data) {
+    public void setConfig(org.midonet.cluster.data.TunnelZone data) {
         data.setId(this.id);
         data.setName(this.name);
     }
 
     @Override
     public String toString() {
-        return "id=" + id + ", name=" + name;
+        return "id=" + id + ", name=" + name + ", type=" + type;
     }
 
     /**

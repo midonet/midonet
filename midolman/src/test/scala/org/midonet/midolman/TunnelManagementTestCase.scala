@@ -12,10 +12,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.Matchers
 
-import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.{TunnelZone, Bridge}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.zones.{GreTunnelZone, GreTunnelZoneHost}
 import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.LocalPortActive
@@ -29,9 +28,9 @@ class TunnelManagementTestCase extends MidolmanTestCase
     with Matchers {
 
     val myselfId = UUID.randomUUID()
-    var greZone: GreTunnelZone = null
-    var myGreConfig: GreTunnelZoneHost = null
-    var herGreConfig: GreTunnelZoneHost = null
+    var greZone: TunnelZone = null
+    var myGreConfig: TunnelZone.HostConfig = null
+    var herGreConfig: TunnelZone.HostConfig = null
     var host1: Host = null
     var host2: Host = null
     var bridge: Bridge = null
@@ -58,10 +57,10 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
         // Wait to add myself to the tunnel zone so that the tunnel port
         // gets created after the virtual port.
-        myGreConfig = new GreTunnelZoneHost(host1.getId)
+        myGreConfig = new TunnelZone.HostConfig(host1.getId)
             .setIp(IPv4Addr.fromString("192.168.100.1").toIntIPv4)
 
-        herGreConfig = new GreTunnelZoneHost(host2.getId)
+        herGreConfig = new TunnelZone.HostConfig(host2.getId)
             .setIp(IPv4Addr.fromString("192.168.200.1").toIntIPv4)
 
         clusterDataClient()
@@ -125,7 +124,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         ipShe should be (herGreConfig.getIp.addressAsInt())
 
         // update the gre ip of the second host
-        val herSecondGreConfig = new GreTunnelZoneHost(host2.getId)
+        val herSecondGreConfig = new TunnelZone.HostConfig(host2.getId)
             .setIp(IPv4Addr.fromString("192.168.210.1").toIntIPv4)
         clusterDataClient().tunnelZonesDeleteMembership(
             greZone.getId, host2.getId)

@@ -36,7 +36,6 @@ import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
@@ -130,7 +129,7 @@ public class TestTunnelZoneHost {
             DtoHost host2 = new DtoHost();
             host2.setName("host2");
 
-            DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
             topologyGre = new HostTopology.Builder(dtoResource, hostManager)
@@ -229,7 +228,7 @@ public class TestTunnelZoneHost {
 
         @Test
         public void testCrudGre() throws Exception {
-            DtoGreTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
+            DtoTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
             testCrud(tz1,
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
@@ -258,7 +257,7 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone<DtoGreTunnelZone> greTunnelZone = api.addGreTunnelZone()
+            TunnelZone greTunnelZone = api.addGreTunnelZone()
                                            .name("gre-tunnel-zone-1")
                                            .create();
 
@@ -272,7 +271,7 @@ public class TestTunnelZoneHost {
     }
 
     @RunWith(Parameterized.class)
-    public static class TestBadRequestGreTunnelHostCreate extends JerseyTest {
+    public static class TestBadRequestTunnelHostCreate extends JerseyTest {
 
         private HostTopology topology;
         private DtoWebResource dtoResource;
@@ -281,7 +280,7 @@ public class TestTunnelZoneHost {
         private HostZkManager hostManager;
         private Injector injector;
 
-        public TestBadRequestGreTunnelHostCreate(
+        public TestBadRequestTunnelHostCreate(
                 DtoTunnelZoneHost tunnelZoneHost, String property) {
             super(FuncTest.appDesc);
             this.tunnelZoneHost = tunnelZoneHost;
@@ -300,7 +299,7 @@ public class TestTunnelZoneHost {
                     new TestModule(ZK_ROOT_MIDOLMAN));
             hostManager = injector.getInstance(HostZkManager.class);
 
-            DtoGreTunnelZone tunnelZone1 = new DtoGreTunnelZone();
+            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
             topology = new HostTopology.Builder(dtoResource, hostManager)
@@ -328,7 +327,7 @@ public class TestTunnelZoneHost {
 
         @Test
         public void testBadInputCreate() {
-            DtoGreTunnelZone tz = topology.getGreTunnelZone("tz1");
+            DtoTunnelZone tz = topology.getGreTunnelZone("tz1");
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     tz.getHosts(),
@@ -398,7 +397,7 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone<DtoGreTunnelZone> greTunnelZone = api.addGreTunnelZone()
+            TunnelZone greTunnelZone = api.addGreTunnelZone()
                     .name("gre-tunnel-zone-1")
                     .create();
 

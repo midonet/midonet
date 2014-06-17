@@ -6,7 +6,6 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoGreTunnelZone;
 import org.midonet.client.resource.*;
 
 
@@ -84,7 +83,7 @@ public class MidonetApi {
      *
      * @return gre tunnel zone resource
      */
-    public TunnelZone<DtoGreTunnelZone> addGreTunnelZone() {
+    public TunnelZone addGreTunnelZone() {
         ensureApplication();
         return application.addGreTunnelZone();
     }
@@ -318,7 +317,7 @@ public class MidonetApi {
      * @param id ID of tunnel zone
      * @return TunnelZone
      */
-    public TunnelZone<? extends DtoTunnelZone> getTunnelZone(UUID id) {
+    public TunnelZone getTunnelZone(UUID id) {
         ensureApplication();
         return application.getTunnelZone(id);
     }
