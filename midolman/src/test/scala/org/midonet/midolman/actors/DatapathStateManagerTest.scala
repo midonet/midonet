@@ -10,23 +10,26 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.topology.FlowTagger
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.DpPort
+import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.odp.ports.VxLanTunnelPort
-import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
+    import UnderlayResolver.Route
+
     type MaybePort = Option[DpPort]
 
     val r = new Random
-    val peers = List.tabulate(100){ _ => UUID.randomUUID }.toSet.toList
-    val zones = List.tabulate(10){ _ => UUID.randomUUID }.toSet.toList
-    val myIps = List.tabulate(1000){ _ => r.nextInt}
-    val peerIps = List.tabulate(1000){ _ => r.nextInt}
-    val ipPairs = myIps.zip(peerIps).toSet.toList
+    val peers = List.fill(100) { UUID.randomUUID }.toSet.toList
+    val zones = List.fill(10) { UUID.randomUUID }.toSet.toList
+    val myIps = List.fill(1000) { r.nextInt }
+    val peerIps = List.fill(1000) { r.nextInt }
+    val ipPairs = (myIps zip peerIps).toSet.toList
 
     implicit val log = SoloLogger(classOf[DatapathStateManagerTest])
     log.isInfoEnabled = false
@@ -44,14 +47,15 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     before {
         stateMgr = new DatapathStateManager(controller)(log)
-        stateMgr.version should be (0)
-        stateMgr.tunnelOverlayGre should be (None)
-        stateMgr.tunnelOverlayVxLan should be (None)
-        stateMgr.tunnelVtepVxLan should be (None)
-        stateMgr.overlayTunnellingOutputAction should be (None)
-        stateMgr.vtepTunnellingOutputAction should be (None)
-        stateMgr.host should be (null)
-        for (p <- peers) { stateMgr.peerTunnelInfo(p) should be (None) }
+        stateMgr.version shouldBe 0
+        stateMgr.tunnelOverlayGre shouldBe None
+        stateMgr.tunnelOverlayVxLan shouldBe None
+        stateMgr.tunnelVtepVxLan shouldBe None
+        stateMgr.greOverlayTunnellingOutputAction shouldBe None
+        stateMgr.vxlanOverlayTunnellingOutputAction shouldBe None
+        stateMgr.vtepTunnellingOutputAction shouldBe None
+        stateMgr.host shouldBe null
+        for (p <- peers) { (stateMgr peerTunnelInfo p) shouldBe None }
     }
 
     after { }
@@ -74,9 +78,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
                 tun => checkVUp {
                     stateMgr setTunnelOverlayGre tun
                     stateMgr.tunnelOverlayGre shouldBe tun
-                    // until vxlan overlay tunnelling option is added, this
-                    // assertion should always pass
-                    stateMgr.overlayTunnellingOutputAction shouldBe (tun map outputOf)
+                    stateMgr.greOverlayTunnellingOutputAction shouldBe (tun map outputOf)
             }
         }
         args.map(makePort(VxLanTunnelPort.make)).map(Some.apply)
@@ -84,9 +86,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
                 tun => checkVUp {
                     stateMgr.setTunnelOverlayVxLan(tun)
                     stateMgr.tunnelOverlayVxLan shouldBe tun
-                    // until vxlan overlay tunnelling option is added, this
-                    // assertion should always fail
-                    //stateMgr.overlayTunnellingOutputAction shouldBe (tun map outputOf)
+                    stateMgr.vxlanOverlayTunnellingOutputAction shouldBe (tun map outputOf)
             }
         }
     }
@@ -103,148 +103,167 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     }
 
     def testAddRemoveOnePeer {
+        val port = GreTunnelPort make "bla"
+        val output = (DpPort fakeFrom (port, 1)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = Some(output)
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
-            val peer = peers(r.nextInt(peers.length))
-            val zone = zones(r.nextInt(zones.length))
-            val route = ipPairs(r.nextInt(ipPairs.length))
-            val tag = FlowTagger.invalidateTunnelPort(route)
+            val peer = peers(r nextInt peers.length)
+            val zone = zones(r nextInt zones.length)
+            val (src,dst) = ipPairs(r nextInt ipPairs.length)
+            val tag = FlowTagger invalidateTunnelRoute (src,dst)
 
-            stateMgr.peerTunnelInfo(peer) should be (None)
-            stateMgr.addPeer(peer, zone, route).contains(tag) should be (true)
-            stateMgr.peerTunnelInfo(peer) should be (Some(route))
-            stateMgr.removePeer(peer, zone) should be (Some(tag))
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
+            stateMgr.addPeer(peer, zone, src, dst) should contain(tag)
+            stateMgr.peerTunnelInfo(peer) shouldBe Some(Route(src,dst,output))
+            stateMgr.removePeer(peer, zone) shouldBe Some(tag)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
             // remove all routes before next iteration
         } }
     }
 
     def testMultipleZonesOnePeer {
+        val port = GreTunnelPort make "bla"
+        val output = (DpPort fakeFrom (port, 1)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = Some(output)
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
-            val peer = peers(r.nextInt(peers.length))
-            val zoneI = r.nextInt(zones.length)
+            val peer = peers(r nextInt peers.length)
+            val zoneI = r nextInt zones.length
             val zone1 = zones(zoneI)
             val zone2 = zones((zoneI+1)%zones.length)
-            val routeI = r.nextInt(ipPairs.length)
-            val route1 = ipPairs(routeI)
-            val route2 = ipPairs((routeI+1)%ipPairs.length)
-            val tag1 = FlowTagger.invalidateTunnelPort(route1)
-            val tag2 = FlowTagger.invalidateTunnelPort(route2)
+            val routeI = r nextInt ipPairs.length
+            val (src1, dst1) = ipPairs(routeI)
+            val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
+            val route1 = Route(src1, dst1, output)
+            val route2 = Route(src2, dst2, output)
+            val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
+            val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
 
-            stateMgr.peerTunnelInfo(peer) should be (None)
-            stateMgr.addPeer(peer, zone1, route1).contains(tag1) should be (true)
-            stateMgr.peerTunnelInfo(peer) should be (Some(route1))
+            stateMgr.peerTunnelInfo(peer) shouldBe None
+            stateMgr.addPeer(peer, zone1, src1, dst1) should contain(tag1)
+            stateMgr.peerTunnelInfo(peer) shouldBe Some(route1)
 
-            stateMgr.addPeer(peer, zone2, route2).contains(tag2) should be (true)
-            Set(None, Some(route1), Some(route2))
-                .contains((stateMgr.peerTunnelInfo(peer))) should be (true)
+            stateMgr.addPeer(peer, zone2, src2, dst2) should contain(tag2)
+            /*
+            Set(None, Some(route1), Some(route2)) should contain(
+                stateMgr peerTunnelInfo peer)
+                */
 
-            stateMgr.removePeer(peer, zone1) should be (Some(tag1))
-            stateMgr.peerTunnelInfo(peer) should be (Some(route2))
-            stateMgr.removePeer(peer, zone2) should be (Some(tag2))
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.removePeer(peer, zone1) shouldBe Some(tag1)
+            stateMgr.peerTunnelInfo(peer) shouldBe Some(route2)
+            stateMgr.removePeer(peer, zone2) shouldBe Some(tag2)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
             // remove all routes before next iteration
         } }
     }
 
     def testMultipleZonesMultiplePeer {
+        val port = GreTunnelPort make "bla"
+        val output = (DpPort fakeFrom (port, 1)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = Some(output)
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
-            val peerI = r.nextInt(peers.length)
+            val peerI = r nextInt peers.length
             val peer1 = peers(peerI)
             val peer2 = peers((peerI+1)%peers.length)
-            val zoneI = r.nextInt(zones.length)
+            val zoneI = r nextInt zones.length
             val zone1 = zones(zoneI)
             val zone2 = zones((zoneI+1)%zones.length)
-            val routeI = r.nextInt(ipPairs.length)
-            val route1 = ipPairs(routeI)
-            val route2 = ipPairs((routeI+1)%ipPairs.length)
-            val tag1 = FlowTagger.invalidateTunnelPort(route1)
-            val tag2 = FlowTagger.invalidateTunnelPort(route2)
+            val routeI = r nextInt ipPairs.length
+            val (src1, dst1) = ipPairs(routeI)
+            val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
+            val route1 = Route(src1, dst1, output)
+            val route2 = Route(src2, dst2, output)
+            val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
+            val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
 
-            stateMgr.peerTunnelInfo(peer1) should be (None)
-            stateMgr.peerTunnelInfo(peer2) should be (None)
+            stateMgr.peerTunnelInfo(peer1) shouldBe None
+            stateMgr.peerTunnelInfo(peer2) shouldBe None
 
-            stateMgr.addPeer(peer1, zone1, route1).contains(tag1) should be (true)
-            stateMgr.peerTunnelInfo(peer1) should be (Some(route1))
-            stateMgr.peerTunnelInfo(peer2) should be (None)
+            stateMgr.addPeer(peer1, zone1, src1, dst1) should contain(tag1)
+            stateMgr.peerTunnelInfo(peer1) shouldBe Some(route1)
+            stateMgr.peerTunnelInfo(peer2) shouldBe None
 
-            stateMgr.addPeer(peer2, zone2, route2).contains(tag2) should be (true)
-            stateMgr.peerTunnelInfo(peer1) should be (Some(route1))
-            stateMgr.peerTunnelInfo(peer2) should be (Some(route2))
+            stateMgr.addPeer(peer2, zone2, src2, dst2) should contain(tag2)
+            stateMgr.peerTunnelInfo(peer1) shouldBe Some(route1)
+            stateMgr.peerTunnelInfo(peer2) shouldBe Some(route2)
 
-            stateMgr.removePeer(peer1, zone1) should be (Some(tag1))
-            stateMgr.removePeer(peer2, zone2) should be (Some(tag2))
-            stateMgr.peerTunnelInfo(peer1) should be (None)
-            stateMgr.peerTunnelInfo(peer2) should be (None)
+            stateMgr.removePeer(peer1, zone1) shouldBe Some(tag1)
+            stateMgr.removePeer(peer2, zone2) shouldBe Some(tag2)
+            stateMgr.peerTunnelInfo(peer1) shouldBe None
+            stateMgr.peerTunnelInfo(peer2) shouldBe None
             // remove all routes before next iteration
         } }
     }
 
     def testAddMultipleRoutesToPeer1 {
+        val port = GreTunnelPort make "bla"
+        val output = (DpPort fakeFrom (port, 1)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = Some(output)
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
-            val peer = peers(r.nextInt(peers.length))
-            val zone = zones(r.nextInt(zones.length))
+            val peer = peers(r nextInt peers.length)
+            val zone = zones(r nextInt zones.length)
 
-            val routes = List
-                .tabulate(10){_ => ipPairs(r.nextInt(ipPairs.length))}
-                .toSet
+            val routes =
+                List.fill(10) {  ipPairs(r nextInt ipPairs.length) }.toSet
 
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
 
             var lastTag: Any = null
             var firstRoute = true
-            for ( route <- routes ) {
-                val tags = stateMgr.addPeer(peer, zone, route)
+            for ( (src, dst) <- routes ) {
+                val tags = stateMgr addPeer (peer, zone, src, dst)
 
                 // check tag overwrite
                 if (!firstRoute) {
-                    tags.length should be (2)
-                    tags(0) should be (lastTag)
+                    tags should have length 2
+                    tags(0) shouldBe lastTag
                 }
                 lastTag = tags.last
 
-                val found = stateMgr.peerTunnelInfo(peer)
-                found should be (Some(route))
+                stateMgr.peerTunnelInfo(peer) shouldBe Some(Route(src, dst, output))
                 firstRoute = false
             }
 
             stateMgr.removePeer(peer, zone)
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
             // remove all routes before next iteration
         } }
     }
 
     def testAddMultipleRoutesToPeer2 {
+        val port = GreTunnelPort make "bla"
+        val output = (DpPort fakeFrom (port, 1)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = Some(output)
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r.nextInt(peers.length))
 
-            val routes = List.tabulate(10){ _ => ipPairs(r.nextInt(ipPairs.length)) }
-            val inZones = List.tabulate(10){ _ => zones(r.nextInt(zones.length)) }
-            val zoneIPs = routes.toSet.zip(inZones.toSet)
+            val routes = List.fill(10) { ipPairs(r nextInt ipPairs.length) }
+            val inZones = List.fill(10) { zones(r nextInt zones.length) }
+            val zoneIPs = routes.toSet zip inZones.toSet
 
-            var added = Set[(Int,Int)]()
+            var added = Set[Route]()
 
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
 
-            for ( (route,zone) <- zoneIPs ) {
-                stateMgr.addPeer(peer, zone, route)
-                added += route
-                val found = stateMgr.peerTunnelInfo(peer)
+            for ( ((src,dst),zone) <- zoneIPs ) {
+                stateMgr.addPeer(peer, zone, src, dst)
+                added += Route(src, dst, output)
+                val found = stateMgr peerTunnelInfo peer
                 found should not be (None)
-                added.contains(found.get) should be (true)
+                added should contain(found.get)
             }
 
-            for ( (route,zone) <- Random.shuffle(zoneIPs) ) {
+            for ( ((src,dst),zone) <- Random.shuffle(zoneIPs) ) {
                 stateMgr.removePeer(peer, zone)
-                added -= route
-                val found = stateMgr.peerTunnelInfo(peer)
-                found.isEmpty should be (added.isEmpty)
+                added -= Route(src, dst, output)
+                val found = stateMgr peerTunnelInfo peer
+                found.isEmpty shouldBe added.isEmpty
             }
-            stateMgr.peerTunnelInfo(peer) should be (None)
+            stateMgr.peerTunnelInfo(peer) shouldBe None
             // remove all routes before next iteration
         } }
     }

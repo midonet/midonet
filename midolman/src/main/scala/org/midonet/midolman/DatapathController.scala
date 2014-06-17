@@ -52,7 +52,13 @@ import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
 
+object UnderlayResolver {
+    case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
+}
+
 trait UnderlayResolver {
+
+    import UnderlayResolver.Route
 
     /** object representing the current host */
     def host: Host
@@ -66,11 +72,7 @@ trait UnderlayResolver {
      *  @return first possible tunnel route, or None if unknown peer or no
      *          route to that peer
      */
-    def peerTunnelInfo(peer: UUID): Option[(Int,Int)]
-
-    /** Return the FlowAction for emitting traffic on the vxlan tunnelling port
-     *  towards other midolman peers. */
-    def overlayTunnellingOutputAction: Option[FlowActionOutput]
+    def peerTunnelInfo(peer: UUID): Option[Route]
 
     /** Return the FlowAction for emitting traffic on the vxlan tunnelling port
      *  towards vtep peers. */
@@ -595,8 +597,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         def processAddPeer() =
             host.zones.get(zone) map { _.getIp.addressAsInt() } match {
                 case Some(srcIp) =>
-                    val ipPair = (srcIp, config.getIp.addressAsInt)
-                    processTags(dpState.addPeer(peerUUID, zone, ipPair))
+                    val dstIp = config.getIp.addressAsInt
+                    processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp))
                 case None =>
                     log.info("Could not find this host's ip for zone {}", zone)
             }
@@ -1226,6 +1228,8 @@ class VirtualPortManager(
 class DatapathStateManager(val controller: VirtualPortManager.Controller)(
                   implicit val log: LoggingAdapter) extends DatapathState {
 
+    import UnderlayResolver.Route
+
     @scala.volatile private var _vportMgr = new VirtualPortManager(controller)
     @scala.volatile private var _version: Long = 0
 
@@ -1321,19 +1325,18 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     /** updates the DPC reference to the current host info */
     def host_=(h: Host) = versionUp { _host = Option(h) }
 
-    /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp)
+    /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)
      *  this map stores all the possible underlay routes from this host
-     *  to remote midolman host.
+     *  to remote midolman host, with the tunnelling output action.
      */
-    var _peersRoutes: Map[UUID,Map[UUID,(Int,Int)]] =
-        Map[UUID,Map[UUID,(Int, Int)]]()
+    var _peersRoutes = Map[UUID,Map[UUID,Route]]()
 
     override def peerTunnelInfo(peer: UUID) =
-        _peersRoutes.get(peer).flatMap{ _.values.headOption }
+        (_peersRoutes get peer) flatMap{ _.values.headOption }
 
     /** helper for route string formating. */
-    private def routeStr(route: (Int,Int)): (String,String) =
-        (IPv4Addr.intToString(route._1), IPv4Addr.intToString(route._2))
+    private def routeString(srcIp: Int, dstIp: Int) =
+        "(" + IPv4Addr.intToString(srcIp) + "," + IPv4Addr.intToString(dstIp) + ")"
 
     /** add route info about peer for given zone and retrieve ip for this host
      *  and for this zone from dpState.
@@ -1342,19 +1345,21 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  @param  ipPair the underlay ip of the remote host
      *  @return possible tags to send to the FlowController for invalidation
      */
-    def addPeer(peer: UUID, zone: UUID, ipPair: (Int, Int)): Seq[Any] =
+    def addPeer(peer: UUID, zone: UUID, srcIp: Int, dstIp: Int): Seq[Any] =
        versionUp {
-            log.info("new tunnel route {} to peer {}", routeStr(ipPair), peer)
+            val newRoute = Route(srcIp, dstIp, overlayTunnellingOutputAction.get)
+            log.info("new tunnel route {} to peer {}", newRoute, peer)
 
-            val routes = _peersRoutes.getOrElse(peer, Map[UUID,(Int,Int)]())
+            val routes = _peersRoutes getOrElse (peer, Map[UUID,Route]())
             // invalidate the old route if overwrite
-            val oldRouteTag = routes.get(zone)
+            val oldRoute = routes get zone
 
-            _peersRoutes += ( peer -> ( routes + (zone -> ipPair) ) )
-            val tags = FlowTagger.invalidateTunnelPort(ipPair) :: Nil
+            _peersRoutes += ( peer -> ( routes + (zone -> newRoute) ) )
+            val tags = FlowTagger.invalidateTunnelRoute(srcIp, dstIp) :: Nil
 
-            oldRouteTag.map{ FlowTagger.invalidateTunnelPort(_) :: tags }
-                       .getOrElse(tags)
+            oldRoute map { case Route(src,dst,_) =>
+                FlowTagger.invalidateTunnelRoute(src,dst) :: tags
+            } getOrElse tags
         }
 
     /** delete a tunnel route info about peer for given zone.
@@ -1363,14 +1368,14 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  @return possible tag to send to the FlowController for invalidation
      */
     def removePeer(peer: UUID, zone: UUID): Option[Any] =
-        _peersRoutes.get(peer).flatMap(_.get(zone)).map { ipPair =>
-            log.info(
-                "removing tunnel route {} to peer {}", routeStr(ipPair), peer)
-            versionUp {
-                // TODO(hugo): remove nested map if becomes empty (mem leak)
-                _peersRoutes += (peer -> (_peersRoutes(peer) - zone))
-                FlowTagger.invalidateTunnelPort(ipPair)
-            }
+        (_peersRoutes get peer) flatMap { _ get zone } map {
+            case r@Route(srcIp,dstIp,_) =>
+                log.info("removing tunnel route {} to peer {}", r, peer)
+                versionUp {
+                    // TODO(hugo): remove nested map if becomes empty (mem leak)
+                    _peersRoutes += (peer -> (_peersRoutes(peer) - zone))
+                    FlowTagger.invalidateTunnelRoute(srcIp,dstIp)
+                }
         }
 
     /** delete all tunnel routes associated with a given zone

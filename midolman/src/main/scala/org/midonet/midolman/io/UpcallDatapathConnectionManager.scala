@@ -74,6 +74,7 @@ abstract class UpcallDatapathConnectionManagerBase(
             conn = makeConnection(connName, tbPolicy.link(port))
         } catch {
             case e: Throwable =>
+                tbPolicy.unlink(port)
                 return Future.failed(e)
         }
 
@@ -90,7 +91,8 @@ abstract class UpcallDatapathConnectionManagerBase(
             case Failure(e) =>
                 log.error("failed to create or retrieve datapath port "
                           + port.getName, e)
-                conn.stop()
+                stopConnection(conn)
+                tbPolicy.unlink(port)
         }
     }
 
@@ -133,15 +135,11 @@ abstract class UpcallDatapathConnectionManagerBase(
                         port
                 } andThen {
                     case Success(v) =>
-                        cleanUp(conn)
+                        stopConnection(conn)
                         portToChannel.remove((datapath, port.getPortNo))
                         tbPolicy.unlink(port)
                 } map { _ => true }
         }
-
-    private def cleanUp(conn: ManagedDatapathConnection): Unit = {
-        stopConnection(conn)
-    }
 
     protected def initConnection(conn: ManagedDatapathConnection) = {
         val (initCb, initFuture) =
