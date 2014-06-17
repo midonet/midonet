@@ -9,6 +9,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class IPv6 extends BasePacket {
+
+    /*
+     * TODO: once IPv6Subnet supports "::" notation, we can use this
+     * regex pattern:
+     *        "^([\\dA-Fa-f]{1,4}:|((?=.*(::))(?!.*\\3.+\\3))\\3?)"
+     *        + "([\\dA-Fa-f]{1,4}(\\3|:\\b)|\\2){5}(([\\dA-Fa-f]{1,4}"
+     *        + "(\\3|:\\b|$)|\\2){2}|(((2[0-4]|1\\d|[1-9])?\\d|25[0-5]"
+     *        + ")\\.?\\b){4})\\z"
+     *
+     *   Until then, we will just use the simple regex:
+     */
+    public final static String regex =
+        "^(([0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})$";
+
     public final static short ETHERTYPE = (short)0x86dd;
 
     public final static int MIN_HEADER_LEN = 40;

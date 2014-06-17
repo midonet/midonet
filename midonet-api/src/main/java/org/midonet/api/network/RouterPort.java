@@ -14,7 +14,7 @@ import javax.validation.constraints.Pattern;
 import com.google.common.base.Objects;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.packets.MAC;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 /**
  * Data transfer class for router port.
@@ -25,7 +25,7 @@ public class RouterPort extends Port {
      * Network IP address
      */
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
             message = "is an invalid IP format")
     protected String networkAddress;
 
@@ -40,7 +40,7 @@ public class RouterPort extends Port {
      * Port IP address
      */
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
             message = "is an invalid IP format")
     protected String portAddress;
 

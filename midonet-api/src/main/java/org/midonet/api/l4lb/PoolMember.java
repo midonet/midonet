@@ -8,7 +8,7 @@ import org.midonet.api.UriResource;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.api.validation.VerifyEnumValue;
 import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv4;
 
 import java.net.URI;
 import java.util.UUID;
@@ -31,7 +31,7 @@ public class PoolMember extends UriResource {
     private UUID poolId;
 
     @NotNull
-    @Pattern(regexp = StringUtil.IP_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv4.regex,
              message = MessageProperty.IP_ADDR_INVALID)
     private String address;
 

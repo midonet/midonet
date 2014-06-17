@@ -9,7 +9,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IPv6Addr;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.IPv6;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -22,8 +22,9 @@ import java.util.List;
 
 @XmlRootElement
 public class DhcpSubnet6 extends RelativeUriResource {
+
     @NotNull
-    @Pattern(regexp = StringUtil.IPV6_ADDRESS_REGEX_PATTERN,
+    @Pattern(regexp = IPv6.regex,
              message = "is an invalid IP format")
     private String prefix;
 

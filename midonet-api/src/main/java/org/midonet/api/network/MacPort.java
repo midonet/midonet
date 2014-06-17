@@ -15,14 +15,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.network.validation.MacPortValid;
-import org.midonet.util.StringUtil;
+import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
 
 @MacPortValid(groups = MacPort.MacPortExtended.class)
 @XmlRootElement
 public class MacPort  extends RelativeUriResource {
     @NotNull
-    @Pattern(regexp = StringUtil.MAC_ADDRESS_REGEX_PATTERN)
+    @Pattern(regexp = MAC.regex)
     protected String macAddr;
 
     @NotNull

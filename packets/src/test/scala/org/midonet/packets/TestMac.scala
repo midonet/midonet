@@ -17,6 +17,8 @@ class TestMac extends Suite with Matchers {
         val mask = 0xffffffffffffL
         for (m <- macpool; s = m.toString; ary = m.getAddress) {
 
+            (s matches MAC.regex) shouldBe true
+
             // long <-> string
             val longFromString = MAC.stringToLong(s)
             (longFromString | mask) should be (mask)

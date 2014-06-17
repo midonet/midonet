@@ -8,8 +8,8 @@ import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.midonet.api.HttpSupport;
-import org.midonet.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,7 @@ public class CloudStackClient {
             encodedValues.add(item.toLowerCase());
         }
 
-        return StringUtil.join(encodedValues, '&');
+        return StringUtils.join(encodedValues, '&');
     }
 
     private String generateBase64Sha1Digest(String command) throws

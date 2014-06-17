@@ -53,8 +53,11 @@ class IPv6AddrTest extends Suite with Matchers {
     }
 
     def testCompare() {
-
         for (ip <- ippool) { ip.next should be > ip }
+    }
+
+    def testRegex() {
+        for (ip <- ippool) { (ip.toString matches IPv6.regex) shouldBe true }
     }
 
     /**
