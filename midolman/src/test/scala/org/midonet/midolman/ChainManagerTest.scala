@@ -72,7 +72,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             checkTcpDstRule(c.getRules.get(1), 81, Action.ACCEPT)
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(c.id)) shouldBe true
+            vta.getAndClear() should contain (flowInvalidationMsg(c.id))
         }
     }
 
@@ -122,7 +122,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             c1.getJumpTarget(chain3.getId) should not be null
 
             And("the VTA should receive a flow invalidation for the first chain")
-            vta.getAndClear().contains(flowInvalidationMsg(c1.id)) shouldBe true
+            vta.getAndClear() should contain (flowInvalidationMsg(c1.id))
         }
 
         scenario("Add a jump to a third chain on the second chain") {
@@ -159,8 +159,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             And("the VTA should receive flow invalidations " +
                 "for the first two chains")
             val msgs = vta.getAndClear()
-            msgs.contains(flowInvalidationMsg(c1.id)) shouldBe true
-            msgs.contains(flowInvalidationMsg(c2.id)) shouldBe true
+            msgs should contain (flowInvalidationMsg(c1.id))
+            msgs should contain (flowInvalidationMsg(c2.id))
         }
 
         scenario("Add a rule to a jump target chain") {
@@ -247,7 +247,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  null, null)
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClear().contains(flowInvalidationMsg(c.id)) shouldBe true
+            vta.getAndClear() should contain (flowInvalidationMsg(c.id))
         }
 
         scenario("Remove an address from an IPAddrGroup") {
@@ -281,7 +281,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  ipAddrGroup.getId, Set(addr2))
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClear().contains(flowInvalidationMsg(c2.id)) shouldBe true
+            vta.getAndClear() should contain (flowInvalidationMsg(c2.id))
         }
     }
 

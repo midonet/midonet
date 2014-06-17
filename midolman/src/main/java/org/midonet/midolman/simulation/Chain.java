@@ -181,7 +181,7 @@ public class Chain {
     }
 
     public String toString() {
-        return "Chain[id=" + id + "]";
+        return "Chain[Name=" + name + ", ID=" + id + "]";
     }
 
     /**
@@ -195,7 +195,7 @@ public class Chain {
         Arrays.fill(indentBuf, ' ');
         StringBuilder bld = new StringBuilder();
         bld.append(indentBuf);
-        bld.append(String.format("Chain[Name=%s, ID=%s]:\n", name, id));
+        bld.append(this.toString());
 
         // Print rules.
         for (Rule rule : rules) {

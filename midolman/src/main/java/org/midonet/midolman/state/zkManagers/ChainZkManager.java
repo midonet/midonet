@@ -5,13 +5,6 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.*;
 
-import org.midonet.midolman.rules.RuleList;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -19,6 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleList;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.util.functors.Functor;
 
 /**
  * ZooKeeper DAO class for Chains.
@@ -29,10 +33,11 @@ public class ChainZkManager
     public static class ChainConfig extends BaseConfig {
 
         // The chain name should only be used for logging.
-        public String name = null;
+        public final String name;
         public Map<String, String> properties = new HashMap<>();
 
         public ChainConfig() {
+            this.name = "";
         }
 
         public ChainConfig(String name) {
@@ -50,7 +55,7 @@ public class ChainZkManager
                                               ResourceType resourceType,
                                               UUID deviceId)
             throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         String refPath = paths.getChainBackRefsPath(chainId);
         /*
          * This check exists for backwards compatibility. It is possible that
@@ -84,7 +89,7 @@ public class ChainZkManager
                                               ResourceType resourceType,
                                               UUID deviceId)
             throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         String backRefPath = paths.getChainBackRefPath(chainId,
                 resourceType.toString(), deviceId);
@@ -111,13 +116,13 @@ public class ChainZkManager
                                                UUID oldOut, UUID newOut,
                                                UUID deviceId)
             throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
-        Set<UUID> oldRefs = new HashSet<UUID>();
+        Set<UUID> oldRefs = new HashSet<>();
         if (oldIn != null) oldRefs.add(oldIn);
         if (oldOut != null) oldRefs.add(oldOut);
 
-        Set<UUID> newRefs = new HashSet<UUID>();
+        Set<UUID> newRefs = new HashSet<>();
         if (newIn != null) newRefs.add(newIn);
         if (newOut != null) newRefs.add(newOut);
 
@@ -278,6 +283,55 @@ public class ChainZkManager
     }
 
     /**
+     * Checks whether a chain with the given ID exists.
+     *
+     * @param id
+     *            Chain ID to check
+     * @return True if exists
+     * @throws StateAccessException
+     */
+    public boolean exists(UUID id) throws StateAccessException {
+        return zk.exists(paths.getChainPath(id));
+    }
+
+    /**
+     * Gets a ZooKeeper node entry key-value pair of a chain with the given ID.
+     *
+     * @param id
+     *            The ID of the chain.
+     * @return ChainConfig object found.
+     * @throws StateAccessException
+     */
+    public ChainConfig get(UUID id) throws StateAccessException,
+            SerializationException {
+        byte[] data = zk.get(paths.getChainPath(id), null);
+        return serializer.deserialize(data, ChainConfig.class);
+    }
+
+    public void getNameAsync(UUID chainId,
+                             DirectoryCallback<String> nameCB,
+                             Directory.TypedWatcher watcher) {
+        zk.asyncGet(
+            paths.getChainPath(chainId),
+            DirectoryCallbackFactory.transform(
+                nameCB,
+                new Functor<byte[], String>() {
+                    @Override
+                    public String apply(byte[] data) {
+                        try {
+                            ChainConfig conf =
+                                serializer.deserialize(data, ChainConfig.class);
+                            return conf.name;
+                        } catch (SerializationException e) {
+                            log.warn("Could not deserialize Chain data");
+                        }
+                        return "";
+                    }
+                }),
+            watcher);
+    }
+
+    /**
      * Updates the ChainConfig values with the given ChainConfig object.
      *
      * @param id
@@ -290,7 +344,7 @@ public class ChainZkManager
         zk.multi(Arrays.asList(simpleUpdateOp(id, config)));
     }
 
-    /***
+    /**
      * Deletes a chain and its related data from the ZooKeeper directories
      * atomically.
      *
