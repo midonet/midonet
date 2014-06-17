@@ -4,6 +4,8 @@
 
 package org.midonet.cluster;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,8 +19,6 @@ import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.util.collection.TypedHashMap;
-import org.midonet.util.collection.TypedMap;
 import org.midonet.util.eventloop.Reactor;
 
 abstract class ClusterManager<T> {
@@ -35,7 +35,7 @@ abstract class ClusterManager<T> {
     @Inject
     ZkConnectionAwareWatcher connectionWatcher;
 
-    private TypedMap<UUID, T> builderMap = new TypedHashMap<UUID, T>();
+    private Map<UUID, T> builderMap = new HashMap<>();
 
     public void registerNewBuilder(final UUID id, final T builder) {
         reactorLoop.submit(new Runnable() {

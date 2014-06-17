@@ -4,12 +4,12 @@
 
 package org.midonet.cache;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.midonet.util.eventloop.Reactor;
-import org.midonet.util.collection.TypedHashMap;
-import org.midonet.util.collection.TypedMap;
 
 /**
  * An abstract implementation of {@link ReadCache} that delegates to its
@@ -25,8 +25,8 @@ import org.midonet.util.collection.TypedMap;
  * @param <V> The type of the value used by the cache.
  */
 public abstract class LoadingCache<K, V> implements ReadCache<K, V> {
-    private TypedMap<K, V> map = new TypedHashMap<K, V>();
-    private TypedMap<K, Long> lastAccessTimes = new TypedHashMap<K, Long>();
+    private Map<K, V> map = new HashMap<K,V>();
+    private Map<K, Long> lastAccessTimes = new HashMap<K,Long>();
     private Set<K> pinnedKeys = new HashSet<K>();
     protected Reactor reactor;
 

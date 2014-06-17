@@ -17,6 +17,7 @@ import com.vmware.vim25.Permission;
 import com.vmware.vim25.mo.Datacenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import org.midonet.api.auth.AuthException;
 import org.midonet.api.auth.AuthRole;
@@ -25,7 +26,6 @@ import org.midonet.api.auth.MockAuthService;
 import org.midonet.api.auth.Tenant;
 import org.midonet.api.auth.Token;
 import org.midonet.api.auth.UserIdentity;
-import org.midonet.util.StringUtil;
 
 public class VSphereSSOService implements AuthService {
 
@@ -67,7 +67,7 @@ public class VSphereSSOService implements AuthService {
     public UserIdentity getUserIdentityByToken(String token)
             throws AuthException {
 
-        if(StringUtil.isNullOrEmpty(token)) {
+        if(StringUtils.isEmpty(token)) {
             throw new VSphereAuthException("Authentication token is required");
         }
 

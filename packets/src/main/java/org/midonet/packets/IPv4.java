@@ -31,6 +31,11 @@ import java.util.Map;
  *
  */
 public class IPv4 extends BasePacket {
+
+    public static final String regex =
+        "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
+        "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+
     public final static short ETHERTYPE = 0x0800;
 
     public static Map<Byte, Class<? extends IPacket>> protocolClassMap;

@@ -23,6 +23,7 @@ class IPv4AddrTest extends Suite with Matchers {
 
     def testConversions() {
         for (ip <- ippool; intIp = ip.addr; strIp = ip.toString) {
+            (strIp matches IPv4.regex) shouldBe true
             intIp should be (IPv4Addr.bytesToInt(IPv4Addr.intToBytes(intIp)))
             intIp should be (IPv4Addr.stringToInt(IPv4Addr.intToString(intIp)))
             strIp should be (IPv4Addr.bytesToString(IPv4Addr.stringToBytes(strIp)))
