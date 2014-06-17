@@ -27,6 +27,7 @@ import org.midonet.Subscription
 import org.midonet.cluster.client
 import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
+import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.event.agent.InterfaceEvent
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
@@ -515,19 +516,18 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             this.nextHost = h
             processNextHost()
 
-        case zoneMembers: ZoneMembers =>
-            log.debug("ZoneMembers event: {}", zoneMembers)
-            if (dpState.host.zones contains zoneMembers.zone) {
-                val zone = zoneMembers.zone
-                for (member <- zoneMembers.members) {
-                    handleZoneChange(zone, member, HostConfigOperation.Added)
+        case m@ZoneMembers(zone, zoneType, members) =>
+            log.debug("ZoneMembers event: {}", m)
+            if (dpState.host.zones contains zone) {
+                for (m <- members) {
+                    handleZoneChange(zone, zoneType, m, HostConfigOperation.Added)
                 }
             }
 
         case m@ZoneChanged(zone, zoneType, hostConfig, op) =>
-            log.debug("ZoneChanged: {}", m)
+            log.debug("ZoneChanged event: {}", m)
             if (dpState.host.zones contains zone)
-                handleZoneChange(zone, hostConfig, op)
+                handleZoneChange(zone, zoneType, hostConfig, op)
 
         case req: DpPortCreate =>
             log.debug("Got {} from {}", req, sender)
@@ -569,13 +569,11 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             setTunnelMtu(interfaces)
     }
 
-    def handleZoneChange(zone: UUID, config: TZHostConfig,
+    def handleZoneChange(zone: UUID, t: TunnelType, config: TZHostConfig,
                          op: HostConfigOperation.Value) {
 
         if (config.getId == dpState.host.id)
             return
-
-        log.debug("Zone {} member {} change events: {}", zone, config, op)
 
         val peerUUID = config.getId
 
@@ -595,7 +593,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             host.zones.get(zone) map { _.getIp.addressAsInt() } match {
                 case Some(srcIp) =>
                     val dstIp = config.getIp.addressAsInt
-                    processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp))
+                    processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp, t))
                 case None =>
                     log.info("Could not find this host's ip for zone {}", zone)
             }
@@ -1278,8 +1276,6 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
     var vxlanOverlayTunnellingOutputAction: FlowActionOutput = _
     var vtepTunnellingOutputAction: FlowActionOutput = _
 
-    def overlayTunnellingOutputAction = greOverlayTunnellingOutputAction
-
     /** set the DPC reference to the gre tunnel port bound in the datapath */
     def setTunnelOverlayGre(port: GreTunnelPort) = versionUp {
         tunnelOverlayGre = port
@@ -1336,25 +1332,31 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  and for this zone from dpState.
      *  @param  peer  remote host UUID
      *  @param  zone  zone UUID the underlay route to add is associated to.
-     *  @param  ipPair the underlay ip of the remote host
+     *  @param  srcIp the underlay ip of this host
+     *  @param  dstIp the underlay ip of the remote host
+     *  @param  t the tunnelling protocol type
      *  @return possible tags to send to the FlowController for invalidation
      */
-    def addPeer(peer: UUID, zone: UUID, srcIp: Int, dstIp: Int): Seq[Any] =
-       versionUp {
-            val newRoute = Route(srcIp, dstIp, overlayTunnellingOutputAction)
-            log.info("new tunnel route {} to peer {}", newRoute, peer)
-
-            val routes = _peersRoutes getOrElse (peer, Map[UUID,Route]())
-            // invalidate the old route if overwrite
-            val oldRoute = routes get zone
-
-            _peersRoutes += ( peer -> ( routes + (zone -> newRoute) ) )
-            val tags = FlowTagger.invalidateTunnelRoute(srcIp, dstIp) :: Nil
-
-            oldRoute map { case Route(src,dst,_) =>
-                FlowTagger.invalidateTunnelRoute(src,dst) :: tags
-            } getOrElse tags
+    def addPeer(peer: UUID, zone: UUID,
+                srcIp: Int, dstIp: Int, t: TunnelType): Seq[Any] = versionUp {
+        val outputAction = t match {
+            case TunnelType.gre => greOverlayTunnellingOutputAction
+            case TunnelType.vxlan => vxlanOverlayTunnellingOutputAction
         }
+        val newRoute = Route(srcIp, dstIp, outputAction)
+        log.info("new tunnel route {} to peer {}", newRoute, peer)
+
+        val routes = _peersRoutes getOrElse (peer, Map[UUID,Route]())
+        // invalidate the old route if overwrite
+        val oldRoute = routes get zone
+
+        _peersRoutes += ( peer -> ( routes + (zone -> newRoute) ) )
+        val tags = FlowTagger.invalidateTunnelRoute(srcIp, dstIp) :: Nil
+
+        oldRoute map { case Route(src,dst,_) =>
+            FlowTagger.invalidateTunnelRoute(src,dst) :: tags
+        } getOrElse tags
+    }
 
     /** delete a tunnel route info about peer for given zone.
      *  @param  peer  remote host UUID

@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.DpPort
@@ -30,6 +31,9 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     val myIps = List.fill(1000) { r.nextInt }
     val peerIps = List.fill(1000) { r.nextInt }
     val ipPairs = (myIps zip peerIps).toSet.toList
+
+    val gre = TunnelType.gre
+    val vxlan = TunnelType.vxlan
 
     implicit val log = SoloLogger(classOf[DatapathStateManagerTest])
     log.isInfoEnabled = false
@@ -113,7 +117,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val tag = FlowTagger invalidateTunnelRoute (src,dst)
 
             stateMgr.peerTunnelInfo(peer) shouldBe None
-            stateMgr.addPeer(peer, zone, src, dst) should contain(tag)
+            stateMgr.addPeer(peer, zone, src, dst, gre) should contain(tag)
             stateMgr.peerTunnelInfo(peer) shouldBe Some(Route(src,dst,output))
             stateMgr.removePeer(peer, zone) shouldBe Some(tag)
             stateMgr.peerTunnelInfo(peer) shouldBe None
@@ -123,8 +127,10 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     def testMultipleZonesOnePeer {
         val port = GreTunnelPort make "bla"
-        val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = output
+        val output1 = (DpPort fakeFrom (port, 1)).toOutputAction
+        val output2 = (DpPort fakeFrom (port, 2)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = output1
+        stateMgr.vxlanOverlayTunnellingOutputAction = output2
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peer = peers(r nextInt peers.length)
@@ -134,16 +140,16 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val routeI = r nextInt ipPairs.length
             val (src1, dst1) = ipPairs(routeI)
             val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
-            val route1 = Route(src1, dst1, output)
-            val route2 = Route(src2, dst2, output)
+            val route1 = Route(src1, dst1, output1)
+            val route2 = Route(src2, dst2, output2)
             val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
             val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
 
             stateMgr.peerTunnelInfo(peer) shouldBe None
-            stateMgr.addPeer(peer, zone1, src1, dst1) should contain(tag1)
+            stateMgr.addPeer(peer, zone1, src1, dst1, gre) should contain(tag1)
             stateMgr.peerTunnelInfo(peer) shouldBe Some(route1)
 
-            stateMgr.addPeer(peer, zone2, src2, dst2) should contain(tag2)
+            stateMgr.addPeer(peer, zone2, src2, dst2, vxlan) should contain(tag2)
 
             stateMgr.removePeer(peer, zone1) shouldBe Some(tag1)
             stateMgr.peerTunnelInfo(peer) shouldBe Some(route2)
@@ -155,8 +161,10 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     def testMultipleZonesMultiplePeer {
         val port = GreTunnelPort make "bla"
-        val output = (DpPort fakeFrom (port, 1)).toOutputAction
-        stateMgr.greOverlayTunnellingOutputAction = output
+        val output1 = (DpPort fakeFrom (port, 1)).toOutputAction
+        val output2 = (DpPort fakeFrom (port, 2)).toOutputAction
+        stateMgr.greOverlayTunnellingOutputAction = output1
+        stateMgr.vxlanOverlayTunnellingOutputAction = output2
         (1 to 100) foreach { _ => checkVUp {
             val r = Random
             val peerI = r nextInt peers.length
@@ -168,19 +176,19 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val routeI = r nextInt ipPairs.length
             val (src1, dst1) = ipPairs(routeI)
             val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
-            val route1 = Route(src1, dst1, output)
-            val route2 = Route(src2, dst2, output)
+            val route1 = Route(src1, dst1, output1)
+            val route2 = Route(src2, dst2, output2)
             val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
             val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
 
             stateMgr.peerTunnelInfo(peer1) shouldBe None
             stateMgr.peerTunnelInfo(peer2) shouldBe None
 
-            stateMgr.addPeer(peer1, zone1, src1, dst1) should contain(tag1)
+            stateMgr.addPeer(peer1, zone1, src1, dst1, gre) should contain(tag1)
             stateMgr.peerTunnelInfo(peer1) shouldBe Some(route1)
             stateMgr.peerTunnelInfo(peer2) shouldBe None
 
-            stateMgr.addPeer(peer2, zone2, src2, dst2) should contain(tag2)
+            stateMgr.addPeer(peer2, zone2, src2, dst2, vxlan) should contain(tag2)
             stateMgr.peerTunnelInfo(peer1) shouldBe Some(route1)
             stateMgr.peerTunnelInfo(peer2) shouldBe Some(route2)
 
@@ -209,7 +217,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             var lastTag: Any = null
             var firstRoute = true
             for ( (src, dst) <- routes ) {
-                val tags = stateMgr addPeer (peer, zone, src, dst)
+                val tags = stateMgr addPeer (peer, zone, src, dst, gre)
 
                 // check tag overwrite
                 if (!firstRoute) {
@@ -245,7 +253,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             stateMgr.peerTunnelInfo(peer) shouldBe None
 
             for ( ((src,dst),zone) <- zoneIPs ) {
-                stateMgr.addPeer(peer, zone, src, dst)
+                stateMgr.addPeer(peer, zone, src, dst, gre)
                 added += Route(src, dst, output)
                 val found = stateMgr peerTunnelInfo peer
                 found should not be (None)

@@ -228,9 +228,11 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
         names foreach { ports should contain key(_) }
 
         dpState.asInstanceOf[DatapathStateManager]
-               .overlayTunnellingOutputAction should not be (None)
+               .greOverlayTunnellingOutputAction should not be (null)
         dpState.asInstanceOf[DatapathStateManager]
-               .vtepTunnellingOutputAction should not be (None)
+               .vxlanOverlayTunnellingOutputAction should not be (null)
+        dpState.asInstanceOf[DatapathStateManager]
+               .vtepTunnellingOutputAction should not be (null)
 
         ports
     }
