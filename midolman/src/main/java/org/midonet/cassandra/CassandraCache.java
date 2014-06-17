@@ -22,6 +22,10 @@ public class CassandraCache implements Cache {
     private final String column = "target";
     private CassandraClient client;
 
+    public CassandraClient getClient() {
+        return client;
+    }
+
     public CassandraCache(String servers, int maxActiveConns,
                           String clusterName, String keyspaceName,
                           String columnFamily, int replicationFactor,

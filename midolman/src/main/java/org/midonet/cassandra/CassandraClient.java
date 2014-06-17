@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import me.prettyprint.cassandra.connection.HConnectionManager;
 import me.prettyprint.cassandra.serializers.StringSerializer;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.cassandra.service.ExhaustedPolicy;
@@ -94,6 +95,18 @@ public class CassandraClient {
         this.hostTimeoutWindow = hostTimeoutWindow;
         this.reactor = reactor;
         this.lock = lock;
+    }
+
+    public HConnectionManager getConnectionManager() {
+
+        if (conn == null)
+            return null;
+
+        Cluster cluster = conn.cluster;
+        if (cluster == null)
+            return null;
+
+        return cluster.getConnectionManager();
     }
 
     public synchronized void connect() throws HectorException {
