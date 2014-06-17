@@ -219,8 +219,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         val output = dpState().asInstanceOf[DatapathStateManager]
                               .overlayTunnellingOutputAction
-        val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output.get)
-        val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output.get)
+        val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
+        val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,

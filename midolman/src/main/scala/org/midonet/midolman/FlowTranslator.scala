@@ -219,16 +219,11 @@ trait FlowTranslator {
     private def outputActionsToVtep(vni: Int, vtepIp: Int,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[Any]) {
-        if (dpState.vtepTunnellingOutputAction.isEmpty) {
-            log.warning("VxLan tunnel port was not found, could not " +
-                        "translate action to vtep peer {}", vtepIp)
-            return
-        }
         val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
         if (dpTags != null)
             dpTags += FlowTagger.invalidateTunnelRoute(localIp, vtepIp)
         actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
-        actions += dpState.vtepTunnellingOutputAction.get
+        actions += dpState.vtepTunnellingOutputAction
     }
 
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs

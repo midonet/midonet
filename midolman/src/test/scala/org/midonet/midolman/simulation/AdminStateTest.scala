@@ -389,8 +389,8 @@ class AdminStateTest extends MidolmanSpec {
         protected val dpState: DatapathState = new DatapathState {
             def host: rcu.Host = null
             def peerTunnelInfo(peer: UUID) = null
-            def overlayTunnellingOutputAction: Option[FlowActionOutput] = None
-            def vtepTunnellingOutputAction: Option[FlowActionOutput] = None
+            def overlayTunnellingOutputAction: FlowActionOutput = null
+            def vtepTunnellingOutputAction: FlowActionOutput = null
             def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
                 Some(1)
             def getDpPortForInterface(itfName: String): Option[DpPort] = null
