@@ -9,6 +9,7 @@ import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.odp.OvsConnectionOps
 import org.midonet.odp.test.OvsIntegrationTestBase
+import org.midonet.util.Bucket;
 
 object ConnectionFactory {
 
@@ -28,8 +29,8 @@ object ConnectionFactory {
 
     def selectorBasedConnection(singleThreaded: Boolean = true) = {
         fromManager { () =>
-            new SelectorBasedDatapathConnection("selector", conf,
-                                                singleThreaded, null)
+            new SelectorBasedDatapathConnection("selector", conf, singleThreaded,
+                                                Bucket.BOTTOMLESS)
         }
     }
 
