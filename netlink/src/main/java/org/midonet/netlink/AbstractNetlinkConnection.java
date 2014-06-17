@@ -43,7 +43,7 @@ public abstract class AbstractNetlinkConnection {
 
     protected static final long DEF_REPLY_TIMEOUT = TimeUnit.SECONDS.toMillis(1);
 
-    private AtomicInteger sequenceGenerator = new AtomicInteger(1);
+    private int sequenceNumber = 1;
 
     private Map<Integer, NetlinkRequest>
         pendingRequests = new ConcurrentHashMap<>();
@@ -66,7 +66,7 @@ public abstract class AbstractNetlinkConnection {
     protected BatchCollector<Runnable> dispatcher;
 
     private SelectorInputQueue<NetlinkRequest> writeQueue =
-            new SelectorInputQueue<NetlinkRequest>();
+            new SelectorInputQueue<>();
 
     private PriorityQueue<NetlinkRequest> expirationQueue;
 
@@ -80,8 +80,7 @@ public abstract class AbstractNetlinkConnection {
     public AbstractNetlinkConnection(NetlinkChannel channel, BufferPool sendPool) {
         this.channel = channel;
         this.requestPool = sendPool;
-        expirationQueue =
-            new PriorityQueue<NetlinkRequest>(512, requestComparator);
+        expirationQueue = new PriorityQueue<>(512, requestComparator);
 
         // default implementation runs callbacks out of the calling thread one by one
         this.dispatcher = new BatchCollector<Runnable>() {
@@ -202,29 +201,26 @@ public abstract class AbstractNetlinkConnection {
         final byte cmd = ctx.command();
         final byte version = ctx.version();
 
-        final int seq = nextSequenceNumber();
-
         final int totalSize = payload.limit();
 
         final ByteBuffer headerBuf = payload.duplicate();
         headerBuf.rewind();
         headerBuf.order(ByteOrder.nativeOrder());
-        serializeNetlinkHeader(headerBuf, seq, cmdFamily, version, cmd, flags);
+        serializeNetlinkHeader(headerBuf, cmdFamily, version, cmd, flags);
 
         // set the header length
         headerBuf.putInt(0, totalSize);
 
         NetlinkRequest netlinkRequest =
-            NetlinkRequest.make(callback, translator, payload, seq, timeoutMillis);
-
-        log.trace("[pid:{}] Sending message for id {}", pid(), seq);
-        pendRequest(netlinkRequest, seq);
+            NetlinkRequest.make(callback, translator, payload, timeoutMillis);
 
         if (bypassSendQueue) {
+            // If this stops being used only for testing, beware
+            // of the un-synchronized write to sequenceNumber.
             processWriteToChannel(netlinkRequest);
         } else if (!writeQueue.offer(netlinkRequest)) {
             requestPool.release(payload);
-            abortRequestQueueIsFull(netlinkRequest, seq);
+            abortRequestQueueIsFull(netlinkRequest);
         }
     }
 
@@ -239,14 +235,13 @@ public abstract class AbstractNetlinkConnection {
     }
 
     private int nextSequenceNumber() {
-        int seq = sequenceGenerator.getAndIncrement();
+        int seq = sequenceNumber++;
         return seq == 0 ? nextSequenceNumber() : seq;
     }
 
-    private void abortRequestQueueIsFull(NetlinkRequest req, int seq) {
+    private void abortRequestQueueIsFull(NetlinkRequest req) {
         String msg = "Too many pending netlink requests";
         if (req.hasCallback()) {
-            pendingRequests.remove(seq);
             /* Run the callback directly, because this runs out of the client's
              * thread, not the channel's: it's the client that failed to
              * put a request in the queue. */
@@ -324,6 +319,10 @@ public abstract class AbstractNetlinkConnection {
         ByteBuffer outBuf = request.releaseRequestPayload();
         if (outBuf == null)
             return 0;
+
+        int seq = writeSeqToNetlinkRequest(request, outBuf);
+        pendRequest(request, seq);
+        log.trace("[pid:{}] Sending message for id {}", pid(), seq);
 
         int bytes = 0;
         try {
@@ -509,18 +508,18 @@ public abstract class AbstractNetlinkConnection {
     protected abstract void handleNotification(short type, byte cmd, int seq,
                                                int pid, ByteBuffer buffer);
 
-    private int serializeNetlinkHeader(ByteBuffer request, int seq,
+    private int serializeNetlinkHeader(ByteBuffer request,
                                        short family, byte version, byte cmd,
                                        short flags) {
 
         int startPos = request.position();
 
         // put netlink header
-        request.putInt(0);              // nlmsg_len
-        request.putShort(family);       // nlmsg_type
-        request.putShort(flags);        // nlmsg_flags
-        request.putInt(seq);            // nlmsg_seq
-        request.putInt(pid());          // nlmsg_pid
+        request.position(4);                    // nlmsg_len
+        request.putShort(family);               // nlmsg_type
+        request.putShort(flags);                // nlmsg_flags
+        request.position(seqPosition() + 4);    // nlmsg_seq
+        request.putInt(pid());                  // nlmsg_pid
 
         // put genl header
         request.put(cmd);               // cmd
@@ -530,13 +529,24 @@ public abstract class AbstractNetlinkConnection {
         return request.position() - startPos;
     }
 
+    private int writeSeqToNetlinkRequest(NetlinkRequest request, ByteBuffer out) {
+        int seq = nextSequenceNumber();
+        request.seq = seq;
+        out.putInt(seqPosition(), seq);
+        return seq;
+    }
+
+    private static int seqPosition() {
+        return 4 /* nlmsg_len */ + 2 /* lnmsg_type */ + 2 /* nlmsg_flags */;
+    }
+
     static public class NetlinkRequest implements Runnable {
 
         enum State {
           NotYet,
           Success,
           Failure,
-          HasRun;
+          HasRun
         }
 
         private List<ByteBuffer> inBuffers; // dont allocate if callback is null
@@ -544,19 +554,17 @@ public abstract class AbstractNetlinkConnection {
         private final Callback<Object> userCallback;
         private final Function<List<ByteBuffer>,Object> translationFunction;
         public final long expirationTimeNanos;
-        public final int seq;
+        public int seq;
         private Object cbData = null;
         private State state = State.NotYet;
 
         private NetlinkRequest(Callback<Object> callback,
                               Function<List<ByteBuffer>,Object> translationFunc,
                               ByteBuffer data,
-                              int seq,
                               long timeoutMillis) {
             this.userCallback = callback;
             this.translationFunction = translationFunc;
             this.outBuffer = data;
-            this.seq = seq;
             this.expirationTimeNanos = System.nanoTime() +
                 TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
         }
@@ -642,14 +650,13 @@ public abstract class AbstractNetlinkConnection {
         public static <T> NetlinkRequest make(Callback<T> callback,
                                               Function<List<ByteBuffer>,T> translator,
                                               ByteBuffer data,
-                                              int seq,
                                               long timeoutMillis) {
             @SuppressWarnings("unchecked")
             Callback<Object> cb = (Callback<Object>) callback;
             @SuppressWarnings("unchecked")
             Function<List<ByteBuffer>,Object> func =
                 (Function<List<ByteBuffer>,Object>) translator;
-            return new NetlinkRequest(cb, func, data, seq, timeoutMillis);
+            return new NetlinkRequest(cb, func, data, timeoutMillis);
         }
     }
 
