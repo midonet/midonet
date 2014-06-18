@@ -62,7 +62,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         for ( (host, ip) <- List(host1,host2,host3).zip(List(ip1,ip2,ip3)) ) {
             val zoneId = tunnelZone.getId
-            val greHost = new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4)
+            val greHost = new TunnelZone.HostConfig(host.getId).setIp(ip)
             clusterDataClient().tunnelZonesAddMembership(zoneId, greHost)
         }
 

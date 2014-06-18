@@ -7,7 +7,7 @@ package org.midonet.api.dhcp;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Host;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -73,7 +73,7 @@ public class DhcpHost extends RelativeUriResource {
 
     public Host toData() {
         return new Host()
-                .setIp(IntIPv4.fromString(this.ipAddr))
+                .setIp(IPv4Addr.fromString(this.ipAddr))
                 .setMAC(MAC.fromString(this.macAddr))
                 .setName(this.name);
     }

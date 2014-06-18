@@ -86,7 +86,7 @@ public class MidoVxLanPeerTest {
         tz.setName("test");
         UUID tzId = dataClient.tunnelZonesCreate(tz);
         TunnelZone.HostConfig zoneHost = new TunnelZone.HostConfig(hostId);
-        zoneHost.setIp(tunnelZoneHostIP.toIntIPv4());
+        zoneHost.setIp(tunnelZoneHostIP);
         dataClient.tunnelZonesAddMembership(tzId, zoneHost);
 
         vtep = new VTEP();

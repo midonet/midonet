@@ -3389,7 +3389,7 @@ public class LocalDataClientImpl implements DataClient {
                 "VTEP %s", port.getId(), b.getId(), hostId, tzId, vtepMgmtIp));
         }
 
-        return hostCfg.getIp().toIPv4Addr();
+        return hostCfg.getIp();
     }
 
     @Override

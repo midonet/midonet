@@ -3,12 +3,11 @@
  */
 package org.midonet.cluster.data;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 
 
 /* TODO(abel): This BGP class should be split into two classes:
@@ -56,11 +55,11 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
         return this;
     }
 
-    public IntIPv4 getPeerAddr() {
+    public IPv4Addr getPeerAddr() {
         return getData().peerAddr;
     }
 
-    public BGP setPeerAddr(IntIPv4 peerAddr) {
+    public BGP setPeerAddr(IPv4Addr peerAddr) {
         getData().peerAddr = peerAddr;
         return this;
     }
@@ -108,10 +107,10 @@ public class BGP extends Entity.Base<UUID, BGP.Data, BGP> {
         * integer.
         */
         public int localAS;
-        public IntIPv4 peerAddr;
+        public IPv4Addr peerAddr;
         public int peerAS;
         public UUID portId;
-        public Map<String, String> properties = new HashMap<String, String>();
+        public Map<String, String> properties = new HashMap<>();
 
         @Override
         public boolean equals(Object o) {
