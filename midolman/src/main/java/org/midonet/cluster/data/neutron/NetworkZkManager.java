@@ -18,6 +18,7 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IntIPv4;
+import org.restlet.service.MetadataService;
 
 import java.util.*;
 
@@ -289,37 +290,41 @@ public class NetworkZkManager extends BaseZkManager {
 
         BridgePortConfig cfg = prepareCreateBridgePort(ops, port);
 
-        // Add option 121 routes for metadata
-        prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
+        prepareDhcpIpNeutronData(ops, port.fixedIps);
 
         return cfg;
     }
 
-    private void prepareAddMetadataOption121Route(List<Op> ops,
-                                                  Subnet subnet, String ipAddr)
-            throws SerializationException, StateAccessException {
-
-        Opt121 opt121 = new Opt121(MetaDataService.IPv4_ADDRESS, ipAddr);
-
-        BridgeDhcpZkManager.Subnet cfg =
-                dhcpZkManager.getSubnet(subnet.networkId,
-                        IntIPv4.fromString(subnet.cidr, "/"));
-
-        if (!cfg.getOpt121Routes().contains(opt121)) {
-            cfg.getOpt121Routes().add(opt121);
-            dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, cfg);
-        }
+    private void prepareDhcpNeutronSubnetUpdate(List<Op> ops, Subnet subnet,
+                                                String addr)
+        throws StateAccessException, SerializationException {
+        BridgeDhcpZkManager.Subnet dhcpSubnet =
+            dhcpZkManager.getSubnet(subnet.networkId,
+                IntIPv4.fromString(subnet.cidr, "/"));
+        dhcpSubnet.addOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
+        dhcpSubnet.setServerAddr(IntIPv4.fromString(addr));
+        dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
     }
 
-    private void prepareCreateDhcpMetadataRoutes(List<Op> ops,
-                                                 List<IPAllocation> fixedIps)
+    private void prepareDhcpNeutronSubnetRemoveAddr(List<Op> ops, Subnet subnet,
+                                                    String addr)
+        throws StateAccessException, SerializationException {
+        BridgeDhcpZkManager.Subnet dhcpSubnet =
+            dhcpZkManager.getSubnet(subnet.networkId,
+                IntIPv4.fromString(subnet.cidr, "/"));
+        dhcpSubnet.removeOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
+        dhcpSubnet.setServerAddr(null);
+        dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
+    }
+
+    private void prepareDhcpIpNeutronData(List<Op> ops,
+                                          List<IPAllocation> fixedIps)
             throws SerializationException, StateAccessException {
 
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
             if (!subnet.isIpv4()) continue;
-
-            prepareAddMetadataOption121Route(ops, subnet, fixedIp.ipAddress);
+            prepareDhcpNeutronSubnetUpdate(ops, subnet, fixedIp.ipAddress);
         }
     }
 
@@ -328,7 +333,6 @@ public class NetworkZkManager extends BaseZkManager {
 
         String path = paths.getNeutronPortPath(port.id);
         ops.add(zk.getDeleteOp(path));
-
     }
 
     public void prepareDeleteDhcpHostEntries(List<Op> ops, Port port)
@@ -374,16 +378,7 @@ public class NetworkZkManager extends BaseZkManager {
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
             if (!subnet.isIpv4()) continue;
-
-            BridgeDhcpZkManager.Subnet cfg =
-                    dhcpZkManager.getSubnet(subnet.networkId,
-                            IntIPv4.fromString(subnet.cidr, "/"));
-
-            Opt121 opt121 = new Opt121(MetaDataService.IPv4_ADDRESS,
-                    fixedIp.ipAddress);
-            if (cfg.getOpt121Routes().remove(opt121)) {
-                dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, cfg);
-            }
+            prepareDhcpNeutronSubnetRemoveAddr(ops, subnet, fixedIp.ipAddress);
         }
     }
 
@@ -462,7 +457,7 @@ public class NetworkZkManager extends BaseZkManager {
         if (port.fixedIps != null) {
 
             // Add new metadata DHCP option routes
-            prepareCreateDhcpMetadataRoutes(ops, port.fixedIps);
+            prepareDhcpIpNeutronData(ops, port.fixedIps);
         }
     }
 
