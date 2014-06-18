@@ -71,12 +71,17 @@ class DhcpImpl(val dataClient: DataClient,
         val assignment = subnets.find{ sub =>
             log.debug("Find assignment for MAC {} DhcpSubnet {} ",
                       sourceMac, sub)
-
-            // TODO(pino): make this asynchronous?
-            host = dataClient.dhcpHostsGet(port.deviceID,
-                                           sub.getSubnetAddr,
-                                           sourceMac.toString)
-            (host != null) && (host.getIp != null)
+            if (sub.isReplyReady) {
+                // TODO(pino): make this asynchronous?
+                host = dataClient.dhcpHostsGet(port.deviceID,
+                                               sub.getSubnetAddr,
+                                               sourceMac.toString)
+                (host != null) && (host.getIp != null)
+            } else {
+                log.warning("Can not create DHCP reply because the subnet" +
+                            " does not have all necessary information.")
+                false
+            }
         }
         log.debug("Found assignment {} ", assignment)
         assignment match {

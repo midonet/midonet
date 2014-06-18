@@ -352,13 +352,30 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
 
     public void prepareRoutesDelete(List<Op> ops, UUID routerId,
                                     final IPv4Subnet dstSub)
+        throws SerializationException, StateAccessException {
+        prepareRoutesDelete(ops, routerId, dstSub, -1);
+    }
+
+    public void prepareRoutesDelete(List<Op> ops, UUID routerId,
+                                    final IPv4Subnet dstSub,
+                                    final int gateway)
             throws SerializationException, StateAccessException {
 
         prepareRoutesDelete(ops, routerId,
                 new Function<Route, Boolean>() {
                     @Override
                     public Boolean apply(@Nullable Route route) {
-                        return route.hasDstSubnet(dstSub);
+                        if (gateway == -1 && dstSub == null) {
+                            return false;
+                        }
+                        if (gateway == -1) {
+                            return route.hasDstSubnet(dstSub);
+                        } else if (dstSub == null) {
+                            return route.nextHopGateway == gateway;
+                        } else {
+                            return route.hasDstSubnet(dstSub) &&
+                                (route.nextHopGateway == gateway);
+                        }
                     }
                 });
     }

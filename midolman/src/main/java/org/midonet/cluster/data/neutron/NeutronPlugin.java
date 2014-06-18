@@ -247,6 +247,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
         } else if (port.isDhcp()) {
 
             networkZkManager.prepareCreateDhcpPort(ops, port);
+            l3ZkManager.prepareAddMetadataServiceRoute(ops, port);
 
         } else if (port.isRouterInterface()) {
 
@@ -316,6 +317,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
         } else if(port.isDhcp()) {
 
             networkZkManager.prepareDeleteDhcpPort(ops, port);
+            l3ZkManager.prepareRemoveMetadataServiceRoute(ops, port);
 
         }  else if (port.isRouterInterface()) {
 

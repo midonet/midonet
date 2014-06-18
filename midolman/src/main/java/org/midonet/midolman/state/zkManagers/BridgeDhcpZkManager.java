@@ -146,9 +146,9 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             }
         }
 
-        public void removeOpt121Route(String metaDataAddr, String addr) {
+        public void removeOpt121Route(String rtDst, String addr) {
             if (opt121Routes != null) {
-                Opt121 opt121 = new Opt121(metaDataAddr, addr);
+                Opt121 opt121 = new Opt121(rtDst, addr);
                 opt121Routes.remove(opt121);
             }
         }

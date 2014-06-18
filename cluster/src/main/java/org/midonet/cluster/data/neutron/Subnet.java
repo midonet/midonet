@@ -132,6 +132,17 @@ public class Subnet {
     }
 
     @JsonIgnore
+    public IPAddr gatewayIpAddr() {
+        if (gatewayIp == null) return null;
+
+        if (isIpv4()) {
+            return IPv4Addr.fromString(gatewayIp);
+        } else {
+            return IPv6Addr.fromString(gatewayIp);
+        }
+    }
+
+    @JsonIgnore
     public IntIPv4 intIpv4() {
         if (cidr == null) return null;
         return IntIPv4.fromString(cidr, "/");
