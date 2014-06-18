@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 /**
  * TODO (galo, ipv6) - this class is IPv4 specific, should eventually be
@@ -41,7 +42,7 @@ class RoutingTable extends RoutesTrie {
             // return only those with the minimum weight.
             ret.clear();
             for (Route rt : routes) {
-                if (addrsMatch(src, rt.srcNetworkAddr, rt.srcNetworkLength)) {
+                if (IPv4Subnet.addrMatch(src, rt.srcNetworkAddr, rt.srcNetworkLength)) {
                     if (rt.weight < minWeight) {
                         ret.clear();
                         ret.add(rt);

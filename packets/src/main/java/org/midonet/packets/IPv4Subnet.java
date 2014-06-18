@@ -1,4 +1,6 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
 
 package org.midonet.packets;
 
@@ -98,12 +100,7 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
             return false;
 
         IPv4Addr that =  (IPv4Addr) other;
-        if (prefixLen == 0)
-            return true;
-
-        int maskSize = 32-prefixLen;
-        int mask = ~0 << maskSize;
-        return (address.toInt() & mask) == (that.toInt() & mask);
+        return addrMatch(address.toInt(), that.toInt(), prefixLen);
     }
 
     public String toUnicastString() {
@@ -161,5 +158,13 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
      */
     public static boolean isValidIpv4Cidr(String cidr) {
         return cidr != null && ipv4CidrPattern.matcher(cidr).matches();
+    }
+
+    public static boolean addrMatch(int ip1, int ip2, int prefixLen) {
+        if (prefixLen == 0)
+            return true;
+        int maskSize = 32-prefixLen;
+        int mask = ~0 << maskSize;
+        return (ip1 & mask) == (ip2 & mask);
     }
 }

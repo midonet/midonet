@@ -34,29 +34,6 @@ public class TestRoutingTable {
     }
 
     @Test
-    public void testAddresMatch() {
-        Assert.assertFalse(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 32));
-        Assert.assertFalse(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 30));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 29));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 28));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 21));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 17));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 5));
-        Assert.assertTrue(RoutingTable.addrsMatch(0x0a0101fd, 0x0a0101f8, 1));
-
-        Assert.assertTrue(RoutingTable.addrsMatch(0x01234567, 0x87654321, 0));
-        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 1));
-        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 5));
-        Assert.assertFalse(RoutingTable.addrsMatch(0x01234567, 0x87654321, 20));
-
-        Assert.assertTrue(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 15));
-        Assert.assertTrue(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 16));
-        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 17));
-        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 20));
-        Assert.assertFalse(RoutingTable.addrsMatch(0xa0a0a0a0, 0xa0a05050, 25));
-    }
-
-    @Test
     public void testEmptyRoutingTable() {
         RoutingTable table = new RoutingTable();
         Assert.assertFalse(table.lookup(0x0a010108, 0x0a010106).iterator().hasNext());
