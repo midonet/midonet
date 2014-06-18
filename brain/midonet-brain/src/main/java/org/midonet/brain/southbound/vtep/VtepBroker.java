@@ -1,7 +1,10 @@
 /**
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.southbound.vtep;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.inject.Inject;
 
@@ -9,16 +12,22 @@ import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import rx.Observable;
+import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeer;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
+import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -27,47 +36,99 @@ import org.midonet.packets.MAC;
  */
 public class VtepBroker implements VxLanPeer {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(VtepBroker.class);
+    private final static Logger log = LoggerFactory.getLogger(VtepBroker.class);
 
     private final VtepDataClient vtepDataClient;
 
-    private IPv4Addr vxlanTunnelEndPoint = null;
+    private IPv4Addr vxlanTunnelEndPoint;
 
-    /** Converts a single TableUpdate.Row to a MacLocation */
+    /* This is an intermediary Subject that subscribes on the Observable
+     * provided by the VTEP client, and republishes all its updates. It also
+     * allows us to inject updates on certain occasions (e.g.: advertiseMacs)
+     */
+    private Subject<MacLocation, MacLocation>
+        macLocationStream = PublishSubject.create();
+
+    /**
+     * Converts a single TableUpdate.Row from a Ucast_Macs_Local into a
+     * MacLocation, using the vxlan tunnel endpoint IP extracted from the
+     * currently connected VTEP.
+     */
     private final Func1<TableUpdate.Row<Ucast_Macs_Local>, MacLocation>
         toMacLocation = new Func1<TableUpdate.Row<Ucast_Macs_Local>,
                                   MacLocation>() {
             @Override
-            public MacLocation call(
-                TableUpdate.Row<Ucast_Macs_Local> row) {
+            public MacLocation call(TableUpdate.Row<Ucast_Macs_Local> row) {
                 return toMacLocation(row);
             }
     };
 
     /**
      * Converts a group of table updates to an Observable emitting each update
-     * from the table, in order.
+     * from the table, in order. If the vxlanTunnelEndpoint is not populated
+     * yet, it'll just emit an empty observable since we can't figure out the
+     * right vxlan tunnel IP.
+     *
+     * @return the stream of MacLocation objects resulting from translating
+     * the updates to the Ucast_Macs_Local table.
      */
     private final Func1<TableUpdates, Observable<? extends MacLocation>>
         translateTableUpdates = new Func1<TableUpdates,
                                        Observable<? extends MacLocation>>() {
         @Override
-        public Observable<? extends MacLocation> call(
-            TableUpdates tableUpdates) {
-            return Observable
-                    .from(tableUpdates.getUcast_Macs_LocalUpdate().getRows())
-                    .map(toMacLocation);
+        public Observable<? extends MacLocation> call(TableUpdates ups) {
+            if (vxlanTunnelEndPoint == null) {
+                log.warn("No vxlanTunnelEndpoint, can't process VTEP updates");
+                return Observable.empty();
+            }
+            TableUpdate<Ucast_Macs_Local> u = ups.getUcast_Macs_LocalUpdate();
+            if (u == null) {
+                return Observable.empty();
+            }
+            return Observable.from(u.getRows())
+                             .map(toMacLocation);
         }
     };
+
+    /**
+     * Extracts the vxlan tunnel endpoint ip, which is captured from the
+     * Physical_Switch row corresponding to this VTEP.
+     */
+    private final Action1<TableUpdates> extractVxlanTunnelEndpoint =
+        new Action1<TableUpdates>() {
+            @Override
+            public void call(TableUpdates ups) {
+                if (vxlanTunnelEndPoint != null) {
+                    return;
+                }
+                TableUpdate<Physical_Switch> up = ups.getPhysicalSwitchUpdate();
+                if (up == null) {
+                    return;
+                }
+                String mgmtIp = vtepDataClient.getManagementIp().toString();
+                for (TableUpdate.Row<Physical_Switch> row : up.getRows()) {
+                    // Find our physical switch row, and fetch the tunnel IP
+                    if (row.getNew().getManagement_ips().contains(mgmtIp)) {
+                        vxlanTunnelEndPoint =
+                            IPv4Addr.fromString(row.getNew()
+                                                    .getTunnel_ips()
+                                                    .iterator().next());
+                        log.info("Discovered vtep's tunnel IP: {}",
+                                 vxlanTunnelEndPoint);
+                        break;
+                    }
+                }
+            }
+        };
 
     @Inject
     public VtepBroker(final VtepDataClient client) {
         this.vtepDataClient = client;
-        this.vxlanTunnelEndPoint = IPv4Addr.fromString(client.describe()
-                                                             .tunnelIps
-                                                             .iterator()
-                                                             .next());
+        this.vtepDataClient
+            .observableUpdates()
+            .doOnNext(extractVxlanTunnelEndpoint) // extract VTEP's tunnel IP
+            .concatMap(translateTableUpdates)     // preserve order
+            .subscribe(macLocationStream);        // dump into our Subject
     }
 
     @Override
@@ -76,6 +137,35 @@ public class VtepBroker implements VxLanPeer {
             this.applyDelete(ml);
         } else {
             this.applyAddition(ml);
+        }
+    }
+
+    /**
+     * Triggers an advertisement of all the known Ucast_Mac_Local entries, which
+     * will generate updates for each entry currently present in the table.
+     *
+     * This operation could make sense in the VxLanPeer interface at some point,
+     * but it's not needed in the Mido peer so keeping it here for now.
+     */
+    public void advertiseMacs() {
+        if (vxlanTunnelEndPoint == null) {
+            log.warn("Can't advertise MACs: VTEP's tunnel IP still unknown");
+            return;
+        }
+        log.info("Advertising MACs from VTEP at tunnel IP: {}",
+                 vxlanTunnelEndPoint);
+        List<UcastMac> macs = vtepDataClient.listUcastMacsLocal();
+        List<MacLocation> macLocations = new ArrayList<>();
+        for (UcastMac ucastMac : macs) {
+            LogicalSwitch ls =
+                vtepDataClient.getLogicalSwitch(ucastMac.logicalSwitch);
+            if (ls == null) {
+                log.warn("Unknown logical switch {}", ucastMac.logicalSwitch);
+                continue;
+            }
+            MAC mac = MAC.fromString(ucastMac.mac);
+            macLocationStream.onNext(
+                new MacLocation(mac, ls.name, vxlanTunnelEndPoint));
         }
     }
 
@@ -114,9 +204,7 @@ public class VtepBroker implements VxLanPeer {
 
     @Override
     public Observable<MacLocation> observableUpdates() {
-        return this.vtepDataClient
-            .observableUpdates()
-            .concatMap(translateTableUpdates); // preserve order
+        return this.macLocationStream.asObservable();
     }
 
     /**

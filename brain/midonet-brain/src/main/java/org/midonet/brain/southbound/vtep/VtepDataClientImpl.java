@@ -76,6 +76,16 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
+    public IPv4Addr getManagementIp() {
+        return this.mgmtIp;
+    }
+
+    @Override
+    public int getManagementPort() {
+        return this.mgmtPort;
+    }
+
+    @Override
     public synchronized void connect(final IPv4Addr mgmtIp, final int port) {
 
         if (started) {
@@ -148,11 +158,6 @@ public class VtepDataClientImpl implements VtepDataClient {
             }
         }
         return null;
-    }
-
-    @Override
-    public PhysicalSwitch describe() {
-        return this.myPhysicalSwitch;
     }
 
     @Override
