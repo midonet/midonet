@@ -3,6 +3,10 @@
  */
 package org.midonet.api.servlet;
 
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.ServletContext;
+
 import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
@@ -25,15 +29,9 @@ import org.midonet.api.validation.ValidationModule;
 import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
-import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.servlet.ServletContext;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
