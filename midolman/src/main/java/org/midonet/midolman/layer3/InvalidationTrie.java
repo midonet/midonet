@@ -9,10 +9,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 public class InvalidationTrie extends RoutesTrie {
 
@@ -49,7 +51,7 @@ public class InvalidationTrie extends RoutesTrie {
         int rt_dst = rt.dstNetworkAddr;
         log.debug("Root {}, # roots {}", dstPrefixTrie, numRoutes);
         while (null != node && rt.dstNetworkLength >= node.bitlen
-            && addrsMatch(rt_dst, node.addr, node.bitlen)) {
+            && IPv4Subnet.addrMatch(rt_dst, node.addr, node.bitlen)) {
             log.debug("traversing {}", node);
             // The addresses match, descend to the children.
             if (rt.dstNetworkLength == node.bitlen) {

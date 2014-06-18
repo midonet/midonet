@@ -11,6 +11,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 
 public abstract class RoutesTrie {
@@ -48,22 +49,6 @@ public abstract class RoutesTrie {
         public Set<Route> getRoutes() {
             return routes;
         }
-    }
-
-    /**
-     * TODO (galo)
-     *
-     * DEPRECATED: Use IPSubnet.containsAddress
-     */
-    @Deprecated
-    public static boolean addrsMatch(int addr1, int addr2, int bitlen) {
-        if (bitlen <= 0)
-            return true;
-        int xor = addr1 ^ addr2;
-        int shift = 32 - bitlen;
-        if (shift <= 0)
-            return 0 == xor;
-        return 0 == (xor >>> shift);
     }
 
     // This table gives the position of the most significant set bit for each
@@ -118,7 +103,7 @@ public abstract class RoutesTrie {
         int rt_dst = rt.dstNetworkAddr;
 
         while (null != node && rt.dstNetworkLength >= node.bitlen
-            && addrsMatch(rt_dst, node.addr, node.bitlen)) {
+            && IPv4Subnet.addrMatch(rt_dst, node.addr, node.bitlen)) {
             // The addresses match, descend to the children.
             if (rt.dstNetworkLength == node.bitlen) {
                 // Exact match. Add the route to this node's set.
@@ -182,7 +167,7 @@ public abstract class RoutesTrie {
         int rt_dst = rt.dstNetworkAddr;
 
         while (null != node && rt.dstNetworkLength >= node.bitlen
-            && addrsMatch(rt_dst, node.addr, node.bitlen)) {
+            && IPv4Subnet.addrMatch(rt_dst, node.addr, node.bitlen)) {
             // The addresses match, descend to the children.
             if (rt.dstNetworkLength == node.bitlen) {
                 // Exact match. Remove the route from this node's set.
@@ -258,7 +243,7 @@ public abstract class RoutesTrie {
         TrieNode parent = null;
         TrieNode node = dstPrefixTrie;
 
-        while (null != node && addrsMatch(dst, node.addr, node.bitlen)) {
+        while (null != node && IPv4Subnet.addrMatch(dst, node.addr, node.bitlen)) {
             // The addresses match, descend to the children.
             // Use bit at position bitlen to decide on left or right branch.
             boolean goLeft = 0 == (dst & (0x80000000 >>> node.bitlen));
