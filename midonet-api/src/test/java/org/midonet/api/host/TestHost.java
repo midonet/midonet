@@ -6,6 +6,7 @@ package org.midonet.api.host;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import com.google.inject.AbstractModule;
@@ -17,6 +18,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import org.apache.zookeeper.KeeperException;
+import org.codehaus.jackson.type.JavaType;
 import org.junit.*;
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -57,8 +59,9 @@ import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_V2_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
@@ -134,9 +137,33 @@ public class TestHost extends JerseyTest {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
         DtoHost host = dtoResource.getAndVerifyOk(hostUri,
-                                                  APPLICATION_HOST_V2_JSON,
+                                                  APPLICATION_HOST_JSON_V2,
                                                   DtoHost.class);
         return host;
+    }
+
+    private List<DtoHost> retrieveHostListV1() throws Exception {
+        URI hostListUri = ResourceUriBuilder.getHosts(
+            topology.getApplication().getUri());
+        String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
+               APPLICATION_HOST_COLLECTION_JSON, String.class);
+        JavaType type = FuncTest.objectMapper.getTypeFactory()
+            .constructParametricType(List.class, DtoHost.class);
+        List<DtoHost> actualHosts = FuncTest.objectMapper.readValue(rawHosts,
+                                                                    type);
+        return actualHosts;
+    }
+
+    private List<DtoHost> retrieveHostListV2() throws Exception {
+        URI hostListUri = ResourceUriBuilder.getHosts(
+            topology.getApplication().getUri());
+        String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
+               APPLICATION_HOST_COLLECTION_JSON_V2, String.class);
+        JavaType type = FuncTest.objectMapper.getTypeFactory()
+                                             .constructParametricType(List.class, DtoHost.class);
+        List<DtoHost> actualHosts = FuncTest.objectMapper.readValue(rawHosts,
+                                                                    type);
+        return actualHosts;
     }
 
     private void putHostV2(DtoHost host) {
@@ -147,7 +174,7 @@ public class TestHost extends JerseyTest {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), host.getId());
         dtoResource.putAndVerifyStatus(hostUri,
-                                       APPLICATION_HOST_V2_JSON,
+                                       APPLICATION_HOST_JSON_V2,
                                        host,
                                        status.getStatusCode());
     }
@@ -396,6 +423,32 @@ public class TestHost extends JerseyTest {
 
         // Check that we are back-compatible
         DtoHost dtoHostV1 = retrieveHostV1(hostId);
+        assertThat("Retrieved host info is not null",
+                   dtoHostV1, is(notNullValue()));
+        weight = dtoHostV1.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has a null value",
+                   weight, is(nullValue()));
+    }
+
+    @Test
+    public void testListHostsWithFloodingProxyWeight() throws Exception {
+        UUID hostId = UUID.randomUUID();
+        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
+        metadata.setName("semporiki");
+        hostManager.createHost(hostId, metadata);
+        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+
+        List<DtoHost> hostListV2 = retrieveHostListV2();
+        DtoHost dtoHost = hostListV2.iterator().next();
+        assertThat("Retrieved host info is not null",
+                   dtoHost, is(notNullValue()));
+        Integer weight = dtoHost.getFloodingProxyWeight();
+        assertThat("Flooding Proxy Weight has the proper value",
+                   weight, equalTo(FLOODING_PROXY_WEIGHT));
+
+        // Check that we are back-compatible
+        List<DtoHost> hostListV1 = retrieveHostListV1();
+        DtoHost dtoHostV1 = hostListV1.iterator().next();
         assertThat("Retrieved host info is not null",
                    dtoHostV1, is(notNullValue()));
         weight = dtoHostV1.getFloodingProxyWeight();
