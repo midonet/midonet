@@ -84,7 +84,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
                 clusterDataClient().tunnelZonesAddMembership(tunnelZone.getId,
-                    new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4))
+                    new TunnelZone.HostConfig(host.getId).setIp(ip))
         }
 
         bridgeTunnelTo2 =

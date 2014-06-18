@@ -130,7 +130,7 @@ class PingTestCase extends MidolmanTestCase
         }
         var dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                            .setMAC(vm2Mac)
-                           .setIp(new IntIPv4(vm2Ip)))
+                           .setIp(vm2Ip.getAddress))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)

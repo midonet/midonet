@@ -72,8 +72,8 @@ public class OvsFlowsTunnelTest {
         FlowMatch matchKey = new FlowMatch().addKey(ethernetKey)
                          .addKey(etherTypeKey)
                          .addKey(ipv4Key);
-        FlowKeyTunnel ipv4TunnelKey = tunnel(10, tunnelSrcIp.getAddress().addr(),
-                                                 tunnelDstIp.getAddress().addr());
+        FlowKeyTunnel ipv4TunnelKey = tunnel(10, tunnelSrcIp.getAddress().toInt(),
+                                                 tunnelDstIp.getAddress().toInt());
         FlowActionSetKey setKeyAction = setKey(ipv4TunnelKey);
         Flow downloadFlow = new Flow()
              .setMatch(matchKey)

@@ -99,10 +99,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val greZone = greTunnelZone("default")
 
         val myGreConfig = new TunnelZone.HostConfig(host.getId)
-            .setIp(IPv4Addr(ipString).toIntIPv4)
+            .setIp(IPv4Addr(ipString))
 
         val peerGreConfig = new TunnelZone.HostConfig(host2.getId)
-            .setIp(IPv4Addr("192.168.200.1").toIntIPv4)
+            .setIp(IPv4Addr("192.168.200.1"))
 
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, peerGreConfig)
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
@@ -162,7 +162,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
 
         val dhcpHost = (new org.midonet.cluster.data.dhcp.Host()
                        .setMAC(vmMac)
-                       .setIp(new IntIPv4(vmIP)))
+                       .setIp(vmIP.getAddress))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)

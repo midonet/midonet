@@ -4,26 +4,28 @@
 
 package org.midonet.midolman.state.zkManagers;
 
-import org.midonet.cluster.data.neutron.Route;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.packets.IntIPv4;
-import org.midonet.packets.MAC;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
-import org.midonet.util.version.Since;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.ZooDefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.neutron.Route;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.BaseZkManager;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IntIPv4;
+import org.midonet.packets.MAC;
+import org.midonet.util.version.Since;
 
 public class BridgeDhcpZkManager extends BaseZkManager {
 
@@ -189,32 +191,32 @@ public class BridgeDhcpZkManager extends BaseZkManager {
 
     public static class Host {
         MAC mac;
-        IntIPv4 ip;
+        IPv4Addr ip;
         String name;
 
         /* Default constructor for deserialization. */
         public Host() {
         }
 
-        public Host(MAC mac, IntIPv4 ip, String name) {
+        public Host(MAC mac, IPv4Addr ip, String name) {
             this.mac = mac;
             this.ip = ip;
             this.name = name;
         }
 
-        public Host(MAC mac, IntIPv4 ip) {
+        public Host(MAC mac, IPv4Addr ip) {
             this(mac, ip, null);
         }
 
         public Host(String mac, String ip) {
-            this(MAC.fromString(mac), IntIPv4.fromString(ip));
+            this(MAC.fromString(mac), IPv4Addr.fromString(ip));
         }
 
         public MAC getMac() {
             return mac;
         }
 
-        public IntIPv4 getIp() {
+        public IPv4Addr getIp() {
             return ip;
         }
 
@@ -222,7 +224,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             return name;
         }
 
-        public void setIp(IntIPv4 ip) {
+        public void setIp(IPv4Addr ip) {
             this.ip = ip;
         }
 

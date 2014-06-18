@@ -44,10 +44,10 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
           "port2")
 
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId, new TunnelZone.HostConfig(host1.getId).setIp(srcIp.toIntIPv4))
+            tunnelZone.getId, new TunnelZone.HostConfig(host1.getId).setIp(srcIp))
 
         clusterDataClient().tunnelZonesAddMembership(
-            tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp.toIntIPv4))
+            tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp))
 
         initializeDatapath() should not be (null)
 
