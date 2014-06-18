@@ -539,15 +539,15 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         val outPorts = getOutPacketPorts(pktOut)
-        outPorts.size should be === 1
-        localPortNumberToName(outPorts.head) should be === Some("uplinkPort")
+        outPorts.size shouldBe 1
+        localPortNumberToName(outPorts.head) shouldBe Some("uplinkPort")
 
         val eth = applyOutPacketActions(pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak should not be null
         ipPak = eth.getPayload.asInstanceOf[IPv4]
         ipPak.getProtocol should be (ICMP.PROTOCOL_NUMBER)
-        ipPak.getDestinationAddress should be === dstIp.addr
+        ipPak.getDestinationAddress shouldBe dstIp.addr
 
         val snatedIp = IPv4Addr.fromInt(ipPak.getSourceAddress)
         transSrcIpStart.range(transSrcIpEnd).find {
@@ -557,9 +557,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
-        icmpPak.getType should be === ICMP.TYPE_ECHO_REQUEST
-        icmpPak.getIdentifier should be === icmpReq.getIdentifier
-        icmpPak.getQuench should be === icmpReq.getQuench
+        icmpPak.getType shouldBe ICMP.TYPE_ECHO_REQUEST
+        icmpPak.getIdentifier shouldBe icmpReq.getIdentifier
+        icmpPak.getQuench shouldBe icmpReq.getQuench
 
         snatedIp
 
@@ -597,8 +597,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ipPak.getDestinationAddress should be (origSrcIp.addr)
         val icmpPak = ipPak.getPayload.asInstanceOf[ICMP]
         icmpPak should not be null
-        icmpPak.getType should be === ICMP.TYPE_ECHO_REPLY
-        icmpPak.getIdentifier should be === icmpReply.getIdentifier
+        icmpPak.getType shouldBe ICMP.TYPE_ECHO_REPLY
+        icmpPak.getIdentifier shouldBe icmpReply.getIdentifier
 
     }
 
@@ -636,8 +636,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
                                           dstIp, 21, 1, snatAddressStart,
                                           snatAddressEnd)
 
-        snatIp16 should be === snatIp16_2
-        snatIp21 should be === snatIp21_2
+        snatIp16 shouldBe snatIp16_2
+        snatIp21 shouldBe snatIp21_2
 
         log.info("Sending ICMP replies")
         // Let's see if replies get into the private network

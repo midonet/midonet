@@ -33,8 +33,9 @@ class TopologyPrefetcherTest extends MidolmanSpec {
         }
 
         override def receive = super.receive orElse {
-            case reqs: List[DeviceRequest] =>
-                prefetchTopology(reqs: _*)
+            case reqs: List[_] =>
+                val devReqs = reqs.asInstanceOf[List[DeviceRequest]]
+                prefetchTopology(devReqs: _*)
             case req: DeviceRequest =>
                 prefetchTopology(req)
         }

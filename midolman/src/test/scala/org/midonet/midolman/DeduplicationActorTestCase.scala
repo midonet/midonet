@@ -52,13 +52,15 @@ class DeduplicationActorTestCase extends MidolmanSpec {
         if (ddaRef != null)
             actorSystem.stop(ddaRef)
 
-        val ddaFactory = () => new TestableDDA(new CookieGenerator(1, 1),
+        val ddaProps = Props {
+            new TestableDDA(new CookieGenerator(1, 1),
             dpConnPool, clusterDataClient(), null, null, null,
             new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
+        }
 
-        ddaRef = TestActorRef(Props(ddaFactory))(actorSystem)
+        ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
         ddaRef ! DatapathController.DatapathReady(datapath, null)
     }

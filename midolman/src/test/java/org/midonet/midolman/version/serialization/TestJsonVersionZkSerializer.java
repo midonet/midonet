@@ -3,6 +3,8 @@
  */
 package org.midonet.midolman.version.serialization;
 
+import java.util.Comparator;
+
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -10,13 +12,12 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.SystemDataProvider;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Comparator;
+import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.serialization.SerializationException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -29,7 +30,7 @@ public class TestJsonVersionZkSerializer {
     private JsonVersionZkSerializer testObject;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private Comparator versionComparator;
+    private Comparator<String> versionComparator;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private SystemDataProvider systemDataProvider;

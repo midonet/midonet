@@ -236,7 +236,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             // done every 2 seconds, let's trigger it
             val bridgeManagerPath =
                 VirtualTopologyActor.path + "/BridgeManager-" + bridge.id.toString
-            val bridgeManager = actorSystem.actorFor(bridgeManagerPath)
+            val bridgeManager = actorSystem.actorSelection(bridgeManagerPath)
 
             And("A flow invalidation is produced")
             eventually {
