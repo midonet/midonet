@@ -3,30 +3,31 @@
  */
 package org.midonet.midolman.l4lb
 
+import java.util.UUID
+
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
-import java.util.UUID
 import org.junit.runner.RunWith
 import org.mockito.Mockito.{verify => mverify, reset, timeout => mtimeo}
 import org.scalatest._
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.mock.MockitoSugar
-
-import org.midonet.cluster.LocalDataClientImpl
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate,
-                                                       RouterAdded,
-                                                       RouterRemoved}
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigUpdated,
-                                                RouterChanged}
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.Matchers
+import org.scalatest.mock.MockitoSugar
 import org.scalatest.time.{Seconds, Span}
 
+import org.midonet.cluster.LocalDataClientImpl
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterAdded
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.RouterRemoved
+import org.midonet.midolman.l4lb.HealthMonitor.ConfigAdded
+import org.midonet.midolman.l4lb.HealthMonitor.ConfigUpdated
+import org.midonet.midolman.l4lb.HealthMonitor.RouterChanged
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorTest extends FeatureSpec
-                               with ShouldMatchers
+                               with Matchers
                                with GivenWhenThen
                                with BeforeAndAfter
                                with OneInstancePerTest

@@ -247,7 +247,7 @@ public class LocalClientImplTest {
         Option<UUID> vlanBridgePeerPortId = Option.apply(null);
         Option<UUID> exteriorVxlanPortId = Option.apply(null);
         MacLearningTable mlTable;
-        IpMacMap ipMacMap;
+        IpMacMap<IPv4Addr> ipMacMap;
         MAC[] notifiedMAC = new MAC[1];
         UUID[] notifiedUUID = new UUID[2];
         VlanPortMap vlanPortMap = new VlanPortMapImpl();
@@ -302,7 +302,7 @@ public class LocalClientImplTest {
         }
 
         @Override
-        public void setIp4MacMap(IpMacMap map) {
+        public void setIp4MacMap(IpMacMap<IPv4Addr> map) {
             ipMacMap = map;
         }
 

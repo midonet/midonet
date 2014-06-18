@@ -6,6 +6,16 @@
  */
 package org.midonet.midolman.version.serialization;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.Comparator;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.google.inject.Inject;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
@@ -14,23 +24,14 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
+
+import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.version.guice.VerCheck;
 import org.midonet.midolman.version.state.VersionConfig;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
-
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.BufferedOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.StringReader;
-import java.util.Comparator;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Serialization utility class that is version-aware.
@@ -38,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JsonVersionZkSerializer implements Serializer {
 
     private final SystemDataProvider systemDataProvider;
-    private final Comparator versionComparator;
+    private final Comparator<String> versionComparator;
     private static ObjectMapper objectMapper;
 
     private static ConcurrentHashMap<String, ObjectMapper> mapperMap =
@@ -53,9 +54,9 @@ public class JsonVersionZkSerializer implements Serializer {
 
     @Inject
     public JsonVersionZkSerializer(SystemDataProvider systemDataProvider,
-                                   @VerCheck Comparator versionComparator) {
+                                   @VerCheck Comparator<String> comp) {
         this.systemDataProvider = systemDataProvider;
-        this.versionComparator = versionComparator;
+        this.versionComparator = comp;
     }
 
     public ObjectMapper getObjectMapper(String version) {
