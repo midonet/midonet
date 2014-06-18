@@ -5,10 +5,8 @@
 package org.midonet.midolman.state.zkManagers;
 
 import org.midonet.cluster.data.neutron.Route;
-import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
@@ -136,6 +134,23 @@ public class BridgeDhcpZkManager extends BaseZkManager {
 
         public void setOpt121Routes(List<Opt121> opt121Routes) {
             this.opt121Routes = opt121Routes;
+        }
+
+        public void addOpt121Route(String rtDst, String addr) {
+            Opt121 opt121 = new Opt121(rtDst, addr);
+            if (opt121Routes == null) {
+                opt121Routes = new ArrayList<>();
+            }
+            if (opt121Routes.contains(opt121)) {
+                opt121Routes.add(opt121);
+            }
+        }
+
+        public void removeOpt121Route(String metaDataAddr, String addr) {
+            if (opt121Routes != null) {
+                Opt121 opt121 = new Opt121(metaDataAddr, addr);
+                opt121Routes.remove(opt121);
+            }
         }
 
         public void setSubnetAddr(IntIPv4 subnetAddr) {
@@ -314,8 +329,8 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                 CreateMode.PERSISTENT));
 
         ops.add(Op.create(paths.getBridgeDhcpHostsPath(
-                        bridgeId, subnet.getSubnetAddr()), null,
-                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                bridgeId, subnet.getSubnetAddr()), null,
+            ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
     }
 
     public void createSubnet(UUID bridgeId, Subnet subnet)
@@ -328,9 +343,9 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     public void prepareUpdateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
             throws StateAccessException, SerializationException {
         ops.add(zk.getSetDataOp(
-                paths.getBridgeDhcpSubnetPath(
-                        bridgeId, subnet.getSubnetAddr()),
-                serializer.serialize(subnet)));
+            paths.getBridgeDhcpSubnetPath(
+                bridgeId, subnet.getSubnetAddr()),
+            serializer.serialize(subnet)));
     }
 
     public void updateSubnet(UUID bridgeId, Subnet subnet)
@@ -343,7 +358,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     public Subnet getSubnet(UUID bridgeId, IntIPv4 subnetAddr)
             throws StateAccessException, SerializationException {
         byte[] data = zk.get(paths.getBridgeDhcpSubnetPath(bridgeId,
-                subnetAddr), null);
+            subnetAddr), null);
         return serializer.deserialize(data, Subnet.class);
     }
 
