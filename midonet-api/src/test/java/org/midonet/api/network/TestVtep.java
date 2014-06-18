@@ -34,6 +34,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -621,6 +623,43 @@ public class TestVtep extends RestApiTestBase {
                 bridge.getPorts(), APPLICATION_PORT_V2_COLLECTION_JSON,
                 DtoBridgePort[].class);
         assertThat(bridgePorts, arrayContainingInAnyOrder(bridgePort));
+    }
+
+    @Test
+    public void testBridgeV1LacksVxLanPortId() {
+        DtoBridge b1 = postBridge("bridge1");
+        DtoBridge b2 = postBridge("bridge2");
+        DtoVtep vtep = postVtep(MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT);
+
+        postBinding(vtep,
+                makeBinding(MOCK_VTEP_PORT_NAMES[0], (short)0, b1.getId()));
+        postBinding(vtep,
+                makeBinding(MOCK_VTEP_PORT_NAMES[1], (short)0, b2.getId()));
+
+        // V2 get should have vxLanPortId
+        DtoBridge bridge = getBridge(b1.getId());
+        assertNotNull(bridge.getVxLanPortId());
+        assertNotNull(bridge.getVxLanPort());
+
+        // V2 collection, too.
+        DtoBridge[] bridges = dtoResource.getAndVerifyOk(app.getBridges(),
+                APPLICATION_BRIDGE_COLLECTION_JSON_V2, DtoBridge[].class);
+        assertNotNull(bridges[0].getVxLanPortId());
+        assertNotNull(bridges[0].getVxLanPort());
+        assertNotNull(bridges[1].getVxLanPortId());
+        assertNotNull(bridges[1].getVxLanPort());
+
+        // V1 should not.
+        bridge = getBridgeV1(b1.getId());
+        assertNull(bridge.getVxLanPortId());
+        assertNull(bridge.getVxLanPort());
+
+        bridges = dtoResource.getAndVerifyOk(app.getBridges(),
+                APPLICATION_BRIDGE_COLLECTION_JSON, DtoBridge[].class);
+        assertNull(bridges[0].getVxLanPortId());
+        assertNull(bridges[0].getVxLanPort());
+        assertNull(bridges[1].getVxLanPortId());
+        assertNull(bridges[1].getVxLanPort());
     }
 
     private DtoVtep makeVtep(String mgmtIpAddr, int mgmtPort,
