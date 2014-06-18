@@ -211,7 +211,15 @@ public class Route implements Serializable {
 
     @JsonIgnore
     public boolean hasDstSubnet(IPv4Subnet sub) {
+        if (sub == null) {
+            throw new IllegalArgumentException("sub must not be NULL");
+        }
         return dstNetworkAddr == sub.getIntAddress() &&
                 dstNetworkLength == sub.getPrefixLen();
+    }
+
+    @JsonIgnore
+    public boolean hasNextHopGateway(int gateway) {
+        return nextHopGateway == gateway;
     }
 }

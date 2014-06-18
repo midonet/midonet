@@ -15,6 +15,7 @@ import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -208,17 +209,67 @@ public class L3ZkManager extends BaseZkManager {
                 new IPv4Subnet(0, 0), subnet.ipv4Subnet(), rpId, null, rInt.id,
                 rpConfig);
 
+
+        Port dPort = networkZkManager.getDhcpPort(subnet.networkId);
+        if (dPort != null && dPort.hasIp()) {
+
+            prepareAddMetadataServiceRoute(ops, rInt.id, rpId,
+                    dPort.firstIpv4Addr(), rpConfig);
+        }
+    }
+
+    private void prepareAddMetadataServiceRoute(List<Op> ops, UUID routerId,
+                                                UUID routerPortId,
+                                                IPv4Addr nextHopAddr,
+                                                RouterPortConfig rpCfg)
+            throws StateAccessException, SerializationException {
+
         // Add a route for the metadata server.
         // Not all VM images supports DHCP option 121.  Add a route for the
         // Metadata server in the router to forward the packet to the bridge
         // that will send them to the Metadata Proxy.
-        Port dPort = networkZkManager.getDhcpPort(subnet.networkId);
-        if (dPort != null && dPort.hasIp()) {
+        routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
+            new IPv4Subnet(0, 0), MetaDataService.IPv4_SUBNET, routerPortId,
+            nextHopAddr, routerId, rpCfg);
+    }
 
-            routeZkManager.preparePersistPortRouteCreate(ops,
-                    UUID.randomUUID(), new IPv4Subnet(0, 0),
-                    MetaDataService.IPv4_SUBNET, rpId, dPort.firstIpv4Addr(),
-                    rInt.id, rpConfig);
+    private void prepareRemoveMetadataServiceRoute(List<Op> ops, UUID routerId,
+                                                   IPv4Addr dhcpAddr)
+        throws StateAccessException, SerializationException {
+        routeZkManager.prepareRoutesDelete(ops, routerId,
+            MetaDataService.IPv4_SUBNET, dhcpAddr.addr());
+    }
+
+    public void prepareAddMetadataServiceRoute(List<Op> ops, Port dhcpPort)
+            throws StateAccessException, SerializationException {
+
+        Subnet subnet = networkZkManager.getSubnet(dhcpPort.firstSubnetId());
+        // no need to add the metadata service route if there is no gateway
+        // associated with the subnet.
+        if (subnet.gatewayIpAddr() != null) {
+            RouterPortConfig rpCfg =
+                portZkManager.findGatewayRouterPortFromBridge(
+                    dhcpPort.networkId, subnet.gatewayIpAddr());
+            // If rpCfg is null, it means a router interface was not yet
+            // created on this subnet.
+            if (rpCfg != null) {
+                prepareAddMetadataServiceRoute(ops, rpCfg.device_id, rpCfg.id,
+                    dhcpPort.firstIpv4Addr(), rpCfg);
+            }
+        }
+    }
+
+    public void prepareRemoveMetadataServiceRoute(List<Op> ops, Port dhcpPort)
+        throws StateAccessException, SerializationException {
+        Subnet subnet = networkZkManager.getSubnet(dhcpPort.firstSubnetId());
+        if (subnet.gatewayIpAddr() != null) {
+            RouterPortConfig rpCfg =
+                portZkManager.findGatewayRouterPortFromBridge(
+                    dhcpPort.networkId, subnet.gatewayIpAddr());
+            if (rpCfg != null) {
+                prepareRemoveMetadataServiceRoute(ops, rpCfg.device_id,
+                    dhcpPort.firstIpv4Addr());
+            }
         }
     }
 

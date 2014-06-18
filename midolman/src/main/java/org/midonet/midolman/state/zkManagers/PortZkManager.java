@@ -29,6 +29,8 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -846,6 +848,50 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                 return cfg;
             }
          }
+
+        return null;
+    }
+
+    public PortDirectory.RouterPortConfig findGatewayRouterPortFromBridge(
+            UUID bridgeId, final IPAddr gatewayIp)
+            throws SerializationException, StateAccessException {
+
+        if (bridgeId == null) {
+            throw new IllegalArgumentException("bridgeId is null");
+        }
+
+        if (gatewayIp == null) {
+            throw new IllegalArgumentException("gatewayIp is null");
+        }
+
+        return findFirstRouterPortMatchFromBridge(bridgeId,
+                new Function<PortDirectory.RouterPortConfig, Boolean>() {
+
+                    @Override
+                    public Boolean apply(
+                            PortDirectory.RouterPortConfig rpCfg) {
+                        return rpCfg.portAddressEquals(gatewayIp);
+                    }
+                });
+    }
+
+    public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(
+            UUID bridgeId,
+            Function<PortDirectory.RouterPortConfig, Boolean> matcher)
+            throws StateAccessException, SerializationException {
+        List<UUID> ids = getBridgeLogicalPortIDs(bridgeId);
+        for (UUID id : ids) {
+            PortDirectory.BridgePortConfig cfg =
+                    (PortDirectory.BridgePortConfig) get(id);
+            if (cfg.peerId == null) {
+                continue;
+            }
+            PortDirectory.RouterPortConfig rpCfg =
+                    (PortDirectory.RouterPortConfig) get(cfg.peerId);
+            if (matcher.apply(rpCfg)) {
+                return rpCfg;
+            }
+        }
 
         return null;
     }
