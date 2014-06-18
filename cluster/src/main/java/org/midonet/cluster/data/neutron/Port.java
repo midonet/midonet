@@ -115,6 +115,12 @@ public class Port {
     }
 
     @JsonIgnore
+    public final UUID firstSubnetId() {
+        if (!hasIp()) return null;
+        return fixedIps.get(0).subnetId;
+    }
+
+    @JsonIgnore
     public final MAC macAddress() {
         if (macAddress == null) return null;
         return MAC.fromString(macAddress);

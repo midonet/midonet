@@ -219,6 +219,19 @@ public class PortDirectory {
             return sub.getIntAddress() == nwAddr
                     && sub.getPrefixLen() == nwLength;
         }
+
+        @JsonIgnore
+        public boolean portAddressEquals(IPAddr addr) {
+            if (addr == null) {
+                throw new IllegalArgumentException("addr is null");
+            }
+
+            if (addr instanceof IPv6Addr) {
+                throw new UnsupportedOperationException("IPv6 not supported");
+            }
+
+            return Objects.equals(addr, IPv4Addr.fromInt(this.portAddr));
+        }
     }
 
     // NOTE(tfukushima): Jackson only supports one-to-one mappings between

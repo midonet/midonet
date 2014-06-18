@@ -149,7 +149,6 @@ public class ExternalNetZkManager extends BaseZkManager {
         for (IPAllocation ipAlloc : port.fixedIps) {
             //TODO: check for IP version
             routeZkManager.prepareRoutesDelete(ops, prId, ipAlloc.ipv4Subnet());
-
         }
     }
 }
