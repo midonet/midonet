@@ -178,11 +178,6 @@ public class VtepDataClientImplTest {
         // Go through a full connection process
         successfulConnection(mockCache);
 
-        // Test describe
-        PhysicalSwitch ps = vtepDataClient.describe();
-        assertEquals(MOCK_NAME, ps.name);
-        assertEquals(MOCK_DESCRIPTION, ps.description);
-
         // Disconnect
         new Expectations() {{ cnxnSrv.disconnect(node); }};
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.services.vxgw;
 
@@ -21,7 +21,7 @@ public class VxLanPeerSyncException extends RuntimeException {
         this.change = change;
     }
 
-   @Override
+    @Override
     public String toString() {
         return String.format("Failed to apply %s, %s",
                              change.toString(), this.getMessage());

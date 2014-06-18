@@ -24,6 +24,16 @@ import org.midonet.packets.IPv4Addr;
 public interface VtepDataClient {
 
     /**
+     * @return the management ip that this client connects to.
+     */
+    public IPv4Addr getManagementIp();
+
+    /**
+     * @return the management UDP port where this client connects to.
+     */
+    public int getManagementPort();
+
+    /**
      * Lists all physical switches configured in the VTEP.
      *
      * @return the physical switches.
@@ -155,11 +165,5 @@ public interface VtepDataClient {
      * @return the result of the operation
      */
     public Status deleteLogicalSwitch(String name);
-
-    /**
-     * Returns the PhysicalSwitch data for the local VTEP this VtepDataClient
-     * is connected to.
-     */
-    public PhysicalSwitch describe();
 
 }
