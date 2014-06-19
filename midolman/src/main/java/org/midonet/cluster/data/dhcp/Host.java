@@ -4,10 +4,8 @@
 package org.midonet.cluster.data.dhcp;
 
 import org.midonet.cluster.data.Entity;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-
-import java.util.UUID;
 
 /**
  * DHCP host
@@ -36,11 +34,11 @@ public class Host extends Entity.Base<MAC, Host.Data, Host> {
         return self();
     }
 
-    public IntIPv4 getIp() {
+    public IPv4Addr getIp() {
         return getData().ip;
     }
 
-    public Host setIp(IntIPv4 ip) {
+    public Host setIp(IPv4Addr ip) {
         getData().ip = ip;
         return self();
     }
@@ -57,7 +55,7 @@ public class Host extends Entity.Base<MAC, Host.Data, Host> {
     public static class Data {
 
         public MAC mac;
-        public IntIPv4 ip;
+        public IPv4Addr ip;
         public String name;
 
     }

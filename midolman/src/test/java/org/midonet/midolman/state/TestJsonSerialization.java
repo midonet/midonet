@@ -40,7 +40,7 @@ public class TestJsonSerialization {
     @Test
     public void testHost() throws IOException {
         Host host = new Host(MAC.fromString("aa:bb:cc:dd:ee:11"),
-                             IPv4Addr.fromString("10.1.2.3").toIntIPv4(),
+                             IPv4Addr.fromString("10.1.2.3"),
                              "mars");
         String json = JsonVersionZkSerializer.objToJsonString(host);
         assertEquals(

@@ -3,16 +3,6 @@
  */
 package org.midonet.api.host;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.host.validation.IsValidHostId;
-import org.midonet.api.host.validation.IsValidTunnelZoneId;
-import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
-import org.midonet.api.host.TunnelZoneHost.TunnelZoneHostUnique;
-import org.midonet.cluster.data.TunnelZone.HostConfig;
-import org.midonet.packets.IntIPv4;
-import org.midonet.packets.IPv4;
-
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -20,6 +10,16 @@ import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.api.host.TunnelZoneHost.TunnelZoneHostUnique;
+import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
+import org.midonet.api.host.validation.IsValidHostId;
+import org.midonet.api.host.validation.IsValidTunnelZoneId;
+import org.midonet.cluster.data.TunnelZone.HostConfig;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 
 /**
  * Class representing Tunnel zone - host mapping.
@@ -117,7 +117,7 @@ public class TunnelZoneHost extends UriResource {
 
     protected void setData(HostConfig data) {
         data.setId(hostId);
-        data.setIp(IntIPv4.fromString(ipAddress));
+        data.setIp(IPv4Addr.fromString(ipAddress));
     }
 
     /**

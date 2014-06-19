@@ -482,8 +482,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         log.debug("Received reply {}", pktOut)
         ipv4 should not be null
-        ipv4.getSourceAddress should be (expectIcmpData.getDestinationAddress.addressAsInt)
-        ipv4.getDestinationAddress should be (expectIcmpData.getSourceAddress.addressAsInt)
+        ipv4.getSourceAddress shouldBe expectIcmpData.getDestinationAddress
+        ipv4.getDestinationAddress shouldBe expectIcmpData.getSourceAddress
         // The ICMP contents should be as expected
         val icmp = ipv4.getPayload.asInstanceOf[ICMP]
         icmp should not be null

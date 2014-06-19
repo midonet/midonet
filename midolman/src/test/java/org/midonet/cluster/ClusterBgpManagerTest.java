@@ -184,7 +184,7 @@ public class ClusterBgpManagerTest {
     public void testAddsBGP() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
@@ -216,13 +216,13 @@ public class ClusterBgpManagerTest {
     public void testUpdateBGP() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
         myBgp.setId(bgpId);
 
-        final IntIPv4 newIp = IntIPv4.fromString("192.168.1.2");
+        final IPv4Addr newIp = IPv4Addr.fromString("192.168.1.2");
 
         clusterBgpManager.registerNewBuilder(portId, new FailingBGPListBuilder() {
             @Override
@@ -244,7 +244,7 @@ public class ClusterBgpManagerTest {
     public void testRemoveBGP() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
@@ -270,7 +270,7 @@ public class ClusterBgpManagerTest {
         final BGP[] myBgp = new BGP[] {
                 new BGP()
                     .setPortId(portId)
-                    .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                    .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                     .setLocalAS(1)
                     .setPeerAS(2)
         };
@@ -286,7 +286,7 @@ public class ClusterBgpManagerTest {
 
         myBgp[0] = new BGP()
                     .setPortId(portId)
-                    .setPeerAddr(IntIPv4.fromString("192.168.1.2"))
+                    .setPeerAddr(IPv4Addr.fromString("192.168.1.2"))
                     .setLocalAS(3)
                     .setPeerAS(4);
         bgpMgr.create(myBgp[0]);
@@ -297,7 +297,7 @@ public class ClusterBgpManagerTest {
         final BGP[] myBgp = new BGP[] {
                 new BGP()
                     .setPortId(portId)
-                    .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                    .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                     .setLocalAS(1)
                     .setPeerAS(2)
         };
@@ -318,7 +318,7 @@ public class ClusterBgpManagerTest {
 
         myBgp[0] = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.2"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.2"))
                 .setLocalAS(3)
                 .setPeerAS(4);
         myBgp[0].setId(bgpMgr.create(myBgp[0]));
@@ -330,7 +330,7 @@ public class ClusterBgpManagerTest {
     public void testAddRoute() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
@@ -362,7 +362,7 @@ public class ClusterBgpManagerTest {
     public void testRemoveRoute() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
@@ -401,7 +401,7 @@ public class ClusterBgpManagerTest {
     public void testAddAnotherRoute() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);
@@ -441,7 +441,7 @@ public class ClusterBgpManagerTest {
     public void testAddAnotherAndRemoveRoute() throws Throwable {
         final BGP myBgp = new BGP()
                 .setPortId(portId)
-                .setPeerAddr(IntIPv4.fromString("192.168.1.1"))
+                .setPeerAddr(IPv4Addr.fromString("192.168.1.1"))
                 .setLocalAS(1)
                 .setPeerAS(2);
         UUID bgpId = bgpMgr.create(myBgp);

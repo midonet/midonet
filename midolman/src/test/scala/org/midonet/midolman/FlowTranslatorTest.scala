@@ -248,7 +248,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                 hostId(), "midonet",
                 Map(inPort.getId -> "in", port0.getId -> "port0"),
                 Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
-                                             .setIp(hostIp.toIntIPv4))
+                                             .setIp(hostIp))
             )
 
             ctx input inPort.getId

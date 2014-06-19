@@ -3,12 +3,12 @@
 */
 package org.midonet.cluster.data;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.midonet.packets.IntIPv4;
-
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
+import org.codehaus.jackson.annotate.JsonProperty;
+
+import org.midonet.packets.IPv4Addr;
 
 public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
 
@@ -93,24 +93,24 @@ public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
         }
 
         public HostConfig(UUID uuid) {
-            this(uuid, new Data());
+            super(uuid, new Data());
         }
 
         public HostConfig() {
-            this(null, new Data());
+            super(null, new Data());
         }
 
-        public HostConfig setIp(IntIPv4 ip) {
+        public HostConfig setIp(IPv4Addr ip) {
             getData().ip = ip;
             return self();
         }
 
         @Override
-        protected HostConfig self() {
+        public HostConfig self() {
             return this;
         }
 
-        public IntIPv4 getIp() {
+        public IPv4Addr getIp() {
             return getData().ip;
         }
 
@@ -139,7 +139,7 @@ public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
         }
 
         public static class Data {
-            IntIPv4 ip;
+            IPv4Addr ip;
 
             @JsonProperty("@type")
             final String type = "gre";
@@ -164,9 +164,7 @@ public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
 
             @Override
             public String toString() {
-                return "Data{" +
-                        "ip=" + ip +
-                        '}';
+                return "Data{" + "ip=" + ip + '}';
             }
         }
     }

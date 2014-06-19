@@ -17,8 +17,8 @@ object PacketBuilder {
 
     val eth_zero: MAC = "00:00:00:00:00:00"
     val eth_bcast: MAC = "ff:ff:ff:ff:ff:ff"
-    val ip4_zero: IntIPv4 = "0.0.0.0"
-    val ip4_bcast: IntIPv4 = "255.255.255.255"
+    val ip4_zero = IPv4Addr("0.0.0.0")
+    val ip4_bcast = IPv4Addr("255.255.255.255")
 
     def eth = EthBuilder()
     def arp = ArpBuilder()
@@ -41,22 +41,22 @@ object PacketBuilder {
     implicit def stringToMacPair(src: String): MacPair = MacPair(src)
     implicit def macToMacPair(src: MAC): MacPair = MacPair(src)
 
-    case class Ip4Pair(src: IntIPv4 = 0, dst: IntIPv4 = 0) {
-        def src(addr: IntIPv4): Ip4Pair = copy(src = addr)
+    case class Ip4Pair(src: IPv4Addr = 0, dst: IPv4Addr = 0) {
+        def src(addr: IPv4Addr): Ip4Pair = copy(src = addr)
         def src(addr: Int): Ip4Pair =  src(intToIp(addr))
         def src(addr: String): Ip4Pair =  src(stringToIp(addr))
 
-        def dst(addr: IntIPv4): Ip4Pair = copy(dst = addr)
+        def dst(addr: IPv4Addr): Ip4Pair = copy(dst = addr)
         def dst(addr: Int): Ip4Pair =  dst(intToIp(addr))
         def dst(addr: String): Ip4Pair =  dst(stringToIp(addr))
         def -->(addr: Int): Ip4Pair =  dst(intToIp(addr))
         def -->(addr: String): Ip4Pair =  dst(stringToIp(addr))
-        def -->(addr: IntIPv4): Ip4Pair =  dst(addr)
+        def -->(addr: IPv4Addr): Ip4Pair =  dst(addr)
     }
 
     implicit def stringToIp4Pair(src: String): Ip4Pair = Ip4Pair(src)
     implicit def intToIp4Pair(src: Int): Ip4Pair = Ip4Pair(src)
-    implicit def ip4ToIp4Pair(src: IntIPv4): Ip4Pair = Ip4Pair(src)
+    implicit def ip4ToIp4Pair(src: IPv4Addr): Ip4Pair = Ip4Pair(src)
 
     case class PortPair(src: Short = 0, dst: Short = 0) {
         def src(port: Short): PortPair = copy(src = port)
@@ -222,10 +222,10 @@ case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {
     def addr(pair: Ip4Pair): IPv4Builder = { src(pair.src) ; dst(pair.dst) }
     def src(addr: String): IPv4Builder = { packet.setSourceAddress(addr) ; this }
     def src(addr: Int): IPv4Builder = { packet.setSourceAddress(addr) ; this }
-    def src(addr: IntIPv4): IPv4Builder = src(ipToInt(addr))
+    def src(addr: IPv4Addr): IPv4Builder = src(ipToInt(addr))
     def dst(addr: String): IPv4Builder = { packet.setDestinationAddress(addr) ; this }
     def dst(addr: Int): IPv4Builder = { packet.setDestinationAddress(addr) ; this }
-    def dst(addr: IntIPv4): IPv4Builder = dst(ipToInt(addr))
+    def dst(addr: IPv4Addr): IPv4Builder = dst(ipToInt(addr))
     def ttl(ttl: Byte): IPv4Builder = { packet.setTtl(ttl) ; this }
     def version(ver: Byte): IPv4Builder = { packet.setVersion(ver) ; this }
     def diff_serv(ds: Byte): IPv4Builder = { packet.setDiffServ(ds) ; this }

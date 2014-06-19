@@ -323,7 +323,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                                 bgps.remove(bgp.getId)
                             bgps.put(bgp.getId, bgp)
                             bgpVty.setPeer(bgp.getLocalAS,
-                                           IPv4Addr.fromIntIPv4(bgp.getPeerAddr),
+                                           bgp.getPeerAddr,
                                            bgp.getPeerAS)
                         } else {
                             log.error("Ignoring BGP session {}, only one BGP "+
@@ -355,8 +355,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     case Started if bgps.contains(bgpID) =>
                         // TODO(pino): Use bgpVty to remove this BGP and its routes
                         val Some(bgp) = bgps.remove(bgpID)
-                        bgpVty.deletePeer(bgp.getLocalAS,
-                                          IPv4Addr.fromIntIPv4(bgp.getPeerAddr))
+                        bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                         // Remove all the flows for this BGP link
                         FlowController !
                             FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgpID))
@@ -855,9 +854,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug("create - begin")
         bgpVty.setAs(bgp.getLocalAS)
         bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
-        bgpVty.setPeer(bgp.getLocalAS, 
-                       IPv4Addr.fromIntIPv4(bgp.getPeerAddr),
-                       bgp.getPeerAS)
+        bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
 
         for (adRoute <- adRoutes) {
             // If an adRoute is already configured in bgp, it will be
@@ -888,7 +885,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgpPort.portAddr.getAddress)
-            .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkDestination(bgp.getPeerAddr)
             .setTransportDestination(BGP_TCP_PORT)
 
         var wildcardFlow = WildcardFlow(
@@ -903,7 +900,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgpPort.portAddr.getAddress)
-            .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkDestination(bgp.getPeerAddr)
             .setTransportSource(BGP_TCP_PORT)
 
         wildcardFlow = WildcardFlow(
@@ -917,7 +914,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportDestination(BGP_TCP_PORT)
 
@@ -932,7 +929,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportSource(BGP_TCP_PORT)
 
@@ -963,7 +960,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             // nwProto is overloaded in WildcardMatch to store the arp op type.
             .setNetworkProtocol(ARP.OP_REPLY.toByte)
             // nwSrc/nwDst are overloaded to store the arp sip and tip.
-            .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
 
         wildcardFlow = WildcardFlow(
@@ -978,7 +975,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
             .setNetworkSource(bgpPort.portAddr.getAddress)
-            .setNetworkDestination(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkDestination(bgp.getPeerAddr)
 
         wildcardFlow = WildcardFlow(
             wcmatch = wildcardMatch,
@@ -991,7 +988,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
-            .setNetworkSource(IPv4Addr.fromIntIPv4(bgp.getPeerAddr.toHostAddress))
+            .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
 
         wildcardFlow = WildcardFlow(
