@@ -183,7 +183,8 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         // should also be added to the routing table.
         for (String path :
                 getSubDirectoryRoutePaths(id, rtConfig, portConfig)) {
-            ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
+            if (!zk.exists(path))
+                ops.add(Op.create(path, null, Ids.OPEN_ACL_UNSAFE, mode));
         }
         return ops;
     }
@@ -344,8 +345,10 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         ops.add(Op.delete(routePath, -1));
         Route config = get(id);
         for (String path : getSubDirectoryRoutePaths(id, config, null)) {
-            log.debug("Preparing to delete: " + path);
-            ops.add(Op.delete(path, -1));
+            if (zk.exists(path)) {
+                log.debug("Preparing to delete: " + path);
+                ops.add(Op.delete(path, -1));
+            }
         }
         return ops;
     }
