@@ -152,14 +152,9 @@ public class ZkManager {
             throws StateAccessException {
         try {
             return zk.exists(path, watcher);
-        } catch (KeeperException e) {
-            throw new StateAccessException(
-                    "ZooKeeper error occurred while checking if path exists: "
-                            + path + ": " + e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new StateAccessException(
-                    "ZooKeeper thread interrupted while checking if path " +
-                            "exists: " + path + ": " + e.getMessage(), e);
+        } catch (Exception ex) {
+            throw processException(
+                ex, "checking whether path " + path + " exists");
         }
     }
 
