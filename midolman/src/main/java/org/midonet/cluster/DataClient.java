@@ -982,6 +982,14 @@ public interface DataClient {
     public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
 
+    /**
+     * Register a watcher for the given port.
+     * This is mainly intended to track vxLanPort removals.
+     * @return true if the port exists, false otherwise.
+     */
+    public boolean portWatch(UUID portId, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException;
+
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
         throws StateAccessException;
