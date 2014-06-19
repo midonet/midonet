@@ -6,9 +6,6 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.common.util.concurrent.ValueFuture;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
