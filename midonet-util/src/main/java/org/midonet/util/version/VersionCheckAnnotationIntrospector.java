@@ -12,8 +12,6 @@ import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
 import java.lang.annotation.Annotation;
 import java.util.Comparator;
 
-
-
 /**
  * Filters fields to be serialized/deserialized based on Annotations
  * created for versioning. This is called by the Jackson serialization

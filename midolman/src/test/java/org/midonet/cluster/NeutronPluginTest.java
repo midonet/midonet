@@ -4,6 +4,8 @@
 
 package org.midonet.cluster;
 
+import java.util.*;
+
 import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -14,13 +16,14 @@ import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.*;
-import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
+import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -39,8 +42,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.ARP;
-
-import java.util.*;
 
 public class NeutronPluginTest {
 
@@ -65,7 +66,8 @@ public class NeutronPluginTest {
      * Simple utility functions used in UT to test types of rules.
      */
 
-    public static boolean isDropAllExceptArpRule(Rule rule) {
+    public static <T extends Rule.Data,U extends Rule<T,U>>
+            boolean isDropAllExceptArpRule(Rule<T,U> rule) {
         if (rule == null) {
             return false;
         }
@@ -85,7 +87,8 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static boolean isMacSpoofProtectionRule(String macAddress, Rule rule) {
+    public static <T extends Rule.Data,U extends Rule<T,U>>
+            boolean isMacSpoofProtectionRule(String macAddress, Rule<T,U> rule) {
         if (rule == null) {
             return false;
         }
@@ -96,6 +99,7 @@ public class NeutronPluginTest {
         if (!cond.invDlSrc) {
             return false;
         }
+
         if (!Objects.equal(cond.dlSrc.toString(), macAddress)) {
             return false;
         }
@@ -105,7 +109,8 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static boolean isIpSpoofProtectionRule(IPAllocation subnet, Rule rule) {
+    public static <T extends Rule.Data,U extends Rule<T,U>>
+            boolean isIpSpoofProtectionRule(IPAllocation subnet, Rule<T,U> rule) {
         if (rule == null) {
             return false;
         }
@@ -126,7 +131,7 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static boolean isAcceptReturnFlowRule(org.midonet.cluster.data.Rule rule) {
+    public static boolean isAcceptReturnFlowRule(Rule<?,?> rule) {
         if (rule == null) return false;
         Condition cond = rule.getCondition();
         if (cond == null) return false;
@@ -285,7 +290,7 @@ public class NeutronPluginTest {
 
             // verify the rule exists
             boolean found = false;
-            for (Rule r : spoofRules) {
+            for (Rule<?,?> r : spoofRules) {
                 if (isIpSpoofProtectionRule(ip, r)) {
                     found = true;
                     break;
@@ -335,14 +340,14 @@ public class NeutronPluginTest {
 
             //Verify that there is a jump rule to the egress and ingress chains
             boolean inboundFound = false, outboundFound = false;
-            for (Rule r : sgJumpRulesInbound) {
+            for (Rule<?,?> r : sgJumpRulesInbound) {
                 JumpRule jr = (JumpRule)r;
                 if (egress.getName().equals(jr.getJumpToChainName()) &&
                         egress.getId().equals(jr.getJumpToChainId())) {
                     inboundFound = true;
                 }
             }
-            for (Rule r : sgJumpRulesOutbound) {
+            for (Rule<?,?> r : sgJumpRulesOutbound) {
                 JumpRule jr = (JumpRule)r;
                 if (ingress.getName().equals(jr.getJumpToChainName()) &&
                         ingress.getId().equals(jr.getJumpToChainId())) {
@@ -356,7 +361,7 @@ public class NeutronPluginTest {
             for (SecurityGroupRule sgr : sg.securityGroupRules) {
                 SecurityGroupRule zkSgr = plugin.getSecurityGroupRule(sgr.id);
                 Assert.assertTrue(Objects.equal(sgr, zkSgr));
-                Rule r = dataClient.rulesGet(sgr.id);
+                Rule<?,?> r = dataClient.rulesGet(sgr.id);
                 Assert.assertNotNull(r);
             }
         }
@@ -804,22 +809,22 @@ public class NeutronPluginTest {
         SerializationException {
         Router routerMido = dataClient.routersGet(routerId);
 
-        List<org.midonet.cluster.data.Rule<?,?>> inboundRules
+        List<Rule<?,?>> inboundRules
                 = dataClient.rulesFindByChain(routerMido.getInboundFilter());
-        List<org.midonet.cluster.data.Rule<?,?>> outboundRules
+        List<Rule<?,?>> outboundRules
                 = dataClient.rulesFindByChain(routerMido.getOutboundFilter());
 
         boolean foundSnat = false;
         boolean foundRevSnat = false;
 
-        for (org.midonet.cluster.data.Rule r : inboundRules) {
+        for (Rule<?,?> r : inboundRules) {
             String dstAddr = r.getCondition().nwDstIp.toString();
             if (dstAddr.equals(snatIp + "/32")) {
                 foundSnat = true;
             }
         }
 
-        for (org.midonet.cluster.data.Rule r : outboundRules) {
+        for (Rule<?,?> r : outboundRules) {
             Set<org.midonet.midolman.rules.NatTarget> targets
                     = ((org.midonet.cluster.data.rules.ForwardNatRule) r).getTargets();
             for (NatTarget nt : targets) {
@@ -846,7 +851,7 @@ public class NeutronPluginTest {
         List<Rule<?,?>> inRules =
             dataClient.rulesFindByChain(zkRouter.getOutboundFilter());
 
-        for (Rule r : inRules) {
+        for (Rule<?,?> r : inRules) {
             if (r instanceof ForwardNatRule) {
                 ForwardNatRule fnr = (ForwardNatRule)r;
                 for (NatTarget target : fnr.getTargets()) {
@@ -861,7 +866,7 @@ public class NeutronPluginTest {
             }
         }
         Assert.assertTrue(snatRuleFound);
-        for (Rule r : outRules) {
+        for (Rule<?,?> r : outRules) {
             if (r instanceof ForwardNatRule) {
                 ForwardNatRule fnr = (ForwardNatRule)r;
                 for (NatTarget target : fnr.getTargets()) {

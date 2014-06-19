@@ -365,8 +365,7 @@ public class TestRules {
     @Test
     public void testDnatAndReverseRuleDeleteMapping() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
-                (int) 1050));
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
@@ -420,8 +419,7 @@ public class TestRules {
     @Test
     public void testStickyDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
-        nats.add(new NatTarget(0x0c000102, 0x0c00010a, (int) 1030,
-                (int) 1050));
+        nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
 
         int stickyIpTimeoutSeconds = 300;
 

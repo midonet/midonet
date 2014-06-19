@@ -1,15 +1,18 @@
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.sdn.flows
 
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.matchers.BePropertyMatcher
-import org.scalatest.matchers.BePropertyMatchResult
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.Suite
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.matchers.BePropertyMatchResult
+import org.scalatest.matchers.BePropertyMatcher
 
 @RunWith(classOf[JUnitRunner])
-class WildcardFlowTest extends Suite with ShouldMatchers {
+class WildcardFlowTest extends Suite with Matchers {
 
     def testCombineExpirationTimes() {
         val wf1 = WildcardFlow.apply(new WildcardMatch(), List(), 0, 0, 0)
