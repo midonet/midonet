@@ -13,7 +13,6 @@ import com.google.common.primitives.Longs;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
-import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch.Datapath.Attr;
 
 /**
@@ -21,11 +20,9 @@ import org.midonet.odp.OpenVSwitch.Datapath.Attr;
  */
 public class Datapath {
 
-    public Datapath(int index, String name) {
-        this.name = name;
-        this.index = index;
-        this.stats = new Stats();
-    }
+    private final int index;
+    private final String name;
+    private final Stats stats;
 
     public Datapath(int index, String name, Stats stats) {
         this.name = name;
@@ -33,9 +30,9 @@ public class Datapath {
         this.stats = stats;
     }
 
-    private int index;
-    private String name;
-    private Stats stats;
+    public Datapath(int index, String name) {
+        this(index, name, new Stats(0L,0L,0L,0L));
+    }
 
     public int getIndex() {
         return index;
@@ -51,8 +48,9 @@ public class Datapath {
 
     public static Datapath buildFrom(ByteBuffer buf) {
         int index = buf.getInt();
-        String name = NetlinkMessage.getAttrValueString(buf, Attr.Name);
-        Stats stats = Stats.buildFrom(buf);
+        String name = NetlinkMessage.readStringAttr(buf, Attr.Name);
+        short id = Stats.trans.attrIdOf(null);
+        Stats stats = NetlinkMessage.readAttr(buf, id, Stats.trans);
         return new Datapath(index, name, stats);
     }
 
@@ -78,14 +76,12 @@ public class Datapath {
         }
     };
 
-    public static class Stats implements BuilderAware {
+    public static class Stats {
 
-        private long hits;
-        private long misses;
-        private long lost;
-        private long flows;
-
-        public Stats() { }
+        private final long hits;
+        private final long misses;
+        private final long lost;
+        private final long flows;
 
         public Stats(long hits, long misses, long lost, long flows) {
             this.hits = hits;
@@ -108,19 +104,6 @@ public class Datapath {
 
         public long getFlows() {
             return flows;
-        }
-
-        @Override
-        public boolean deserialize(ByteBuffer buf) {
-            try {
-                hits = buf.getLong();
-                misses = buf.getLong();
-                lost = buf.getLong();
-                flows = buf.getLong();
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
         }
 
         @Override
@@ -153,10 +136,6 @@ public class Datapath {
                 ", lost=" + lost +
                 ", flows=" + flows +
                 '}';
-        }
-
-        public static Stats buildFrom(ByteBuffer buf) {
-            return NetlinkMessage.getAttrValue(buf, Attr.Stat, new Stats());
         }
 
         public static final Translator<Stats> trans = new Translator<Stats>() {

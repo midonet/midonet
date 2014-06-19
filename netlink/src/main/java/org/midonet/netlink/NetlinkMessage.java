@@ -504,6 +504,35 @@ public final class NetlinkMessage {
         return -1;
     }
 
+    /** Seeks a serialized attribute by id and reconstruct a POJO instance using
+     *  the given reader. */
+    public static <T> T readAttr(ByteBuffer buf, short id, Reader<T> reader) {
+        int start = buf.position();
+        int end = buf.limit();
+
+        int pos = seekAttribute(buf, id);
+        if (pos < 0)
+            return null;
+
+        // preparing buffer before calling handler
+        buf.position(pos);
+        buf.limit(pos + buf.getShort(pos - 4) - 4);
+        T attr = reader.deserializeFrom(buf);
+
+        // restoring buffer
+        buf.position(start);
+        buf.limit(end);
+        return attr;
+    }
+
+    /** Seeks a serialized string by id and reconstruct a java String. */
+    public static String readStringAttr(ByteBuffer buf, short id) {
+        int pos = seekAttribute(buf, id);
+        if (pos < 4)
+            return null;
+        return parseStringAttr(buf, pos);
+    }
+
     /** Reads a cstring contained in a ByteBuffer at the given offset and
      *  returns a java String, removing the trailing null byte if it is present.
      *  It is assumed that the cstring is an attribute value with a matching

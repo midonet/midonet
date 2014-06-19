@@ -22,25 +22,28 @@ class DpPortTest extends FunSpec with Matchers {
 
     describe("DpPort") {
 
-        describe("Stats") {
-            it("should be invariant by serialization/deserialisation") {
+        describe("Stats translator") {
+
+            val trans = DpPort.Stats.trans
+
+            it("should allow serialization/deserialisation to be invariant") {
+                val buf = getBuffer
                 stats foreach { s =>
-                    val buf = getBuffer
-                    NetlinkMessage writeAttr (buf, s, DpPort.Stats.trans)
+                    buf.clear
+                    NetlinkMessage writeAttr (buf, s, trans)
                     buf.flip
-                    s shouldBe (DpPort.Stats buildFrom buf)
+                    val id = trans attrIdOf null
+                    s shouldBe (NetlinkMessage readAttr (buf, id, trans))
                 }
             }
 
-            describe("translator") {
-                it("should deserialize the same value after serialization") {
-                    val buf = getBuffer
-                    stats foreach { s =>
-                        buf.clear
-                        DpPort.Stats.trans.serializeInto(buf,s)
-                        buf.flip
-                        s shouldBe DpPort.Stats.trans.deserializeFrom(buf)
-                    }
+            it("should read the same value after writing it") {
+                val buf = getBuffer
+                stats foreach { s =>
+                    buf.clear
+                    DpPort.Stats.trans.serializeInto(buf,s)
+                    buf.flip
+                    s shouldBe DpPort.Stats.trans.deserializeFrom(buf)
                 }
             }
         }
