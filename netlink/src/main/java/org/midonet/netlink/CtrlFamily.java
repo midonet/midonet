@@ -5,8 +5,6 @@ package org.midonet.netlink;
 
 import java.nio.ByteBuffer;
 
-import com.google.common.base.Function;
-
 /**
  * Abstraction for the NETLINK CTRL family of commands and attributes.
  */
@@ -55,11 +53,9 @@ public final class CtrlFamily {
         return buf;
     }
 
-    public static Function<ByteBuffer, Integer> mcastGrpDeserializer(
-            final String groupName) {
-        return new Function<ByteBuffer, Integer>() {
-            @Override
-            public Integer apply(ByteBuffer buf) {
+    public static Reader<Integer> mcastGrpDeserializer(final String groupName) {
+        return new Reader<Integer>() {
+            public Integer deserializeFrom(ByteBuffer buf) {
                 if (buf == null)
                     return null;
 
@@ -85,13 +81,11 @@ public final class CtrlFamily {
         };
     }
 
-    public static final Function<ByteBuffer, Short> familyIdDeserializer =
-        new Function<ByteBuffer, Short>() {
-            @Override
-            public Short apply(ByteBuffer buf) {
+    public static final Reader<Short> familyIdDeserializer =
+        new Reader<Short>() {
+            public Short deserializeFrom(ByteBuffer buf) {
                 if (buf == null)
                     return 0;
-
                 return NetlinkMessage.getAttrValueShort(buf, AttrKey.FAMILY_ID);
             }
         };

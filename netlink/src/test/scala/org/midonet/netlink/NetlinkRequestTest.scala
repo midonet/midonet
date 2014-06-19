@@ -7,7 +7,6 @@ import java.nio.ByteBuffer
 import java.util.{Set => JSet}
 import scala.util.Try
 
-import com.google.common.base.Function;
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -150,14 +149,14 @@ class NetlinkRequestTest extends FunSpec with Matchers {
         it("gives back an empty set of object when there is no answers") {
             val cb = new SetCallback
 
-            (NetlinkRequest makeMulti (cb, trans, null, 1000)).successful.run
+            (NetlinkRequest makeMulti (cb, reader, null, 1000)).successful.run
 
             cb.set should have size(0)
         }
 
         it("constructs a set from the deserialized answer fragments it gets") {
             val cb = new SetCallback
-            val req = NetlinkRequest makeMulti (cb, trans, null, 1000)
+            val req = NetlinkRequest makeMulti (cb, reader, null, 1000)
             val buf = ByteBuffer allocate 256
 
             (1 to 10) foreach { i =>
@@ -203,13 +202,13 @@ class NetlinkRequestTest extends FunSpec with Matchers {
     }
 
     def requestFor(cb: Callback[Int], buf: ByteBuffer = null) = {
-        val req = NetlinkRequest makeSingle (cb, trans, buf, 1000)
+        val req = NetlinkRequest makeSingle (cb, reader, buf, 1000)
         req.seq = getSeq()
         req
     }
 
-    val trans = new Function[ByteBuffer,Int] {
-        override def apply(ls: ByteBuffer): Int = Try { ls.getInt } getOrElse 0
+    val reader = new Reader[Int] {
+        def deserializeFrom(buf: ByteBuffer) = Try { buf.getInt } getOrElse 0
     }
 
     var seq: Int = 0

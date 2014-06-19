@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch.Packet.Attr;
-import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
@@ -163,10 +162,10 @@ public class Packet {
         // ordering of attributes and compared it to this one, and found
         // only the expected difference.
 
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKey.translator);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKey.keyWriter);
 
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
-                                    actions, FlowAction.translator);
+                                    actions, FlowAction.actionWriter);
 
         NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
 

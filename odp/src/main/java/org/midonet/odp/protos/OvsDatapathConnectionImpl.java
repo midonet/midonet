@@ -416,7 +416,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             NLFlag.REQUEST | NLFlag.ACK,
             Flow.selectAllRequest(getBuffer(), datapathId),
             callback,
-            alwaysTrueTranslator,
+            alwaysTrueReader,
             timeoutMillis);
     }
 
@@ -539,7 +539,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             Packet.execRequest(getBuffer(), datapathId, match.getKeys(),
                                actions, packet.getPacket()),
             callback,
-            alwaysTrueTranslator,
+            alwaysTrueReader,
             timeoutMillis);
     }
 
