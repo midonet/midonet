@@ -8,6 +8,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.data.Bridge.Property;
+import org.midonet.util.version.Since;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
@@ -39,6 +40,7 @@ public class Bridge extends UriResource {
 
     @Null(groups = BridgeCreateGroup.class,
           message = MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE)
+    @Since("2")
     private UUID vxLanPortId;
 
     /**
@@ -197,6 +199,7 @@ public class Bridge extends UriResource {
         this.vxLanPortId = vxLanPortId;
     }
 
+    @Since("2")
     public URI getVxLanPort() {
         if (getBaseUri() == null || vxLanPortId == null)
             return null;
