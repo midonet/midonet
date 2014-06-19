@@ -223,10 +223,10 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new TunnelZone.HostConfig(host1.getId).setIp(srcIp.toIntIPv4))
+            new TunnelZone.HostConfig(host1.getId).setIp(srcIp))
         clusterDataClient().tunnelZonesAddMembership(
             tunnelZone.getId,
-            new TunnelZone.HostConfig(host2.getId).setIp(dstIp1.toIntIPv4))
+            new TunnelZone.HostConfig(host2.getId).setIp(dstIp1))
 
         fishForReplyOfType[ZoneMembers](vtpProbe())
         fishForReplyOfType[ZoneChanged](vtpProbe())
@@ -248,7 +248,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         // update the gre ip of the second host
         val secondGreConfig =
-            new TunnelZone.HostConfig(host2.getId).setIp(dstIp2.toIntIPv4)
+            new TunnelZone.HostConfig(host2.getId).setIp(dstIp2)
         clusterDataClient().tunnelZonesDeleteMembership(
             tunnelZone.getId, host2.getId)
         clusterDataClient().tunnelZonesAddMembership(

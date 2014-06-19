@@ -88,7 +88,7 @@ class DhcpImpl(val dataClient: DataClient,
                 serverMac = MAC.fromString("02:a8:9c:de:39:27")
                 serverAddr = IntIPv4.toIPv4Addr(sub.getServerAddr)
                 routerAddr = IntIPv4.toIPv4Addr(sub.getDefaultGateway)
-                yiaddr = IntIPv4.toIPv4Addr(host.getIp)
+                yiaddr = host.getIp
                 yiAddrMaskLen = sub.getSubnetAddr.getMaskLength
 
                 dnsServerAddrsBytes =

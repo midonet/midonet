@@ -37,9 +37,9 @@ class TunnelManagementTestCase extends MidolmanTestCase
 
     var portActiveProbe: TestProbe = null
 
-    val myIp = IPv4Addr("192.168.100.1").toIntIPv4
-    val herIp = IPv4Addr("192.168.200.1").toIntIPv4
-    val herIp2 = IPv4Addr("192.168.210.1").toIntIPv4
+    val myIp = IPv4Addr("192.168.100.1")
+    val herIp = IPv4Addr("192.168.200.1")
+    val herIp2 = IPv4Addr("192.168.210.1")
 
     override protected def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("host-host_uuid", myselfId.toString)
@@ -116,8 +116,8 @@ class TunnelManagementTestCase extends MidolmanTestCase
         val route = dpState() peerTunnelInfo host2.getId
 
         // and that the ips match
-        route.get.srcIp shouldBe myIp.addressAsInt
-        route.get.dstIp shouldBe herIp.addressAsInt
+        route.get.srcIp shouldBe myIp.toInt
+        route.get.dstIp shouldBe herIp.toInt
 
         // update the gre ip of the second host
         val herSecondGreConfig = new TunnelZone.HostConfig(host2.getId).setIp(herIp2)
@@ -129,9 +129,9 @@ class TunnelManagementTestCase extends MidolmanTestCase
         // assert new route with updated dst ip
         val route2 = dpState() peerTunnelInfo host2.getId
 
-        route2.get.srcIp shouldBe myIp.addressAsInt
-        route2.get.dstIp should not be (herIp.addressAsInt)
-        route2.get.dstIp shouldBe herIp2.addressAsInt
+        route2.get.srcIp shouldBe myIp.toInt
+        route2.get.dstIp should not be (herIp.toInt)
+        route2.get.dstIp shouldBe herIp2.toInt
 
         // assert datapath state
         val dp = dpConn().futures.datapathsGet("midonet").get()

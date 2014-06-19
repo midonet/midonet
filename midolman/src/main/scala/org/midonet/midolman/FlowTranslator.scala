@@ -219,7 +219,7 @@ trait FlowTranslator {
     private def outputActionsToVtep(vni: Int, vtepIp: Int,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[Any]) {
-        val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
+        val localIp =  dpState.host.zones.values.head.getIp.toInt
         if (dpTags != null)
             dpTags += FlowTagger.invalidateTunnelRoute(localIp, vtepIp)
         actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))

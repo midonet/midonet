@@ -8,11 +8,10 @@ import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.bgp.validation.IsUniqueBgpInPort;
 import org.midonet.cluster.data.BGP;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+import java.net.URI; import java.util.UUID;
 
 /**
  * Class representing BGP.
@@ -36,28 +35,22 @@ public class Bgp extends UriResource {
     /**
      * Constructor
      *
-     * @param data
-     *            BGP data object.
+     * @param data BGP data object.
      */
     public Bgp(BGP data) {
         this(data.getId(), data.getLocalAS(),
-                data.getPeerAddr().toUnicastString(),
+                data.getPeerAddr().toString(),
                 data.getPeerAS(), data.getPortId());
     }
 
     /**
      * Constructor
      *
-     * @param id
-     *            ID of BGP
-     * @param localAS
-     *            Local AS number
-     * @param peerAddr
-     *            Peer IP address
-     * @param peerAS
-     *            Peer AS number
-     * @param portId
-     *            Port ID
+     * @param id ID of BGP
+     * @param localAS Local AS number
+     * @param peerAddr Peer IP address
+     * @param peerAS Peer AS number
+     * @param portId Port ID
      */
     public Bgp(UUID id, int localAS, String peerAddr, int peerAS, UUID portId) {
         this.id = id;
@@ -98,8 +91,7 @@ public class Bgp extends UriResource {
     /**
      * Set BGP localAS.
      *
-     * @param localAS
-     *            localAS of the BGP.
+     * @param localAS localAS of the BGP.
      */
     public void setLocalAS(int localAS) {
         this.localAS = localAS;
@@ -117,8 +109,7 @@ public class Bgp extends UriResource {
     /**
      * Set peer address.
      *
-     * @param peerAddr
-     *            Address of the peer.
+     * @param peerAddr Address of the peer.
      */
     public void setPeerAddr(String peerAddr) {
         this.peerAddr = peerAddr;
@@ -136,8 +127,7 @@ public class Bgp extends UriResource {
     /**
      * Set BGP peerAS.
      *
-     * @param peerAS
-     *            peerAS of the BGP.
+     * @param peerAS of the BGP.
      */
     public void setPeerAS(int peerAS) {
         this.peerAS = peerAS;
@@ -155,8 +145,7 @@ public class Bgp extends UriResource {
     /**
      * Set port ID.
      *
-     * @param portId
-     *            Port ID of the BGP.
+     * @param portId Port ID of the BGP.
      */
     public void setPortId(UUID portId) {
         this.portId = portId;
@@ -168,10 +157,8 @@ public class Bgp extends UriResource {
     public URI getPort() {
         if (getBaseUri() != null && portId != null) {
             return ResourceUriBuilder.getPort(getBaseUri(), portId);
-        } else {
-            return null;
         }
-
+        return null;
     }
 
     /**
@@ -181,9 +168,8 @@ public class Bgp extends UriResource {
     public URI getUri() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getBgp(getBaseUri(), id);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -192,9 +178,8 @@ public class Bgp extends UriResource {
     public URI getAdRoutes() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getBgpAdRoutes(getBaseUri(), id);
-        } else {
-            return null;
         }
+        return null;
     }
 
     public BGP toData() {
@@ -202,15 +187,10 @@ public class Bgp extends UriResource {
                 .setId(this.id)
                 .setPortId(this.portId)
                 .setLocalAS(this.localAS)
-                .setPeerAddr(IntIPv4.fromString(this.peerAddr))
+                .setPeerAddr(IPv4Addr.fromString(this.peerAddr))
                 .setPeerAS(this.getPeerAS());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return "id=" + id + ", localAS=" + localAS + ", peerAddr=" + peerAddr

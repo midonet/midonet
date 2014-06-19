@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +32,7 @@ class RoutingTable extends RoutesTrie {
                     IPv4Addr.intToString(dst),
                     numRoutes} );
 
-        List<Route> ret = new Vector<Route>();
+        List<Route> ret = new Vector<>();
         Iterator<Collection<Route>> rtIter = findBestMatch(dst);
         while (rtIter.hasNext()) {
             Collection<Route> routes = rtIter.next();

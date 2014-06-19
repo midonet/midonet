@@ -46,7 +46,7 @@ import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
 import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
-import org.midonet.packets.{IntIPv4, IPv4Addr, TCP}
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
@@ -592,9 +592,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             processTags(dpState.removePeer(peerUUID, zone))
 
         def processAddPeer() =
-            host.zones.get(zone) map { _.getIp.addressAsInt() } match {
+            host.zones.get(zone) map { _.getIp.toInt } match {
                 case Some(srcIp) =>
-                    val dstIp = config.getIp.addressAsInt
+                    val dstIp = config.getIp.toInt
                     processTags(dpState.addPeer(peerUUID, zone, srcIp, dstIp, t))
                 case None =>
                     log.info("Could not find this host's ip for zone {}", zone)
@@ -731,8 +731,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
-        def addressesMatch(inetAddress: InetAddress, ip: IntIPv4): Boolean =
-            ByteBuffer.wrap(inetAddress.getAddress).getInt == ip.addressAsInt()
+        def addressesMatch(inetAddress: InetAddress, ip: IPv4Addr): Boolean =
+            ByteBuffer.wrap(inetAddress.getAddress).getInt == ip.toInt
 
         var minMtu = Short.MaxValue
         val overhead = VxLanTunnelPort.TunnelOverhead

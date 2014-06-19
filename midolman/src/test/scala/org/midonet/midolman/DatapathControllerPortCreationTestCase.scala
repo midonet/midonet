@@ -86,7 +86,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
         host should not be null
 
         clusterDataClient().tunnelZonesAddMembership(zone.getId,
-            new TunnelZone.HostConfig(host.getId).setIp(ip.toIntIPv4))
+            new TunnelZone.HostConfig(host.getId).setIp(ip))
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
