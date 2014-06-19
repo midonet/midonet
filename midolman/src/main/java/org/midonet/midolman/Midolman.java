@@ -9,7 +9,7 @@ import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import com.google.common.base.Service;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.cli.CommandLine;
