@@ -3,19 +3,20 @@
  */
 package org.midonet.midolman.state;
 
-import com.google.inject.Inject;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.midonet.cluster.data.SystemState;
-import org.midonet.midolman.version.guice.VerCheck;
-import org.midonet.midolman.SystemDataProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+
+import com.google.inject.Inject;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.data.SystemState;
+import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.version.guice.VerCheck;
 
 /**
  * This class is the zookeeper data access class for system data info.
@@ -27,11 +28,11 @@ public class ZkSystemDataProvider implements SystemDataProvider {
 
     private ZkManager zk;
     private PathBuilder paths;
-    private final Comparator comparator;
+    private final Comparator<String> comparator;
 
     @Inject
     public ZkSystemDataProvider(ZkManager zk, PathBuilder paths,
-                                 @VerCheck Comparator comparator) {
+                                 @VerCheck Comparator<String> comparator) {
         this.zk = zk;
         this.paths = paths;
         this.comparator = comparator;

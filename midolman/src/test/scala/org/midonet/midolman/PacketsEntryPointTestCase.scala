@@ -142,8 +142,8 @@ class PacketsEntryPointTestCase extends MidolmanSpec {
         override def NUM_WORKERS = 2
 
         override def startWorker(index: Int): ActorRef = {
-            val ref = TestActorRef(Props(
-                () =>  new Child() with MessageAccumulator))(actorSystem)
+            val props = Props(new Child() with MessageAccumulator)
+            val ref = TestActorRef(props)(actorSystem)
             children +:= ref.underlyingActor
             ref
         }

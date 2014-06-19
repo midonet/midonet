@@ -11,23 +11,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import scala.collection.JavaConversions;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.midonet.util.functors.Callback1;
-import scala.collection.JavaConversions;
-import sun.awt.Mutex;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.nullValue;
 
 import org.midonet.midolman.flows.WildcardTablesProvider;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKeys;
+import org.midonet.util.functors.Callback1;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNull.nullValue;
 
 public class FlowManagerTest {
 
@@ -38,7 +40,7 @@ public class FlowManagerTest {
     FlowManager flowManager;
     int timeOut = 100;
     long idleFlowToleranceInterval = 2;
-    Mutex updateFlowLock = new Mutex();
+    Lock updateFlowLock = new ReentrantLock();
 
     WildcardTablesProvider wildtablesProvider = new WildcardTablesProvider() {
         Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables =
