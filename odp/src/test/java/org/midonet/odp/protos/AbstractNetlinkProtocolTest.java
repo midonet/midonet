@@ -11,7 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.google.common.util.concurrent.ValueFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -32,7 +32,7 @@ public abstract class AbstractNetlinkProtocolTest {
         .getLogger(AbstractNetlinkProtocolTest.class);
 
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
-    BlockingQueue<ValueFuture<ByteBuffer>> listWrites;
+    BlockingQueue<SettableFuture<ByteBuffer>> listWrites;
     OvsDatapathConnection connection = null;
 
     protected void setConnection() throws Exception {
@@ -79,7 +79,7 @@ public abstract class AbstractNetlinkProtocolTest {
                 public Object answer(InvocationOnMock invocation)
                     throws Throwable {
 
-                    ValueFuture<ByteBuffer> future = ValueFuture.create();
+                    SettableFuture<ByteBuffer> future = SettableFuture.create();
                     future.set(((ByteBuffer)invocation.getArguments()[0]));
                     listWrites.offer(future);
 
@@ -88,7 +88,7 @@ public abstract class AbstractNetlinkProtocolTest {
             }
         );
 
-        listWrites = new LinkedBlockingQueue<ValueFuture<ByteBuffer>>();
+        listWrites = new LinkedBlockingQueue<SettableFuture<ByteBuffer>>();
 
     }
 

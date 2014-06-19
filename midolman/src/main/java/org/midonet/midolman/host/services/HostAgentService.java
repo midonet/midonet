@@ -3,8 +3,8 @@
  */
 package org.midonet.midolman.host.services;
 
-import com.google.common.base.Service;
 import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Inject;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.SelectLoopService;

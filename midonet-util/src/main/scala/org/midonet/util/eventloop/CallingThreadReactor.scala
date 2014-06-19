@@ -4,7 +4,7 @@
 package org.midonet.util.eventloop
 
 import java.util.concurrent.{Future, ScheduledFuture, TimeUnit, Callable}
-import com.google.common.util.concurrent.ValueFuture
+import com.google.common.util.concurrent.SettableFuture
 import scala.{Boolean, Long}
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
@@ -15,13 +15,13 @@ class CallingThreadReactor extends Reactor {
 
     def submit(runnable: Runnable): Future[_] = {
         runnable.run()
-        val future = ValueFuture.create[AnyRef]()
+        val future = SettableFuture.create[AnyRef]()
         future.set(null)
         future
     }
 
     def submit[V](work: Callable[V]): Future[V] = {
-        val future = ValueFuture.create[V]()
+        val future = SettableFuture.create[V]()
         future.set(work.call())
         future
     }

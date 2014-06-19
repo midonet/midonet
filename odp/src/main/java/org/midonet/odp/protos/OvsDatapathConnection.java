@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.common.util.concurrent.ValueFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
@@ -720,7 +720,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
     public class FuturesApi {
 
         public Future<Boolean> initialize() {
-            final ValueFuture<Boolean> future = ValueFuture.create();
+            final SettableFuture<Boolean> future = SettableFuture.create();
             final Callback<Boolean> initStatusCallback = wrapFuture(future);
             OvsDatapathConnection.this.initialize(initStatusCallback);
             return future;
@@ -732,7 +732,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @return A future that hold the set of enumerated datapaths.
          */
         public Future<Set<Datapath>> datapathsEnumerate() {
-            ValueFuture<Set<Datapath>> future = ValueFuture.create();
+            SettableFuture<Set<Datapath>> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsEnumerate(wrapFuture(future));
             return future;
         }
@@ -746,7 +746,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<Datapath> datapathsCreate(@Nonnull String name)
                 throws Exception {
-            ValueFuture<Datapath> future = ValueFuture.create();
+            SettableFuture<Datapath> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsCreate(name, wrapFuture(future));
             return future;
         }
@@ -760,7 +760,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<Datapath> datapathsDelete(int datapathId)
                 throws Exception {
-            ValueFuture<Datapath> future = ValueFuture.create();
+            SettableFuture<Datapath> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsDelete(datapathId, wrapFuture(future));
             return future;
         }
@@ -774,7 +774,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<Datapath> datapathsDelete(@Nonnull String name)
                 throws Exception {
-            ValueFuture<Datapath> future = ValueFuture.create();
+            SettableFuture<Datapath> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsDelete(name, wrapFuture(future));
             return future;
         }
@@ -788,7 +788,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<DpPort> portsGet(final @Nonnull String portName,
                                        final @Nullable Datapath datapath) {
-            ValueFuture<DpPort> future = ValueFuture.create();
+            SettableFuture<DpPort> future = SettableFuture.create();
             OvsDatapathConnection.this.portsGet(
                     portName, datapath, wrapFuture(future), DEF_REPLY_TIMEOUT);
             return future;
@@ -803,7 +803,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<DpPort> portsGet(final int portId,
                                        @Nonnull final Datapath datapath) {
-            ValueFuture<DpPort> future = ValueFuture.create();
+            SettableFuture<DpPort> future = SettableFuture.create();
             OvsDatapathConnection.this.portsGet(portId, datapath,
                     wrapFuture(future), DEF_REPLY_TIMEOUT);
             return future;
@@ -818,7 +818,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<DpPort> portsDelete(final @Nonnull DpPort port,
                                           final @Nullable Datapath datapath) {
-            ValueFuture<DpPort> future = ValueFuture.create();
+            SettableFuture<DpPort> future = SettableFuture.create();
             OvsDatapathConnection.this.portsDelete(port, datapath,
                     wrapFuture(future), DEF_REPLY_TIMEOUT);
             return future;
@@ -833,7 +833,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<DpPort> portsSet(final @Nonnull DpPort port,
                                        final @Nullable Datapath datapath) {
-            ValueFuture<DpPort> future = ValueFuture.create();
+            SettableFuture<DpPort> future = SettableFuture.create();
             OvsDatapathConnection.this.portsSet(port, datapath,
                     wrapFuture(future), DEF_REPLY_TIMEOUT);
             return future;
@@ -847,9 +847,10 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @see Future
          */
         public Future<Set<DpPort>> portsEnumerate(@Nonnull Datapath datapath) {
-            ValueFuture<Set<DpPort>> valueFuture = ValueFuture.create();
-            OvsDatapathConnection.this.portsEnumerate(datapath, wrapFuture(valueFuture));
-            return valueFuture;
+            SettableFuture<Set<DpPort>> SettableFuture =
+                    com.google.common.util.concurrent.SettableFuture.create();
+            OvsDatapathConnection.this.portsEnumerate(datapath, wrapFuture(SettableFuture));
+            return SettableFuture;
         }
 
         /**
@@ -862,9 +863,10 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<DpPort> portsCreate(@Nonnull Datapath datapath,
                                           @Nonnull DpPort port) {
-            ValueFuture<DpPort> valueFuture = ValueFuture.create();
-            OvsDatapathConnection.this.portsCreate(datapath, port, wrapFuture(valueFuture));
-            return valueFuture;
+            SettableFuture<DpPort> SettableFuture =
+                    com.google.common.util.concurrent.SettableFuture.create();
+            OvsDatapathConnection.this.portsCreate(datapath, port, wrapFuture(SettableFuture));
+            return SettableFuture;
         }
 
         /**
@@ -874,14 +876,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @return a future that has the required information about the datapath.
          */
         public Future<Datapath> datapathsGet(@Nonnull String name) {
-            ValueFuture<Datapath> future = ValueFuture.create();
+            SettableFuture<Datapath> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsGet(name, wrapFuture(future));
             return future;
         }
 
         public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
                                         @Nonnull final Flow flow) {
-            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            SettableFuture<Flow> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsDelete(datapath, flow, wrapFuture(flowFuture));
             return flowFuture;
         }
@@ -893,7 +895,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @return a future that has the required information about the datapath.
          */
         public Future<Datapath> datapathsGet(int datapathId) {
-            ValueFuture<Datapath> future = ValueFuture.create();
+            SettableFuture<Datapath> future = SettableFuture.create();
             OvsDatapathConnection.this.datapathsGet(datapathId, wrapFuture(future));
             return future;
         }
@@ -906,7 +908,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          *         a datapath.
          */
         public Future<Set<Flow>> flowsEnumerate(@Nonnull final Datapath datapath) {
-            ValueFuture<Set<Flow>> flowsFuture = ValueFuture.create();
+            SettableFuture<Set<Flow>> flowsFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsEnumerate(datapath, wrapFuture(flowsFuture));
             return flowsFuture;
         }
@@ -920,7 +922,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<Flow> flowsCreate(@Nonnull final Datapath datapath,
                                         @Nonnull final Flow flow) {
-            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            SettableFuture<Flow> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsCreate(datapath, flow, wrapFuture(flowFuture));
             return flowFuture;
         }
@@ -932,7 +934,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @return a future that provides access to the operation result.
          */
         public Future<Boolean> flowsFlush(@Nonnull final Datapath datapath) {
-            ValueFuture<Boolean> flowsFuture = ValueFuture.create();
+            SettableFuture<Boolean> flowsFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsFlush(datapath, wrapFuture(flowsFuture));
             return flowsFuture;
         }
@@ -946,7 +948,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          */
         public Future<Flow> flowsGet(@Nonnull final Datapath datapath,
                                      @Nonnull final FlowMatch match) {
-            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            SettableFuture<Flow> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsGet(datapath, match, wrapFuture(flowFuture));
             return flowFuture;
         }
@@ -959,7 +961,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
          * @return a future that provides access to the updated flow
          */
         public Future<Flow> flowsSet(Datapath datapath, Flow flow) {
-            ValueFuture<Flow> flowFuture = ValueFuture.create();
+            SettableFuture<Flow> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsSet(datapath, flow, wrapFuture(flowFuture));
             return flowFuture;
         }
@@ -976,7 +978,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
         public Future<Boolean> packetsExecute(@Nonnull Datapath datapath,
                                               @Nonnull Packet packet,
                                               @Nonnull List<FlowAction> actions) {
-            ValueFuture<Boolean> resultFuture = ValueFuture.create();
+            SettableFuture<Boolean> resultFuture = SettableFuture.create();
             OvsDatapathConnection.this.packetsExecute(
                 datapath, packet, actions, wrapFuture(resultFuture));
             return resultFuture;
@@ -984,7 +986,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
     }
 
     @Nonnull
-    private static <T> Callback<T> wrapFuture(final ValueFuture<T> future) {
+    private static <T> Callback<T> wrapFuture(final SettableFuture<T> future) {
         return new Callback<T>() {
             @Override
             public void onSuccess(T data) {

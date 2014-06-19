@@ -6,7 +6,7 @@ package org.midonet.midolman.host;
 import java.io.IOException;
 import java.util.Properties;
 
-import com.google.common.base.Service;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.cli.*;
