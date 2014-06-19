@@ -23,12 +23,16 @@ class DatapathTest extends FunSpec with Matchers {
     describe("Datapath") {
 
         describe("Stats") {
+
+            val trans = Datapath.Stats.trans
+
             it("should be invariant by serialization/deserialisation") {
                 stats foreach { s =>
                     val buf = getBuffer
-                    NetlinkMessage writeAttr (buf, s, Datapath.Stats.trans)
+                    NetlinkMessage writeAttr (buf, s, trans)
                     buf.flip
-                    s shouldBe (Datapath.Stats buildFrom buf)
+                    val id = trans attrIdOf null
+                    s shouldBe (NetlinkMessage readAttr (buf, id, trans))
                 }
             }
 
@@ -37,9 +41,9 @@ class DatapathTest extends FunSpec with Matchers {
                     val buf = getBuffer
                     stats foreach { s =>
                         buf.clear
-                        Datapath.Stats.trans.serializeInto(buf,s)
+                        trans serializeInto (buf,s)
                         buf.flip
-                        s shouldBe Datapath.Stats.trans.deserializeFrom(buf)
+                        s shouldBe (trans deserializeFrom buf)
                     }
                 }
             }

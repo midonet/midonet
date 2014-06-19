@@ -223,6 +223,28 @@ class NetlinkMessageTest extends Suite with Matchers {
         }
     }
 
+    def testReadAttribute() {
+        val reader = new Reader[Array[Byte]] {
+            def deserializeFrom(buf: ByteBuffer) = {
+                val bytes = new Array[Byte](buf.remaining - 1) // ignore '\0'
+                buf get bytes
+                bytes
+            }
+        }
+        val buf = ByteBuffer allocate 1024
+        (1 to 1000) foreach { _ =>
+            buf.clear
+            val l = generateStringAttrs(2 + (Random nextInt 10))
+            l foreach { case (id,s) =>
+                NetlinkMessage writeStringAttr (buf, id, s)
+            }
+            buf.flip
+            (Random shuffle l) foreach { case (id,s) =>
+                (NetlinkMessage readAttr (buf, id, reader)) shouldBe s.getBytes
+            }
+        }
+    }
+
     def testScanIntAttributes() {
         val buf = ByteBuffer allocate 1024
         (1 to 1000) foreach { _ =>
