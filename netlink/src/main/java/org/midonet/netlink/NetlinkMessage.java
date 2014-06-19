@@ -257,7 +257,7 @@ public final class NetlinkMessage {
      *  type. Padding for 4B alignement is added to the message. Returns the
      *  total number of bytes written in the buffer. */
     public static <V> int writeAttrWithId(ByteBuffer buffer, short id, V value,
-                                          Translator<V> translator) {
+                                          Writer<V> translator) {
 
         int start = buffer.position();      // save position
 
@@ -278,7 +278,7 @@ public final class NetlinkMessage {
     }
 
     public static <V> int writeAttr(ByteBuffer buffer, V value,
-                                    Translator<V> translator) {
+                                    Writer<V> translator) {
         short id = translator.attrIdOf(value);
         return writeAttrWithId(buffer, id, value, translator);
     }
@@ -300,7 +300,7 @@ public final class NetlinkMessage {
      *  number of bytes written in the buffer. */
     public static <V> int writeAttrSeq(ByteBuffer buffer, short id,
                                        Iterable<V> values,
-                                       Translator<V> translator) {
+                                       Writer<V> translator) {
 
         int start = buffer.position(); // save position for writing the
                                        // nla_len field after iterating
@@ -426,32 +426,24 @@ public final class NetlinkMessage {
         return (netlinkAttributeId & NLA_F_NESTED) != 0;
     }
 
-    private static final Translator<String> stringSerializer =
-        new Translator<String>() {
-            public short attrIdOf(String any) {
-                throw new UnsupportedOperationException();
-            }
-            public int serializeInto(ByteBuffer receiver, String value) {
-                receiver.put(value.getBytes());
-                receiver.put((byte) 0);       // put a null terminator
-                return value.length() + 1;    // add one for null terminator
-            }
-            public String deserializeFrom(ByteBuffer source) {
-                throw new UnsupportedOperationException();
-            }
-        };
+    private static final Writer<String> stringSerializer = new Writer<String>() {
+        public short attrIdOf(String any) {
+            throw new UnsupportedOperationException();
+        }
+        public int serializeInto(ByteBuffer receiver, String value) {
+            receiver.put(value.getBytes());
+            receiver.put((byte) 0);       // put a null terminator
+            return value.length() + 1;    // add one for null terminator
+        }
+    };
 
-    private static final Translator<byte[]> bytesSerializer =
-        new Translator<byte[]>() {
-            public short attrIdOf(byte[] any) {
-                throw new UnsupportedOperationException();
-            }
-            public int serializeInto(ByteBuffer receiver, byte[] value) {
-                receiver.put(value);
-                return value.length;
-            }
-            public byte[] deserializeFrom(ByteBuffer source) {
-                throw new UnsupportedOperationException();
-            }
-        };
+    private static final Writer<byte[]> bytesSerializer = new Writer<byte[]>() {
+        public short attrIdOf(byte[] any) {
+            throw new UnsupportedOperationException();
+        }
+        public int serializeInto(ByteBuffer receiver, byte[] value) {
+            receiver.put(value);
+            return value.length;
+        }
+    };
 }

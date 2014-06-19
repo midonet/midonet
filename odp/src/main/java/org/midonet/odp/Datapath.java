@@ -5,18 +5,15 @@ package org.midonet.odp;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 
-import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
-import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.OpenVSwitch.Datapath.Attr;
 
 /**
@@ -73,15 +70,13 @@ public class Datapath {
 
     /** Static stateless deserializer which builds a single Datapath instance
      *  and consumes the given ByteBuffer. */
-    public static final Function<ByteBuffer,Datapath> deserializer =
-        new Function<ByteBuffer, Datapath>() {
-            @Override
-            public Datapath apply(ByteBuffer buf) {
-                if (buf == null)
-                    return null;
-                return buildFrom(buf);
-            }
-        };
+    public static final Reader<Datapath> deserializer = new Reader<Datapath>() {
+        public Datapath deserializeFrom(ByteBuffer buf) {
+            if (buf == null)
+                return null;
+            return buildFrom(buf);
+        }
+    };
 
     public static class Stats implements BuilderAware {
 

@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Function;
 import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,10 +124,9 @@ public abstract class AbstractNetlinkConnection {
         return writeQueue;
     }
 
-    public static Function<ByteBuffer, Boolean> alwaysTrueTranslator =
-        new Function<ByteBuffer,Boolean>() {
-            @Override
-            public Boolean apply(ByteBuffer buf) {
+    public static Reader<Boolean> alwaysTrueReader =
+        new Reader<Boolean>() {
+            public Boolean deserializeFrom(ByteBuffer source) {
                 return Boolean.TRUE;
             }
         };
@@ -196,11 +194,11 @@ public abstract class AbstractNetlinkConnection {
                                           int flags,
                                           ByteBuffer payload,
                                           Callback<T> callback,
-                                          Function<ByteBuffer,T> translator,
+                                          Reader<T> reader,
                                           long timeoutMillis) {
         serializeNetlinkHeader(payload, (short) flags, ctx);
 
-        enqueueRequest(NetlinkRequest.makeSingle(callback, translator,
+        enqueueRequest(NetlinkRequest.makeSingle(callback, reader,
                                                  payload, timeoutMillis));
     }
 
@@ -213,11 +211,11 @@ public abstract class AbstractNetlinkConnection {
                                                      int flags,
                                                      ByteBuffer payload,
                                                      Callback<Set<T>> callback,
-                                                     Function<ByteBuffer,T> translator,
+                                                     Reader<T> reader,
                                                      long timeoutMillis) {
         serializeNetlinkHeader(payload, (short) flags, ctx);
 
-        enqueueRequest(NetlinkRequest.makeMulti(callback, translator,
+        enqueueRequest(NetlinkRequest.makeMulti(callback, reader,
                                                 payload, timeoutMillis));
     }
 

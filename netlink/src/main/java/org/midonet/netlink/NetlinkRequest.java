@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,18 +36,18 @@ public abstract class NetlinkRequest implements Runnable {
     // can be callback of T for single-answer requests, or callback of Set<T>
     // for multi-answer requests.
     private final Callback<Object> userCallback;
-    protected final Function<ByteBuffer,Object> translationFunction;
+    protected final Reader<Object> reader;
     public final long expirationTimeNanos;
     public int seq;
     protected Object cbData = null;
     private State state = State.NotYet;
 
     private NetlinkRequest(Callback<Object> callback,
-                          Function<ByteBuffer,Object> translationFunc,
+                          Reader<Object> reader,
                           ByteBuffer data,
                           long timeoutMillis) {
         this.userCallback = callback;
-        this.translationFunction = translationFunc;
+        this.reader = reader;
         this.outBuffer = data;
         this.expirationTimeNanos = System.nanoTime() +
             TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
@@ -131,14 +130,13 @@ public abstract class NetlinkRequest implements Runnable {
      *  single reply, in which case the callback function takes as an input a
      *  single deserialised object. */
     public static <T> NetlinkRequest makeSingle(Callback<T> callback,
-                                                Function<ByteBuffer,T> translator,
+                                                Reader<T> reader,
                                                 ByteBuffer data,
                                                 long timeoutMillis) {
         @SuppressWarnings("unchecked")
         Callback<Object> cb = (Callback<Object>) callback;
         @SuppressWarnings("unchecked")
-        Function<ByteBuffer,Object> func =
-            (Function<ByteBuffer,Object>) translator;
+        Reader<Object> func = (Reader<Object>) reader;
         return new SingleAnswerNetlinkRequest(cb, func, data, timeoutMillis);
     }
 
@@ -146,7 +144,7 @@ public abstract class NetlinkRequest implements Runnable {
      *  sequence of repies (enumerate requests), in which case the callback
      *  function takes as an input a set of deserialised objects. */
     public static <T> NetlinkRequest makeMulti(Callback<Set<T>> callback,
-                                               Function<ByteBuffer,T> translator,
+                                               Reader<T> reader,
                                                ByteBuffer data,
                                                long timeoutMillis) {
 
@@ -155,21 +153,20 @@ public abstract class NetlinkRequest implements Runnable {
         @SuppressWarnings("unchecked")
         Callback<Object> cb = (Callback<Object>) cb1;
         @SuppressWarnings("unchecked")
-        Function<ByteBuffer,Object> func =
-            (Function<ByteBuffer,Object>) translator;
+        Reader<Object> func = (Reader<Object>) reader;
         return new MultiAnswerNetlinkRequest(cb, func, data, timeoutMillis);
     }
 
     static class SingleAnswerNetlinkRequest extends NetlinkRequest {
         public SingleAnswerNetlinkRequest(Callback<Object> callback,
-                                          Function<ByteBuffer,Object> translator,
+                                          Reader<Object> reader,
                                           ByteBuffer data,
                                           long timeoutMillis) {
-            super(callback, translator, data, timeoutMillis);
+            super(callback, reader, data, timeoutMillis);
         }
         @Override
         public void addAnswerFragment(ByteBuffer buf) {
-            cbData = translationFunction.apply(buf);
+            cbData = reader.deserializeFrom(buf);
         }
         @Override
         public Runnable successful() {
@@ -187,17 +184,17 @@ public abstract class NetlinkRequest implements Runnable {
 
     static class MultiAnswerNetlinkRequest extends NetlinkRequest {
         public MultiAnswerNetlinkRequest(Callback<Object> callback,
-                                         Function<ByteBuffer,Object> translator,
+                                         Reader<Object> reader,
                                          ByteBuffer data,
                                          long timeoutMillis) {
-            super(callback, translator, data, timeoutMillis);
+            super(callback, reader, data, timeoutMillis);
             cbData = new HashSet<Object>();
         }
         @Override
         public void addAnswerFragment(ByteBuffer buf) {
             @SuppressWarnings("unchecked")
             HashSet<Object> results = (HashSet<Object>) cbData;
-            results.add(translationFunction.apply(buf));
+            results.add(reader.deserializeFrom(buf));
         }
     }
 

@@ -4,20 +4,17 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Objects;
 import java.util.Random;
 import java.math.BigInteger;
 
-import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch.Port.Attr;
-import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
 
@@ -139,15 +136,13 @@ public abstract class DpPort {
 
     /** Stateless static deserializer function which builds a single DpPort
      *  instance by consumming the given ByteBuffer. */
-    public static final Function<ByteBuffer, DpPort> deserializer =
-        new Function<ByteBuffer, DpPort>() {
-            @Override
-            public DpPort apply(ByteBuffer buf) {
-                if (buf == null)
-                    return null;
-                return DpPort.buildFrom(buf);
-            }
-        };
+    public static final Reader<DpPort> deserializer = new Reader<DpPort>() {
+        public DpPort deserializeFrom(ByteBuffer buf) {
+            if (buf == null)
+                return null;
+            return DpPort.buildFrom(buf);
+        }
+    };
 
     private static DpPort newPortByTypeId(short type, String name) {
         switch (type) {

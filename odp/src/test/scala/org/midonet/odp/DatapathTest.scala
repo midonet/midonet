@@ -62,7 +62,7 @@ class DatapathTest extends FunSpec with Matchers {
                     buf.clear
                     dp serializeInto buf
                     buf.flip
-                    dp shouldBe (Datapath.deserializer apply buf)
+                    dp shouldBe (Datapath.deserializer deserializeFrom buf)
                 }
             }
         }

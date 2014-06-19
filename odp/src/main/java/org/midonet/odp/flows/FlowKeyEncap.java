@@ -30,7 +30,7 @@ public class FlowKeyEncap implements FlowKey {
     public int serializeInto(ByteBuffer buffer) {
         int nBytes = 0;
         for (FlowKey key : keys) {
-            nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKey.translator);
+            nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKey.keyWriter);
         }
         return nBytes;
     }

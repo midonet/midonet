@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.Translator;
+import org.midonet.netlink.Writer;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
@@ -50,15 +50,12 @@ public interface FlowAction extends BuilderAware {
     /** stateless serialiser and deserialiser of ovs FlowAction classes. Used
      *  as a typeclass with NetlinkMessage.writeAttr() and writeAttrSet()
      *  for assembling ovs requests. */
-    Translator<FlowAction> translator = new Translator<FlowAction>() {
+    Writer<FlowAction> actionWriter = new Writer<FlowAction>() {
         public short attrIdOf(FlowAction value) {
             return value.attrId();
         }
         public int serializeInto(ByteBuffer receiver, FlowAction value) {
             return value.serializeInto(receiver);
-        }
-        public FlowAction deserializeFrom(ByteBuffer source) {
-            throw new UnsupportedOperationException();
         }
     };
 }

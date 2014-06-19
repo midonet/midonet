@@ -70,7 +70,7 @@ class DpPortTest extends FunSpec with Matchers {
                     buf putInt 42 // write datapath index
                     p serializeInto buf
                     buf.flip
-                    p shouldBe (DpPort.deserializer apply buf)
+                    p shouldBe (DpPort.deserializer deserializeFrom buf)
                 }
             }
         }
