@@ -311,6 +311,13 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public void update(String path, byte[] data, int version)
+            throws NoNodeException {
+        // TODO: Implement node version.
+        update(path, data, false);
+    }
+
+    @Override
     public byte[] get(String path, Runnable watcher) throws NoNodeException {
         return getNode(path).getData(wrapCallback(watcher));
     }
@@ -322,7 +329,7 @@ public class MockDirectory implements Directory {
 
         byte[] data = getNode(path).getData(wrapCallback(watcher));
 
-        return new AbstractMap.SimpleEntry<byte[], Integer>(data, version);
+        return new AbstractMap.SimpleEntry<>(data, version);
     }
 
     @Override

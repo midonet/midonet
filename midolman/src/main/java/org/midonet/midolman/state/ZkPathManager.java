@@ -1755,6 +1755,10 @@ public class ZkPathManager {
         return buildVxLanPortIdPath(id).toString();
     }
 
+    public String getVniCounterPath() {
+        return basePath().append("/vniCounter").toString();
+    }
+
     private StringBuilder buildLocksPath() {
         return basePath().append("/locks");
     }

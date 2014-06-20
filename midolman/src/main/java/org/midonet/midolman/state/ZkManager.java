@@ -13,9 +13,10 @@ import java.util.Set;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.Watcher;
@@ -99,6 +100,10 @@ public class ZkManager {
             return new NoStatePathException(
                     "Zookeeper error occurred while " + action + ": " +
                     ex.getMessage(), basePath, (NoNodeException)ex);
+        } else if (ex instanceof BadVersionException) {
+            return new StateVersionException(
+                    "Zookeeper error occurred while " + action + ": " +
+                    ex.getMessage(), ex);
         } else if (ex instanceof KeeperException) {
             return new StateAccessException(
                     "Zookeeper error occurred while " + action + ": " +
@@ -363,12 +368,15 @@ public class ZkManager {
     }
 
     public void update(String path, byte[] data) throws StateAccessException {
+        update(path, data, -1);
+    }
+
+    public void update(String path, byte[] data, int version)
+            throws StateAccessException {
         try {
-            // Update any version for now.
-            zk.update(path, data);
-        }  catch (Exception ex) {
-            throw processException(
-                    ex, "updating the node at path " + path);
+            zk.update(path, data, version);
+        } catch (Exception ex) {
+            throw processException(ex, "updating the node at path " + path);
         }
     }
 

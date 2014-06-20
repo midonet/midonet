@@ -5,6 +5,7 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StateVersionException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.packets.IPv4Addr;
@@ -24,6 +26,9 @@ import static java.util.Arrays.asList;
 
 public class VtepZkManager
         extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
+
+    public static final int MIN_VNI = 10000;
+    public static final int MAX_VNI = 0xff_ffff;
 
     public static class VtepConfig {
         public int mgmtPort;
@@ -121,5 +126,30 @@ public class VtepZkManager
         }
 
         return bindings;
+    }
+
+    public int getNewVni() throws StateAccessException {
+        for (int i = 0; i < 10; i++) {
+            // Get the VNI counter node and its version.
+            String path = paths.getVniCounterPath();
+            Map.Entry<byte[], Integer> entry = zk.getWithVersion(path, null);
+            int vni = Integer.parseInt(new String(entry.getKey()));
+            int nodeVersion = entry.getValue();
+
+            // Try to increment the counter node.
+            try {
+                int newVni = (vni < MAX_VNI) ? vni + 1 : MIN_VNI;
+                byte[] newData = Integer.toString(newVni).getBytes();
+                zk.update(path, newData, nodeVersion);
+                return vni;
+            } catch (StateVersionException ex) {
+                log.warn("getNewVni() failed due to concurrent update. " +
+                         "Trying again.");
+            }
+        }
+
+        // Time to buy some lottery tickets!
+        throw new RuntimeException("getNewVni() failed due to concurrent " +
+                                   "updates ten times in a row.");
     }
 }

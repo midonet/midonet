@@ -950,6 +950,12 @@ public interface DataClient {
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException;
 
+    /**
+     * Generates and returns a new VNI for VTEP logical switch creation.
+     * Successive calls will return monotonically increasing values.
+     */
+    public int getNewVni() throws StateAccessException;
+
     public VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
             throws StateAccessException, SerializationException;
