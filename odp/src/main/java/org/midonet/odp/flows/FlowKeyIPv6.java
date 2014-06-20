@@ -62,23 +62,16 @@ public class FlowKeyIPv6 implements FlowKey {
         return 40;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            BytesUtil.instance.readBEIntsFrom(buf, ipv6_src);
-            BytesUtil.instance.readBEIntsFrom(buf, ipv6_dst);
-            ipv6_label = BytesUtil.instance.reverseBE(buf.getInt());
-            ipv6_proto = buf.get();
-            ipv6_tclass = buf.get();
-            ipv6_hlimit = buf.get();
-            ipv6_frag = buf.get();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        BytesUtil.instance.readBEIntsFrom(buf, ipv6_src);
+        BytesUtil.instance.readBEIntsFrom(buf, ipv6_dst);
+        ipv6_label = BytesUtil.instance.reverseBE(buf.getInt());
+        ipv6_proto = buf.get();
+        ipv6_tclass = buf.get();
+        ipv6_hlimit = buf.get();
+        ipv6_frag = buf.get();
     }
 
-    @Override
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.IPv6;
     }

@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.Random;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.odp.OpenVSwitch;
-import org.midonet.odp.family.FlowFamily;
+import org.midonet.netlink.Writer;
+import org.midonet.odp.OpenVSwitch.FlowKey.Attr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.util.collection.WeakObjectPool;
@@ -130,16 +130,74 @@ public class FlowKeys {
         return intern(new FlowKeyEncap(keys));
     }
 
-    public static FlowKeyTunnel tunnel(long tunnelId, int Ipv4SrcAddr,
-            int ipv4DstAddr) {
-        return intern(new FlowKeyTunnel(tunnelId, Ipv4SrcAddr, ipv4DstAddr));
+    public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4) {
+        return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4));
     }
 
-    public static List<FlowKey> buildFrom(ByteBuffer buf) {
-        return NetlinkMessage.getAttrValue(buf,
-                                           OpenVSwitch.Flow.Attr.Key,
-                                           FlowKey.Builder);
+    public static FlowKey newBlankInstance(short type) {
+        switch (NetlinkMessage.unnest(type)) {
+
+            case Attr.Encap:
+                return new FlowKeyEncap();
+
+            case Attr.Priority:
+                return new FlowKeyPriority();
+
+            case Attr.InPort:
+                return new FlowKeyInPort();
+
+            case Attr.Ethernet:
+                return new FlowKeyEthernet();
+
+            case Attr.VLan:
+                return new FlowKeyVLAN();
+
+            case Attr.Ethertype:
+                return new FlowKeyEtherType();
+
+            case Attr.IPv4:
+                return new FlowKeyIPv4();
+
+            case Attr.IPv6:
+                return new FlowKeyIPv6();
+
+            case Attr.TCP:
+                return new FlowKeyTCP();
+
+            case Attr.UDP:
+                return new FlowKeyUDP();
+
+            case Attr.ICMP:
+                return new FlowKeyICMP();
+
+            case Attr.ICMPv6:
+                return new FlowKeyICMPv6();
+
+            case Attr.ARP:
+                return new FlowKeyARP();
+
+            case Attr.ND:
+                return new FlowKeyND();
+
+            case Attr.Tunnel:
+                return new FlowKeyTunnel();
+
+            default:
+                return null;
+        }
     }
+
+    /** stateless serialiser and deserialiser of ovs FlowKey classes. Used
+     *  as a typeclass with NetlinkMessage.writeAttr() and writeAttrSet()
+     *  for assembling ovs requests. */
+    public static final Writer<FlowKey> writer = new Writer<FlowKey>() {
+        public short attrIdOf(FlowKey value) {
+            return value.attrId();
+        }
+        public int serializeInto(ByteBuffer receiver, FlowKey value) {
+            return value.serializeInto(receiver);
+        }
+    };
 
     public static List<FlowKey> randomKeys() {
         List<FlowKey> keys = new ArrayList<>();
@@ -152,14 +210,14 @@ public class FlowKeys {
     public static FlowKey randomKey() {
         FlowKey k = null;
         while (k == null) {
-            k = FlowKey.Builder.newInstance((short)(1 + rand.nextInt(17)));
+            k = FlowKeys.newBlankInstance((short)(1 + rand.nextInt(17)));
         }
         if (k instanceof Randomize) {
             ((Randomize)k).randomize();
         } else {
             byte[] bytes = new byte[1024];
             rand.nextBytes(bytes);
-            k.deserialize(ByteBuffer.wrap(bytes));
+            k.deserializeFrom(ByteBuffer.wrap(bytes));
         }
         return k;
     }

@@ -23,14 +23,8 @@ public class FlowKeyInPort implements CachedFlowKey {
         return 4;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            portNo = buf.getInt();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        portNo = buf.getInt();
     }
 
     public short attrId() {

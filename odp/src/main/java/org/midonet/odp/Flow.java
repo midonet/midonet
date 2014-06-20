@@ -15,6 +15,7 @@ import org.midonet.odp.OpenVSwitch.Flow.Attr;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.FlowStats;
 import org.midonet.packets.TCP;
 
@@ -23,13 +24,17 @@ import org.midonet.packets.TCP;
  */
 public class Flow {
 
-    FlowMatch match;
-    List<FlowAction> actions = new ArrayList<>();
-    FlowStats stats;
-    Byte tcpFlags;
-    Long lastUsedTime;
+    private FlowMatch match;
+    private List<FlowAction> actions = new ArrayList<>();
+    private FlowStats stats;
+    private Byte tcpFlags;
+    private Long lastUsedTime;
 
-    public Flow() {
+    public Flow() { }
+
+    public Flow(List<FlowKey> keys, List<FlowAction> actions) {
+        this.match = new FlowMatch(keys);
+        this.actions = actions;
     }
 
     @Nullable
@@ -100,7 +105,7 @@ public class Flow {
         flow.setTcpFlags(NetlinkMessage.getAttrValueByte(buf, Attr.TCPFlags));
         flow.setLastUsedTime(NetlinkMessage.getAttrValueLong(buf, Attr.Used));
         flow.setActions(FlowActions.buildFrom(buf));
-        flow.setMatch(FlowMatch.buildFrom(buf));
+        flow.setMatch(NetlinkMessage.readAttr(buf, Attr.Key, FlowMatch.reader));
         return flow;
     }
 
@@ -226,7 +231,6 @@ public class Flow {
     }
 
     public static void addKeys(ByteBuffer buf, Iterable<FlowKey> keys) {
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys,
-                                    FlowKey.keyWriter);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
     }
 }

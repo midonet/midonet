@@ -25,15 +25,9 @@ public class FlowKeyICMP implements FlowKey {
         return 2;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            icmp_type = buf.get();
-            icmp_code = buf.get();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        icmp_type = buf.get();
+        icmp_code = buf.get();
     }
 
     public short attrId() {

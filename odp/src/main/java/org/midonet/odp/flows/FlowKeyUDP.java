@@ -30,15 +30,9 @@ public class FlowKeyUDP implements FlowKey {
         return 4;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
-            udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        udp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
+        udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
     public short attrId() {
