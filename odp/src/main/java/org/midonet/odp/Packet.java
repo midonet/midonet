@@ -10,6 +10,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch.Packet.Attr;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeys;
 import org.midonet.packets.Ethernet;
 
 /**
@@ -142,8 +143,7 @@ public class Packet {
         if (packet.eth == null)
             return null;
 
-        packet.match = new FlowMatch(NetlinkMessage.getAttrValue(buf, Attr.Key,
-                                                                 FlowKey.Builder));
+        packet.match = NetlinkMessage.readAttr(buf, Attr.Key, FlowMatch.reader);
         packet.userData = NetlinkMessage.getAttrValueLong(buf, Attr.Userdata);
 
         return packet;
@@ -162,7 +162,7 @@ public class Packet {
         // ordering of attributes and compared it to this one, and found
         // only the expected difference.
 
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKey.keyWriter);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
 
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
                                     actions, FlowAction.actionWriter);

@@ -30,16 +30,10 @@ public class FlowKeyEthernet implements CachedFlowKey {
         return 12;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            buf.get(eth_src);
-            buf.get(eth_dst);
-            hashCode = 0;
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        buf.get(eth_src);
+        buf.get(eth_dst);
+        hashCode = 0;
     }
 
     public short attrId() {

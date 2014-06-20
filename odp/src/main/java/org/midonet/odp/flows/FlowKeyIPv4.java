@@ -42,20 +42,14 @@ public class FlowKeyIPv4 implements FlowKey {
         return 12;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            ipv4_src = BytesUtil.instance.reverseBE(buf.getInt());
-            ipv4_dst = BytesUtil.instance.reverseBE(buf.getInt());
-            ipv4_proto = buf.get();
-            ipv4_tos = buf.get();
-            ipv4_ttl = buf.get();
-            ipv4_frag = buf.get();
-            hashCode = 0;
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        ipv4_src = BytesUtil.instance.reverseBE(buf.getInt());
+        ipv4_dst = BytesUtil.instance.reverseBE(buf.getInt());
+        ipv4_proto = buf.get();
+        ipv4_tos = buf.get();
+        ipv4_ttl = buf.get();
+        ipv4_frag = buf.get();
+        hashCode = 0;
     }
 
     public short attrId() {

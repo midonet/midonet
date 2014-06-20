@@ -28,14 +28,8 @@ public class FlowKeyVLAN implements CachedFlowKey {
         return 2;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(buf.getShort()));
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        vlan = VLAN.unsetDEI(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
     public short attrId() {

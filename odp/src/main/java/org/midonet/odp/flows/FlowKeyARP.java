@@ -43,19 +43,13 @@ public class FlowKeyARP implements CachedFlowKey {
         return 24;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            arp_sip = BytesUtil.instance.reverseBE(buf.getInt());
-            arp_tip = BytesUtil.instance.reverseBE(buf.getInt());
-            arp_op = BytesUtil.instance.reverseBE(buf.getShort());
-            buf.get(arp_sha);
-            buf.get(arp_tha);
-            this.hashCode = 0;
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        arp_sip = BytesUtil.instance.reverseBE(buf.getInt());
+        arp_tip = BytesUtil.instance.reverseBE(buf.getInt());
+        arp_op = BytesUtil.instance.reverseBE(buf.getShort());
+        buf.get(arp_sha);
+        buf.get(arp_tha);
+        this.hashCode = 0;
     }
 
     public short attrId() {

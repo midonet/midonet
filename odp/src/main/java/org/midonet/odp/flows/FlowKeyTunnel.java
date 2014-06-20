@@ -5,13 +5,15 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.OpenVSwitch.FlowKey.TunnelAttr;
+import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
-public class FlowKeyTunnel implements CachedFlowKey, Randomize {
+public class FlowKeyTunnel implements CachedFlowKey,
+                                      Randomize, AttributeHandler {
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
@@ -116,56 +118,44 @@ public class FlowKeyTunnel implements CachedFlowKey, Randomize {
         return nBytes;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            Long tun_id = NetlinkMessage.getAttrValueLong(buf, TunnelAttr.Id);
-            if (tun_id != null) {
-                this.tun_id = BytesUtil.instance.reverseBE(tun_id);
+    public void deserializeFrom(ByteBuffer buf) {
+        NetlinkMessage.scanAttributes(buf, this);
+    }
+
+    public void use(ByteBuffer buf, short id) {
+        switch(id) {
+            case TunnelAttr.Id:
+                this.tun_id = BytesUtil.instance.reverseBE(buf.getLong());
                 usedFields |= TUN_ID_MASK;
-            }
+                break;
 
-            Integer ipv4_src =
-                NetlinkMessage.getAttrValueInt(buf, TunnelAttr.IPv4Src);
-            if (ipv4_src != null) {
-                this.ipv4_src = BytesUtil.instance.reverseBE(ipv4_src);
+            case TunnelAttr.IPv4Src:
+                this.ipv4_src = BytesUtil.instance.reverseBE(buf.getInt());
                 usedFields |= IPV4_SRC_MASK;
-            }
+                break;
 
-            Integer ipv4_dst =
-                NetlinkMessage.getAttrValueInt(buf, TunnelAttr.IPv4Dst);
-            if (ipv4_dst != null) {
-                this.ipv4_dst = BytesUtil.instance.reverseBE(ipv4_dst);
+            case TunnelAttr.IPv4Dst:
+                this.ipv4_dst = BytesUtil.instance.reverseBE(buf.getInt());
                 usedFields |= IPV4_DST_MASK;
-            }
+                break;
 
-            Byte ipv4_tos = NetlinkMessage.getAttrValueByte(buf, TunnelAttr.TOS);
-            if (ipv4_tos != null) {
-                this.ipv4_tos = ipv4_tos;
+            case TunnelAttr.TOS:
+                this.ipv4_tos = buf.get();
                 usedFields |= IPV4_TOS_MASK;
-            }
+                break;
 
-            Byte ipv4_ttl = NetlinkMessage.getAttrValueByte(buf, TunnelAttr.TTL);
-            if (ipv4_ttl != null) {
-                this.ipv4_ttl = ipv4_ttl;
+            case TunnelAttr.TTL:
+                this.ipv4_ttl = buf.get();
                 usedFields |= IPV4_TTL_MASK;
-            }
+                break;
 
-            Boolean dontFrag =
-                NetlinkMessage.getAttrValueNone(buf, TunnelAttr.DontFrag);
-            if (dontFrag != null ) {
+            case TunnelAttr.DontFrag:
                 tun_flags = (short)(tun_flags | OVS_TNL_F_DONT_FRAGMENT);
-            }
+                break;
 
-            Boolean csum = NetlinkMessage.getAttrValueNone(buf, TunnelAttr.CSum);
-            if (csum != null) {
+            case TunnelAttr.CSum:
                 tun_flags = (short)(tun_flags | OVS_TNL_F_CSUM);
-            }
-
-            hashCode = 0;
-            return true;
-        } catch (Exception e) {
-            return false;
+                break;
         }
     }
 
