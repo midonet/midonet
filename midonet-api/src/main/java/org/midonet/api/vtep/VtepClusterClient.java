@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import com.google.inject.Inject;
@@ -57,7 +56,6 @@ public class VtepClusterClient {
 
     private static final Logger log =
             LoggerFactory.getLogger(VtepClusterClient.class);
-    public static final Random rand = new Random();
 
     private final VtepDataClientProvider provider;
     private final DataClient dataClient;
@@ -303,7 +301,7 @@ public class VtepClusterClient {
                     vxlanPort.getId(), vxlanPort.getVni());
         } else {
             // Need to create a VXLAN port.
-            newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
+            newPortVni = dataClient.getNewVni();
             VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
                     bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
             log.debug("New VxLan port created, uuid: {}, vni: {}",

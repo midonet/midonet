@@ -3324,6 +3324,11 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public int getNewVni() throws StateAccessException {
+        return vtepZkManager.getNewVni();
+    }
+
+    @Override
     public IPv4Addr vxlanTunnelEndpointFor(UUID id)
         throws SerializationException, StateAccessException {
         return vxlanTunnelEndpointFor((BridgePort)portsGet(id));
