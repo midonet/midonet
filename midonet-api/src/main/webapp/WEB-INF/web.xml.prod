@@ -123,6 +123,12 @@
     <param-value>/midonet/v1</param-value>
   </context-param>
 
+  <!-- VXLAN gateway configuration -->
+  <context-param>
+    <param-name>midobrain-vxgw_enabled</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
   <!-- Servlet Listner -->
   <listener>
      <listener-class>
