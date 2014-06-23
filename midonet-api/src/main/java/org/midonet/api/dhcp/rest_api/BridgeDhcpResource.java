@@ -192,7 +192,7 @@ public class BridgeDhcpResource extends AbstractResource {
                             + "this bridge.");
         }
 
-        dataClient.dhcpSubnetsDelete(bridgeId, subnetAddr);
+        dataClient.dhcpSubnetsDelete(bridgeId, subnetAddr.toIPv4Subnet());
     }
 
     /**
