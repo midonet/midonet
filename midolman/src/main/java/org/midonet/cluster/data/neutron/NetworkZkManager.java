@@ -151,7 +151,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         if (subnet.isIpv4()) {
             dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
-                    subnet.intIpv4());
+                    subnet.intIpv4().toIPv4Subnet());
         } else if (subnet.isIpv6()) {
             dhcpV6ZkManager.prepareDeleteSubnet6(ops, subnet.networkId,
                     subnet.ipv6Subnet());
@@ -342,7 +342,7 @@ public class NetworkZkManager extends BaseZkManager {
             Subnet subnet = getSubnet(ipAlloc.subnetId);
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
-                        IntIPv4.fromString(subnet.cidr, "/"), port.macAddress);
+                        new IPv4Subnet(subnet.cidr), port.macAddress);
             } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareDeleteHost(ops, subnet.networkId,
                         subnet.ipv6Subnet(), port.macAddress);

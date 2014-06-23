@@ -56,6 +56,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -214,7 +215,7 @@ public interface DataClient {
     void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException;
 
-    void dhcpSubnetsDelete(UUID bridgeId, IntIPv4 subnetAddr)
+    void dhcpSubnetsDelete(UUID bridgeId, IPv4Subnet subnetAddr)
         throws StateAccessException;
 
     @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
@@ -226,23 +227,23 @@ public interface DataClient {
     List<Subnet> dhcpSubnetsGetByBridgeEnabled(UUID bridgeId)
             throws StateAccessException, SerializationException;
 
-    void dhcpHostsCreate(@Nonnull UUID bridgeId, @Nonnull IntIPv4 subnet,
+    void dhcpHostsCreate(@Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
                          org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException;
 
-    void dhcpHostsUpdate(@Nonnull UUID bridgeId, @Nonnull IntIPv4 subnet,
+    void dhcpHostsUpdate(@Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
                          org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException;
 
     @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
-            UUID bridgeId, IntIPv4 subnet, String mac)
+            UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException;
 
-    void dhcpHostsDelete(UUID bridgId, IntIPv4 subnet, String mac)
+    void dhcpHostsDelete(UUID bridgId, IPv4Subnet subnet, String mac)
             throws StateAccessException;
 
     List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
-            UUID bridgeId, IntIPv4 subnet)
+            UUID bridgeId, IPv4Subnet subnet)
             throws StateAccessException, SerializationException;
 
     /* DHCPV6 related methods */

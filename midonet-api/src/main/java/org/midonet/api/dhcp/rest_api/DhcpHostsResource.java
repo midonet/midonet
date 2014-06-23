@@ -80,7 +80,7 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         Host h = host.toData();
-        dataClient.dhcpHostsCreate(bridgeId, subnet, h);
+        dataClient.dhcpHostsCreate(bridgeId, subnet.toIPv4Subnet(), h);
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
@@ -114,7 +114,7 @@ public class DhcpHostsResource extends AbstractResource {
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
-        Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
+        Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
         if (hostConfig == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -156,10 +156,10 @@ public class DhcpHostsResource extends AbstractResource {
         host.setMacAddr(mac);
 
         // Get the old host info so it's not lost.
-        Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
+        Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
 
         Host newHost = host.toData();
-        dataClient.dhcpHostsUpdate(bridgeId, subnet, newHost);
+        dataClient.dhcpHostsUpdate(bridgeId, subnet.toIPv4Subnet(), newHost);
 
         // Update the bridge's arp table.
         dataClient.bridgeDeleteIp4Mac(
@@ -192,8 +192,8 @@ public class DhcpHostsResource extends AbstractResource {
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
         // Get the old dhcp host assignment.
-        Host h = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
-        dataClient.dhcpHostsDelete(bridgeId, subnet, mac);
+        Host h = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
+        dataClient.dhcpHostsDelete(bridgeId, subnet.toIPv4Subnet(), mac);
         // Update the bridge's arp table.
         dataClient.bridgeDeleteIp4Mac(bridgeId, h.getIp(), h.getMAC());
     }
@@ -217,7 +217,7 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         List<Host> hostConfigs = dataClient.dhcpHostsGetBySubnet(bridgeId,
-                subnet);
+                subnet.toIPv4Subnet());
         List<DhcpHost> hosts = new ArrayList<>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
                 getBaseUri(), bridgeId, subnet);
