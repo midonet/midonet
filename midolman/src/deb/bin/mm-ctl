@@ -83,13 +83,25 @@ if [ ! -d "$MIDO_HOME" ]; then
    exit 1
 fi
 
-JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
-MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
-MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
+if [ -z "$MIDO_BOOTSTRAP_JAR" ]; then
+   MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
+fi
+
+if [ ! -e "$MIDO_BOOTSTRAP_JAR" ]; then
+   echo "ERROR: $MIDO_BOOTSTRAP_JAR does not exist"
+   exit 1
+fi
+
+if [ -z "$MIDO_JAR" ]; then
+   MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
+fi
+
 if [ ! -e "$MIDO_JAR" ]; then
    echo "ERROR: $MIDO_JAR does not exist"
    exit 1
 fi
+
+JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
+MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
 $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH:$MIDO_JAR org.midonet.midolman.tools.MmCtl $*
