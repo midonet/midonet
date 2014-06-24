@@ -84,7 +84,7 @@ public class DhcpHostsResource extends AbstractResource {
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
-                bridgeId, subnet);
+                bridgeId, subnet.toIPv4Subnet());
         return Response.created(
                 ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
                 .build();
@@ -122,7 +122,7 @@ public class DhcpHostsResource extends AbstractResource {
 
         DhcpHost host = new DhcpHost(hostConfig);
         host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
-              getBaseUri(), bridgeId, subnet));
+              getBaseUri(), bridgeId, subnet.toIPv4Subnet()));
 
         return host;
     }
@@ -220,7 +220,7 @@ public class DhcpHostsResource extends AbstractResource {
                 subnet.toIPv4Subnet());
         List<DhcpHost> hosts = new ArrayList<>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                getBaseUri(), bridgeId, subnet);
+                getBaseUri(), bridgeId, subnet.toIPv4Subnet());
         for (Host hostConfig : hostConfigs) {
             DhcpHost host = new DhcpHost(hostConfig);
             host.setParentUri(dhcpUri);

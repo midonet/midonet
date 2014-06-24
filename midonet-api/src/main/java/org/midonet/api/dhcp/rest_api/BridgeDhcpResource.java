@@ -4,11 +4,10 @@
 
 package org.midonet.api.dhcp.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.DhcpSubnet;
 import org.midonet.api.network.auth.BridgeAuthorizer;
@@ -16,13 +15,16 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IntIPv4;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,13 +99,14 @@ public class BridgeDhcpResource extends AbstractResource {
 
         dataClient.dhcpSubnetsCreate(bridgeId, subnet.toData());
 
-        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
-                bridgeId);
-        return Response.created(
-                ResourceUriBuilder.getBridgeDhcp(
-                        dhcpsUri,
-                        IntIPv4.fromString(subnet.getSubnetPrefix(),
-                                subnet.getSubnetLength()))).build();
+        URI dhcpsUri =
+            ResourceUriBuilder.getBridgeDhcps(getBaseUri(), bridgeId);
+
+        IPv4Subnet subnetAddr = new IPv4Subnet(subnet.getSubnetPrefix(),
+                                               subnet.getSubnetLength());
+
+        return Response.created(ResourceUriBuilder.getBridgeDhcp(dhcpsUri, subnetAddr))
+                       .build();
     }
 
     /**
@@ -161,7 +164,9 @@ public class BridgeDhcpResource extends AbstractResource {
                     "Not authorized to view this bridge's dhcp config.");
         }
 
-        Subnet subnetConfig = dataClient.dhcpSubnetsGet(bridgeId, subnetAddr);
+        Subnet subnetConfig =
+            dataClient.dhcpSubnetsGet(bridgeId, IntIPv4.toIPv4Subnet(subnetAddr));
+
         if (subnetConfig == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
