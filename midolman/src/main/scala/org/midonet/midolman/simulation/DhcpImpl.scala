@@ -74,7 +74,7 @@ class DhcpImpl(val dataClient: DataClient,
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
                 host = dataClient.dhcpHostsGet(port.deviceID,
-                                               sub.getSubnetAddr.toIPv4Subnet,
+                                               sub.getSubnetAddr,
                                                sourceMac.toString)
                 (host != null) && (host.getIp != null)
             } else {
@@ -91,14 +91,14 @@ class DhcpImpl(val dataClient: DataClient,
 
                 // TODO(pino): the server MAC should be in configuration.
                 serverMac = MAC.fromString("02:a8:9c:de:39:27")
-                serverAddr = IntIPv4.toIPv4Addr(sub.getServerAddr)
-                routerAddr = IntIPv4.toIPv4Addr(sub.getDefaultGateway)
+                serverAddr = sub.getServerAddr
+                routerAddr = sub.getDefaultGateway
                 yiaddr = host.getIp
-                yiAddrMaskLen = sub.getSubnetAddr.getMaskLength
+                yiAddrMaskLen = sub.getSubnetAddr.getPrefixLen
 
                 dnsServerAddrsBytes =
                     Option(sub.getDnsServerAddrs).map{ _.toList}.getOrElse(Nil)
-                        .map { case ip => IPv4Addr.intToBytes(ip.getAddress) }
+                        .map { _.toBytes }
                 opt121Routes = sub.getOpt121Routes
 
                 (sub.getInterfaceMTU match {
@@ -300,16 +300,16 @@ class DhcpImpl(val dataClient: DataClient,
             opt121Routes foreach { rt =>
                 log.debug("Found classless route {}", rt)
                 // First append the destination subnet's maskLength
-                val maskLen = rt.getRtDstSubnet.getMaskLength.toByte
+                val maskLen = rt.getRtDstSubnet.getPrefixLen.toByte
                 bytes.append(maskLen)
                 // Now append the significant octets of the subnet.
-                val dstBytes = IPv4Addr.intToBytes(rt.getRtDstSubnet.getAddress)
+                val dstBytes = rt.getRtDstSubnet.getAddress.toBytes
                 if (maskLen > 0) bytes.append(dstBytes(0))
                 if (maskLen > 8) bytes.append(dstBytes(1))
                 if (maskLen > 16) bytes.append(dstBytes(2))
                 if (maskLen > 24) bytes.append(dstBytes(3))
                 // Now append the 4 octets of the gateway.
-                val gwBytes = IPv4Addr.intToBytes(rt.getGateway.getAddress)
+                val gwBytes = rt.getGateway.toBytes
                 bytes.appendAll(gwBytes.toList)
             }
             log.debug("Adding Option 121 (classless static routes) with " +

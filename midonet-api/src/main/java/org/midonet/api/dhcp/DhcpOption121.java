@@ -5,7 +5,8 @@
 package org.midonet.api.dhcp;
 
 import org.midonet.cluster.data.dhcp.Opt121;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -29,7 +30,7 @@ public class DhcpOption121 {
 
     public DhcpOption121(Opt121 opt121) {
         this(opt121.getRtDstSubnet().toUnicastString(),
-                opt121.getRtDstSubnet().getMaskLength(),
+                opt121.getRtDstSubnet().getPrefixLen(),
                 opt121.getGateway().toString());
     }
 
@@ -59,11 +60,8 @@ public class DhcpOption121 {
 
     public Opt121 toData() {
         return new Opt121()
-            .setGateway(
-                IntIPv4.toIPv4Subnet(IntIPv4.fromString(gatewayAddr)))
-            .setRtDstSubnet(
-                IntIPv4.toIPv4Subnet(
-                    IntIPv4.fromString(destinationPrefix, destinationLength)));
+            .setGateway(IPv4Addr.fromString(gatewayAddr))
+            .setRtDstSubnet(new IPv4Subnet(destinationPrefix, destinationLength));
     }
 
     @Override

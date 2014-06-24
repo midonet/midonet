@@ -14,8 +14,8 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.util.version.Since;
 
 import javax.validation.constraints.Max;
@@ -69,20 +69,20 @@ public class DhcpSubnet extends RelativeUriResource {
 
     public DhcpSubnet(Subnet subnet) {
         this(subnet.getSubnetAddr().toUnicastString(),
-                subnet.getSubnetAddr().getMaskLength());
+                subnet.getSubnetAddr().getPrefixLen());
 
-        IntIPv4 gway = subnet.getDefaultGateway();
+        IPv4Addr gway = subnet.getDefaultGateway();
         if (null != gway)
-            this.setDefaultGateway(gway.toUnicastString());
+            this.setDefaultGateway(gway.toString());
 
-        IntIPv4 srvAddr = subnet.getServerAddr();
+        IPv4Addr srvAddr = subnet.getServerAddr();
         if (null != srvAddr)
-            this.setServerAddr(srvAddr.toUnicastString());
+            this.setServerAddr(srvAddr.toString());
 
         if (null != subnet.getDnsServerAddrs()) {
             List<String> dnsSrvAddrs = new ArrayList<String>();
-            for (IntIPv4 ipAddr : subnet.getDnsServerAddrs()) {
-                dnsSrvAddrs.add(ipAddr.toUnicastString());
+            for (IPv4Addr ipAddr : subnet.getDnsServerAddrs()) {
+                dnsSrvAddrs.add(ipAddr.toString());
             }
             this.setDnsServerAddrs(dnsSrvAddrs);
         }
@@ -175,7 +175,7 @@ public class DhcpSubnet extends RelativeUriResource {
     public URI getUri() {
         if (getParentUri() != null && subnetPrefix != null) {
             return ResourceUriBuilder.getBridgeDhcp(getParentUri(),
-                    IntIPv4.fromString(subnetPrefix, subnetLength));
+                    new IPv4Subnet(subnetPrefix, subnetLength));
         } else {
             return null;
         }
@@ -188,21 +188,21 @@ public class DhcpSubnet extends RelativeUriResource {
                 routes.add(opt.toData());
         }
 
-        List<IntIPv4> dnsSrvAddrs = null;
+        List<IPv4Addr> dnsSrvAddrs = null;
         if (null != getDnsServerAddrs()) {
-            dnsSrvAddrs = new ArrayList<IntIPv4>();
+            dnsSrvAddrs = new ArrayList<>();
             for (String ipAddr : getDnsServerAddrs())
-                dnsSrvAddrs.add(IntIPv4.fromString(ipAddr));
+                dnsSrvAddrs.add(IPv4Addr.fromString(ipAddr));
         }
 
-        IntIPv4 subnetAddr = IntIPv4.fromString(subnetPrefix, subnetLength);
-        IntIPv4 gtway = (null == defaultGateway) ? null
-                : IntIPv4.fromString(defaultGateway);
-        IntIPv4 srvAddr = (null == serverAddr) ? null : IntIPv4.fromString(serverAddr);
+        IPv4Subnet subnetAddr = new IPv4Subnet(subnetPrefix, subnetLength);
+        IPv4Addr gtway = (null == defaultGateway) ? null
+                : IPv4Addr.fromString(defaultGateway);
+        IPv4Addr srvAddr = (null == serverAddr) ? null : IPv4Addr.fromString(serverAddr);
 
         return new Subnet()
-                .setDefaultGateway(IntIPv4.toIPv4Subnet(gtway))
-                .setSubnetAddr(IntIPv4.toIPv4Subnet(subnetAddr))
+                .setDefaultGateway(gtway)
+                .setSubnetAddr(subnetAddr)
                 .setOpt121Routes(routes)
                 .setServerAddr(srvAddr)
                 .setDnsServerAddrs(dnsSrvAddrs)

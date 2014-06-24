@@ -164,7 +164,7 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
 
         for (Subnet actualSubnet : actual) {
             assertThat(expectedCidrs,
-                    hasItem(actualSubnet.getSubnetAddr().toString()));
+                    hasItem(actualSubnet.getSubnetAddr().toZkString()));
         }
     }
 
