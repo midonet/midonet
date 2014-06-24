@@ -38,8 +38,8 @@ public class PoolMember extends UriResource {
     @Min(0) @Max(65535)
     private int protocolPort;
 
-    @Min(0)
-    private int weight;
+    @Min(1)
+    private int weight = 1;
 
     public UUID getId() {
         return id;
