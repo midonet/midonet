@@ -126,7 +126,7 @@ public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
     @JsonIgnore
     public IPv4Subnet remoteIpv4Subnet() {
         if (remoteIpPrefix == null) return null;
-        return new IPv4Subnet(remoteIpPrefix);
+        return IPv4Subnet.fromCidr(remoteIpPrefix);
     }
 
     @JsonIgnore

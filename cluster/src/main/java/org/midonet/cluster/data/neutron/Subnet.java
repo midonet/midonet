@@ -7,7 +7,12 @@ import com.google.common.base.Objects;
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.midonet.packets.*;
+
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.IPv6Subnet;
 import org.midonet.util.collection.ListUtil;
 
 import java.util.ArrayList;
@@ -124,7 +129,7 @@ public class Subnet {
         if (cidr == null) return null;
 
         if (isIpv4()) {
-            return new IPv4Subnet(cidr);
+            return IPv4Subnet.fromCidr(cidr);
         } else {
             // TODO support IPv6
             return null;
@@ -140,12 +145,6 @@ public class Subnet {
         } else {
             return IPv6Addr.fromString(gatewayIp);
         }
-    }
-
-    @JsonIgnore
-    public IntIPv4 intIpv4() {
-        if (cidr == null) return null;
-        return IntIPv4.fromString(cidr, "/");
     }
 
     @JsonIgnore

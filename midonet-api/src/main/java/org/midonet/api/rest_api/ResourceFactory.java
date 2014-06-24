@@ -43,8 +43,8 @@ import org.midonet.api.neutron.SubnetResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 
 /**
  * Resource factory used by Guice to inject resource classes.
@@ -89,7 +89,7 @@ public interface ResourceFactory {
 
     AdRouteResource.BgpAdRouteResource getBgpAdRouteResource(UUID id);
 
-    DhcpHostsResource getDhcpAssignmentsResource(UUID bridgeId, IntIPv4 addr);
+    DhcpHostsResource getDhcpAssignmentsResource(UUID bridgeId, IPv4Subnet addr);
 
     DhcpV6HostsResource getDhcpV6AssignmentsResource(UUID bridgeId, IPv6Subnet addr);
 

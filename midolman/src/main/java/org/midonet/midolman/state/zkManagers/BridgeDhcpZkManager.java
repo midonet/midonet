@@ -24,7 +24,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
 
@@ -34,10 +33,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         .getLogger(BridgeDhcpZkManager.class);
 
     public static class Subnet {
-        IntIPv4 subnetAddr;
-        IntIPv4 serverAddr;
-        List<IntIPv4> dnsServerAddrs;
-        IntIPv4 defaultGateway;
+        IPv4Subnet subnetAddr;
+        IPv4Addr serverAddr;
+        List<IPv4Addr> dnsServerAddrs;
+        IPv4Addr defaultGateway;
         short interfaceMTU;
         List<Opt121> opt121Routes;
 
@@ -47,15 +46,15 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         /* Default constructor for deserialization. */
         public Subnet() {
         }
-        public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
-                      IntIPv4 serverAddr, List<IntIPv4> dnsServerAddrs,
+        public Subnet(IPv4Subnet subnetAddr, IPv4Addr defaultGateway,
+                      IPv4Addr serverAddr, List<IPv4Addr> dnsServerAddrs,
                       short interfaceMTU, List<Opt121> opt121Routes) {
             this(subnetAddr, defaultGateway, serverAddr, dnsServerAddrs,
                     interfaceMTU, opt121Routes, true);
         }
 
-        public Subnet(IntIPv4 subnetAddr, IntIPv4 defaultGateway,
-                      IntIPv4 serverAddr, List<IntIPv4> dnsServerAddrs,
+        public Subnet(IPv4Subnet subnetAddr, IPv4Addr defaultGateway,
+                      IPv4Addr serverAddr, List<IPv4Addr> dnsServerAddrs,
                       short interfaceMTU, List<Opt121> opt121Routes,
                       boolean enabled) {
             this.subnetAddr = subnetAddr;
@@ -67,9 +66,8 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                     this.serverAddr = defaultGateway;
                 } else {
                     // hard-code it to network bcast addr - 1
-                    this.serverAddr = new IntIPv4(
-                            subnetAddr.toBroadcastAddress().addressAsInt() - 1,
-                            subnetAddr.getMaskLength());
+                    this.serverAddr = IPv4Addr.fromInt(
+                            subnetAddr.toBroadcastAddress().toInt() - 1);
                 }
             }
             if (interfaceMTU != 0) {
@@ -83,10 +81,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
 
         public Subnet(org.midonet.cluster.data.neutron.Subnet subnet) {
 
-            this.subnetAddr = IntIPv4.fromString(subnet.cidr, "/");
+            this.subnetAddr = IPv4Subnet.fromCidr(subnet.cidr);
             this.defaultGateway = subnet.gatewayIp == null ?
                 null :
-                IntIPv4.fromString(subnet.gatewayIp);
+                IPv4Addr.fromString(subnet.gatewayIp);
 
             if (subnet.hostRoutes != null) {
                 this.opt121Routes = new ArrayList<>(subnet.hostRoutes.size());
@@ -100,20 +98,20 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                 this.dnsServerAddrs = new ArrayList<>(
                         subnet.dnsNameservers.size());
                 for (String dnsServer : subnet.dnsNameservers) {
-                    this.dnsServerAddrs.add(IntIPv4.fromString(dnsServer));
+                    this.dnsServerAddrs.add(IPv4Addr.fromString(dnsServer));
                 }
             }
         }
 
-        public IntIPv4 getDefaultGateway() {
+        public IPv4Addr getDefaultGateway() {
             return defaultGateway;
         }
 
-        public IntIPv4 getServerAddr() {
+        public IPv4Addr getServerAddr() {
             return serverAddr;
         }
 
-        public List<IntIPv4> getDnsServerAddrs() {
+        public List<IPv4Addr> getDnsServerAddrs() {
             return dnsServerAddrs;
         }
 
@@ -125,13 +123,13 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             return opt121Routes;
         }
 
-        public IntIPv4 getSubnetAddr() {
+        public IPv4Subnet getSubnetAddr() {
             return subnetAddr;
         }
 
         public Boolean isEnabled() { return enabled; }
 
-        public void setDefaultGateway(IntIPv4 defaultGateway) {
+        public void setDefaultGateway(IPv4Addr defaultGateway) {
             this.defaultGateway = defaultGateway;
         }
 
@@ -156,15 +154,15 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             }
         }
 
-        public void setSubnetAddr(IntIPv4 subnetAddr) {
+        public void setSubnetAddr(IPv4Subnet subnetAddr) {
             this.subnetAddr = subnetAddr;
         }
 
-        public void setServerAddr(IntIPv4 serverAddr) {
+        public void setServerAddr(IPv4Addr serverAddr) {
             this.serverAddr = serverAddr;
         }
 
-        public void setDnsServerAddrs(List<IntIPv4> dnsServerAddrs) {
+        public void setDnsServerAddrs(List<IPv4Addr> dnsServerAddrs) {
             this.dnsServerAddrs = dnsServerAddrs;
         }
 
@@ -264,36 +262,36 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     }
 
     public static class Opt121 {
-        IntIPv4 rtDstSubnet;
-        IntIPv4 gateway;
+        IPv4Subnet rtDstSubnet;
+        IPv4Addr gateway;
 
         /* Default constructor for deserialization. */
         public Opt121() {
         }
 
-        public Opt121(IntIPv4 rtDstSubnet, IntIPv4 gateway) {
+        public Opt121(IPv4Subnet rtDstSubnet, IPv4Addr gateway) {
             this.rtDstSubnet = rtDstSubnet;
             this.gateway = gateway;
         }
 
         public Opt121(String rtDstSubnet, String gateway) {
-            this.rtDstSubnet = IntIPv4.fromString(rtDstSubnet, "/");
-            this.gateway = IntIPv4.fromString(gateway, "/");
+            this.rtDstSubnet = IPv4Subnet.fromString(rtDstSubnet, "/");
+            this.gateway = IPv4Addr.fromString(gateway);
         }
 
-        public IntIPv4 getGateway() {
+        public IPv4Addr getGateway() {
             return gateway;
         }
 
-        public IntIPv4 getRtDstSubnet() {
+        public IPv4Subnet getRtDstSubnet() {
             return rtDstSubnet;
         }
 
-        public void setGateway(IntIPv4 gateway) {
+        public void setGateway(IPv4Addr gateway) {
             this.gateway = gateway;
         }
 
-        public void setRtDstSubnet(IntIPv4 rtDstSubnet) {
+        public void setRtDstSubnet(IPv4Subnet rtDstSubnet) {
             this.rtDstSubnet = rtDstSubnet;
         }
 
@@ -326,12 +324,12 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     public void prepareCreateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
             throws SerializationException {
         String subnetPath =
-            paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr().toIPv4Subnet());
+            paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr());
         ops.add(Op.create(subnetPath, serializer.serialize(subnet),
                           ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         String hostPath =
-            paths.getBridgeDhcpHostsPath(bridgeId, subnet.getSubnetAddr().toIPv4Subnet());
+            paths.getBridgeDhcpHostsPath(bridgeId, subnet.getSubnetAddr());
         ops.add(Op.create(hostPath, null, ZooDefs.Ids.OPEN_ACL_UNSAFE,
                           CreateMode.PERSISTENT));
     }
@@ -346,7 +344,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     public void prepareUpdateSubnet(List<Op> ops, UUID bridgeId, Subnet subnet)
             throws StateAccessException, SerializationException {
         String path =
-            paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr().toIPv4Subnet());
+            paths.getBridgeDhcpSubnetPath(bridgeId, subnet.getSubnetAddr());
         ops.add(zk.getSetDataOp(path, serializer.serialize(subnet)));
     }
 
@@ -398,8 +396,9 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             throws StateAccessException {
         String path = paths.getBridgeDhcpPath(bridgeId);
         List<IPv4Subnet> addrs = new ArrayList<>();
-        for (String addrStr : zk.getChildren(path , null))
-            addrs.add(IntIPv4.toIPv4Subnet(IntIPv4.fromString(addrStr)));
+        for (String addrStr : zk.getChildren(path , null)) {
+            addrs.add(IPv4Subnet.fromZkString(addrStr));
+        }
         return addrs;
     }
 
@@ -408,8 +407,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         String path = paths.getBridgeDhcpPath(bridgeId);
         List<Subnet> subnets = new ArrayList<>();
         for (String addrStr : zk.getChildren(path)) {
-            IPv4Subnet subnet = IntIPv4.toIPv4Subnet(IntIPv4.fromString(addrStr));
-            subnets.add(getSubnet(bridgeId, subnet));
+            subnets.add(getSubnet(bridgeId, IPv4Subnet.fromZkString(addrStr)));
         }
         return subnets;
     }
@@ -435,7 +433,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
                                Host host)
             throws SerializationException {
         String path = paths.getBridgeDhcpHostPath(subnet.networkId,
-                                                  new IPv4Subnet(subnet.cidr),
+                                                  IPv4Subnet.fromCidr(subnet.cidr),
                                                   host.getMac());
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(host)));
     }

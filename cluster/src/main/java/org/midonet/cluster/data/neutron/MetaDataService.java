@@ -8,6 +8,6 @@ import org.midonet.packets.IPv4Subnet;
 public class MetaDataService {
 
     public static final String IPv4_ADDRESS =  "169.254.169.254/32";
-    public static final IPv4Subnet IPv4_SUBNET =  new IPv4Subnet(IPv4_ADDRESS);
+    public static final IPv4Subnet IPv4_SUBNET = IPv4Subnet.fromCidr(IPv4_ADDRESS);
 
 }

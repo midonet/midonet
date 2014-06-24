@@ -18,7 +18,7 @@ import org.midonet.api.host.validation.IsValidTunnelZoneId;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.state.VtepConnectionState;
-import org.midonet.packets.IPv4Addr$;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4;
 
 public class VTEP extends UriResource {
@@ -60,7 +60,7 @@ public class VTEP extends UriResource {
 
     public org.midonet.cluster.data.VTEP toData() {
         return new org.midonet.cluster.data.VTEP()
-                .setId(IPv4Addr$.MODULE$.fromString(managementIp))
+                .setId(IPv4Addr.fromString(managementIp))
                 .setMgmtPort(managementPort)
                 .setTunnelZone(tunnelZoneId);
     }

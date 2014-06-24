@@ -36,7 +36,6 @@ import org.midonet.midolman.state.zkManagers.BgpZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 

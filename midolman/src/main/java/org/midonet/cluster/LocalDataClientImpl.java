@@ -134,7 +134,6 @@ import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 import org.midonet.util.eventloop.Reactor;
@@ -990,8 +989,7 @@ public class LocalDataClientImpl implements DataClient {
         List<Subnet> subnets = new ArrayList<>(subnetConfigs.size());
 
         for (BridgeDhcpZkManager.Subnet subnetConfig : subnetConfigs) {
-            subnets.add(dhcpSubnetsGet(bridgeId,
-                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr())));
+            subnets.add(dhcpSubnetsGet(bridgeId, subnetConfig.getSubnetAddr()));
         }
 
         return subnets;

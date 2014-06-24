@@ -20,7 +20,6 @@ import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.IntIPv4;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -69,7 +68,7 @@ public class BridgeDhcpResource extends AbstractResource {
      */
     @Path("/{subnetAddr}" + ResourceUriBuilder.DHCP_HOSTS)
     public DhcpHostsResource getDhcpAssignmentsResource(
-            @PathParam("subnetAddr") IntIPv4 subnetAddr) {
+            @PathParam("subnetAddr") IPv4Subnet subnetAddr) {
         return factory.getDhcpAssignmentsResource(bridgeId, subnetAddr);
     }
 
@@ -125,7 +124,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
             MediaType.APPLICATION_JSON })
-    public Response update(@PathParam("subnetAddr") IntIPv4 subnetAddr,
+    public Response update(@PathParam("subnetAddr") IPv4Subnet subnetAddr,
             DhcpSubnet subnet)
             throws StateAccessException, SerializationException {
 
@@ -136,7 +135,7 @@ public class BridgeDhcpResource extends AbstractResource {
 
         // Make sure that the DhcpSubnet has the same IP address as the URI.
         subnet.setSubnetPrefix(subnetAddr.toUnicastString());
-        subnet.setSubnetLength(subnetAddr.getMaskLength());
+        subnet.setSubnetLength(subnetAddr.getPrefixLen());
         dataClient.dhcpSubnetsUpdate(bridgeId, subnet.toData());
         return Response.ok().build();
     }
@@ -156,7 +155,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
             VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
             MediaType.APPLICATION_JSON })
-    public DhcpSubnet get(@PathParam("subnetAddr") IntIPv4 subnetAddr)
+    public DhcpSubnet get(@PathParam("subnetAddr") IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
@@ -164,8 +163,7 @@ public class BridgeDhcpResource extends AbstractResource {
                     "Not authorized to view this bridge's dhcp config.");
         }
 
-        Subnet subnetConfig =
-            dataClient.dhcpSubnetsGet(bridgeId, IntIPv4.toIPv4Subnet(subnetAddr));
+        Subnet subnetConfig = dataClient.dhcpSubnetsGet(bridgeId, subnetAddr);
 
         if (subnetConfig == null) {
             throw new NotFoundHttpException(
@@ -188,7 +186,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{subnetAddr}")
-    public void delete(@PathParam("subnetAddr") IntIPv4 subnetAddr)
+    public void delete(@PathParam("subnetAddr") IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
@@ -197,7 +195,7 @@ public class BridgeDhcpResource extends AbstractResource {
                             + "this bridge.");
         }
 
-        dataClient.dhcpSubnetsDelete(bridgeId, subnetAddr.toIPv4Subnet());
+        dataClient.dhcpSubnetsDelete(bridgeId, subnetAddr);
     }
 
     /**

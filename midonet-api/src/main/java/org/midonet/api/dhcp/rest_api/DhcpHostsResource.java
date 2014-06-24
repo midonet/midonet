@@ -22,7 +22,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Host;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ import java.util.UUID;
 public class DhcpHostsResource extends AbstractResource {
 
     private final UUID bridgeId;
-    private final IntIPv4 subnet;
+    private final IPv4Subnet subnet;
     private final BridgeAuthorizer authorizer;
 
     @Inject
@@ -51,7 +51,7 @@ public class DhcpHostsResource extends AbstractResource {
                              BridgeAuthorizer authorizer,
                              DataClient dataClient,
                              @Assisted UUID bridgeId,
-                             @Assisted IntIPv4 subnet) {
+                             @Assisted IPv4Subnet subnet) {
         super(config, uriInfo, context, dataClient);
         this.authorizer = authorizer;
         this.bridgeId = bridgeId;
@@ -80,11 +80,11 @@ public class DhcpHostsResource extends AbstractResource {
         }
 
         Host h = host.toData();
-        dataClient.dhcpHostsCreate(bridgeId, subnet.toIPv4Subnet(), h);
+        dataClient.dhcpHostsCreate(bridgeId, subnet, h);
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
-                bridgeId, subnet.toIPv4Subnet());
+                bridgeId, subnet);
         return Response.created(
                 ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
                 .build();
@@ -114,7 +114,7 @@ public class DhcpHostsResource extends AbstractResource {
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
-        Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
+        Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         if (hostConfig == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
@@ -122,7 +122,7 @@ public class DhcpHostsResource extends AbstractResource {
 
         DhcpHost host = new DhcpHost(hostConfig);
         host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
-              getBaseUri(), bridgeId, subnet.toIPv4Subnet()));
+              getBaseUri(), bridgeId, subnet));
 
         return host;
     }
@@ -156,10 +156,10 @@ public class DhcpHostsResource extends AbstractResource {
         host.setMacAddr(mac);
 
         // Get the old host info so it's not lost.
-        Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
+        Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
 
         Host newHost = host.toData();
-        dataClient.dhcpHostsUpdate(bridgeId, subnet.toIPv4Subnet(), newHost);
+        dataClient.dhcpHostsUpdate(bridgeId, subnet, newHost);
 
         // Update the bridge's arp table.
         dataClient.bridgeDeleteIp4Mac(
@@ -192,8 +192,8 @@ public class DhcpHostsResource extends AbstractResource {
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
         // Get the old dhcp host assignment.
-        Host h = dataClient.dhcpHostsGet(bridgeId, subnet.toIPv4Subnet(), mac);
-        dataClient.dhcpHostsDelete(bridgeId, subnet.toIPv4Subnet(), mac);
+        Host h = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
+        dataClient.dhcpHostsDelete(bridgeId, subnet, mac);
         // Update the bridge's arp table.
         dataClient.bridgeDeleteIp4Mac(bridgeId, h.getIp(), h.getMAC());
     }
@@ -216,11 +216,10 @@ public class DhcpHostsResource extends AbstractResource {
                     "Not authorized to view DHCP config of this bridge.");
         }
 
-        List<Host> hostConfigs = dataClient.dhcpHostsGetBySubnet(bridgeId,
-                subnet.toIPv4Subnet());
+        List<Host> hostConfigs = dataClient.dhcpHostsGetBySubnet(bridgeId, subnet);
         List<DhcpHost> hosts = new ArrayList<>();
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                getBaseUri(), bridgeId, subnet.toIPv4Subnet());
+                getBaseUri(), bridgeId, subnet);
         for (Host hostConfig : hostConfigs) {
             DhcpHost host = new DhcpHost(hostConfig);
             host.setParentUri(dhcpUri);
