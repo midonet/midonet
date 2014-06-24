@@ -19,7 +19,7 @@ public class TestIPv4Subnet {
     @Parameters(source = TestIPv4Subnet.class, method="validCidrs")
     public void testValidCidrs(String input) {
         String[] expected = input.split("/");
-        IPv4Subnet testObject = new IPv4Subnet(input);
+        IPv4Subnet testObject = IPv4Subnet.fromCidr(input);
 
         // toString simply re-constructs the original format
         Assert.assertEquals(input, testObject.toString());
@@ -31,7 +31,7 @@ public class TestIPv4Subnet {
     @Test(expected = IllegalArgumentException.class)
     @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
     public void testInvalidCidrs(String input) {
-        IPv4Subnet testObject = new IPv4Subnet(input);
+        IPv4Subnet testObject = IPv4Subnet.fromCidr(input);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class TestIPv4Subnet {
     @Test(expected = IllegalArgumentException.class)
     @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
     public void testGetAddressAndPrefixLenNegative(String input) {
-        new IPv4Subnet(input);
+        IPv4Subnet.fromCidr(input);
     }
 
     public static Object[] validCidrs() {

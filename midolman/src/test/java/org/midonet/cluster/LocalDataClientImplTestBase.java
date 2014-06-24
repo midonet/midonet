@@ -103,8 +103,7 @@ public class LocalDataClientImplTestBase {
     }
 
     protected Subnet getStockSubnet(String cidr) {
-        return new Subnet()
-                .setSubnetAddr(new IPv4Subnet(cidr));
+        return new Subnet().setSubnetAddr(IPv4Subnet.fromCidr(cidr));
     }
 
     protected HealthMonitor getStockHealthMonitor() {

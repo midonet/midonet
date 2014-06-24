@@ -4,10 +4,9 @@
 
 package org.midonet.packets;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
@@ -31,6 +30,12 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         this(IPv4Addr.fromString(addr_), prefixLen_);
     }
 
+    public IPv4Subnet(String zkCidr) {
+        String[] parts = zkCidr.split("_");
+        this.address = IPv4Addr.fromString(parts[0]);
+        this.prefixLen = Integer.parseInt(parts[1]);
+    }
+
     /**
      * Construct an IPv4Subnet object from a CIDR notation string - e.g.
      * "192.168.0.1/16".
@@ -40,15 +45,21 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
      *
      * @param cidr_ CIDR notation string
      */
-    public IPv4Subnet(String cidr_) {
+    public static IPv4Subnet fromCidr(String cidr_) {
         if (!isValidIpv4Cidr(cidr_))
-            throw new IllegalArgumentException("cidr is not valid");
+            throw new IllegalArgumentException(cidr_ + " is not a valid cidr");
 
-        String[] parts = cidr_.split("/");
-        assert parts.length == 2;     // Sanity check
+        return fromString(cidr_, "/");
+    }
 
-        address = IPv4Addr.fromString(parts[0]);
-        prefixLen = Integer.parseInt(parts[1]);
+    public static IPv4Subnet fromZkString(String zkCidr) {
+        return fromString(zkCidr, "_");
+    }
+
+    public static IPv4Subnet fromString(String cidr, String delim) {
+        String[] parts = cidr.split(delim);
+        int prefixLen = parts.length == 1 ? 32 : Integer.parseInt(parts[1]);
+        return new IPv4Subnet(IPv4Addr.fromString(parts[0]), prefixLen);
     }
 
     @Override

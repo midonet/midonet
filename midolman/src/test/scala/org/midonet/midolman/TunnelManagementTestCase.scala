@@ -20,7 +20,7 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
-import org.midonet.packets.{IPv4Addr, IntIPv4}
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class TunnelManagementTestCase extends MidolmanTestCase

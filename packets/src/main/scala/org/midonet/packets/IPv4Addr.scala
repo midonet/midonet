@@ -52,7 +52,6 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
     }
 
     def compare(that: IPv4Addr): Int = this.addr.compare(that.toInt)
-    def toIntIPv4 = new IntIPv4(addr)
     def toInt = addr
     override def toBytes: Array[Byte] = IPv4Addr.intToBytes(addr)
 
@@ -77,8 +76,6 @@ object IPv4Addr {
     def fromString(s: String) = new IPv4Addr(stringToInt(s))
 
     def fromInt(i: Int) = new IPv4Addr(i)
-
-    def fromIntIPv4(ii: IntIPv4) = new IPv4Addr(ii.addressAsInt)
 
     def fromBytes(addr: Array[Byte]) = new IPv4Addr(bytesToInt(addr))
 

@@ -16,8 +16,8 @@ import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager.Opt121;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.IntIPv4;
 import org.restlet.service.MetadataService;
 
 import java.util.*;
@@ -151,7 +151,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         if (subnet.isIpv4()) {
             dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
-                    subnet.intIpv4().toIPv4Subnet());
+                    subnet.ipv4Subnet());
         } else if (subnet.isIpv6()) {
             dhcpV6ZkManager.prepareDeleteSubnet6(ops, subnet.networkId,
                     subnet.ipv6Subnet());
@@ -299,9 +299,9 @@ public class NetworkZkManager extends BaseZkManager {
                                                 String addr)
         throws StateAccessException, SerializationException {
         BridgeDhcpZkManager.Subnet dhcpSubnet =
-            dhcpZkManager.getSubnet(subnet.networkId, new IPv4Subnet(subnet.cidr));
+            dhcpZkManager.getSubnet(subnet.networkId, IPv4Subnet.fromCidr(subnet.cidr));
         dhcpSubnet.addOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
-        dhcpSubnet.setServerAddr(IntIPv4.fromString(addr));
+        dhcpSubnet.setServerAddr(IPv4Addr.fromString(addr));
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
     }
 
@@ -309,7 +309,7 @@ public class NetworkZkManager extends BaseZkManager {
                                                     String addr)
         throws StateAccessException, SerializationException {
         BridgeDhcpZkManager.Subnet dhcpSubnet =
-            dhcpZkManager.getSubnet(subnet.networkId, new IPv4Subnet(subnet.cidr));
+            dhcpZkManager.getSubnet(subnet.networkId, IPv4Subnet.fromCidr(subnet.cidr));
         dhcpSubnet.removeOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
         dhcpSubnet.setServerAddr(null);
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
@@ -340,7 +340,7 @@ public class NetworkZkManager extends BaseZkManager {
             Subnet subnet = getSubnet(ipAlloc.subnetId);
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareDeleteHost(ops, subnet.networkId,
-                        new IPv4Subnet(subnet.cidr), port.macAddress);
+                        IPv4Subnet.fromCidr(subnet.cidr), port.macAddress);
             } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareDeleteHost(ops, subnet.networkId,
                         subnet.ipv6Subnet(), port.macAddress);

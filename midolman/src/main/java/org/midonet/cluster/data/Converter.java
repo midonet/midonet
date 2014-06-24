@@ -53,8 +53,6 @@ import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Addr$;
-import org.midonet.packets.IntIPv4;
 
 
 /**
@@ -374,11 +372,9 @@ public class Converter {
             VxLanPortConfig vxLanPortConfig =
                     (VxLanPortConfig)portConfig;
 
-            IPv4Addr mgmtIpAddr = IPv4Addr$.MODULE$.fromString(
-                    vxLanPortConfig.getMgmtIpAddr());
-
             port = new VxLanPort()
-                    .setMgmtIpAddr(mgmtIpAddr)
+                    .setMgmtIpAddr(
+                        IPv4Addr.fromString(vxLanPortConfig.getMgmtIpAddr()))
                     .setMgmtPort(vxLanPortConfig.getMgmtPort())
                     .setVni(vxLanPortConfig.getVni());
         }
@@ -601,19 +597,11 @@ public class Converter {
         // If isEnabled is not set, default to enabled
         boolean enabled = (subnet.isEnabled() == null || subnet.isEnabled());
 
-        List<IntIPv4> dnsAddrs = null;
-        if (subnet.getDnsServerAddrs() != null) {
-            dnsAddrs = new ArrayList<>();
-            for (IPv4Addr addr : subnet.getDnsServerAddrs()) {
-                dnsAddrs.add(IntIPv4.fromIPv4Addr(addr));
-            }
-        }
-
         return new BridgeDhcpZkManager.Subnet(
-                      IntIPv4.fromIPv4Subnet(subnet.getSubnetAddr()),
-                      IntIPv4.fromIPv4Addr(subnet.getDefaultGateway()),
-                      IntIPv4.fromIPv4Addr(subnet.getServerAddr()),
-                      dnsAddrs,
+                      subnet.getSubnetAddr(),
+                      subnet.getDefaultGateway(),
+                      subnet.getServerAddr(),
+                      subnet.getDnsServerAddrs(),
                       subnet.getInterfaceMTU(),
                       opt121Configs, enabled);
     }
@@ -627,39 +615,25 @@ public class Converter {
             opt121s.add(fromDhcpOpt121Config(opt121Config));
         }
 
-        List<IPv4Addr> dnsAddrs = null;
-        if (subnetConfig.getDnsServerAddrs() != null) {
-            dnsAddrs = new ArrayList<>();
-            for (IntIPv4 addr : subnetConfig.getDnsServerAddrs()) {
-                dnsAddrs.add(IntIPv4.toIPv4Addr(addr));
-            }
-        }
-
         return new Subnet()
-                .setDefaultGateway(
-                    IntIPv4.toIPv4Addr(subnetConfig.getDefaultGateway()))
+                .setDefaultGateway(subnetConfig.getDefaultGateway())
                 .setOpt121Routes(opt121s)
-                .setServerAddr(
-                    IntIPv4.toIPv4Addr(subnetConfig.getServerAddr()))
-                .setDnsServerAddrs(dnsAddrs)
+                .setServerAddr(subnetConfig.getServerAddr())
+                .setDnsServerAddrs(subnetConfig.getDnsServerAddrs())
                 .setInterfaceMTU(subnetConfig.getInterfaceMTU())
-                .setSubnetAddr(
-                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr()))
+                .setSubnetAddr(subnetConfig.getSubnetAddr())
                 .setEnabled(subnetConfig.isEnabled());
     }
 
-    public static BridgeDhcpZkManager.Opt121 toDhcpOpt121Config(
-            Opt121 opt121) {
-        return new BridgeDhcpZkManager.Opt121(
-                    IntIPv4.fromIPv4Subnet(opt121.getRtDstSubnet()),
-                    IntIPv4.fromIPv4Addr(opt121.getGateway()));
+    public static BridgeDhcpZkManager.Opt121 toDhcpOpt121Config(Opt121 opt121) {
+        return new BridgeDhcpZkManager.Opt121(opt121.getRtDstSubnet(),
+                                              opt121.getGateway());
     }
 
     public static Opt121 fromDhcpOpt121Config(BridgeDhcpZkManager.Opt121
                                               opt121Config) {
-        return new Opt121()
-                .setGateway(IntIPv4.toIPv4Addr(opt121Config.getGateway()))
-                .setRtDstSubnet(IntIPv4.toIPv4Subnet(opt121Config.getRtDstSubnet()));
+        return new Opt121().setGateway(opt121Config.getGateway())
+                           .setRtDstSubnet(opt121Config.getRtDstSubnet());
     }
 
     public static BridgeDhcpV6ZkManager.Host toDhcpV6HostConfig(
