@@ -18,7 +18,7 @@ public class DtoPoolMember {
     private UUID poolId;
     private String address;
     private int protocolPort;
-    private int weight;
+    private int weight = 1;
     private boolean adminStateUp = true;
     private LBStatus status = LBStatus.ACTIVE;
 
