@@ -207,7 +207,9 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
     private def addTranslatedFlow(wildFlow: WildcardFlow,
                                   tags: ROSet[Any],
                                   removalCallbacks: Seq[Callback0]) {
-        if (areTagsValid(tags))
+        if (packet.getReason == Packet.Reason.FlowActionUserspace)
+            runCallbacks(removalCallbacks)
+        else if (areTagsValid(tags))
             handleValidFlow(wildFlow, tags, removalCallbacks)
         else
             handleObsoleteFlow(wildFlow, removalCallbacks)
