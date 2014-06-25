@@ -190,48 +190,33 @@ public abstract class AbstractNetlinkConnection {
             timeoutMillis);
     }
 
+    /** Finalizes a ByteBuffer containing a msg payload and puts it in the
+     *  internal queue of messages to be writen to the nl socket by the
+     *  writing thread. */
     protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
-                                          int messageFlags,
+                                          int flags,
                                           ByteBuffer payload,
                                           Callback<T> callback,
                                           Function<List<ByteBuffer>, T> translator,
                                           final long timeoutMillis) {
-        final short flags = (short) messageFlags;
-        final short cmdFamily = ctx.commandFamily();
-        final byte cmd = ctx.command();
-        final byte version = ctx.version();
+        serializeNetlinkHeader(payload, (short) flags, ctx);
 
-        final int totalSize = payload.limit();
+        enqueueRequest(NetlinkRequest.make(callback, translator,
+                                           payload, timeoutMillis));
+    }
 
-        final ByteBuffer headerBuf = payload.duplicate();
-        headerBuf.rewind();
-        headerBuf.order(ByteOrder.nativeOrder());
-        serializeNetlinkHeader(headerBuf, cmdFamily, version, cmd, flags);
-
-        // set the header length
-        headerBuf.putInt(0, totalSize);
-
-        NetlinkRequest netlinkRequest =
-            NetlinkRequest.make(callback, translator, payload, timeoutMillis);
-
+    private void enqueueRequest(NetlinkRequest req) {
         if (bypassSendQueue) {
             // If this stops being used only for testing, beware
             // of the un-synchronized write to sequenceNumber.
-            processWriteToChannel(netlinkRequest);
-        } else if (!writeQueue.offer(netlinkRequest)) {
-            requestPool.release(payload);
-            abortRequestQueueIsFull(netlinkRequest);
+            processWriteToChannel(req);
+        } else if (!writeQueue.offer(req)) {
+            abortRequestQueueIsFull(req);
         }
     }
 
     private int pid() {
         return getChannel().getLocalAddress().getPid();
-    }
-
-    private void pendRequest(NetlinkRequest req, int seq) {
-        if (req.hasCallback()) {
-            pendingRequests.put(seq, req);
-        }
     }
 
     private int nextSequenceNumber() {
@@ -240,6 +225,7 @@ public abstract class AbstractNetlinkConnection {
     }
 
     private void abortRequestQueueIsFull(NetlinkRequest req) {
+        requestPool.release(req.releaseRequestPayload());
         String msg = "Too many pending netlink requests";
         if (req.hasCallback()) {
             /* Run the callback directly, because this runs out of the client's
@@ -321,7 +307,10 @@ public abstract class AbstractNetlinkConnection {
             return 0;
 
         int seq = writeSeqToNetlinkRequest(request, outBuf);
-        pendRequest(request, seq);
+        if (request.hasCallback()) {
+            pendingRequests.put(seq, request);
+        }
+
         log.trace("[pid:{}] Sending message for id {}", pid(), seq);
 
         int bytes = 0;
@@ -508,25 +497,30 @@ public abstract class AbstractNetlinkConnection {
     protected abstract void handleNotification(short type, byte cmd, int seq,
                                                int pid, ByteBuffer buffer);
 
-    private int serializeNetlinkHeader(ByteBuffer request,
-                                       short family, byte version, byte cmd,
-                                       short flags) {
+    /** Finalizes a ByteBuffer containing a msg payload with the header
+     *  sections, except for the sequence number, which is set by the writing
+     *  thread. It is assumed that the buffer was obtained with getBuffer() and
+     *  has enough space for the header sections at its beginning. If this is
+     *  not the case, the payload message will get overwritten or misaligned. */
+    private void serializeNetlinkHeader(ByteBuffer request, short flags,
+                                        NetlinkRequestContext ctx) {
+        int size = request.limit();             // payload + headers size
 
-        int startPos = request.position();
+        request.rewind(); // rewind for writing the header sections
 
-        // put netlink header
-        request.position(4);                    // nlmsg_len
-        request.putShort(family);               // nlmsg_type
+        // netlink header section
+        request.putInt(size);                   // nlmsg_len
+        request.putShort(ctx.commandFamily());  // nlmsg_type
         request.putShort(flags);                // nlmsg_flags
-        request.position(seqPosition() + 4);    // nlmsg_seq
+        request.position(seqPosition() + 4);    // skip nlmsg_seq
         request.putInt(pid());                  // nlmsg_pid
 
-        // put genl header
-        request.put(cmd);               // cmd
-        request.put(version);           // version
-        request.putShort((short) 0);    // reserved
+        // generic netlink (genl) header section
+        request.put(ctx.command());             // cmd
+        request.put(ctx.version());             // version
+        request.putShort((short) 0);            // reserved
 
-        return request.position() - startPos;
+        request.rewind(); // rewind for writing to the channel
     }
 
     private int writeSeqToNetlinkRequest(NetlinkRequest request, ByteBuffer out) {
@@ -677,6 +671,9 @@ public abstract class AbstractNetlinkConnection {
             }
     };
 
+    /** Obtains a send buffer from the internal buffer pool and offset the
+     *  buffer position to reserve enough space for the netlink and generic
+     *  netlink header sections. */
     protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();
         buf.clear();
