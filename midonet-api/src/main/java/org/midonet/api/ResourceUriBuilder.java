@@ -14,8 +14,8 @@ import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
 public class ResourceUriBuilder {
@@ -160,15 +160,14 @@ public class ResourceUriBuilder {
                 .build();
     }
 
-    public static URI getBridgeDhcp(URI bridgeDhcpsUri, IntIPv4 subnetAddr) {
-        return UriBuilder.fromUri(bridgeDhcpsUri).path(subnetAddr.toString())
+    public static URI getBridgeDhcp(URI bridgeDhcpsUri, IPv4Subnet subnetAddr) {
+        return UriBuilder.fromUri(bridgeDhcpsUri).path(subnetAddr.toZkString())
                 .build();
     }
 
     public static URI getBridgeDhcp(URI baseUri, UUID bridgeId,
-            IntIPv4 subnetAddr) {
-        URI dhcpsUri = getBridgeDhcps(baseUri, bridgeId);
-        return getBridgeDhcp(dhcpsUri, subnetAddr);
+                                    IPv4Subnet subnetAddr) {
+        return getBridgeDhcp(getBridgeDhcps(baseUri, bridgeId), subnetAddr);
     }
 
     public static URI getDhcpHosts(URI bridgeDhcpUri) {

@@ -6,7 +6,7 @@ package org.midonet.cluster.data.dhcp;
 import java.util.UUID;
 
 import org.midonet.cluster.data.Entity;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
 /**
@@ -14,24 +14,24 @@ import org.midonet.packets.IPv4Subnet;
  */
 public class Opt121 {
 
-    private IntIPv4 rtDstSubnet;
-    private IntIPv4 gateway;
+    private IPv4Subnet rtDstSubnet;
+    private IPv4Addr gateway;
 
-    public IntIPv4 getGateway() {
+    public IPv4Addr getGateway() {
         return gateway;
     }
 
-    public Opt121 setGateway(IPv4Subnet gateway) {
-        this.gateway = IntIPv4.fromIPv4Subnet(gateway);
+    public Opt121 setGateway(IPv4Addr gateway) {
+        this.gateway = gateway;
         return this;
     }
 
-    public IntIPv4 getRtDstSubnet() {
+    public IPv4Subnet getRtDstSubnet() {
         return rtDstSubnet;
     }
 
     public Opt121 setRtDstSubnet(IPv4Subnet rtDstSubnet) {
-        this.rtDstSubnet = IntIPv4.fromIPv4Subnet(rtDstSubnet);
+        this.rtDstSubnet = rtDstSubnet;
         return this;
     }
 

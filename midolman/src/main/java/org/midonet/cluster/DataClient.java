@@ -58,7 +58,6 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
@@ -218,7 +217,7 @@ public interface DataClient {
     void dhcpSubnetsDelete(UUID bridgeId, IPv4Subnet subnetAddr)
         throws StateAccessException;
 
-    @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
+    @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException;
 
     List<Subnet> dhcpSubnetsGetByBridge(UUID bridgeId)

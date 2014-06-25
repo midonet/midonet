@@ -186,7 +186,7 @@ class DhcpTestCase extends MidolmanTestCase
 
         // First subnet is routerIp2's
         var opt121Obj = (new Opt121()
-                        .setGateway(routerIp2)
+                        .setGateway(routerIp2.getAddress)
                         // TODO (galo) after talking with Abel we suspect that
                         // this below should be routerIp1, not 2. It may be
                         // irrelevant for the test, but we should confirm
@@ -198,20 +198,20 @@ class DhcpTestCase extends MidolmanTestCase
                                           IPv4Addr.fromString("192.168.77.120"))
         val dhcpSubnet1 = (new Subnet()
                       .setSubnetAddr(routerIp2)
-                      .setDefaultGateway(routerIp2)
-                      .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
+                      .setDefaultGateway(routerIp2.getAddress)
+                      .setDnsServerAddrs(dnsSrvAddrs)
                       .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet1)
 
         // Second subnet is routerIp2's
         opt121Obj = (new Opt121()
-            .setGateway(routerIp3)
+            .setGateway(routerIp3.getAddress)
             .setRtDstSubnet(routerIp3))
         opt121Routes = List(opt121Obj)
         val dhcpSubnet2 = (new Subnet()
             .setSubnetAddr(routerIp3)
-            .setDefaultGateway(routerIp3)
-            .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
+            .setDefaultGateway(routerIp3.getAddress)
+            .setDnsServerAddrs(dnsSrvAddrs)
             .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet2)
 

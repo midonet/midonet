@@ -163,6 +163,10 @@ public class IntIPv4 implements Cloneable {
         return intIp == null ? null : new IPv4Addr(intIp.getAddress());
     }
 
+    public static IntIPv4 fromIPv4Addr(IPv4Addr ip) {
+        return ip == null ? null : ip.toIntIPv4();
+    }
+
      /**
         * Convert this object to its String representation.
         *
