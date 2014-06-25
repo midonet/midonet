@@ -19,9 +19,7 @@ public class FlowActionPopVLAN implements FlowAction {
         return 0;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        return true;
+    public void deserializeFrom(ByteBuffer buf) {
     }
 
     public short attrId() {

@@ -37,7 +37,7 @@ public class FlowKeyEtherType implements CachedFlowKey {
          */
         ETH_P_8021Q(0x8100);
 
-        int value;
+        public final int value;
         Type(int value) { this.value = value; }
     }
 

@@ -27,6 +27,6 @@ object VirtualActions {
     trait VirtualFlowAction extends FlowAction {
         def attrId = 0
         def serializeInto(buf: ByteBuffer) = 0
-        def deserialize(buf: ByteBuffer) = false
+        def deserializeFrom(buf: ByteBuffer) { }
     }
 }

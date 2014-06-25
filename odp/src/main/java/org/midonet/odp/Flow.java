@@ -104,7 +104,8 @@ public class Flow {
         flow.setStats(FlowStats.buildFrom(buf));
         flow.setTcpFlags(NetlinkMessage.getAttrValueByte(buf, Attr.TCPFlags));
         flow.setLastUsedTime(NetlinkMessage.getAttrValueLong(buf, Attr.Used));
-        flow.setActions(FlowActions.buildFrom(buf));
+        flow.setActions(NetlinkMessage.readAttr(buf, Attr.Actions,
+                                                FlowActions.reader));
         flow.setMatch(NetlinkMessage.readAttr(buf, Attr.Key, FlowMatch.reader));
         return flow;
     }
@@ -224,7 +225,7 @@ public class Flow {
         // actions nested attribute header needs to be written otherwise the
         // datapath will answer back with EINVAL
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions,
-                                    FlowAction.actionWriter);
+                                    FlowActions.writer);
 
         buf.flip();
         return buf;

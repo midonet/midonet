@@ -36,15 +36,9 @@ public class FlowActionPushVLAN implements FlowAction {
         return 4;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            vlan_tpid = BytesUtil.instance.reverseBE(buf.getShort());
-            vlan_tci = BytesUtil.instance.reverseBE(buf.getShort());
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        vlan_tpid = BytesUtil.instance.reverseBE(buf.getShort());
+        vlan_tci = BytesUtil.instance.reverseBE(buf.getShort());
     }
 
     public short attrId() {

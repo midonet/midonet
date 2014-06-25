@@ -5,7 +5,6 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowActionOutput implements FlowAction {
@@ -25,14 +24,8 @@ public class FlowActionOutput implements FlowAction {
         return 4;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            portNumber = buf.getInt();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        portNumber = buf.getInt();
     }
 
     public short attrId() {
@@ -48,9 +41,10 @@ public class FlowActionOutput implements FlowAction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowActionOutput that = (FlowActionOutput) o;
 
-        return portNumber == that.portNumber;
+        return this.portNumber == that.portNumber;
     }
 
     @Override
