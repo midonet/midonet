@@ -10,8 +10,8 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
-import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 
 import java.io.UnsupportedEncodingException;
@@ -512,13 +512,13 @@ public class ZkPathManager {
      * @param bridgeId Bridge UUID
      * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen
      */
-    public String getBridgeDhcpSubnetPath(UUID bridgeId, IntIPv4 subnetAddr) {
+    public String getBridgeDhcpSubnetPath(UUID bridgeId, IPv4Subnet subnetAddr) {
         return buildBridgeDhcpSubnetPath(bridgeId, subnetAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpSubnetPath(UUID bridgeId, IntIPv4 subnetAddr) {
+    private StringBuilder buildBridgeDhcpSubnetPath(UUID bridgeId, IPv4Subnet subnetAddr) {
         return buildBridgeDhcpPath(bridgeId).append("/")
-            .append(subnetAddr.toString());
+            .append(subnetAddr.toZkString());
     }
 
     /**
@@ -527,11 +527,11 @@ public class ZkPathManager {
      * @param bridgeId Bridge UUID
      * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen/hosts
      */
-    public String getBridgeDhcpHostsPath(UUID bridgeId, IntIPv4 subnetAddr) {
+    public String getBridgeDhcpHostsPath(UUID bridgeId, IPv4Subnet subnetAddr) {
         return buildBridgeDhcpHostsPath(bridgeId, subnetAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpHostsPath(UUID bridgeId, IntIPv4 subnetAddr) {
+    private StringBuilder buildBridgeDhcpHostsPath(UUID bridgeId, IPv4Subnet subnetAddr) {
         return new StringBuilder(getBridgeDhcpSubnetPath(bridgeId, subnetAddr))
             .append("/hosts");
     }
@@ -542,13 +542,13 @@ public class ZkPathManager {
      * @param bridgeId Bridge UUID
      * @return /bridges/bridgeId/dhcp/subnetAddr:maskLen/hosts/mac
      */
-    public String getBridgeDhcpHostPath(UUID bridgeId, IntIPv4 subnetAddr,
+    public String getBridgeDhcpHostPath(UUID bridgeId, IPv4Subnet subnetAddr,
                                         MAC macAddr) {
         return buildBridgeDhcpHostPath(bridgeId, subnetAddr,
                                        macAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpHostPath(UUID bridgeId, IntIPv4 subnetAddr, MAC macAddr) {
+    private StringBuilder buildBridgeDhcpHostPath(UUID bridgeId, IPv4Subnet subnetAddr, MAC macAddr) {
         return new StringBuilder(getBridgeDhcpHostsPath(bridgeId, subnetAddr))
             .append('/').append(macAddr.toString());
     }

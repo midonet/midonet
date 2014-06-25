@@ -132,7 +132,7 @@ import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Addr$;
+import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
@@ -946,7 +946,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpSubnetsDelete(UUID bridgeId, IntIPv4 subnetAddr)
+    public void dhcpSubnetsDelete(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException {
         dhcpZkManager.deleteSubnet(bridgeId, subnetAddr);
     }
@@ -999,7 +999,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpHostsCreate(
-            UUID bridgeId, IntIPv4 subnet,
+            UUID bridgeId, IPv4Subnet subnet,
             org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException {
 
@@ -1009,7 +1009,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpHostsUpdate(
-            UUID bridgeId, IntIPv4 subnet,
+            UUID bridgeId, IPv4Subnet subnet,
             org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException {
         dhcpZkManager.updateHost(bridgeId, subnet, Converter.toDhcpHostConfig(host));
@@ -1017,7 +1017,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public @CheckForNull org.midonet.cluster.data.dhcp.Host dhcpHostsGet(
-            UUID bridgeId, IntIPv4 subnet, String mac)
+            UUID bridgeId, IPv4Subnet subnet, String mac)
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.dhcp.Host host = null;
@@ -1032,7 +1032,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpHostsDelete(UUID bridgId, IntIPv4 subnet, String mac)
+    public void dhcpHostsDelete(UUID bridgId, IPv4Subnet subnet, String mac)
             throws StateAccessException {
         dhcpZkManager.deleteHost(bridgId, subnet, mac);
     }
@@ -1040,7 +1040,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public
     List<org.midonet.cluster.data.dhcp.Host> dhcpHostsGetBySubnet(
-            UUID bridgeId, IntIPv4 subnet)
+            UUID bridgeId, IPv4Subnet subnet)
             throws StateAccessException, SerializationException {
 
         List<BridgeDhcpZkManager.Host> hostConfigs =
@@ -3283,7 +3283,7 @@ public class LocalDataClientImpl implements DataClient {
         if (zkManager.exists(path)) {
             Set<String> vtepIps = zkManager.getChildren(path);
             for (String vtepIp : vtepIps) {
-                VTEP vtep = vtepGet(IPv4Addr$.MODULE$.fromString(vtepIp));
+                VTEP vtep = vtepGet(IPv4Addr.fromString(vtepIp));
                 if (vtep != null) {
                     vteps.add(vtep);
                 }
@@ -3460,7 +3460,7 @@ public class LocalDataClientImpl implements DataClient {
 
         // Delete its bindings in Zookeeper.
         ops.addAll(vtepZkManager.prepareDeleteAllBindings(
-                IPv4Addr$.MODULE$.fromString(portConfig.mgmtIpAddr),
+                IPv4Addr.fromString(portConfig.mgmtIpAddr),
                 portConfig.device_id));
 
         zkManager.multi(ops);
