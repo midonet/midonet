@@ -39,8 +39,8 @@ class FlowTest extends FunSpec with Matchers {
     describe("a List of FlowActions") {
         it("can be serialized in a ByteBuffer and deserialized back from it") {
             actLists foreach {
-                writeReadList(_, FlowAction.actionWriter) { case (buf,id) =>
-                    NetlinkMessage getAttrValue (buf, id, FlowAction.Builder)
+                writeReadList(_, FlowActions.writer) { case (buf,id) =>
+                    NetlinkMessage.readAttr(buf, id, FlowActions.reader)
                 }
             }
         }

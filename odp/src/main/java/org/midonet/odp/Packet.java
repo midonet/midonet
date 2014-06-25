@@ -12,6 +12,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.odp.OpenVSwitch.Packet.Attr;
 import org.midonet.odp.flows.FlowAction;
+import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeys;
 import org.midonet.packets.Ethernet;
@@ -177,7 +178,7 @@ public class Packet implements AttributeHandler {
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
 
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
-                                    actions, FlowAction.actionWriter);
+                                    actions, FlowActions.writer);
 
         NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
 
