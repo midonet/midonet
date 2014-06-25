@@ -132,10 +132,6 @@ public class PoolMemberResource extends AbstractResource {
         poolMember.setStatus(LBStatus.ACTIVE.toString());
         validate(poolMember);
 
-        if (poolMember.getWeight() == 0) {
-            poolMember.setWeight(1);
-        }
-
         try {
             UUID id = dataClient.poolMemberCreate(poolMember.toData());
             poolMemberEvent.create(id, dataClient.poolMemberGet(id));
@@ -160,13 +156,8 @@ public class PoolMemberResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, PoolMember poolMember)
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
-
-        validate(poolMember);
-
         poolMember.setId(id);
-        if (poolMember.getWeight() == 0) {
-            poolMember.setWeight(1);
-        }
+        validate(poolMember);
 
         try {
             // Ignore `address`, `protocolPort` and `status` property
@@ -199,8 +190,9 @@ public class PoolMemberResource extends AbstractResource {
         public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                                       SecurityContext context,
                                       DataClient dataClient,
+                                      Validator validator,
                                       @Assisted UUID id) {
-            super(config, uriInfo, context, dataClient);
+            super(config, uriInfo, context, dataClient, validator);
             this.poolId = id;
         }
 
@@ -240,6 +232,8 @@ public class PoolMemberResource extends AbstractResource {
             poolMember.setPoolId(poolId);
             // `status` defaults to UP and users can't change it through the API.
             poolMember.setStatus(LBStatus.ACTIVE.toString());
+            validate(poolMember);
+
             try {
                 UUID id = dataClient.poolMemberCreate(poolMember.toData());
                 return Response.created(

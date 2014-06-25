@@ -35,13 +35,16 @@ import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 @RunWith(Enclosed.class)
 public class TestPoolMember {
 
-
     public static class TestPoolMemberCrud extends L4LBTestBase {
 
         private DtoLoadBalancer loadBalancer;
         private DtoPool pool;
         private DtoPoolMember member;
         private int poolMemberCounter;
+
+        private static final int WEIGHT_MIN_VALUE = 1;
+        private static final int PROTOCOL_PORT_MIN_VALUE = 0;
+        private static final int PROTOCOL_PORT_MAX_VALUE = 65535;
 
         @Before
         public void setUp() throws Exception {
@@ -190,7 +193,21 @@ public class TestPoolMember {
             member.setWeight(-1);
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "weight", MIN_VALUE, 0);
+            assertErrorMatchesPropMsg(
+                    error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
+
+        }
+
+        @Test
+        public void testCreateWithNegativeWeightUnderPool() {
+            DtoPoolMember member = getStockPoolMember(pool.getId());
+            member.setWeight(-1);
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    pool.getPoolMembers(),
+                    APPLICATION_POOL_MEMBER_JSON,
+                    member);
+            assertErrorMatchesPropMsg(
+                    error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
         }
 
         @Test
@@ -210,7 +227,8 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "protocolPort", MIN_VALUE, 0);
+            assertErrorMatchesPropMsg(
+                    error, "protocolPort", MIN_VALUE, PROTOCOL_PORT_MIN_VALUE);
         }
 
         @Test
@@ -220,7 +238,8 @@ public class TestPoolMember {
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     topLevelPoolMembersUri,
                     APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "protocolPort", MAX_VALUE, 65535);
+            assertErrorMatchesPropMsg(
+                    error, "protocolPort", MAX_VALUE, PROTOCOL_PORT_MAX_VALUE);
         }
 
         @Test
@@ -247,7 +266,8 @@ public class TestPoolMember {
             member.setPoolId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+            assertErrorMatches(
+                    error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
         }
 
         @Test
@@ -255,13 +275,13 @@ public class TestPoolMember {
             member.setWeight(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "weight", MIN_VALUE, 0);
+            assertErrorMatchesPropMsg(
+                    error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
         }
 
         @Test
         public void testUpdateWeight() {
             DtoPoolMember member = getStockPoolMember(pool.getId());
-            member.setWeight(0); // Should default to 1.
             member = postPoolMember(member);
             assertEquals(1, member.getWeight());
 
@@ -270,12 +290,26 @@ public class TestPoolMember {
             updatePoolMember(member);
             member = getPoolMember(member.getUri());
             assertEquals(5, member.getWeight());
+        }
 
-            // Update with the default (1).
-            member.setWeight(0);
-            updatePoolMember(member);
-            member = getPoolMember(member.getUri());
+        @Test
+        public void testUpdateWeightUnderPool() {
+            DtoPoolMember member = getStockPoolMember(pool.getId());
+            member.setWeight(1); // Should default to 1.
+            member = postPoolMember(pool.getPoolMembers(), member);
             assertEquals(1, member.getWeight());
+        }
+
+        @Test
+        public void testUpdateWithInvalidWeightUnderPool() {
+            DtoPoolMember member = getStockPoolMember(pool.getId());
+            member.setWeight(0); // Should default to 1.
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    pool.getPoolMembers(),
+                    APPLICATION_POOL_MEMBER_JSON,
+                    member);
+            assertErrorMatchesPropMsg(
+                    error, "weight", MIN_VALUE, WEIGHT_MIN_VALUE);
         }
 
         @Test
@@ -291,7 +325,8 @@ public class TestPoolMember {
             member.setProtocolPort(-1);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "protocolPort", MIN_VALUE, 0);
+            assertErrorMatchesPropMsg(
+                    error, "protocolPort", MIN_VALUE, PROTOCOL_PORT_MIN_VALUE);
         }
 
         @Test
@@ -299,7 +334,8 @@ public class TestPoolMember {
             member.setProtocolPort(65536);
             DtoError error = dtoResource.putAndVerifyBadRequest(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
-            assertErrorMatchesPropMsg(error, "protocolPort", MAX_VALUE, 65535);
+            assertErrorMatchesPropMsg(
+                    error, "protocolPort", MAX_VALUE, PROTOCOL_PORT_MAX_VALUE);
         }
 
         @Test

@@ -277,6 +277,13 @@ public class L4LBTestBase extends RestApiTestBase {
                 poolMember, DtoPoolMember.class);
     }
 
+    protected DtoPoolMember postPoolMember(URI poolMembersUri,
+                                           DtoPoolMember poolMember) {
+        return dtoResource.postAndVerifyCreated(poolMembersUri,
+                APPLICATION_POOL_MEMBER_JSON,
+                poolMember, DtoPoolMember.class);
+    }
+
     protected DtoPoolMember updatePoolMember(DtoPoolMember poolMember) {
         return dtoResource.putAndVerifyNoContent(poolMember.getUri(),
                 APPLICATION_POOL_MEMBER_JSON,
@@ -301,7 +308,6 @@ public class L4LBTestBase extends RestApiTestBase {
         poolMember.setAddress("10.0.0.1");
         poolMember.setPoolId(poolId);
         poolMember.setProtocolPort(80);
-        poolMember.setWeight(100);
         poolMember.setAdminStateUp(true);
         return poolMember;
     }
