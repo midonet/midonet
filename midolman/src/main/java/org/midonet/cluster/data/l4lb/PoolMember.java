@@ -10,7 +10,7 @@ import org.midonet.midolman.state.l4lb.LBStatus;
 import java.net.URI;
 import java.util.UUID;
 
-public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
+public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember> {
 
     public PoolMember() {
         this(null, new Data());
@@ -104,7 +104,7 @@ public class PoolMember extends Entity.Base<UUID, PoolMember.Data, PoolMember>{
         private UUID poolId;
         private String address;
         private int protocolPort;
-        private int weight;
+        private int weight = 1;
         private boolean adminStateUp = true;
         private LBStatus status;
         private URI pool;
