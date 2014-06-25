@@ -330,7 +330,7 @@ trait VirtualConfigurationBuilders {
     def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
                     host : org.midonet.cluster.data.dhcp.Host) = {
         clusterDataClient().dhcpHostsCreate(bridge.getId,
-                                            subnet.getSubnetAddr, host)
+                                            subnet.getSubnetAddr.toIPv4Subnet, host)
     }
 
     def addDhcpSubnet6(bridge : ClusterBridge,

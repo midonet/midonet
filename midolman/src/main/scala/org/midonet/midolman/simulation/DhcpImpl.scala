@@ -74,7 +74,7 @@ class DhcpImpl(val dataClient: DataClient,
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
                 host = dataClient.dhcpHostsGet(port.deviceID,
-                                               sub.getSubnetAddr,
+                                               sub.getSubnetAddr.toIPv4Subnet,
                                                sourceMac.toString)
                 (host != null) && (host.getIp != null)
             } else {
