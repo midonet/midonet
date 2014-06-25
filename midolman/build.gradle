@@ -18,6 +18,10 @@ sourceSets {
         scala { srcDirs = ['src/test/scala', 'src/test/java'] }
         java { srcDirs = [] }
     }
+    perf {
+        scala { srcDirs = ['src/perf/scala', 'sr/perf/java'] }
+        java { srcDirs = [] }
+    }
 }
 
 dependencies {
