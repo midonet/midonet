@@ -6,11 +6,14 @@ package org.midonet.api.servlet;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.license.LicenseService;
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -53,6 +56,7 @@ public class JerseyGuiceServletContextListener extends
         // TODO: Once the cluster work is completed, RestApiService may not be
         // needed since currently it only initializes the ZK root directories.
         injector.getInstance(RestApiService.class).startAndWait();
+        injector.getInstance(LicenseService.class).startAndWait();
         if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
             log.info("initializeApplication: starting VxLAN gateway");
             injector.getInstance(VxLanGatewayService.class).startAndWait();
@@ -65,6 +69,8 @@ public class JerseyGuiceServletContextListener extends
 
     protected void destroyApplication() {
         log.debug("destroyApplication: entered");
+
+        injector.getInstance(LicenseService.class).stopAndWait();
 
         // TODO: Check if we need to do this after the cluster work is
         // completed.

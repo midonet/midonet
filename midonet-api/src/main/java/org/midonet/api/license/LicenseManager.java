@@ -48,8 +48,6 @@ public final class LicenseManager {
         this.dataClient = dataClient;
         currentLicenses = new ConcurrentHashMap<>();
         freeLicenses = new ConcurrentLinkedQueue<>();
-        // Load the licenses.
-        load();
     }
 
     /**
@@ -97,8 +95,7 @@ public final class LicenseManager {
     public List<License> list() throws LicenseManagementException {
         final List<License> list = new ArrayList<License>(currentLicenses.size());
         for (LicenseInstance instance : currentLicenses.values()) {
-            list.add(new License(instance.getManager().view(),
-                                 instance.isValid()));
+            list.add(new License(instance.view(), instance.isValid()));
         }
         return list;
     }
@@ -111,8 +108,7 @@ public final class LicenseManager {
     public License get(UUID id) throws LicenseManagementException {
         LicenseInstance instance = currentLicenses.get(id);
 
-        return new License(instance.getManager().view(),
-                           instance.isValid());
+        return new License(instance.view(), instance.isValid());
     }
 
     /**
@@ -134,7 +130,7 @@ public final class LicenseManager {
         try {
             if (null != instance) {
                 License license = get(instance);
-                instance.getManager().uninstall();
+                instance.uninstall();
                 log.info("The license {} was deleted from the license manager.",
                          id);
                 return license;
@@ -166,7 +162,7 @@ public final class LicenseManager {
         for (LicenseInstance instance : currentLicenses.values()) {
             try {
                 LicenseInformation info = LicenseInformation.parse(
-                    instance.getManager().view());
+                    instance.view());
                 bestLicense = bestLicense != null ?
                     bestLicense.getAgentQuota() < info.getAgentQuota() ?
                         info : bestLicense : info;
@@ -190,14 +186,13 @@ public final class LicenseManager {
      */
     private License get(LicenseInstance instance)
         throws LicenseManagementException {
-        return new License(instance.getManager().view(),
-                           instance.isValid());
+        return new License(instance.view(), instance.isValid());
     }
 
     /**
      * Loads the current licenses from the data client.
      */
-    private void load() {
+    public void load() {
         try {
             Collection<UUID> licenseList = dataClient.licenseList();
 
@@ -222,6 +217,23 @@ public final class LicenseManager {
     }
 
     /**
+     * Saves all current licenses to the data client.
+     */
+    public void save() {
+        for (Map.Entry<UUID, LicenseInstance> entry : currentLicenses.entrySet()) {
+            try {
+                dataClient.licenseCreate(entry.getKey(),
+                                         entry.getValue().getData());
+                log.info("The license {} saved successfully in the data store",
+                         entry.getKey());
+            } catch (final StateAccessException ex) {
+                log.error("Saving the license {} to the data store failed. {}",
+                          entry.getKey(), ex.getMessage());
+            }
+        }
+    }
+
+    /**
      * Installs a license internally in the license manager, without affecting
      * the persistent data store.
      * @param data The license binary data.
@@ -240,11 +252,7 @@ public final class LicenseManager {
             log.debug("Installing a MidoNet license from {} bytes of data.",
                       data);
 
-            MemoryStore store = new MemoryStore(data.length);
-            store.data(data);
-
-            net.java.truelicense.core.License license =
-                instance.getManager().install(store);
+            net.java.truelicense.core.License license = instance.install(data);
 
             try {
 
@@ -271,7 +279,7 @@ public final class LicenseManager {
 
                 return info;
             } catch (final LicenseManagementException ex) {
-                instance.getManager().uninstall();
+                instance.uninstall();
                 log.warn("License installation was successful, but another " +
                              "error occurred. {}", ex.getMessage());
                 throw ex;
