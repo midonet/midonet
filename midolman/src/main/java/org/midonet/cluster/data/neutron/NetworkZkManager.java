@@ -170,7 +170,16 @@ public class NetworkZkManager extends BaseZkManager {
 
         if (subnet.isIpv4()) {
             BridgeDhcpZkManager.Subnet config =
-                    new BridgeDhcpZkManager.Subnet(subnet);
+                new BridgeDhcpZkManager.Subnet(subnet);
+            BridgeDhcpZkManager.Subnet oldConfig =
+                dhcpZkManager.getSubnet(subnet.networkId,
+                    config.getSubnetAddr());
+            // We need to update the fields that are serialized but are not
+            // set when converting from a neutron Subnet (ie. fields that are
+            // populated when creating a dhcp port rather than the subnet
+            // itself)
+            config.setOpt121Routes(oldConfig.getOpt121Routes());
+            config.setServerAddr(oldConfig.getServerAddr());
             dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, config);
         } else if (subnet.isIpv6()) {
             BridgeDhcpV6ZkManager.Subnet6 config =
