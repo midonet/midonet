@@ -131,7 +131,7 @@ public class FlowMatches {
         }
     }
 
-    public static void addUserspaceKeys (Ethernet ethPkt, FlowMatch match) {
+    public static void addUserspaceKeys(Ethernet ethPkt, FlowMatch match) {
         List<FlowKey> keys = match.getKeys();
         for (int i = 0; i < keys.size(); ++i) {
             if (keys.get(i) instanceof FlowKeyICMP) {

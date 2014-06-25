@@ -22,6 +22,7 @@ public class FlowKeyEthernet implements CachedFlowKey {
     FlowKeyEthernet(byte[] src, byte[] dst) {
         eth_src = src;
         eth_dst = dst;
+        computeHashCode();
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -33,7 +34,7 @@ public class FlowKeyEthernet implements CachedFlowKey {
     public void deserializeFrom(ByteBuffer buf) {
         buf.get(eth_src);
         buf.get(eth_dst);
-        hashCode = 0;
+        computeHashCode();
     }
 
     public short attrId() {
@@ -53,31 +54,27 @@ public class FlowKeyEthernet implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyEthernet that = (FlowKeyEthernet) o;
 
-        if (!Arrays.equals(eth_dst, that.eth_dst)) return false;
-        if (!Arrays.equals(eth_src, that.eth_src)) return false;
-
-        return true;
+        return Arrays.equals(eth_dst, that.eth_dst)
+            && Arrays.equals(eth_src, that.eth_src);
     }
 
     @Override
     public int hashCode() {
-        if (hashCode == 0) {
-            int result = eth_src != null ? Arrays.hashCode(eth_src) : 0;
-            result = 31 * result + (eth_dst != null ? Arrays.hashCode(eth_dst) : 0);
-            hashCode = result;
-        }
         return hashCode;
+    }
+
+    private void computeHashCode() {
+        hashCode = 31 * Arrays.hashCode(eth_src) + Arrays.hashCode(eth_dst);
     }
 
     @Override
     public String toString() {
         return "FlowKeyEthernet{" +
-            "eth_src=" +
-                (eth_src == null ? "null" : MAC.bytesToString(eth_src)) +
-            ", eth_dst=" +
-                (eth_dst == null ? "null" : MAC.bytesToString(eth_dst)) +
+            "eth_src=" + MAC.bytesToString(eth_src) +
+            ", eth_dst=" + MAC.bytesToString(eth_dst) +
             '}';
     }
 }

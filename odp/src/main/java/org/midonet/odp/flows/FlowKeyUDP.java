@@ -11,6 +11,7 @@ import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyUDP implements FlowKey {
+
     /*__be16*/ private int udp_src;
     /*__be16*/ private int udp_dst;
 
