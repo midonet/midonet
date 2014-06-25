@@ -40,11 +40,10 @@ public class FlowKeyInPort implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyInPort that = (FlowKeyInPort) o;
 
-        if (portNo != that.portNo) return false;
-
-        return true;
+        return this.portNo == that.portNo;
     }
 
     @Override

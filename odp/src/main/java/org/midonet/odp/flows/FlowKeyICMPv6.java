@@ -10,6 +10,7 @@ import org.midonet.odp.OpenVSwitch;
 import static org.midonet.packets.Unsigned.unsign;
 
 public class FlowKeyICMPv6 implements FlowKey {
+
     /*__u8*/ private byte icmpv6_type;
     /*__u8*/ private byte icmpv6_code;
 
@@ -49,19 +50,16 @@ public class FlowKeyICMPv6 implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyICMPv6 that = (FlowKeyICMPv6) o;
 
-        if (icmpv6_code != that.icmpv6_code) return false;
-        if (icmpv6_type != that.icmpv6_type) return false;
-
-        return true;
+        return (icmpv6_code == that.icmpv6_code)
+            && (icmpv6_type == that.icmpv6_type);
     }
 
     @Override
     public int hashCode() {
-        int result = (int) icmpv6_type;
-        result = 31 * result + (int) icmpv6_code;
-        return result;
+        return 31 * ((int)icmpv6_type) + (int) icmpv6_code;
     }
 
     @Override

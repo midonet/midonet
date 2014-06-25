@@ -5,6 +5,8 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
+import com.google.common.primitives.Longs;
+
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BytesUtil;
 import org.midonet.netlink.NetlinkMessage;
@@ -25,13 +27,12 @@ public class FlowKeyTunnel implements CachedFlowKey,
     /* u8 */    private byte ipv4_ttl;
 
     private int hashCode = 0;
+    private byte usedFields;
 
     // same size as the tun_flags
     public static final short OVS_TNL_F_DONT_FRAGMENT = 1 << 0;
     public static final short OVS_TNL_F_CSUM = 1 << 1;
     public static final short OVS_TNL_F_KEY = 1 << 2;
-
-    private byte usedFields;
 
     private static final byte TUN_ID_MASK   = 1 << 0;
     private static final byte IPV4_SRC_MASK = 1 << 1;
@@ -63,6 +64,7 @@ public class FlowKeyTunnel implements CachedFlowKey,
         ipv4_dst = ipv4DstAddr;
         ipv4_ttl = ttl;
         usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
+        computeHashCode();
     }
 
     public short attrId() {
@@ -120,6 +122,7 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     public void deserializeFrom(ByteBuffer buf) {
         NetlinkMessage.scanAttributes(buf, this);
+        computeHashCode();
     }
 
     public void use(ByteBuffer buf, short id) {
@@ -165,6 +168,7 @@ public class FlowKeyTunnel implements CachedFlowKey,
         ipv4_dst = FlowKeys.rand.nextInt();
         ipv4_ttl = (byte)-1;
         usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
+        computeHashCode();
     }
 
     public long getTunnelID() {
@@ -209,16 +213,16 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     @Override
     public int hashCode() {
-        if (hashCode == 0) {
-            int result = (int)tun_id;
-            result = 31 * result + ipv4_src;
-            result = 31 * result + ipv4_dst;
-            result = 31 * result + tun_flags;
-            result = 31 * result + ipv4_tos;
-            result = 31 * result + ipv4_ttl;
-            hashCode = result;
-        }
         return hashCode;
+    }
+
+    private void computeHashCode() {
+        hashCode = Longs.hashCode(tun_id);
+        hashCode = 31 * hashCode + ipv4_src;
+        hashCode = 31 * hashCode + ipv4_dst;
+        hashCode = 31 * hashCode + tun_flags;
+        hashCode = 31 * hashCode + ipv4_tos;
+        hashCode = 31 * hashCode + ipv4_ttl;
     }
 
     @Override
