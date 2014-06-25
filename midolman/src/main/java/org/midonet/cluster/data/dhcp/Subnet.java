@@ -6,7 +6,7 @@ package org.midonet.cluster.data.dhcp;
 import java.util.List;
 
 import org.midonet.cluster.data.Entity;
-import org.midonet.packets.IntIPv4;
+import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
 /**
@@ -27,39 +27,39 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
         return this;
     }
 
-    public IntIPv4 getSubnetAddr() {
+    public IPv4Subnet getSubnetAddr() {
         return getData().subnetAddr;
     }
 
     public Subnet setSubnetAddr(IPv4Subnet subnetAddr) {
-        getData().subnetAddr = IntIPv4.fromIPv4Subnet(subnetAddr);
+        getData().subnetAddr = subnetAddr;
         return self();
     }
 
-    public IntIPv4 getServerAddr() {
+    public IPv4Addr getServerAddr() {
         return getData().serverAddr;
     }
 
-    public Subnet setServerAddr(IntIPv4 serverAddr) {
+    public Subnet setServerAddr(IPv4Addr serverAddr) {
         getData().serverAddr = serverAddr;
         return self();
     }
 
-    public List<IntIPv4> getDnsServerAddrs() {
+    public List<IPv4Addr> getDnsServerAddrs() {
         return getData().dnsServerAddrs;
     }
 
-    public Subnet setDnsServerAddrs(List<IntIPv4> dnsServerAddrs) {
+    public Subnet setDnsServerAddrs(List<IPv4Addr> dnsServerAddrs) {
         getData().dnsServerAddrs = dnsServerAddrs;
         return self();
     }
 
-    public IntIPv4 getDefaultGateway() {
+    public IPv4Addr getDefaultGateway() {
         return getData().defaultGateway;
     }
 
-    public Subnet setDefaultGateway(IPv4Subnet defaultGateway) {
-        getData().defaultGateway = IntIPv4.fromIPv4Subnet(defaultGateway);
+    public Subnet setDefaultGateway(IPv4Addr defaultGateway) {
+        getData().defaultGateway = defaultGateway;
         return self();
     }
 
@@ -97,12 +97,12 @@ public class Subnet extends Entity.Base<String, Subnet.Data, Subnet> {
 
     public static class Data {
 
-        public IntIPv4 subnetAddr;
-        public IntIPv4 serverAddr;
-        public IntIPv4 defaultGateway;
+        public IPv4Subnet subnetAddr;
+        public IPv4Addr serverAddr;
+        public IPv4Addr defaultGateway;
         short interfaceMTU;
         public List<Opt121> opt121Routes;
-        public List<IntIPv4> dnsServerAddrs;
+        public List<IPv4Addr> dnsServerAddrs;
         public Boolean enabled;
 
         @Override

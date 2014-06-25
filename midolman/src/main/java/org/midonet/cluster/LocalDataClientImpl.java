@@ -952,7 +952,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IntIPv4 subnetAddr)
+    public @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
 
         Subnet subnet = null;
@@ -961,7 +961,7 @@ public class LocalDataClientImpl implements DataClient {
                 dhcpZkManager.getSubnet(bridgeId, subnetAddr);
 
             subnet = Converter.fromDhcpSubnetConfig(subnetConfig);
-            subnet.setId(subnetAddr.toString());
+            subnet.setId(subnetAddr.toZkString());
         }
 
         return subnet;
@@ -971,11 +971,11 @@ public class LocalDataClientImpl implements DataClient {
     public List<Subnet> dhcpSubnetsGetByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
-        List<IntIPv4> subnetConfigs = dhcpZkManager.listSubnets(bridgeId);
-        List<Subnet> subnets = new ArrayList<Subnet>(subnetConfigs.size());
+        List<IPv4Subnet> subnetConfigs = dhcpZkManager.listSubnets(bridgeId);
+        List<Subnet> subnets = new ArrayList<>(subnetConfigs.size());
 
-        for (IntIPv4 subnetConfig : subnetConfigs) {
-            subnets.add(dhcpSubnetsGet(bridgeId, subnetConfig));
+        for (IPv4Subnet subnetAddr : subnetConfigs) {
+            subnets.add(dhcpSubnetsGet(bridgeId, subnetAddr));
         }
 
         return subnets;
@@ -991,7 +991,7 @@ public class LocalDataClientImpl implements DataClient {
 
         for (BridgeDhcpZkManager.Subnet subnetConfig : subnetConfigs) {
             subnets.add(dhcpSubnetsGet(bridgeId,
-                    subnetConfig.getSubnetAddr()));
+                    IntIPv4.toIPv4Subnet(subnetConfig.getSubnetAddr())));
         }
 
         return subnets;

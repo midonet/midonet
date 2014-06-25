@@ -112,13 +112,13 @@ class PingTestCase extends MidolmanTestCase
         // DHCP related setup
         // set up Option 121
         var opt121Obj = (new Opt121()
-                       .setGateway(routerIp2)
+                       .setGateway(routerIp2.getAddress)
                        .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         // set DHCP subnet
         var dhcpSubnet = (new Subnet()
                        .setSubnetAddr(routerIp2)
-                       .setDefaultGateway(routerIp2)
+                       .setDefaultGateway(routerIp2.getAddress)
                        .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
         // set DHCP host

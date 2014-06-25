@@ -289,9 +289,6 @@ public class TestDHCP extends JerseyTest {
                 new DtoDhcpOption121("172.31.1.0", 24, "172.0.0.253"));
         subnet1.getOpt121Routes().add(
                 new DtoDhcpOption121("172.31.2.0", 24, "172.0.0.253"));
-System.out.println("\nFOO\n");
-System.out.println(subnet1);
-System.out.println("\nFOO\n");
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
@@ -299,9 +296,6 @@ System.out.println("\nFOO\n");
         DtoDhcpSubnet subnet2 = resource().uri(response.getLocation())
                 .accept(APPLICATION_DHCP_SUBNET_JSON)
                 .get(DtoDhcpSubnet.class);
-System.out.println("\nFOO\n");
-System.out.println(subnet2);
-System.out.println("\nFOO\n");
 
         // Copy the URIs from the GET to the DTO we used for create.
         subnet1.setHosts(subnet2.getHosts());

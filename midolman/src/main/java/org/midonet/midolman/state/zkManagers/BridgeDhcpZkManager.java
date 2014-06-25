@@ -357,18 +357,16 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         zk.multi(ops);
     }
 
-    public Subnet getSubnet(UUID bridgeId, IntIPv4 subnetAddr)
+    public Subnet getSubnet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
-        String path =
-            paths.getBridgeDhcpSubnetPath(bridgeId,subnetAddr.toIPv4Subnet());
+        String path = paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr);
         byte[] data = zk.get(path, null);
         return serializer.deserialize(data, Subnet.class);
     }
 
-    public boolean existsSubnet(UUID bridgeId, IntIPv4 subnetAddr)
+    public boolean existsSubnet(UUID bridgeId, IPv4Subnet subnetAddr)
             throws StateAccessException {
-        String path =
-            paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr.toIPv4Subnet());
+        String path = paths.getBridgeDhcpSubnetPath(bridgeId, subnetAddr);
         return zk.exists(path);
     }
 
@@ -396,12 +394,12 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         zk.multi(ops);
     }
 
-    public List<IntIPv4> listSubnets(UUID bridgeId)
+    public List<IPv4Subnet> listSubnets(UUID bridgeId)
             throws StateAccessException {
         String path = paths.getBridgeDhcpPath(bridgeId);
-        List<IntIPv4> addrs = new ArrayList<>();
+        List<IPv4Subnet> addrs = new ArrayList<>();
         for (String addrStr : zk.getChildren(path , null))
-            addrs.add(IntIPv4.fromString(addrStr));
+            addrs.add(IntIPv4.toIPv4Subnet(IntIPv4.fromString(addrStr)));
         return addrs;
     }
 
@@ -409,8 +407,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
         String path = paths.getBridgeDhcpPath(bridgeId);
         List<Subnet> subnets = new ArrayList<>();
-        for (String addrStr : zk.getChildren(path))
-            subnets.add(getSubnet(bridgeId, IntIPv4.fromString(addrStr)));
+        for (String addrStr : zk.getChildren(path)) {
+            IPv4Subnet subnet = IntIPv4.toIPv4Subnet(IntIPv4.fromString(addrStr));
+            subnets.add(getSubnet(bridgeId, subnet));
+        }
         return subnets;
     }
 

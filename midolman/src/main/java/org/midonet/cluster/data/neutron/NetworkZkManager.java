@@ -299,8 +299,7 @@ public class NetworkZkManager extends BaseZkManager {
                                                 String addr)
         throws StateAccessException, SerializationException {
         BridgeDhcpZkManager.Subnet dhcpSubnet =
-            dhcpZkManager.getSubnet(subnet.networkId,
-                IntIPv4.fromString(subnet.cidr, "/"));
+            dhcpZkManager.getSubnet(subnet.networkId, new IPv4Subnet(subnet.cidr));
         dhcpSubnet.addOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
         dhcpSubnet.setServerAddr(IntIPv4.fromString(addr));
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
@@ -310,8 +309,7 @@ public class NetworkZkManager extends BaseZkManager {
                                                     String addr)
         throws StateAccessException, SerializationException {
         BridgeDhcpZkManager.Subnet dhcpSubnet =
-            dhcpZkManager.getSubnet(subnet.networkId,
-                IntIPv4.fromString(subnet.cidr, "/"));
+            dhcpZkManager.getSubnet(subnet.networkId, new IPv4Subnet(subnet.cidr));
         dhcpSubnet.removeOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
         dhcpSubnet.setServerAddr(null);
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);

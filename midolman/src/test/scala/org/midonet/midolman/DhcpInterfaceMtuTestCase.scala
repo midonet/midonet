@@ -143,7 +143,7 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         tzRequest.zoneId should be (greZone.getId)
 
         var opt121Obj = (new Opt121()
-                        .setGateway(routerIp2)
+                        .setGateway(routerIp2.getAddress)
                         .setRtDstSubnet(routerIp1))
         var opt121Routes: List[Opt121] = List(opt121Obj)
         var dnsSrvAddrs : List[IPv4Addr] = List(
@@ -152,8 +152,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
             IPv4Addr("192.168.77.120"))
         var dhcpSubnet = (new Subnet()
                       .setSubnetAddr(routerIp2)
-                      .setDefaultGateway(routerIp2)
-                      .setDnsServerAddrs(dnsSrvAddrs.map(_.toIntIPv4))
+                      .setDefaultGateway(routerIp2.getAddress)
+                      .setDnsServerAddrs(dnsSrvAddrs)
                       .setOpt121Routes(opt121Routes))
         addDhcpSubnet(bridge, dhcpSubnet)
 
