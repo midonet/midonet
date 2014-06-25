@@ -36,6 +36,8 @@ public class LicenseInstance {
     private final LicenseConsumerManager manager;
     private final Store store;
 
+    private byte[] data;
+
     public LicenseInstance() {
         store = new MemoryStore();
 
@@ -53,10 +55,40 @@ public class LicenseInstance {
             .build();
     }
 
-    public LicenseConsumerManager getManager() {
-        return manager;
+    /**
+     * Installs a license from the specified byte array.
+     * @param data The license data.
+     * @return The license object.
+     */
+    public net.java.truelicense.core.License install(byte[] data)
+        throws LicenseManagementException {
+        MemoryStore store = new MemoryStore(data.length);
+        store.data(data);
+        this.data = data;
+        return manager.install(store);
     }
 
+    /**
+     * Uninstalls the current license from the license instance.
+     */
+    public void uninstall() throws LicenseManagementException {
+        data = null;
+        manager.uninstall();
+    }
+
+    /**
+     * Views the current license from the license instance.
+     * @return The license object.
+     */
+    public net.java.truelicense.core.License view()
+        throws LicenseManagementException {
+        return manager.view();
+    }
+
+    /**
+     * Determines whether the current installed license is valid.
+     * @return True if the license is valid, false otherwise.
+     */
     public boolean isValid() {
         try {
             manager.verify();
@@ -64,5 +96,13 @@ public class LicenseInstance {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Gets the license data.
+     * @return A byte array with the license data.
+     */
+    public byte[] getData() {
+        return this.data;
     }
 }

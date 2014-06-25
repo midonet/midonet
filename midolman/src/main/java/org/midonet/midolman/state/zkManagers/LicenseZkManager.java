@@ -95,7 +95,8 @@ public class LicenseZkManager
     }
 
     /**
-     * Creates a new license node in ZooKeeper.
+     * Creates a new license node in ZooKeeper, or updates the existing node
+     * if the license already exists.
      * @param license The license configuration.
      */
     public void create(LicenseConfig license) throws StateAccessException {
@@ -103,9 +104,12 @@ public class LicenseZkManager
             license,
             paths.getLicensePath(license.getLicenseId())
         });
-        validate();
-        zk.addPersistent(paths.getLicensePath(license.getLicenseId()),
-                         license.getLicenseData());
+        String path = paths.getLicensePath(license.getLicenseId());
+        if (zk.exists(path)) {
+            zk.update(path, license.getLicenseData());
+        } else {
+            zk.addPersistent(path, license.getLicenseData());
+        }
     }
 
     /**
@@ -136,23 +140,11 @@ public class LicenseZkManager
      */
     public Collection<UUID> list() throws StateAccessException {
         log.debug("Listing ZK licenses.");
-        validate();
         Collection<String> children = zk.getChildren(paths.getLicensesPath());
         List<UUID> ids = new ArrayList<>(children.size());
         for (String child : children) {
             ids.add(UUID.fromString(child));
         }
         return ids;
-    }
-
-    /**
-     * Creates the ZooKeeper licenses path if it does not exist.
-     */
-    private void validate() throws StateAccessException {
-        if(!zk.exists(paths.getLicensesPath())) {
-            log.debug("Default ZK path {} for storing licenses does not exist " +
-                          "and it is being created.", paths.getLicensesPath());
-            zk.addPersistent(paths.getLicensesPath(), null);
-        }
     }
 }
