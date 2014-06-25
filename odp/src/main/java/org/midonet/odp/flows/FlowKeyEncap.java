@@ -10,9 +10,9 @@ import java.util.List;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowKeyEncap implements FlowKey {
+public class FlowKeyEncap implements FlowKey, Randomize {
 
-    private final List<FlowKey> keys;
+    private List<FlowKey> keys;
 
     // This is used for deserialization purposes only.
     FlowKeyEncap() {
@@ -52,6 +52,10 @@ public class FlowKeyEncap implements FlowKey {
         });
 
         return true;
+    }
+
+    public void randomize() {
+        keys = FlowKeys.randomKeys();
     }
 
     @Override

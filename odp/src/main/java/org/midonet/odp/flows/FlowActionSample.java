@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowActionSample implements FlowAction {
+public class FlowActionSample implements FlowAction, Randomize {
 
     private static final short probAttrId =
         OpenVSwitch.FlowAction.SampleAttr.Probability;
@@ -53,6 +53,11 @@ public class FlowActionSample implements FlowAction {
 
     public short attrId() {
         return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Sample);
+    }
+
+    public void randomize() {
+        actions = FlowActions.randomActions();
+        probability = FlowActions.rand.nextInt();
     }
 
     public int getProbability() {

@@ -11,7 +11,7 @@ import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.OpenVSwitch.FlowKey.TunnelAttr;
 import org.midonet.packets.IPv4Addr;
 
-public class FlowKeyTunnel implements CachedFlowKey {
+public class FlowKeyTunnel implements CachedFlowKey, Randomize {
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
@@ -167,6 +167,14 @@ public class FlowKeyTunnel implements CachedFlowKey {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public void randomize() {
+        tun_id = FlowKeys.rand.nextLong();
+        ipv4_src = FlowKeys.rand.nextInt();
+        ipv4_dst = FlowKeys.rand.nextInt();
+        ipv4_ttl = (byte)-1;
+        usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
     }
 
     public long getTunnelID() {
