@@ -161,3 +161,8 @@ vm_incoming_burst_capacity = 32
 
 # vtep_incoming_burst_capacity: bucket size for VTEP (VxLAN) ports.
 vtep_incoming_burst_capacity = 128
+
+[haproxy_health_monitor]
+# Health monitor is disabled by default. Please change the following value to
+# true to activate it.
+health_monitor_enable = false
