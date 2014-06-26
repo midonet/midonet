@@ -156,7 +156,7 @@ public abstract class Rule {
         return acceptRule(cond, chainId);
     }
 
-    public static Rule ipSpoofProtectionRule(IPSubnet subnet, UUID chainId) {
+    public static Rule ipSpoofProtectionRule(IPSubnet<?> subnet, UUID chainId) {
         Condition cond = new Condition(subnet);
         cond.nwSrcInv = true;
         return dropRule(cond, chainId);

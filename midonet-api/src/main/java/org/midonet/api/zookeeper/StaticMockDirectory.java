@@ -30,12 +30,13 @@ public class StaticMockDirectory {
     }
 
     public static MockDirectory getDirectoryInstance() {
+        if (_directoryInstance == null) {
+            new StaticMockDirectory();
+        }
         return _directoryInstance;
     }
 
     public static void clearDirectoryInstance() {
         _directoryInstance = null;
     }
-
-
 }

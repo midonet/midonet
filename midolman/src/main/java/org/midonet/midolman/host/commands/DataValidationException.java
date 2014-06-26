@@ -13,6 +13,8 @@ import org.midonet.midolman.state.StateAccessException;
  */
 public class DataValidationException extends StateAccessException {
 
+    private static final long serialVersionUID = 1L;
+
     public DataValidationException() {
     }
 

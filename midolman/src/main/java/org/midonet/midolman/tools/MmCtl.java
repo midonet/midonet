@@ -3,10 +3,19 @@
 */
 package org.midonet.midolman.tools;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.UUID;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
@@ -25,14 +34,6 @@ import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.UUID;
 
 
 /**
@@ -161,13 +162,12 @@ public class MmCtl {
     }
 
     private static OptionGroup getOptionalOptionGroup() {
-
         OptionGroup optionalGroup = new OptionGroup();
 
-        optionalGroup.addOption(OptionBuilder.hasArg()
-                .withLongOpt("config")
-                .withDescription("MM configuration file")
-                .create());
+        OptionBuilder.hasArg();
+        OptionBuilder.withLongOpt("config");
+        OptionBuilder.withDescription("MM configuration file");
+        optionalGroup.addOption(OptionBuilder.create());
 
         optionalGroup.setRequired(false);
         return optionalGroup;
@@ -178,22 +178,21 @@ public class MmCtl {
         // The command line tool can only accept one of these options:
         OptionGroup mutuallyExclusiveOptions = new OptionGroup();
 
-        mutuallyExclusiveOptions.addOption(OptionBuilder.hasArgs(2)
-                .isRequired()
-                .withLongOpt("bind-port")
-                .withDescription("Bind a port to an interface")
-                .create());
+        OptionBuilder.hasArgs(2);
+        OptionBuilder.isRequired();
+        OptionBuilder.withLongOpt("bind-port");
+        OptionBuilder.withDescription("Bind a port to an interface");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
 
-        mutuallyExclusiveOptions.addOption(OptionBuilder.hasArg()
-                .isRequired()
-                .withLongOpt("unbind-port")
-                .withDescription("Unbind a port from an interface")
-                .create());
+        OptionBuilder.hasArg();
+        OptionBuilder.isRequired();
+        OptionBuilder.withLongOpt("unbind-port");
+        OptionBuilder.withDescription("Unbind a port from an interface");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
 
-        mutuallyExclusiveOptions.addOption(OptionBuilder
-                .withLongOpt("list-hosts")
-                .withDescription("List MidolMan agents in the system")
-                .create());
+        OptionBuilder.withLongOpt("list-hosts");
+        OptionBuilder.withDescription("List MidolMan agents in the system");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
 
         // make sure that there is at least one.
         mutuallyExclusiveOptions.setRequired(true);

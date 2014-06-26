@@ -39,7 +39,7 @@ public abstract class NatRule
         return getData().dnat;
     }
 
-    public NatRule setIsDnat(boolean isDnat) {
+    public NatRule<?,?> setIsDnat(boolean isDnat) {
         getData().dnat = isDnat;
         return self();
     }

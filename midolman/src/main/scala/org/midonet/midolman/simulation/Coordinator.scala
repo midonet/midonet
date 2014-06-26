@@ -7,9 +7,9 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import scala.concurrent.ExecutionContext
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.client._
