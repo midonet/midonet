@@ -1,0 +1,50 @@
+virtual_topology:
+  description: simple internet router
+
+  tenant_name: MMM-TEST-000-001
+
+  routers:
+    - router:
+        name: router-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+              ipv4_addr: 172.16.1.254/24
+              ipv6_addr: null
+              links_to:
+                  device: bridge-000-001
+                  port_id: 1
+          - port:
+              id: 2
+              type: exterior
+              ipv4_addr: 100.0.0.1/24
+
+        routes:
+          - route:
+              id: 1
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 172.16.1.0/24
+              weight: 100
+              next_hop_port: 1
+              next_hop_gw: 0.0.0.0
+          - route:
+              id: 2
+              type: Normal
+              src_addr: 0.0.0.0/0
+              dst_addr: 0.0.0.0/0
+              weight: 100
+              next_hop_port: 2
+              next_hop_gw: 100.0.0.2
+
+  bridges:
+    - bridge:
+        name: bridge-000-001
+        ports:
+          - port:
+              id: 1
+              type: interior
+          - port:
+              id: 2
+              type: exterior
