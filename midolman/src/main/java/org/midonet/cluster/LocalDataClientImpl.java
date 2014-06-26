@@ -1461,7 +1461,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID portsCreate(@Nonnull final Port port)
+    public UUID portsCreate(@Nonnull final Port<?,?> port)
             throws StateAccessException, SerializationException {
         return portZkManager.create(Converter.toPortConfig(port));
     }
@@ -1488,9 +1488,9 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull Port portsGet(UUID id)
+    public @CheckForNull Port<?,?> portsGet(UUID id)
             throws StateAccessException, SerializationException {
-        Port port = null;
+        Port<?,?> port = null;
         if (portZkManager.exists(id)) {
             port = Converter.fromPortConfig(portZkManager.get(id));
             port.setId(id);
@@ -1500,7 +1500,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void portsUpdate(@Nonnull Port port)
+    public void portsUpdate(@Nonnull Port<?,?> port)
             throws StateAccessException, SerializationException {
         log.debug("portsUpdate entered: port={}", port);
 
@@ -1651,12 +1651,10 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         log.debug("portGroupsFindByPort entered: portId={}", portId);
 
-        List<PortGroup> portGroups = new ArrayList<PortGroup>();
+        List<PortGroup> portGroups = new ArrayList<>();
 
         if (portsExists(portId)) {
-            Port port = portsGet(portId);
-            Set<UUID> portGroupIds = port.getPortGroups();
-            for (UUID portGroupId : portGroupIds) {
+            for (UUID portGroupId : portsGet(portId).getPortGroups()) {
                 PortGroup portGroup = portGroupsGet(portGroupId);
                 if (portGroup != null) {
                     portGroups.add(portGroup);
@@ -2853,7 +2851,7 @@ public class LocalDataClientImpl implements DataClient {
      * except this returns the updated port object.
      */
     @Override
-    public Port hostsAddVrnPortMappingAndReturnPort(
+    public Port<?,?> hostsAddVrnPortMappingAndReturnPort(
                     @Nonnull UUID hostId, @Nonnull UUID portId,
                     @Nonnull String localPortName)
             throws StateAccessException, SerializationException {
@@ -3060,7 +3058,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         log.debug("Entered: id={}", id);
 
-        Rule rule = null;
+        Rule<?,?> rule = null;
         if (ruleZkManager.exists(id)) {
             rule = Converter.fromRuleConfig(ruleZkManager.get(id));
             rule.setId(id);
@@ -3096,7 +3094,7 @@ public class LocalDataClientImpl implements DataClient {
 
         int position = 1;
         for (UUID id : ruleIds) {
-            Rule rule = rulesGet(id);
+            Rule<?,?> rule = rulesGet(id);
             rule.setPosition(position);
             position++;
             rules.add(rule);

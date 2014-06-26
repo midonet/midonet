@@ -54,7 +54,8 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            Base base = (Base) o;
+            @SuppressWarnings("unchecked")
+            Base<?,?,?> base = (Base<?,?,?>) o;
 
             if (id != null ? !id.equals(base.id) : base.id != null)
                 return false;

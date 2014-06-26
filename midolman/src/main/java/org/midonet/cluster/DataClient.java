@@ -520,7 +520,7 @@ public interface DataClient {
                                 @Nonnull String localPortName)
             throws StateAccessException, SerializationException;
 
-    Port hostsAddVrnPortMappingAndReturnPort(
+    Port<?,?> hostsAddVrnPortMappingAndReturnPort(
             @Nonnull UUID hostId, @Nonnull UUID portId,
             @Nonnull String localPortName)
             throws StateAccessException, SerializationException;

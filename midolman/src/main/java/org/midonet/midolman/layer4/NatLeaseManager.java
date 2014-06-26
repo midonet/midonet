@@ -69,7 +69,7 @@ public class NatLeaseManager implements NatMapping {
 
     private class KeyMetadata {
         public String revKey;
-        public ScheduledFuture future;
+        public ScheduledFuture<?> future;
         public AtomicInteger flowCount;
 
         public KeyMetadata(String revKey) {
@@ -387,8 +387,7 @@ public class NatLeaseManager implements NatMapping {
     }
 
     private IPAddr chooseRandomIp(NatTarget nat) {
-        // TODO: fix that cast
-        return (IPAddr)nat.nwStart.randomTo(nat.nwEnd, rand);
+        return nat.nwStart.randomTo(nat.nwEnd, rand);
     }
 
     private int chooseRandomPort(NatTarget nat) {

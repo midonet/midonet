@@ -13,6 +13,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * so we pad the 8 byte long with 48 additional bytes plus the 8/16 byte header.
  */
 public class PaddedAtomicLong extends AtomicLong {
+
+    private static final long serialVersionUID = 1L;
+
     public PaddedAtomicLong() {
     }
 

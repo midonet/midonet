@@ -25,7 +25,8 @@ public abstract class StatePathExceptionBase extends StateAccessException {
         LOAD_BALANCER("load balancer", "load_balancers"),
         POOL("pool", "pools"),
         POOL_MEMBER("pool member", "pool_members"),
-        VIP("VIP", "vips");
+        VIP("VIP", "vips"),
+        TUNNEL_ZONE("tunnel zone", "tunnel_zone");
 
         // Pretty name for error messages.
         public final String name;
@@ -66,7 +67,7 @@ public abstract class StatePathExceptionBase extends StateAccessException {
     private final String basePath;
 
     // Cache NodeInfo when it's constructed.
-    private NodeInfo nodeInfo = null;
+    protected NodeInfo nodeInfo = null;
 
     public StatePathExceptionBase(String message, String path,
                                   String basePath, KeeperException cause) {
@@ -78,9 +79,7 @@ public abstract class StatePathExceptionBase extends StateAccessException {
     /**
      * Provided for TunnelZoneZkManager(), which generates a
      * StatePathExistsException without an underlying KeeperException.
-     * If you use this constructor, getNodeInfo() will blow up.
      */
-    @Deprecated
     public StatePathExceptionBase(String message) {
         super(message);
         this.path = null;
