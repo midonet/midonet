@@ -251,6 +251,7 @@ class Coordinator(var origMatch: WildcardMatch,
     : Urgent[SimulationResult] =
         (port match {
             case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, expiry)
+            case _: VxLanPort => expiringAsk[Bridge](port.deviceID, log, expiry)
             case _: RouterPort => expiringAsk[Router](port.deviceID, log, expiry)
         }) flatMap { case deviceReply =>
             numDevicesSimulated += 1
