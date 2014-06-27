@@ -9,32 +9,32 @@ import java.util.UUID;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetMonitor;
 import org.midonet.cluster.EntityMonitor;
+import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
 /**
- * Monitors all hosts of the system, exposing observable streams with creation,
- * deletion and update notifications.
+ * Monitors all tunnel-zones of the system, exposing observable streams with
+ * creation, deletion and update notifications.
  */
-public final class HostMonitor extends DeviceMonitor<UUID, Host> {
+public class TunnelZoneMonitor extends DeviceMonitor<UUID, TunnelZone> {
 
-    public HostMonitor(DataClient midoClient,
-                       ZookeeperConnectionWatcher zkConnWatcher)
+    public TunnelZoneMonitor(DataClient midoClient,
+                             ZookeeperConnectionWatcher zkConnWatcher)
         throws DeviceMonitorException {
         super(midoClient, zkConnWatcher);
     }
 
     @Override
-    protected EntityMonitor<UUID, HostDirectory.Metadata, Host>
-        getEntityMonitor() {
-        return midoClient.hostsGetMonitor(zkConnWatcher);
+    protected EntityMonitor<UUID, TunnelZone.Data, TunnelZone> getEntityMonitor() {
+        return midoClient.tunnelZonesGetMonitor(zkConnWatcher);
     }
 
     @Override
     protected EntityIdSetMonitor<UUID> getEntityIdSetMonitor()
         throws StateAccessException {
-        return midoClient.hostsGetUuidSetMonitor(zkConnWatcher);
+        return midoClient.tunnelZonesGetUuidSetMonitor(zkConnWatcher);
     }
 }

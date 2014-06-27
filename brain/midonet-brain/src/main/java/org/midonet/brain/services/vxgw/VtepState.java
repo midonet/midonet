@@ -27,9 +27,10 @@ import org.midonet.packets.IPv4Addr;
 /**
  * Maintains local state information for an existing VTEP.
  */
-public class VxLanVtep {
+public class VtepState {
 
-    private static final Logger log = LoggerFactory.getLogger(VxLanVtep.class);
+    private static final Logger log =
+        LoggerFactory.getLogger(VtepState.class);
 
     public final IPv4Addr vtepIp;
     public final UUID ownerId;
@@ -37,7 +38,7 @@ public class VxLanVtep {
     private final DataClient midoClient;
     private final ZookeeperConnectionWatcher zkConnWatcher;
 
-    private final Subject<VxLanVtep, VxLanVtep> streamOwner
+    private final Subject<VtepState, VtepState> streamOwner
         = PublishSubject.create();
 
     private class OwnerWatcher implements Watcher, Runnable {
@@ -53,14 +54,14 @@ public class VxLanVtep {
                              ownerId, vtepIp);
 
                     owned = true;
-                    streamOwner.onNext(VxLanVtep.this);
+                    streamOwner.onNext(VtepState.this);
                 }
                 if (!owner.equals(ownerId) && owned) {
                     // Notify the lost ownership.
                     log.warn("VXGW service {} lost ownership of VTEP {} to {}",
-                             new Object[] { ownerId, vtepIp, owner });
+                             ownerId, vtepIp, owner);
                     owned = false;
-                    streamOwner.onNext(VxLanVtep.this);
+                    streamOwner.onNext(VtepState.this);
                 }
             } catch (StateAccessException e) {
                 zkConnWatcher.handleError("OwnerWatcher" + vtepIp, this, e);
@@ -76,9 +77,7 @@ public class VxLanVtep {
                 run();
             }
         }
-    };
-
-    private final OwnerWatcher ownerWatcher = new OwnerWatcher();
+    }
 
     private boolean disposed = false;
     private boolean owned = false;
@@ -93,7 +92,7 @@ public class VxLanVtep {
      * @param midoClient The data client.
      * @param zkConnWatcher The ZooKeeper connection watcher.
      */
-    public VxLanVtep(@Nonnull IPv4Addr vtepIp, @Nonnull UUID ownerId,
+    public VtepState(@Nonnull IPv4Addr vtepIp, @Nonnull UUID ownerId,
                      @Nonnull DataClient midoClient,
                      @Nonnull ZookeeperConnectionWatcher zkConnWatcher)
         throws StateAccessException, SerializationException {
@@ -105,7 +104,7 @@ public class VxLanVtep {
         this.zkConnWatcher = zkConnWatcher;
 
         // Try take ownership and set watcher.
-        if (midoClient.tryOwnVtep(vtepIp, ownerId, ownerWatcher)
+        if (midoClient.tryOwnVtep(vtepIp, ownerId, new OwnerWatcher())
             .equals(ownerId)) {
             owned = true;
         }
@@ -127,7 +126,7 @@ public class VxLanVtep {
 
             owned = false;
             // First, notify the VTEP release.
-            streamOwner.onNext(VxLanVtep.this);
+            streamOwner.onNext(VtepState.this);
             // Then, remove the ownership node.
             midoClient.deleteVtepOwner(vtepIp, ownerId);
         } catch (StateAccessException | SerializationException e) {
@@ -141,7 +140,7 @@ public class VxLanVtep {
     /**
      * Returns an observable that notifies the changes of the VTEP owner status.
      */
-    public Observable<VxLanVtep> getOwnerObservable() {
+    public Observable<VtepState> getOwnerObservable() {
         return streamOwner.asObservable();
     }
 
@@ -159,7 +158,7 @@ public class VxLanVtep {
         if (null == obj || getClass() != obj.getClass())
             return false;
 
-        VxLanVtep vtep = (VxLanVtep) obj;
+        VtepState vtep = (VtepState) obj;
 
         return Objects.equals(vtepIp, vtep.vtepIp) &&
             Objects.equals(ownerId, vtep.ownerId);

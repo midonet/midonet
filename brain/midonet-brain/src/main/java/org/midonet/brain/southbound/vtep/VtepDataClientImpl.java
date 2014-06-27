@@ -396,12 +396,14 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-        public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
-                                        IPv4Addr tunnelIp) {
-        log.debug("Adding Ucast Mac Remote: {} {} {} on vxlan endpoint {}",
+    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
+                                    IPv4Addr tunnelIp) {
+        log.debug("Adding Ucast MAC Remote: {} {} {} on VXLAN endpoint {}",
                   new Object[]{lsName, mac, macIp, tunnelIp});
-        assert(tunnelIp != null);
+        assert(lsName != null);
         assert(mac != null);
+        assert(mac.unicast());
+        assert(tunnelIp != null);
         String sIp = macIp == null ? null : macIp.toString();
         StatusWithUuid st = cfgSrv.vtepAddUcastMacRemote(lsName, mac.toString(),
                                  tunnelIp.toString(), sIp);
@@ -413,13 +415,16 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     @Override
     public Status addMcastMacRemote(String lsName, VtepMAC vMac,
-                                    IPv4Addr tunnelEndpoint) {
-        log.debug("Adding Mcast Mac Remote: {} {} on vxlan endpoint {}",
-                  new Object[]{lsName, vMac, tunnelEndpoint});
+                                    IPv4Addr tunnelIp) {
+        log.debug("Adding Mcast MAC Remote: {} {} on VXLAN endpoint {}",
+                  new Object[]{lsName, vMac, tunnelIp});
+        assert(lsName != null);
+        assert(vMac != null);
+        assert(vMac.isMcast());
+        assert(tunnelIp != null);
         StatusWithUuid st = cfgSrv.vtepAddMcastMacRemote(lsName,
                                                          vMac.toString(),
-                                                         tunnelEndpoint
-                                                             .toString());
+                                                         tunnelIp.toString());
         if (!st.isSuccess()) {
             log.error("Could not add mcast MAC remote: {}", st);
         }
@@ -428,24 +433,42 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     @Override
     public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp) {
-        log.debug("Deleting mac {} from logical switch {}", mac, lsName);
-        assert(mac != null);
+        log.debug("Deleting MAC {} from logical switch {}", mac, lsName);
         assert(lsName != null);
+        assert(mac != null);
+        assert(mac.unicast());
         Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString());
         if (!st.isSuccess()) {
-            log.error("Could not remove Ucast Mac Remote: {}", st);
+            log.error("Could not delete Ucast Mac Remote: {}", st);
         }
         return st;
     }
 
     @Override
     public Status delUcastMacRemoteAllIps(String lsName, MAC mac) {
-        log.debug("Deleting mac {} from logical switch {}", mac, lsName);
-        assert(mac != null);
+        log.debug("Deleting all ucast MACs {} from logical switch {}",
+                  mac, lsName);
         assert(lsName != null);
+        assert(mac != null);
+        assert(mac.unicast());
         Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString());
         if (!st.isSuccess()) {
-            log.error("Could not delete all ucast MAC remote: {}", st);
+            log.error("Could not delete all Ucast MAC Remote: {}", st);
+        }
+        return st;
+    }
+
+    @Override
+    public Status delMcastMacRemoteAllIps(String lsName, VtepMAC vMac) {
+        log.debug("Deleting all mcast MACs {} from logical switch {}",
+                  vMac, lsName);
+        assert(lsName != null);
+        assert(vMac != null);
+        assert(vMac.isMcast());
+
+        Status st = cfgSrv.vtepDelMcastMacRemote(lsName, vMac.toString());
+        if (!st.isSuccess()) {
+            log.error("Could not delete all Mcast MAC Remote: {}", st);
         }
         return st;
     }

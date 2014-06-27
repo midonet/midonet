@@ -209,6 +209,7 @@ public class VtepBrokerTest {
 
         vtepUpdStream.onNext(ups);
 
+        obs.unsubscribe();
         obs.evaluate();
     }
 

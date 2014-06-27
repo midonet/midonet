@@ -594,6 +594,13 @@
             <version>2.3.3</version>
         </dependency>
 
+        <!-- rx -->
+        <dependency>
+            <groupId>com.netflix.rxjava</groupId>
+            <artifactId>rxjava-core</artifactId>
+            <version>0.19.6</version>
+        </dependency>
+
    </dependencies> </dependencyManagement>
 
     <dependencies>

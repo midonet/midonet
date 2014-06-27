@@ -164,20 +164,24 @@ public class VtepBroker implements VxLanPeer {
 
     @Override
     public void apply(MacLocation ml) {
+        log.debug("Receive MAC location update {}", ml);
         if (ml == null) {
             log.warn("Ignoring null MAC-port update");
             return;
         }
 
-        if (!ml.mac.isIEEE802()) {
-            log.warn("Ignoring unknown-dst update {}", ml);
-            return;
-        }
-
-        if (ml.vxlanTunnelEndpoint == null) {
-            this.applyDelete(ml);
+        if (ml.mac.isUcast()) {
+            if (ml.vxlanTunnelEndpoint != null) {
+                this.applyUcastAddition(ml);
+            } else {
+                this.applyUcastDelete(ml);
+            }
         } else {
-            this.applyAddition(ml);
+            if (ml.vxlanTunnelEndpoint != null) {
+                this.applyMcastAddition(ml);
+            } else {
+                this.applyMcastDelete(ml);
+            }
         }
     }
 
@@ -215,11 +219,10 @@ public class VtepBroker implements VxLanPeer {
     }
 
     /**
-     * Applies an update in a MacLocation
-     *
-     * @param ml the object representing the new location of the MAC.
+     * Applies the addition of a unicast MAC.
+     * @param ml The location of the MAC.
      */
-    private void applyAddition(MacLocation ml) {
+    private void applyUcastAddition(MacLocation ml) {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
         Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName,
                                                      ml.mac.IEEE802(),
@@ -237,9 +240,10 @@ public class VtepBroker implements VxLanPeer {
     }
 
     /**
-     * Applies a deletion of a MAC.
+     * Applies a deletion of a unicast MAC.
+     * @param ml The location of the MAC.
      */
-    private void applyDelete(MacLocation ml) {
+    private void applyUcastDelete(MacLocation ml) {
         log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
         Status st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
                                                      ml.mac.IEEE802(), null);
@@ -249,9 +253,41 @@ public class VtepBroker implements VxLanPeer {
             } else {
                 throw new VxLanPeerSyncException(
                     String.format("VTEP replied: %s, %s",
-                                  st.getCode(), st.getDescription()), ml
-                );
+                                  st.getCode(), st.getDescription()), ml);
             }
+        }
+    }
+
+    /**
+     * Applies the addition of a multicast MAC location.
+     */
+    private void applyMcastAddition(MacLocation ml) {
+        log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
+        Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName,
+                                                     ml.mac,
+                                                     ml.vxlanTunnelEndpoint);
+        if (!st.isSuccess() ) {
+            if (st.getCode().equals(StatusCode.CONFLICT)) {
+                log.info("Conflict writing {}, not expected", ml);
+            } else {
+                throw new VxLanPeerSyncException(
+                    String.format("VTEP replied: %s, %s",
+                                  st.getCode(), st.getDescription()), ml);
+            }
+        }
+    }
+
+    /**
+     * Applies the deletion of a multicast MAC location.
+     */
+    private void applyMcastDelete(MacLocation ml) {
+        log.debug("Removing MCAST remote MAC from the VTEP: " + ml);
+        Status st = vtepDataClient.delMcastMacRemoteAllIps(
+            ml.logicalSwitchName, ml.mac);
+        if (!st.isSuccess() && !st.getCode().equals(StatusCode.NOTFOUND)) {
+            throw new VxLanPeerSyncException(
+                String.format("VTEP replied: %s, %s",
+                              st.getCode(), st.getDescription()), ml);
         }
     }
 
@@ -408,5 +444,4 @@ public class VtepBroker implements VxLanPeer {
         }
         return new MacLocation(VtepMAC.fromString(sMac), null, ls.name, ip);
     }
-
 }

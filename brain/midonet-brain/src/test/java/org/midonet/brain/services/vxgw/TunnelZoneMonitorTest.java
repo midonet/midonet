@@ -19,10 +19,10 @@ import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
-import org.midonet.brain.services.vxgw.monitor.HostMonitor;
+import org.midonet.brain.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;
-import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.data.TunnelZone;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
@@ -30,29 +30,31 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
+
 import static org.midonet.cluster.EntityIdSetEvent.Type.CREATE;
 import static org.midonet.cluster.EntityIdSetEvent.Type.DELETE;
 import static org.midonet.cluster.EntityIdSetEvent.Type.STATE;
 
-public class HostMonitorTest extends DeviceMonitorTestBase<UUID, Host> {
+public class TunnelZoneMonitorTest
+    extends DeviceMonitorTestBase<UUID, TunnelZone> {
 
-    /**
+    /*
      * Midonet data client
      */
     private DataClient dataClient = null;
     private ZookeeperConnectionWatcher zkConnWatcher;
 
-    private Host createHost(String name) throws SerializationException,
-                                                StateAccessException {
-        Host host = new Host();
-        host.setId(UUID.randomUUID());
-        host.setName(name);
-        dataClient.hostsCreate(host.getId(), host);
-        return host;
+    private TunnelZone createTunnelZone(String name)
+        throws StateAccessException, SerializationException{
+        TunnelZone tzone = new TunnelZone();
+        tzone.setName(name);
+        tzone.setType(TunnelZone.Type.vxlan);
+        dataClient.tunnelZonesCreate(tzone);
+        return tzone;
     }
 
-    private RxTestUtils.TestedObservable testHostObservable(
-        Observable<Host> obs) {
+    private RxTestUtils.TestedObservable testTunnelZoneObservable(
+        Observable<TunnelZone> obs) {
         return RxTestUtils.test(obs);
     }
 
@@ -76,31 +78,32 @@ public class HostMonitorTest extends DeviceMonitorTestBase<UUID, Host> {
         Directory directory = injector.getInstance(Directory.class);
         BrainTestUtils.setupZkTestDirectory(directory);
 
-        dataClient = injector.getInstance(DataClient.class);
-        zkConnWatcher = new ZookeeperConnectionWatcher();
+        this.dataClient = injector.getInstance(DataClient.class);
+        this.zkConnWatcher = new ZookeeperConnectionWatcher();
     }
 
     @Test
     public void testBasic() throws Exception {
 
-        HostMonitor hMon = new HostMonitor(dataClient, zkConnWatcher);
+        TunnelZoneMonitor tzMon = new TunnelZoneMonitor(
+            dataClient, zkConnWatcher);
 
         // Setup the observables
         RxTestUtils.TestedObservable updates =
-            testHostObservable(hMon.getEntityObservable());
+            testTunnelZoneObservable(tzMon.getEntityObservable());
         updates.noElements().noErrors().notCompleted().subscribe();
 
         RxTestUtils.TestedObservable live =
-            testEventObservable(hMon.getEntityIdSetObservable());
+            testEventObservable(tzMon.getEntityIdSetObservable());
         live.noElements().noErrors().notCompleted().subscribe();
 
         RxTestUtils.TestedObservable creations =
-            testIdObservable(extractEvent(hMon.getEntityIdSetObservable(),
+            testIdObservable(extractEvent(tzMon.getEntityIdSetObservable(),
                                           CREATE));
         creations.noElements().noErrors().notCompleted().subscribe();
 
         RxTestUtils.TestedObservable deletions =
-            testIdObservable(extractEvent(hMon.getEntityIdSetObservable(),
+            testIdObservable(extractEvent(tzMon.getEntityIdSetObservable(),
                                           DELETE));
         deletions.noElements().noErrors().notCompleted().subscribe();
 
@@ -115,63 +118,66 @@ public class HostMonitorTest extends DeviceMonitorTestBase<UUID, Host> {
         deletions.evaluate();
     }
 
+
     @Test
-    public void testHostAddition() throws Exception {
+    public void testTunnelZoneAddition() throws Exception {
 
         final List<UUID> creationList = new ArrayList<>();
         final List<UUID> updateList = new ArrayList<>();
 
-        HostMonitor hMon = new HostMonitor(dataClient, zkConnWatcher);
+        TunnelZoneMonitor tzMon = new TunnelZoneMonitor(dataClient,
+                                                        zkConnWatcher);
 
         RxTestUtils.TestedObservable deletions =
-            testIdObservable(extractEvent(hMon.getEntityIdSetObservable(), DELETE));
+            testIdObservable(extractEvent(tzMon.getEntityIdSetObservable(),
+                                          DELETE));
         deletions.noElements().noErrors().notCompleted().subscribe();
 
         Subscription creations = addIdObservableToList(
-            extractEvent(hMon.getEntityIdSetObservable(), CREATE), creationList);
+            extractEvent(tzMon.getEntityIdSetObservable(), CREATE),
+            creationList);
         Subscription updates = addDeviceObservableToList(
-            hMon.getEntityObservable(), updateList);
+            tzMon.getEntityObservable(), updateList);
 
-        // Create the host
-        Host host = createHost("host1");
+        // Create the tunnel zone
+        TunnelZone tzone = createTunnelZone("tunnelzone1");
 
         creations.unsubscribe();
         updates.unsubscribe();
         deletions.unsubscribe();
 
-        assertThat(creationList, containsInAnyOrder(host.getId()));
-        assertThat(updateList, containsInAnyOrder(host.getId()));
+        assertThat(creationList, containsInAnyOrder(tzone.getId()));
+        assertThat(updateList, containsInAnyOrder(tzone.getId()));
         deletions.evaluate();
     }
 
     @Test
-    public void testHostEarlyAddition() throws Exception {
+    public void testTunnelZoneEarlyAddition() throws Exception {
 
         final List<UUID> creationList = new ArrayList<>();
         final List<UUID> updateList = new ArrayList<>();
         final List<UUID> stateList = new ArrayList<>();
 
-        // Create the host
-        Host host = createHost("host1");
+        // Create the tunnel zone
+        TunnelZone tzone = createTunnelZone("tunnelzone1");
 
-        HostMonitor hMon = new HostMonitor(dataClient, zkConnWatcher);
+        TunnelZoneMonitor tzMon = new TunnelZoneMonitor(dataClient,
+                                                        zkConnWatcher);
 
         RxTestUtils.TestedObservable deletions =
-            testIdObservable(extractEvent(hMon.getEntityIdSetObservable(),
+            testIdObservable(extractEvent(tzMon.getEntityIdSetObservable(),
                                           DELETE));
         deletions.noElements().noErrors().notCompleted().subscribe();
 
         Subscription creations = addIdObservableToList(
-            extractEvent(hMon.getEntityIdSetObservable(), CREATE),
+            extractEvent(tzMon.getEntityIdSetObservable(), CREATE),
             creationList);
-
         Subscription updates = addDeviceObservableToList(
-            hMon.getEntityObservable(), updateList);
-
+            tzMon.getEntityObservable(), updateList);
         Subscription states = addIdObservableToList(
-            extractEvent(hMon.getEntityIdSetObservable(), STATE), stateList);
+            extractEvent(tzMon.getEntityIdSetObservable(), STATE), stateList);
 
-        hMon.notifyState();
+        tzMon.notifyState();
 
         creations.unsubscribe();
         updates.unsubscribe();
@@ -179,38 +185,41 @@ public class HostMonitorTest extends DeviceMonitorTestBase<UUID, Host> {
         states.unsubscribe();
 
         assertThat(creationList, containsInAnyOrder());
-        assertThat(updateList, containsInAnyOrder(host.getId()));
-        assertThat(stateList, containsInAnyOrder(host.getId()));
+        assertThat(updateList, containsInAnyOrder(tzone.getId()));
+        assertThat(stateList, containsInAnyOrder(tzone.getId()));
         deletions.evaluate();
     }
 
     @Test
-    public void testHostRemoval() throws Exception {
+    public void testTunnelZoneRemoval() throws Exception {
 
         final List<UUID> creationList = new ArrayList<>();
         final List<UUID> updateList = new ArrayList<>();
         final List<UUID> deletionList = new ArrayList<>();
 
-        HostMonitor hMon = new HostMonitor(dataClient, zkConnWatcher);
+        TunnelZoneMonitor tzMon = new TunnelZoneMonitor(dataClient,
+                                                        zkConnWatcher);
 
         Subscription creations = addIdObservableToList(
-            extractEvent(hMon.getEntityIdSetObservable(), CREATE), creationList);
+            extractEvent(tzMon.getEntityIdSetObservable(), CREATE),
+            creationList);
         Subscription updates = addDeviceObservableToList(
-            hMon.getEntityObservable(), updateList);
+            tzMon.getEntityObservable(), updateList);
         Subscription deletions = addIdObservableToList(
-            extractEvent(hMon.getEntityIdSetObservable(), DELETE), deletionList);
+            extractEvent(tzMon.getEntityIdSetObservable(), DELETE),
+            deletionList);
 
-        // Create the host
-        Host host = createHost("host1");
+        // Create the tunnel zone
+        TunnelZone tzone = createTunnelZone("tunnelzone1");
 
-        dataClient.hostsDelete(host.getId());
+        dataClient.tunnelZonesDelete(tzone.getId());
 
         creations.unsubscribe();
         updates.unsubscribe();
         deletions.unsubscribe();
 
-        assertThat(creationList, containsInAnyOrder(host.getId()));
-        assertThat(updateList, containsInAnyOrder(host.getId()));
-        assertThat(deletionList, containsInAnyOrder(host.getId()));
+        assertThat(creationList, containsInAnyOrder(tzone.getId()));
+        assertThat(updateList, containsInAnyOrder(tzone.getId()));
+        assertThat(deletionList, containsInAnyOrder(tzone.getId()));
     }
 }

@@ -23,7 +23,8 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 public class BridgeMonitor extends DeviceMonitor<UUID, Bridge> {
 
     public BridgeMonitor(DataClient midoClient,
-                         ZookeeperConnectionWatcher zkConnWatcher) {
+                         ZookeeperConnectionWatcher zkConnWatcher)
+        throws DeviceMonitorException {
         super(midoClient, zkConnWatcher);
     }
 

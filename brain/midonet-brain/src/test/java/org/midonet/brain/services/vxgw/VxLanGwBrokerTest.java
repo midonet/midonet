@@ -6,6 +6,11 @@ package org.midonet.brain.services.vxgw;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 import mockit.Delegate;
 import mockit.Expectations;
@@ -19,12 +24,17 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
+import org.apache.commons.configuration.HierarchicalConfiguration;
+
+import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
 import static org.junit.Assert.assertEquals;
@@ -40,8 +50,9 @@ public class VxLanGwBrokerTest {
     @Mocked
     private VtepDataClient vtepClient;
 
-    @Mocked
     private DataClient midoClient;
+
+    private ZookeeperConnectionWatcher zkConnWatcher;
 
     private MockVxLanPeer mockPeer1;
     private MockVxLanPeer mockPeer2;
@@ -62,8 +73,26 @@ public class VxLanGwBrokerTest {
         }
     }
 
+    class MockTunnelZoneState extends TunnelZoneState {
+        public MockTunnelZoneState() throws Exception {
+            super(UUID.randomUUID(), midoClient, zkConnWatcher,
+                  new HostStatePublisher(midoClient, zkConnWatcher),
+                  new Random());
+        }
+    }
+
     @Before
-    public void before() {
+    public void before() throws Exception {
+        HierarchicalConfiguration config = new HierarchicalConfiguration();
+        BrainTestUtils.fillTestConfig(config);
+        Injector injector = Guice.createInjector(
+            BrainTestUtils.modules(config));
+
+        Directory directory = injector.getInstance(Directory.class);
+        BrainTestUtils.setupZkTestDirectory(directory);
+
+        midoClient = injector.getInstance(DataClient.class);
+        zkConnWatcher = new ZookeeperConnectionWatcher();
 
         mockPeer1 = new MockVxLanPeer();
         mockPeer2 = new MockVxLanPeer();
@@ -104,7 +133,8 @@ public class VxLanGwBrokerTest {
         }};
 
         new VxLanGwBroker(midoClient, vtepDataClientProvider,
-                          vtepMgmtIp, vtepMgmtPort);
+                          vtepMgmtIp, vtepMgmtPort,
+                          new MockTunnelZoneState());
     }
 
     /**
@@ -133,7 +163,5 @@ public class VxLanGwBrokerTest {
 
         assertEquals(mockPeer2.applied, Arrays.asList(m3));
         assertEquals(mockPeer1.applied, Arrays.asList(m1, m2));
-
     }
-
 }

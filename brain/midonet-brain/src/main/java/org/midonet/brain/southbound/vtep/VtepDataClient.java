@@ -161,19 +161,18 @@ public interface VtepDataClient {
      * Adds a new entry to the Mcast_Macs_Remote table.
      *
      * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address
+     * @param vMac the mac address
      * @param tunnelEndpoint the ip of the vxlan tunnel peer where packets
      *                       addressed to mac should be tunnelled to
      * @return the result of the operation
      */
-    public Status addMcastMacRemote(String lsName, VtepMAC mac,
+    public Status addMcastMacRemote(String lsName, VtepMAC vMac,
                                     IPv4Addr tunnelEndpoint);
 
     /**
-     * Deletes all entries from the Ucast_Mac_Remote table that match the
-     * specified MAC address and logical switch name. The method returns a
-     * NotFound status when there is no logical switch, there is no unicast MAC
-     * table, or there are no entries to delete.
+     * Deletes all entries from the Ucast_Mac_Remote table that matches the
+     * specified MAC address, logical switch name and IP address. The method
+     * returns a NotFound status when there is no matching entry.
      *
      * @param lsName The logical switch name
      * @param mac The MAC address
@@ -183,13 +182,26 @@ public interface VtepDataClient {
     public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp);
 
     /**
-     * Delete entries with the same MAC in the Ucast_Mac_Remote table.
+     * Deletes all entries from the Ucast_Mac_Remote table that match the
+     * specified MAC address and logical switch name. The method returns
+     * a NotFound status when there is no matching entry.
      *
-     * @param mac the MAC address
-     * @param lsName the logical switch name
-     * @return operation result status
+     * @param lsName The logical switch name
+     * @param mac The MAC address
+     * @return Operation result status
      */
     public Status delUcastMacRemoteAllIps(String lsName, MAC mac);
+
+    /**
+     * Deletes all entries from the Mcast_Mac_Remote table that match the
+     * specified MAC address and logical switch name. The method returns a
+     * NotFound status when there is no matching entry.
+     *
+     * @param lsName The logical switch name
+     * @param vMac The MAC address
+     * @return Operation result status
+     */
+    public Status delMcastMacRemoteAllIps(String lsName, VtepMAC vMac);
 
     /**
      * Provides an observable notifying when a connection is established to a
