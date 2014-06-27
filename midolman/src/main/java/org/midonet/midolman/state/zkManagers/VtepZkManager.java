@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -17,6 +18,7 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.StateVersionException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkPathManager;
@@ -131,6 +133,55 @@ public class VtepZkManager
         }
 
         return bindings;
+    }
+
+    /**
+     * Tries to take ownership of a VTEP for the given Node id.
+     *
+     * @param ip the management IP of the VTEP
+     * @param nodeId the unique id of the node
+     * @return UUID of the current owner, never null
+     *
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    public UUID tryOwnVtep(IPv4Addr ip, UUID nodeId)
+        throws StateAccessException, SerializationException {
+        assert(nodeId != null);
+        byte[] data = null;
+        UUID owner = null;
+        do {
+            log.debug("Node {} wants to own VTEP {}", nodeId, ip);
+            String path = paths.getVtepOwnerPath(ip);
+            try {
+                data = zk.get(path);
+            } catch (NoStatePathException e) {
+                // ok, no owner - we must do a get because we want to compare
+                // the id if there is an owner.
+            }
+
+            if (data == null) { // looks like nobody owns the VTEP
+                try {
+                    zk.addEphemeral(path,
+                                    serializer.serialize(nodeId.toString()));
+                    log.info("Node {} is now owner of VTEP {}", nodeId, ip);
+                    owner = nodeId;
+                } catch (StatePathExistsException e) {
+                    log.info("Node {} lost race to own VTEP {}, retry",
+                             nodeId, ip);
+                }
+            } else {
+                try {
+                    owner = UUID.fromString(serializer
+                                            .deserialize(data, String.class));
+                } catch (IllegalArgumentException e) {
+                    throw new SerializationException(
+                        "VTEP owner id seems corrupt (not a UUID?)", e);
+                }
+            }
+        } while (owner == null);
+
+        return owner;
     }
 
     public int getNewVni() throws StateAccessException {
