@@ -32,9 +32,15 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
     import context.system
 
     private[this] var subscriptions = Set.empty[UUID]
-    private[this] var topology = Topology()
+    private[this] val topology = Topology()
 
-    def topologyReady(topo: Topology)
+    def topologyReady()
+
+    def device[D](id: UUID): D =
+        if (id eq null)
+            null.asInstanceOf[D]
+        else
+            topology device id
 
     def prefetchTopology(requests: DeviceRequest*) {
         val newSubscriptions = requests.collect {
@@ -46,7 +52,7 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
         }(breakOut(Set.canBuildFrom))
 
         for (id <- subscriptions if !newSubscriptions.contains(id)) {
-            topology -= id
+            topology.remove(id)
             VirtualTopologyActor ! Unsubscribe(id)
         }
 
@@ -82,10 +88,10 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
         case lb: LoadBalancer => receivedDevice(lb.id, lb)
     }
 
-    private def receivedDevice(id: UUID, dev: Any): Unit =
+    private def receivedDevice(id: UUID, dev: AnyRef): Unit =
         if (subscriptions.contains(id)) {
             log.debug("Received device {}", id)
-            topology += id -> dev
+            topology.put(id, dev)
             checkTopologyFetched()
         } else {
             log.debug("Received an unused device {}", id)
@@ -94,6 +100,6 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
 
     private def checkTopologyFetched(): Unit =
         if (topology.size == subscriptions.size) {
-            topologyReady(topology)
+            topologyReady()
         }
 }

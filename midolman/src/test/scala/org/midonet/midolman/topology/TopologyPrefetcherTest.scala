@@ -3,19 +3,19 @@
  */
 package org.midonet.midolman.topology
 
+import java.util.UUID
+
+import scala.collection.mutable
+
 import akka.actor.Props
 import akka.testkit.TestActorRef
-import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
-import org.midonet.midolman.util.MidolmanServices
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.VirtualTopologyHelper
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.midolman.util.mock.MockMidolmanActors
 
 class TopologyPrefetcherTest extends MidolmanSpec {
     override def registerActors = List(
@@ -26,18 +26,23 @@ class TopologyPrefetcherTest extends MidolmanSpec {
     var port: BridgePort = _
 
     class MyTopologyPrefetcher extends TopologyPrefetcher {
-        var topology = Topology()
+        val requested = mutable.Set[UUID]()
+        var topology: Map[UUID, AnyRef] = _
 
-        def topologyReady(topo: Topology) {
-            topology = topo
+        def topologyReady() {
+            topology = (requested map { id => id -> device(id) }).toMap
         }
+
+        def get[D](id: UUID) = topology.get(id).asInstanceOf[D]
 
         override def receive = super.receive orElse {
             case reqs: List[_] =>
                 val devReqs = reqs.asInstanceOf[List[DeviceRequest]]
+                devReqs foreach { requested += _.id }
                 prefetchTopology(devReqs: _*)
             case req: DeviceRequest =>
                 prefetchTopology(req)
+                requested += req.id
         }
     }
 
@@ -128,8 +133,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             Given("A topology with a bridge")
             val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
             topologyActor ! bridgeReq
-            topologyActor.underlyingActor.topology.device[SimBridge](
-                bridge.getId).get.adminStateUp should be (true)
+            topologyActor.underlyingActor.get[SimBridge](bridge.getId)
+                                         .adminStateUp should be (true)
 
             When("Updating the bridge")
 
@@ -138,8 +143,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
                 null, null, null, null, null, null, null, null, null, null)
 
             Then("The hook method is called with the updated bridge")
-            topologyActor.underlyingActor.topology.device[SimBridge](
-                bridge.getId).get.adminStateUp should be (false)
+            topologyActor.underlyingActor.get[SimBridge](bridge.getId)
+                                         .adminStateUp should be (false)
         }
     }
 }
