@@ -116,6 +116,11 @@ public class HostZkManager
         zk.ensureEphemeral(path, new byte[0]);
     }
 
+    public void makeNotAlive(UUID hostId) throws StateAccessException {
+        String path = paths.getHostPath(hostId) + "/alive";
+        zk.deleteEphemeral(path);
+    }
+
     /**
      * Set this host's version in ZK. This value will be read by
      * the upgrade coordinator to see which version everyone is on.

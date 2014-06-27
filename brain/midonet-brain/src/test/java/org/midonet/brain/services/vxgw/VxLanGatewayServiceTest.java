@@ -174,8 +174,10 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            mP.subscribeToFloodingProxy(
+                (Observable<TunnelZoneState.FloodingProxyEvent>)any);
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
 
@@ -188,8 +190,9 @@ public class VxLanGatewayServiceTest {
             // Bridge addition
             mP.watch((UUID)withNotNull()); result = true; times = 1;
 
-            // Syncup macs from the VTEP
+            // Syncup macs from the VTEP and MN flooding proxy
             vB.advertiseMacs(); times = 1;
+            mP.advertiseFloodingProxy((UUID)any); times = 1;
 
             // Shutdown
             vtepClient.disconnect(); times = 1;
@@ -229,8 +232,10 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(preexistingBridgeIds);
+            mP.subscribeToFloodingProxy(
+                (Observable<TunnelZoneState.FloodingProxyEvent>)any);
 
+            vB.pruneUnwantedLogicalSwitches(preexistingBridgeIds);
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
 
@@ -243,6 +248,7 @@ public class VxLanGatewayServiceTest {
             // Bridge addition
             mP.watch((UUID)withNotNull()); result = true; times = 1;
             vB.advertiseMacs(); times = 1;
+            mP.advertiseFloodingProxy((UUID)any); times = 1;
 
             mP.knowsBridgeId((UUID)any);
             result = true; times = 1;
@@ -287,8 +293,10 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            mP.subscribeToFloodingProxy(
+                (Observable<TunnelZoneState.FloodingProxyEvent>)any);
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
 
@@ -301,6 +309,7 @@ public class VxLanGatewayServiceTest {
             // Bridge update (vxlanport addition)
             mP.watch((UUID)withNotNull()); result = true; times = 1;
             vB.advertiseMacs(); times = 1;
+            mP.advertiseFloodingProxy((UUID)any); times = 1;
 
             // Shutdown
             vtepClient.disconnect(); times = 1;

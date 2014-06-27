@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -52,7 +54,8 @@ public class VtepDataClientMock implements VtepDataClient {
     protected final Map<String, UUID> logicalSwitchUuids = new HashMap<>();
     protected final Map<String, UUID> locatorUuids = new HashMap<>();
     protected final Map<String, McastMac> mcastMacsLocal = new HashMap<>();
-    protected final Map<String, McastMac> mcastMacsRemote = new HashMap<>();
+    protected final ListMultimap<String, McastMac> mcastMacsRemote =
+        ArrayListMultimap.create();
     protected final Map<String, UcastMac> ucastMacsLocal = new HashMap<>();
     // FIXME: The *Macs* maps above shouls probably be multimaps, also.
     // Changing them may not be important for the current tests, but we may
@@ -354,6 +357,15 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
+    public Status delMcastMacRemoteAllIps(String lsName, VtepMAC vMac) {
+        assertConnected();
+
+        if (this.mcastMacsRemote.removeAll(vMac.toString()).isEmpty()) {
+            return new Status(StatusCode.NOTFOUND);
+        }
+        return new Status(StatusCode.SUCCESS);
+    }
+
     public Observable<Connection> connectObservable() {
         return connectSubject.asObservable();
     }

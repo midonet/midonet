@@ -25,12 +25,6 @@ public class VxLanGwBroker {
     private final static Logger log =
             LoggerFactory .getLogger(VxLanGwBroker.class);
 
-    // Client for Midonet configuration store
-    private final DataClient midoClient;
-
-    // Vtep configuration store client provider
-    private final VtepDataClientProvider vtepDataClientProvider;
-
     // VTEP Configuration store client
     private final VtepDataClient vtepClient;
 
@@ -40,7 +34,9 @@ public class VxLanGwBroker {
     // Midonet peer
     public final MidoVxLanPeer midoPeer;
 
-    private IPv4Addr vtepMgmtIp;
+    // VTEP management IP address
+    public final IPv4Addr vtepMgmtIp;
+
     private Subscription midoSubscription;
     private Subscription vtepSubscription;
 
@@ -71,21 +67,24 @@ public class VxLanGwBroker {
     public VxLanGwBroker(DataClient midoClient,
                          VtepDataClientProvider vtepDataClientProvider,
                          IPv4Addr vtepMgmtIp,
-                         int vtepMgmtPort) {
-        log.info("Wiring broker for VTEP: {}", vtepMgmtIp);
-        this.midoClient = midoClient;
-        this.vtepDataClientProvider = vtepDataClientProvider;
-        this.vtepClient = this.vtepDataClientProvider.get();
+                         int vtepMgmtPort,
+                         TunnelZoneState tunnelZone) {
+        log.info("Wiring broker for {}", vtepMgmtIp);
+        this.vtepClient = vtepDataClientProvider.get();
         this.vtepPeer = new VtepBroker(this.vtepClient);
         this.midoPeer = new MidoVxLanPeer(midoClient);
         this.vtepMgmtIp = vtepMgmtIp;
 
-        // wire peers
+        // Wire peers
         this.midoSubscription = wirePeers(midoPeer, vtepPeer);
         this.vtepSubscription = wirePeers(vtepPeer, midoPeer);
 
-        // connect to vtep
+        // Connect to VTEP
         vtepClient.connect(vtepMgmtIp, vtepMgmtPort);
+
+        // Subscribe to the tunnel zone flooding proxy.
+        midoPeer.subscribeToFloodingProxy(
+            tunnelZone.getFloodingProxyObservable());
     }
 
     /**

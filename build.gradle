@@ -49,7 +49,7 @@ project.ext {
         guice_multibind: "com.google.inject.extensions:guice-multibindings:${versions.guice}",
         yammer: ["com.yammer.metrics:metrics-core:2.1.2",
                  "com.yammer.metrics:metrics-ganglia:2.1.2"],
-        rx: "com.netflix.rxjava:rxjava-core:0.17.6",
+        rx: "com.netflix.rxjava:rxjava-core:0.19.6",
         jackson_jaxrs: "org.codehaus.jackson:jackson-jaxrs:${versions.jackson}",
         jackson_xc: "org.codehaus.jackson:jackson-xc:${versions.jackson}",
         jackson_core: "org.codehaus.jackson:jackson-core-asl:${versions.jackson}",

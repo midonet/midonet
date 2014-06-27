@@ -332,6 +332,7 @@ public class MidoVxLanPeerTest {
 
         midoVxLanPeer.stop();
 
+        testedObs.unsubscribe();
         testedObs.evaluate();
     }
 
@@ -354,6 +355,7 @@ public class MidoVxLanPeerTest {
 
        midoVxLanPeer.stop();
 
+       testedObs.unsubscribe();
        testedObs.evaluate();
     }
 
@@ -383,6 +385,7 @@ public class MidoVxLanPeerTest {
 
         midoVxLanPeer.stop();
 
+        testedObs.unsubscribe();
         testedObs.evaluate();
     }
 
@@ -437,7 +440,9 @@ public class MidoVxLanPeerTest {
         midoVxLanPeer.stop();
         altPeer.stop();
 
+        testedObs.unsubscribe();
         testedObs.evaluate();
+        testedObsAlt.unsubscribe();
         testedObsAlt.evaluate();
     }
 

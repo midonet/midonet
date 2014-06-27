@@ -18,9 +18,10 @@ import org.midonet.packets.IPv4Addr;
  * deletion and update notifications.
  */
 public class VtepMonitor extends DeviceMonitor<IPv4Addr, VTEP> {
-    
+
     public VtepMonitor(DataClient midoClient,
-                       ZookeeperConnectionWatcher zkConnWatcher) {
+                       ZookeeperConnectionWatcher zkConnWatcher)
+        throws DeviceMonitorException {
         super(midoClient, zkConnWatcher);
     }
 

@@ -16,10 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
+import rx.Subscription;
+import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import org.midonet.brain.services.vxgw.MacLocation;
+import org.midonet.brain.services.vxgw.TunnelZoneState;
 import org.midonet.brain.services.vxgw.VxLanPeer;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.VtepConstants;
@@ -117,12 +120,18 @@ public class MidoVxLanPeer implements VxLanPeer {
         }
     }
 
-    /* Interface to the Midonet configuration backend store */
+    // Interface to the Midonet configuration backend store.
     private final DataClient dataClient;
 
     /* The MidoVxLanPeer is started on creation, then new bridges can be
      * added for watching at any time */
     private boolean started = true;
+
+    // The subscription to flooding proxy notifications.
+    private Subscription floodingProxySubscription = null;
+
+    // The current flooding proxy.
+    private TunnelZoneState.HostStateConfig floodingProxy = null;
 
     @Inject
     public MidoVxLanPeer(DataClient dataClient) {
@@ -257,6 +266,40 @@ public class MidoVxLanPeer implements VxLanPeer {
         return true;
     }
 
+    /**
+     * Subscribes to the connectable observable for the VXLAN tunnel zone
+     * for changes to the flooding proxy.
+     * @param observable The connectable observable.
+     */
+    public synchronized void subscribeToFloodingProxy(
+        Observable<TunnelZoneState.FloodingProxyEvent> observable) {
+        // If already subscribed, do nothing.
+        if (null != floodingProxySubscription)
+            return;
+
+        floodingProxySubscription = observable.subscribe(
+            new Action1<TunnelZoneState.FloodingProxyEvent>() {
+                @Override
+                public void call(TunnelZoneState.FloodingProxyEvent event) {
+                    switch (event.operation) {
+                        case SET: onFloodingProxySet(event); break;
+                        case CLEAR: onFloodingProxyClear(); break;
+                    }
+                }
+            });
+    }
+
+    /**
+     * Advertises the current flooding proxy for the specified bridge. This is
+     * needed when a logical bridge is added to the VXLAN peer.
+     * @param bridgeId The bridge identifier.
+     */
+    public void advertiseFloodingProxy(UUID bridgeId) {
+        log.info("Advertise flooding proxy {}", floodingProxy);
+        if (null != floodingProxy) {
+            setFloodingProxy(bridgeId, floodingProxy.ipAddr);
+        }
+    }
 
     /**
      * Creates the context for the logical switch, including
@@ -315,6 +358,12 @@ public class MidoVxLanPeer implements VxLanPeer {
     private void forgetBridge(UUID bridgeId) {
         log.debug("Removing bridge " + bridgeId + " from MidoVxLanPeer",
                   bridgeId);
+
+        // If there is a flooding proxy, remove it for this logical switch.
+        if (null != floodingProxy) {
+            setFloodingProxy(bridgeId, null);
+        }
+
         LogicalSwitchContext ctx = lsContexts.remove(bridgeId);
         if (ctx == null) {
             log.warn("Bridge " + bridgeId + " was not being monitored");
@@ -373,6 +422,53 @@ public class MidoVxLanPeer implements VxLanPeer {
     }
 
     /**
+     * Sets a flooding proxy for the current tunnel zone.
+     * @param event The flooding proxy event.
+     */
+    private synchronized void onFloodingProxySet(
+        TunnelZoneState.FloodingProxyEvent event) {
+        this.floodingProxy = event.hostConfig;
+        for (UUID bridgeId : this.lsContexts.keySet()) {
+            setFloodingProxy(bridgeId, event.hostConfig.ipAddr);
+        }
+    }
+
+    /**
+     * Clears the flooding proxy for the current tunnel zone.
+     */
+    private synchronized void onFloodingProxyClear() {
+        if (null == floodingProxy)
+            return;
+
+        floodingProxy = null;
+
+        for (UUID bridgeId : this.lsContexts.keySet()) {
+            setFloodingProxy(bridgeId, null);
+        }
+    }
+
+    /**
+     * Sets the flooding proxy for a logical switch.
+     * @param bridgeId The bridge identifier.
+     * @param hostAddress The flooding proxy host address.
+     */
+    private void setFloodingProxy(UUID bridgeId, IPv4Addr hostAddress) {
+        String lsName =
+            VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
+
+        if (null != hostAddress) {
+            log.info("Set the flooding proxy for logical switch {} to {}",
+                     new Object[]{lsName, hostAddress});
+        } else {
+            log.info("Clear the flooding proxy on for logical switch {}",
+                     new Object[] { lsName });
+        }
+
+        allUpdates.onNext(new MacLocation(
+            VtepMAC.UNKNOWN_DST, hostAddress, lsName, null));
+    }
+
+    /**
      * Clean up the local mac table copies.
      * NOTE: once the 'stop' method is called, the rx.Observable with mac-port
      * updates is 'Complete'; it is assumed that a 'stopped' MidoVxLanPeer
@@ -383,15 +479,24 @@ public class MidoVxLanPeer implements VxLanPeer {
             log.warn("Broker already stopped");
             return;
         }
-        this.started = false;
+
+        // Un-subscribe from the tunnel zone flooding proxy notifications.
+        if (null != floodingProxySubscription &&
+            !floodingProxySubscription.isUnsubscribed()) {
+            floodingProxySubscription.unsubscribe();
+        }
+        floodingProxySubscription = null;
+
         for (Map.Entry<UUID, LogicalSwitchContext> e :
             this.lsContexts.entrySet()) {
             UUID bridgeId = e.getKey();
             log.info("Closing mac-port table monitor {}", bridgeId);
             forgetBridge(bridgeId);
         }
+
         this.allUpdates.onCompleted();
         this.lsContexts.clear();
+
         this.started = false;
     }
 
@@ -407,7 +512,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      * Tells if the MidoVxLanPeer is already managing this bridge Id.
      */
     public boolean knowsBridgeId(UUID bridgeId) {
-        return this.lsContexts.keySet().contains(bridgeId);
+        return this.lsContexts.containsKey(bridgeId);
     }
 
     /**

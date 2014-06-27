@@ -24,7 +24,7 @@ public abstract class DeviceMonitor<KEY,
     private final EntityMonitor<KEY, ?, TYPE> entityMonitor;
     private final EntityIdSetMonitor<KEY> entityIdSetMonitor;
 
-    public static class DeviceMonitorException extends RuntimeException {
+    public static class DeviceMonitorException extends Exception {
         public DeviceMonitorException(Throwable cause) {
             super("Failed to create a device monitor.", cause);
         }
@@ -44,7 +44,8 @@ public abstract class DeviceMonitor<KEY,
         };
 
     public DeviceMonitor(DataClient midoClient,
-                         ZookeeperConnectionWatcher zkConnWatcher) {
+                         ZookeeperConnectionWatcher zkConnWatcher)
+        throws DeviceMonitorException {
 
         this.midoClient = midoClient;
         this.zkConnWatcher = zkConnWatcher;

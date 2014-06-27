@@ -34,30 +34,30 @@ import org.midonet.packets.IPv4Addr;
  * The class maintains a consistent state of the current VTEPS, owned and
  * unowned.
  */
-public final class VxLanVtepMonitor {
+public final class VtepStatePublisher {
 
     private static final Logger log =
-        LoggerFactory.getLogger(VxLanVtepMonitor.class);
+        LoggerFactory.getLogger(VtepStatePublisher.class);
 
     private final DataClient midoClient;
     private final ZookeeperConnectionWatcher zkConnWatcher;
 
     private final UUID serviceId;
     private final VtepMonitor vtepMonitor;
-    private final Map<IPv4Addr, VxLanVtep> vteps = new HashMap<>();
+    private final Map<IPv4Addr, VtepState> vteps = new HashMap<>();
 
     private final Subscription monitorSubscription;
     private final Map<IPv4Addr, Subscription> ownerSubsriptions =
         new HashMap<>();
 
-    private final Subject<VxLanVtep, VxLanVtep> streamAcquire =
+    private final Subject<VtepState, VtepState> streamAcquire =
         PublishSubject.create();
-    private final Subject<VxLanVtep, VxLanVtep> streamRelease =
+    private final Subject<VtepState, VtepState> streamRelease =
         PublishSubject.create();
 
-    private final Action1<VxLanVtep> ownerChanged = new Action1<VxLanVtep>() {
+    private final Action1<VtepState> ownerChanged = new Action1<VtepState>() {
         @Override
-        public void call(VxLanVtep vtep) {
+        public void call(VtepState vtep) {
             onVtepOwnerChanged(vtep);
         }
     };
@@ -68,9 +68,9 @@ public final class VxLanVtepMonitor {
      * @param zkConnWatcher
      * @throws DeviceMonitor.DeviceMonitorException
      */
-    public VxLanVtepMonitor(@Nonnull DataClient midoClient,
-                            @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
-                            @Nonnull UUID serviceId)
+    public VtepStatePublisher(@Nonnull DataClient midoClient,
+                              @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
+                              @Nonnull UUID serviceId)
         throws DeviceMonitor.DeviceMonitorException {
 
         this.midoClient = midoClient;
@@ -118,7 +118,7 @@ public final class VxLanVtepMonitor {
      * or a VTEP that lost the previous owner.
      * @return The observable.
      */
-    public Observable<VxLanVtep> getAcquireObservable() {
+    public Observable<VtepState> getAcquireObservable() {
         return streamAcquire.asObservable();
     }
 
@@ -128,7 +128,7 @@ public final class VxLanVtepMonitor {
      * deleted, or a VTEP whose owner has been changed by a third party.
      * @return The observable.
      */
-    public Observable<VxLanVtep> getReleaseObservable() {
+    public Observable<VtepState> getReleaseObservable() {
         return streamRelease.asObservable();
     }
 
@@ -136,11 +136,13 @@ public final class VxLanVtepMonitor {
      * Disposes the VTEP monitor by completing all observables.
      */
     public synchronized void dispose() {
-        // Unsubscribe from the VTEP monitor;
-        monitorSubscription.unsubscribe();
+        // Un-subscribe from the VTEP monitor.
+        if (!monitorSubscription.isUnsubscribed()) {
+            monitorSubscription.unsubscribe();
+        }
 
         // Release the ownership of the owned VTEPs.
-        for (VxLanVtep vtep : vteps.values()) {
+        for (VtepState vtep : vteps.values()) {
             // Dispose the VTEP object which notifies the ownership change.
             vtep.dispose();
             // Remove the owner change subscription.
@@ -192,7 +194,7 @@ public final class VxLanVtepMonitor {
 
         // Create a new VTEP state, which establishes a watcher for the VTEP
         // ownership.
-        VxLanVtep vtep = new VxLanVtep(ip, serviceId, midoClient,
+        VtepState vtep = new VtepState(ip, serviceId, midoClient,
                                             zkConnWatcher);
         vteps.put(ip, vtep);
 
@@ -212,7 +214,7 @@ public final class VxLanVtepMonitor {
      * @param ip The VTEP management IP address.
      */
     private synchronized void onVtepDeleted(IPv4Addr ip) {
-        VxLanVtep vtep = vteps.remove(ip);
+        VtepState vtep = vteps.remove(ip);
 
         if (null == vtep)
             return;
@@ -231,7 +233,7 @@ public final class VxLanVtepMonitor {
      * Handles the change in ownership for a VTEP.
      * @param vtep The VTEP state.
      */
-    private void onVtepOwnerChanged(VxLanVtep vtep) {
+    private void onVtepOwnerChanged(VtepState vtep) {
         log.debug("VTEP {} ownership changed by {}", vtep.vtepIp, vtep.ownerId);
 
         if (vtep.isOwned()) {
