@@ -996,6 +996,18 @@ public interface DataClient {
             throws SerializationException, StateAccessException;
 
     /**
+     * Tries to take ownership of the given VTEP.
+     *
+     * @param mgmtIp the management IP of the VTEP
+     * @param nodeId the ID of the node trying to take ownership of the VTEP
+     * @return the ID of the node that owns the VTEP, never null
+     * @throws SerializationException
+     * @throws StateAccessException
+     */
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
+        throws SerializationException, StateAccessException;
+
+    /**
      * Given a bridge port that is expected to be exterior and bound to a given
      * host's interface, this method will figure out what's the IP that should
      * be used as vxlan tunnel end point given the bridge's configuration.
