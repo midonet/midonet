@@ -48,3 +48,6 @@ host_uuid.properties
 
 # vagrant files
 /vagrant/.vagrant
+
+# python files (might be generated if running mmm)
+*.pyc
