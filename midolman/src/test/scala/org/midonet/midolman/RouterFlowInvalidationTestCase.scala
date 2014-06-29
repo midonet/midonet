@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
@@ -36,6 +36,7 @@ import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
+import org.midonet.util.functors.Callback0
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -144,7 +145,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)
         dpconn.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags)
+        FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val lastInval = FlowController.lastInvalidationEvent
@@ -158,13 +159,14 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
 
         dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags, lastInval)
+        FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0],
+                                         tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
         dpconn.futures.flowsCreate(datapath, dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        FlowController ! AddWildcardFlow(wflow, dpflow, Nil, tags)
+        FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
     }
 

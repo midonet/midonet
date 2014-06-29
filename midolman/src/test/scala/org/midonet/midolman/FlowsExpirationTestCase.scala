@@ -4,11 +4,11 @@
 
 package org.midonet.midolman
 
+import java.util.ArrayList
 import java.util.concurrent.TimeUnit
+
 import scala.Predef._
 
-import akka.testkit.TestProbe
-import scala.concurrent.duration
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -26,6 +26,7 @@ import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
 import scala.concurrent.duration.Duration
+import org.midonet.util.functors.Callback0
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -112,7 +113,8 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         // we take a timestamp just before sending the AddWcF msg
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
+                            Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -183,7 +185,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -225,7 +227,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded: Long = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
@@ -263,7 +265,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
 
         val timeAdded = System.currentTimeMillis()
         flowProbe().testActor !
-            AddWildcardFlow(newWildFlow, flow, Nil, Set.empty)
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0], Set.empty)
 
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 

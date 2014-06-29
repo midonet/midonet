@@ -112,9 +112,9 @@ class Coordinator(pktCtx: PacketContext)
                 val tags = if (withTags) pktCtx.flowTags
                            else Set.empty[FlowTag]
                 if (temporary)
-                    TemporaryDrop(tags, pktCtx.flowRemovedCallbacks)
+                    TemporaryDrop(tags)
                 else
-                    Drop(tags, pktCtx.flowRemovedCallbacks)
+                    Drop(tags)
             } else {
                 // Internally-generated packet. Do nothing.
                 pktCtx.runFlowRemovedCallbacks()
@@ -152,21 +152,6 @@ class Coordinator(pktCtx: PacketContext)
      * The resulting future is never in a failed state.
      */
     def simulate(): Urgent[SimulationResult] = {
-        try {
-            bareSimulation() ifNotReady postpone
-        } catch {
-            case e: Exception =>
-                postpone()
-                throw e
-        }
-    }
-
-    private def postpone() {
-        log.debug("Simulation will be postponed, run callbacks")
-        pktCtx.runFlowRemovedCallbacks()
-    }
-
-    def bareSimulation(): Urgent[SimulationResult] = {
         log.debug("Simulate a packet {}", pktCtx.ethernet)
         pktCtx.cookieOrEgressPort match {
             case Left(_) => // This is a packet from the datapath
@@ -197,12 +182,11 @@ class Coordinator(pktCtx: PacketContext)
         (first, second) match {
             case (SendPacket(acts1), SendPacket(acts2)) =>
                 SendPacket(acts1 ++ acts2)
-            case (AddVirtualWildcardFlow(wcf1, _, _),
-                  AddVirtualWildcardFlow(wcf2, _, _)) =>
+            case (AddVirtualWildcardFlow(wcf1, _),
+                  AddVirtualWildcardFlow(wcf2, _)) =>
                 //TODO(rossella) set the other fields Priority
                 val res = AddVirtualWildcardFlow(
                     wcf1.combine(wcf2),
-                    pktCtx.flowRemovedCallbacks,
                     pktCtx.flowTags)
                 log.debug("Forked action merged results {}", res)
                 res
@@ -473,7 +457,6 @@ class Coordinator(pktCtx: PacketContext)
     private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
         wcFlow.wcmatch.propagateUserspaceFieldsOf(pktCtx.wcmatch)
         AddVirtualWildcardFlow(wcFlow,
-            pktCtx.flowRemovedCallbacks,
             pktCtx.flowTags)
     }
 }
