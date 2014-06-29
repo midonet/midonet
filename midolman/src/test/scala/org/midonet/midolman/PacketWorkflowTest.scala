@@ -177,7 +177,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
                 PacketWorkflowTest.forCookie(self, packet(false), cookie, false)
 
             When("the simulation layer returns Drop and tags are invalid")
-            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty, Nil)))
+            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty)))
 
             Then("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed (with 0 actions)")
@@ -192,7 +192,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
 
             When("the simulation layer returns Drop and tags are valid")
-            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty, Nil)))
+            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty)))
 
             Then("the FlowController gets an AddWildcardFlow request")
             And("the packets gets executed (with 0 action)")
@@ -204,7 +204,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 
             When("the simulation layer returns Drop and tags are valid")
-            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty, Nil)))
+            pkfw.processSimulationResult(pktCtx, Ready(Drop(Set.empty)))
 
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
@@ -219,7 +219,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             When("the simulation layer returns Drop and tags are invalid")
             pkfw.processSimulationResult(pktCtx,
-                Ready(TemporaryDrop(Set.empty, Nil)))
+                Ready(TemporaryDrop(Set.empty)))
 
             Then("the DeduplicationActor gets an ApplyFlow request")
             And("the current packet gets executed (with 0 actions)")
@@ -234,7 +234,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             When("the simulation layer returns Drop and tags are valid")
             pkfw.processSimulationResult(pktCtx,
-                Ready(TemporaryDrop(Set.empty, Nil)))
+                Ready(TemporaryDrop(Set.empty)))
 
             Then("the FlowController gets an AddWildcardFlow request")
             And("the Deduplication actor gets an empty ApplyFlow request")
@@ -248,7 +248,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             When("the simulation layer returns Drop and tags are valid")
             pkfw.processSimulationResult(pktCtx,
-                Ready(TemporaryDrop(Set.empty, Nil)))
+                Ready(TemporaryDrop(Set.empty)))
 
             Then("a FlowCreate request is made and processed by the Dp")
             And("a new WildcardFlow is sent to the Flow Controller")
@@ -263,7 +263,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
                 PacketWorkflowTest.forCookie(self, packet(false), cookie, false)
 
             When("the simulation layer returns AddVirtualWildcardFlow")
-            val result = AddVirtualWildcardFlow(wcFlow(), Nil, Set.empty)
+            val result = AddVirtualWildcardFlow(wcFlow(), Set.empty)
             pkfw.processSimulationResult(pktCtx, Ready(result))
 
             Then("action translation is performed")
@@ -280,7 +280,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             When("the simulation layer returns AddVirtualWildcardFlow")
             val result =
-                AddVirtualWildcardFlow(wcFlow(true), Nil, Set.empty)
+                AddVirtualWildcardFlow(wcFlow(true), Set.empty)
             pkfw.processSimulationResult(pktCtx, Ready(result))
 
             Then("action translation is performed")
@@ -297,7 +297,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 
             When("the simulation layer returns AddVirtualWildcardFlow")
-            val result = AddVirtualWildcardFlow(wcFlow(), Nil, Set.empty)
+            val result = AddVirtualWildcardFlow(wcFlow(), Set.empty)
             pkfw.processSimulationResult(pktCtx, Ready(result))
 
             Then("action translation is performed")

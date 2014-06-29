@@ -242,6 +242,7 @@ class DeduplicationActor(
      */
     private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
         log.debug("Packet with {} postponed", pktCtx.cookieStr)
+        pktCtx.postpone()
         f.onComplete {
             case Success(_) =>
                 log.info("Issuing restart for simulation {}", pktCtx.cookieStr)

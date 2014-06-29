@@ -29,7 +29,7 @@ trait CustomMatchers {
     def toPort(portId: UUID)(expectedTags: FlowTag*) = new BePropertyMatcher[SimulationResult] {
         def apply(simRes: SimulationResult) =
             BePropertyMatchResult((simRes match {
-                case AddVirtualWildcardFlow(flow, _, tags) =>
+                case AddVirtualWildcardFlow(flow, tags) =>
                     if (expectedTags forall tags.contains)
                         flow.actions
                     else Nil
@@ -45,7 +45,7 @@ trait CustomMatchers {
         new BePropertyMatcher[SimulationResult] {
             def apply(simRes: SimulationResult) =
                 BePropertyMatchResult((simRes match {
-                        case AddVirtualWildcardFlow(flow, _, tags) =>
+                        case AddVirtualWildcardFlow(flow, tags) =>
                             if (expectedTags forall tags.contains)
                                 flow.actions
                             else Nil
@@ -62,7 +62,7 @@ trait CustomMatchers {
         new BePropertyMatcher[SimulationResult] {
             def apply(simRes: SimulationResult) =
                 BePropertyMatchResult(simRes match {
-                    case AddVirtualWildcardFlow(flow, _ , tags) =>
+                    case AddVirtualWildcardFlow(flow, tags) =>
                         flowMatchesPacket(flow, pkt) &&
                         (expectedTags forall tags.contains)
                     case _ =>

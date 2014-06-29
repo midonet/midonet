@@ -5,7 +5,7 @@
 package org.midonet.midolman.simulation
 
 import java.text.SimpleDateFormat
-import java.util.{Date, Set => JSet, UUID}
+import java.util.{ArrayList, Date, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -90,16 +90,17 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     }
 
     // This set stores the callback to call when this flow is removed.
-    val flowRemovedCallbacks = mutable.ListBuffer[Callback0]()
-    override def addFlowRemovedCallback(cb: Callback0): Unit =
-        flowRemovedCallbacks.append(cb)
+    val flowRemovedCallbacks = new ArrayList[Callback0]()
+    override def addFlowRemovedCallback(cb: Callback0): Unit = {
+        flowRemovedCallbacks.add(cb)
+    }
 
-    def runFlowRemovedCallbacks() = {
-        val iterator = flowRemovedCallbacks.iterator
-        while (iterator.hasNext) {
-            iterator.next().call()
+    def runFlowRemovedCallbacks(): Unit = {
+        var i = flowRemovedCallbacks.size() - 1
+        while (i >= 0) {
+            flowRemovedCallbacks.remove(i).call()
+            i -= 1
         }
-        flowRemovedCallbacks.clear()
     }
 
     def ethernet = packet.getEthernet
@@ -125,9 +126,16 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         wcmatch.reset(origMatch)
     }
 
+    def prepareForDrop(lastInvalidationSeen: Long) {
+        idle = false
+        lastInvalidation = lastInvalidationSeen
+        flowTags.clear()
+        runFlowRemovedCallbacks()
+    }
+
     def postpone() {
         idle = true
-        flowRemovedCallbacks.clear()
+        runFlowRemovedCallbacks()
         flowTags.clear()
     }
 
