@@ -216,8 +216,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
                 setEtherType(IPv4.ETHERTYPE)
         eth.setPayload(new IPv4().setPayload(new Data("Payload".getBytes)))
 
-        val packet = new Packet().setMatch(dpMatch).setPacket(eth)
-        dedupProbe().testActor ! HandlePackets(Array(packet))
+        dedupProbe().testActor ! HandlePackets(Array(new Packet(eth, dpMatch)))
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 

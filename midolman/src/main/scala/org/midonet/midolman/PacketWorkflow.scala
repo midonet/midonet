@@ -447,7 +447,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
                 wcMatch.setInputPortUUID(vportId)
 
                 system.eventStream.publish(
-                    PacketIn(wcMatch.clone(), packet.getPacket, packet.getMatch,
+                    PacketIn(wcMatch.clone(), packet.getEthernet, packet.getMatch,
                         packet.getReason, cookie getOrElse 0))
 
                 handleDHCP(vportId) flatMap {
@@ -487,7 +487,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
             false
 
         (for {
-            ip4 <- payloadAs[IPv4](packet.getPacket)
+            ip4 <- payloadAs[IPv4](packet.getEthernet)
             udp <- payloadAs[UDP](ip4)
             dhcp <- payloadAs[DHCP](udp)
             if dhcp.getOpCode == DHCP.OPCODE_REQUEST
@@ -502,7 +502,7 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         }
 
     private def processDhcp(inPort: Port, dhcp: DHCP, mtu: Short) = {
-        val srcMac = packet.getPacket.getSourceMACAddress
+        val srcMac = packet.getEthernet.getSourceMACAddress
         val dhcpLogger = Logging.getLogger(system, classOf[DhcpImpl])
         val optMtu = Option(mtu)
         DhcpImpl(dataClient, inPort, dhcp, srcMac, optMtu, dhcpLogger) match {

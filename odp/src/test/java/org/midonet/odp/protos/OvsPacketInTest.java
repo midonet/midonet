@@ -69,9 +69,8 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
                 127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
         });
 
-        Packet packet = new Packet();
-        packet.setPacket(payload)
-              .addKey(inPort(0))
+        Packet packet = new Packet(payload);
+        packet.addKey(inPort(0))
               .addKey(ethernet(macFromString("3e:05:d4:73:2d:4c"),
                       macFromString("ff:ff:ff:ff:ff:ff")))
               .addKey(etherType(Type.ETH_P_ARP))

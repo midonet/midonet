@@ -24,6 +24,7 @@ public class FlowMatch implements AttributeHandler {
 
     private boolean userSpaceOnly = false;
     private final List<FlowKey> keys = new ArrayList<>();
+    private int keysHashCode = 0;
 
     public FlowMatch() { }
 
@@ -34,6 +35,7 @@ public class FlowMatch implements AttributeHandler {
     public FlowMatch addKey(FlowKey key) {
         userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
         keys.add(FlowKeys.intern(key));
+        invalidateHashCode();
         return this;
     }
 
@@ -54,6 +56,7 @@ public class FlowMatch implements AttributeHandler {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowMatch that = (FlowMatch) o;
 
         return this.keys.equals(that.keys);
@@ -61,7 +64,14 @@ public class FlowMatch implements AttributeHandler {
 
     @Override
     public int hashCode() {
-        return keys.hashCode();
+        if (keysHashCode == 0) {
+            keysHashCode = keys.hashCode();
+        }
+        return keysHashCode;
+    }
+
+    private void invalidateHashCode() {
+        keysHashCode = 0;
     }
 
     @Override
@@ -96,6 +106,7 @@ public class FlowMatch implements AttributeHandler {
 
     public void replaceKey(int index, FlowKey flowKey) {
         keys.set(index, flowKey);
+        invalidateHashCode();
     }
 
     public void use(ByteBuffer buf, short id) {
