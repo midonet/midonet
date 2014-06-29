@@ -178,7 +178,7 @@ class FloatingIpTestCase extends MidolmanTestCase
                   floatingIP, 80, syn = true)
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         var eth = applyOutPacketActions(pktOut)
         log.debug("Packet out: {}", pktOut)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -192,7 +192,7 @@ class FloatingIpTestCase extends MidolmanTestCase
                   vm2Ip, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -205,7 +205,7 @@ class FloatingIpTestCase extends MidolmanTestCase
                   vm1Ip, 80, syn = true)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -217,7 +217,7 @@ class FloatingIpTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, vm2Ip)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -229,7 +229,7 @@ class FloatingIpTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort1Name, vm2Mac, vm2Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -242,7 +242,7 @@ class FloatingIpTestCase extends MidolmanTestCase
         injectIcmpEchoReq(rtrPort1Name, vm1Mac, vm1Ip, routerMac1, floatingIP)
         pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         eth = applyOutPacketActions(pktOut)
         log.debug("packet out: {}", pktOut)
         ipPak = eth.getPayload.asInstanceOf[IPv4]

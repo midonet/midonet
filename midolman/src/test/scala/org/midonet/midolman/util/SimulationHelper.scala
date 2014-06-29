@@ -29,10 +29,10 @@ trait SimulationHelper { this: MidolmanTestCase =>
         val packet = packetEx.packet
         val actions = packetEx.actions
         packet should not be null
-        packet.getPacket should not be null
+        packet.getEthernet should not be null
         actions should not be null
 
-        val eth = Ethernet.deserialize(packet.getPacket.serialize())
+        val eth = Ethernet.deserialize(packet.getEthernet.serialize())
         var ip: IPv4 = null
         var tcp: TCP = null
         var udp: UDP = null
@@ -93,7 +93,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
 
     def checkPacket(p: PacketsExecute): PacketsExecute = {
         p.packet should not be null
-        p.packet.getPacket should not be null
+        p.packet.getEthernet should not be null
         p
     }
 
@@ -291,7 +291,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         val flowActs = pktOut.actions
         flowActs.size should equal (3)
         flowActs.contains(output(portNum)) should be (true)
-        pktOut.packet.getPacket
+        pktOut.packet.getEthernet
     }
 
     /**
@@ -305,7 +305,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
             vlanIdsPush: List[Short], vlanIdsPop: List[Short]): Ethernet = {
         val pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         pktOut.packet should not be null
-        pktOut.packet.getPacket should not be null
+        pktOut.packet.getEthernet should not be null
         val actions = pktOut.actions
         actions.size should be (portNums.size +
                                             vlanIdsPush.size + vlanIdsPop.size)
@@ -334,7 +334,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         // ids in the frame)
         vlanIdsPop.size shouldBe actions.count( _.isInstanceOf[FlowActionPopVLAN])
 
-        pktOut.packet.getPacket
+        pktOut.packet.getEthernet
     }
 
 }
