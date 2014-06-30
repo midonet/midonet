@@ -7,6 +7,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
+import org.midonet.cluster.data.Rule;
+import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -86,7 +88,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareCreateRouter(List<Op> ops, Router router)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
 
         UUID preChainId = UUID.randomUUID();
         UUID postChainId = UUID.randomUUID();
@@ -151,6 +154,7 @@ public class L3ZkManager extends BaseZkManager {
 
         RouterConfig config = routerZkManager.get(router.id);
         config.name = router.name;
+        config.adminStateUp = router.adminStateUp;
         List<Op> updateOps = routerZkManager.prepareUpdate(router.id,
                 config);
         if (updateOps != null) {
@@ -283,7 +287,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareDeleteGatewayPort(List<Op> ops, Port port)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
 
         networkZkManager.prepareDeletePortConfig(ops, port.id);
 
@@ -299,10 +304,8 @@ public class L3ZkManager extends BaseZkManager {
         // router.
         PortConfig peer = portZkManager.getPeerPort(port.id);
         RouterConfig rCfg = routerZkManager.get(peer.device_id);
-        ruleZkManager.prepareDeleteReverseSnatRules(ops, rCfg.inboundFilter,
-                port.firstIpv4Addr());
-        ruleZkManager.prepareDeleteSnatRules(ops, rCfg.outboundFilter,
-                port.firstIpv4Addr());
+        ruleZkManager.prepareDeleteSourceNatRules(ops, rCfg.inboundFilter,
+            rCfg.outboundFilter, port.firstIpv4Addr());
     }
 
     private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID gwPortId)
@@ -347,7 +350,8 @@ public class L3ZkManager extends BaseZkManager {
     private void prepareCreateGatewayRouter(List<Op> ops, Router router,
                                             UUID inboundChainId,
                                             UUID outboundChainId)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
 
         // Get the gateway port info.  We can assume that there is one
         // IP address assigned to this, which is reserved for gw IP.
@@ -360,10 +364,9 @@ public class L3ZkManager extends BaseZkManager {
         UUID portId = prepareLinkToGwRouter(ops, router.id, gwPort);
 
         if (router.snatEnabled()) {
-            ruleZkManager.prepareUpdateReverseSnatRuleInNewChain(ops,
-                    inboundChainId, portId, gwPort.firstIpv4Addr());
-            ruleZkManager.prepareUpdateSnatRuleInNewChain(ops,
-                    outboundChainId, portId, gwPort.firstIpv4Addr());
+            ruleZkManager.prepareCreateSourceNatRules(ops,
+                inboundChainId, outboundChainId, portId,
+                gwPort.firstIpv4Addr());
         }
     }
 
@@ -393,7 +396,7 @@ public class L3ZkManager extends BaseZkManager {
         // SNAT rule cannot be created.
         if (portId != null) {
 
-            // If gateway link exists, then determine whether SNAT is enabled.
+            // If gateway link exists, then determine whether SNAT is enableod.
             // If it is, then make sure that the right SNAT rules are included
             // in the chains.  Delete all SNAT rules if SNAT is disabled.
             Port gwPort = networkZkManager.getPort(router.gwPortId);
@@ -401,15 +404,16 @@ public class L3ZkManager extends BaseZkManager {
             ops.add(zk.getSetDataOp(paths.getNeutronPortPath(gwPort.id),
                     serializer.serialize(gwPort)));
             if (router.snatEnabled()) {
-                ruleZkManager.prepareCreateDynamicSnatRule(ops,
-                        config.outboundFilter, portId, gwPort.firstIpv4Addr());
-                ruleZkManager.prepareCreateReverseSnatRule(ops,
-                        config.inboundFilter, portId, gwPort.firstIpv4Addr());
+                if (!ruleZkManager.snatRuleExists(config.outboundFilter,
+                    gwPort.firstIpv4Addr())) {
+                    ruleZkManager.prepareCreateSourceNatRules(ops,
+                        config.inboundFilter, config.outboundFilter, portId,
+                        gwPort.firstIpv4Addr());
+                }
             } else {
-                ruleZkManager.prepareDeleteSnatRules(ops,
-                        config.outboundFilter, gwPort.firstIpv4Addr());
-                ruleZkManager.prepareDeleteReverseSnatRules(ops,
-                        config.inboundFilter, gwPort.firstIpv4Addr());
+                ruleZkManager.prepareDeleteSourceNatRules(ops,
+                    config.inboundFilter, config.outboundFilter,
+                    gwPort.firstIpv4Addr());
             }
         }
     }

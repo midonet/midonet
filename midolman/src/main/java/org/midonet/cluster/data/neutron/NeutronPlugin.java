@@ -293,7 +293,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
     @Override
     public void deletePort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
 
         Port port = getPort(id);
         if (port == null) {
@@ -376,7 +377,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi {
 
     @Override
     public Router createRouter(@Nonnull Router router)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
 

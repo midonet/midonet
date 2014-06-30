@@ -53,7 +53,8 @@ public class RouterResource extends AbstractResource {
     @Produces(NeutronMediaType.ROUTER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(Router router)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
         log.info("RouterResource.create entered {}", router);
 
         try {

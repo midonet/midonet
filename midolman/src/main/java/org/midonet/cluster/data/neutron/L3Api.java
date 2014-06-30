@@ -21,7 +21,8 @@ public interface L3Api {
      * @return Created Router object
      */
     Router createRouter(@Nonnull Router router)
-            throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
 
     /**
      * Delete a router. Nothing happens if the resource does not exist.
