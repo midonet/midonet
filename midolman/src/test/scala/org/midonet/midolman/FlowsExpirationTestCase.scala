@@ -99,7 +99,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         flowProbe().testActor ! RemoveWildcardFlow(wflow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
+        val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
         val newMatch = wflow.getMatch
@@ -174,7 +174,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
+        val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.wcmatch.unsetInputPortUUID()
@@ -216,7 +216,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
+        val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.getMatch.unsetInputPortUUID()
@@ -254,7 +254,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         flowProbe().testActor ! RemoveWildcardFlow(addedFlow.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        val flow = new Flow().setMatch(FlowMatches.fromEthernetPacket(ethPkt))
+        val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
         addedFlow.wcmatch.unsetInputPortUUID()

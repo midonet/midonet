@@ -5,35 +5,19 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 
-import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.messages.BuilderAware;
-import org.midonet.odp.OpenVSwitch;
+import com.google.common.primitives.Longs;
 
-public class FlowStats implements BuilderAware {
+public class FlowStats {
 
     /** Number of matched packets. */
-    /*__u64*/ private long n_packets;
+    /*__u64*/ private final long n_packets;
 
     /** Number of matched bytes. */
-    /*__u64*/ private long n_bytes;
-
-    // This is used for deserialization purposes only.
-    FlowStats() { }
+    /*__u64*/ private final long n_bytes;
 
     public FlowStats(long numPackets, long numBytes) {
         n_packets = numPackets;
         n_bytes = numBytes;
-    }
-
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            n_packets = buf.getLong();
-            n_bytes = buf.getLong();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     public long getNoPackets() {
@@ -49,19 +33,16 @@ public class FlowStats implements BuilderAware {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FlowStats flowStats = (FlowStats) o;
+        @SuppressWarnings("unchecked")
+        FlowStats that = (FlowStats) o;
 
-        if (n_bytes != flowStats.n_bytes) return false;
-        if (n_packets != flowStats.n_packets) return false;
-
-        return true;
+        return (this.n_bytes == that.n_bytes)
+            && (this.n_packets == that.n_packets);
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (n_packets ^ (n_packets >>> 32));
-        result = 31 * result + (int) (n_bytes ^ (n_bytes >>> 32));
-        return result;
+        return 31 * Longs.hashCode(n_packets) + Longs.hashCode(n_bytes);
     }
 
     @Override
@@ -73,8 +54,8 @@ public class FlowStats implements BuilderAware {
     }
 
     public static FlowStats buildFrom(ByteBuffer buf) {
-        return NetlinkMessage.getAttrValue(buf,
-                                           OpenVSwitch.Flow.Attr.Stats,
-                                           new FlowStats());
+        long n_packets = buf.getLong();
+        long n_bytes = buf.getLong();
+        return new FlowStats(n_packets, n_bytes);
     }
 }

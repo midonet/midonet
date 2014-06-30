@@ -39,8 +39,7 @@ public abstract class OvsFlowsCreateSetMatchTest
         Datapath datapath = dpFuture.get();
 
         Future<Flow> flowFuture =
-            connection.futures.flowsCreate(dpFuture.get(),
-                                   new Flow().setMatch(flowMatch()));
+            connection.futures.flowsCreate(dpFuture.get(), new Flow(flowMatch()));
 
         exchangeMessage();
         assertThat("The returned flow has the same Match as we wanted",
@@ -54,11 +53,7 @@ public abstract class OvsFlowsCreateSetMatchTest
                    retrievedFlowFuture.get().getMatch(), equalTo(flowMatch()));
 
         // update the with actions.
-        Flow updatedFlow =
-            new Flow()
-                .setMatch(flowMatch())
-                .setActions(flowActions());
-//                userspace()
+        Flow updatedFlow = new Flow(flowMatch().getKeys(), flowActions());
 
         Future<Flow> flowWithActionsFuture = connection.futures.flowsSet(datapath,
                                                                  updatedFlow);

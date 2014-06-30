@@ -3,10 +3,13 @@
 */
 package org.midonet.odp.protos;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
 import org.midonet.odp.flows.*;
@@ -36,123 +39,29 @@ public class OvsFlowsCreateTest extends AbstractNetlinkProtocolTest {
         // multi containing the datapaths data
         exchangeMessage();
 
-        Flow flow =
-            new Flow()
-                .addKey(FlowKeys.inPort(1))
-                .addKey(inPort(0))
-                .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                        macFromString("33:33:00:00:00:16")))
-                .addKey(etherType(Type.ETH_P_IPV6))
-                .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                        new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
-                        IpProtocol.ICMPV6.value,
-                        (byte) 1,
-                        IPFragmentType.None))
-                .addKey(icmpv6(143, 0))
-                .addAction(output(1));
+        List<FlowKey> keys = new ArrayList<>();
+        keys.add(inPort(1));
+        keys.add(inPort(0));
+        keys.add(ethernet(macFromString("ae:b3:77:8c:a1:48"),
+                          macFromString("33:33:00:00:00:16")));
+        keys.add(etherType(Type.ETH_P_IPV6));
+        keys.add(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
+                      new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
+                      IpProtocol.ICMPV6.value,
+                      (byte) 1,
+                      IPFragmentType.None));
+        keys.add(icmpv6(143, 0));
+
+        List<FlowAction> actions = new ArrayList<>();
+        actions.add(output(1));
+
+        Flow flow = new Flow(keys, actions);
 
         Future<Flow> flowFuture =
             connection.futures.flowsCreate(dpFuture.get(), flow);
 
         // multi containing the ports data
         exchangeMessage();
-    }
-
-    private Flow fifthFlow() {
-        return new Flow()
-            .addKey(inPort(0))
-            .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                    macFromString("33:33:00:00:00:16")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                    new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
-                    IpProtocol.ICMPV6.value,
-                    (byte) 1,
-                    IPFragmentType.None))
-            .addKey(icmpv6(143, 0))
-            .addAction(output(4))
-            .addAction(output(3))
-            .addAction(output(2))
-            .addAction(output(1));
-    }
-
-    private Flow fourthFlow() {
-        return new Flow()
-            .addKey(inPort(0))
-            .addKey(ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                             macFromString("33:33:00:00:00:02")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                         new IPv6Addr(0xFF02000000000000L, 0x0000000000000002L),
-                         IpProtocol.ICMPV6.value,
-                         (byte) -1,
-                         IPFragmentType.None))
-            .addKey(icmpv6(133, 0))
-            .addAction(output(4))
-            .addAction(output(3))
-            .addAction(output(2))
-            .addAction(output(1));
-    }
-
-    private Flow thirdFlow() {
-        return new Flow()
-            .addKey(inPort(0))
-            .addKey(
-                ethernet(macFromString("ae:b3:77:8c:a1:48"),
-                         macFromString("33:33:ff:8c:a1:48")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(ipv6(new IPv6Addr(0x0000000000000000L, 0x0000000000000000L),
-                         new IPv6Addr(0xFF02000000000000L, 0x00000001FF8CA148L),
-                         IpProtocol.ICMPV6.value,
-                         (byte) -1,
-                         IPFragmentType.None))
-            .addKey(icmpv6(135, 0))
-            .addKey(neighborDiscovery(
-                Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148")))
-            .addAction(output(4))
-            .addAction(output(3))
-            .addAction(output(2))
-            .addAction(output(1));
-    }
-
-    private Flow firstFlow() {
-        return new Flow()
-            .addKey(inPort(0))
-            .addKey(
-                ethernet(macFromString("ae:b3:77:8C:A1:48"),
-                         macFromString("33:33:00:00:00:16")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(ipv6(new IPv6Addr(0x0000000000000000L, 0x0000000000000000L),
-                         new IPv6Addr(0xFF02000000000000L, 0x0000000000000016L),
-                         IpProtocol.ICMPV6.value,
-                         (byte) 1,
-                         IPFragmentType.None))
-            .addKey(icmpv6(143, 0))
-            .addAction(output(4))
-            .addAction(output(3))
-            .addAction(output(2))
-            .addAction(output(1));
-    }
-
-    private Flow secondFlow() {
-        return new Flow()
-            .addKey(inPort(0))
-            .addKey(
-                ethernet(macFromString("ae:b3:77:8C:A1:48"),
-                         macFromString("33:33:00:00:00:fb")))
-            .addKey(etherType(Type.ETH_P_IPV6))
-            .addKey(ipv6(new IPv6Addr(0xFE80000000000000L, 0xACB377FFFE8CA148L),
-                         new IPv6Addr(0xFF02000000000000L, 0x00000000000000FBL),
-                         (byte)17,
-                         (byte) -1,
-                         IPFragmentType.None))
-            .addKey(udp(5353, 5353))
-            .addAction(output(4))
-            .addAction(output(3))
-            .addAction(output(2))
-            .addAction(output(1))
-            .setStats(new FlowStats(10, 3165))
-            .setLastUsedTime(968726990l);
     }
 
     final byte[][] responses = {

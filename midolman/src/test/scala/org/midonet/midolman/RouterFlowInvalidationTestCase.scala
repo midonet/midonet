@@ -137,7 +137,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
 
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
-        val dpflow = new Flow().setMatch(
+        val dpflow = new Flow(
             new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
         val tag = "tun_id:7001"
         val tags = ROSet[Any](tag)

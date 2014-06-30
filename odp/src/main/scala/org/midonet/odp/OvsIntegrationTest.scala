@@ -3,6 +3,7 @@
  */
 package org.midonet.odp.test
 
+import java.util.{ArrayList => JArrayList}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -101,7 +102,7 @@ trait FlowTest {
         val mac = Array[Byte](0,1,2,3,4,5)
         val ethK = FlowKeys.ethernet(mac,mac)
 
-        def flow(fm: FlowMatch) = new Flow setMatch fm
+        def flow(fm: FlowMatch) = new Flow(fm.getKeys, new JArrayList[FlowAction]())
         def flowmatch(k: FlowKey) = (new FlowMatch) addKey(k) addKey(ethK)
 
         def createFlow(f: Flow) = dpF flatMap { con createFlow (f, _) }
