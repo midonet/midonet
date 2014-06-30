@@ -111,7 +111,6 @@
                 <configuration>
                     <requires>
                         <require>java7</require>
-                        <require>tomcat6</require>
                     </requires>
                     <mappings>
                         <mapping>
@@ -120,16 +119,6 @@
                             <sources>
                                 <source>
                                     <location>${project.build.directory}/${project.build.finalName}</location>
-                                </source>
-                            </sources>
-                        </mapping>
-                        <mapping>
-                            <directory>/etc/tomcat6/Catalina/localhost</directory>
-                            <configuration>true</configuration>
-                            <directoryIncluded>false</directoryIncluded>
-                            <sources>
-                                <source>
-                                    <location>${project.basedir}/conf/midonet-api.xml</location>
                                 </source>
                             </sources>
                         </mapping>
