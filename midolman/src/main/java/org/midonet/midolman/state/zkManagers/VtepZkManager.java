@@ -57,6 +57,11 @@ public class VtepZkManager
                               paths.getVtepBindingsPath(ipAddr), null));
     }
 
+    public List<Op> prepareDelete(IPv4Addr ipAddr) {
+        return asList(Op.delete(paths.getVtepBindingsPath(ipAddr), -1),
+                      Op.delete(paths.getVtepPath(ipAddr), -1));
+    }
+
     public List<Op> prepareCreateBinding(IPv4Addr ipAddr, String portName,
                                          short vlanId, UUID networkId)
             throws StateAccessException {

@@ -24,13 +24,17 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.network.VTEP;
 import org.midonet.api.network.VTEPPort;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.NodeNotEmptyStateException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
@@ -38,6 +42,8 @@ import org.midonet.packets.IPv4Addr;
 import com.google.inject.Inject;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
+import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
+import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class VtepResource extends AbstractVtepResource {
@@ -102,8 +108,16 @@ public class VtepResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{ipAddr}")
     public void delete(@PathParam("ipAddr") String ipAddrStr)
-            throws StateAccessException {
-        // TODO: Verify that it has no bindings to Midonet networks.
+            throws SerializationException, StateAccessException {
+        try {
+            vtepClient.deleteVtep(parseIPv4Addr(ipAddrStr));
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(getMessage(
+                    VTEP_NOT_FOUND, ipAddrStr));
+        } catch (NodeNotEmptyStateException ex) {
+            throw new BadRequestHttpException(getMessage(
+                    VTEP_HAS_BINDINGS, ipAddrStr));
+        }
     }
 
     @GET

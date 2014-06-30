@@ -15,8 +15,9 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
-import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.Watcher;
@@ -104,6 +105,10 @@ public class ZkManager {
             return new StateVersionException(
                     "Zookeeper error occurred while " + action + ": " +
                     ex.getMessage(), ex);
+        } else if (ex instanceof NotEmptyException) {
+            return new NodeNotEmptyStateException(
+                    "Zookeeper error occurred while " + action + ": " +
+                    ex.getMessage(), basePath, (NotEmptyException)ex);
         } else if (ex instanceof KeeperException) {
             return new StateAccessException(
                     "Zookeeper error occurred while " + action + ": " +

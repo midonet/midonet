@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
+import org.midonet.midolman.state.NoStatePathException;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.notation.UUID;
@@ -195,8 +196,13 @@ public class VtepClusterClient {
             IPv4Addr ipAddr, String portName, short vlanId)
             throws SerializationException, StateAccessException {
 
-        org.midonet.cluster.data.VtepBinding dataBinding =
-                dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+        org.midonet.cluster.data.VtepBinding dataBinding;
+        try {
+            dataBinding = dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(getMessage(VTEP_NOT_FOUND, ipAddr));
+        }
+
         if (dataBinding == null) {
             throw new NotFoundHttpException(getMessage(
                     VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
@@ -441,7 +447,13 @@ public class VtepClusterClient {
         Status st = vtepClient.deleteLogicalSwitch(
                 bridgeIdToLogicalSwitchName(networkId));
         throwIfFailed(st);
+    }
 
+    public void deleteVtep(IPv4Addr ipAddr) throws
+            SerializationException, StateAccessException {
+        // Delete the VTEP from Zookeeper. Need to fetch it first to
+        // get the management port to connect to the actual VTEP.
+        dataClient.vtepDelete(ipAddr);
     }
 
     /**
@@ -465,7 +477,6 @@ public class VtepClusterClient {
                 throw new BadGatewayHttpException(status.getDescription());
         }
     }
-
 
     /**
      * Takes a bridge id, reads all its known macs, and writes the corresponding

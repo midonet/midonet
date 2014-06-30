@@ -934,6 +934,20 @@ public interface DataClient {
     public List<VTEP> vtepsGetAll()
             throws StateAccessException, SerializationException;
 
+    /**
+     * Deletes a VTEP. Will fail if the VTEP has bindings.
+     *
+     * @param ipAddr IP address of VTEP to delete.
+     *
+     * @throws org.midonet.midolman.state.NodeNotEmptyStateException
+     *         If the VTEP still has bindings.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *         If the VTEP does not exist.
+     */
+    public void vtepDelete(IPv4Addr ipAddr)
+            throws StateAccessException, SerializationException;
+
     public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
                                @Nonnull String portName, short vlanId,
                                @Nonnull UUID networkId)
