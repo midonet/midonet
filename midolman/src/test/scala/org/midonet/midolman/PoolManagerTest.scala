@@ -24,8 +24,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
 
     var vta: TestableVTA = null
 
-    protected override def registerActors =
-        List(VirtualTopologyActor -> (() => new TestableVTA))
+    registerActors(VirtualTopologyActor -> (() => new TestableVTA))
 
     protected override def beforeTest() {
         vta = VirtualTopologyActor.as[TestableVTA]

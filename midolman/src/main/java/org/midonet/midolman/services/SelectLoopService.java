@@ -38,8 +38,8 @@ public class SelectLoopService extends AbstractService {
             }
         });
 
-        th.start();
         th.setName(name);
+        th.start();
         return th;
     }
 

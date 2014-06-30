@@ -38,6 +38,7 @@ trait MessageAccumulator extends Actor {
                 super.receive.apply(msg)
     }
 }
+
 /**
  * An actors service where all well-known actors are MessageAccumulator instances
  */
@@ -45,19 +46,20 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
 
     @Inject
     override val injector: Injector = null
-    private[this] var props: Map[String, Props] = null
+    private[this] var props = mutable.Map[String, Props]()
     private[this] val actors =
         mutable.Map[String, TestActorRef[MessageAccumulator]]()
+    var dispatcher: String = _
 
     def actor(actor: Referenceable): TestActorRef[MessageAccumulator] =
         actors.get(actor.Name) getOrElse {
             throw new IllegalArgumentException(s"No actor named ${actor.Name}")
         }
 
-    def register(actors: List[(Referenceable, () => MessageAccumulator)]) {
-        props = (actors map {
-            case (ref, f) => (ref.Name, Props(injectedActor(f)))
-        }).toMap
+    def register(actors: Seq[(Referenceable, () => MessageAccumulator)]) {
+        actors foreach { case (ref, f) =>
+            props += ref.Name -> Props(injectedActor(f))
+        }
     }
 
     private def injectedActor(f: => () => Actor) = {
@@ -66,10 +68,19 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         instance
     }
 
+    def setDispatcher(props: Props): Props =
+        if ((dispatcher ne null) && dispatcher != "")
+            props.withDispatcher(dispatcher)
+        else
+            props
+
     override protected def startActor(specs: (Props, String)) = {
         val (_, name) = specs
-        val p = props.getOrElse(name, Props(new EmptyActor
+        var p = props.getOrElse(name, Props(new EmptyActor
                                             with MessageAccumulator))
+
+        p = setDispatcher(p)
+
         // Because actors are started asynchronously, creating a TestActorRef
         // may fail because the supervisorActor may not have started yet. See
         // TestActorRef.scala#L35 for details (version 2.2.3).

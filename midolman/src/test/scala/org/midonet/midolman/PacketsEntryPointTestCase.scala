@@ -34,8 +34,7 @@ class PacketsEntryPointTestCase extends MidolmanSpec {
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var testablePep: TestablePEP = _
 
-    override def registerActors = List(
-        PacketsEntryPoint -> (() => new TestablePEP))
+    registerActors(PacketsEntryPoint -> (() => new TestablePEP))
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()

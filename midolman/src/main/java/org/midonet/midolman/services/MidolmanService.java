@@ -75,6 +75,7 @@ public class MidolmanService extends AbstractService {
         List<AbstractService> services = services();
         Collections.reverse(services);
         log.info("Stopping services");
+        metrics.shutdown();
         for (AbstractService service : services) {
             boolean running = service.state() == State.RUNNING;
             try {
@@ -94,7 +95,7 @@ public class MidolmanService extends AbstractService {
     }
 
     private List<AbstractService> services() {
-        ArrayList<AbstractService> services = new ArrayList<>(5);
+        ArrayList<AbstractService> services = new ArrayList<>(6);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
         services.add(actorsService);

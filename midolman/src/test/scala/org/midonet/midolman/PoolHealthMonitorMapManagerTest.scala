@@ -23,8 +23,7 @@ class PoolHealthMonitorMapManagerTest
 
     var vta: TestableVTA = null
 
-    protected override def registerActors =
-        List(VirtualTopologyActor -> (() => new TestableVTA))
+    registerActors(VirtualTopologyActor -> (() => new TestableVTA))
 
     protected override def beforeTest() {
         VirtualTopologyActor.clearTopology()

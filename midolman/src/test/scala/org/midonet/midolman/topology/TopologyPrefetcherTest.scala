@@ -18,9 +18,8 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 
 class TopologyPrefetcherTest extends MidolmanSpec {
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator))
 
     var bridge: Bridge = _
     var port: BridgePort = _

@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
 package org.midonet.midolman.guice;
 
 import java.lang.annotation.Retention;
@@ -55,17 +56,24 @@ public class CacheModule extends PrivateModule {
         requireBinding(ConfigProvider.class);
         requireBinding(Directory.class);
 
-        bind(Reactor.class).
-                annotatedWith(CACHE_REACTOR.class).
-                toInstance(new TryCatchReactor("cache-reactor", 1));
+        bindReactor();
         expose(Key.get(Reactor.class, CACHE_REACTOR.class));
 
         bindCache();
+        expose(Key.get(Cache.class, NAT_CACHE.class));
+        expose(Key.get(Cache.class, TRACE_MESSAGES.class));
+        expose(Key.get(Cache.class, TRACE_INDEX.class));
 
         bind(NatMappingFactory.class)
             .toProvider(NatMappingFactoryProvider.class)
             .asEagerSingleton();
         expose(NatMappingFactory.class);
+    }
+
+    protected void bindReactor() {
+        bind(Reactor.class).
+                annotatedWith(CACHE_REACTOR.class).
+                toInstance(new TryCatchReactor("cache-reactor", 1));
     }
 
     protected void bindCache() {
@@ -78,9 +86,7 @@ public class CacheModule extends PrivateModule {
         bind(Cache.class).annotatedWith(TRACE_INDEX.class)
             .toProvider(new CacheProvider("trace_index", 604800))
             .in(Singleton.class);
-        expose(Key.get(Cache.class, NAT_CACHE.class));
-        expose(Key.get(Cache.class, TRACE_MESSAGES.class));
-        expose(Key.get(Cache.class, TRACE_INDEX.class));
+
     }
 
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
