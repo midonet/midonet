@@ -52,8 +52,7 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
         exchangeMessage();
 
         Future<Flow> flowResult =
-            connection.futures.flowsCreate(dpResult.get(),
-                                   new Flow().setMatch(flowMatch()));
+            connection.futures.flowsCreate(dpResult.get(), new Flow(flowMatch()));
 
         // multi containing the ports data
         exchangeMessage();

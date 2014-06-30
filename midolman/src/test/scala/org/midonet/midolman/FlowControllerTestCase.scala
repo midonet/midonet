@@ -342,8 +342,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             val mwcFlow = testFlowAdded(flow, state)
 
-            flowController.flowManagerHelper.removeFlow(new Flow().setMatch(
-                flow.flowMatch))
+            flowController.flowManagerHelper.removeFlow(new Flow(flow.flowMatch))
 
             Then("The flow should not appear in the wildcard flow table.")
             FlowController.queryWildcardFlowTable(flow.wcMatch) should not be
@@ -549,7 +548,7 @@ class FlowControllerTestCase extends MidolmanSpec {
                 WildcardFlowFactory.createHardExpiration(wcMatch, expirationMillis)
         }
 
-        val dpFlow = new Flow().setActions(wcFlow.actions).setMatch(flowMatch)
+        val dpFlow = new Flow(flowMatch.getKeys, wcFlow.actions)
 
         val tagsSet = tags.toSet
 

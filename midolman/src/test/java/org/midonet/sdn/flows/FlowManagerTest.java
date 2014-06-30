@@ -86,16 +86,14 @@ public class FlowManagerTest {
         WildcardFlow wildcardFlow =
             WildcardFlowFactory.createHardExpiration(wildcardMatch, timeOut);
 
-        Flow flow = new Flow().
-                        setMatch(flowMatch).
-                        setActions(actionsAsJava(wildcardFlow));
+        Flow flow = new Flow(flowMatch.getKeys(), actionsAsJava(wildcardFlow));
 
         int numberOfFlowsAdded = 0;
         ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
         // add flow
-        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        flowManagerHelper.addFlow(new Flow(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
                    flowManager.getDpFlowTable().size(),
@@ -131,13 +129,12 @@ public class FlowManagerTest {
 
         WildcardFlow wildcardFlow =
             WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
-        Flow flow = new Flow().setMatch(flowMatch).
-                setActions(actionsAsJava(wildcardFlow));
+        Flow flow = new Flow(flowMatch.getKeys(), actionsAsJava(wildcardFlow));
         int numberOfFlowsAdded = 0;
         ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
-        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        flowManagerHelper.addFlow(new Flow(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
                    flowManager.getDpFlowTable().size(),
@@ -178,14 +175,13 @@ public class FlowManagerTest {
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
             WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
-        Flow flow = new Flow().setMatch(flowMatch).
-                setActions(actionsAsJava(wildcardFlow));
+        Flow flow = new Flow(flowMatch.getKeys(), actionsAsJava(wildcardFlow));
 
         int numberOfFlowsAdded = 0;
         ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
-        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        flowManagerHelper.addFlow(new Flow(flowMatch));
         numberOfFlowsAdded++;
 
         Thread.sleep(timeOut/2);
@@ -196,7 +192,7 @@ public class FlowManagerTest {
             new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200))
                            .addKey(FlowKeys.tcp(1000, 1002));
         Flow flow2 =
-            new Flow().setActions(actionsAsJava(wflow)).setMatch(flowMatch1);
+            new Flow(flowMatch1.getKeys(), actionsAsJava(wflow));
 
         // create the flow
         flowManager.add(flow2, wflow);
@@ -264,14 +260,13 @@ public class FlowManagerTest {
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
             WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
-        Flow flow = new Flow().setActions(actionsAsJava(wildcardFlow)).
-                               setMatch(flowMatch);
+        Flow flow = new Flow(flowMatch.getKeys(), actionsAsJava(wildcardFlow));
 
 
         ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
         flowManager.add(wflow);
         flowManager.add(flow, wflow);
-        flowManagerHelper.addFlow(new Flow().setMatch(flowMatch));
+        flowManagerHelper.addFlow(new Flow(flowMatch));
 
         Thread.sleep(timeOut);
 
@@ -340,8 +335,7 @@ public class FlowManagerTest {
             // no time out set
             WildcardFlow wildcardFlow =
                 WildcardFlowFactory.create(wildcardMatch);
-            Flow flow = new Flow().setActions(actionsAsJava(wildcardFlow))
-                                  .setMatch(flowMatch);
+            Flow flow = new Flow(flowMatch.getKeys(), actionsAsJava(wildcardFlow));
             ManagedWildcardFlow managedFlow = ManagedWildcardFlow.create(wildcardFlow);
             flowManager.add(managedFlow);
             flowManager.add(flow, managedFlow);

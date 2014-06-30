@@ -48,7 +48,7 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
                    datapath, notNullValue());
 
         Future<Flow> flowResult =
-            connection.futures.flowsCreate(datapath, new Flow().setMatch(flowMatch()));
+            connection.futures.flowsCreate(datapath, new Flow(flowMatch()));
 
         // multi containing the ports data
         exchangeMessage();

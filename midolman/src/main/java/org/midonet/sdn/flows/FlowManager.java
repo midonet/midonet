@@ -278,7 +278,7 @@ public class FlowManager {
              * as no ConcurrentModificationException will be thrown.
              */
             for (FlowMatch flowMatch : removedDpFlows) {
-                flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch));
+                flowManagerHelper.removeFlow(new Flow(flowMatch));
                 dpFlows += 1;
             }
         }
@@ -442,7 +442,7 @@ public class FlowManager {
             FlowMatch match = it.next();
             // this call will eventually lead to the removal of this flow
             // from dpFlowTable
-            flowManagerHelper.removeFlow(new Flow().setMatch(match));
+            flowManagerHelper.removeFlow(new Flow(match));
             nFlowsRemoved++;
         }
     }
