@@ -5,16 +5,17 @@
 package org.midonet.midolman
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 package object topology {
 
-    type Topology = Map[UUID, Any]
+    type Topology = ConcurrentHashMap[UUID, AnyRef]
 
     object Topology {
-        def apply() = Map[UUID, Any]()
+        def apply() = new ConcurrentHashMap[UUID, AnyRef]()
     }
 
     implicit class TopologyOps(val topology: Topology) extends AnyVal {
-        def device[D](id: UUID) = topology.get(id).asInstanceOf[Option[D]]
+        def device[D <: AnyRef](id: UUID) = topology.get(id).asInstanceOf[D]
     }
 }

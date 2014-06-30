@@ -157,24 +157,26 @@ object VirtualTopologyActor extends Referenceable {
 
     case class Unsubscribe(id: UUID)
 
-    @volatile private var topology = Topology()
+    private val topology = Topology()
 
     // useful for testing, not much else.
     def clearTopology(): Unit = {
-        topology = Topology()
+        topology.clear()
     }
 
     // WARNING!! This code is meant to be called from outside the actor.
     // it should only access the volatile variable 'everything'
 
-    def expiringAsk[D](id: UUID)(implicit tag: ClassTag[D], system: ActorSystem) =
+    def expiringAsk[D <: AnyRef](id: UUID)
+                                (implicit tag: ClassTag[D], system: ActorSystem) =
         doExpiringAsk(id, 0L, null, null)(tag, null, system)
 
-    def expiringAsk[D](id: UUID, log: LoggingAdapter)
-                      (implicit tag: ClassTag[D], system: ActorSystem) =
+    def expiringAsk[D <: AnyRef](id: UUID, log: LoggingAdapter)
+                                (implicit tag: ClassTag[D], system: ActorSystem) =
         doExpiringAsk(id, 0L, log, null)(tag, null, system)
 
-    def expiringAsk[D](id: UUID,
+    def expiringAsk[D <: AnyRef](
+                       id: UUID,
                        simLog: SimulationAwareBusLogging,
                        expiry: Long = 0L)
                       (implicit tag: ClassTag[D],
@@ -183,7 +185,8 @@ object VirtualTopologyActor extends Referenceable {
         doExpiringAsk(id, expiry, null, simLog)(tag, pktContext, system)
 
     // Note that the expiry is the exact expiration time, not a timeout.
-    private def doExpiringAsk[D](id: UUID,
+    private def doExpiringAsk[D <: AnyRef](
+                                 id: UUID,
                                  expiry: Long = 0L,
                                  log: LoggingAdapter,
                                  simLog: SimulationAwareBusLogging)
@@ -198,16 +201,17 @@ object VirtualTopologyActor extends Referenceable {
         if (timeLeft <= 0)
             throw new TimeoutException
 
-        topology get id match {
-            case Some(dev) => Ready(dev.asInstanceOf[D])
-            case None =>
-                if (log != null)
-                    log.debug("{} {} not found in the virtual topology" +
-                              ", will suspend", tag, id)
-                else if (simLog != null)
-                    simLog.debug("{} {} not found in the virtual topology" +
-                              ", will suspend", tag, id)
-                NotYet(requestFuture(id, timeLeft, log, simLog))
+        val dev = topology.device[D](id)
+        if (dev eq null) {
+            if (log ne null)
+                log.debug("{} {} not found in the virtual topology, " +
+                          "will suspend", tag, id)
+            else if (simLog ne null)
+                simLog.debug("{} {} not found in the virtual topology, " +
+                             "will suspend", tag, id)
+            NotYet(requestFuture(id, timeLeft, log, simLog))
+        } else {
+            Ready(dev)
         }
     }
 
@@ -337,12 +341,13 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     }
 
     private def deviceRequested(req: DeviceRequest) {
-        topology.get(req.id) match {
-            case Some(dev) => sender ! dev
-            case None =>
-                log.debug("Adding requester {} to unanswered clients for {}",
-                          sender, req)
-                idToUnansweredClients(req.id).add(sender)
+        val device = topology.get(req.id)
+        if (device eq null) {
+            log.debug("Adding requester {} to unanswered clients for {}",
+                      sender, req)
+            idToUnansweredClients(req.id).add(sender)
+        } else {
+            sender ! device
         }
 
         if (req.update) {
@@ -352,11 +357,11 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def updated[D <: {def id: UUID}](device: D) {
+    private def updated[D <: AnyRef{def id: UUID}](device: D) {
         updated(device.id, device)
     }
 
-    private def updated(id: UUID, device: Any) {
+    private def updated(id: UUID, device: AnyRef) {
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, device)
@@ -371,7 +376,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
             }
         }
         idToUnansweredClients(id).clear()
-        topology += id -> device
+        topology.put(id, device)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
