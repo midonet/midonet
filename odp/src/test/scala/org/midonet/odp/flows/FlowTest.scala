@@ -13,7 +13,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.netlink.BytesUtil
 import org.midonet.netlink.NetlinkMessage
-import org.midonet.netlink.NetlinkMessage.{CustomBuilder => Builder}
 import org.midonet.netlink.Writer
 import org.midonet.odp.OpenVSwitch
 import org.midonet.odp.{Flow, FlowMatch}

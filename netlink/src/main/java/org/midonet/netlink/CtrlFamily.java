@@ -59,22 +59,21 @@ public final class CtrlFamily {
                 if (buf == null)
                     return null;
 
-                ByteBuffer sub =
-                    NetlinkMessage.getAttrValueNested(buf, AttrKey.MCAST_GROUPS);
-
-                if (sub == null)
+                int pos = NetlinkMessage.seekAttribute(buf, AttrKey.MCAST_GROUPS);
+                if (pos <= 0)
                     return null;
 
-                sub.getShort();
-                sub.getShort();
+                buf.position(pos + 4); // skip nested header
 
                 String name =
-                    NetlinkMessage.getAttrValueString(sub,
-                                                      AttrKey.MCAST_GRP_NAME);
+                    NetlinkMessage.readStringAttr(buf, AttrKey.MCAST_GRP_NAME);
 
-                if (name.equals(groupName))
-                    return NetlinkMessage.getAttrValueInt(sub,
-                                                          AttrKey.MCAST_GRP_ID);
+                if (name.equals(groupName)) {
+                    pos = NetlinkMessage.seekAttribute(buf, AttrKey.MCAST_GRP_ID);
+                    if (pos <= 0)
+                        return null;
+                    return buf.getInt(pos);
+                }
 
                 return null;
             }
@@ -86,7 +85,10 @@ public final class CtrlFamily {
             public Short deserializeFrom(ByteBuffer buf) {
                 if (buf == null)
                     return 0;
-                return NetlinkMessage.getAttrValueShort(buf, AttrKey.FAMILY_ID);
+                int pos = NetlinkMessage.seekAttribute(buf, AttrKey.FAMILY_ID);
+                if (pos <= 0)
+                    return null;
+                return buf.getShort(pos);
             }
         };
 

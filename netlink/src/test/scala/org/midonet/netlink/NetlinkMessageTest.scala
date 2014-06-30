@@ -116,7 +116,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         }
         def checkMessage(buf: ByteBuffer): ByteConsumer = {
             case (value, id) =>
-                (NetlinkMessage getAttrValueByte (buf, id)) shouldBe value
+                buf get (NetlinkMessage seekAttribute (buf, id)) shouldBe value
         }
     }
 
@@ -142,7 +142,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         }
         def checkMessage(buf: ByteBuffer): ShortConsumer = {
             case (value, id) =>
-                (NetlinkMessage getAttrValueShort (buf, id)) shouldBe value
+                buf getShort (NetlinkMessage seekAttribute (buf, id)) shouldBe value
         }
     }
 
@@ -160,7 +160,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         }
         def checkMessage(buf: ByteBuffer): IntConsumer = {
             case (value, id) =>
-                (NetlinkMessage getAttrValueInt (buf, id)) shouldBe value
+                buf getInt (NetlinkMessage seekAttribute (buf, id)) shouldBe value
         }
     }
 
@@ -178,7 +178,7 @@ class NetlinkMessageTest extends Suite with Matchers {
         }
         def checkMessage(buf: ByteBuffer): LongConsumer = {
             case (value, id) =>
-                (NetlinkMessage getAttrValueLong (buf, id)) shouldBe value
+                buf getLong (NetlinkMessage seekAttribute (buf, id)) shouldBe value
         }
     }
 
@@ -187,6 +187,18 @@ class NetlinkMessageTest extends Suite with Matchers {
         List.fill(1000) { Random nextInt 0x10000 }
             .map { x => (NetlinkMessage align x, trivialAlign(x)) }
             .foreach { case (x,y) => x shouldBe y }
+    }
+
+    def testAlignBuffer() {
+        val buf = ByteBuffer allocate 512
+        (1 to 1000) foreach { _ =>
+            val pos = Random nextInt 500
+            buf position pos
+            NetlinkMessage alignBuffer buf
+            val aligned = buf.position
+            (aligned & 3) shouldBe 0
+            aligned shouldBe (NetlinkMessage align pos)
+        }
     }
 
     def testSeekIntAttribute() {
