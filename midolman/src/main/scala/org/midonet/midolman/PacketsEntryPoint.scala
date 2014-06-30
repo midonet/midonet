@@ -10,7 +10,7 @@ import akka.actor._
 import akka.event.LoggingReceive
 import com.yammer.metrics.core.MetricsRegistry
 import javax.annotation.Nullable
-import javax.inject.Inject
+import com.google.inject.Inject
 
 import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
@@ -64,6 +64,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
     @Inject
     var clusterDataClient: DataClient = null
+
+    @Inject
+    override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject @Nullable @NAT_CACHE
     var connectionCache: Cache = null

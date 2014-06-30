@@ -150,7 +150,9 @@ abstract class VtyConnection(val addr: String, val port: Int,
             lines.toSeq
         }
 
-        Await.result(future, Duration.apply("1 second"))
+        val res = Await.result(future, Duration.apply("1 second"))
+        ec.shutdown()
+        res
     }
 
     protected def dropMessage() {

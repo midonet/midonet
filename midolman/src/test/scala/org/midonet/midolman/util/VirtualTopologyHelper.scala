@@ -5,29 +5,33 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 import scala.compat.Platform
-import scala.concurrent.{Future, Await}
+import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
 
+import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+
 import org.scalatest.Assertions
 
 import org.midonet.cache.MockCache
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
 import org.midonet.midolman.{NotYet, Ready}
+import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.{Coordinator, PacketContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.odp.Packet
 
 trait VirtualTopologyHelper {
-    this: MockMidolmanActors =>
+
+    implicit def actorSystem: ActorSystem
+    implicit def executionContext: ExecutionContext
 
     private implicit val timeout: Timeout = 3 seconds
     private val natCache = new MockCache()
@@ -74,6 +78,25 @@ trait VirtualTopologyHelper {
 
         Assertions.fail("Failed to complete simulation")
     }
+
+    def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
+        sendPacket(t._1, t._2)
+
+    def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
+        sendPacket(packetContextFor(pkt, port.getId))
+
+    def sendPacket(pktCtx: PacketContext): SimulationResult = {
+        new Coordinator(pktCtx) simulate() match {
+            case Ready(r) => r
+            case NotYet(f) =>
+                Await.result(f, 3 seconds)
+                sendPacket(pktCtx)
+        }
+    }
+
+    def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
+        WildcardMatch.fromEthernetPacket(pkt)
+                .setInputPortUUID(port.getId)
 
     @inline
     private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {
