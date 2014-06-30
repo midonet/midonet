@@ -20,6 +20,8 @@ import java.util.UUID;
  */
 public abstract class StatePathExceptionBase extends StateAccessException {
 
+    private static final long serialVersionUID = 1L;
+
     public enum NodeType {
         HEALTH_MONITOR("health monitor", "health_monitors"),
         LOAD_BALANCER("load balancer", "load_balancers"),
