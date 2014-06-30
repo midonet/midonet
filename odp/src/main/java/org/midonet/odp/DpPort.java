@@ -4,21 +4,16 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.Objects;
 import java.util.Random;
 import java.math.BigInteger;
 
-import com.google.common.base.Function;
 import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
-import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch.Port.Attr;
-import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
 
@@ -87,8 +82,15 @@ public abstract class DpPort {
     }
 
     protected void deserializeFrom(ByteBuffer buf) {
-        this.portNo = NetlinkMessage.getAttrValueInt(buf, Attr.PortNo);
-        this.stats = Stats.buildFrom(buf);
+        int portNoPos = NetlinkMessage.seekAttribute(buf, Attr.PortNo);
+        if (portNoPos >= 0) {
+            this.portNo = buf.getInt(portNoPos);
+        }
+        int statPos = NetlinkMessage.seekAttribute(buf, Attr.Stats);
+        if (statPos >= 0) {
+            buf.position(statPos);
+            this.stats = Stats.trans.deserializeFrom(buf);
+        }
     }
 
     @Override
@@ -125,12 +127,13 @@ public abstract class DpPort {
     public static DpPort buildFrom(ByteBuffer buf) {
         int actualDpIndex = buf.getInt(); // read the datapath id
 
-        String name = NetlinkMessage.getAttrValueString(buf, Attr.Name);
-        Integer type = NetlinkMessage.getAttrValueInt(buf, Attr.Type);
-        if (type == null || name == null)
+        int typePos = NetlinkMessage.seekAttribute(buf, Attr.Type);
+        String name = NetlinkMessage.readStringAttr(buf, Attr.Name);
+
+        if (typePos < 0 || name == null)
             return null;
 
-        DpPort port = newPortByTypeId(type.shortValue(), name);
+        DpPort port = newPortByTypeId((short) buf.getInt(typePos), name);
 
         if (port != null)
             port.deserializeFrom(buf);
@@ -138,34 +141,15 @@ public abstract class DpPort {
         return port;
     }
 
-    /** Stateless static deserializer function which builds single ports once
-     *  at a time. Consumes the head ByteBuffer of the input List.*/
-    public static final Function<List<ByteBuffer>, DpPort> deserializer =
-        new Function<List<ByteBuffer>, DpPort>() {
-            @Override
-            public DpPort apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
-                    return null;
-                return DpPort.buildFrom(input.get(0));
-            }
-        };
-
-    /** Stateless static deserializer function which builds sets of ports.
-     *  Consumes all ByteBuffer in the input List.*/
-    public static final Function<List<ByteBuffer>, Set<DpPort>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<DpPort>>() {
-            @Override
-            public Set<DpPort> apply(List<ByteBuffer> input) {
-                Set<DpPort> ports = new HashSet<>();
-                if (input == null)
-                    return ports;
-                for (ByteBuffer buffer : input) {
-                    ports.add(DpPort.buildFrom(buffer));
-                }
-                ports.remove(null);
-                return ports;
-            }
-        };
+    /** Stateless static deserializer function which builds a single DpPort
+     *  instance by consumming the given ByteBuffer. */
+    public static final Reader<DpPort> deserializer = new Reader<DpPort>() {
+        public DpPort deserializeFrom(ByteBuffer buf) {
+            if (buf == null)
+                return null;
+            return DpPort.buildFrom(buf);
+        }
+    };
 
     private static DpPort newPortByTypeId(short type, String name) {
         switch (type) {
@@ -231,7 +215,7 @@ public abstract class DpPort {
         return buf;
     }
 
-    public static class Stats implements BuilderAware {
+    public static class Stats {
         long rxPackets, txPackets;
         long rxBytes, txBytes;
         long rxErrors, txErrors;
@@ -245,23 +229,6 @@ public abstract class DpPort {
         public long getTxErrors() { return txErrors; }
         public long getRxDropped() { return rxDropped; }
         public long getTxDropped() { return txDropped; }
-
-        @Override
-        public boolean deserialize(ByteBuffer buf) {
-            try {
-                rxPackets = buf.getLong();
-                txPackets = buf.getLong();
-                rxBytes = buf.getLong();
-                txBytes = buf.getLong();
-                rxErrors = buf.getLong();
-                txErrors = buf.getLong();
-                rxDropped = buf.getLong();
-                txDropped = buf.getLong();
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        }
 
         @Override
         public boolean equals(Object o) {
@@ -307,10 +274,6 @@ public abstract class DpPort {
                 '}';
         }
 
-        public static Stats buildFrom(ByteBuffer buf) {
-            return NetlinkMessage.getAttrValue(buf, Attr.Stats, new Stats());
-        }
-
         public static final Translator<Stats> trans = new Translator<Stats>() {
             public short attrIdOf(Stats any) {
                 return Attr.Stats;
@@ -343,9 +306,7 @@ public abstract class DpPort {
         public static Stats random() {
             ByteBuffer buf = ByteBuffer.allocate(8 * 8);
             r.nextBytes(buf.array());
-            Stats s = new Stats();
-            s.deserialize(buf);
-            return s;
+            return trans.deserializeFrom(buf);
         }
     }
 
@@ -367,6 +328,8 @@ public abstract class DpPort {
         short type = types[r.nextInt(types.length)];
         String name = new BigInteger(100, r).toString(32);
         DpPort port = newPortByTypeId(type, name);
+        if (port.getType() == Type.VXLan)
+            port = VxLanTunnelPort.make(name, r.nextInt(30000));
         port.portNo = r.nextInt(100);
         port.stats = Stats.random();
         return port;

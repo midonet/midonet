@@ -35,7 +35,7 @@ public class FlowActionSample implements FlowAction {
         int nBytes= 0;
         nBytes += NetlinkMessage.writeIntAttr(buffer, probAttrId, probability);
         nBytes += NetlinkMessage.writeAttrSeq(buffer, actionsAttrId, actions,
-                                              FlowAction.translator);
+                                              FlowAction.actionWriter);
         return nBytes;
     }
 
