@@ -79,6 +79,7 @@ sudo service midolman start
 
 
 # Install midonet-api
+sudo apt-get install -y --force-yes tomcat7
 sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes midonet-api
 sudo apt-get install -y --force-yes python-httplib2 python-midonetclient
 
