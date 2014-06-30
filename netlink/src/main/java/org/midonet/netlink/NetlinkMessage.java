@@ -4,20 +4,9 @@
 package org.midonet.netlink;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
-
-import org.midonet.netlink.clib.cLibrary;
-import org.midonet.netlink.messages.BuilderAware;
-import org.midonet.packets.Ethernet;
-import org.midonet.packets.MalformedPacketException;
 
 /**
- * Abstraction for a netlink message. It provides a builder to allow easy serialization
- * of netlink messages (using the same target buffer) and easy way to deserialize
- * a message.
+ * Helper class for writing and reading Netlink messages and attributes.
  */
 public final class NetlinkMessage {
     private NetlinkMessage() { }
@@ -25,220 +14,6 @@ public final class NetlinkMessage {
     static public final short NLA_F_NESTED = (short) (1 << 15);
     static public final short NLA_F_NET_BYTEORDER = (1 << 14);
     static public final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
-
-    public static void getInts(ByteBuffer buf, int[] bytes) {
-        for (int i = 0, bytesLength = bytes.length; i < bytesLength; i++) {
-            bytes[i] = buf.getInt();
-        }
-    }
-
-    /*
-     * Name: getAttrValueNone
-     * @ attr: a boolean attribute which isn't associated with any data,
-     *          declared as a boolean to own a boolean data type
-     * returns: TRUE if the attribute exists, null otherwise
-     * In some cases, we need to verify if an attribute exists where
-     * the attribute may not be corresponding to any data (a flag, for
-     * example)
-     * Note: parseBuffer returning false is intended to end the attribute
-     * buffer iteration - this has nothing to do with the Boolean this
-     * method returns
-     */
-    public static Boolean getAttrValueNone(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Boolean>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = new Boolean(Boolean.TRUE);
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static Byte getAttrValueByte(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Byte>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = buffer.get();
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static Short getAttrValueShort(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Short>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = buffer.getShort();
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static Integer getAttrValueInt(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Integer>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = buffer.getInt();
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static Long getAttrValueLong(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Long>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = buffer.getLong();
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static String getAttrValueString(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<String>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                byte[] bytes = new byte[buffer.remaining()];
-                buffer.get(bytes);
-                data = new String(bytes, 0, bytes.length - 1);
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public static byte[] getAttrValueBytes(ByteBuffer buf, short attrId) {
-       return new SingleAttributeParser<byte[]>(attrId) {
-           @Override
-           protected boolean parseBuffer(ByteBuffer buffer) {
-               data = new byte[buffer.remaining()];
-               buffer.get(data);
-               return false;
-           }
-       }.parse(buf);
-    }
-
-    public static Ethernet getAttrValueEthernet(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<Ethernet>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = new Ethernet();
-                try {
-                    data.deserialize(buffer);
-                } catch (MalformedPacketException e) {
-                    data = null;
-                }
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public interface CustomBuilder<T> {
-        T newInstance(short type);
-    }
-
-    public static <T extends BuilderAware> List<T> getAttrValue(
-                                                        ByteBuffer buf,
-                                                        short attrId,
-                                                        final CustomBuilder<T> builder) {
-        return new SingleAttributeParser<List<T>>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                final ByteBuffer subBuffer = BytesUtil.instance.sliceOf(buffer);
-                data = new ArrayList<T>();
-                iterateAttributes(subBuffer, new AttributeParser() {
-                    @Override
-                    public boolean processAttribute(short attributeType,
-                                                    ByteBuffer buffer) {
-                        T value = builder.newInstance(attributeType);
-
-                        if (value != null) {
-                            value.deserialize(subBuffer);
-                            data.add(value);
-                        }
-
-                        return true;
-                    }
-                });
-
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    public interface AttributeParser {
-        /**
-         * @param attributeType the type of attribute.
-         * @param buffer the buffer with the data
-         *
-         * @return true if the next attribute is to be parsed, false if not.
-         */
-        boolean processAttribute(short attributeType, ByteBuffer buffer);
-    }
-
-    public static void iterateAttributes(ByteBuffer buf,
-                                         AttributeParser attributeParser) {
-
-        int limit = buf.limit();
-        buf.mark();
-
-        try {
-            while (buf.hasRemaining()) {
-                char len = buf.getChar();
-                if (len == 0)
-                    return;
-
-                short attrType = (short) (buf.getShort() & NLA_TYPE_MASK);
-                int pos = buf.position();
-
-                buf.limit(pos + len - 4);
-
-                if (!attributeParser.processAttribute(attrType, buf)) {
-                    return;
-                }
-
-                buf.limit(limit);
-                buf.position(pos + pad(len) - 4);
-                buf.order(ByteOrder.nativeOrder());
-            }
-        } finally {
-            buf.limit(limit);
-            buf.reset();
-            buf.order(ByteOrder.nativeOrder());
-        }
-    }
-
-    public static ByteBuffer getAttrValueNested(ByteBuffer buf, short attrId) {
-        return new SingleAttributeParser<ByteBuffer>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                data = BytesUtil.instance.sliceOf(buffer);
-                return false;
-            }
-        }.parse(buf);
-    }
-
-    /**
-     * It will tell the instance to deserialize from the current object.
-     *
-     * @param attr the attribute name
-     * @param instance the instance that will have to deserialize itself.
-     * @param <T> the attribute type
-     *
-     * @return the updated instance if deserialization was successful of null if not
-     */
-    @Nullable
-    public static <T extends BuilderAware> T getAttrValue(ByteBuffer buf,
-                                                          short attrId,
-                                                          final T instance) {
-        return new SingleAttributeParser<T>(attrId) {
-            @Override
-            protected boolean parseBuffer(ByteBuffer buffer) {
-                instance.deserialize(BytesUtil.instance.sliceOf(buffer));
-                data = instance;
-                return false;
-            }
-        }.parse(buf);
-    }
 
     /** Write onto a ByteBuffer a netlink attribute header.
      *  @param buffer the ByteBuffer the header is written onto.
@@ -263,18 +38,13 @@ public final class NetlinkMessage {
 
         NetlinkMessage.setAttrHeader(buffer, id, 4); // space for nl_attr header
 
-        int advertisedLen = translator.serializeInto(buffer, value);
-        int len = buffer.position() - start;
+        translator.serializeInto(buffer, value);
 
-        buffer.putShort(start, (short) len); // write nl_attr length field
+        // write nl_attr length field
+        buffer.putShort(start, (short)(buffer.position() - start));
+        alignBuffer(buffer);
 
-        int padLen = NetlinkMessage.pad(len);
-        while (padLen != len) {
-            buffer.put((byte)0);
-            padLen--;
-        }
-
-        return padLen;
+        return buffer.position() - start;
     }
 
     public static <V> int writeAttr(ByteBuffer buffer, V value,
@@ -383,39 +153,6 @@ public final class NetlinkMessage {
         buffer.put(padding);
         buffer.put(padding);
         buffer.put(padding);
-    }
-
-    public static int pad(int len) {
-        int paddedLen = len & ~0x03;
-        if ( paddedLen < len ) {
-            paddedLen += 0x04;
-        }
-
-        return paddedLen;
-    }
-
-    private abstract static class SingleAttributeParser<T> implements AttributeParser {
-        protected T data;
-        short targetAttrId;
-
-        protected SingleAttributeParser(short attrId) {
-            this.targetAttrId = (short)(attrId & NLA_TYPE_MASK);
-        }
-
-        @Override
-        public boolean processAttribute(short currentAttrId, ByteBuffer buffer) {
-            if (targetAttrId != currentAttrId)
-                return true;
-
-            return parseBuffer(buffer);
-        }
-
-        protected abstract boolean parseBuffer(ByteBuffer buffer);
-
-        public T parse(ByteBuffer buffer) {
-            iterateAttributes(buffer, this);
-            return data;
-        }
     }
 
     public static short nested(short netlinkAttributeId) {
@@ -556,5 +293,19 @@ public final class NetlinkMessage {
     public static int align(int index) {
         // previous_aligned_index + if (last 2 LSB of index == 0) then 0 else 4
         return (index & ~3) + (4 & ((index << 1) | (index << 2)));
+    }
+
+    /** pad the given buffer with 0 until the position is aligned to the next
+     *  4B index. */
+    public static void alignBuffer(ByteBuffer buf) {
+        byte pad = 0;
+        switch (buf.position() & 0x3) {
+            case 1:
+                buf.put(pad);
+            case 2:
+                buf.put(pad);
+            case 3:
+                buf.put(pad);
+        }
     }
 }
