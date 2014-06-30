@@ -109,7 +109,7 @@ public class EntityMonitorTest {
 
     public static class TestEntityZkManager
         extends AbstractZkManager<UUID, TestEntityConfig>
-        implements WatchableZkManager<TestEntityConfig> {
+        implements WatchableZkManager<UUID, TestEntityConfig> {
 
         public final String entitiesPath;
 
@@ -131,7 +131,7 @@ public class EntityMonitorTest {
         }
 
         @Override
-        public List<UUID> getAndWatchUuidList(Runnable watcher)
+        public List<UUID> getAndWatchIdList(Runnable watcher)
             throws StateAccessException {
             return getUuidList(entitiesPath, watcher);
         }
@@ -156,9 +156,9 @@ public class EntityMonitorTest {
         }
     }
 
-    public static final EntityMonitor.Transformer<TestEntityConfig, TestEntity>
-        transformer =
-        new EntityMonitor.Transformer<TestEntityConfig, TestEntity>() {
+    public static final EntityMonitor.Transformer<UUID, TestEntityConfig,
+            TestEntity> transformer =
+        new EntityMonitor.Transformer<UUID, TestEntityConfig, TestEntity>() {
             @Override
             public TestEntity transform(UUID id, TestEntityConfig data) {
                 TestEntity e = new TestEntity(id);
@@ -168,7 +168,7 @@ public class EntityMonitorTest {
         };
 
 
-    EntityMonitor<TestEntityConfig, TestEntity> em = null;
+    EntityMonitor<UUID, TestEntityConfig, TestEntity> em = null;
     Injector injector = null;
     TestEntityZkManager teZkMgr = null;
 
@@ -215,11 +215,18 @@ public class EntityMonitorTest {
     public static class Accumulator<T> implements Action1<T> {
         private final List<T> expected;
         private final List<T> found = new ArrayList<>();
+        @SafeVarargs
         public static <T> Accumulator<T> exactly(T... items) {
+            return new Accumulator<>(Arrays.asList(items));
+        }
+
+        public static <T> Accumulator<T> exactly(List<T> items) {
             return new Accumulator<>(items);
         }
 
-        private Accumulator(T... items) { expected = Arrays.asList(items); }
+        private Accumulator(List<T> items) {
+            expected = new ArrayList<>(items);
+        }
 
         @Override
         public void call(T t) { found.add(t); }
