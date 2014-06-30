@@ -34,7 +34,7 @@ import org.midonet.midolman.state.ZkManager;
  */
 public class BridgeZkManager
         extends AbstractZkManager<UUID, BridgeZkManager.BridgeConfig>
-        implements WatchableZkManager {
+        implements WatchableZkManager<UUID, BridgeZkManager.BridgeConfig> {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
@@ -467,7 +467,8 @@ public class BridgeZkManager
         return zk.exists(paths.getBridgeMacPortsPath(id, vlanId));
     }
 
-    public List<UUID> getAndWatchUuidList(Runnable watcher)
+    @Override
+    public List<UUID> getAndWatchIdList(Runnable watcher)
         throws StateAccessException {
         return getUuidList(paths.getBridgesPath(), watcher);
     }
