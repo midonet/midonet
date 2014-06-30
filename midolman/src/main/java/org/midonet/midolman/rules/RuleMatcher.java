@@ -9,6 +9,8 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
+import java.util.UUID;
+
 /**
  * Classes used to match on certain types of rules.
  */
@@ -39,6 +41,30 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
 
             ForwardNatRule r = (ForwardNatRule) rule;
             return !r.dnat && r.getNatTargets().contains(target);
+        }
+    }
+
+    public static class DefaultDropRuleMatcher extends RuleMatcher {
+        private final IPv4Addr addr;
+
+        public DefaultDropRuleMatcher(IPv4Addr addr) {
+            this.addr = addr;
+        }
+
+        @Override
+        public Boolean apply(Rule rule) {
+            if (!rule.getClass().equals(LiteralRule.class))
+                return false;
+            LiteralRule r = (LiteralRule) rule;
+            Rule dropRule = new RuleBuilder(UUID.randomUUID())
+                .notICMP()
+                .hasDestIp(addr)
+                .drop();
+            Condition c = dropRule.getCondition();
+            return r.action == dropRule.action &&
+                   r.getCondition().nwProtoInv == c.nwProtoInv &&
+                   Objects.equal(r.getCondition().nwProto, c.nwProto) &&
+                   Objects.equal(r.getCondition().nwDstIp, c.nwDstIp);
         }
     }
 
