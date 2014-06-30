@@ -282,6 +282,7 @@ Aside from the `@Fork` annotation, the following ones allow further configuratio
   * Same as `@Measurement`, but for warm-up phase.
 * `@Threads`
   * Configures the number of threads to use for the benchmark; the default is
+    1, but we should use `Threads.MAX`, which is set to
     `Runtime.getRuntime().availableProcessors()`.
 
 They can be applied on each of the benchmark methods or at the class level, to
