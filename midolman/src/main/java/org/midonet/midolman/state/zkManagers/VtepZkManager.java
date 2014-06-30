@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -27,7 +28,8 @@ import org.midonet.packets.IPv4Addr;
 import static java.util.Arrays.asList;
 
 public class VtepZkManager
-        extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
+        extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig>
+        implements WatchableZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
 
     public static final int MIN_VNI = 10000;
     public static final int MAX_VNI = 0xff_ffff;
@@ -207,5 +209,23 @@ public class VtepZkManager
         // Time to buy some lottery tickets!
         throw new RuntimeException("getNewVni() failed due to concurrent " +
                                    "updates ten times in a row.");
+    }
+
+    @Override
+    public List<IPv4Addr> getAndWatchIdList(Runnable watcher)
+        throws StateAccessException {
+
+        Set<String> vtepIpStrs = zk.getChildren(paths.getVtepsPath(), watcher);
+        List<IPv4Addr> vtepIps = new ArrayList<>(vtepIpStrs.size());
+        for (String vtepIpStr : vtepIpStrs) {
+            try {
+                vtepIps.add(IPv4Addr.fromString(vtepIpStr));
+            } catch (IllegalArgumentException ex) {
+                log.error("'{}' at path '{}' is not a valid IPv4 address. "
+                          + "Zookeeper data may be corrupted.",
+                          new Object[]{vtepIpStr, paths.getVtepsPath(), ex});
+            }
+        }
+        return vtepIps;
     }
 }

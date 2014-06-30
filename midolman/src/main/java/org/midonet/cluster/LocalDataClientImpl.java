@@ -16,6 +16,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,6 +25,7 @@ import javax.inject.Named;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -557,10 +559,11 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public EntityMonitor<BridgeConfig, Bridge> bridgesGetMonitor(
+    public EntityMonitor<UUID, BridgeConfig, Bridge> bridgesGetMonitor(
         ZookeeperConnectionWatcher zkConnection) {
-        return new EntityMonitor<>(bridgeZkManager, zkConnection,
-            new EntityMonitor.Transformer<BridgeConfig, Bridge> () {
+        return new EntityMonitor<>(
+            bridgeZkManager, zkConnection,
+            new EntityMonitor.Transformer<UUID, BridgeConfig, Bridge> () {
                 @Override
                 public Bridge transform(UUID id, BridgeConfig data) {
                     Bridge bridge = Converter.fromBridgeConfig(data);
@@ -571,7 +574,7 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public EntityIdSetMonitor bridgesGetUuidSetMonitor(
+    public EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
         return new EntityIdSetMonitor(bridgeZkManager, zkConnection);
@@ -1247,6 +1250,39 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return hosts;
+    }
+
+    @Override
+    public EntityMonitor<UUID, HostDirectory.Metadata, Host> hostsGetMonitor(
+        ZookeeperConnectionWatcher zkConnection) {
+        return new EntityMonitor<>(
+            hostZkManager, zkConnection,
+            new EntityMonitor.Transformer<UUID, HostDirectory.Metadata, Host> () {
+                @Override
+                public Host transform(UUID id, HostDirectory.Metadata data) {
+                    Host host = Converter.fromHostConfig(data);
+                    host.setId(id);
+                    Integer floodingProxyWeight = null;
+                    try {
+                        floodingProxyWeight =
+                            hostZkManager.getFloodingProxyWeight(id);
+                    } catch (StateAccessException | SerializationException e) {
+                    }
+                    try {
+                        host.setIsAlive(hostsIsAlive(id));
+                    } catch (StateAccessException ex) { }
+                    if (floodingProxyWeight != null)
+                        host.setFloodingProxyWeight(floodingProxyWeight);
+                    return host;
+                }
+            });
+    }
+
+    @Override
+    public EntityIdSetMonitor<UUID> hostsGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection)
+        throws StateAccessException {
+        return new EntityIdSetMonitor(hostZkManager, zkConnection);
     }
 
     @Override
@@ -3343,6 +3379,32 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         return vtepZkManager.getBinding(ipAddr, portName, vlanId);
     }
+
+
+    @Override
+    public EntityMonitor<IPv4Addr, VtepZkManager.VtepConfig, VTEP> vtepsGetMonitor(
+        ZookeeperConnectionWatcher zkConnection) {
+        return new EntityMonitor<>(
+            vtepZkManager, zkConnection,
+            new EntityMonitor.Transformer<IPv4Addr, VtepZkManager.VtepConfig,
+                VTEP> () {
+                @Override
+                public VTEP transform(IPv4Addr ipAddr,
+                                      VtepZkManager.VtepConfig data) {
+                    VTEP vtep = Converter.fromVtepConfig(data);
+                    vtep.setId(ipAddr);
+                    return vtep;
+                }
+            });
+    }
+
+    @Override
+    public EntityIdSetMonitor<IPv4Addr> vtepsGetAllSetMonitor(
+        ZookeeperConnectionWatcher zkConnection)
+        throws StateAccessException {
+        return new EntityIdSetMonitor(vtepZkManager, zkConnection);
+    }
+
 
     @Override
     public int getNewVni() throws StateAccessException {
