@@ -20,7 +20,7 @@ public class FlowActionSetKey implements FlowAction {
     }
 
     public int serializeInto(ByteBuffer buffer) {
-        return NetlinkMessage.writeAttr(buffer, flowKey, FlowKey.translator);
+        return NetlinkMessage.writeAttr(buffer, flowKey, FlowKey.keyWriter);
     }
 
     @Override

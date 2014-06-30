@@ -5,7 +5,6 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.ArrayList
 
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -23,25 +22,28 @@ class DpPortTest extends FunSpec with Matchers {
 
     describe("DpPort") {
 
-        describe("Stats") {
-            it("should be invariant by serialization/deserialisation") {
+        describe("Stats translator") {
+
+            val trans = DpPort.Stats.trans
+
+            it("should allow serialization/deserialisation to be invariant") {
+                val buf = getBuffer
                 stats foreach { s =>
-                    val buf = getBuffer
-                    NetlinkMessage writeAttr (buf, s, DpPort.Stats.trans)
+                    buf.clear
+                    NetlinkMessage writeAttr (buf, s, trans)
                     buf.flip
-                    s shouldBe (DpPort.Stats buildFrom buf)
+                    val id = trans attrIdOf null
+                    s shouldBe (NetlinkMessage readAttr (buf, id, trans))
                 }
             }
 
-            describe("translator") {
-                it("should deserialize the same value after serialization") {
-                    val buf = getBuffer
-                    stats foreach { s =>
-                        buf.clear
-                        DpPort.Stats.trans.serializeInto(buf,s)
-                        buf.flip
-                        s shouldBe DpPort.Stats.trans.deserializeFrom(buf)
-                    }
+            it("should read the same value after writing it") {
+                val buf = getBuffer
+                stats foreach { s =>
+                    buf.clear
+                    DpPort.Stats.trans.serializeInto(buf,s)
+                    buf.flip
+                    s shouldBe DpPort.Stats.trans.deserializeFrom(buf)
                 }
             }
         }
@@ -63,26 +65,6 @@ class DpPortTest extends FunSpec with Matchers {
             }
         }
 
-        describe("setDeserializer") {
-            it("should deserialize a set of port message correctly") {
-                val portSet = ports.toSet
-                val buffers = portSet.foldLeft(new ArrayList[ByteBuffer]()) {
-                    case (ls,p) =>
-                        val buf = getBuffer
-                        buf putInt 42 // write datapath index
-                        p serializeInto buf
-                        buf.flip
-                        ls.add(buf)
-                        ls
-                }
-                val deserializedPortSet = DpPort.setDeserializer apply buffers
-                deserializedPortSet should have size portSet.size
-                portSet foreach { p =>
-                    deserializedPortSet should contain(p)
-                }
-            }
-        }
-
         describe("deserializer") {
             it("should deserialize a port correctly") {
                 val buf = getBuffer
@@ -91,9 +73,7 @@ class DpPortTest extends FunSpec with Matchers {
                     buf putInt 42 // write datapath index
                     p serializeInto buf
                     buf.flip
-                    val ls = new ArrayList[ByteBuffer]()
-                    ls.add(buf)
-                    p shouldBe (DpPort.deserializer apply ls)
+                    p shouldBe (DpPort.deserializer deserializeFrom buf)
                 }
             }
         }

@@ -5,17 +5,13 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.common.base.Function;
-
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Reader;
 import org.midonet.odp.OpenVSwitch.Flow.Attr;
-import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKey;
@@ -108,33 +104,15 @@ public class Flow {
         return flow;
     }
 
-    /** Static stateless deserializer which builds one Flow instance. Only
-     *  consumes the head ByteBuffer in the given input List. */
-    public static final Function<List<ByteBuffer>, Flow> deserializer =
-        new Function<List<ByteBuffer>, Flow>() {
-            @Override
-            public Flow apply(List<ByteBuffer> input) {
-                if (input == null || input.isEmpty() || input.get(0) == null)
-                    return null;
-                return Flow.buildFrom(input.get(0));
-            }
-        };
-
-    /** Static stateless deserializer which builds a set of Flow instance.
-     *  Consumes all the ByteBuffers contained in the given input List. */
-    public static final Function<List<ByteBuffer>, Set<Flow>> setDeserializer =
-        new Function<List<ByteBuffer>, Set<Flow>>() {
-            @Override
-            public Set<Flow> apply(List<ByteBuffer> input) {
-                Set<Flow> flows = new HashSet<>();
-                if (input != null) {
-                  for (ByteBuffer buffer : input) {
-                      flows.add(Flow.buildFrom(buffer));
-                  }
-                }
-                return flows;
-            }
-        };
+    /** Static stateless deserializer which builds one Flow instance and
+     *  consumes data from the given ByteBuffer. */
+    public static final Reader<Flow> deserializer = new Reader<Flow>() {
+        public Flow deserializeFrom(ByteBuffer buf) {
+            if (buf == null)
+                return null;
+            return Flow.buildFrom(buf);
+        }
+    };
 
     @Override
     public boolean equals(Object o) {
@@ -241,7 +219,7 @@ public class Flow {
         // actions nested attribute header needs to be written otherwise the
         // datapath will answer back with EINVAL
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions,
-                                    FlowAction.translator);
+                                    FlowAction.actionWriter);
 
         buf.flip();
         return buf;
@@ -249,6 +227,6 @@ public class Flow {
 
     public static void addKeys(ByteBuffer buf, Iterable<FlowKey> keys) {
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys,
-                                    FlowKey.translator);
+                                    FlowKey.keyWriter);
     }
 }

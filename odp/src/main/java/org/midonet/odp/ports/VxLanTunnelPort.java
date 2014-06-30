@@ -4,17 +4,18 @@
 package org.midonet.odp.ports;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.OpenVSwitch;
-import org.midonet.odp.family.PortFamily;
+import org.midonet.packets.TCP;
 
 /**
  * Description of a VxLAN tunnel datapath port.
  */
 public class VxLanTunnelPort extends DpPort {
+
+    public static short VXLAN_DEFAULT_DST_PORT = 4789;
 
     /*
      *    14B ethernet header length
@@ -25,15 +26,21 @@ public class VxLanTunnelPort extends DpPort {
      */
     public static final int TunnelOverhead = 50;
 
-    private VxLanTunnelPortOptions options;
+    private short dstPort;
 
     public VxLanTunnelPort(String name) {
         super(name);
+        dstPort = VXLAN_DEFAULT_DST_PORT;
     }
 
-    public VxLanTunnelPort(String name, VxLanTunnelPortOptions opts) {
+    public VxLanTunnelPort(String name, short dstPort) {
         super(name);
-        this.options = opts;
+        setDestinationPort(dstPort);
+    }
+
+    private void setDestinationPort(int dstPort) {
+        TCP.ensurePortInRange(dstPort);
+        this.dstPort = (short) dstPort;
     }
 
     public Type getType() {
@@ -46,30 +53,29 @@ public class VxLanTunnelPort extends DpPort {
     @Override
     public void serializeInto(ByteBuffer buf) {
         super.serializeInto(buf);
-        if (options != null) {
-            // OVS_VPORT_ATTR_OPTIONS is a nested netlink attribute. Here we
-            // write its netlink header manually. The len field of the header is
-            // equal to 2b + 2b for the header part + 8b for the attribute part.
-            // The attribute is a single port field (u16) which we write with
-            // padding (4b), and whose own header takes 4b. Note that the header
-            // of the port attribute has its len field written without padding
-            buf.putShort((short)12);
-            buf.putShort(NetlinkMessage.nested(OpenVSwitch.Port.Attr.Options));
-            // The datapath code checks for a u16 attribute written without
-            // padding, therefore the len field of the header should be 6b.
-            short portAttrId = OpenVSwitch.Port.VPortTunnelOptions.DstPort;
-            short dstPort = options.getDestinationPort();
-            NetlinkMessage.writeShortAttrNoPad(buf, portAttrId, dstPort);
-        }
+        // OVS_VPORT_ATTR_OPTIONS is a nested netlink attribute. Here we
+        // write its netlink header manually. The len field of the header is
+        // equal to 2b + 2b for the header part + 8b for the attribute part.
+        // The attribute is a single port field (u16) which we write with
+        // padding (4b), and whose own header takes 4b. Note that the header
+        // of the port attribute has its len field written without padding
+        buf.putShort((short)12);
+        buf.putShort(NetlinkMessage.nested(OpenVSwitch.Port.Attr.Options));
+        // The datapath code checks for a u16 attribute written without
+        // padding, therefore the len field of the header should be 6b.
+        short portAttrId = OpenVSwitch.Port.VPortTunnelOptions.DstPort;
+        NetlinkMessage.writeShortAttrNoPad(buf, portAttrId, dstPort);
     }
 
     @Override
     protected void deserializeFrom(ByteBuffer buf) {
         super.deserializeFrom(buf);
-        this.options =
-            NetlinkMessage.getAttrValue(buf,
-                                        OpenVSwitch.Port.Attr.Options,
-                                        new VxLanTunnelPortOptions());
+        short id = NetlinkMessage.nested(OpenVSwitch.Port.Attr.Options);
+        int optionPos = NetlinkMessage.seekAttribute(buf, id);
+        if (optionPos >= 0) {
+            // skip the nested udp port header of the option attribute
+            setDestinationPort(buf.getShort(optionPos + 4));
+        }
     }
 
     @Override
@@ -80,12 +86,12 @@ public class VxLanTunnelPort extends DpPort {
         @SuppressWarnings("unchecked") // safe cast
         VxLanTunnelPort that = (VxLanTunnelPort) o;
 
-        return Objects.equals(options, that.options);
+        return this.dstPort == that.dstPort;
     }
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + Objects.hashCode(options);
+        return 31 * super.hashCode() + dstPort;
     }
 
 
@@ -95,18 +101,18 @@ public class VxLanTunnelPort extends DpPort {
             "portNo=" + getPortNo() +
             ", type=" + getType() +
             ", name='" + getName() + '\'' +
-            ", options=" + options +
+            ", dstPort=" + dstPort +
             ", stats=" + getStats() +
             '}';
     }
 
     /** returns a new VxLanTunnelPort instance with default udp port value */
     public static VxLanTunnelPort make(String name) {
-        return new VxLanTunnelPort(name, new VxLanTunnelPortOptions());
+        return new VxLanTunnelPort(name);
     }
 
     /** returns a new VxLanTunnelPort instance with given udp port value */
     public static VxLanTunnelPort make(String name, int port) {
-        return new VxLanTunnelPort(name, new VxLanTunnelPortOptions(port));
+        return new VxLanTunnelPort(name, (short) port);
     }
 }

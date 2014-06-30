@@ -6,7 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 
 import org.midonet.netlink.NetlinkMessage;
-import org.midonet.netlink.Translator;
+import org.midonet.netlink.Writer;
 import org.midonet.netlink.messages.BuilderAware;
 import org.midonet.odp.OpenVSwitch;
 
@@ -86,15 +86,12 @@ public interface FlowKey extends BuilderAware {
     /** stateless serialiser and deserialiser of ovs FlowKey classes. Used
      *  as a typeclass with NetlinkMessage.writeAttr() and writeAttrSet()
      *  for assembling ovs requests. */
-    Translator<FlowKey> translator = new Translator<FlowKey>() {
+    Writer<FlowKey> keyWriter = new Writer<FlowKey>() {
         public short attrIdOf(FlowKey value) {
             return value.attrId();
         }
         public int serializeInto(ByteBuffer receiver, FlowKey value) {
             return value.serializeInto(receiver);
-        }
-        public FlowKey deserializeFrom(ByteBuffer source) {
-            throw new UnsupportedOperationException();
         }
     };
 }
