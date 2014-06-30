@@ -19,7 +19,7 @@ sourceSets {
         java { srcDirs = [] }
     }
     perf {
-        scala { srcDirs = ['src/perf/scala', 'sr/perf/java'] }
+        scala { srcDirs = ['src/perf/scala', 'src/perf/java'] }
         java { srcDirs = [] }
     }
 }

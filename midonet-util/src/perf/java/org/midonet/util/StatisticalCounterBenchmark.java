@@ -16,6 +16,7 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -24,6 +25,7 @@ import org.openjdk.jmh.infra.Blackhole;
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
 @Fork(5)
+@Threads(Threads.MAX)
 @State(Scope.Benchmark)
 public class StatisticalCounterBenchmark {
     final static AtomicInteger THREAD_INDEX = new AtomicInteger(0);
