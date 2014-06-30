@@ -181,14 +181,13 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private var vlanToPort: VlanPortMap = null
 
-    def topologyReady(topology: Topology) {
+    def topologyReady() {
         log.debug("Sending a Bridge to the VTA")
         VirtualTopologyActor !
             new Bridge(id, cfg.adminStateUp, cfg.tunnelKey,
                 learningMgr.vlanMacTableMap,
                 if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
-                flowCounts, topology.device(cfg.inboundFilter).orNull,
-                topology.device(cfg.outboundFilter).orNull,
+                flowCounts, device(cfg.inboundFilter), device(cfg.outboundFilter),
                 vlanBridgePeerPortId, exteriorVxlanPortId, flowRemovedCallback,
                 macToLogicalPortId, rtrIpToMac, vlanToPort)
 

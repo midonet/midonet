@@ -13,14 +13,12 @@ import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
-import org.midonet.midolman.simulation.{LoadBalancer, ArpTable, ArpTableImpl, Router}
+import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import org.midonet.midolman.topology.RouterManager._
-import org.midonet.midolman.topology.VirtualTopologyActor.{Unsubscribe, LoadBalancerRequest}
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
-
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
 
@@ -94,7 +92,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private val tagToFlowCount: mutable.Map[IPAddr, Int]
                                 = new mutable.HashMap[IPAddr, Int]
 
-    def topologyReady(topo: Topology) {
+    def topologyReady() {
         log.debug("Sending a Router to the VTA")
 
         // Not using context.actorFor("..") because in tests it will
@@ -102,9 +100,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         // Should this need to be decoupled from the VTA, the parent
         // actor reference should be passed in the constructor
         VirtualTopologyActor !
-            new Router(id, cfg, rTable, topo.device(cfg.inboundFilter).orNull,
-                       topo.device(cfg.outboundFilter).orNull,
-                       topo.device(cfg.loadBalancer).orNull,
+            new Router(id, cfg, rTable, device(cfg.inboundFilter),
+                       device(cfg.outboundFilter), device(cfg.loadBalancer),
                        new TagManagerImpl, arpTable)
 
         if (changed) {

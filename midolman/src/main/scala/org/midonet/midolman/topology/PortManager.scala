@@ -5,12 +5,9 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import akka.actor.Actor
-
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.topology.builders.PortBuilderImpl
 import org.midonet.midolman.topology.PortManager.TriggerUpdate
 
@@ -25,7 +22,7 @@ class PortManager(id: UUID, val clusterClient: Client)
     protected var cfg: Port = _
     private var changed = false
 
-    def topologyReady(topology: Topology) {
+    def topologyReady() {
         log.debug("Sending a Port to the VTA")
         // TODO(ross) better cloning this port before passing it
         VirtualTopologyActor ! cfg
