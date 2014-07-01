@@ -35,7 +35,7 @@ object UserspaceFlowActionTranslator {
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
                         case k: FlowKeyICMPError =>
-                            mangleIcmp(packet.getPacket, k.getIcmpData)
+                            mangleIcmp(packet.getEthernet, k.getIcmpData)
                         case k: FlowKeyICMPEcho =>
                         case _ =>
                             newActions.add(a)

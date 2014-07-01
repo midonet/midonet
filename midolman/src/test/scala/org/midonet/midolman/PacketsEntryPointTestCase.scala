@@ -50,10 +50,8 @@ class PacketsEntryPointTestCase extends MidolmanSpec {
 
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
-        new Packet().
-            setPacket(frame).
-            setMatch(FlowMatches.fromEthernetPacket(frame)).
-            setReason(Packet.Reason.FlowTableMiss)
+        new Packet(frame, FlowMatches.fromEthernetPacket(frame))
+              .setReason(Packet.Reason.FlowTableMiss)
     }
 
     feature("PacketsEntryPoint initializes correctly") {

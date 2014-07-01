@@ -24,7 +24,7 @@ import org.midonet.midolman.simulation.Coordinator
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.{FlowMatches, Datapath, FlowMatch, Packet}
+import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.concurrent.ExecutionContextOps
@@ -204,18 +204,18 @@ class DeduplicationActor(
         val (cookie, egressPort) = cookieOrEgressPort match {
             case Left(c) => (Some(c), None)
             case Right(id) =>
-                packet.setMatch(FlowMatches.fromEthernetPacket(packet.getPacket))
+                packet.generateFlowKeysFromPayload()
                 (None, Some(id))
         }
 
-        val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
+        val wcMatch = WildcardMatch fromFlowKeys packet.getMatch.getKeys
 
         PacketWorkflow(datapathConn(packet), dpState, datapath,
                        clusterDataClient, actionsCache, packet, wcMatch,
                        cookieOrEgressPort, parentCookie)
         {
             val expiry = Platform.currentTime + simulationExpireMillis
-            new Coordinator(wcMatch, packet.getPacket, cookie, egressPort,
+            new Coordinator(wcMatch, packet.getEthernet, cookie, egressPort,
                 expiry, connectionCache, traceMessageCache, traceIndexCache,
                 parentCookie, traceConditions).simulate()
         }
@@ -276,7 +276,7 @@ class DeduplicationActor(
                 applyFlow(c, pw)
 
                 val latency = (Clock.defaultClock().tick() -
-                    pw.packet.getStartTimeNanos).toInt
+                    pw.packet.startTimeNanos).toInt
                 metrics.packetsProcessed.mark()
                 path match {
                     case WildcardTableHit =>

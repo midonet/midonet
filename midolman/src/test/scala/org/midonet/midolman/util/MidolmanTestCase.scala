@@ -311,18 +311,15 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def triggerPacketIn(portName: String, ethPkt: Ethernet) {
         val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
-            .addKey(inPort(getPortNumber(portName)))
-        val dpPkt = new Packet()
-            .setMatch(flowMatch)
-            .setPacket(ethPkt)
-        triggerPacketIn(dpPkt)
+                                   .addKey(inPort(getPortNumber(portName)))
+        triggerPacketIn(new Packet(ethPkt, flowMatch))
     }
 
     protected def triggerPacketsIn(portName: String, ethPkts: List[Ethernet]) {
         val pkts = ethPkts map { ethPkt =>
             val flowMatch = FlowMatches.fromEthernetPacket(ethPkt)
-                .addKey(inPort(getPortNumber(portName)))
-            new Packet().setMatch(flowMatch).setPacket(ethPkt)
+                                       .addKey(inPort(getPortNumber(portName)))
+            new Packet(ethPkt, flowMatch)
         }
         triggerPacketsIn(pkts)
     }

@@ -75,10 +75,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
         val frame: Ethernet = ethBuilder
-        new Packet().
-            setPacket(frame).
-            setMatch(FlowMatches.fromEthernetPacket(frame)).
-            setReason(Packet.Reason.FlowTableMiss)
+        new Packet(frame, FlowMatches.fromEthernetPacket(frame))
+              .setReason(Packet.Reason.FlowTableMiss)
     }
 
     def makePacket(variation: Short): Packet = makeFrame(variation)
@@ -216,7 +214,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             Then("a work flow should be executed")
             packetsSeen map {
-                case (packet, uuid) => (packet.getPacket, uuid)
+                case (packet, uuid) => (packet.getEthernet, uuid)
             } should be (List((frame, Right(id))))
 
             And("packetsOut should not be called")

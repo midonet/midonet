@@ -176,9 +176,9 @@ abstract class UpcallDatapathConnectionManagerBase(
 
             override def submit(data: Packet) {
                 log.trace("accumulating packet: {}", data.getMatch)
-                val eth = data.getPacket
-                FlowMatches.addUserspaceKeys(eth, data.getMatch)
-                data.setStartTimeNanos(Clock.defaultClock().tick())
+
+                data.processUserspaceKeys();
+                data.startTimeNanos = Clock.defaultClock().tick()
 
                 val worker = Math.abs(data.getMatch.hashCode) % NUM_WORKERS
                 packets(worker)(cursors(worker)) = data

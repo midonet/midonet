@@ -29,6 +29,7 @@ import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
+import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
 
 /**
@@ -500,9 +501,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch match = packet.getMatch();
+        List<FlowKey> keys = packet.getMatch().getKeys();
 
-        if (match.getKeys().isEmpty()) {
+        if (keys.isEmpty()) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
                 "The packet should have a FlowMatch object set up (with non empty key set).");
             propagateError(callback, ex);
@@ -536,8 +537,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             packetFamily.contextExec,
             flags,
-            Packet.execRequest(getBuffer(), datapathId, match.getKeys(),
-                               actions, packet.getPacket()),
+            Packet.execRequest(getBuffer(), datapathId, keys,
+                               actions, packet.getEthernet()),
             callback,
             alwaysTrueReader,
             timeoutMillis);
