@@ -114,7 +114,7 @@ object FlowController extends Referenceable {
 
         case object CheckFlowExpiration
 
-        case class FlowRemoved(flow: Flow)
+        case class FlowRemoved(flowMatch: FlowMatch)
 
         case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
 
@@ -310,7 +310,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 log.debug("Skipping obsolete wildcard flow {} with tags {}",
                           wildFlow.getMatch, tags)
                 if (dpFlow != null) {
-                    flowManagerHelper.removeFlow(dpFlow)
+                    flowManagerHelper removeFlow dpFlow.getMatch
                     runCallbacks(callbacks)
                 }
             }
@@ -370,9 +370,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case FlowRemoved(flow) =>
-            log.debug("DP confirmed that flow was removed: {}", flow)
-            flowManager.removeFlowCompleted(flow)
+        case FlowRemoved(flowMatch) =>
+            log.debug("DP confirmed removal of flow with match {}", flowMatch)
+            flowManager.removeFlowCompleted(flowMatch)
             metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 
@@ -413,7 +413,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 // re-add the wildcard flow, that would be incorrect if it
                 // disappeared due to invalidation. Instead, we remove the dp
                 // flow that the client is reporting as added.
-                flowManagerHelper.removeFlow(dpFlow)
+                flowManagerHelper removeFlow dpFlow.getMatch
         }
     }
 
@@ -451,31 +451,30 @@ class FlowController extends Actor with ActorLogWithoutPath {
     class FlowManagerInfoImpl() extends FlowManagerHelper {
         val sched = context.system.scheduler
 
-        private def _removeFlow(flow: Flow, retries: Int) {
+        private def _removeFlow(flowMatch: FlowMatch, retries: Int) {
             def scheduleRetry() {
                 if (retries > 0) {
                     log.debug("Scheduling retry of flow deletion with match: {}",
-                              flow.getMatch)
-                    sched.scheduleOnce(1 second){
-                        _removeFlow(flow, retries - 1)
+                              flowMatch)
+                    sched.scheduleOnce(1 second) {
+                        _removeFlow(flowMatch, retries - 1)
                     }
                 } else {
                     log.error("Giving up on deleting flow with match: {}",
-                              flow.getMatch)
+                              flowMatch)
                 }
             }
-
-            datapathConnection(flow.getMatch).flowsDelete(datapath, flow,
+            datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
                 new Callback[Flow] {
                     def onError(ex: NetlinkException) {
                         log.debug("Got an exception {} when trying to remove " +
-                                  "flow with match {}", ex, flow.getMatch)
+                                  "flow with match {}", ex, flowMatch)
                         ex.getErrorCodeEnum match {
                             // Success cases, the flow doesn't exist so userspace
                             // can take it as a successful remove:
-                            case ErrorCode.ENODEV => onSuccess(flow)
-                            case ErrorCode.ENOENT => onSuccess(flow)
-                            case ErrorCode.ENXIO => onSuccess(flow)
+                            case ErrorCode.ENODEV => notifyRemoval(flowMatch)
+                            case ErrorCode.ENOENT => notifyRemoval(flowMatch)
+                            case ErrorCode.ENXIO => notifyRemoval(flowMatch)
                             // Retry cases.
                             case ErrorCode.EBUSY => scheduleRetry()
                             case ErrorCode.EAGAIN => scheduleRetry()
@@ -485,18 +484,22 @@ class FlowController extends Actor with ActorLogWithoutPath {
                             // Give up
                             case _ =>
                                 log.error("Giving up on deleting flow with "+
-                                    "match: {} due to: {}", flow.getMatch, ex)
+                                    "match: {} due to: {}", flowMatch, ex)
                         }
                     }
 
-                    def onSuccess(data: Flow) {
-                        self ! FlowRemoved(data)
+                    def onSuccess(flow: Flow) {
+                        notifyRemoval(flow.getMatch)
+                    }
+
+                    def notifyRemoval(flowMatch: FlowMatch) {
+                        self ! FlowRemoved(flowMatch)
                     }
                 })
         }
 
-        def removeFlow(flow: Flow) {
-            _removeFlow(flow, 10)
+        def removeFlow(flowMatch: FlowMatch) {
+            _removeFlow(flowMatch, 10)
         }
 
         def removeWildcardFlow(flow: ManagedWildcardFlow) {

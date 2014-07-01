@@ -20,7 +20,7 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
-import org.midonet.odp.flows.FlowAction;
+import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.functors.Callback2;
@@ -284,16 +284,16 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doFlowsDelete(@Nonnull Datapath datapath, @Nonnull Flow flow, @Nonnull Callback<Flow> callback, long timeout) {
-       if(flowsTable.containsKey(flow.getMatch())){
-           Flow removed = flowsTable.remove(flow.getMatch());
-           callback.onSuccess(removed);
-           if (flowsCb != null)
-              flowsCb.flowDeleted(removed);
-       }
-        else{
-           callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
-       }
+    protected void _doFlowsDelete(@Nonnull Datapath datapath, @Nonnull Iterable<FlowKey> keys, @Nonnull Callback<Flow> callback, long timeout) {
+        FlowMatch match = new FlowMatch(keys);
+        if(flowsTable.containsKey(match)){
+            Flow removed = flowsTable.remove(match);
+            callback.onSuccess(removed);
+            if (flowsCb != null)
+                flowsCb.flowDeleted(removed);
+        } else{
+            callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+        }
     }
 
     @Override
@@ -322,8 +322,8 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsFlush(@Nonnull Datapath datapath, @Nonnull Callback<Boolean> callback, long timeoutMillis) {
-          flowsTable.clear();
-          callback.onSuccess(true);
+        flowsTable.clear();
+        callback.onSuccess(true);
     }
 
     public void setFlowLastUsedTimeToNow(FlowMatch match){

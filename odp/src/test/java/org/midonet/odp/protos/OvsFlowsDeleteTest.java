@@ -57,7 +57,8 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
         assertThat("The created flow has the same keySet as the requested one",
                    flow.getMatch(), equalTo(flowMatch()));
 
-        Future<Flow> deleteFlowOp = connection.futures.flowsDelete(datapath, flow);
+        Future<Flow> deleteFlowOp =
+            connection.futures.flowsDelete(datapath, flow.getMatch().getKeys());
         exchangeMessage();
 
         assertThat("The created flow has the same keySet as the requested one",

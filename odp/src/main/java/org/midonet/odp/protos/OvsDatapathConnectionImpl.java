@@ -368,7 +368,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsDelete(@Nonnull final Datapath datapath,
-                                  @Nonnull final Flow flow,
+                                  @Nonnull final Iterable<FlowKey> keys,
                                   @Nonnull final Callback<Flow> callback,
                                   final long timeoutMillis) {
         int datapathId = datapath.getIndex();
@@ -380,19 +380,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch match = flow.getMatch();
-
-        if (match == null) {
-            callback.onError(
-                new OvsDatapathInvalidParametersException(
-                    "The flow to delete should have a non null FlowMatch attached"));
-            return;
-        }
-
         sendNetlinkMessage(
             flowFamily.contextDel,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Flow.selectOneRequest(getBuffer(), datapathId, match.getKeys()),
+            Flow.selectOneRequest(getBuffer(), datapathId, keys),
             callback,
             Flow.deserializer,
             timeoutMillis);
