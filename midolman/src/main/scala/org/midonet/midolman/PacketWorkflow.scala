@@ -300,9 +300,13 @@ abstract class PacketWorkflow(protected val datapathConnection: OvsDatapathConne
         } else {
             FlowController.queryWildcardFlowTable(wcMatch) match {
                 case Some(wildflow) =>
+                    log.debug("{} - {} hit the WildcardFlowTable", cookieStr,
+                              wcMatch)
                     handleWildcardTableMatch(wildflow)
                     Ready(WildcardTableHit)
                 case None =>
+                    log.debug("{} - {} missed the WildcardFlowTable", cookieStr,
+                              wcMatch)
                     handleWildcardTableMiss()
             }
         }

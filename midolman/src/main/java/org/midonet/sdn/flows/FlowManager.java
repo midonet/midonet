@@ -269,6 +269,7 @@ public class FlowManager {
         log.debug("remove(WildcardFlow wildFlow) - Removing flow {}", wildFlow.getMatch());
 
         Set<FlowMatch> removedDpFlows = wildFlow.dpFlows();
+        int dpFlows = 0;
         if (removedDpFlows != null) {
             /* The FlowMaches will be removed from wildFlow.dpFlows() by the
              * conclusion of the DP flow removal. We know said conclusion will
@@ -278,8 +279,11 @@ public class FlowManager {
              */
             for (FlowMatch flowMatch : removedDpFlows) {
                 flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch));
+                dpFlows += 1;
             }
         }
+
+        log.debug("Removed {} datapath flows", dpFlows);
 
         // Get the WildcardFlowTable for this wildflow's pattern and remove
         // the wild flow.
@@ -296,7 +300,11 @@ public class FlowManager {
                     wildcardTables.tables().remove(wildFlow.getMatch().getUsedFields());
 
                 return true;
+            } else {
+                log.debug("WildcardFlow missing from the WildcardFlowTable");
             }
+        } else {
+            log.debug("No WildcardFlowTable for the specified WildcardFlow pattern");
         }
 
         return false;
