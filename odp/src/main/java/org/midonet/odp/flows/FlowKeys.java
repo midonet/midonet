@@ -182,6 +182,9 @@ public class FlowKeys {
             case Attr.Tunnel:
                 return new FlowKeyTunnel();
 
+            case Attr.SCTP:
+                return new FlowKeySCTP();
+
             default:
                 return null;
         }
@@ -210,7 +213,7 @@ public class FlowKeys {
     public static FlowKey randomKey() {
         FlowKey k = null;
         while (k == null) {
-            k = FlowKeys.newBlankInstance((short)(1 + rand.nextInt(17)));
+            k = FlowKeys.newBlankInstance((short)(1 + rand.nextInt(18)));
         }
         if (k instanceof Randomize) {
             ((Randomize)k).randomize();
