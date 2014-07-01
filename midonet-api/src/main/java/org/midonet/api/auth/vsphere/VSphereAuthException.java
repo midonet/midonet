@@ -7,6 +7,8 @@ import org.midonet.api.auth.AuthException;
 
 public class VSphereAuthException extends AuthException {
 
+    private static final long serialVersionUID = 1L;
+
     public VSphereAuthException(String message) {
         super(message);
     }

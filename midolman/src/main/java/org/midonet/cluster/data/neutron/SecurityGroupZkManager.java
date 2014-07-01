@@ -95,7 +95,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         for (IPAllocation fixedIp : port.fixedIps) {
 
             Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
-            IPSubnet ipSub = subnet.isIpv4()
+            IPSubnet<?> ipSub = subnet.isIpv4()
                     ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
             inRules.add(Rule.ipSpoofProtectionRule(ipSub, inChainId));
         }

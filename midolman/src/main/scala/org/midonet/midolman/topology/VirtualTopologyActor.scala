@@ -332,7 +332,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         log.info("Build a manager for {}", r)
 
         val mgrFactory = r.managerFactory(clusterClient, config)
-        val props = Props(mgrFactory).withDispatcher(context.props.dispatcher)
+        val props = Props { mgrFactory() }.withDispatcher(context.props.dispatcher)
         context.actorOf(props, r.managerName)
 
         managed.add(r.id)

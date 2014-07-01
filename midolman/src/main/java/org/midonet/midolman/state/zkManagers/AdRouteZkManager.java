@@ -65,7 +65,7 @@ public class AdRouteZkManager
     }
 
     @Override
-    protected Class getConfigClass() {
+    protected Class<AdRouteConfig> getConfigClass() {
         return AdRouteConfig.class;
     }
 

@@ -425,8 +425,8 @@ public class CassandraClient {
                                 String entryValue) {
         T value = null;
         try {
-            Constructor constructor = returnValueClass.getConstructor(
-                    new Class[]{String.class});
+            Constructor<T> constructor = returnValueClass.getConstructor(
+                    new Class<?>[]{String.class});
             value = returnValueClass.cast(constructor.newInstance(entryValue));
         } catch (Exception e) {
             log.error("Error in casting the value from String to {}",

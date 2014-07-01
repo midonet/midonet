@@ -50,7 +50,8 @@ public class ZkDumper {
         int zkPort = Integer.parseInt(cl.getOptionValue('p', "2181"));
         String zkHost = cl.getOptionValue('h', "localhost");
 
-        List<String> argList = cl.getArgList();
+        @SuppressWarnings("unchecked")
+        List<String> argList = (List<String>) cl.getArgList();
         if (argList.isEmpty()) {
             argList.add("/");
         }

@@ -22,6 +22,8 @@ public class CommandInterpreter {
 
     public static class InvalidParameterException extends Exception {
 
+        private static final long serialVersionUID = 1L;
+
         public InvalidParameterException(CommandProperty property,
                                          String actualValue,
                                          String message) {
@@ -34,6 +36,8 @@ public class CommandInterpreter {
     }
 
     public static class InvalidExecutorInstanceException extends Exception {
+
+        private static final long serialVersionUID = 1L;
 
         public InvalidExecutorInstanceException(CommandProperty property,
                                                 Exception e) {
@@ -48,11 +52,11 @@ public class CommandInterpreter {
         LoggerFactory.getLogger(CommandInterpreter.class);
 
 
-    public List<CommandExecutor> interpret(Command cmd)
+    public List<CommandExecutor<?>> interpret(Command cmd)
         throws InvalidParameterException, InvalidExecutorInstanceException {
         log.debug("Interpreting command: {}.", cmd);
 
-        List<CommandExecutor> executors = new ArrayList<CommandExecutor>();
+        List<CommandExecutor<?>> executors = new ArrayList<>();
         List<Command.AtomicCommand> cmdList = cmd.getCommandList();
         for (Command.AtomicCommand atomicCmd : cmdList) {
             CommandProperty property = atomicCmd.getProperty();
@@ -69,7 +73,7 @@ public class CommandInterpreter {
                 }
             }
 
-            CommandExecutor executor;
+            CommandExecutor<?> executor;
             try {
                 executor = property.getExecutor().newInstance();
                 injector.injectMembers(executor);
@@ -87,4 +91,3 @@ public class CommandInterpreter {
         return executors;
     }
 }
-

@@ -11,6 +11,9 @@ import net.java.truelicense.core.LicenseManagementException;
  * An exception thrown when the user installs a license that already exists.
  */
 public class LicenseExistsException extends LicenseManagementException {
+
+    private static final long serialVersionUID = 1L;
+
     private final UUID licenseId;
     private final String message;
 

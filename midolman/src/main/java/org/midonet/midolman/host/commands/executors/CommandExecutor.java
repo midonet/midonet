@@ -16,6 +16,9 @@ import static org.midonet.midolman.host.state.HostDirectory.Command.AtomicComman
 public interface CommandExecutor<T> {
 
     public static class CommandExecutionFailedException extends Exception {
+
+        private static final long serialVersionUID = 1L;
+
         public CommandExecutionFailedException(String s) {
             super(s);
         }

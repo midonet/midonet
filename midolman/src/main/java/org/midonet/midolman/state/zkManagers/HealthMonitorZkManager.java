@@ -94,7 +94,7 @@ public class HealthMonitorZkManager extends
     }
 
     @Override
-    protected Class getConfigClass() {
+    protected Class<HealthMonitorConfig> getConfigClass() {
         return HealthMonitorConfig.class;
     }
 

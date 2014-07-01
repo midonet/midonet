@@ -36,9 +36,9 @@ public enum CommandProperty {
     }};
 
     private String key;
-    private Class type;
-    private Class<? extends CommandExecutor> executor;
-    private TypeValidator validator;
+    private Class<?> type;
+    private Class<? extends CommandExecutor<?>> executor;
+    private TypeValidator<?> validator;
 
     private static final Map<String, CommandProperty> lookupByKey =
         new HashMap<String, CommandProperty>();
@@ -69,27 +69,27 @@ public enum CommandProperty {
         this.key = key;
     }
 
-    public Class getType() {
+    public Class<?> getType() {
         return type;
     }
 
-    private void setType(Class type) {
+    private void setType(Class<?> type) {
         this.type = type;
     }
 
-    public Class<? extends CommandExecutor> getExecutor() {
+    public Class<? extends CommandExecutor<?>> getExecutor() {
         return executor;
     }
 
-    private void setExecutor(Class<? extends CommandExecutor> executor) {
+    private void setExecutor(Class<? extends CommandExecutor<?>> executor) {
         this.executor = executor;
     }
 
-    public TypeValidator getValidator() {
+    public TypeValidator<?> getValidator() {
         return validator;
     }
 
-    private void setValidator(TypeValidator validator) {
+    private void setValidator(TypeValidator<?> validator) {
         this.validator = validator;
     }
 
@@ -97,5 +97,3 @@ public enum CommandProperty {
         return lookupByKey.get(key);
     }
 }
-
-

@@ -554,7 +554,7 @@ public class HostZkManager
         zk.multi(operations);
     }
 
-    public Port addVirtualPortMapping(
+    public Port<?,?> addVirtualPortMapping(
             UUID hostIdentifier, HostDirectory.VirtualPortMapping portMapping)
             throws StateAccessException, SerializationException {
 
@@ -608,7 +608,7 @@ public class HostZkManager
 
         zk.multi(operations);
 
-        Port updatedPort = Converter.fromPortConfig(port);
+        Port<?,?> updatedPort = Converter.fromPortConfig(port);
         updatedPort.setId(portId);
         return updatedPort;
     }

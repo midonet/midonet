@@ -14,6 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * header of 8/16 bytes.
  */
 public class PaddedAtomicInteger extends AtomicInteger {
+
+    private static final long serialVersionUID = 1L;
+
     public PaddedAtomicInteger() {
     }
 

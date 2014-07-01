@@ -70,6 +70,9 @@ public class HostService extends AbstractService
     private ZkManager zkManager;
 
     public static class HostIdAlreadyInUseException extends Exception {
+
+        private static final long serialVersionUID = 1L;
+
         HostIdAlreadyInUseException(String message) {
             super(message);
         }

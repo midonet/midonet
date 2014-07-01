@@ -23,7 +23,7 @@ public class ExtendedDirectoryProvider extends DirectoryProvider {
     public Directory get() {
 
         if(config.getUseMock()) {
-            return new StaticMockDirectory().getDirectoryInstance();
+            return StaticMockDirectory.getDirectoryInstance();
         } else {
             return super.get();
         }

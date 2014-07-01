@@ -43,8 +43,8 @@ public class Condition extends BaseConfig {
     public boolean nwTosInv;
     public Byte nwProto;
     public boolean nwProtoInv;
-    public IPSubnet nwSrcIp; // Source IP address.
-    public IPSubnet nwDstIp; // Destination IP address.
+    public IPSubnet<?> nwSrcIp; // Source IP address.
+    public IPSubnet<?> nwDstIp; // Destination IP address.
     public Range<Integer> tpSrc; // Source TCP port.
     public Range<Integer> tpDst; // Destination TCP port.
     public boolean nwSrcInv;
@@ -119,7 +119,7 @@ public class Condition extends BaseConfig {
         dlSrc = macAddress;
     }
 
-    public Condition(IPSubnet subnet) {
+    public Condition(IPSubnet<?> subnet) {
         nwSrcIp = subnet;
         dlType = (int) subnet.ethertype();
     }
@@ -225,7 +225,7 @@ public class Condition extends BaseConfig {
                 negate ^ condMAC.equalsWithMask(pktMAC, mask);
     }
 
-    private boolean matchIP(IPSubnet condSubnet, IPAddr pktIp, boolean negate) {
+    private boolean matchIP(IPSubnet<?> condSubnet, IPAddr pktIp, boolean negate) {
         // Packet is considered to match if the condField is not specified.
         return condSubnet == null ||
                 negate ^ (pktIp != null && condSubnet.containsAddress(pktIp));
