@@ -3,18 +3,17 @@
  */
 package org.midonet.odp.flows;
 
-import java.util.List;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Objects;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
+import org.midonet.odp.OpenVSwitch.FlowAction.SampleAttr;
 
-public class FlowActionSample implements FlowAction, Randomize {
-
-    private static final short probAttrId =
-        OpenVSwitch.FlowAction.SampleAttr.Probability;
-    private static final short actionsAttrId =
-        OpenVSwitch.FlowAction.SampleAttr.Actions;
+public class FlowActionSample implements FlowAction,
+                                         AttributeHandler, Randomize {
 
     /**
      * u32 port number.
@@ -33,21 +32,25 @@ public class FlowActionSample implements FlowAction, Randomize {
 
     public int serializeInto(ByteBuffer buffer) {
         int nBytes= 0;
-        nBytes += NetlinkMessage.writeIntAttr(buffer, probAttrId, probability);
-        nBytes += NetlinkMessage.writeAttrSeq(buffer, actionsAttrId, actions,
-                                              FlowAction.actionWriter);
+        nBytes += NetlinkMessage.writeIntAttr(buffer, SampleAttr.Probability,
+                                              probability);
+        nBytes += NetlinkMessage.writeAttrSeq(buffer, SampleAttr.Actions,
+                                              actions, FlowActions.writer);
         return nBytes;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            probability = NetlinkMessage.getAttrValueInt(buf, probAttrId);
-            actions = NetlinkMessage.getAttrValue(buf, actionsAttrId,
-                                                  FlowAction.Builder);
-            return true;
-        } catch (Exception e) {
-            return false;
+    public void deserializeFrom(ByteBuffer buf) {
+        NetlinkMessage.scanAttributes(buf, this);
+    }
+
+    public void use(ByteBuffer buf, short id) {
+        switch(NetlinkMessage.unnest(id)) {
+            case SampleAttr.Probability:
+                probability = buf.getInt();
+                break;
+            case SampleAttr.Actions:
+                actions = FlowActions.reader.deserializeFrom(buf);
+                break;
         }
     }
 
@@ -73,21 +76,16 @@ public class FlowActionSample implements FlowAction, Randomize {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowActionSample that = (FlowActionSample) o;
 
-        if (probability != that.probability) return false;
-        if (actions != null ? !actions.equals(
-            that.actions) : that.actions != null)
-            return false;
-
-        return true;
+        return (probability == that.probability)
+            && Objects.equals(this.actions, that.actions);
     }
 
     @Override
     public int hashCode() {
-        int result = probability;
-        result = 31 * result + (actions != null ? actions.hashCode() : 0);
-        return result;
+        return 31 * probability + Objects.hashCode(actions);
     }
 
     @Override

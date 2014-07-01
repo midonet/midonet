@@ -3,18 +3,16 @@
  */
 package org.midonet.odp.flows;
 
+import java.util.Objects;
 import java.nio.ByteBuffer;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
+import org.midonet.odp.OpenVSwitch.FlowAction.UserspaceAttr;
 
-public class FlowActionUserspace implements FlowAction {
-
-    public static final short pidAttrId =
-        OpenVSwitch.FlowAction.UserspaceAttr.PID;
-
-    public static final short userdataAttrId =
-        OpenVSwitch.FlowAction.UserspaceAttr.Userdata;
+public class FlowActionUserspace implements FlowAction,
+                                            AttributeHandler, Randomize {
 
     private int uplinkPid;  /* u32 Netlink PID to receive upcalls. */
     private Long userData;  /* u64 optional user-specified cookie. */
@@ -34,24 +32,30 @@ public class FlowActionUserspace implements FlowAction {
     public int serializeInto(ByteBuffer buffer) {
         int nBytes = 0;
 
-        nBytes += NetlinkMessage.writeIntAttr(buffer, pidAttrId, uplinkPid);
+        nBytes += NetlinkMessage.writeIntAttr(buffer, UserspaceAttr.PID,
+                                              uplinkPid);
 
         if (userData == null)
             return nBytes;
 
-        nBytes += NetlinkMessage.writeLongAttr(buffer, userdataAttrId, userData);
+        nBytes += NetlinkMessage.writeLongAttr(buffer, UserspaceAttr.Userdata,
+                                               userData);
 
         return nBytes;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            uplinkPid = NetlinkMessage.getAttrValueInt(buf, pidAttrId);
-            userData = NetlinkMessage.getAttrValueLong(buf, userdataAttrId);
-            return true;
-        } catch (Exception e) {
-            return false;
+    public void deserializeFrom(ByteBuffer buf) {
+        NetlinkMessage.scanAttributes(buf, this);
+    }
+
+    public void use(ByteBuffer buf, short id) {
+        switch(NetlinkMessage.unnest(id)) {
+            case UserspaceAttr.PID:
+                uplinkPid = buf.getInt();
+                break;
+            case UserspaceAttr.Userdata:
+                userData = buf.getLong();
+                break;
         }
     }
 
@@ -59,25 +63,26 @@ public class FlowActionUserspace implements FlowAction {
         return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Userspace);
     }
 
+    public void randomize() {
+        uplinkPid = FlowActions.rand.nextInt();
+        userData = FlowActions.rand.nextLong();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowActionUserspace that = (FlowActionUserspace) o;
 
-        if (uplinkPid != that.uplinkPid) return false;
-        if (userData != null ? !userData.equals(
-            that.userData) : that.userData != null) return false;
-
-        return true;
+        return (uplinkPid == that.uplinkPid)
+            && Objects.equals(this.userData, that.userData);
     }
 
     @Override
     public int hashCode() {
-        int result = uplinkPid;
-        result = 31 * result + (userData != null ? userData.hashCode() : 0);
-        return result;
+        return 31 * uplinkPid + Objects.hashCode(userData);
     }
 
     @Override

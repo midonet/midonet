@@ -4,6 +4,7 @@
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
@@ -23,22 +24,13 @@ public class FlowActionSetKey implements FlowAction, Randomize {
         return NetlinkMessage.writeAttr(buffer, flowKey, FlowKeys.writer);
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        NetlinkMessage.iterateAttributes(buf,
-                                         new NetlinkMessage.AttributeParser() {
-            @Override
-            public boolean processAttribute(short attributeType, ByteBuffer buffer) {
-                flowKey = FlowKeys.newBlankInstance(attributeType);
-                if (flowKey != null) {
-                    flowKey.deserializeFrom(buffer);
-                }
-
-                return flowKey == null;
-            }
-        });
-
-        return flowKey != null;
+    public void deserializeFrom(ByteBuffer buf) {
+        short attrLen = buf.getShort();
+        short attrId = buf.getShort();
+        flowKey = FlowKeys.newBlankInstance(attrId);
+        if (flowKey == null)
+            return;
+        flowKey.deserializeFrom(buf);
     }
 
     public short attrId() {
@@ -58,18 +50,15 @@ public class FlowActionSetKey implements FlowAction, Randomize {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowActionSetKey that = (FlowActionSetKey) o;
 
-        if (flowKey != null ? !flowKey.equals(
-            that.flowKey) : that.flowKey != null)
-            return false;
-
-        return true;
+        return Objects.equals(this.flowKey, that.flowKey);
     }
 
     @Override
     public int hashCode() {
-        return flowKey != null ? flowKey.hashCode() : 0;
+        return Objects.hashCode(flowKey);
     }
 
     @Override
