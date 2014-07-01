@@ -161,7 +161,7 @@ public class TunnelZoneZkManager
                 tz.getName().equalsIgnoreCase(zone.getName())) {
                 throw new StatePathExistsException(
                     "There is already a tunnel zone with the same type and" +
-                    "name, its id: " + tz.getId());
+                    "name", tz.getId());
             }
         }
 
@@ -200,7 +200,7 @@ public class TunnelZoneZkManager
                 zoneId, hostConfig.getId());
 
         if (zk.exists(membershipPath))
-            throw new StatePathExistsException(null);
+            throw new StatePathExistsException(null, zoneId);
 
         ops.add(
                 zk.getPersistentCreateOp(membershipPath,

@@ -38,6 +38,9 @@ public class HostIdGenerator {
      * Custom exception PropertiesFileNotWritableException
      */
     public static class PropertiesFileNotWritableException extends Exception {
+
+        private static final long serialVersionUID = 1L;
+
         PropertiesFileNotWritableException(String message) {
             super(message);
         }

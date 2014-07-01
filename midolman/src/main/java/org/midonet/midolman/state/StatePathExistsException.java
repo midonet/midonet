@@ -3,6 +3,8 @@
  */
 package org.midonet.midolman.state;
 
+import java.util.UUID;
+
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 
 public class StatePathExistsException extends StatePathExceptionBase {
@@ -16,10 +18,9 @@ public class StatePathExistsException extends StatePathExceptionBase {
     /**
      * Provided for TunnelZoneZkManager(), which generates a
      * StatePathExistsException without an underlying KeeperException.
-     * If you use this constructor, getNodeInfo() will blow up.
      */
-    @Deprecated
-    public StatePathExistsException(String message) {
+    public StatePathExistsException(String message, UUID tzId) {
         super(message);
+        this.nodeInfo = new NodeInfo(NodeType.TUNNEL_ZONE, tzId);
     }
 }

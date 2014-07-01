@@ -263,7 +263,7 @@ public class Converter {
                         .setAdminStateUp(vipConfig.adminStateUp);
     }
 
-    public static PortConfig toPortConfig(Port port) {
+    public static PortConfig toPortConfig(Port<?,?> port) {
 
         PortConfig portConfig = null;
         if (port instanceof BridgePort) {
@@ -327,9 +327,9 @@ public class Converter {
         return portConfig;
     }
 
-    public static Port fromPortConfig(PortConfig portConfig) {
+    public static Port<?,?> fromPortConfig(PortConfig portConfig) {
 
-        Port port = null;
+        Port<?,?> port = null;
 
         if (portConfig instanceof BridgePortConfig) {
             BridgePortConfig bridgePortConfig =
@@ -464,7 +464,7 @@ public class Converter {
                 .setRouterId(route.routerId);
     }
 
-    public static org.midonet.midolman.rules.Rule toRuleConfig(Rule rule) {
+    public static org.midonet.midolman.rules.Rule toRuleConfig(Rule<?,?> rule) {
 
         org.midonet.midolman.rules.Rule ruleConfig = null;
         if (rule instanceof LiteralRule) {
@@ -519,10 +519,10 @@ public class Converter {
         return ruleConfig;
     }
 
-    public static Rule fromRuleConfig(
+    public static Rule<?,?> fromRuleConfig(
             org.midonet.midolman.rules.Rule ruleConfig) {
 
-        Rule rule = null;
+        Rule<?,?> rule = null;
 
         if (ruleConfig instanceof org.midonet.midolman.rules.LiteralRule) {
             rule = new LiteralRule(ruleConfig.getCondition(),

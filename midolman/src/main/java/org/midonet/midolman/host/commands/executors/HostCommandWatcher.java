@@ -96,12 +96,12 @@ public class HostCommandWatcher {
 
     private void executeCommands(final Command cmd, Integer cmdId) {
 
-        List<CommandExecutor> commandExecutors =
+        List<CommandExecutor<?>> commandExecutors =
             guardedWork(
                 cmdId, cmd,
-                new Callable<List<CommandExecutor>>() {
+                new Callable<List<CommandExecutor<?>>>() {
                     @Override
-                    public List<CommandExecutor> call() throws Exception {
+                    public List<CommandExecutor<?>> call() throws Exception {
                         return commandInterpreter.interpret(cmd);
                     }
                 });
@@ -109,7 +109,7 @@ public class HostCommandWatcher {
         if (commandExecutors == null)
             return;
 
-        for (final CommandExecutor commandExecutor : commandExecutors) {
+        for (final CommandExecutor<?> commandExecutor : commandExecutors) {
             guardedWork(cmdId, cmd, new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {

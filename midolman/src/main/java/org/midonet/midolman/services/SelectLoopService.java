@@ -25,8 +25,6 @@ public class SelectLoopService extends AbstractService {
     @MidolmanActorsModule.ZEBRA_SERVER_LOOP
     SelectLoop zebraLoop;
 
-    Thread zebraLoopThread;
-
     private Thread startLoop(final SelectLoop loop, String name) {
         log.info("Starting select loop thread: {}.", name);
         Thread th = new Thread(new Runnable() {
@@ -48,7 +46,7 @@ public class SelectLoopService extends AbstractService {
     @Override
     protected void doStart() {
         try {
-            zebraLoopThread = startLoop(zebraLoop, "zebra-server-loop");
+            startLoop(zebraLoop, "zebra-server-loop");
             notifyStarted();
             log.info("Select loop threads started correctly");
         } catch (Exception e) {
@@ -58,10 +56,7 @@ public class SelectLoopService extends AbstractService {
 
     @Override
     protected void doStop() {
-        // TODO: change the SelectLoop to support shutdown and use it here to stop the thread
-        // cleanly
         zebraLoop.shutdown();
-        zebraLoopThread.stop();
         notifyStopped();
     }
 }
