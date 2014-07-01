@@ -7,10 +7,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowKeyEncap implements FlowKey, Randomize {
+public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
 
     private List<FlowKey> keys;
 
@@ -30,28 +31,21 @@ public class FlowKeyEncap implements FlowKey, Randomize {
     public int serializeInto(ByteBuffer buffer) {
         int nBytes = 0;
         for (FlowKey key : keys) {
-            nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKey.keyWriter);
+            nBytes += NetlinkMessage.writeAttr(buffer, key, FlowKeys.writer);
         }
         return nBytes;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        NetlinkMessage.iterateAttributes(buf,
-                                         new NetlinkMessage.AttributeParser() {
-            @Override
-            public boolean processAttribute(short attributeType, ByteBuffer buffer) {
-                FlowKey flowKey = FlowKey.Builder.newInstance(attributeType);
-                if (flowKey != null) {
-                    flowKey.deserialize(buffer);
-                    keys.add(flowKey);
-                }
+    public void deserializeFrom(ByteBuffer buf) {
+        NetlinkMessage.scanAttributes(buf, this);
+    }
 
-                return true;
-            }
-        });
-
-        return true;
+    public void use(ByteBuffer buf, short id) {
+        FlowKey key = FlowKeys.newBlankInstance(id);
+        if (key == null)
+            return;
+        key.deserializeFrom(buf);
+        keys.add(key);
     }
 
     public void randomize() {

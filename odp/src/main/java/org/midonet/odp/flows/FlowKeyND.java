@@ -33,17 +33,11 @@ public class FlowKeyND implements CachedFlowKey {
         return 28;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            nd_target = new int[4];
-            BytesUtil.instance.readBEIntsFrom(buf, nd_target);
-            buf.get(nd_sll);
-            buf.get(nd_tll);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        nd_target = new int[4];
+        BytesUtil.instance.readBEIntsFrom(buf, nd_target);
+        buf.get(nd_sll);
+        buf.get(nd_tll);
     }
 
     public short attrId() {

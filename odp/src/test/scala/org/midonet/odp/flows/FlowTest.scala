@@ -15,7 +15,6 @@ import org.midonet.netlink.BytesUtil
 import org.midonet.netlink.NetlinkMessage
 import org.midonet.netlink.NetlinkMessage.{CustomBuilder => Builder}
 import org.midonet.netlink.Writer
-import org.midonet.netlink.messages.BuilderAware
 import org.midonet.odp.OpenVSwitch
 import org.midonet.odp.{Flow, FlowMatch}
 
@@ -30,7 +29,9 @@ class FlowTest extends FunSpec with Matchers {
     describe("a List of FlowKeys") {
         it("can be serialized in a ByteBuffer and deserialized back from it") {
             keyLists foreach {
-                writeReadList(_, FlowKey.keyWriter, FlowKey.Builder)
+                writeReadList(_, FlowKeys.writer) { case (buf,id) =>
+                    NetlinkMessage.readAttr(buf, id, FlowMatch.reader).getKeys
+                }
             }
         }
     }
@@ -38,31 +39,31 @@ class FlowTest extends FunSpec with Matchers {
     describe("a List of FlowActions") {
         it("can be serialized in a ByteBuffer and deserialized back from it") {
             actLists foreach {
-                writeReadList(_, FlowAction.actionWriter, FlowAction.Builder)
+                writeReadList(_, FlowAction.actionWriter) { case (buf,id) =>
+                    NetlinkMessage getAttrValue (buf, id, FlowAction.Builder)
+                }
             }
         }
     }
 
     describe("a Flow") {
-        it("Can be serialized in a ByteBuffer and deserialized back from it.") {
-            (keyLists zip actLists) foreach { case (keys,actions) =>
+        it("can be serialized in a ByteBuffer and deserialized back from it.") {
+            (keyLists zip actLists) foreach { case (keys, actions) =>
                 buf.clear
                 Flow describeOneRequest (buf, 42, keys, actions)
-                val flow = new Flow
-                flow setActions actions
-                flow setMatch new FlowMatch(keys)
-                flow shouldBe (Flow.deserializer deserializeFrom buf)
+                val flow = (new Flow (keys, actions))
+                (Flow.deserializer deserializeFrom buf) shouldBe flow
             }
         }
     }
 
-    def writeReadList[T <: BuilderAware](ls: JList[T], writer: Writer[T],
-                                         builder: Builder[T]) {
+    def writeReadList[T](ls: JList[T], writer: Writer[T])
+                        (builder: (ByteBuffer, Short) => JList[T]) {
         buf.clear
         val id: Short = NetlinkMessage nested 42.toShort
         NetlinkMessage writeAttrSeq (buf, id, ls, writer)
         buf.flip
-        val read = NetlinkMessage getAttrValue (buf, id, builder)
+        val read = builder(buf,id)
         read should have size(ls.size)
         (ls zip read) foreach { case (a,b) => a shouldBe b }
     }

@@ -1,22 +1,19 @@
-package org.midonet.odp;
+package org.midonet.odp.flows;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeyEtherType;
-import org.midonet.odp.flows.FlowKeyEthernet;
-import org.midonet.odp.flows.FlowKeyICMP;
-import org.midonet.odp.flows.FlowKeyIPv4;
+import org.midonet.odp.FlowMatch;
+import org.midonet.odp.FlowMatches;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -60,18 +57,6 @@ public class FlowMatchTest {
         }
         assertFalse(m.isUserSpaceOnly());
         m.addKey(unsupported.get(0));
-        assertTrue(m.isUserSpaceOnly());
-        assertEquals(supported.size() + 1, m.getKeys().size());
-    }
-
-    @Test
-    public void testSetKeys() {
-        tmp.addAll(supported);
-        FlowMatch m = new FlowMatch();
-        assertFalse(m.isUserSpaceOnly());
-        m.setKeys(tmp);
-        assertFalse(m.isUserSpaceOnly());
-        m.addKey(unsupported.get(1));
         assertTrue(m.isUserSpaceOnly());
         assertEquals(supported.size() + 1, m.getKeys().size());
     }

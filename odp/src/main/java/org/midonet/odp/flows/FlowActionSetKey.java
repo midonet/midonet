@@ -20,7 +20,7 @@ public class FlowActionSetKey implements FlowAction, Randomize {
     }
 
     public int serializeInto(ByteBuffer buffer) {
-        return NetlinkMessage.writeAttr(buffer, flowKey, FlowKey.keyWriter);
+        return NetlinkMessage.writeAttr(buffer, flowKey, FlowKeys.writer);
     }
 
     @Override
@@ -29,9 +29,9 @@ public class FlowActionSetKey implements FlowAction, Randomize {
                                          new NetlinkMessage.AttributeParser() {
             @Override
             public boolean processAttribute(short attributeType, ByteBuffer buffer) {
-                flowKey = FlowKey.Builder.newInstance(attributeType);
+                flowKey = FlowKeys.newBlankInstance(attributeType);
                 if (flowKey != null) {
-                    flowKey.deserialize(buffer);
+                    flowKey.deserializeFrom(buffer);
                 }
 
                 return flowKey == null;

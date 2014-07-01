@@ -27,15 +27,9 @@ public class FlowKeyICMPv6 implements FlowKey {
         return 2;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            icmpv6_type = buf.get();
-            icmpv6_code = buf.get();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        icmpv6_type = buf.get();
+        icmpv6_code = buf.get();
     }
 
     public short attrId() {

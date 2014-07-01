@@ -30,15 +30,9 @@ public class FlowKeyTCP implements FlowKey {
         return 4;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            tcp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
-            tcp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        tcp_src = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
+        tcp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
     public short attrId() {

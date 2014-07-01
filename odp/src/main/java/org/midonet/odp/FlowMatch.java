@@ -8,43 +8,32 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.Reader;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeyICMPEcho;
 import org.midonet.odp.flows.FlowKeys;
 
 /**
- * An ovs datapath flow match object. Contains an ordered list of
- * FlowKey&lt;?&gt; instances.
+ * An ovs datapath flow match object. Contains a list of FlowKey instances.
  *
  * @see FlowKey
  * @see org.midonet.odp.flows.FlowKeys
  */
-public class FlowMatch {
+public class FlowMatch implements AttributeHandler {
 
     private boolean userSpaceOnly = false;
-    private List<FlowKey> keys = new ArrayList<>();
+    private final List<FlowKey> keys = new ArrayList<>();
 
-    public FlowMatch() {
-        keys = null;
-    }
+    public FlowMatch() { }
 
-    /**
-     * BEWARE: this method does a direct assign of keys to the private
-     * collection.
-     *
-     * @param keys
-     */
     public FlowMatch(@Nonnull List<FlowKey> keys) {
-        this.setKeys(keys);
+        this.addKeys(keys);
     }
 
     public FlowMatch addKey(FlowKey key) {
-        if (keys == null) {
-            keys = new ArrayList<>();
-        }
-        keys.add(FlowKeys.intern(key));
         userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
+        keys.add(FlowKeys.intern(key));
         return this;
     }
 
@@ -53,21 +42,9 @@ public class FlowMatch {
         return keys;
     }
 
-    public FlowMatch setKeys(@Nonnull List<FlowKey> keys) {
-        this.userSpaceOnly = false;
-        this.keys = keys.isEmpty() ? keys : new ArrayList<FlowKey>(keys.size());
-        for (FlowKey key : keys) {
-            userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
-            this.keys.add(FlowKeys.intern(key));
-        }
-        return this;
-    }
-
     public FlowMatch addKeys(@Nonnull List<FlowKey> keys) {
-        this.userSpaceOnly = false;
-        for (FlowKey key: keys) {
-            userSpaceOnly |= (key instanceof FlowKey.UserSpaceOnly);
-            this.keys.add(FlowKeys.intern(key));
+        for (FlowKey key : keys) {
+            addKey(key);
         }
         return this;
     }
@@ -77,18 +54,14 @@ public class FlowMatch {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FlowMatch flowMatch = (FlowMatch) o;
+        FlowMatch that = (FlowMatch) o;
 
-        if (keys == null ? flowMatch.keys != null
-                         : !keys.equals(flowMatch.keys))
-            return false;
-
-        return true;
+        return this.keys.equals(that.keys);
     }
 
     @Override
     public int hashCode() {
-        return keys != null ? keys.hashCode() : 0;
+        return keys.hashCode();
     }
 
     @Override
@@ -121,11 +94,23 @@ public class FlowMatch {
        userSpaceOnly = isUserSpaceOnly;
     }
 
-    public static FlowMatch buildFrom(ByteBuffer buf) {
-        return new FlowMatch(FlowKeys.buildFrom(buf));
-    }
-
     public void replaceKey(int index, FlowKey flowKey) {
         keys.set(index, flowKey);
     }
+
+    public void use(ByteBuffer buf, short id) {
+        FlowKey key = FlowKeys.newBlankInstance(id);
+        if (key == null)
+            return;
+        key.deserializeFrom(buf);
+        addKey(key);
+    }
+
+    public static Reader<FlowMatch> reader = new Reader<FlowMatch>() {
+        public FlowMatch deserializeFrom(ByteBuffer buf) {
+            FlowMatch fm = new FlowMatch();
+            NetlinkMessage.scanAttributes(buf, fm);
+            return fm;
+        }
+    };
 }
