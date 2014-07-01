@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
 
-public class FlowActionSetKey implements FlowAction {
+public class FlowActionSetKey implements FlowAction, Randomize {
 
     FlowKey flowKey;
 
@@ -43,6 +43,10 @@ public class FlowActionSetKey implements FlowAction {
 
     public short attrId() {
         return NetlinkMessage.nested(OpenVSwitch.FlowAction.Attr.Set);
+    }
+
+    public void randomize() {
+        flowKey = FlowKeys.randomKey();
     }
 
     public FlowKey getFlowKey() {
