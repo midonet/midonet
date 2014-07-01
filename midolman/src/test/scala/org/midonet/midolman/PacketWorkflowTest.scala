@@ -304,12 +304,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         flm
     }
 
-    def packet(userspace: Boolean = false) = {
-        val pkt = new Packet
-        pkt setPacket Ethernet.random
-        pkt setMatch (flMatch(userspace))
-        pkt
-    }
+    def packet(userspace: Boolean = false) =
+        new Packet(Ethernet.random, flMatch(userspace))
 
     def wcMatch(userspace: Boolean = false) = {
         val wcMatch = WildcardMatch.fromFlowMatch(flMatch(userspace))

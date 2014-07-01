@@ -4,9 +4,12 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.nio.ByteOrder;
+import java.util.List;
+import java.util.Objects;
 
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.odp.OpenVSwitch.Packet.Attr;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
@@ -22,7 +25,7 @@ import org.midonet.packets.Ethernet;
  * @see OvsDatapathConnection#packetsExecute(Datapath, Packet)
  * @see OvsDatapathConnection#datapathsSetNotificationHandler(Datapath, Callback)
  */
-public class Packet {
+public class Packet implements AttributeHandler {
 
     public enum Reason {
         FlowTableMiss,
@@ -33,25 +36,24 @@ public class Packet {
     private Long userData;
     private Reason reason;
     private Ethernet eth;
-    private AtomicBoolean simToken = new AtomicBoolean(false);
-    private long startTimeNanos = 0;
 
-    public long getStartTimeNanos() {
-        return startTimeNanos;
+    // user field used by midolman packet pipeline to track time statistics,
+    // ignored in equals() and hashCode()
+    public long startTimeNanos = 0;
+
+    private Packet() { } // for deserialisation only
+
+    public Packet(Ethernet eth) {
+        this.eth = eth;
     }
 
-    public Packet setStartTimeNanos(long time) {
-        this.startTimeNanos = time;
-        return this;
+    public Packet(Ethernet eth, FlowMatch match) {
+        this.eth = eth;
+        this.match = match;
     }
 
-    public Ethernet getPacket() {
+    public Ethernet getEthernet() {
         return eth;
-    }
-
-    public Packet setPacket(Ethernet pkt) {
-        this.eth = pkt;
-        return this;
     }
 
     public byte[] getData() {
@@ -60,12 +62,6 @@ public class Packet {
 
     public FlowMatch getMatch() {
         return match;
-    }
-
-    public Packet setMatch(FlowMatch match) {
-        assert match != null;
-        this.match = match;
-        return this;
     }
 
     public Packet addKey(FlowKey key) {
@@ -77,11 +73,6 @@ public class Packet {
         return userData;
     }
 
-    public Packet setUserData(Long userData) {
-        this.userData = userData;
-        return this;
-    }
-
     public Reason getReason() {
         return reason;
     }
@@ -91,30 +82,34 @@ public class Packet {
         return this;
     }
 
+    public void processUserspaceKeys() {
+        FlowMatches.addUserspaceKeys(eth, match);
+    }
+
+    public void generateFlowKeysFromPayload() {
+        match = FlowMatches.fromEthernetPacket(eth);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Packet packet = (Packet) o;
+        @SuppressWarnings("unchecked")
+        Packet that = (Packet) o;
 
-        if (eth != null ? !eth.equals(packet.eth) : packet.eth != null)
-            return false;
-        if (match != null ? !match.equals(packet.match) : packet.match != null)
-            return false;
-        if (reason != packet.reason) return false;
-        if (userData != null ? !userData.equals(
-            packet.userData) : packet.userData != null) return false;
-
-        return true;
+        return Objects.equals(this.eth, that.eth)
+            && Objects.equals(this.match, that.match)
+            && Objects.equals(this.userData, that.userData)
+            && (this.reason == that.reason);
     }
 
     @Override
     public int hashCode() {
-        int result = eth != null ? eth.hashCode() : 0;
-        result = 31 * result + (match != null ? match.hashCode() : 0);
-        result = 31 * result + (userData != null ? userData.hashCode() : 0);
-        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        int result = Objects.hashCode(eth);
+        result = 31 * result + Objects.hashCode(match);
+        result = 31 * result + Objects.hashCode(userData);
+        result = 31 * result + Objects.hashCode(reason);
         return result;
     }
 
@@ -130,23 +125,40 @@ public class Packet {
     }
 
     public static Packet fromEthernet(Ethernet eth) {
-        return new Packet().setPacket(eth);
+        return new Packet(eth);
     }
 
     public static Packet buildFrom(ByteBuffer buf) {
-        Packet packet = new Packet();
-
         int datapathIndex = buf.getInt(); // ignored
-
-        packet.eth = NetlinkMessage.getAttrValueEthernet(buf, Attr.Packet);
-
+        Packet packet = new Packet();
+        NetlinkMessage.scanAttributes(buf, packet);
         if (packet.eth == null)
             return null;
-
-        packet.match = NetlinkMessage.readAttr(buf, Attr.Key, FlowMatch.reader);
-        packet.userData = NetlinkMessage.getAttrValueLong(buf, Attr.Userdata);
-
         return packet;
+    }
+
+    public void use(ByteBuffer buf, short id) {
+        switch(NetlinkMessage.unnest(id)) {
+
+            case Attr.Packet:
+                try {
+                    ByteOrder originalOrder = buf.order();
+                    this.eth = new Ethernet();
+                    this.eth.deserialize(buf);
+                    buf.order(originalOrder);
+                } catch (Exception e) {
+                    this.eth = null;
+                }
+                break;
+
+            case Attr.Key:
+                this.match = FlowMatch.reader.deserializeFrom(buf);
+                break;
+
+            case Attr.Userdata:
+                this.userData = buf.getLong();
+                break;
+        }
     }
 
     /** Prepares an ovs request for executing and a packet with the given list

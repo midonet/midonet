@@ -966,9 +966,12 @@ public class WildcardMatch implements Cloneable {
     }
 
     public static WildcardMatch fromFlowMatch(FlowMatch match) {
+        return fromFlowKeys(match.getKeys());
+    }
+
+    public static WildcardMatch fromFlowKeys(List<FlowKey> keys) {
         WildcardMatch wildcardMatch = new WildcardMatch();
-        List<FlowKey> flowKeys = match.getKeys();
-        wildcardMatch.processMatchKeys(flowKeys);
+        wildcardMatch.processMatchKeys(keys);
 
         if(wildcardMatch.getEtherType() == null){
             // Match the empty ether type (802.2)

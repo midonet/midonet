@@ -148,7 +148,7 @@ class PingTestCase extends MidolmanTestCase
         act.getClass() should be (classOf[FlowActionOutput])
         act.asInstanceOf[FlowActionOutput].getPortNumber should be (portNum)
 
-        pktOut.packet.getPacket
+        pktOut.packet.getEthernet
     }
 
     private def injectDhcpDiscover(portName: String, srcMac : MAC) {
@@ -401,7 +401,7 @@ class PingTestCase extends MidolmanTestCase
         // Verify what all were sent, note that the ARPs do not get emitted
         mockDpConn().packetsSent should have size howMany
         val seqs = mockDpConn().packetsSent.map ( p => {
-            icmp_quench(p.getPacket) match {
+            icmp_quench(p.getEthernet) match {
                 case (`icmpId`, seq: Short) => seq
                 case _ => -1
             }

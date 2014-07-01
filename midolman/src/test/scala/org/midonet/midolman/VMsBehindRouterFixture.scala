@@ -119,7 +119,7 @@ trait VMsBehindRouterFixture extends SimulationHelper with
     def expectPacketOut(port: Int, numPorts: Seq[Int] = List(1)): Ethernet = {
         val pktOut = getPacketOut
         log.debug("Packet execute: {}", pktOut)
-        pktOut.packet.getPacket
+        pktOut.packet.getEthernet
     }
 
     def expectPacketOutRouterToVm(port: Int): Ethernet =
