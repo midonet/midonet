@@ -31,6 +31,7 @@ public class FlowKeyARP implements CachedFlowKey {
         arp_op = opcode;
         arp_sip = sourceIp;
         arp_tip = targetIp;
+        computeHashCode();
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -49,7 +50,7 @@ public class FlowKeyARP implements CachedFlowKey {
         arp_op = BytesUtil.instance.reverseBE(buf.getShort());
         buf.get(arp_sha);
         buf.get(arp_tha);
-        this.hashCode = 0;
+        computeHashCode();
     }
 
     public short attrId() {
@@ -93,15 +94,15 @@ public class FlowKeyARP implements CachedFlowKey {
 
     @Override
     public int hashCode() {
-        if (hashCode == 0) {
-            int result = arp_sip;
-            result = 31 * result + arp_tip;
-            result = 31 * result + (int) arp_op;
-            result = 31 * result + (arp_sha != null ? Arrays.hashCode(arp_sha) : 0);
-            result = 31 * result + (arp_tha != null ? Arrays.hashCode(arp_tha) : 0);
-            hashCode = result;
-        }
         return hashCode;
+    }
+
+    private void computeHashCode() {
+        hashCode = arp_sip;
+        hashCode = 31 * hashCode + arp_tip;
+        hashCode = 31 * hashCode + arp_op;
+        hashCode = 31 * hashCode + Arrays.hashCode(arp_sha);
+        hashCode = 31 * hashCode + Arrays.hashCode(arp_tha);
     }
 
     @Override
@@ -110,10 +111,8 @@ public class FlowKeyARP implements CachedFlowKey {
             "arp_sip=" + IPv4Addr.intToString(arp_sip) +
             ", arp_tip=" + IPv4Addr.intToString(arp_tip) +
             ", arp_op=" + arp_op +
-            ", arp_sha=" +
-                (arp_sha == null ? "null" : MAC.bytesToString(arp_sha)) +
-            ", arp_tha=" +
-                (arp_tha == null ? "null" : MAC.bytesToString(arp_tha)) +
+            ", arp_sha=" + MAC.bytesToString(arp_sha) +
+            ", arp_tha=" + MAC.bytesToString(arp_tha) +
             '}';
     }
 }
