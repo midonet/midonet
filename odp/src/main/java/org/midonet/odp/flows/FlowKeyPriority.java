@@ -23,13 +23,8 @@ public class FlowKeyPriority implements FlowKey {
         return 4;
     }
 
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            priority = buf.getInt();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        priority = buf.getInt();
     }
 
     public short attrId() {

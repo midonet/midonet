@@ -111,7 +111,7 @@ public class FlowMatches {
         return match;
     }
 
-    private static FlowKey.UserSpaceOnly makeIcmpFlowKey(ICMP icmp) {
+    private static FlowKey makeIcmpFlowKey(ICMP icmp) {
         switch (icmp.getType()) {
             case ICMP.TYPE_ECHO_REPLY:
             case ICMP.TYPE_ECHO_REQUEST:
@@ -136,7 +136,7 @@ public class FlowMatches {
         for (int i = 0; i < keys.size(); ++i) {
             if (keys.get(i) instanceof FlowKeyICMP) {
                 ICMP icmpPkt = (ICMP) ethPkt.getPayload().getPayload();
-                FlowKey.UserSpaceOnly icmpUserSpace = makeIcmpFlowKey(icmpPkt);
+                FlowKey icmpUserSpace = makeIcmpFlowKey(icmpPkt);
                 if (icmpUserSpace != null) {
                     match.replaceKey(i, icmpUserSpace);
                     match.setUserSpaceOnly(true);

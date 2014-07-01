@@ -55,14 +55,8 @@ public class FlowKeyEtherType implements CachedFlowKey {
         return 2;
     }
 
-    @Override
-    public boolean deserialize(ByteBuffer buf) {
-        try {
-            etherType = BytesUtil.instance.reverseBE(buf.getShort());
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void deserializeFrom(ByteBuffer buf) {
+        etherType = BytesUtil.instance.reverseBE(buf.getShort());
     }
 
     public short attrId() {

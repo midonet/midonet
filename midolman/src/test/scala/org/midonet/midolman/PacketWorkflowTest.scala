@@ -300,7 +300,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()
-        flm setKeys new java.util.ArrayList[FlowKey]()
         flm setUserSpaceOnly userspace
         flm
     }
