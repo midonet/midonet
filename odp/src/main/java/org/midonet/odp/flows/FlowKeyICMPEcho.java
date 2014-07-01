@@ -26,18 +26,15 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyICMPEcho that = (FlowKeyICMPEcho) o;
-        if (!super.equals(that)) return false;
-        if (icmp_id != that.icmp_id) return false;
 
-        return true;
+        return super.equals(that) && (this.icmp_id == that.icmp_id);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 33 * result + icmp_id;
-        return result;
+        return 33 * super.hashCode() + icmp_id;
     }
 
     @Override

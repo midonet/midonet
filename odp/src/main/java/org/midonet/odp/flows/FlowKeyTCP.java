@@ -11,6 +11,7 @@ import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
 public class FlowKeyTCP implements FlowKey {
+
     /*__be16*/ private int tcp_src;
     /*__be16*/ private int tcp_dst;
 
@@ -60,9 +61,7 @@ public class FlowKeyTCP implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = tcp_src;
-        result = 31 * result + tcp_dst;
-        return result;
+        return 31 * tcp_src + tcp_dst;
     }
 
     @Override

@@ -6,6 +6,7 @@ package org.midonet.odp.flows;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
@@ -59,15 +60,12 @@ public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
 
         FlowKeyEncap that = (FlowKeyEncap) o;
 
-        if (keys != null ? !keys.equals(that.keys) : that.keys != null)
-            return false;
-
-        return true;
+        return Objects.equals(this.keys, that.keys);
     }
 
     @Override
     public int hashCode() {
-        return keys != null ? keys.hashCode() : 0;
+        return Objects.hashCode(keys);
     }
 
     @Override

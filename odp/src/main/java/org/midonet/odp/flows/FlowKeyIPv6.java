@@ -21,6 +21,8 @@ public class FlowKeyIPv6 implements FlowKey {
     /*__u8*/ private byte ipv6_hlimit;
     /*__u8*/ private byte ipv6_frag;    /* One of OVS_FRAG_TYPE_*. */
 
+    private int hashCode = 0;
+
     // This is used for deserialization purposes only.
     FlowKeyIPv6() { }
 
@@ -31,6 +33,7 @@ public class FlowKeyIPv6 implements FlowKey {
         ipv6_proto = protocol;
         ipv6_hlimit = hlimit;
         ipv6_frag = fragmentType;
+        computeHashCode();
     }
 
     public FlowKeyIPv6(int[] source, int[] destination, byte protocol,
@@ -70,6 +73,7 @@ public class FlowKeyIPv6 implements FlowKey {
         ipv6_tclass = buf.get();
         ipv6_hlimit = buf.get();
         ipv6_frag = buf.get();
+        computeHashCode();
     }
 
     public short attrId() {
@@ -122,15 +126,17 @@ public class FlowKeyIPv6 implements FlowKey {
 
     @Override
     public int hashCode() {
-        int result = ipv6_src != null ? Arrays.hashCode(ipv6_src) : 0;
-        result = 31 * result + (ipv6_dst != null ? Arrays.hashCode(
-            ipv6_dst) : 0);
-        result = 31 * result + ipv6_label;
-        result = 31 * result + (int) ipv6_proto;
-        result = 31 * result + (int) ipv6_tclass;
-        result = 31 * result + (int) ipv6_hlimit;
-        result = 31 * result + (int) ipv6_frag;
-        return result;
+        return hashCode;
+    }
+
+    public void computeHashCode() {
+        hashCode =  Arrays.hashCode(ipv6_src);
+        hashCode = 31 * hashCode + Arrays.hashCode(ipv6_dst);
+        hashCode = 31 * hashCode + ipv6_label;
+        hashCode = 31 * hashCode + (int) ipv6_proto;
+        hashCode = 31 * hashCode + (int) ipv6_tclass;
+        hashCode = 31 * hashCode + (int) ipv6_hlimit;
+        hashCode = 31 * hashCode + (int) ipv6_frag;
     }
 
     @Override

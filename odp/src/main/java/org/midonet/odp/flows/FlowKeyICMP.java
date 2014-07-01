@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyICMP implements FlowKey {
+
     /*__u8*/ protected byte icmp_type;
     /*__u8*/ protected byte icmp_code;
 
@@ -39,19 +40,15 @@ public class FlowKeyICMP implements FlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
+        @SuppressWarnings("unchecked")
         FlowKeyICMP that = (FlowKeyICMP) o;
 
-        if (icmp_code != that.icmp_code) return false;
-        if (icmp_type != that.icmp_type) return false;
-
-        return true;
+        return (icmp_code == that.icmp_code) && (icmp_type == that.icmp_type);
     }
 
     @Override
     public int hashCode() {
-        int result = icmp_type;
-        result = 31 * result + icmp_code;
-        return result;
+        return 31 * icmp_type + icmp_code;
     }
 
     @Override

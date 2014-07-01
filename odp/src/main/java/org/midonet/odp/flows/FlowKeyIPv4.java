@@ -10,6 +10,7 @@ import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
 public class FlowKeyIPv4 implements FlowKey {
+
     /*__be32*/ private int ipv4_src;
     /*__be32*/ private int ipv4_dst;
     /*__u8*/ private byte ipv4_proto;
@@ -30,6 +31,7 @@ public class FlowKeyIPv4 implements FlowKey {
         this.ipv4_tos = typeOfService;
         this.ipv4_ttl = ttl;
         this.ipv4_frag = fragmentType;
+        computeHashCode();
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -49,7 +51,7 @@ public class FlowKeyIPv4 implements FlowKey {
         ipv4_tos = buf.get();
         ipv4_ttl = buf.get();
         ipv4_frag = buf.get();
-        hashCode = 0;
+        computeHashCode();
     }
 
     public short attrId() {
@@ -74,16 +76,16 @@ public class FlowKeyIPv4 implements FlowKey {
 
     @Override
     public int hashCode() {
-        if (hashCode == 0) {
-            int result = ipv4_src;
-            result = 31 * result + ipv4_dst;
-            result = 31 * result + (int) ipv4_proto;
-            result = 31 * result + (int) ipv4_tos;
-            result = 31 * result + (int) ipv4_ttl;
-            result = 31 * result + (int) ipv4_frag;
-            hashCode = result;
-        }
         return hashCode;
+    }
+
+    private void computeHashCode() {
+        hashCode = ipv4_src;
+        hashCode = 31 * hashCode + ipv4_dst;
+        hashCode = 31 * hashCode + (int) ipv4_proto;
+        hashCode = 31 * hashCode + (int) ipv4_tos;
+        hashCode = 31 * hashCode + (int) ipv4_ttl;
+        hashCode = 31 * hashCode + (int) ipv4_frag;
     }
 
     @Override

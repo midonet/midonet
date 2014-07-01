@@ -15,7 +15,8 @@ import org.midonet.packets.Net;
 * Neighbour Discovery key
 */
 public class FlowKeyND implements CachedFlowKey {
-    /*__u32*/ private int[] nd_target; // always 4 int long
+
+    /*__u32*/ private int[] nd_target = new int[4]; // always 4 int long
     /*__u8*/ private byte[] nd_sll = new byte[6];   // always 6 bytes long
     /*__u8*/ private byte[] nd_tll = new byte[6];   // always 6 bytes long
 
@@ -34,7 +35,6 @@ public class FlowKeyND implements CachedFlowKey {
     }
 
     public void deserializeFrom(ByteBuffer buf) {
-        nd_target = new int[4];
         BytesUtil.instance.readBEIntsFrom(buf, nd_target);
         buf.get(nd_sll);
         buf.get(nd_tll);
@@ -60,13 +60,12 @@ public class FlowKeyND implements CachedFlowKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        FlowKeyND flowKeyND = (FlowKeyND) o;
+        @SuppressWarnings("unchecked")
+        FlowKeyND that = (FlowKeyND) o;
 
-        if (!Arrays.equals(nd_sll, flowKeyND.nd_sll)) return false;
-        if (!Arrays.equals(nd_target, flowKeyND.nd_target)) return false;
-        if (!Arrays.equals(nd_tll, flowKeyND.nd_tll)) return false;
-
-        return true;
+        return Arrays.equals(this.nd_sll, that.nd_sll)
+            && Arrays.equals(this.nd_target, that.nd_target)
+            && Arrays.equals(this.nd_tll, that.nd_tll);
     }
 
     @Override
@@ -79,13 +78,10 @@ public class FlowKeyND implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyND{nd_target=" +
-                (nd_target == null ?
-                    "null" : Net.convertIPv6BytesToString(nd_target)) +
-                ", nd_sll=" +
-                    (nd_sll == null ? "null" : MAC.bytesToString(nd_sll)) +
-                ", nd_tll=" +
-                    (nd_tll == null ? "null" : MAC.bytesToString(nd_tll)) +
+        return "FlowKeyND{" +
+                "nd_target=" + Net.convertIPv6BytesToString(nd_target) +
+                ", nd_sll=" + MAC.bytesToString(nd_sll) +
+                ", nd_tll=" + MAC.bytesToString(nd_tll) +
                 '}';
     }
 }
