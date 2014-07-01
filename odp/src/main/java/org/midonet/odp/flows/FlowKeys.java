@@ -4,7 +4,9 @@
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.odp.OpenVSwitch;
@@ -138,4 +140,29 @@ public class FlowKeys {
                                            OpenVSwitch.Flow.Attr.Key,
                                            FlowKey.Builder);
     }
+
+    public static List<FlowKey> randomKeys() {
+        List<FlowKey> keys = new ArrayList<>();
+        while (rand.nextInt(100) >= 30 && keys.size() <= 10) {
+            keys.add(randomKey());
+        }
+        return keys;
+    }
+
+    public static FlowKey randomKey() {
+        FlowKey k = null;
+        while (k == null) {
+            k = FlowKey.Builder.newInstance((short)(1 + rand.nextInt(17)));
+        }
+        if (k instanceof Randomize) {
+            ((Randomize)k).randomize();
+        } else {
+            byte[] bytes = new byte[1024];
+            rand.nextBytes(bytes);
+            k.deserialize(ByteBuffer.wrap(bytes));
+        }
+        return k;
+    }
+
+    public static Random rand = new Random();
 }
