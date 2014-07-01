@@ -59,7 +59,7 @@ class OvsConnectionOps(val ovsCon: OvsDatapathConnection) {
         toFuture[Flow] { ovsCon flowsGet(dp, flowMatch, _) }
 
     def delFlow(flow: Flow, dp: Datapath) =
-        toFuture[Flow] { ovsCon flowsDelete(dp, flow, _) }
+        toFuture[Flow] { ovsCon flowsDelete(dp, flow.getMatch.getKeys, _) }
 
     def execPacket(packet: Packet, actions: JList[FlowAction], dp: Datapath) =
         toFuture[java.lang.Boolean] {

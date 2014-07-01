@@ -12,7 +12,7 @@ public interface FlowManagerHelper {
 
     public void getFlow(FlowMatch flowMatch, Callback1<Flow> getFlowCb);
 
-    public void removeFlow(Flow flow);
+    public void removeFlow(FlowMatch flowMatch);
 
     public void removeWildcardFlow(ManagedWildcardFlow flow);
 }

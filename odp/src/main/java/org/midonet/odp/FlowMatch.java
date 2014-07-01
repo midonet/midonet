@@ -28,7 +28,7 @@ public class FlowMatch implements AttributeHandler {
 
     public FlowMatch() { }
 
-    public FlowMatch(@Nonnull List<FlowKey> keys) {
+    public FlowMatch(@Nonnull Iterable<FlowKey> keys) {
         this.addKeys(keys);
     }
 
@@ -44,7 +44,7 @@ public class FlowMatch implements AttributeHandler {
         return keys;
     }
 
-    public FlowMatch addKeys(@Nonnull List<FlowKey> keys) {
+    public FlowMatch addKeys(@Nonnull Iterable<FlowKey> keys) {
         for (FlowKey key : keys) {
             addKey(key);
         }

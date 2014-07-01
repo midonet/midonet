@@ -278,7 +278,7 @@ public class FlowManager {
              * as no ConcurrentModificationException will be thrown.
              */
             for (FlowMatch flowMatch : removedDpFlows) {
-                flowManagerHelper.removeFlow(new Flow(flowMatch));
+                flowManagerHelper.removeFlow(flowMatch);
                 dpFlows += 1;
             }
         }
@@ -442,7 +442,7 @@ public class FlowManager {
             FlowMatch match = it.next();
             // this call will eventually lead to the removal of this flow
             // from dpFlowTable
-            flowManagerHelper.removeFlow(new Flow(match));
+            flowManagerHelper.removeFlow(match);
             nFlowsRemoved++;
         }
     }
@@ -471,8 +471,8 @@ public class FlowManager {
         }
     }
 
-    public void removeFlowCompleted(Flow flow) {
-        forgetFlow(flow.getMatch());
+    public void removeFlowCompleted(FlowMatch flowMatch) {
+        forgetFlow(flowMatch);
     }
 
     private abstract class WildcardFlowComparator implements Comparator<ManagedWildcardFlow> {

@@ -442,15 +442,15 @@ public class FlowManagerTest {
 
         private void doRemoveFlow(Flow flow) {
             flowsMap.remove(flow.getMatch());
-            flowManager.removeFlowCompleted(flow);
+            flowManager.removeFlowCompleted(flow.getMatch());
         }
 
         @Override
-        public void removeFlow(Flow flow) {
+        public void removeFlow(FlowMatch flowMatch) {
             if (toRemove != null)
-                toRemove.add(flow);
+                toRemove.add(new Flow(flowMatch));
             else
-                doRemoveFlow(flow);
+                doRemoveFlow(new Flow(flowMatch));
         }
 
         @Override

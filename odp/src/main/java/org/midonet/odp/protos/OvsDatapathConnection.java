@@ -10,8 +10,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.SettableFuture;
-import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.util.BatchCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,13 +20,15 @@ import org.midonet.netlink.MockNetlinkChannel;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkProtocol;
-import org.midonet.netlink.NetlinkSelectorProvider;
+import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
 import org.midonet.odp.flows.FlowAction;
+import org.midonet.odp.flows.FlowKey;
+import org.midonet.util.BatchCollector;
 
 
 /**
@@ -558,9 +558,9 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * @param callback a callback which will receive the installed flow
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
-                            @Nonnull final Flow flow,
+                            @Nonnull final Iterable<FlowKey> keys,
                             @Nonnull final Callback<Flow> callback) {
-        flowsDelete(datapath, flow, callback, DEF_REPLY_TIMEOUT);
+        flowsDelete(datapath, keys, callback, DEF_REPLY_TIMEOUT);
     }
 
     /**
@@ -572,14 +572,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * @param timeoutMillis the amount of time we should wait for the response
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
-                            @Nonnull final Flow flow,
+                            @Nonnull final Iterable<FlowKey> keys,
                             @Nonnull final Callback<Flow> callback,
                             long timeoutMillis) {
-        _doFlowsDelete(datapath, flow, callback, timeoutMillis);
+        _doFlowsDelete(datapath, keys, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsDelete(@Nonnull final Datapath datapath,
-                                           @Nonnull final Flow flow,
+                                           @Nonnull final Iterable<FlowKey> keys,
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
 
@@ -882,9 +882,9 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
         }
 
         public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
-                                        @Nonnull final Flow flow) {
+                                        @Nonnull final Iterable<FlowKey> keys) {
             SettableFuture<Flow> flowFuture = SettableFuture.create();
-            OvsDatapathConnection.this.flowsDelete(datapath, flow, wrapFuture(flowFuture));
+            OvsDatapathConnection.this.flowsDelete(datapath, keys, wrapFuture(flowFuture));
             return flowFuture;
         }
 
