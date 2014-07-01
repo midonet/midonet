@@ -15,7 +15,7 @@ package org.midonet.odp;
  */
 public interface OpenVSwitch {
 
-    String headerVersion    = "1.11";
+    String headerVersion    = "2.0.1";
 
     public interface Datapath {
 
@@ -242,11 +242,11 @@ public interface OpenVSwitch {
 
         //enum ovs_key_attr {
         //	OVS_KEY_ATTR_UNSPEC,
-        //	OVS_KEY_ATTR_ENCAP,	/* Nested set of encapsulated attributes. */
+        //	OVS_KEY_ATTR_ENCAP,     /* Nested set of encapsulated attributes. */
         //	OVS_KEY_ATTR_PRIORITY,  /* u32 skb->priority */
         //	OVS_KEY_ATTR_IN_PORT,   /* u32 OVS dp port number */
         //	OVS_KEY_ATTR_ETHERNET,  /* struct ovs_key_ethernet */
-        //	OVS_KEY_ATTR_VLAN,	/* be16 VLAN TCI */
+        //	OVS_KEY_ATTR_VLAN,      /* be16 VLAN TCI */
         //	OVS_KEY_ATTR_ETHERTYPE,	/* be16 Ethernet type */
         //	OVS_KEY_ATTR_IPV4,      /* struct ovs_key_ipv4 */
         //	OVS_KEY_ATTR_IPV6,      /* struct ovs_key_ipv6 */
@@ -257,7 +257,8 @@ public interface OpenVSwitch {
         //	OVS_KEY_ATTR_ARP,       /* struct ovs_key_arp */
         //	OVS_KEY_ATTR_ND,        /* struct ovs_key_nd */
         //	OVS_KEY_ATTR_SKB_MARK,  /* u32 skb mark */
-        //	OVS_KEY_ATTR_TUNNEL,	/* Nested set of ovs_tunnel attributes */
+        //	OVS_KEY_ATTR_TUNNEL,    /* Nested set of ovs_tunnel attributes */
+        //	OVS_KEY_ATTR_SCTP,      /* struct ovs_key_sctp */
 
         //#ifdef __KERNEL__
         //	OVS_KEY_ATTR_IPV4_TUNNEL,  /* struct ovs_key_ipv4_tunnel */
@@ -284,7 +285,8 @@ public interface OpenVSwitch {
             short SkbMark   = (short) 15;
             short Tunnel    = (short) 16;
             short Tunnel_N  = (short) ((1<<15) | Tunnel);
-            short IPv4Tunnel= (short) 17;
+            short SCTP      = (short) 17;
+            short IPv4Tunnel= (short) 18;
             short MPLS      = (short) 62;
         }
 
@@ -380,6 +382,11 @@ public interface OpenVSwitch {
         //    __u32 nd_target[4];
         //    __u8  nd_sll[ETH_ALEN];
         //    __u8  nd_tll[ETH_ALEN];
+        //};
+
+        //struct ovs_key_sctp {
+        //    __be16 sctp_src;
+        //    __be16 sctp_dst;
         //};
     }
 
