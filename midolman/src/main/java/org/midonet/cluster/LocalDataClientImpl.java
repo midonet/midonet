@@ -3489,6 +3489,12 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
+    throws SerializationException, StateAccessException {
+        return this.vtepZkManager.tryOwnVtep(mgmtIp, nodeId);
+    }
+
+    @Override
     public boolean portWatch(UUID portId, Directory.TypedWatcher typedWatcher)
         throws StateAccessException, SerializationException {
         return null != portZkManager.get(portId, typedWatcher);
