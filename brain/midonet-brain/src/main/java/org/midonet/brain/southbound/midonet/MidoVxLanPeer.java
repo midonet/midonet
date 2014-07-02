@@ -3,14 +3,12 @@
  */
 package org.midonet.brain.southbound.midonet;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.KeeperException;
@@ -34,6 +32,8 @@ import org.midonet.midolman.state.ReplicatedMap;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+
+import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 /**
  * This class allows both watching for changes in mac-port of a set of bridges
@@ -222,8 +222,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     public synchronized boolean watch(UUID bridgeId) {
         if (!started) {
-            log.error("Adding bridge {} to a stopped MidoVxLanPeer",
-                      bridgeId);
+            log.error("Adding bridge {} to a stopped MidoVxLanPeer", bridgeId);
             throw new IllegalStateException(String.format(
                 "Adding bridge %s to a stopped MidoVxLanPeer", bridgeId));
         }
@@ -337,39 +336,25 @@ public class MidoVxLanPeer implements VxLanPeer {
     private ReplicatedMap.Watcher<MAC, UUID> makeWatcher(
             final UUID bridgeId, final UUID vxLanPortId) {
         return new ReplicatedMap.Watcher<MAC, UUID>() {
-            /* Converts the change into a MacLocation, and publish */
+            /* If the change is from the bridge we care about, it converts the
+             * change into a MacLocation, and publish. Otherwise, ignored */
             public void processChange(MAC mac, UUID oldPort, UUID newPort) {
                 log.debug("Change on bridge {}: MAC {} moves from {} to {}",
                           new Object[]{bridgeId, mac, oldPort, newPort});
-                /*
-                 * If the new port (on update) or old port (on removal) is our
-                 * own vxLanPort, then this means that the MAC belongs to the
-                 * VTEP, and this update was generated when we applied the
-                 * VTEP's updates to our own MAC table. We don't need to send
-                 * the VTEP information about its own MAC table.
-                 */
                 UUID port = newPort == null? oldPort: newPort;
-                if (!vxLanPortId.equals(port)) {
-                    /* change does not come from this bridge */
-                    try {
+                if (vxLanPortId.equals(port)) { // Change not from this bridge
+                    return;
+                }
+                String lsName = bridgeIdToLogicalSwitchName(bridgeId);
+                try {
                     IPv4Addr vxTunnelIp = (newPort == null) ? null
-                        : dataClient.vxlanTunnelEndpointFor(newPort);
-                        allUpdates.onNext(
-                            new MacLocation(
-                                mac,
-                                VtepConstants.bridgeIdToLogicalSwitchName(
-                                    bridgeId),
-                                vxTunnelIp
-                            )
-                        );
-                    } catch (SerializationException | StateAccessException e) {
-                        log.error("Failed to get vxlan tunnel endpoint for " +
-                                  "bridge port {}", new Object[]{newPort, e});
-                    }
-                } else {
-                    log.debug("Ignoring self-change on bridge {}: MAC {} " +
-                              "moves from {} to {}",
-                              new Object[]{bridgeId, mac, oldPort, newPort});
+                                : dataClient.vxlanTunnelEndpointFor(newPort);
+                    allUpdates.onNext(
+                        new MacLocation(mac, lsName, vxTunnelIp)
+                    );
+                } catch (SerializationException | StateAccessException e) {
+                    log.error("Failed to get vxlan tunnel endpoint for " +
+                              "bridge port {}", new Object[]{newPort, e});
                 }
             }
         };
