@@ -463,11 +463,15 @@ public class IPv4 extends BasePacket {
         // cut off the packet.  In the future, we will fix this perhaps
         // by adding a catch-all flow rule that sends the right length
         // of each type of packet to the controller.
+        int start= bb.position();
+        int end = bb.limit();
         try {
-            payload.deserialize(bb.slice());
+            payload.deserialize(bb);
         } catch (Exception e) {
-            payload = (new Data()).deserialize(bb.slice());
+            payload = (new Data()).deserialize(bb);
         }
+        bb.position(start);
+        bb.limit(end);
         payload.setParent(this);
         return this;
     }

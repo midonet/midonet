@@ -264,16 +264,20 @@ public class Ethernet extends BasePacket {
         }
         this.etherType = etherType;
 
+        int start= bb.position();
+        int end = bb.limit();
         if (Ethernet.etherTypeClassMap.containsKey(this.etherType)) {
             Class<? extends IPacket> clazz = Ethernet.etherTypeClassMap.get(this.etherType);
             try {
-                this.payload = clazz.newInstance().deserialize(bb.slice());
+                this.payload = clazz.newInstance().deserialize(bb);
             } catch (Exception e) {
-                this.payload = (new Data()).deserialize(bb.slice());
+                this.payload = (new Data()).deserialize(bb);
             }
         } else {
-            this.payload = (new Data()).deserialize(bb.slice());
+            this.payload = (new Data()).deserialize(bb);
         }
+        bb.position(start);
+        bb.limit(end);
         this.payload.setParent(this);
         return this;
     }
