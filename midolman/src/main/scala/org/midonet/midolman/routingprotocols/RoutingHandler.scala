@@ -37,9 +37,9 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
 object RoutingHandler {
 
     /** A conventional value for Ip prefix of BGP pairs.
-     *  173 is the MS byte value and 23 the second byte value.
+     *  172 is the MS byte value and 23 the second byte value.
      *  Last 2 LS bytes are available for assigning BGP pairs. */
-    val BGP_IP_INT_PREFIX = 173 * (1<<24) + 23 * (1<<16)
+    val BGP_IP_INT_PREFIX = 172 * (1<<24) + 23 * (1<<16)
 
     // BgpdProcess will notify via these messages
     case object BGPD_READY
