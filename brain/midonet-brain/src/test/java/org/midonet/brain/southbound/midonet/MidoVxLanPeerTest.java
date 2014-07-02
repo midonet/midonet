@@ -8,10 +8,11 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-import org.midonet.midolman.state.MacPortMap;
+
 import rx.Observable;
 
 import org.midonet.brain.BrainTestUtils;
@@ -220,23 +221,26 @@ public class MidoVxLanPeerTest {
     }
 
     @Test
-    public void testMidoBridgesProxyNotifiedOnMacPortUpdate() throws Exception {
+    public void testNotifiedOnMacPortUpdate() throws Exception {
 
         UUID bridgeId = makeBridge("bridge");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
 
-        assertTrue(midoVxLanPeer.watch(bridgeId));
         RxTestUtils.TestedObservable<MacLocation> testedObs =
             RxTestUtils.test(midoVxLanPeer.observableUpdates());
         testedObs.expect(
-                    new MacLocation(mac1, lsName, tunnelZoneHostIP),
-                    new MacLocation(mac1, lsName, null),
-                    new MacLocation(mac3, lsName, tunnelZoneHostIP))
+                    new MacLocation(mac1, lsName, tunnelZoneHostIP), // preseed
+                    new MacLocation(mac1, lsName, null),             // deletion
+                    new MacLocation(mac3, lsName, tunnelZoneHostIP)) // read
                  .noErrors()
                  .notCompleted()
                  .subscribe();
 
+        // add a port with a mac-port assoc, should be preseeded
         final UUID bridgePortId = addPort(bridgeId, mac1);
+
+        // start watching the bridge
+        assertTrue(midoVxLanPeer.watch(bridgeId));
 
         // The old Mac-port mapping is deleted and a new one is added.
         dataClient.bridgeDeleteMacPort(bridgeId, Bridge.UNTAGGED_VLAN_ID,

@@ -145,7 +145,7 @@ public class RxTestUtils {
     public static class ActionRefuser<T> extends ActionAccumulator<T> {
         @Override
         public void call(T update) {
-            call();
+            fail("Didn't expect any callbacks but got " + update);
         }
         @Override
         public void call() {
