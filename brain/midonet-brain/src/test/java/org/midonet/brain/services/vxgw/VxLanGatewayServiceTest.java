@@ -45,6 +45,9 @@ public class VxLanGatewayServiceTest {
     private static final int vtepMgmntPort = 6632;
     private static final int vni = 42;
 
+    private static final IPv4Addr vtepMgmtIpAlt = IPv4Addr.apply("192.169.0.21");
+    private static final int vtepMgmntPortAlt = 6633;
+    private static final int bridgePortVNIAlt = 44;
     /*
      * Host parameters
      */
@@ -58,6 +61,12 @@ public class VxLanGatewayServiceTest {
     private VtepDataClient vtepClient;
     @Mocked
     private VtepDataClientProvider vtepDataClientProvider;
+
+    private VTEP vtep = null;
+
+    private UUID tzId = null;
+    private UUID hostId = null;
+    private Host host = null;
 
     /*
      * Midonet data client
@@ -104,7 +113,7 @@ public class VxLanGatewayServiceTest {
 
         TunnelZone tz = new TunnelZone();
         tz.setName("TestTz");
-        UUID tzId = dataClient.tunnelZonesCreate(tz);
+        tzId = dataClient.tunnelZonesCreate(tz);
         TunnelZone.HostConfig zoneHost = new TunnelZone.HostConfig(hostId);
         zoneHost.setIp(tunnelZoneHostIp.toIntIPv4());
         dataClient.tunnelZonesAddMembership(tzId, zoneHost);
@@ -145,7 +154,61 @@ public class VxLanGatewayServiceTest {
     }
 
     /**
-     * Test the addition of a bridge.
+     * Check the suscription life cycle inside the gateway service.
+     */
+    @Test
+    public void testDoubleService(@Mocked final VxLanGwBroker vxGwBroker,
+                                  @Mocked final VtepBroker vtepBroker,
+                                  @Mocked final MidoVxLanPeer midoPeer)
+        throws Exception {
+
+        // vtep related operations must be done just once
+        new Expectations() {{
+            // Per vtep
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
+            vxGwBroker.start(); times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
+            new VxLanGwBroker(vBAlt, mPAlt); result = vxGwBroker; times = 1;
+            vxGwBroker.start(); times = 1;
+            vtepClient.connect(vtepMgmtIpAlt, vtepMgmntPortAlt); times = 1;
+
+            // Shutdown (one round per vtep)
+            vxGwBroker.shutdown(); times = 1;
+            vtepClient.disconnect(); times = 1;
+            vxGwBroker.shutdown(); times = 1;
+            vtepClient.disconnect(); times = 1;
+        }};
+
+        VxLanGatewayService gwsrv1 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        VxLanGatewayService gwsrv2 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        // the first service should get the initial vtep
+        gwsrv1.startAndWait();
+
+        // this should be caught by the second service
+        VTEP vtepAlt = new VTEP();
+        vtepAlt.setId(vtepMgmtIpAlt);
+        vtepAlt.setMgmtPort(vtepMgmntPortAlt);
+        vtepAlt.setTunnelZone(tzId);
+        dataClient.vtepCreate(vtepAlt);
+
+        gwsrv2.startAndWait();
+        gwsrv1.stopAndWait();
+        gwsrv2.stopAndWait();
+    }
+
+    /**
+     * Test the addition of a bridge
      */
     @Test
     public void testBridgeAddition(@Mocked final VxLanGwBroker vxGwBroker,
