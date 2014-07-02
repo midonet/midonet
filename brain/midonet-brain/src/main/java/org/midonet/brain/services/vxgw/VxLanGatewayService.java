@@ -74,6 +74,9 @@ public class VxLanGatewayService extends AbstractService {
     // Bridge monitor
     private BridgeMonitor bridgeMon = null;
 
+    // Service id for ownerships
+    private final UUID srvId = UUID.randomUUID();
+
     public class VtepConfigurationException extends RuntimeException {
         private static final long serialVersionUID = -1;
 
@@ -173,31 +176,73 @@ public class VxLanGatewayService extends AbstractService {
         log.info("Configuring VxLan Peers");
 
         for (VTEP vtep : vteps) {
-            IPv4Addr mgmtIp = vtep.getId();
-
-            // Configure VxLan Peers
-            VtepDataClient vtepClient = vtepDataClientProvider.get();
-            VtepBroker vtepPeer = new VtepBroker(vtepClient);
-            MidoVxLanPeer midoPeer = new MidoVxLanPeer(midoClient);
-
-            // Wire them
-            VxLanGwBroker vxGwBroker = new VxLanGwBroker(vtepPeer, midoPeer);
-            vxGwBroker.start(); // TODO: do we want a thread per broker?
-
-            // Now kick off the VTEP. Needs to be at this point so that we
-            // can capture the initial set of updates with the existing contents
-            // of the Mac tables.
-            try {
-                vtepClient.connect(mgmtIp, vtep.getMgmtPort());
-                vxlanGwBrokers.put(mgmtIp, vxGwBroker);
-                vtepClients.put(mgmtIp, vtepClient);
-                vtepPeers.put(mgmtIp, vtepPeer);
-                midoPeers.put(mgmtIp, midoPeer);
-            } catch (Exception ex) {
-                log.warn("Failed connecting to {}", mgmtIp, ex);
-            }
+            setVtepPairing(vtep);
         }
 
+    }
+
+    /**
+     * Prepare a vtep pairing with a midonet vxlan peer.
+     */
+    private void setVtepPairingInternal(final VTEP vtep)
+        throws StateAccessException, SerializationException {
+        log.debug("Starting VxGW pairing for VTEP {}", vtep.getId());
+        IPv4Addr mgmtIp = vtep.getId();
+
+        // Try to get ownership
+        UUID ownerId = midoClient.tryOwnVtep(mgmtIp, srvId);
+        if (!srvId.equals(ownerId)) {
+            log.debug("VxLanGatewayService {} ignoring VTEP {} owned by {}",
+                      new Object[]{srvId, vtep.getId(), ownerId});
+            return;
+        }
+
+        // Configure VxLan Peers
+        VtepDataClient vtepClient = vtepDataClientProvider.get();
+        VtepBroker vtepPeer = new VtepBroker(vtepClient);
+        MidoVxLanPeer midoPeer = new MidoVxLanPeer(midoClient);
+
+        // Wire them
+        VxLanGwBroker vxGwBroker = new VxLanGwBroker(vtepPeer, midoPeer);
+        vxGwBroker.start(); // TODO: do we want a thread per broker?
+
+        // Now kick off the VTEP. Needs to be at this point so that we
+        // can capture the initial set of updates with the existing contents
+        // of the Mac tables.
+        try {
+            vtepClient.connect(mgmtIp, vtep.getMgmtPort());
+            vxlanGwBrokers.put(mgmtIp, vxGwBroker);
+            vtepClients.put(mgmtIp, vtepClient);
+            vtepPeers.put(mgmtIp, vtepPeer);
+            midoPeers.put(mgmtIp, midoPeer);
+        } catch (Exception ex) {
+            log.warn("Failed connecting to {}", mgmtIp, ex);
+        }
+    }
+
+    /**
+     * Handle storage exceptions fo bridge assigning.
+     */
+    private void setVtepPairing(final VTEP vtep) {
+        try {
+            setVtepPairingInternal(vtep);
+        } catch (NoStatePathException e) {
+            log.warn("No vtep {} in storage", vtep.getId(), e);
+        } catch (StateAccessException e) {
+            log.warn("Cannot retrieve vtep state {} from storage",
+                     vtep.getId(), e);
+            zkConnWatcher.handleError(
+                String.format("VxLanGatewayService %s pairing vtep %s",
+                              srvId, vtep.getId()),
+                new Runnable () {
+                    @Override
+                    public void run() {setVtepPairing(vtep);}
+                },
+                e);
+        } catch (SerializationException e) {
+            log.error("Failed to deserialize resource vtep state {}",
+                      vtep.getId(), e);
+        }
     }
 
     /**
