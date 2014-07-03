@@ -170,36 +170,34 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
     override def updateMacEntry(
             vlanId: Short, mac: MAC, oldPort: UUID, newPort: UUID) = {
-        log.debug("Mac-Port mapping for MAC {}, VLAN ID {} was updated" +
-            " from {} to {}", Array(mac, vlanId, oldPort, newPort))
+        log.debug("Mac-Port mapping for MAC {}, VLAN ID {} was updated from {} "
+                  + "to {}",
+                  Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
 
-        //1. MAC, VLAN was removed from port
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
-                Array(mac, oldPort, vlanId))
+                Array(mac, oldPort, vlanId.asInstanceOf[Object]))
             flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
         }
-        //2. MAC, VLAN moved from port-x to port-y
         if (newPort != null && oldPort != null
             && !newPort.equals(oldPort)) {
             log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
-                      Array(mac, vlanId, oldPort, newPort))
+                      Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
             flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
         }
-        //3. MAC was added -> invalidate flooded flows. Now we have the MAC
-        // entry in the table so we can deliver it to the proper port instead
-        // of flooding it.
-        // As regards broadcast or arp requests:
-        //   1. If this port was just added to the PortSet, the invalidation
-        //    will occur in the VirtualToPhysicalMapper.
-        //   2. If we just forgot the MAC port association, no need of invalidating,
-        //    the port was in the PortSet, broadcast and ARP requests were
-        //    correctly delivered.
         if (newPort != null && oldPort == null){
             log.debug("MAC {}, VLAN ID {} added to port {}",
-                      Array(mac, vlanId, newPort))
+                      Array(mac, vlanId.asInstanceOf[Object], newPort))
+            // Now we have the MAC entry in the table so we can deliver it to
+            // the proper port instead of flooding it. As regards broadcast or
+            // arp requests:
+            // 1. If this port was just added to the PortSet, the invalidation
+            //    will occur in the VirtualToPhysicalMapper.
+            // 2. If we just forgot the MAC port association, no need of
+            //    invalidating, the port was in the PortSet, broadcast and ARP
+            //    requests were correctly delivered.
             flowController ! FlowController.InvalidateFlowsByTag(
                     FlowTagger.invalidateFloodedFlowsByDstMac(id, mac, vlanId))
         }
