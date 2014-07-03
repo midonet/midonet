@@ -3,7 +3,6 @@ Version: [[version]]
 Section: misc
 Priority: optional
 Architecture: all
-Depends: tomcat7
 Recommends: java7-runtime-headless | java7-runtime
 Maintainer: Dan Mihai Dumitriu <dan@midokura.com>
 Description: Midonet-API is the REST API for Midolman, a virtual network controller
