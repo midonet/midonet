@@ -168,7 +168,11 @@ public class TCP extends BasePacket implements Transport {
 
         if (bb.hasRemaining()) {
             payload = new Data();
-            payload.deserialize(bb.slice());
+            int start= bb.position();
+            int end = bb.limit();
+            payload.deserialize(bb);
+            bb.position(start);
+            bb.limit(end);
             payload.setParent(this);
         }
 

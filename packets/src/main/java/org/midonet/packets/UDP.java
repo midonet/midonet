@@ -298,11 +298,15 @@ public class UDP extends BasePacket implements Transport {
             bb.limit(len);
         }
 
+        int start= bb.position();
+        int end = bb.limit();
         try {
-            payload.deserialize(bb.slice());
+            payload.deserialize(bb);
         } catch (Exception e) {
-            payload = (new Data()).deserialize(bb.slice());
+            payload = (new Data()).deserialize(bb);
         }
+        bb.position(start);
+        bb.limit(end);
         payload.setParent(this);
         return this;
     }
