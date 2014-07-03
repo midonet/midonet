@@ -66,8 +66,10 @@ class FlowTranslatorTest extends MidolmanSpec {
         def input(id: UUID): Unit =
            inPortUUID = Some(id)
 
-        def vxlanPort(num: Integer): Unit =
+        def vxlanPort(num: Int): Unit = {
             dpState.vtepTunnellingOutputAction = output(num)
+            dpState.vxlanPortNumber = num
+        }
 
         def translate(action: FlowAction): Unit = translate(List(action))
 
@@ -109,7 +111,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         port
     }
 
-    def makePortSet(id: UUID, hosts: Set[UUID], localPorts: Set[Port[_, _]]): Unit = {
+    def makePortSet(id: UUID, hosts: Set[UUID],
+                    localPorts: Set[Port[_, _]]): Unit = {
         localPorts foreach { p =>
             VirtualToPhysicalMapper ! LocalPortActive(p.getId, active = true)
         }
@@ -163,9 +166,65 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx translate FlowActionOutputToVrnPort(port.getId)
             ctx verify (List.empty, Set.empty)
         }
+
+        translationScenario("The port is a VxLanPort") { ctx =>
+            val port = UUID.randomUUID()
+
+            ctx vxlanPort 3
+            ctx local port -> 4
+
+            ctx translate FlowActionOutputToVrnPort(port)
+            ctx verify (List(output(4)), Set(FlowTagger.invalidateDPPort(4)))
+        }
     }
 
     feature("FlowActionOutputToVrnPortSet is translated") {
+        translationScenario("The port set has local ports, from VTEP") { ctx =>
+            val vtepIp = IPv4Addr("102.32.2.1")
+            val hostIp = IPv4Addr("102.32.2.2")
+            val vni = 394
+            val bridge = newBridge("portSetBridge")
+
+            val inPort = makeVxLanPort(hostId(), bridge, vni, vtepIp)(identity)
+            val port0 = makePort(hostId(), bridge)(identity) // code assumes
+            val port1 = makePort(hostId(), bridge)(identity) // them exterior
+            val chain1 = accept(port1)
+            val port2 = makePort(hostId(), bridge) { p =>
+                                                     p.setAdminStateUp(false)}
+            val port3 = makePort(hostId(), bridge)(identity)
+            val chain3 = reject(port3)
+
+            val rcuHost: Host = new Host(
+                hostId(), "midonet",
+                Map(inPort.getId -> "in", port0.getId -> "port0"),
+                Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
+                    .setIp(hostIp.toIntIPv4))
+            )
+
+            makePortSet(bridge.getId, Set.empty, Set(inPort, port0, port1,
+                                                     port2, port3))
+            ctx host rcuHost
+            ctx input inPort.getId
+            ctx local inPort.getId -> 1
+            ctx local port0.getId -> 2
+            ctx local port1.getId -> 3
+            ctx local port2.getId -> 4
+            ctx local port3.getId -> 5
+
+            ctx translate FlowActionOutputToVrnPortSet(bridge.getId)
+            ctx verify (List(output(2), output(3)),
+            Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                                                    bridge.getId),
+                FlowTagger.invalidateFlowsByDevice(port0.getId),
+                FlowTagger.invalidateFlowsByDevice(port1.getId),
+                FlowTagger.invalidateFlowsByDevice(port2.getId),
+                FlowTagger.invalidateFlowsByDevice(port3.getId),
+                FlowTagger.invalidateFlowsByDevice(chain1.getId),
+                FlowTagger.invalidateFlowsByDevice(chain3.getId),
+                FlowTagger.invalidateDPPort(2),
+                FlowTagger.invalidateDPPort(3)))
+        }
+
         translationScenario("The port set has local ports") { ctx =>
             val bridge = newBridge("portSetBridge")
             val inPort = makePort(hostId(), bridge)(identity)
@@ -405,6 +464,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         var dpPortNumberForVport = mutable.Map[UUID, Integer]()
         var peerTunnels = mutable.Map[UUID,Route]()
         var grePort: Int = _
+        var vxlanPortNumber: Int = _
 
         def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
             dpPortNumberForVport get vportId
@@ -418,7 +478,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
         def getDpPortName(num: Integer): Option[String] = None
-        def isVtepTunnellingPort(portNumber: Short): Boolean = false
+        def isVtepTunnellingPort(portNumber: Short): Boolean =
+            portNumber == vxlanPortNumber
         def isOverlayTunnellingPort(portNumber: Short): Boolean = false
     }
 

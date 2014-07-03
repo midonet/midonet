@@ -109,6 +109,8 @@ sealed trait Port {
 abstract class VxLanPort extends Port {
     def vtepAddr: IPv4Addr
     def vni: Int
+    override def isExterior = true
+    override def isInterior = false
 }
 
 class BridgePort extends Port
