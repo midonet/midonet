@@ -226,7 +226,8 @@ public class NeutronPluginTest {
     }
 
 
-    public RouterInterface createStockRouterInterface(UUID portId, UUID subnetId)
+    public RouterInterface createStockRouterInterface(UUID portId,
+                                                      UUID subnetId)
             throws StateAccessException {
         RouterInterface ri = new RouterInterface();
         ri.id = UUID.randomUUID();
@@ -235,7 +236,8 @@ public class NeutronPluginTest {
         return ri;
     }
 
-    public void verifyIpAddrGroups() throws StateAccessException, SerializationException {
+    public void verifyIpAddrGroups() throws StateAccessException,
+            SerializationException {
         List<IpAddrGroup> ipgs = dataClient.ipAddrGroupsGetAll();
         List<Port> ports = plugin.getPorts();
 
@@ -258,7 +260,8 @@ public class NeutronPluginTest {
         }
     }
 
-    public void verifySGRules(Port port) throws StateAccessException, SerializationException {
+    public void verifySGRules(Port port) throws StateAccessException,
+            SerializationException {
 
         // Ensure that the port has both of its INBOUND and OUTBOUND chains.
         Chain inbound = null, outbound = null;
@@ -389,7 +392,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testSubnetCRUD() throws StateAccessException, SerializationException {
+    public void testSubnetCRUD() throws StateAccessException,
+            SerializationException {
         int cp1 = zkDir().createCheckPoint();
         Network network = plugin.createNetwork(createStockNetwork());
         int cp2 = zkDir().createCheckPoint();
@@ -431,8 +435,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testNetworkCRUD() throws SerializationException, StateAccessException,
-        BridgeZkManager.VxLanPortIdUpdateException {
+    public void testNetworkCRUD() throws SerializationException,
+            StateAccessException, BridgeZkManager.VxLanPortIdUpdateException {
         int cp1 = zkDir().createCheckPoint();
         Network network = createStockNetwork();
         network.external = true;
@@ -467,7 +471,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testPortCRUD() throws SerializationException, StateAccessException,
+    public void testPortCRUD() throws SerializationException,
+            StateAccessException,
         Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
@@ -515,7 +520,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testSecurityGroupCRUD() throws SerializationException, StateAccessException,
+    public void testSecurityGroupCRUD() throws SerializationException,
+            StateAccessException,
         Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
@@ -611,7 +617,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testSGSameIpCreate() throws StateAccessException, SerializationException,
+    public void testSGSameIpCreate() throws StateAccessException,
+            SerializationException,
         Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
@@ -653,7 +660,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testSGSameIpUpdate() throws StateAccessException, SerializationException,
+    public void testSGSameIpUpdate() throws StateAccessException,
+            SerializationException,
         Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
@@ -697,7 +705,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testAddRouterInterfaceCreateDelete()
-        throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network = plugin.createNetwork(network);
         Subnet subnet = createStockSubnet();
@@ -735,7 +744,7 @@ public class NeutronPluginTest {
 
     @Test
     public void testRouterInterfaceConvertPort() throws StateAccessException,
-        SerializationException {
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network = plugin.createNetwork(network);
         Subnet subnet = createStockSubnet();
@@ -771,7 +780,8 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testRouterGatewayCreate() throws StateAccessException, SerializationException {
+    public void testRouterGatewayCreate() throws StateAccessException,
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network.external = true;
         network = plugin.createNetwork(network);
@@ -800,8 +810,9 @@ public class NeutronPluginTest {
         Assert.assertEquals(zkDir().getAddedPaths(cp1, cp2).size(), 0);
     }
 
-    private void verifySnatAddr(UUID routerId, String snatIp) throws StateAccessException,
-        SerializationException {
+    private void verifySnatAddr(UUID routerId, String snatIp)
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException {
         Router routerMido = dataClient.routersGet(routerId);
 
         List<org.midonet.cluster.data.Rule<?,?>> inboundRules
@@ -880,7 +891,7 @@ public class NeutronPluginTest {
 
     @Test
     public void testRouterGatewayUpdate() throws StateAccessException,
-        SerializationException, Rule.RuleIndexOutOfBoundsException {
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network.external = true;
         network = plugin.createNetwork(network);
@@ -946,7 +957,7 @@ public class NeutronPluginTest {
 
     @Test
     public void testFIPCreateDelete() throws StateAccessException,
-        SerializationException, Rule.RuleIndexOutOfBoundsException {
+            SerializationException, Rule.RuleIndexOutOfBoundsException {
 
         // Create the external network
         Network network = createStockNetwork();
@@ -998,7 +1009,7 @@ public class NeutronPluginTest {
 
     @Test
     public void testFIPUpdate() throws StateAccessException, SerializationException,
-        Rule.RuleIndexOutOfBoundsException {
+            Rule.RuleIndexOutOfBoundsException {
         // Create the external network
         Network network = createStockNetwork();
         network.external = true;

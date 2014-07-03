@@ -150,7 +150,8 @@ public interface NetworkApi {
      * @param id ID of the Port object to delete
      */
     void deletePort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws StateAccessException, SerializationException,
+            Rule.RuleIndexOutOfBoundsException;
 
     /**
      * Retrieve a port. Returns null if the resource does not exist.

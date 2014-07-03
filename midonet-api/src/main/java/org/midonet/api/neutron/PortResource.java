@@ -96,7 +96,8 @@ public class PortResource extends AbstractResource {
     @Path("{id}")
     @RolesAllowed(AuthRole.ADMIN)
     public void delete(@PathParam("id") UUID id)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
         log.info("PortResource.delete entered {}", id);
         api.deletePort(id);
         PORT_EVENT.delete(id);

@@ -8,6 +8,7 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
+import org.midonet.midolman.rules.RuleBuilder;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -89,7 +90,9 @@ public class SecurityGroupZkManager extends BaseZkManager {
         outRules.clear();
 
         // Add reverse flow matching for out_chain.
-        outRules.add(Rule.acceptReturnFlowRule(outChainId));
+        outRules.add(new RuleBuilder(outChainId)
+            .isReturnFlow()
+            .accept());
 
         // IP spoofing protection for in_chain
         for (IPAllocation fixedIp : port.fixedIps) {
@@ -97,15 +100,22 @@ public class SecurityGroupZkManager extends BaseZkManager {
             Subnet subnet = networkZkManager.getSubnet(fixedIp.subnetId);
             IPSubnet ipSub = subnet.isIpv4()
                     ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
-            inRules.add(Rule.ipSpoofProtectionRule(ipSub, inChainId));
+            Rule ipSpoofProtectionRule = new RuleBuilder(inChainId)
+                .notFromSubnet(ipSub)
+                .drop();
+            inRules.add(ipSpoofProtectionRule);
         }
 
         // MAC spoofing protection for in_chain
-        inRules.add(Rule.macSpoofProtectionRule(
-                        port.macAddress(), inChainId));
+        Rule macSpoofProtectionRule = new RuleBuilder(inChainId)
+            .notFromMac(port.macAddress())
+            .drop();
+        inRules.add(macSpoofProtectionRule);
 
         // Add reverse flow matching for in_chain.
-        inRules.add(Rule.acceptReturnFlowRule(inChainId));
+        inRules.add(new RuleBuilder(inChainId)
+            .isReturnFlow()
+            .accept());
 
         // Add jump rules for security groups
         if (port.securityGroups != null) {
@@ -119,8 +129,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         }
 
         // Both chains drop non-ARP traffic if no other rules match.
-        inRules.add(Rule.dropAllExceptArpRule(inChainId));
-        outRules.add(Rule.dropAllExceptArpRule(outChainId));
+        inRules.add(new RuleBuilder(inChainId).notARP().drop());
+        outRules.add(new RuleBuilder(outChainId).notARP().drop());
     }
 
     private void prepareUpdatePortChains(List<Op> ops, Port port, PortConfig cfg)
@@ -282,12 +292,14 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
         for (SecurityGroupRule sgr : sg.securityGroupRules) {
             if (sgr.isEgress()) {
-                Rule r = Rule.acceptRule(sgr, inboundChainId);
-                r.getCondition().id = sgr.id;
+                Rule r = new RuleBuilder(inboundChainId)
+                    .securityGroupRule(sgr)
+                    .accept();
                 egressRules.add(r);
             } else {
-                Rule r = Rule.acceptRule(sgr, outboundChainId);
-                r.getCondition().id = sgr.id;
+                Rule r = new RuleBuilder(outboundChainId)
+                    .securityGroupRule(sgr)
+                    .accept();
                 ingressRules.add(r);
             }
             String rulePath = paths.getNeutronSecurityGroupRulePath(sgr.id);
@@ -367,7 +379,9 @@ public class SecurityGroupZkManager extends BaseZkManager {
                 RuleDirection.INGRESS : RuleDirection.EGRESS;
         UUID chainId = ipAddrGroupConfig.getPropertyUuid(dir);
 
-        Rule r = Rule.acceptRule(rule, chainId);
+        Rule r = new RuleBuilder(chainId)
+            .securityGroupRule(rule)
+            .accept();
         ops.addAll(ruleZkManager.prepareInsertPositionOrdering(rule.id, r, 1));
 
         String path = paths.getNeutronSecurityGroupRulePath(rule.id);
