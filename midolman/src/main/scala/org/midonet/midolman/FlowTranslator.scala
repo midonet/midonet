@@ -17,7 +17,7 @@ import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.{FlowTagger, VirtualToPhysicalMapper}
-import org.midonet.odp.flows.FlowActions.{setKey, output, userspace}
+import org.midonet.odp.flows.FlowActions.{setKey, output}
 import org.midonet.odp.flows._
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions
@@ -145,11 +145,17 @@ trait FlowTranslator {
         if (inPortUUID.isDefined) {
             dpState.getDpPortNumberForVport(inPortUUID.get) match {
                 case Some(portNo) =>
+                    // TODO: do we really need to set this?
                     wMatch.setInputPortNumber(portNo.shortValue)
                     dpTags += FlowTagger.invalidateDPPort(portNo.shortValue)
-                case None =>
-                    // Return, as the flow is no longer valid.
-                    return Ready(Seq.empty)
+                case None=>
+                    val inPortNo = wMatch.getInputPortNumber
+                    if (dpState.isVtepTunnellingPort(inPortNo)) {
+                        dpTags += FlowTagger.invalidateDPPort(inPortNo.toShort)
+                    } else {
+                        log.debug("DROP: flow is no longer valid")
+                        return Ready(Seq.empty)
+                    }
             }
         }
 
@@ -253,9 +259,19 @@ trait FlowTranslator {
             dpTags += FlowTagger.invalidateBroadcastFlows(br.id, br.id)
             outputActionsToPeers(br.tunnelKey, peerIds, actions, dpTags)
         }
+
+        /* This is an awkward step, but necessary. After we figure out all the
+         * actions for local and remote ports, we need to consider the case
+         * where portset includes a bridge's VxLanPort. What we want is
+         * - If there is no VxLanPort, do nothing
+         * - If there is, but it was the ingress port, do nothing
+         * - Else, fetch the destination VTEP and VNI, craft the output action
+         *   through the dpPort dedicated to vxLan tunnels to VTEPs, and inject
+         *   this action in the result set
+         */
         def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction])
         : Urgent[Seq[FlowAction]] = {
-            if (br.vxlanPortId.isEmpty) {
+            if (br.vxlanPortId.isEmpty || br.vxlanPortId == inPortUUID) {
                 Ready(actions)
             } else {
                 val vxlanPortId = br.vxlanPortId.get
