@@ -115,17 +115,18 @@ public class EntityIdSetMonitor {
      */
     private void notifyChangesAndWatch(Directory.TypedWatcher watcher) {
         List<UUID> idList = getAndWatch(watcher);
-        log.info("NOTIFYING: {}", idList);
         if (idList == null) {
             log.warn("Null children list returned");
             return;
         }
         for (UUID id : idList) {
             if (!knownIdList.remove(id)) {
+                log.debug("New entity {}", id);
                 creationStream.onNext(id);
             }
         }
         for (UUID id : knownIdList) {
+            log.debug("Deleted entity {}", id);
             deletionStream.onNext(id);
         }
         knownIdList = new HashSet<>(idList);

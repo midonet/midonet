@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain;
 
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
+
 import org.midonet.brain.configuration.MidoBrainConfig;
-import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 
@@ -32,6 +31,7 @@ public class MidoBrainModule extends PrivateModule {
             .toProvider(MidoBrainModule.MidoBrainConfigProvider.class)
             .asEagerSingleton();
         expose(MidoBrainConfig.class);
+
     }
 
     public static class MidolmanConfigProvider

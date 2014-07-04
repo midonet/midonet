@@ -9,6 +9,7 @@ import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.brain.guice.BrainModule;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.guice.CacheModule;
@@ -43,7 +44,8 @@ public class MidoBrain {
 
         injector = Guice.createInjector(
             new ConfigProviderModule(configFile),
-            new MidoBrainModule(),
+            new MidoBrainModule(), // this is the standalone app
+            new BrainModule(),     // this is the service
             new ZookeeperConnectionModule(),
             new VersionModule(),
             new CacheModule(),
@@ -54,7 +56,7 @@ public class MidoBrain {
         injector.getInstance(MidostoreSetupService.class).startAndWait();
         injector.getInstance(VxLanGatewayService.class).startAndWait();
 
-        log.info("Brain initialized");
+        log.info("Midonet Brain initialized");
 
     }
 
