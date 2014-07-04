@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ $1 -eq 0 ]; then
+        # Package removal, not upgrade
+        systemctl --no-reload disable midolman.service || true
+        systemctl stop midolman.service || true
+fi

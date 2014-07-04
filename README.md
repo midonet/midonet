@@ -92,6 +92,10 @@ midonet-api/target directories. To build rpm packages you should run
 
     ~/midonet$ mvn -Drpm -DskipTests
 
+For a systemd-based system (e.g. RHEL 7),
+
+    ~/midonet$ mvn -Drpm-sysd -DskipTests
+
 On ubuntu this requires the rpm tools which you can install with
 
     # apt-get install rpm
