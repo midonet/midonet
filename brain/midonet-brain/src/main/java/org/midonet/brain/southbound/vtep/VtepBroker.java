@@ -4,16 +4,20 @@
 package org.midonet.brain.southbound.vtep;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.inject.Inject;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
+import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +29,11 @@ import rx.subjects.Subject;
 
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeer;
+import org.midonet.brain.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
+import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -205,6 +211,61 @@ public class VtepBroker implements VxLanPeer {
     @Override
     public Observable<MacLocation> observableUpdates() {
         return this.macLocationStream.asObservable();
+    }
+
+    /**
+     * Ensures that the Logical Switch defined in the VtepBinding exists in
+     * the given VTEP.
+     */
+    public UUID ensureLogicalSwitchExists(String lsName, int vni) {
+        assert(lsName != null);
+        final LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsName);
+        UUID lsUuid = null;
+        if (ls != null) {
+            if (vni == ls.tunnelKey) {
+                log.debug("Logical Switch {} with VNI {} is present",
+                          lsName, vni);
+                lsUuid = ls.uuid;
+            } else {
+                log.info("Logical switch {} has wrong VNI, recreating", ls);
+                vtepDataClient.deleteLogicalSwitch(lsName);
+            }
+        }
+
+        if (lsUuid == null) {
+            StatusWithUuid st = vtepDataClient.addLogicalSwitch(lsName, vni);
+            if (st.isSuccess()) {
+                lsUuid = st.getUuid();
+                log.info("Logical switch {} created with uuid: {}", lsName,
+                         lsUuid);
+            } else {
+                throw new VxLanPeerConsolidationException(
+                    "Failed to create logical switch in VTEP", lsName);
+            }
+        }
+
+        return lsUuid;
+    }
+
+    /**
+     * Ensures that all the PortVlanBindigs are configured properly for the
+     * given logical switch, and only those.
+     */
+    public void renewBindings(UUID ls, Collection<VtepBinding> bindings) {
+        Status st = vtepDataClient.clearBindings(ls);
+        if (st.getCode() != StatusCode.SUCCESS) {
+            throw new VxLanPeerConsolidationException(
+                "Could not renew bindings for switch", ls.toString());
+        }
+        List<Pair<String, Integer>> pvPairs = new ArrayList<>(bindings.size());
+        for (VtepBinding b : bindings) {
+            pvPairs.add(Pair.of(b.getPortName(), (int) b.getVlanId()));
+        }
+        st = vtepDataClient.addBindings(ls, pvPairs);
+        if (st.getCode() != StatusCode.SUCCESS) {
+            throw new VxLanPeerConsolidationException(
+                "Could not renew bindings for switch", ls.toString());
+        }
     }
 
     /**

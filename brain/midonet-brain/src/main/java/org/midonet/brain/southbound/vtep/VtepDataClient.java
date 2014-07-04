@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.southbound.vtep;
 
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
+
 import rx.Observable;
 
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
@@ -49,18 +51,31 @@ public interface VtepDataClient {
 
     /**
      * Lists all the physical ports in a given physical switch.
+     *
      * @param psUuid uuid of the physical switch
      * @return the list of physical ports
      */
     public List<PhysicalPort> listPhysicalPorts(
         org.opendaylight.ovsdb.lib.notation.UUID psUuid);
 
+    /**
+     * Lists all the multicast macs local to the VTEP.
+     */
     public List<McastMac> listMcastMacsLocal();
 
+    /**
+     * Lists all the multicast macs remote to the VTEP.
+     */
     public List<McastMac> listMcastMacsRemote();
 
+    /**
+     * Lists all the unicast macs local to the VTEP.
+     */
     public List<UcastMac> listUcastMacsLocal();
 
+    /**
+     * Lists all the unicast macs remote to the VTEP.
+     */
     public List<UcastMac> listUcastMacsRemote();
 
     /**
@@ -110,6 +125,17 @@ public interface VtepDataClient {
      */
     public Status bindVlan(String lsName, String portName, int vlan,
                            Integer vni, List<String> floodIps);
+
+    /**
+     * Binds a list of (physical_port, vlan) to a given logical switch.
+     *
+     * @param lsUuid id of the logical switch, it must exist
+     * @param portVlanPairs the pairs of physical port and vlans to bind
+     *
+     * @return operation result status
+     */
+    public Status addBindings(UUID lsUuid,
+                              List<Pair<String, Integer>> portVlanPairs);
 
     /**
      * Adds a new entry to the Ucast_Macs_Remote table.
@@ -165,5 +191,22 @@ public interface VtepDataClient {
      * @return the result of the operation
      */
     public Status deleteLogicalSwitch(String name);
+
+    /**
+     * Returns the full list of port vlan pairs on the given logical switch.
+     *
+     * @param lsUuid the logical switch UUID
+     * @return the list of (port_uuid, vlan) representing bindings on this
+     * logical switch
+     */
+    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID logicalSwitchId);
+
+    /**
+     * Clears all bindings of the given logical switch in a single transaction.
+     *
+     * @param lsUuid the logical switch UUID
+     * @return the result of the operation
+     */
+    public Status clearBindings(UUID lsUuid);
 
 }
