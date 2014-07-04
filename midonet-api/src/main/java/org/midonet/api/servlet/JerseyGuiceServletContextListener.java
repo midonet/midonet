@@ -3,6 +3,9 @@
  */
 package org.midonet.api.servlet;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceServletContextListener;
@@ -14,9 +17,6 @@ import org.midonet.api.license.LicenseService;
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
 
 /**
  * Guice servlet listener.

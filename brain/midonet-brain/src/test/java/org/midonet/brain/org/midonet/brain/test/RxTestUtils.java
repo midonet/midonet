@@ -1,7 +1,7 @@
-package org.midonet.brain.org.midonet.brain.test;
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
+package org.midonet.brain.org.midonet.brain.test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,7 +145,7 @@ public class RxTestUtils {
     public static class ActionRefuser<T> extends ActionAccumulator<T> {
         @Override
         public void call(T update) {
-            call();
+            fail("Didn't expect any callbacks but got " + update);
         }
         @Override
         public void call() {

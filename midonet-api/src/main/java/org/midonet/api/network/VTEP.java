@@ -43,15 +43,10 @@ public class VTEP extends UriResource {
 
     public VTEP() {}
 
-    public VTEP(org.midonet.cluster.data.VTEP vtep) {
-        managementIp = vtep.getId().toString();
-        managementPort = vtep.getMgmtPort();
-        tunnelZoneId = vtep.getTunnelZoneId();
-    }
-
     public VTEP(org.midonet.cluster.data.VTEP vtep, PhysicalSwitch ps) {
         managementIp = vtep.getId().toString();
         managementPort = vtep.getMgmtPort();
+        tunnelZoneId = vtep.getTunnelZoneId();
 
         if (ps == null) {
             connectionState = VtepConnectionState.ERROR;

@@ -17,6 +17,7 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.neutron.Network;
 import org.midonet.midolman.serialization.SerializationException;
@@ -32,7 +33,8 @@ import org.midonet.midolman.state.ZkManager;
  * Class to manage the bridge ZooKeeper data.
  */
 public class BridgeZkManager
-        extends AbstractZkManager<UUID, BridgeZkManager.BridgeConfig> {
+        extends AbstractZkManager<UUID, BridgeZkManager.BridgeConfig>
+        implements WatchableZkManager {
 
     private final static Logger log = LoggerFactory
             .getLogger(BridgeZkManager.class);
@@ -463,5 +465,10 @@ public class BridgeZkManager
     public boolean hasVlanMacTable(UUID id, short vlanId)
             throws StateAccessException {
         return zk.exists(paths.getBridgeMacPortsPath(id, vlanId));
+    }
+
+    public List<UUID> getAndWatchUuidList(Runnable watcher)
+        throws StateAccessException {
+        return getUuidList(paths.getBridgesPath(), watcher);
     }
 }

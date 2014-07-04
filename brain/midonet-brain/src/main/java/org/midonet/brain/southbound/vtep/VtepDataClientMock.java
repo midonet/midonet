@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.brain.southbound.vtep;
 
 import java.util.ArrayList;
@@ -10,6 +13,7 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
@@ -185,6 +189,12 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
+    public Status addBindings(UUID lsUuid,
+                              List<Pair<String, Integer>> portVlanPairs) {
+        return null;
+    }
+
+    @Override
     public Status deleteLogicalSwitch(String name) {
         assertConnected();
 
@@ -275,6 +285,16 @@ public class VtepDataClientMock implements VtepDataClient {
         } else {
             return new Status(StatusCode.SUCCESS);
         }
+    }
+
+    @Override
+    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID logicalSwitchId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Status clearBindings(UUID lsUuid) {
+        throw new UnsupportedOperationException();
     }
 
     private UUID getLocatorUuid(String ip) {

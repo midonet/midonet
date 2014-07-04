@@ -102,8 +102,14 @@ public class ZkDirectory implements Directory {
     @Override
     public void update(String relativePath, byte[] data)
         throws KeeperException, InterruptedException {
+        update(relativePath, data, -1);
+    }
+
+    @Override
+    public void update(String relativePath, byte[] data, int version)
+            throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
-        zk.getZooKeeper().setData(absPath, data, -1);
+        zk.getZooKeeper().setData(absPath, data, version);
     }
 
     private Watcher wrapCallback(Runnable runnable) {

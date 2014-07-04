@@ -5,10 +5,12 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -16,6 +18,8 @@ import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.StateVersionException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.packets.IPv4Addr;
@@ -24,6 +28,9 @@ import static java.util.Arrays.asList;
 
 public class VtepZkManager
         extends AbstractZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
+
+    public static final int MIN_VNI = 10000;
+    public static final int MAX_VNI = 0xff_ffff;
 
     public static class VtepConfig {
         public int mgmtPort;
@@ -50,6 +57,11 @@ public class VtepZkManager
         return asList(simpleCreateOp(ipAddr, vtepConfig),
                       zk.getPersistentCreateOp(
                               paths.getVtepBindingsPath(ipAddr), null));
+    }
+
+    public List<Op> prepareDelete(IPv4Addr ipAddr) {
+        return asList(Op.delete(paths.getVtepBindingsPath(ipAddr), -1),
+                      Op.delete(paths.getVtepPath(ipAddr), -1));
     }
 
     public List<Op> prepareCreateBinding(IPv4Addr ipAddr, String portName,
@@ -121,5 +133,79 @@ public class VtepZkManager
         }
 
         return bindings;
+    }
+
+    /**
+     * Tries to take ownership of a VTEP for the given Node id.
+     *
+     * @param ip the management IP of the VTEP
+     * @param nodeId the unique id of the node
+     * @return UUID of the current owner, never null
+     *
+     * @throws StateAccessException
+     * @throws SerializationException
+     */
+    public UUID tryOwnVtep(IPv4Addr ip, UUID nodeId)
+        throws StateAccessException, SerializationException {
+        assert(nodeId != null);
+        byte[] data = null;
+        UUID owner = null;
+        do {
+            log.debug("Node {} wants to own VTEP {}", nodeId, ip);
+            String path = paths.getVtepOwnerPath(ip);
+            try {
+                data = zk.get(path);
+            } catch (NoStatePathException e) {
+                // ok, no owner - we must do a get because we want to compare
+                // the id if there is an owner.
+            }
+
+            if (data == null) { // looks like nobody owns the VTEP
+                try {
+                    zk.addEphemeral(path,
+                                    serializer.serialize(nodeId.toString()));
+                    log.info("Node {} is now owner of VTEP {}", nodeId, ip);
+                    owner = nodeId;
+                } catch (StatePathExistsException e) {
+                    log.info("Node {} lost race to own VTEP {}, retry",
+                             nodeId, ip);
+                }
+            } else {
+                try {
+                    owner = UUID.fromString(serializer
+                                            .deserialize(data, String.class));
+                } catch (IllegalArgumentException e) {
+                    throw new SerializationException(
+                        "VTEP owner id seems corrupt (not a UUID?)", e);
+                }
+            }
+        } while (owner == null);
+
+        return owner;
+    }
+
+    public int getNewVni() throws StateAccessException {
+        for (int i = 0; i < 10; i++) {
+            // Get the VNI counter node and its version.
+            String path = paths.getVniCounterPath();
+            Map.Entry<byte[], Integer> entry = zk.getWithVersion(path, null);
+            int vni = Integer.parseInt(new String(entry.getKey()));
+            int nodeVersion = entry.getValue();
+
+            // Try to increment the counter node.
+            try {
+                int newVni = (vni < MAX_VNI) ? vni + 1 : MIN_VNI;
+                byte[] newData = Integer.toString(newVni).getBytes();
+                zk.update(path, newData, nodeVersion);
+                return vni;
+            } catch (StateVersionException ex) {
+                log.warn("getNewVni() failed due to concurrent update. " +
+                         "Trying again.");
+            }
+        }
+
+        // Time to buy some lottery tickets!
+        throw new RuntimeException("getNewVni() failed due to concurrent " +
+                                   "updates ten times in a row.");
     }
 }

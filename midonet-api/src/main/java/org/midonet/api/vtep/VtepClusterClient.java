@@ -8,11 +8,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import com.google.inject.Inject;
+import org.midonet.midolman.state.NoStatePathException;
 import org.opendaylight.controller.sal.utils.Status;
+import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
@@ -56,7 +57,6 @@ public class VtepClusterClient {
 
     private static final Logger log =
             LoggerFactory.getLogger(VtepClusterClient.class);
-    public static final Random rand = new Random();
 
     private final VtepDataClientProvider provider;
     private final DataClient dataClient;
@@ -196,8 +196,13 @@ public class VtepClusterClient {
             IPv4Addr ipAddr, String portName, short vlanId)
             throws SerializationException, StateAccessException {
 
-        org.midonet.cluster.data.VtepBinding dataBinding =
-                dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+        org.midonet.cluster.data.VtepBinding dataBinding;
+        try {
+            dataBinding = dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+        } catch (NoStatePathException ex) {
+            throw new NotFoundHttpException(getMessage(VTEP_NOT_FOUND, ipAddr));
+        }
+
         if (dataBinding == null) {
             throw new NotFoundHttpException(getMessage(
                     VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
@@ -302,7 +307,7 @@ public class VtepClusterClient {
                     vxlanPort.getId(), vxlanPort.getVni());
         } else {
             // Need to create a VXLAN port.
-            newPortVni = rand.nextInt((1 << 24) - 1) + 1; // TODO: unique?
+            newPortVni = dataClient.getNewVni();
             VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
                     bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
             log.debug("New VxLan port created, uuid: {}, vni: {}",
@@ -342,7 +347,11 @@ public class VtepClusterClient {
         if (newPortVni != null) {
             StatusWithUuid status =
                     vtepClient.addLogicalSwitch(lsName, newPortVni);
-            throwIfFailed(status);
+
+            // Ignore CONFLICT error. It's fine if the LS already exists.
+            if (status.getCode() != StatusCode.CONFLICT)
+                throwIfFailed(status);
+
 
             // For all known macs, instruct the vtep to add a ucast
             // MAC entry to tunnel packets over to the right host.
@@ -405,15 +414,15 @@ public class VtepClusterClient {
         // Delete the binding in Midonet.
         dataClient.vtepDeleteBinding(ipAddr, portName, vlanId);
 
-        // If that was the only binding for this network, delete
-        // the VXLAN port.
-        if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
-            dataClient.bridgeDeleteVxLanPort(affectedNwId);
-        }
-
         // Delete the binding on the VTEP.
         Status st = vtepClient.deleteBinding(portName, vlanId);
         throwIfFailed(st);
+
+        // If that was the only binding for this network, delete
+        // the VXLAN port and logical switch.
+        if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
+            deleteVxLanPort(vtepClient, affectedNwId);
+        }
 
         log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
                 new Object[]{ipAddr, portName, vlanId});
@@ -421,18 +430,30 @@ public class VtepClusterClient {
 
     public void deleteVxLanPort(VxLanPort vxLanPort)
             throws SerializationException, StateAccessException {
+        deleteVxLanPort(getVtepClient(vxLanPort.getMgmtIpAddr(),
+                                      vxLanPort.getMgmtPort()),
+                        vxLanPort.getDeviceId());
+    }
+
+    private void deleteVxLanPort(VtepDataClient vtepClient,
+                                 java.util.UUID networkId)
+            throws SerializationException, StateAccessException {
 
         // Delete Midonet VXLAN port. This also deletes all
         // associated bindings.
-        dataClient.bridgeDeleteVxLanPort(vxLanPort.getDeviceId());
+        dataClient.bridgeDeleteVxLanPort(networkId);
 
         // Delete the corresponding logical switch on the VTEP.
-        VtepDataClient vtepClient = getVtepClient(vxLanPort.getMgmtIpAddr(),
-                                                  vxLanPort.getMgmtPort());
         Status st = vtepClient.deleteLogicalSwitch(
-                bridgeIdToLogicalSwitchName(vxLanPort.getDeviceId()));
+                bridgeIdToLogicalSwitchName(networkId));
         throwIfFailed(st);
+    }
 
+    public void deleteVtep(IPv4Addr ipAddr) throws
+            SerializationException, StateAccessException {
+        // Delete the VTEP from Zookeeper. Need to fetch it first to
+        // get the management port to connect to the actual VTEP.
+        dataClient.vtepDelete(ipAddr);
     }
 
     /**
@@ -456,7 +477,6 @@ public class VtepClusterClient {
                 throw new BadGatewayHttpException(status.getDescription());
         }
     }
-
 
     /**
      * Takes a bridge id, reads all its known macs, and writes the corresponding

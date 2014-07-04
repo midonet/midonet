@@ -4,26 +4,30 @@
 
 package org.midonet.cluster;
 
-import org.junit.Test;
-import org.midonet.cluster.data.Route;
-import org.midonet.cluster.data.Router;
-import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.ports.RouterPort;
-import org.midonet.midolman.layer3.Route.NextHop;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.MAC;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.Test;
+
+import org.midonet.cluster.data.Route;
+import org.midonet.cluster.data.Router;
+import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.data.ports.RouterPort;
+import org.midonet.midolman.layer3.Route.NextHop;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 
 
 public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
@@ -203,5 +207,27 @@ public class LocalDataClientImplTest extends LocalDataClientImplTestBase {
                 Arrays.asList(
                         "10.0.0.0_24",
                         "10.0.1.0_24"));
+    }
+
+    @Test
+    public void tryOwnVtepTest() throws Exception {
+        UUID node1 = UUID.randomUUID();
+        UUID node2 = UUID.randomUUID();
+
+        IPv4Addr vtepIp = IPv4Addr.fromString("10.2.3.2");
+
+        VTEP vtep = new VTEP();
+        vtep.setMgmtPort(6333);
+        vtep.setId(vtepIp);
+        vtep.setTunnelZone(UUID.randomUUID());
+        client.vtepCreate(vtep);
+
+        UUID owner1 = client.tryOwnVtep(vtepIp, node1);
+        UUID owner2 = client.tryOwnVtep(vtepIp, node2);
+        UUID owner3 = client.tryOwnVtep(vtepIp, node1);
+
+        assertEquals(node1, owner1);
+        assertEquals(node1, owner2);
+        assertEquals(node1, owner3);
     }
 }

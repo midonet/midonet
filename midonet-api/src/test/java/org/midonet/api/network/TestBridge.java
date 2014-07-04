@@ -374,7 +374,7 @@ public class TestBridge {
             bridge.setVxLanPortId(UUID.randomUUID());
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    app.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
+                    app.getBridges(), APPLICATION_BRIDGE_JSON_V2, bridge);
             assertErrorMatches(error,
                     MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE);
         }
@@ -384,7 +384,7 @@ public class TestBridge {
             DtoBridge bridge = postBridge("bridge1");
             bridge.setVxLanPortId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    bridge.getUri(), APPLICATION_BRIDGE_JSON, bridge);
+                    bridge.getUri(), APPLICATION_BRIDGE_JSON_V2, bridge);
             assertErrorMatches(error,
                     MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE);
         }

@@ -1725,6 +1725,10 @@ public class ZkPathManager {
         return buildVtepBindingsPath(ipAddr).toString();
     }
 
+    public String getVtepOwnerPath(IPv4Addr ipAddr) {
+        return buildVtepPath(ipAddr).append("/owner").toString();
+    }
+
     private StringBuilder buildVtepBindingPath(IPv4Addr ipAddr, String portName,
                                                short vlanId, UUID networkId) {
         return buildVtepBindingsPath(ipAddr).append('/')
@@ -1753,6 +1757,10 @@ public class ZkPathManager {
 
     public String getVxLanPortIdPath(UUID id) {
         return buildVxLanPortIdPath(id).toString();
+    }
+
+    public String getVniCounterPath() {
+        return basePath().append("/vniCounter").toString();
     }
 
     private StringBuilder buildLocksPath() {

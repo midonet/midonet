@@ -47,6 +47,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.MacPortMap;
@@ -117,6 +118,18 @@ public interface DataClient {
      */
     List<Bridge> bridgesGetAllWithVxlanPort() throws StateAccessException,
                                                      SerializationException;
+
+    /**
+     * Get an entity monitor for individual bridges
+     */
+    EntityMonitor<?, Bridge> bridgesGetMonitor(
+        ZookeeperConnectionWatcher zkConnection);
+
+    /**
+     * Get an entity monitor for the set of bridges
+     */
+    EntityIdSetMonitor bridgesGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<UUID> bridgesGetAllIds() throws StateAccessException,
             SerializationException;
@@ -934,6 +947,20 @@ public interface DataClient {
     public List<VTEP> vtepsGetAll()
             throws StateAccessException, SerializationException;
 
+    /**
+     * Deletes a VTEP. Will fail if the VTEP has bindings.
+     *
+     * @param ipAddr IP address of VTEP to delete.
+     *
+     * @throws org.midonet.midolman.state.NodeNotEmptyStateException
+     *         If the VTEP still has bindings.
+     *
+     * @throws org.midonet.midolman.state.NoStatePathException
+     *         If the VTEP does not exist.
+     */
+    public void vtepDelete(IPv4Addr ipAddr)
+            throws StateAccessException, SerializationException;
+
     public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
                                @Nonnull String portName, short vlanId,
                                @Nonnull UUID networkId)
@@ -943,12 +970,26 @@ public interface DataClient {
                                   @Nonnull String portName, short vlanId)
             throws StateAccessException;
 
+    /**
+     * Returns a list containing all the bindings configured in the given VTEP,
+     * by fetching them from the storage (not the VTEP itself).
+     *
+     * @param ipAddr the management IP that identifies the VTEP.
+     * @return a list that is never null
+     * @throws StateAccessException
+     */
     public List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
             throws StateAccessException;
 
     public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException;
+
+    /**
+     * Generates and returns a new VNI for VTEP logical switch creation.
+     * Successive calls will return monotonically increasing values.
+     */
+    public int getNewVni() throws StateAccessException;
 
     public VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
@@ -961,6 +1002,18 @@ public interface DataClient {
      */
     public void bridgeDeleteVxLanPort(UUID bridgeId)
             throws SerializationException, StateAccessException;
+
+    /**
+     * Tries to take ownership of the given VTEP.
+     *
+     * @param mgmtIp the management IP of the VTEP
+     * @param nodeId the ID of the node trying to take ownership of the VTEP
+     * @return the ID of the node that owns the VTEP, never null
+     * @throws SerializationException
+     * @throws StateAccessException
+     */
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
+        throws SerializationException, StateAccessException;
 
     /**
      * Given a bridge port that is expected to be exterior and bound to a given
@@ -981,6 +1034,14 @@ public interface DataClient {
      */
     public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
+
+    /**
+     * Register a watcher for the given port.
+     * This is mainly intended to track vxLanPort removals.
+     * @return true if the port exists, false otherwise.
+     */
+    public boolean portWatch(UUID portId, Directory.TypedWatcher watcher)
+        throws StateAccessException, SerializationException;
 
     public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)

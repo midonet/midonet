@@ -26,6 +26,21 @@ public interface Directory {
     void update(String relativePath, byte[] data) throws KeeperException,
             InterruptedException;
 
+    /**
+     * Update with optimistic locking.
+     *
+     * @param relativePath
+     *      Path relative to base path.
+     * @param data
+     *      Data to write to the node.
+     * @param version
+     *      Expected node version, obtained from prior call to getWithVersion.
+     *      If a concurrent update occurs, it will increment the node's
+     *      version and this update will fail with a BadVersionException.
+     */
+    void update(String relativePath, byte[] data, int version)
+            throws KeeperException, InterruptedException;
+
     byte[] get(String relativePath, Runnable watcher) throws KeeperException,
             InterruptedException;
 

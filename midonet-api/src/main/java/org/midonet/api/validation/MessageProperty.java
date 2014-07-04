@@ -100,6 +100,8 @@ public class MessageProperty {
             "{midokura.javarx.VtepBindingNotFound}";
     public static final String VTEP_EXISTS =
             "{midokura.javarx.VtepExists.message}";
+    public static final String VTEP_HAS_BINDINGS =
+            "{midokura.javarx.VtepHasBindings.message}";
     public static final String VTEP_INACCESSIBLE =
             "{midokura.javarx.VtepInaccessible.message}";
     public static final String VTEP_NOT_FOUND =

@@ -117,6 +117,7 @@ public class BridgeResource extends AbstractResource {
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Bridge get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
@@ -214,6 +215,7 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException,
@@ -247,6 +249,7 @@ public class BridgeResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
+            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response create(Bridge bridge)
             throws StateAccessException, SerializationException{
@@ -274,6 +277,7 @@ public class BridgeResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
+            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {

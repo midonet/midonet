@@ -12,9 +12,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -23,13 +20,15 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.util.Sudo;
 import org.midonet.midolman.version.DataWriteVersion;
+
+import static org.midonet.midolman.state.zkManagers.VtepZkManager.MIN_VNI;
 
 public class Setup {
 
@@ -123,6 +122,8 @@ public class Setup {
         for (String path : Setup.getTopLevelPaths(pathMgr)) {
             rootDir.ensureHas(path, null);
         }
+        rootDir.ensureHas(pathMgr.getVniCounterPath(),
+                          Integer.toString(MIN_VNI).getBytes());
         rootDir.ensureHas(pathMgr.getWriteVersionPath(),
                           DataWriteVersion.CURRENT.getBytes());
     }
