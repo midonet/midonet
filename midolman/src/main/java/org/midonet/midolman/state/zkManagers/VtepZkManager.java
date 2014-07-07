@@ -61,6 +61,13 @@ public class VtepZkManager
                               paths.getVtepBindingsPath(ipAddr), null));
     }
 
+    /**
+     * Removes the ownership from a specific VxLanGatewayService.
+     */
+    public List<Op> prepareDeleteOwner(IPv4Addr ipAddr) {
+        return asList(Op.delete(paths.getVtepOwnerPath(ipAddr), -1));
+    }
+
     public List<Op> prepareDelete(IPv4Addr ipAddr) {
         return asList(Op.delete(paths.getVtepBindingsPath(ipAddr), -1),
                       Op.delete(paths.getVtepPath(ipAddr), -1));

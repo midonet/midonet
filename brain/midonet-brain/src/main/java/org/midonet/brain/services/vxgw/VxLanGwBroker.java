@@ -9,15 +9,40 @@ import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
 
+import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
+import org.midonet.brain.southbound.vtep.VtepBroker;
+import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.cluster.DataClient;
+import org.midonet.packets.IPv4Addr;
+
 /**
- * This class orchestrates synchronisation accross two VxGW peers.
- *
- * TODO: not sure this has to be a Thread.
+ * This class orchestrates synchronisation across logical switch
+ * components comprising a vtep and midonet bridges.
  */
-public class VxLanGwBroker extends Thread {
+public class VxLanGwBroker {
 
     private final static Logger log =
             LoggerFactory .getLogger(VxLanGwBroker.class);
+
+    // Client for Midonet configuration store
+    private final DataClient midoClient;
+
+    // Vtep configuration store client provider
+    private final VtepDataClientProvider vtepDataClientProvider;
+
+    // VTEP Configuration store client
+    private final VtepDataClient vtepClient;
+
+    // VTEP peer
+    public final VtepBroker vtepPeer;
+
+    // Midonet peer
+    public final MidoVxLanPeer midoPeer;
+
+    private IPv4Addr vtepMgmtIp;
+    private Subscription midoSubscription;
+    private Subscription vtepSubscription;
 
     /**
      * Error handler for each rx.Observable.
@@ -25,7 +50,7 @@ public class VxLanGwBroker extends Thread {
     private final Action1<Throwable> errorHandler = new Action1<Throwable>() {
         @Override
         public void call(Throwable throwable) {
-            log.error("Error on VxLan Peer update stream", throwable);
+            log.error("Error on VxLanPeer update stream", throwable);
         }
     };
 
@@ -35,84 +60,59 @@ public class VxLanGwBroker extends Thread {
     private final Action0 completionHandler = new Action0() {
         @Override
         public void call() {
-            log.info("VxLanPeer stream is completed, shutting down");
+            log.info("VxLanPeer stream is completed");
         }
     };
 
-    private volatile boolean running = false;
+    /**
+     * Creates a new Broker between a vtep and the corresponding midonet peers.
+     */
+    public VxLanGwBroker(DataClient midoClient,
+                         VtepDataClientProvider vtepDataClientProvider,
+                         IPv4Addr vtepMgmtIp,
+                         int vtepMgmtPort) {
+        log.info("Wiring broker for {}", vtepMgmtIp);
+        this.midoClient = midoClient;
+        this.vtepDataClientProvider = vtepDataClientProvider;
+        this.vtepClient = this.vtepDataClientProvider.get();
+        this.vtepPeer = new VtepBroker(this.vtepClient);
+        this.midoPeer = new MidoVxLanPeer(midoClient);
+        this.vtepMgmtIp = vtepMgmtIp;
 
-    private final VxLanPeer left;
-    private final VxLanPeer right;
+        // wire peers
+        this.midoSubscription = wirePeers(midoPeer, vtepPeer);
+        this.vtepSubscription = wirePeers(vtepPeer, midoPeer);
 
-    private Subscription rightSubscription;
-    private Subscription leftSubscription;
+        // connect to vtep
+        vtepClient.connect(vtepMgmtIp, vtepMgmtPort);
+    }
 
     /**
-     * Creates a new Broker between two peers. This could easily be generalised
-     * for a set of peers, but we can keep things simple for now.
+     * Clean up state
      */
-    public VxLanGwBroker(final VxLanPeer left, final VxLanPeer right) {
-        this.left = left;
-        this.right = right;
+    public void terminate() {
+        log.info("Terminating broker for {}", vtepMgmtIp);
+        midoSubscription.unsubscribe();
+        vtepSubscription.unsubscribe();
+        vtepClient.disconnect();
+        midoPeer.stop();
     }
 
     /**
      * Makes `dst` react upon updates from `src`.
      */
     private Subscription wirePeers(final VxLanPeer src, final VxLanPeer dst) {
-        // TODO: review the subscribeOn for both cases, right now everything
-        // runs on the same thread.
         return src.observableUpdates()
                   .subscribe( // apply the update on the peer
-                        new Action1<MacLocation>() {
-                            @Override
-                            public void call(MacLocation macLocation) {
-                                log.debug("Apply {} to {}", macLocation, dst);
-                                dst.apply(macLocation);
-                            }
-                        },
-                        errorHandler,
-                        completionHandler
+                              new Action1<MacLocation>() {
+                                  @Override
+                                  public void call(MacLocation macLocation) {
+                                      log.debug("Apply {} to {}", macLocation, dst);
+                                      dst.apply(macLocation);
+                                  }
+                              },
+                              errorHandler,
+                              completionHandler
                   );
-    }
-
-    /* Protected to allow using from unit tests */
-    void setupWiring() {
-        rightSubscription = wirePeers(left, right);
-        leftSubscription = wirePeers(right, left);
-    }
-
-    /**
-     * Wires the two VxlanPeers so they start exchanging MACs.
-     */
-    @Override
-    public void run() {
-
-        running = true;
-        setupWiring();
-
-        log.info("VxLanGwBroker active");
-        while (running) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                log.error("Interrupted - shutting down..", e);
-                shutdown();
-            }
-        }
-    }
-
-    /**
-     * Stop syncing peers.
-     */
-    public void shutdown() {
-        this.running = false;
-        log.info("Stopping VxLan peer synchronization..");
-        if (rightSubscription != null) {
-            rightSubscription.unsubscribe();
-        }
-        if (leftSubscription != null) {
-            leftSubscription.unsubscribe();
-        }
     }
 }
