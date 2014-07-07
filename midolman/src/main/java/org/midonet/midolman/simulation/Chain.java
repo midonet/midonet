@@ -24,7 +24,7 @@ import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.rules.RuleResult.Action;
-import org.midonet.midolman.topology.FlowTagger;
+import org.midonet.sdn.flows.FlowTagger;
 
 public class Chain {
     private SimulationAwareBusLogging log;
@@ -33,7 +33,7 @@ public class Chain {
     private final List<Rule> rules;
     private final Map<UUID, Chain> jumpTargets;
     public final String name;
-    public final Object flowInvTag;
+    public final FlowTagger.FlowTag flowInvTag;
 
     @Inject
     static NatMappingFactory natMappingFactory;
@@ -44,7 +44,7 @@ public class Chain {
         rules = new ArrayList<>(rules_);
         jumpTargets = jumpTargets_;
         name = name_;
-        flowInvTag = FlowTagger.invalidateFlowsByDevice(id);
+        flowInvTag = FlowTagger.tagForDevice(id);
         log = LoggerFactory.getSimulationAwareLog(this.getClass(),
                                                   loggingBus);
     }
@@ -92,8 +92,6 @@ public class Chain {
                                             "chain " + traversedChains.get(0));
         }
 
-        // Remember that we've seen this chain.
-        fwdInfo.addTraversedElementID(id);
         fwdInfo.addFlowTag(flowInvTag);
         traversedChains.add(id);
 

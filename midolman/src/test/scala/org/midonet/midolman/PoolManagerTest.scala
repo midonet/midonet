@@ -9,12 +9,13 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, CustomMatchers}
 import org.midonet.midolman.state.l4lb.PoolLBMethod
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolRequest
 import java.util.UUID
 import akka.testkit.{ImplicitSender, TestKit}
 import akka.actor.ActorSystem
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
@@ -231,5 +232,5 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
     }
 
     def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
 }

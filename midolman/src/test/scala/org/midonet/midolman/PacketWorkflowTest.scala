@@ -17,12 +17,13 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 object PacketWorkflowTest {
     case object ExecPacket
@@ -51,18 +52,18 @@ object PacketWorkflowTest {
             }
             override def translateActions(actions: Seq[FlowAction],
                                           inPortUUID: Option[UUID],
-                                          dpTags: mutable.Set[Any],
+                                          dpTags: mutable.Set[FlowTag],
                                           wMatch: WildcardMatch) = {
                 testKit ! TranslateActions
                 Ready(Nil)
             }
             override def translateVirtualWildcardFlow(
                     flow: WildcardFlow,
-                    tags: scala.collection.Set[Any]) = {
+                    tags: scala.collection.Set[FlowTag]) = {
                 testKit ! TranslateActions
                 Ready((flow, tags))
             }
-            override def areTagsValid(tags: scala.collection.Set[Any]) =
+            override def areTagsValid(tags: scala.collection.Set[FlowTag]) =
                 tagsValid
         }
     }

@@ -11,12 +11,12 @@ import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.DpPort
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.odp.ports.VxLanTunnelPort
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
@@ -114,7 +114,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val peer = peers(r nextInt peers.length)
             val zone = zones(r nextInt zones.length)
             val (src,dst) = ipPairs(r nextInt ipPairs.length)
-            val tag = FlowTagger invalidateTunnelRoute (src,dst)
+            val tag = FlowTagger tagForTunnelRoute (src,dst)
 
             stateMgr.peerTunnelInfo(peer) shouldBe None
             stateMgr.addPeer(peer, zone, src, dst, gre) should contain(tag)
@@ -142,8 +142,8 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
             val route1 = Route(src1, dst1, output1)
             val route2 = Route(src2, dst2, output2)
-            val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
-            val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
+            val tag1 = FlowTagger tagForTunnelRoute (src1, dst1)
+            val tag2 = FlowTagger tagForTunnelRoute (src2, dst2)
 
             stateMgr.peerTunnelInfo(peer) shouldBe None
             stateMgr.addPeer(peer, zone1, src1, dst1, gre) should contain(tag1)
@@ -178,8 +178,8 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             val (src2, dst2) = ipPairs((routeI+1)%ipPairs.length)
             val route1 = Route(src1, dst1, output1)
             val route2 = Route(src2, dst2, output2)
-            val tag1 = FlowTagger invalidateTunnelRoute (src1, dst1)
-            val tag2 = FlowTagger invalidateTunnelRoute (src2, dst2)
+            val tag1 = FlowTagger tagForTunnelRoute (src1, dst1)
+            val tag2 = FlowTagger tagForTunnelRoute (src2, dst2)
 
             stateMgr.peerTunnelInfo(peer1) shouldBe None
             stateMgr.peerTunnelInfo(peer2) shouldBe None

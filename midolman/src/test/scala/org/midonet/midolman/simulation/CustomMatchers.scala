@@ -9,14 +9,14 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.packets.{IPv4, Ethernet}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
-import org.midonet.midolman.PacketWorkflow.SendPacket
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait CustomMatchers {
 
-    def dropped(expectedTags: Any*) = new BePropertyMatcher[SimulationResult] {
+    def dropped(expectedTags: FlowTag*) = new BePropertyMatcher[SimulationResult] {
         def apply(simRes: SimulationResult) =
             BePropertyMatchResult(simRes match {
                 case drop: DropSimulationResult =>
@@ -26,7 +26,7 @@ trait CustomMatchers {
             }, s"a drop flow containing tags {${expectedTags.toList}")
     }
 
-    def toPort(portId: UUID)(expectedTags: Any*) = new BePropertyMatcher[SimulationResult] {
+    def toPort(portId: UUID)(expectedTags: FlowTag*) = new BePropertyMatcher[SimulationResult] {
         def apply(simRes: SimulationResult) =
             BePropertyMatchResult((simRes match {
                 case AddVirtualWildcardFlow(flow, _, tags) =>
@@ -41,7 +41,7 @@ trait CustomMatchers {
             }), s"a port action to $portId")
     }
 
-    def toPortSet(portSetId: UUID, expectedTags: Any*) =
+    def toPortSet(portSetId: UUID, expectedTags: FlowTag*) =
         new BePropertyMatcher[SimulationResult] {
             def apply(simRes: SimulationResult) =
                 BePropertyMatchResult((simRes match {
@@ -58,7 +58,7 @@ trait CustomMatchers {
                         s"{${expectedTags.toList}}")
     }
 
-    def flowMatching(pkt: Ethernet, expectedTags: Any*) =
+    def flowMatching(pkt: Ethernet, expectedTags: FlowTag*) =
         new BePropertyMatcher[SimulationResult] {
             def apply(simRes: SimulationResult) =
                 BePropertyMatchResult(simRes match {

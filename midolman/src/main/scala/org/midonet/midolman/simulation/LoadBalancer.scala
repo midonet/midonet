@@ -14,8 +14,8 @@ import org.midonet.midolman.layer4.NatMapping
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.{Condition, RuleResult, ReverseNatRule}
 import org.midonet.midolman.topology.VirtualTopologyActor.{expiringAsk, PoolRequest}
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.{Ready, Urgent}
+import org.midonet.sdn.flows.FlowTagger
 
 object LoadBalancer {
     val simpleReverseDNatRule = new ReverseNatRule(
@@ -42,7 +42,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     val log =
         LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
 
-    val invalidateLoadBalancerTag = FlowTagger.invalidateFlowsByDevice(id)
+    val deviceTag = FlowTagger.tagForDevice(id)
 
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
@@ -56,7 +56,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         log.debug(
             "Load balancer with id {} applying inbound rules", id)
 
-        pktContext.addFlowTag(invalidateLoadBalancerTag)
+        pktContext.addFlowTag(deviceTag)
 
         if (adminStateUp) {
             findVip(pktContext) match {

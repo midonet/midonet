@@ -38,6 +38,8 @@ import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
     ZoneMembers, HostRequest, TunnelZoneRequest}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
+import FlowTagger.FlowTag
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
@@ -48,7 +50,6 @@ import org.midonet.odp.ports._
 import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.Bimap
 
 object UnderlayResolver {
@@ -584,7 +585,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             case HostConfigOperation.Deleted => processDelPeer()
         }
 
-        def processTags(tags: TraversableOnce[Any]): Unit = tags.foreach {
+        def processTags(tags: TraversableOnce[FlowTag]): Unit = tags.foreach {
             FlowController ! FlowController.InvalidateFlowsByTag(_)
         }
 
@@ -608,11 +609,11 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         // port came up and made us install temporary drop flows.
         // Invalidate them before adding the new flow
         fc ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateByTunnelKey(exterior.tunnelKey))
+                FlowTagger.tagForTunnelKey(exterior.tunnelKey))
 
         val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
         val actions = List[FlowAction](port.toOutputAction)
-        val tags = Set[Any](FlowTagger.invalidateDPPort(port.getPortNo.shortValue))
+        val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              null, Nil, tags)
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
@@ -632,7 +633,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         //   + On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
         FlowController ! InvalidateFlowsByTag(
-            FlowTagger.invalidateDPPort(dpPort.getPortNo.shortValue()))
+            FlowTagger.tagForDpPort(dpPort.getPortNo.shortValue()))
 
         if (active)
             installTunnelKeyFlow(dpPort, port)
@@ -1341,7 +1342,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  @return possible tags to send to the FlowController for invalidation
      */
     def addPeer(peer: UUID, zone: UUID,
-                srcIp: Int, dstIp: Int, t: TunnelType): Seq[Any] = versionUp {
+                srcIp: Int, dstIp: Int, t: TunnelType): Seq[FlowTag] = versionUp {
         val outputAction = t match {
             case TunnelType.gre => greOverlayTunnellingOutputAction
             case TunnelType.vxlan => vxlanOverlayTunnellingOutputAction
@@ -1354,11 +1355,11 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         val oldRoute = routes get zone
 
         _peersRoutes += ( peer -> ( routes + (zone -> newRoute) ) )
-        val tags = FlowTagger.invalidateTunnelRoute(srcIp, dstIp) :: Nil
+        val tags = FlowTagger.tagForTunnelRoute(srcIp, dstIp) :: Nil
 
-        oldRoute map { case Route(src,dst,_) =>
-            FlowTagger.invalidateTunnelRoute(src,dst) :: tags
-        } getOrElse tags
+        oldRoute.fold(tags) { case Route(src, dst, _) =>
+            FlowTagger.tagForTunnelRoute(src, dst) :: tags
+        }
     }
 
     /** delete a tunnel route info about peer for given zone.
@@ -1366,14 +1367,14 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  @param  zone  zone UUID the underlay route to remove is associated to.
      *  @return possible tag to send to the FlowController for invalidation
      */
-    def removePeer(peer: UUID, zone: UUID): Option[Any] =
+    def removePeer(peer: UUID, zone: UUID): Option[FlowTag] =
         (_peersRoutes get peer) flatMap { _ get zone } map {
             case r@Route(srcIp,dstIp,_) =>
                 log.info("removing tunnel route {} to peer {}", r, peer)
                 versionUp {
                     // TODO(hugo): remove nested map if becomes empty (mem leak)
                     _peersRoutes += (peer -> (_peersRoutes(peer) - zone))
-                    FlowTagger.invalidateTunnelRoute(srcIp,dstIp)
+                    FlowTagger.tagForTunnelRoute(srcIp,dstIp)
                 }
         }
 
@@ -1381,7 +1382,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      *  @param  zone zone uuid
      *  @return sequence of tags to send to the FlowController for invalidation
      */
-    def removePeersForZone(zone: UUID): Seq[Any] =
+    def removePeersForZone(zone: UUID): Seq[FlowTag] =
         _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
 
     /** used internally by the Datapath Controller to answer DpPortStatsRequest */

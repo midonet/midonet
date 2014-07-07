@@ -15,6 +15,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
 import org.midonet.midolman.simulation
 import org.midonet.packets.IPv4Addr
+import org.midonet.sdn.flows.FlowTagger
 
 object PoolManager {
     case class TriggerUpdate(poolMembers: Set[PoolMember])
@@ -71,8 +72,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
             simPoolMembers, disabledPoolMembers, context.system.eventStream)
         VirtualTopologyActor ! simPool
-        VirtualTopologyActor ! InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(id))
+        VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
     }
 
     override def receive = {

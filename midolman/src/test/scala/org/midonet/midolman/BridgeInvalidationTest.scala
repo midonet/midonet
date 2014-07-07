@@ -17,11 +17,12 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Bridge, CustomMatchers}
 import org.midonet.midolman.simulation.Coordinator.{TemporaryDropAction, ToPortSetAction, ToPortAction}
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC}
+import org.midonet.sdn.flows.FlowTagger
 
 
 @RunWith(classOf[JUnitRunner])
@@ -115,28 +116,28 @@ class BridgeInvalidationTest extends MidolmanSpec {
     }
 
     def leftPortUnicastInvalidation =
-        FlowTagger.invalidateFlowsByPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge.getId,
             MAC.fromString(leftMac), 0.toShort, leftPort.getId)
 
     def rightPortUnicastInvalidation =
-        FlowTagger.invalidateFlowsByPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge.getId,
             MAC.fromString(rightMac), 0.toShort, rightPort.getId)
 
     def otherPortUnicastInvalidation =
-        FlowTagger.invalidateFlowsByPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge.getId,
             MAC.fromString(rightMac), 0.toShort, otherPort.getId)
 
     def leftMacFloodInvalidation =
-        FlowTagger.invalidateFloodedFlowsByDstMac(clusterBridge.getId,
-            MAC.fromString(leftMac), ClusterBridge.UNTAGGED_VLAN_ID)
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
+            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(leftMac))
 
     def rightMacFloodInvalidation =
-        FlowTagger.invalidateFloodedFlowsByDstMac(clusterBridge.getId,
-            MAC.fromString(rightMac), ClusterBridge.UNTAGGED_VLAN_ID)
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
+            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(rightMac))
 
     def routerMacFloodInvalidation =
-        FlowTagger.invalidateFloodedFlowsByDstMac(clusterBridge.getId,
-            MAC.fromString(routerMac), ClusterBridge.UNTAGGED_VLAN_ID)
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
+            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(routerMac))
 
     feature("Bridge invalidates flows when a MAC is learned") {
         scenario("flooded flows are properly tagged") {
@@ -149,7 +150,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
 
             And("The flow is tagged with flood, ingress port, and device tags")
             val expectedTags = Set(
-                FlowTagger.invalidateFlowsByDevice(bridge.id),
+                FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightMacFloodInvalidation)
             pktContext.flowTags should be (expectedTags)
@@ -169,7 +170,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
 
             And("The flow is tagged with ingress port, egress port and device tags")
             val expectedTags = Set(
-                FlowTagger.invalidateFlowsByDevice(bridge.id),
+                FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightPortUnicastInvalidation)
             pktContext.flowTags should be (expectedTags)
@@ -195,7 +196,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             And("new packets should be directed to the newly associated port")
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
             val expectedTags = Set(
-                FlowTagger.invalidateFlowsByDevice(bridge.id),
+                FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 otherPortUnicastInvalidation)
 
@@ -263,7 +264,8 @@ class BridgeInvalidationTest extends MidolmanSpec {
             Then("Invalidations for flooded and unicast flows should happen")
             val invals = FlowController.getAndClear()
             invals should contain (InvalidateFlowsByTag(routerMacFloodInvalidation))
-            invals should contain (InvalidateFlowsByTag(FlowTagger.invalidateArpRequests(bridge.id)))
+            invals should contain (InvalidateFlowsByTag(
+                                    FlowTagger.tagForArpRequests(bridge.id)))
         }
 
         scenario("a interior port is unlinked") {
@@ -278,7 +280,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             FlowController.getAndClear()
 
             val interiorPortTag =
-                FlowTagger.invalidateFlowsByLogicalPort(bridge.id, interiorPort.getId)
+                FlowTagger.tagForBridgePort(bridge.id, interiorPort.getId)
 
             And("A flow addressed to the router is installed")
             val (pktContext, action) = simulateDevice(bridge, leftToRouterFrame, leftPort.getId)

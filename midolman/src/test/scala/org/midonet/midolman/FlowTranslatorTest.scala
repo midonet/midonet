@@ -13,14 +13,13 @@ import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest.{OneInstancePerTest, GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{TunnelZone, Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.topology.{LocalPortActive, FlowTagger,
+import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
 import org.midonet.midolman.topology.rcu.Host
@@ -31,7 +30,8 @@ import org.midonet.odp.DpPort
 import org.midonet.odp.flows.{FlowKeys, FlowActions, FlowAction,
                               FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
                                              FlowActionOutputToVrnPortSet}
 import org.midonet.util.concurrent.ExecutionContextOps
@@ -74,12 +74,12 @@ class FlowTranslatorTest extends MidolmanSpec {
         def translate(action: FlowAction): Unit = translate(List(action))
 
         def translate(actions: List[FlowAction]): Unit
-        def verify(result: (Seq[FlowAction], ROSet[Any]))
+        def verify(result: (Seq[FlowAction], ROSet[FlowTag]))
 
-        protected def withInputPortTagging(tags: ROSet[Any]) = inPortUUID match {
+        protected def withInputPortTagging(tags: ROSet[FlowTag]) = inPortUUID match {
             case Some(p) =>
                 val inId = dpState.getDpPortNumberForVport(inPortUUID.get).get
-                tags + FlowTagger.invalidateDPPort(inId.shortValue())
+                tags + FlowTagger.tagForDpPort(inId.shortValue())
             case None =>
                 tags
         }
@@ -139,7 +139,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             ctx translate FlowActionOutputToVrnPort(port)
             ctx verify (List(output(3)),
-                        Set(FlowTagger.invalidateDPPort(3)))
+                        Set(FlowTagger.tagForDpPort(3)))
         }
 
         translationScenario("The port is remote") { ctx =>
@@ -153,7 +153,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx translate FlowActionOutputToVrnPort(port.getId)
             ctx verify (List(setKey(FlowKeys.tunnel(port.getTunnelKey, 1, 2)),
                                    output(1342)),
-                        Set(FlowTagger.invalidateTunnelRoute(1, 2)))
+                        Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
 
         translationScenario("The port is remote but interior") { ctx =>
@@ -174,7 +174,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx local port -> 4
 
             ctx translate FlowActionOutputToVrnPort(port)
-            ctx verify (List(output(4)), Set(FlowTagger.invalidateDPPort(4)))
+            ctx verify (List(output(4)), Set(FlowTagger.tagForDpPort(4)))
         }
     }
 
@@ -213,16 +213,16 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             ctx translate FlowActionOutputToVrnPortSet(bridge.getId)
             ctx verify (List(output(2), output(3)),
-            Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+            Set(FlowTagger.tagForBroadcast(bridge.getId,
                                                     bridge.getId),
-                FlowTagger.invalidateFlowsByDevice(port0.getId),
-                FlowTagger.invalidateFlowsByDevice(port1.getId),
-                FlowTagger.invalidateFlowsByDevice(port2.getId),
-                FlowTagger.invalidateFlowsByDevice(port3.getId),
-                FlowTagger.invalidateFlowsByDevice(chain1.getId),
-                FlowTagger.invalidateFlowsByDevice(chain3.getId),
-                FlowTagger.invalidateDPPort(2),
-                FlowTagger.invalidateDPPort(3)))
+                FlowTagger.tagForDevice(port0.getId),
+                FlowTagger.tagForDevice(port1.getId),
+                FlowTagger.tagForDevice(port2.getId),
+                FlowTagger.tagForDevice(port3.getId),
+                FlowTagger.tagForDevice(chain1.getId),
+                FlowTagger.tagForDevice(chain3.getId),
+                FlowTagger.tagForDpPort(2),
+                FlowTagger.tagForDpPort(3)))
         }
 
         translationScenario("The port set has local ports") { ctx =>
@@ -245,16 +245,16 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             ctx translate FlowActionOutputToVrnPortSet(bridge.getId)
             ctx verify (List(output(2), output(3)),
-                        Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                        Set(FlowTagger.tagForBroadcast(bridge.getId,
                                                                 bridge.getId),
-                            FlowTagger.invalidateFlowsByDevice(port0.getId),
-                            FlowTagger.invalidateFlowsByDevice(port1.getId),
-                            FlowTagger.invalidateFlowsByDevice(port2.getId),
-                            FlowTagger.invalidateFlowsByDevice(port3.getId),
-                            FlowTagger.invalidateFlowsByDevice(chain1.getId),
-                            FlowTagger.invalidateFlowsByDevice(chain3.getId),
-                            FlowTagger.invalidateDPPort(2),
-                            FlowTagger.invalidateDPPort(3)))
+                            FlowTagger.tagForDevice(port0.getId),
+                            FlowTagger.tagForDevice(port1.getId),
+                            FlowTagger.tagForDevice(port2.getId),
+                            FlowTagger.tagForDevice(port3.getId),
+                            FlowTagger.tagForDevice(chain1.getId),
+                            FlowTagger.tagForDevice(chain3.getId),
+                            FlowTagger.tagForDpPort(2),
+                            FlowTagger.tagForDpPort(3)))
         }
 
         translationScenario("The port set has remote ports") { ctx =>
@@ -281,10 +281,10 @@ class FlowTranslatorTest extends MidolmanSpec {
                              output(1342),
                              setKey(FlowKeys.tunnel(bridge.getTunnelKey, 3, 4)),
                              output(1342)),
-                        Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                        Set(FlowTagger.tagForBroadcast(bridge.getId,
                                                                 bridge.getId),
-                            FlowTagger.invalidateTunnelRoute(1, 2),
-                            FlowTagger.invalidateTunnelRoute(3, 4)))
+                            FlowTagger.tagForTunnelRoute(1, 2),
+                            FlowTagger.tagForTunnelRoute(3, 4)))
         }
 
         translationScenario("The port set has a vxlan port") { ctx =>
@@ -327,12 +327,12 @@ class FlowTranslatorTest extends MidolmanSpec {
                     ),
                     output(666)
                 ),
-                Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                Set(FlowTagger.tagForBroadcast(bridge.getId,
                                                         bridge.getId),
-                    FlowTagger.invalidateFlowsByDevice(port0.getId),
-                    FlowTagger.invalidateTunnelRoute(hostIp.toInt, vtepIp.toInt),
-                    FlowTagger.invalidateDPPort(7),
-                    FlowTagger.invalidateDPPort(8)
+                    FlowTagger.tagForDevice(port0.getId),
+                    FlowTagger.tagForTunnelRoute(hostIp.toInt, vtepIp.toInt),
+                    FlowTagger.tagForDpPort(7),
+                    FlowTagger.tagForDpPort(8)
                 )
             )
         }
@@ -367,14 +367,14 @@ class FlowTranslatorTest extends MidolmanSpec {
                              output(1342),
                              setKey(FlowKeys.tunnel(bridge.getTunnelKey, 3, 4)),
                              output(1342)),
-                        Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                        Set(FlowTagger.tagForBroadcast(bridge.getId,
                                                                 bridge.getId),
-                            FlowTagger.invalidateFlowsByDevice(lport0.getId),
-                            FlowTagger.invalidateFlowsByDevice(lport1.getId),
-                            FlowTagger.invalidateDPPort(2),
-                            FlowTagger.invalidateDPPort(3),
-                            FlowTagger.invalidateTunnelRoute(1, 2),
-                            FlowTagger.invalidateTunnelRoute(3, 4)))
+                            FlowTagger.tagForDevice(lport0.getId),
+                            FlowTagger.tagForDevice(lport1.getId),
+                            FlowTagger.tagForDpPort(2),
+                            FlowTagger.tagForDpPort(3),
+                            FlowTagger.tagForTunnelRoute(1, 2),
+                            FlowTagger.tagForTunnelRoute(3, 4)))
         }
     }
 
@@ -407,11 +407,11 @@ class FlowTranslatorTest extends MidolmanSpec {
                                userspace(1),
                                pushVLAN(3))
             ctx verify (List(output(2), output(3), userspace(1), pushVLAN(3)),
-                        Set(FlowTagger.invalidateDPPort(2),
-                            FlowTagger.invalidateBroadcastFlows(bridge.getId,
+                        Set(FlowTagger.tagForDpPort(2),
+                            FlowTagger.tagForBroadcast(bridge.getId,
                                                                 bridge.getId),
-                            FlowTagger.invalidateFlowsByDevice(port1.getId),
-                            FlowTagger.invalidateDPPort(3)))
+                            FlowTagger.tagForDevice(port1.getId),
+                            FlowTagger.tagForDpPort(3)))
         }
 
         translationScenario("Multiple actions of the same type are translated") { ctx =>
@@ -430,8 +430,8 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx verify (List(output(3),
                              setKey(FlowKeys.tunnel(port1.getTunnelKey, 1, 2)),
                              output(1342)),
-                        Set(FlowTagger.invalidateDPPort(3),
-                            FlowTagger.invalidateTunnelRoute(1, 2)))
+                        Set(FlowTagger.tagForDpPort(3),
+                            FlowTagger.tagForTunnelRoute(1, 2)))
         }
     }
 
@@ -444,7 +444,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         override def translateVirtualWildcardFlow(
                             flow: WildcardFlow,
-                            tags: ROSet[Any]) : Urgent[(WildcardFlow, ROSet[Any])] = {
+                            tags: ROSet[FlowTag]) : Urgent[(WildcardFlow, ROSet[FlowTag])] = {
             if (flow.getMatch.getInputPortUUID == null)
                 fail("NULL in forwarded call")
             super.translateVirtualWildcardFlow(flow, tags)
@@ -453,7 +453,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         override def translateActions(
                             actions: Seq[FlowAction],
                             inPortUUID: Option[UUID],
-                            dpTags: mutable.Set[Any],
+                            dpTags: mutable.Set[FlowTag],
                             wMatch: WildcardMatch) : Urgent[Seq[FlowAction]] =
             super.translateActions(actions, inPortUUID, dpTags, wMatch)
     }
@@ -492,7 +492,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     def translateWithAndWithoutTags(name: String,
                                     testFun: TranslationContext => Unit): Unit = {
         for (withTags <- Array(false, true)) {
-            val tags = mutable.Set[Any]()
+            val tags = mutable.Set[FlowTag]()
             var translatedActions: Seq[FlowAction] = null
 
             val ctx = new TranslationContext() {
@@ -506,7 +506,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     translatedActions = null
                     do new TestFlowTranslator(dpState).translateActions(
                             actions, inPortUUID,
-                            if (withTags) tags else mutable.Set[Any](),
+                            if (withTags) tags else mutable.Set[FlowTag](),
                             wcMatch) match {
                         case Ready(v) =>
                             translatedActions = v
@@ -515,7 +515,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     } while (translatedActions == null)
                 }
 
-                def verify(result: (Seq[FlowAction], ROSet[Any])) = {
+                def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
                     translatedActions should contain theSameElementsAs result._1
                     if (withTags)
                         tags should be (withInputPortTagging(result._2))
@@ -532,7 +532,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def translateWildcardFlow(name: String,
                               testFun: TranslationContext => Unit): Unit = {
-        var translation: (WildcardFlow, ROSet[Any]) = null
+        var translation: (WildcardFlow, ROSet[FlowTag]) = null
         val ctx = new TranslationContext() {
             protected val dpState = new TestDatapathState
             private val wcMatch = new WildcardMatch()
@@ -546,16 +546,18 @@ class FlowTranslatorTest extends MidolmanSpec {
                     case p => p
                 }
 
+                val tags = new mutable.HashSet[FlowTag]
                 do new TestFlowTranslator(dpState).translateVirtualWildcardFlow(
-                    WildcardFlow(wcMatch.setInputPortUUID(port), actions), null) match {
+                    WildcardFlow(wcMatch.setInputPortUUID(port), actions), tags) match {
                         case Ready(v) =>
                             translation = v
                         case NotYet(f) =>
                             Await.result(f, 200 millis)
+                            tags.clear()
                 } while (translation == null)
             }
 
-            def verify(result: (Seq[FlowAction], ROSet[Any])) = {
+            def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
                 translation._1.actions should contain theSameElementsAs result._1
                 translation._2 should be (withInputPortTagging(result._2))
             }
