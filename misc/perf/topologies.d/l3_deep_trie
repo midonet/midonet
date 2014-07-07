@@ -65,8 +65,12 @@ setup_topology() {
     if [ -z "$HOST_ID" ] ; then
         return 1
     fi
-
     echo "found host with id $HOST_ID"
+
+    echo "Creating tunnel zone"
+    TZONE_ID=`midonet-cli -A -e tunnel-zone create type gre name default`
+    midonet-cli -A -e tunnel-zone $TZONE_ID \
+        add member host $HOST_ID address 10.0.2.15
 
     echo "creating bridge A"
     BR_A_ID=`midonet-cli -A -e bridge create name perftest-bridgeA`
@@ -137,6 +141,7 @@ tear_down_topology() {
     test_phase "Tearing down virtual topology"
     midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_SOURCE_BINDING
     midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_DEST_BINDING
+    midonet-cli -A -e delete tunnel-zone $TZONE_ID
     midonet-cli -A -e bridge $BR_A_ID delete port $LEFTPORT_A
     midonet-cli -A -e bridge $BR_A_ID delete port $RIGHTPORT_A
     midonet-cli -A -e bridge $BR_A_ID delete

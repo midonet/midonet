@@ -49,6 +49,11 @@ setup_topology() {
         return 1
     fi
 
+    echo "Creating tunnel zone"
+    TZONE_ID=`midonet-cli -A -e tunnel-zone create type gre name default`
+    midonet-cli -A -e tunnel-zone $TZONE_ID \
+        add member host $HOST_ID address 10.0.2.15
+
     # First thing we do is hack the physical topology crated in perftest,
     # the source traffic will be sent from inside a namespace, since we
     # need VLAN tagged traffic we'll add a subinterface to the source
@@ -64,8 +69,10 @@ setup_topology() {
 
     echo "creating vlan unaware bridge"
     BR_ID=`midonet-cli -A -e bridge create name perftest-vub-$VLAN`
+
     echo "creating vlan aware bridge"
     VAB_ID=`midonet-cli -A -e bridge create name perftest-vab`
+
     echo "creating ports in VUB"
     LEFTPORT=`midonet-cli -A -e bridge $BR_ID create port`
     RIGHTPORT=`midonet-cli -A -e bridge $BR_ID create port`
@@ -102,6 +109,7 @@ tear_down_topology() {
     test_phase "Tearing down virtual topology"
     midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_SOURCE_BINDING
     midonet-cli -A -e host $HOST_ID delete binding interface $TOPOLOGY_DEST_BINDING
+    midonet-cli -A -e delete tunnel-zone $TZONE_ID
     midonet-cli -A -e bridge $VAB_ID delete port $VLANPORT
     midonet-cli -A -e bridge $VAB_ID delete port $TRUNKPORT
     midonet-cli -A -e bridge $BR_ID delete port $LEFTPORT
