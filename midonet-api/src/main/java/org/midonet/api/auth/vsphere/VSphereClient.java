@@ -55,7 +55,7 @@ public class VSphereClient {
                 VSphereServiceInstance.forCredentials(sdkUrl, username,
                         password, ignoreServerCertificate);
 
-        log.info(String.format("Successfully logged in %s with username: %s",
+        log.debug(String.format("Successfully logged in %s with username: %s",
                 sdkUrl, username));
 
         return vSphereServiceInstance;
@@ -79,7 +79,7 @@ public class VSphereClient {
                 VSphereServiceInstance.forSessionCookie(sdkUrl, soapSessionId,
                         ignoreServerCertificate);
 
-        log.info(String.format("Successfully logged in %s", sdkUrl));
+        log.debug(String.format("Successfully logged in %s", sdkUrl));
 
         return vSphereServiceInstance;
     }
