@@ -312,6 +312,11 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>rpc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
         </dependency>
 
