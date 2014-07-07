@@ -27,11 +27,14 @@ import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+
+import static org.junit.Assert.assertTrue;
 
 public class VxLanGatewayServiceTest {
 
@@ -95,6 +98,10 @@ public class VxLanGatewayServiceTest {
         host.setName("TestHost");
         UUID hostId = dataClient.hostsCreate(UUID.randomUUID(), host);
 
+        HostZkManager hostManager = injector.getInstance(HostZkManager.class);
+        hostManager.makeAlive(hostId);
+        assertTrue(dataClient.hostsIsAlive(hostId));
+
         TunnelZone tz = new TunnelZone();
         tz.setName("TestTz");
         UUID tzId = dataClient.tunnelZonesCreate(tz);
@@ -138,7 +145,7 @@ public class VxLanGatewayServiceTest {
     }
 
     /**
-     * Test the addition of a bridge
+     * Test the addition of a bridge.
      */
     @Test
     public void testBridgeAddition(@Mocked final VxLanGwBroker vxGwBroker,
@@ -168,6 +175,9 @@ public class VxLanGatewayServiceTest {
             vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
                 times = 1;
 
+            // The flooding proxy should be set
+            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
+
             // Bridge addition
             mP.watch((UUID)withNotNull()); result = true; times = 1;
 
@@ -190,7 +200,7 @@ public class VxLanGatewayServiceTest {
     }
 
     /**
-     * Test the update of a bridge
+     * Test the update of a bridge.
      */
     @Test
     public void testBridgeUpdate(@Mocked final VxLanGwBroker vxGwBroker,
@@ -215,6 +225,9 @@ public class VxLanGatewayServiceTest {
             result = lsUuid; times = 1;
             vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
             times = 1;
+
+            // The flooding proxy should be set
+            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
 
             // Bridge update (vxlanport addition)
             mP.watch((UUID)withNotNull()); result = true; times = 1;
