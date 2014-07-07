@@ -1,0 +1,75 @@
+package org.midonet.sdn.state;
+
+option java_package = "org.midonet.rpc";
+option java_outer_classname = "FlowStateProto";
+option optimize_for = LITE_RUNTIME;
+
+message UUID {
+    required fixed64 msb = 1;
+    required fixed64 lsb = 2;
+}
+
+message IpAddress {
+    enum IpVersion {
+        V4 = 0;
+        V6 = 1;
+    }
+    required IpVersion version = 1;
+    required uint32 quad0 = 2;
+    optional uint32 quad1 = 3;
+    optional uint32 quad2 = 4;
+    optional uint32 quad3 = 5;
+}
+
+message NatKey {
+    enum Type {
+        FWD_DNAT = 0;
+        FWD_STICKY_DNAT = 1;
+        REV_DNAT = 2;
+        REV_STICKY_DNAT = 3;
+        FWD_SNAT = 4;
+        REV_SNAT = 5;
+    }
+    required Type type = 1;
+    required uint32 protocol = 2;
+    required IpAddress src_ip = 3;
+    required IpAddress dst_ip = 4;
+    required uint32 src_port = 5;
+    required uint32 dst_port = 6;
+}
+
+message NatValue {
+    required IpAddress ip = 1;
+    required uint32 port = 2;
+}
+
+message NatEntry {
+    required NatKey k = 1;
+    required NatValue v = 2;
+}
+
+message ConntrackKey {
+    required uint32 protocol = 1;
+    required IpAddress src_ip = 2;
+    required uint32 src_port = 3;
+    required IpAddress dst_ip = 4;
+    required uint32 dst_port = 5;
+    required UUID device = 6;
+}
+
+message FlowState {
+    optional ConntrackKey conntrack_key = 1;
+    repeated NatEntry nat_entries = 2;
+    required UUID ingress_port = 3;
+    optional UUID egress_port = 4;
+    optional UUID egress_port_set = 5;
+}
+
+message StateMessage {
+    required uint64 seq = 1;
+    required UUID sender = 2;
+    required uint64 epoch = 3;
+    repeated FlowState new_state = 4;
+    repeated NatKey delete_nat_keys = 5;
+    repeated ConntrackKey delete_conntrack_keys = 6;
+}

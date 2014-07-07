@@ -27,7 +27,7 @@ sourceSets {
 dependencies {
     runtime project(':midonet-jdk-bootstrap')
     compile project(':packets'), project(':midonet-util'), project(':netlink'),
-            project(':odp'), project(':cluster')
+            project(':odp'), project(':cluster'), project(':rpc')
 
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_conf,
