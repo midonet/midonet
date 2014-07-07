@@ -13,3 +13,7 @@ dependencies {
     compile libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.commons_cli
 }
+
+cobertura {
+    coverageExcludes = ['org/midonet/odp/test/*']
+}
