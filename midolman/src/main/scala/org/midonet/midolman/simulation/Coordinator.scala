@@ -20,8 +20,9 @@ import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology._
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.{setKey, popVLAN}
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr, IPv6Addr, TCP, UDP}
@@ -160,7 +161,7 @@ class Coordinator(var origMatch: WildcardMatch,
         Ready(cookie match {
             case Some(_) =>
                 val tags = if (withTags) pktContext.flowTags
-                           else Set.empty[Any]
+                           else Set.empty[FlowTag]
                 if (temporary)
                     TemporaryDrop(tags, pktContext.flowRemovedCallbacks)
                 else
@@ -394,19 +395,19 @@ class Coordinator(var origMatch: WildcardMatch,
             return dropFlow(temporary = true, withTags = false)
         }
 
-        // add tag for flow invalidation
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-
         // Get the RCU port object and start simulation.
-        expiringAsk[Port](portID, log) flatMap {
-            case p if !p.adminStateUp =>
-                processAdminStateDown(p, isIngress = true)
-            case p =>
-                if (getPortGroups && p.isExterior) {
-                    pktContext.portGroups = p.portGroups
-                }
-                pktContext.inPortId = p
-                applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
+        expiringAsk[Port](portID, log) flatMap { port =>
+            pktContext.addFlowTag(port.deviceTag)
+            port match {
+                case p if !p.adminStateUp =>
+                    processAdminStateDown(p, isIngress = true)
+                case p =>
+                    if (getPortGroups && p.isExterior) {
+                        pktContext.portGroups = p.portGroups
+                    }
+                    pktContext.inPortId = p
+                    applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
+            }
         }
     }
 
@@ -436,28 +437,25 @@ class Coordinator(var origMatch: WildcardMatch,
      * Simulate the packet egressing a virtual port. This is NOT intended
      * for output-ing to PortSets.
      */
-    private def packetEgressesPort(portID: UUID)
-    : Urgent[SimulationResult] = {
-        // add tag for flow invalidation
-        pktContext.addFlowTag(FlowTagger.invalidateFlowsByDevice(portID))
-
-        expiringAsk[Port](portID, log) flatMap {
-            case port if !port.adminStateUp =>
-                processAdminStateDown(port, isIngress = false)
-            case port =>
-                pktContext.outPortId = port.id
-                applyPortFilter(port, port.outboundFilter, {
-                    case port: Port if port.isExterior =>
-                        emit(portID, isPortSet = false, port)
-                    case port: Port if port.isInterior =>
-                        packetIngressesPort(port.peerID,
-                            getPortGroups = false)
-                    case _ =>
-                        log.warning("Port {} is unplugged", portID)
-                        dropFlow(temporary = true, withTags = false)
-                })
+    private def packetEgressesPort(portID: UUID): Urgent[SimulationResult] =
+        expiringAsk[Port](portID, log) flatMap { port =>
+            pktContext.addFlowTag(port.deviceTag)
+            port match {
+                case p if !p.adminStateUp =>
+                    processAdminStateDown(port, isIngress = false)
+                case p =>
+                    pktContext.outPortId = p.id
+                    applyPortFilter(p, p.outboundFilter, {
+                        case p: Port if p.isExterior =>
+                            emit(portID, isPortSet = false, p)
+                        case p: Port if p.isInterior =>
+                            packetIngressesPort(p.peerID, getPortGroups = false)
+                        case _ =>
+                            log.warning("Port {} is unplugged", portID)
+                            dropFlow(temporary = true, withTags = false)
+                    })
+            }
         }
-    }
 
     /**
      * Complete the simulation by emitting the packet from the specified

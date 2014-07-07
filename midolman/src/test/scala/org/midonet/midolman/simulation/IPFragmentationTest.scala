@@ -21,14 +21,14 @@ import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResul
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.odp.flows.IPFragmentType
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 
 @RunWith(classOf[JUnitRunner])
 class IPFragmentationTest extends MidolmanSpec {
@@ -224,9 +224,9 @@ class IPFragmentationTest extends MidolmanSpec {
 
     private def assertToPortFlowCreated(simRes: SimulationResult) {
         simRes should be (toPort(dstPort.getId)
-            (FlowTagger.invalidateFlowsByDevice(srcPort.getId),
-             FlowTagger.invalidateFlowsByDevice(device.getId),
-             FlowTagger.invalidateFlowsByDevice(dstPort.getId)))
+            (FlowTagger.tagForDevice(srcPort.getId),
+             FlowTagger.tagForDevice(device.getId),
+             FlowTagger.tagForDevice(dstPort.getId)))
     }
 
     private def assertDropFlowCreated(simRes: SimulationResult,
@@ -238,8 +238,8 @@ class IPFragmentationTest extends MidolmanSpec {
 
         simRes shouldBe a [Drop]
         simRes shouldBe dropped(
-            FlowTagger.invalidateFlowsByDevice(srcPort.getId),
-            FlowTagger.invalidateFlowsByDevice(device.getId))
+            FlowTagger.tagForDevice(srcPort.getId),
+            FlowTagger.tagForDevice(device.getId))
     }
 
     private def assertIcmpFragNeededMessageReceived() {

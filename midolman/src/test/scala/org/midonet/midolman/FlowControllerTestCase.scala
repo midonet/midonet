@@ -18,6 +18,7 @@ import org.midonet.odp.flows.{FlowKeys, FlowAction}
 import org.midonet.odp.{FlowMatch, Flow}
 import org.midonet.sdn.flows._
 import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger.{TunnelKeyTag, FlowTag}
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTestCase extends MidolmanSpec {
@@ -59,20 +60,20 @@ class FlowControllerTestCase extends MidolmanSpec {
             val historySize = 1024
             val historyDelta = 1
             val tagCount = historySize + historyDelta
-            val tags = Seq.fill[Any](tagCount)(TestableFlow.getTag(0))
+            val tags = Seq.fill(tagCount)(TestableFlow.getTag(0))
 
             When("Invalidate all tags.")
             for (tag <- 0 until tagCount) {
                 FlowController ! FlowController.InvalidateFlowsByTag(tags(tag))
             }
 
-            val youngest = FlowController.lastInvalidationEvent;
+            val youngest = FlowController.lastInvalidationEvent
             val oldest = youngest - historySize + 1
 
             Then("Tags valid for a negative lastSeen.")
             for (tag <- 0 until tagCount) {
                 FlowController.isTagSetStillValid(-1,
-                    Set[Any](tags(tag))) should be (true)
+                    Set(tags(tag))) should be (true)
             }
 
             And ("Tags not valid (EventSearchWindowMissed) for lastSeen in" +
@@ -80,9 +81,9 @@ class FlowControllerTestCase extends MidolmanSpec {
             for (lastSeen <- 0L until oldest - 1) {
                 // 0 < tagCount
                 FlowController.isTagSetStillValid(lastSeen,
-                    Set[Any](tags(0))) should be (false)
+                    Set(tags(0))) should be (false)
                 FlowController.isTagSetStillValid(lastSeen,
-                    Set[Any](tags(tagCount - 1))) should be (false)
+                    Set(tags(tagCount - 1))) should be (false)
             }
 
             // Test 1
@@ -97,23 +98,23 @@ class FlowControllerTestCase extends MidolmanSpec {
             for (lastSeen <- oldest - 1 until tagCount) {
                 // Test 1: condition 0 < historyDelta
                 FlowController.isTagSetStillValid(lastSeen,
-                    Set[Any](tags(0))) should be (true)
+                    Set(tags(0))) should be (true)
                 FlowController.isTagSetStillValid(lastSeen,
-                    Set[Any](tags(historyDelta - 1))) should be (true)
+                    Set(tags(historyDelta - 1))) should be (true)
                 // Test 2
                 if ((lastSeen - oldest + historyDelta + 1).toInt < historySize) {
                     FlowController.isTagSetStillValid(lastSeen,
-                        Set[Any](tags((lastSeen - oldest + historyDelta + 1).toInt))
+                        Set(tags((lastSeen - oldest + historyDelta + 1).toInt))
                     ) should be (false)
                     FlowController.isTagSetStillValid(lastSeen,
-                        Set[Any](tags(historySize - 1))) should be (false)
+                        Set(tags(historySize - 1))) should be (false)
                 }
                 // Test 3
                 if (historyDelta <= (lastSeen - oldest + historyDelta).toInt) {
                     FlowController.isTagSetStillValid(lastSeen,
-                        Set[Any](tags(historyDelta))) should be(true)
+                        Set(tags(historyDelta))) should be(true)
                     FlowController.isTagSetStillValid(lastSeen,
-                        Set[Any](tags((lastSeen - oldest + historyDelta).toInt))
+                        Set(tags((lastSeen - oldest + historyDelta).toInt))
                     ) should be (true)
                 }
             }
@@ -124,9 +125,9 @@ class FlowControllerTestCase extends MidolmanSpec {
         scenario("Addition and removal of a flow.") {
 
             Given("A wildcard flow.")
-            val flow = new TestableFlow(1);
+            val flow = new TestableFlow(1)
 
-            val state = new MetricsSnapshot();
+            val state = new MetricsSnapshot()
 
             When("The flow is added to the flow controller.")
             FlowController ! FlowController.AddWildcardFlow(
@@ -152,9 +153,9 @@ class FlowControllerTestCase extends MidolmanSpec {
         scenario("Addition of a duplicate flow.") {
 
             Given("A wildcard flow.")
-            val flow = new TestableFlow(2);
+            val flow = new TestableFlow(2)
 
-            val state = new MetricsSnapshot();
+            val state = new MetricsSnapshot()
 
             When("The flow is added twice to the flow controller.")
             FlowController ! FlowController.AddWildcardFlow(
@@ -221,13 +222,13 @@ class FlowControllerTestCase extends MidolmanSpec {
             val tag = TestableFlow.getTag(4)
 
             Then("The tag should not appear in the tag to flows map.")
-            flowController.tagToFlows.get(key) should be (None)
+            flowController.tagToFlows.get(tag) should be (None)
 
             When("The flow is invalidated by a tag.")
             FlowController ! FlowController.InvalidateFlowsByTag(tag)
 
             Then("The tag should appear in the invalidation history.")
-            FlowController.isTagSetStillValid(1, Set[Any](tag)) should be(false)
+            FlowController.isTagSetStillValid(1, Set(tag)) should be(false)
 
             testMessages(Seq(
                 classOf[FlowController.InvalidateFlowsByTag]))
@@ -532,7 +533,7 @@ class FlowControllerTestCase extends MidolmanSpec {
                 (Random.nextInt & 0xFFFFFFFFL)
         private val srcIpv4Address = (key << 16) | (Random.nextInt & 0xFFFF)
         private val dstIpv4Address = (key << 16) | (Random.nextInt & 0xFFFF)
-        private val tags = Seq.fill[Any](tagCount)(TestableFlow.getTag(key));
+        private val tags = Seq.fill(tagCount)(TestableFlow.getTag(key))
 
         val flowMatch = new FlowMatch().addKey(
             FlowKeys.tunnel(tunnelId, srcIpv4Address, dstIpv4Address))
@@ -560,7 +561,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
         def isFlowRemoved = flowRemoved
 
-        def getAnyTag: Any = tags(Random.nextInt(tags.length))
+        def getAnyTag: FlowTag = tags(Random.nextInt(tags.length))
     }
 
     sealed class MetricsSnapshot {
@@ -569,7 +570,7 @@ class FlowControllerTestCase extends MidolmanSpec {
     }
 
     object TestableFlow {
-        def getTag(key: Int) = (key.toLong << 32) |
-                (Random.nextInt & 0xFFFFFFFFL)
+        def getTag(key: Int): FlowTag = TunnelKeyTag(
+            (key.toLong << 32) | (Random.nextInt & 0xFFFFFFFFL))
     }
 }

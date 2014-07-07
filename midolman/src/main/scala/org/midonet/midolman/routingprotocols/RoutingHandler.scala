@@ -18,7 +18,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.{DatapathController, FlowController}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.DpPort
@@ -28,7 +28,7 @@ import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.process.ProcessHelper
 import org.midonet.midolman.routingprotocols.RoutingHandler.BGPD_SHOW
@@ -358,7 +358,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                         // Remove all the flows for this BGP link
                         FlowController !
-                            FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgpID))
+                            FlowController.InvalidateFlowsByTag(FlowTagger.tagForBgp(bgpID))
 
                         // If this is the last BGP for ths port, tear everything down.
                         if (bgps.size == 0) {
@@ -634,7 +634,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 phase = Disabling
 
                 FlowController !
-                    FlowController.InvalidateFlowsByTag(FlowTagger.invalidateByBgp(bgps.head._1))
+                    FlowController.InvalidateFlowsByTag(FlowTagger.tagForBgp(bgps.head._1))
                 stopBGP()
 
                 // NOTE(guillermo) the dataClient's write operations (such as
@@ -874,7 +874,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Set the BGP ID in a set to use as a tag for the datapath flows
         // For some reason AddWilcardFlow needs a mutable set so this
         // construction is needed although I'm sure you can find a better one.
-        val bgpTagSet = Set[Any](FlowTagger.invalidateByBgp(bgp.getId))
+        val bgpTagSet = Set(FlowTagger.tagForBgp(bgp.getId))
 
         def addVirtualWildcardFlowMsg(wcFlow: WildcardFlow) =
             AddVirtualWildcardFlow(wcFlow, Nil, bgpTagSet)

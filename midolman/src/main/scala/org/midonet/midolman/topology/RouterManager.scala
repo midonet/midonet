@@ -17,7 +17,7 @@ import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 import org.midonet.util.functors.Callback0
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
@@ -95,18 +95,18 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     def topologyReady() {
         log.debug("Sending a Router to the VTA")
 
+        val router = new Router(id, cfg, rTable, device(cfg.inboundFilter),
+            device(cfg.outboundFilter), device(cfg.loadBalancer),
+            new TagManagerImpl, arpTable)
+
         // Not using context.actorFor("..") because in tests it will
         // bypass the probes and make it harder to fish for these messages
         // Should this need to be decoupled from the VTA, the parent
         // actor reference should be passed in the constructor
-        VirtualTopologyActor !
-            new Router(id, cfg, rTable, device(cfg.inboundFilter),
-                       device(cfg.outboundFilter), device(cfg.loadBalancer),
-                       new TagManagerImpl, arpTable)
+        VirtualTopologyActor ! router
 
         if (changed) {
-            VirtualTopologyActor !
-                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+            VirtualTopologyActor ! InvalidateFlowsByTag(router.deviceTag)
             changed = false
         }
     }
@@ -117,7 +117,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
 
     private def invalidateFlowsByIp(ip: IPv4Addr) {
         FlowController ! FlowController.InvalidateFlowsByTag(
-            FlowTagger.invalidateByIp(id, ip))
+            FlowTagger.tagForDestinationIp(id, ip))
     }
 
     override def receive = super.receive orElse {
@@ -145,7 +145,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         case InvalidateFlows(addedRoutes, deletedRoutes) =>
             for (route <- deletedRoutes) {
                 FlowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateByRoute(id, route.hashCode()))
+                    FlowTagger.tagForRoute(route))
             }
             for (route <- addedRoutes) {
                 log.debug("Projecting added route {}", route)
@@ -157,7 +157,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 val it = ipToInvalidate.iterator()
                 it.foreach(ip => FlowController !
                     FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateByIp(id, ip)))
+                        FlowTagger.tagForDestinationIp(id, ip)))
                 }
 
         case AddTag(dstIp) =>

@@ -25,15 +25,13 @@ import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
 import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
+import org.midonet.sdn.flows.{FlowTagger, FlowManager, FlowManagerHelper, ManagedWildcardFlow, WildcardFlow, WildcardMatch}
+import FlowTagger.FlowTag
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowManager
-import org.midonet.sdn.flows.FlowManagerHelper
-import org.midonet.sdn.flows.ManagedWildcardFlow
-import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.functors.{Callback0, Callback1}
 
@@ -92,7 +90,7 @@ object FlowController extends Referenceable {
     case class AddWildcardFlow(wildFlow: WildcardFlow,
                                dpFlow: Flow,
                                flowRemovalCallbacks: Seq[Callback0],
-                               tags: ROSet[Any],
+                               tags: ROSet[FlowTag],
                                lastInvalidation: Long = -1,
                                flowMatch: FlowMatch = null,
                                processed: Array[FlowMatch] = null,
@@ -104,7 +102,7 @@ object FlowController extends Referenceable {
 
     case class WildcardFlowRemoved(f: WildcardFlow)
 
-    case class InvalidateFlowsByTag(tag: Any)
+    case class InvalidateFlowsByTag(tag: FlowTag)
 
     case class FlowAdded(flow: Flow, wcMatch: WildcardMatch)
 
@@ -181,9 +179,9 @@ object FlowController extends Referenceable {
     }
 
 
-    private val invalidationHistory = new EventHistory[Any](1024)
+    private val invalidationHistory = new EventHistory[FlowTag](1024)
 
-    def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[Any]) = {
+    def isTagSetStillValid(lastSeenInvalidation: Long, tags: ROSet[FlowTag]) = {
         if (lastSeenInvalidation >= 0) {
             invalidationHistory.exists(lastSeenInvalidation, tags) match {
                 case EventSearchWindowMissed => tags.isEmpty
@@ -231,9 +229,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
 
-    val tagToFlows: MultiMap[Any, ManagedWildcardFlow] =
-        new HashMap[Any, mutable.Set[ManagedWildcardFlow]]
-            with MultiMap[Any, ManagedWildcardFlow]
+    val tagToFlows: MultiMap[FlowTag, ManagedWildcardFlow] =
+        new HashMap[FlowTag, mutable.Set[ManagedWildcardFlow]]
+            with MultiMap[FlowTag, ManagedWildcardFlow]
 
     var flowExpirationCheckInterval: FiniteDuration = null
 
@@ -378,7 +376,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
         @tailrec
-        def tagsCleanup(tags: Array[Any], i: Int = 0) {
+        def tagsCleanup(tags: Array[FlowTag], i: Int = 0) {
             if (tags != null && tags.length > i) {
                 tagToFlows.removeBinding(tags(i), wildFlow)
                 tagsCleanup(tags, i+1)
@@ -420,7 +418,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
     private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow,
                                               dpFlow: Flow,
                                               flowRemovalCallbacks: Seq[Callback0],
-                                              tags: ROSet[Any]): Boolean = {
+                                              tags: ROSet[FlowTag]): Boolean = {
 
         if (!flowManager.add(wildFlow)) {
             log.error("FlowManager failed to install wildcard flow {}", wildFlow)

@@ -22,11 +22,12 @@ import org.midonet.midolman.VMsBehindRouterFixture
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
-import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -318,7 +319,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(router.getId))
+            FlowTagger.tagForDevice(router.getId))
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
@@ -377,7 +378,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(router.getId))
+            FlowTagger.tagForDevice(router.getId))
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)

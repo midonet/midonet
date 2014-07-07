@@ -11,6 +11,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder
 
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.FlowAction
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{WeakObjectPool, ObjectPool, PooledObject}
 import org.midonet.util.functors.Callback0
 
@@ -145,7 +146,7 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     var creationTimeMillis: Long = 0L
     var lastUsedTimeMillis: Long = 0L
     var callbacks: Array[Callback0] = null
-    var tags: Array[Any] = null
+    var tags: Array[FlowTag] = null
     val dpFlows = new java.util.HashSet[FlowMatch](4)
 
     val wcmatch = new WildcardMatch()
