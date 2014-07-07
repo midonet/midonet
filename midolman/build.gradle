@@ -32,12 +32,43 @@ dependencies {
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_conf,
             libraries.commons_cli, libraries.commons_io, libraries.guava,
-            libraries.guice, libraries.yammer, libraries.cassandra,
+            libraries.guice, libraries.yammer, libraries.rx, libraries.cassandra,
             libraries.hector, libraries.jetty, libraries.jackson_scala,
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix
 
     testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit
+}
+
+cobertura {
+    coverageExcludes = [
+        '**/FlowController$Wildcard*',
+        '**/FlowController$Add*',
+        '**/FlowController$Remove*',
+        '**/FlowController$Invalidate*',
+        '**/FlowController$FlowAdded*',
+        '**/FlowController$Internal$*',
+
+        '**/DatapathController$DpPort*',
+        '**/DatapathController$Init*',
+        '**/DatapathController$Datapath*',
+        '**/DatapathController$Internal$*',
+
+        '**/DeduplicationActor$ApplyFlow*',
+        '**/DeduplicationActor$*Packet*',
+        '**/DeduplicationActor$_*',
+
+        '**/PacketWorkflow$PacketIn*',
+        '**/PacketWorkflow$SendPacket*',
+        '**/PacketWorkflow$AddVirtual*',
+
+        '**/Coordinator$ToPort*',
+        '**/Coordinator$DoFlowAction*',
+        '**/Coordinator$ForkAction*',
+        '**/VirtualActions$*',
+
+        '**/VxLanPortMapper$Internal$*'
+    ]
 }
 
 distributions {
