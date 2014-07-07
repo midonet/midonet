@@ -11,11 +11,11 @@ import akka.event.LoggingBus
 import org.midonet.midolman.layer4.{NwTpPair, NatMapping}
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.{IPv4Addr, IPAddr, ICMP}
 import org.midonet.util.collection.WeightedSelector
 import org.midonet.midolman.l4lb.{ForwardStickyNatRule, ReverseStickyNatRule}
 import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.sdn.flows.FlowTagger
 
 object Pool {
     def findPoolMember(ip: IPAddr, port: Int, pmArray: Array[PoolMember])
@@ -43,7 +43,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
     private val log =
         LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
 
-    val invalidatePoolTag = FlowTagger.invalidateFlowsByDevice(id)
+    val deviceTag = FlowTagger.tagForDevice(id)
 
     val isUp = adminStateUp && activePoolMembers.nonEmpty
 
@@ -67,7 +67,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
         implicit val implicitPacketContext = pktContext
         implicit val implicitNatMapping = natMapping
 
-        pktContext.addFlowTag(invalidatePoolTag)
+        pktContext.addFlowTag(deviceTag)
 
         if (isUp) {
             maintainConnectionOrLoadBalanceTo(memberSelector.select,

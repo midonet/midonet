@@ -19,7 +19,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.RemoveWildcardFlow
@@ -36,7 +35,7 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -139,8 +138,8 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
         val dpflow = new Flow(
             new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
-        val tag = "tun_id:7001"
-        val tags = ROSet[Any](tag)
+        val tag = FlowTagger.tagForTunnelKey(7001)
+        val tags = ROSet(tag)
 
         val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)
         dpconn.flowsCreate(datapath, dpflow)
@@ -149,9 +148,11 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         val lastInval = FlowController.lastInvalidationEvent
-        for (i <- 1 to 20) { FlowController ! InvalidateFlowsByTag("a second tag") }
+        val msg1 = InvalidateFlowsByTag(FlowTagger.tagForDevice(UUID.randomUUID()))
+        for (i <- 1 to 20) { FlowController ! msg1 }
         FlowController ! InvalidateFlowsByTag(tag)
-        for (i <- 1 to 20) { FlowController ! InvalidateFlowsByTag("a third tag") }
+        val msg2 = InvalidateFlowsByTag(FlowTagger.tagForDevice(UUID.randomUUID()))
+        for (i <- 1 to 20) { FlowController ! msg2 }
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
 

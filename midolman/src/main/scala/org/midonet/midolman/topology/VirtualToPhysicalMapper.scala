@@ -37,6 +37,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
+import org.midonet.sdn.flows.FlowTagger
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -747,7 +748,7 @@ abstract class VirtualToPhysicalMapperBase
         // of whether the remote hosts or the local vports in the set changed.
         FlowController ! InvalidateFlowsByTag(
             // the portSet id is the same as the bridge id
-            FlowTagger.invalidateBroadcastFlows(portSetId, portSetId)
+            FlowTagger.tagForBroadcast(portSetId, portSetId)
         )
     }
 

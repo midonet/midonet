@@ -37,9 +37,7 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
     with ActorLogWithoutPath {
 
     import LoadBalancerManager._
-    import context.system // Used implicitly. Don't delete.
-
-    val invalidateFlowTag = FlowTagger.invalidateFlowsByDevice(id)
+    import context.system
 
     override def preStart() {
         clusterClient.getLoadBalancer(id, new LoadBalancerBuilderImpl(self))
@@ -48,7 +46,7 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
     private def publishUpdate(loadBalancer: LoadBalancer) {
         log.debug("Publishing LoadBalancer {} to VTA.", id)
         VirtualTopologyActor ! loadBalancer
-        VirtualTopologyActor ! InvalidateFlowsByTag(invalidateFlowTag)
+        VirtualTopologyActor ! InvalidateFlowsByTag(loadBalancer.deviceTag)
     }
 
     override def receive = {

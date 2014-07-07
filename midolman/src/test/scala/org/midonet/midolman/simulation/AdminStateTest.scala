@@ -36,7 +36,8 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
 class AdminStateTest extends MidolmanSpec {
@@ -162,7 +163,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(bridge.getId)
+                FlowTagger.tagForDevice(bridge.getId)
             })
         }
 
@@ -179,7 +180,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(interiorBridgePort.getId)
+                FlowTagger.tagForDevice(interiorBridgePort.getId)
             })
         }
 
@@ -196,7 +197,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(interiorBridgePort.getId)
+                FlowTagger.tagForDevice(interiorBridgePort.getId)
             })
         }
 
@@ -213,7 +214,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForDevice(exteriorBridgePort.getId)
             })
         }
 
@@ -230,7 +231,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForDevice(exteriorBridgePort.getId)
             })
         }
 
@@ -261,7 +262,7 @@ class AdminStateTest extends MidolmanSpec {
             val (tacts, dpTags) = ft.translate(simRes)
             tacts should not (contain (output(1).asInstanceOf[Any]))
             dpTags should contain(
-                FlowTagger.invalidateFlowsByDevice(exteriorBridgePort.getId))
+                FlowTagger.tagForDevice(exteriorBridgePort.getId))
         }
 
         scenario("a down router sends an ICMP prohibited error") {
@@ -277,7 +278,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(router.getId)
+                FlowTagger.tagForDevice(router.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -300,7 +301,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(interiorRouterPort.getId)
+                FlowTagger.tagForDevice(interiorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -323,7 +324,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(interiorRouterPort.getId)
+                FlowTagger.tagForDevice(interiorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -345,7 +346,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForDevice(exteriorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -368,7 +369,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.invalidateFlowsByDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForDevice(exteriorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -402,10 +403,10 @@ class AdminStateTest extends MidolmanSpec {
             def isOverlayTunnellingPort(portNumber: Short): Boolean = false
         }
 
-        def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[Any]) = {
+        def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[FlowTag]) = {
             val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
-            val tags = mutable.Set[Any]()
+            val tags = mutable.Set[FlowTag]()
             translateActions(actions, None, tags, null) match {
                 case Ready(r) => (r, tags)
                 case NotYet(f) =>
@@ -570,7 +571,7 @@ class AdminStateTest extends MidolmanSpec {
     private[this] def assertFlowTagsInvalidated(devices: Entity.Base[UUID,_,_]*) {
         val tags = devices map (d =>
             FlowController.InvalidateFlowsByTag(
-                FlowTagger.invalidateFlowsByDevice(d.getId)))
+                FlowTagger.tagForDevice(d.getId)))
 
         val invalidations = VirtualTopologyActor.messages
                 .filter(_.isInstanceOf[FlowController.InvalidateFlowsByTag])

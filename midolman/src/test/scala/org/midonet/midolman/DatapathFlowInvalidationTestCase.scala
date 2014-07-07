@@ -25,7 +25,7 @@ import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
-import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.{TestHelpers, RouterHelper}
 import org.midonet.odp.Datapath
@@ -34,7 +34,7 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -213,8 +213,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         val dstIp1 = IPv4Addr("192.168.125.1")
         val dstIp2 = IPv4Addr("192.168.210.1")
 
-        val tag1 = FlowTagger invalidateTunnelRoute (srcIp.toInt, dstIp1.toInt)
-        val tag2 = FlowTagger invalidateTunnelRoute (srcIp.toInt, dstIp2.toInt)
+        val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
+        val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
 
         val output = dpState().asInstanceOf[DatapathStateManager]
                               .greOverlayTunnellingOutputAction

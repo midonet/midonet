@@ -22,13 +22,13 @@ import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationRe
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer4.NatLeaseManager
 import org.midonet.midolman.state.l4lb.LBStatus
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 
 
 object DisableAction extends Enumeration {
@@ -210,7 +210,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
 
         scenario("Packets to VIP gets dropped when no loadbalancer") {
@@ -224,7 +224,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
     }
 
@@ -240,7 +240,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
 
         scenario("Packets to VIP gets dropped") {
@@ -254,7 +254,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
     }
 
@@ -269,7 +269,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
     }
 
@@ -285,7 +285,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the one backend")
 
             flow should be (toPort(exteriorBackendPorts(0).getId) {
-                FlowTagger.invalidateFlowsByDevice(router.getId)})
+                FlowTagger.tagForDevice(router.getId)})
 
             And("Should be NATted correctly")
 
@@ -298,7 +298,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the client")
 
             returnFlow should be (toPort(exteriorClientPort.getId) {
-                FlowTagger.invalidateFlowsByDevice(router.getId)})
+                FlowTagger.tagForDevice(router.getId)})
 
             And("Should be reverse NATted correctly")
 
@@ -317,7 +317,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the one available backend")
 
             flow should be (toPort(exteriorBackendPorts(1).getId) {
-                FlowTagger.invalidateFlowsByDevice(router.getId)})
+                FlowTagger.tagForDevice(router.getId)})
 
             And("Should be NATted correctly")
 
@@ -330,7 +330,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the client")
 
             returnFlow should be (toPort(exteriorClientPort.getId) {
-                FlowTagger.invalidateFlowsByDevice(router.getId)})
+                FlowTagger.tagForDevice(router.getId)})
 
             And("Should be reverse NATted correctly")
 
@@ -514,7 +514,7 @@ class PoolTest extends MidolmanSpec {
              val flow = sendPacket (fromClientToVip)
 
              Then("a drop flow should be installed")
-             flow should be (dropped {FlowTagger.invalidateFlowsByDevice(router.getId)})
+             flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
         }
 
         scenario("Pool balances members with different weights correctly") {

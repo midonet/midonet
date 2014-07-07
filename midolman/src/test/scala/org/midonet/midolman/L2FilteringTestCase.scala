@@ -11,10 +11,10 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.packets._
+import org.midonet.sdn.flows.FlowTagger
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -88,7 +88,7 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ackWCAdded()
 
         FlowController ! InvalidateFlowsByTag(
-            FlowTagger.invalidateFlowsByDevice(chain.getId))
+            FlowTagger.tagForDevice(chain.getId))
 
         ackWCRemoved()
 

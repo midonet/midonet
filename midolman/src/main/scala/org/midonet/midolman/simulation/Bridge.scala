@@ -17,17 +17,14 @@ import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.FlowTagger.invalidateFlowsByPort
-import org.midonet.midolman.topology.FlowTagger.invalidateFlowsByDevice
-import org.midonet.midolman.topology.FlowTagger.invalidateFloodedFlowsByDstMac
-import org.midonet.midolman.topology.FlowTagger.invalidateArpRequests
-import org.midonet.midolman.topology.FlowTagger.invalidateBroadcastFlows
-import org.midonet.midolman.topology.FlowTagger.invalidateFlowsByLogicalPort
 import org.midonet.midolman.topology.MacFlowCount
 import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
+import org.midonet.sdn.flows.FlowTagger
+import FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice,
+                   tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 /**
   * A bridge.
@@ -95,6 +92,7 @@ class Bridge(val id: UUID,
     import Coordinator._
 
     val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
+    val deviceTag = tagForDevice(id)
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods
@@ -127,8 +125,7 @@ class Bridge(val id: UUID,
 
         log.debug("Processing frame: {}", packetContext.frame)
 
-        // Tag the flow with this Bridge ID
-        packetContext.addFlowTag(invalidateFlowsByDevice(id))
+        packetContext.addFlowTag(deviceTag)
 
         if (!adminStateUp) {
             log.debug("Bridge {} is down, DROP", id)
@@ -209,7 +206,7 @@ class Bridge(val id: UUID,
         macToLogicalPortId.get(dlDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
                 log.debug("Packet intended for interior port {}", logicalPort)
-                pktCtx.addFlowTag(invalidateFlowsByLogicalPort(id, logicalPort))
+                pktCtx.addFlowTag(tagForBridgePort(id, logicalPort))
                 Ready(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(pktCtx)
@@ -224,13 +221,13 @@ class Bridge(val id: UUID,
                     }
                 // Tag the flow with the (src-port, src-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
-                pktCtx.addFlowTag(invalidateFlowsByPort(id, dlSrc, vlanId,
-                                                        pktCtx.inPortId))
+                pktCtx.addFlowTag(tagForVlanPort(id, dlSrc, vlanId,
+                                                 pktCtx.inPortId))
                 if (portId == null) {
                     log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
                         dlDst, vlanId)
                     pktCtx.addFlowTag(
-                        invalidateFloodedFlowsByDstMac(id, dlDst, vlanId))
+                        tagForFloodedFlowsByDstMac(id, vlanId, dlDst))
                     multicastAction()
                 } else if (portId == pktCtx.inPortId) {
                     log.warning("MAC {} VLAN {} resolves to InPort {}: " +
@@ -246,8 +243,7 @@ class Bridge(val id: UUID,
                 } else {
                     log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
                         dlDst, vlanId, portId)
-                    pktCtx.addFlowTag(invalidateFlowsByPort(id, dlDst,
-                        vlanId, portId))
+                    pktCtx.addFlowTag(tagForVlanPort(id, dlDst, vlanId, portId))
                     Ready(unicastAction(portId))
                 }
         }
@@ -261,7 +257,7 @@ class Bridge(val id: UUID,
                                              ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
         log.debug("Handling L2 multicast {}", id)
-        packetContext.addFlowTag(invalidateBroadcastFlows(id, id))
+        packetContext.addFlowTag(tagForBroadcast(id, id))
         multicastAction()
     }
 
@@ -330,9 +326,9 @@ class Bridge(val id: UUID,
       *
       *  Note that there is no flow tagging here, you're responsible to set the
       *  right tag depending on the reason for doing the multicast. Generally,
-      *  if you broadcast bc. you ignore the mac's port, you must set an
-      *  invalidateFloodedFlowsByDstMac tag. For broadcast flows, you'll want to
-      *  set the invalidateBroadcastFlows tag
+      *  if you broadcast bc. you ignore the mac's port, you must set a
+      *  tagForFloodedFlowsByDstMac. For broadcast flows, you'll want to set
+      *  a tagForBroadcast.
       */
     private def multicastAction()(implicit pktCtx: PacketContext,
                                            executor: ExecutionContext)
@@ -431,7 +427,7 @@ class Bridge(val id: UUID,
                 // Unknown MAC for this IP, or it's an ARP reply, broadcast
                 log.debug("Flooding ARP to port set {}, source MAC {}", id,
                     pMatch.getEthernetSource)
-                pktContext.addFlowTag(invalidateArpRequests(id))
+                pktContext.addFlowTag(tagForArpRequests(id))
                 multicastAction()
             } else {
                 log.debug("Known MAC, {} reply to the ARP req.", mac)

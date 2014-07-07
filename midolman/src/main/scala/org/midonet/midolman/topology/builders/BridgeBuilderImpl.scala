@@ -21,8 +21,8 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.topology.BridgeConfig
 import org.midonet.midolman.topology.BridgeManager
-import org.midonet.midolman.topology.FlowTagger
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.sdn.flows.FlowTagger
 
 
 /**
@@ -122,7 +122,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateFlowsByLogicalPort(id, portId))
+                        FlowTagger.tagForBridgePort(id, portId))
             }
             // 1. Invalidate all arp requests
             // 2. Invalidate all flooded flows to the router port's specific MAC
@@ -131,12 +131,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             val addedPortMap = macToLogicalPortId -- oldMacToLogicalPortId.keys
             if (addedPortMap.size > 0)
                 flowController ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateArpRequests(id))
+                        FlowTagger.tagForArpRequests(id))
 
             for ((mac, portId) <- addedPortMap) {
                 flowController ! FlowController.InvalidateFlowsByTag(
-                        FlowTagger.invalidateFloodedFlowsByDstMac(
-                                id, mac, Bridge.UNTAGGED_VLAN_ID))
+                        FlowTagger.tagForFloodedFlowsByDstMac(
+                                id, Bridge.UNTAGGED_VLAN_ID, mac))
             }
         }
     }
@@ -178,14 +178,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             log.debug("MAC {}, VLAN ID {} removed from port {}",
                 Array(mac, oldPort, vlanId.asInstanceOf[Object]))
             flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
+                    FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort != null
             && !newPort.equals(oldPort)) {
             log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
                       Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
             flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFlowsByPort(id, mac, vlanId, oldPort))
+                    FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort == null){
             log.debug("MAC {}, VLAN ID {} added to port {}",
@@ -199,7 +199,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             //    invalidating, the port was in the PortSet, broadcast and ARP
             //    requests were correctly delivered.
             flowController ! FlowController.InvalidateFlowsByTag(
-                    FlowTagger.invalidateFloodedFlowsByDstMac(id, mac, vlanId))
+                    FlowTagger.tagForFloodedFlowsByDstMac(id, vlanId, mac))
         }
     }
 

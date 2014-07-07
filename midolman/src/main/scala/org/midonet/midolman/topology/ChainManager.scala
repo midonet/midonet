@@ -17,6 +17,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.rules.{JumpRule, Rule}
 import org.midonet.midolman.simulation.{IPAddrGroup, Chain}
 import org.midonet.midolman.topology.ChainManager._
+import org.midonet.sdn.flows.FlowTagger
 
 object ChainManager {
 
@@ -261,7 +262,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     private def sendInvalidationIfNeeded() {
         if (publishingNeedsInvalidation) {
             VirtualTopologyActor !
-                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+                InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
             publishingNeedsInvalidation = false
         }
     }
