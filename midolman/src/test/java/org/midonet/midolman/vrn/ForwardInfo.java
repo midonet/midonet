@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.Option;
+
 import org.midonet.cache.Cache;
 import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.packets.Ethernet;
@@ -18,10 +20,9 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.TCP;
 import org.midonet.packets.UDP;
+import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback0;
-import scala.Option;
-
 
 /* VRNController creates and partially populate an instance of
  * ForwardInfo to call ForwardingElement.process(fInfo).  The
@@ -65,7 +66,7 @@ public class ForwardInfo implements ChainPacketContext {
     // Used for coarse invalidation. If any element in this set changes
     // there's a chance the flow is no longer correct. Elements can be
     // Routers, Bridges, Ports and Chains.
-    private Set<Object> flowTags = new HashSet<Object>();
+    private Set<FlowTagger.FlowTag> flowTags = new HashSet<>();
     public int depth = 0;  // depth in the VRN simulation
 
     // Used for connection tracking.
@@ -189,10 +190,6 @@ public class ForwardInfo implements ChainPacketContext {
         notifyFEs.add(deviceId);
     }
 
-    public void addTraversedElementID(UUID id) {
-        flowTags.add(id);
-    }
-
     public boolean isGeneratedPacket() {
         return internallyGenerated;
     }
@@ -235,7 +232,7 @@ public class ForwardInfo implements ChainPacketContext {
     }
 
     @Override
-    public void addFlowTag(Object tag) {
+    public void addFlowTag(FlowTagger.FlowTag tag) {
         flowTags.add(tag);
     }
 

@@ -5,7 +5,10 @@ package org.midonet.midolman.rules
 import java.util.{Set => JSet}
 import java.util.UUID
 
-import org.midonet.util.functors.Callback0;
+import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger
+import FlowTagger.FlowTag
+;
 
 trait ChainPacketContext {
     def inPortId: UUID
@@ -16,7 +19,6 @@ trait ChainPacketContext {
     def flowCookie: Option[Int]
     def parentCookie: Option[Int]
 
-    def addFlowTag(tag: Any)
-    def addTraversedElementID(id: UUID)
+    def addFlowTag(tag: FlowTag)
     def addFlowRemovedCallback(cb: Callback0)
 }

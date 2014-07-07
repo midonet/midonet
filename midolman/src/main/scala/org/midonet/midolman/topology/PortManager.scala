@@ -28,8 +28,7 @@ class PortManager(id: UUID, val clusterClient: Client)
         VirtualTopologyActor ! cfg
 
         if (changed) {
-            VirtualTopologyActor !
-                InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(cfg.id))
+            VirtualTopologyActor ! InvalidateFlowsByTag(cfg.deviceTag)
             changed = false
         }
     }

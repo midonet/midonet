@@ -15,11 +15,11 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, CustomMatchers}
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, TCP}
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTest"))
@@ -218,5 +218,5 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
         PoolRequest(id)
 
     def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
 }

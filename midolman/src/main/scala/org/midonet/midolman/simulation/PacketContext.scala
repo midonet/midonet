@@ -4,6 +4,9 @@ package org.midonet.midolman.simulation
 
 import java.text.SimpleDateFormat
 import java.util.{Date, Set => JSet, UUID}
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import FlowTagger.FlowTag
+
 // Read-only view.  Note this is distinct from immutable.Set in that it
 // might be changed by another (mutable) view.
 import scala.collection.{Set => ROSet, Seq, mutable}
@@ -81,9 +84,8 @@ class PacketContext(override val flowCookie: Option[Int],
 
     // This set stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = mutable.ListBuffer[Callback0]()
-    override def addFlowRemovedCallback(cb: Callback0): Unit = this.synchronized {
+    override def addFlowRemovedCallback(cb: Callback0): Unit =
         flowRemovedCallbacks.append(cb)
-    }
 
     def runFlowRemovedCallbacks() = {
         val iterator = flowRemovedCallbacks.iterator
@@ -95,10 +97,9 @@ class PacketContext(override val flowCookie: Option[Int],
 
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
-    val flowTags = mutable.Set[Any]()
-    override def addFlowTag(tag: Any): Unit = this.synchronized {
+    val flowTags = mutable.Set[FlowTag]()
+    override def addFlowTag(tag: FlowTag): Unit =
         flowTags.add(tag)
-    }
 
     def setTraced(flag: Boolean) {
         if (flag && traceMessageCache == null) {
@@ -125,9 +126,6 @@ class PacketContext(override val flowCookie: Option[Int],
             traceIndexCache.set(traceID.toString, traceStep.toString)
         }
     }
-
-    /* Packet context methods used by Chains. */
-    override def addTraversedElementID(id: UUID) { /* XXX */ }
 
     override def isForwardFlow: Boolean = {
 

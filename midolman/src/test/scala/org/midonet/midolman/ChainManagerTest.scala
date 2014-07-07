@@ -15,10 +15,11 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.rules.{LiteralRule, Condition, JumpRule, Rule}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.simulation.{Chain, CustomMatchers}
-import org.midonet.midolman.topology.{FlowTagger, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
@@ -327,7 +328,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     }
 
     def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.invalidateFlowsByDevice(id))
+        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
 }
 
 class TestableVTA extends VirtualTopologyActor with MessageAccumulator {

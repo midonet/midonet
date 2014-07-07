@@ -21,7 +21,6 @@ import org.midonet.packets._
 import org.midonet.midolman.topology.RouterConfig
 import org.midonet.sdn.flows.WildcardMatch
 
-
 /**
  * The IPv4 specific implementation of a Router.
  */

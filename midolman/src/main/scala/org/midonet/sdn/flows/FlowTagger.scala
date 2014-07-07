@@ -1,0 +1,311 @@
+/*
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
+package org.midonet.sdn.flows
+
+import java.util.{UUID, WeakHashMap}
+import java.lang.ref.WeakReference
+
+import org.midonet.packets.{IPAddr, MAC}
+import org.midonet.midolman.layer3.Route
+
+object FlowTagger {
+    sealed trait FlowTag
+
+    class TagsTrie {
+        private var wrValue: WeakReference[FlowTag] = _
+        private val children = new WeakHashMap[Object, TagsTrie]
+        // TODO: Consider having arrays to hold primitive type keys,
+        //       in order to avoid boxing.
+
+        def getOrAddSegment(key: Object): TagsTrie = {
+            var segment = children.get(key)
+            if (segment eq null) {
+                segment = new TagsTrie
+                children.put(key, segment)
+            }
+            segment
+        }
+
+        def value: FlowTag =
+            if (wrValue ne null) wrValue.get() else null
+
+        def value_=(flowTag: FlowTag): Unit =
+            wrValue = new WeakReference[FlowTag](flowTag)
+    }
+
+    /**
+     * Tag for the flows related to the specified device.
+     */
+    case class DeviceTag(device: UUID) extends FlowTag {
+        override def toString = "device:" + device
+    }
+
+    val cachedDeviceTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForDevice(device: UUID): FlowTag = {
+        val segment = cachedDeviceTags.get().getOrAddSegment(device)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DeviceTag(device)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows on "vlanId" addressed to the unknown
+     * "dstMac", which were thus flooded to the bridge's portset.
+     */
+    case class VlanFloodTag(bridgeId: UUID, vlanId: java.lang.Short,
+                            dstMac: MAC) extends FlowTag {
+        override def toString = "br_flood_mac:" + bridgeId + ":" + dstMac +
+                ":" + vlanId
+    }
+
+    val cachedVlanFloodTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForFloodedFlowsByDstMac(bridgeId: UUID, vlanId: java.lang.Short,
+                                   dstMac: MAC): FlowTag = {
+        val segment = cachedVlanFloodTags.get().getOrAddSegment(bridgeId)
+                                               .getOrAddSegment(vlanId)
+                                               .getOrAddSegment(dstMac)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new VlanFloodTag(bridgeId, vlanId, dstMac)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows that are ARP requests emitted from the
+     * specified bridge.
+     */
+    case class ArpRequestTag(bridgeId: UUID) extends FlowTag {
+        override def toString = "br_arp_req:" + bridgeId
+    }
+
+    val cachedArpRequestTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForArpRequests(bridgeId: UUID): FlowTag = {
+        val segment = cachedArpRequestTags.get().getOrAddSegment(bridgeId)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new ArpRequestTag(bridgeId)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows on "vlan" addressed to "mac" that were
+     * sent to "port" in the specified bridge.
+     */
+    case class VlanPortTag(bridgeId: UUID, mac: MAC, vlanId: java.lang.Short,
+                           port: UUID) extends FlowTag {
+        override def toString = "br_fwd_mac:" + bridgeId+ ":" + mac + ":" +
+                                vlanId + ":" + port
+    }
+
+    val cachedVlanPortTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForVlanPort(bridgeId: UUID, mac: MAC, vlanId: java.lang.Short,
+                       port: UUID): FlowTag = {
+        val segment = cachedVlanPortTags.get().getOrAddSegment(bridgeId)
+                                              .getOrAddSegment(mac)
+                                              .getOrAddSegment(vlanId)
+                                              .getOrAddSegment(port)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new VlanPortTag(bridgeId, mac, vlanId, port)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with a broadcast from the specified
+     * bridge.
+     */
+    case class BroadcastTag(bridgeId: UUID, portSet: UUID) extends FlowTag {
+        override def toString = "br_flood:" + bridgeId + ":" + portSet
+    }
+
+    val cachedBroadcastTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForBroadcast(bridgeId: UUID, portSet: UUID): FlowTag = {
+        val segment = cachedBroadcastTags .get().getOrAddSegment(bridgeId)
+                                                .getOrAddSegment(portSet)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new BroadcastTag(bridgeId, portSet)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with specified bridge port.
+     */
+    case class BridgePortTag(bridgeId: UUID, logicalPortId: UUID) extends FlowTag {
+        override def toString = "br_fwd_lport:" + bridgeId + ":" + logicalPortId
+    }
+
+    val cachedBridgePortTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForBridgePort(bridgeId: UUID, logicalPortId: UUID): FlowTag = {
+        val segment = cachedBridgePortTags.get().getOrAddSegment(bridgeId)
+                                                .getOrAddSegment(logicalPortId)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new BridgePortTag(bridgeId, logicalPortId)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated for the specified datapath port.
+     */
+    case class DpPortTag(port: Integer) extends FlowTag {
+        override def toString = "dp_port:" + port
+    }
+
+    val cachedDpPortTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForDpPort(port: Integer): FlowTag = {
+        val segment = cachedDpPortTags.get().getOrAddSegment(port)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DpPortTag(port)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with specified tunnel route.
+     */
+    case class TunnelRouteTag(srcIp: Integer, dstIp: Integer) extends FlowTag {
+        override def toString = "tunnel: (" + srcIp + "," + dstIp + ")"
+    }
+
+    val cachedTunnelRouteTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForTunnelRoute(srcIp: Integer, dstIp: Integer): FlowTag = {
+        val segment = cachedTunnelRouteTags.get().getOrAddSegment(srcIp)
+                                                 .getOrAddSegment(dstIp)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new TunnelRouteTag(srcIp, dstIp)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with the specified tunnel key.
+     */
+    case class TunnelKeyTag(key: java.lang.Long) extends FlowTag {
+        override def toString = "tun_key:" + key
+    }
+
+    val cachedTunnelKeyTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForTunnelKey(key: java.lang.Long): FlowTag = {
+        val segment = cachedTunnelKeyTags.get().getOrAddSegment(key)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new TunnelKeyTag(key)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with the specified route.
+     */
+    case class RouteTag(routerId: UUID, routeHashCode: Integer) extends FlowTag {
+        override def toString = "rtr_route:" + routerId + ":" + routeHashCode
+    }
+
+    val cachedRouteTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForRoute(route: Route): FlowTag = {
+        val routeHashCode: Integer = route.hashCode()
+        val segment = cachedRouteTags.get().getOrAddSegment(route.routerId)
+                                           .getOrAddSegment(routeHashCode)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new RouteTag(route.routerId, routeHashCode)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with a particular IP when
+     * it changes on the specified router's ARP table.
+     */
+    case class DestinationIpTag(routerId: UUID, ipDestination: IPAddr) extends FlowTag {
+        override def toString = "rtr_ip:" + routerId + ":" + ipDestination
+    }
+
+    val cachedDestinationIpTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForDestinationIp(routerId: UUID, ipDestination: IPAddr): FlowTag = {
+        val segment = cachedDestinationIpTags.get().getOrAddSegment(routerId)
+                                                   .getOrAddSegment(ipDestination)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DestinationIpTag(routerId, ipDestination)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with the specified BGP.
+     */
+    case class BgpTag(bgpId: UUID) extends FlowTag {
+        override def toString = "bgp:" + bgpId
+    }
+
+    val cachedBgpTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForBgp(bgpId: UUID): FlowTag = {
+        val segment = cachedBgpTags.get().getOrAddSegment(bgpId)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new BgpTag(bgpId)
+            segment.value = tag
+        }
+        tag
+    }
+}

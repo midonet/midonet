@@ -17,9 +17,9 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.{FlowTagger, RoutingTableWrapper, TagManager, RouterConfig}
+import org.midonet.midolman.topology.{RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 import org.midonet.odp.flows.IPFragmentType
 
 /**
@@ -48,7 +48,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
     val routeBalancer = new RouteBalancer(rTable)
 
-    val invalidateRouterTag = FlowTagger.invalidateFlowsByDevice(id)
+    val deviceTag = FlowTagger.tagForDevice(id)
 
     protected def unsupportedPacketAction: Action
 
@@ -84,7 +84,7 @@ abstract class RouterBase[IP <: IPAddr]()
                 log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                     inPort, pktContext.wcmatch, pktContext.frame))
-                pktContext.addFlowTag(invalidateRouterTag)
+                pktContext.addFlowTag(deviceTag)
                 Ready(DropAction)
             case inPort =>
                 preRouting(inPort)
@@ -144,7 +144,7 @@ abstract class RouterBase[IP <: IPAddr]()
             return Ready(DropAction)
         }
 
-        pktContext.addFlowTag(invalidateRouterTag)
+        pktContext.addFlowTag(deviceTag)
         handleNeighbouring(inPort) match {
             case Some(a: Action) => return Ready(a)
             case None =>
@@ -281,10 +281,9 @@ abstract class RouterBase[IP <: IPAddr]()
                       // interaction with the RouterManager, who needs to keep
                       // track of every IP address the router gives to it.
                 if (route != null) {
-                    context.addFlowTag(
-                        FlowTagger.invalidateByRoute(id, route.hashCode()))
+                    context.addFlowTag(FlowTagger.tagForRoute(route))
                 }
-                context.addFlowTag(FlowTagger.invalidateByIp(id, dstIP))
+                context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
                 routerMgrTagger.addTag(dstIP)
                 context.addFlowRemovedCallback(
                     routerMgrTagger.getFlowRemovalCallback(dstIP))

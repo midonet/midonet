@@ -21,7 +21,7 @@ import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.topology.{FlowTagger, LocalPortActive}
+import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.Packet
@@ -29,7 +29,7 @@ import org.midonet.odp.flows.FlowKeys.{ethernet, inPort, tunnel}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -275,7 +275,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         // expect flow invalidation for the flow tagged using the bridge id and portSet id,
         // which are the same
 
-        val wanted = FlowTagger.invalidateBroadcastFlows(bridge.getId, bridge.getId)
+        val wanted = FlowTagger.tagForBroadcast(bridge.getId, bridge.getId)
         breakable { while (true) {
             val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
             if (msg.tag.equals(wanted))
@@ -325,7 +325,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
 
         // expect flow invalidation for the flow tagged using the bridge id and
         // portSet id, which are the same
-        val wanted = FlowTagger.invalidateBroadcastFlows(bridge.getId, bridge.getId)
+        val wanted = FlowTagger.tagForBroadcast(bridge.getId, bridge.getId)
         breakable { while (true) {
             val msg = fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
             if (msg.tag.equals(wanted))
@@ -390,9 +390,9 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         // Expect various invalidation messages, not necessarily in order
         // to prevent races
         var expected = immutable.Set(
-            FlowTagger.invalidateDPPort(numPort2OnHost1),
-            FlowTagger.invalidateByTunnelKey(port2OnHost1.getTunnelKey),
-            FlowTagger.invalidateBroadcastFlows(bridge.getId, bridge.getId)
+            FlowTagger.tagForDpPort(numPort2OnHost1),
+            FlowTagger.tagForTunnelKey(port2OnHost1.getTunnelKey),
+            FlowTagger.tagForBroadcast(bridge.getId, bridge.getId)
         )
 
         for (i <- 1.to(expected size)) {

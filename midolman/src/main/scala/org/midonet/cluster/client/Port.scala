@@ -6,8 +6,9 @@ package org.midonet.cluster.client
 
 import collection.JavaConversions._
 import java.util.UUID
-
 import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 sealed trait Port {
     var id: UUID = _
@@ -22,6 +23,7 @@ sealed trait Port {
     var interfaceName: String = _
     var peerID: UUID = _
     var vlanId: Short = _
+    var deviceTag: FlowTag = _
 
     def isExterior: Boolean = this.hostID != null && this.interfaceName != null
 
@@ -72,6 +74,7 @@ sealed trait Port {
 
     def setID(id: UUID): this.type = {
         this.id = id
+        deviceTag = FlowTagger.tagForDevice(id)
         this
     }
 
