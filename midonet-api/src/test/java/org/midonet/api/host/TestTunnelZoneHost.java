@@ -231,8 +231,8 @@ public class TestTunnelZoneHost {
             DtoTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
             testCrud(tz1,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON);
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON);
         }
 
         @Test
@@ -331,7 +331,7 @@ public class TestTunnelZoneHost {
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     tz.getHosts(),
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                    VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
                     tunnelZoneHost);
             List<Map<String, String>> violations = error.getViolations();
             Assert.assertEquals(1, violations.size());

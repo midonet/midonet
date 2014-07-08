@@ -220,9 +220,9 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return new TunnelZone(resource,
                 principalDto.getTunnelZones(),
                 new DtoTunnelZone(),
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
                 VendorMediaType
-                        .APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                        .APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 
     /**
@@ -451,7 +451,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
         return new TunnelZone(resource, null, tunnelZone,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON);
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 }
