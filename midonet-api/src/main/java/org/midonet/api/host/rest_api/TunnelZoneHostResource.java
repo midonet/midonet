@@ -76,7 +76,8 @@ public class TunnelZoneHostResource extends AbstractResource {
 
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
-    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON })
+    @Consumes({ VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON })
     public Response create(TunnelZoneHost tunnelZoneHost)
             throws StateAccessException, SerializationException {
 
