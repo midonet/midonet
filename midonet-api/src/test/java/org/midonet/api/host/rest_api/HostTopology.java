@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.midonet.client.VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
@@ -190,7 +189,7 @@ public class HostTopology {
                     tunnelZoneHost.setTunnelZoneId(tunnelZone.getId());
                     tunnelZoneHost = resource.postAndVerifyCreated(
                             tunnelZone.getHosts(),
-                            APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                            APPLICATION_TUNNEL_ZONE_HOST_JSON,
                             tunnelZoneHost,
                             DtoTunnelZoneHost.class);
                     entry.setValue(tunnelZoneHost);

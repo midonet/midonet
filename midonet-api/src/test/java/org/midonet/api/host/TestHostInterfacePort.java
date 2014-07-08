@@ -168,7 +168,7 @@ public class TestHostInterfacePort {
             mapping.setIpAddress("192.168.100.2");
             DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
-                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON,
+                    VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
                     mapping,
                     DtoTunnelZoneHost.class);
         }
