@@ -7,10 +7,10 @@ import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
-import java.util.{Collection => JCollection, Set => JSet, UUID}
+import java.util.{ArrayList, Collection => JCollection, Set => JSet, UUID}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import scala.reflect._
@@ -51,6 +51,7 @@ import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.collection.Bimap
+import org.midonet.util.functors.Callback0
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
@@ -499,14 +500,15 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
             }
             self ! Initialize
 
-        case msg@AddVirtualWildcardFlow(flow, callbacks, tags) =>
+        case msg@AddVirtualWildcardFlow(flow, tags) =>
             log.debug("Translating and installing wildcard flow: {}", flow)
 
             translateVirtualWildcardFlow(flow, tags) match {
                 case Ready((finalFlow, finalTags)) =>
                     log.debug("flow translated, installing: {}", finalFlow)
                     FlowController ! AddWildcardFlow(finalFlow, null,
-                                                     callbacks, finalTags)
+                                                     new ArrayList[Callback0],
+                                                     finalTags)
                 case NotYet(f) => f onComplete {
                     case Success(_) =>
                         self ! msg
@@ -615,7 +617,7 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
         val actions = List[FlowAction](port.toOutputAction)
         val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
-                             null, Nil, tags)
+                             null, new ArrayList[Callback0](), tags)
         log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
     }
 

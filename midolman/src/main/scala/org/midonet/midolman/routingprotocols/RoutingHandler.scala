@@ -877,7 +877,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val bgpTagSet = Set(FlowTagger.tagForBgp(bgp.getId))
 
         def addVirtualWildcardFlowMsg(wcFlow: WildcardFlow) =
-            AddVirtualWildcardFlow(wcFlow, Nil, bgpTagSet)
+            AddVirtualWildcardFlow(wcFlow, bgpTagSet)
 
         // TCP4:->179 bgpd->link
         var wildcardMatch = new WildcardMatch()

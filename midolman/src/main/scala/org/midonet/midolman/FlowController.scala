@@ -6,7 +6,7 @@ package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
-import java.util.{Set => JSet, Map => JMap}
+import java.util.{ArrayList, Set => JSet, Map => JMap}
 import javax.inject.Inject
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
@@ -25,7 +25,7 @@ import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
 import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
-import org.midonet.sdn.flows.{FlowTagger, FlowManager, FlowManagerHelper, ManagedWildcardFlow, WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, FlowManagerHelper, ManagedWildcardFlow, WildcardFlow, WildcardMatch}
 import FlowTagger.FlowTag
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
@@ -89,7 +89,7 @@ object FlowController extends Referenceable {
 
     case class AddWildcardFlow(wildFlow: WildcardFlow,
                                dpFlow: Flow,
-                               flowRemovalCallbacks: Seq[Callback0],
+                               flowRemovalCallbacks: ArrayList[Callback0],
                                tags: ROSet[FlowTag],
                                lastInvalidation: Long = -1,
                                flowMatch: FlowMatch = null,
@@ -246,7 +246,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         FlowController.wildcardTables.clear()
         val maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
         val maxWildcardFlows = midolmanConfig.getDatapathMaxWildcardFlowCount match {
-            case x if (x < MIN_WILDCARD_FLOW_CAPACITY) => MIN_WILDCARD_FLOW_CAPACITY
+            case x if x < MIN_WILDCARD_FLOW_CAPACITY => MIN_WILDCARD_FLOW_CAPACITY
             case y => y
         }
         val idleFlowToleranceInterval = midolmanConfig.getIdleFlowToleranceInterval

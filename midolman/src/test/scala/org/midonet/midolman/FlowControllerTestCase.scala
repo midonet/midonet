@@ -4,7 +4,7 @@
 
 package org.midonet.midolman
 
-import java.util.{List => JList}
+import java.util.{ArrayList, List => JList}
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -553,11 +553,11 @@ class FlowControllerTestCase extends MidolmanSpec {
 
         val tagsSet = tags.toSet
 
-        val callbacks = Seq[Callback0](new Callback0 {
+        val callbacks = new ArrayList[Callback0]() { add(new Callback0 {
             def call() {
                 flowRemoved = true
             }
-        })
+        })}
 
         def isFlowRemoved = flowRemoved
 
