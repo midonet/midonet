@@ -679,7 +679,7 @@ class PoolTest extends MidolmanSpec {
     private[this] def getDestIpsFromResult(simResult: SimulationResult)
     : Seq[Int] = {
         simResult match {
-            case AddVirtualWildcardFlow(flow, _ , _) =>
+            case AddVirtualWildcardFlow(flow, _) =>
                 flow.actions flatMap {
                     case f: FlowActionSetKey =>
                         f.getFlowKey match {

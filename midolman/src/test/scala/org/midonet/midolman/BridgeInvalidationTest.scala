@@ -229,7 +229,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             FlowController.getAndClear()
 
             And("The corresponding flow expires")
-            pktContext.flowRemovedCallbacks foreach { _.call() }
+            pktContext.runFlowRemovedCallbacks()
 
             Then("The MAC port mapping expires too")
             Thread.sleep(macPortExpiration)

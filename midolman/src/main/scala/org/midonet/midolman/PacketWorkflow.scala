@@ -17,19 +17,16 @@ import akka.util.Timeout
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.topology.VxLanPortMapper
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, DhcpImpl}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{VirtualTopologyActor, VirtualToPhysicalMapper, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.Callback0
-import org.midonet.midolman.io.DatapathConnectionPool
 
 trait PacketHandler {
     def start(pktCtx: PacketContext): Urgent[PacketWorkflow.PipelinePath]
@@ -52,21 +49,15 @@ object PacketWorkflow {
 
     sealed trait DropSimulationResult extends SimulationResult {
         val tags: ROSet[FlowTag]
-        val flowRemovalCallbacks: Seq[Callback0]
     }
 
-    case class Drop(tags: ROSet[FlowTag],
-                    flowRemovalCallbacks: Seq[Callback0])
-            extends DropSimulationResult
+    case class Drop(tags: ROSet[FlowTag]) extends DropSimulationResult
 
-    case class TemporaryDrop(tags: ROSet[FlowTag],
-                             flowRemovalCallbacks: Seq[Callback0])
-            extends DropSimulationResult
+    case class TemporaryDrop(tags: ROSet[FlowTag]) extends DropSimulationResult
 
     case class SendPacket(actions: List[FlowAction]) extends SimulationResult
 
     case class AddVirtualWildcardFlow(flow: WildcardFlow,
-                                      flowRemovalCallbacks: Seq[Callback0],
                                       tags: ROSet[FlowTag]) extends SimulationResult
 
     sealed trait PipelinePath
@@ -102,24 +93,19 @@ class PacketWorkflow(protected val dpState: DatapathState,
         pktCtx.prepareForSimulation(FlowController.lastInvalidationEvent)
         log.debug("Initiating processing of packet {}, attempt: {}",
                   cookieStr, pktCtx.runs)
-        val res = (if (pktCtx.ingressed)
+        val res = if (pktCtx.ingressed)
                     handlePacketWithCookie(pktCtx)
                   else
                     doEgressPortSimulation(pktCtx)
-        ) match {
-            case n@NotYet(_) => pktCtx.postpone(); n
-            case r => r
-        }
-
         cookieStr = null
         res
     }
 
     override def drop(pktCtx: PacketContext) {
-        pktCtx.prepareForSimulation(FlowController.lastInvalidationEvent)
+        pktCtx.prepareForDrop(FlowController.lastInvalidationEvent)
         val wildFlow = WildcardFlow(wcmatch = pktCtx.origMatch,
             hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
-        addTranslatedFlow(pktCtx, wildFlow, Set.empty, Nil)
+        addTranslatedFlow(pktCtx, wildFlow, Set.empty)
     }
 
     def runSimulation(pktCtx: PacketContext): Urgent[SimulationResult] =
@@ -128,15 +114,15 @@ class PacketWorkflow(protected val dpState: DatapathState,
     private def notifyFlowAdded(pktCtx: PacketContext,
                                 flow: Flow,
                                 newWildFlow: Option[WildcardFlow],
-                                tags: ROSet[FlowTag],
-                                removalCallbacks: Seq[Callback0]) {
+                                tags: ROSet[FlowTag]) {
         log.debug("Successfully created flow for {}", cookieStr)
         newWildFlow match {
             case None =>
                 FlowController ! FlowAdded(flow, pktCtx.origMatch)
                 addToActionsCacheAndInvalidate(pktCtx, flow.getActions)
             case Some(wf) =>
-                FlowController ! AddWildcardFlow(wf, flow, removalCallbacks, tags,
+                FlowController ! AddWildcardFlow(wf, flow,
+                                pktCtx.flowRemovedCallbacks, tags,
                                 pktCtx.lastInvalidation, pktCtx.packet.getMatch,
                                 actionsCache.pending,
                                 actionsCache.getSlot(pktCtx.cookieStr))
@@ -147,13 +133,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
     private def createFlow(pktCtx: PacketContext,
                            wildFlow: WildcardFlow,
                            newWildFlow: Option[WildcardFlow] = None,
-                           tags: ROSet[FlowTag] = Set.empty,
-                           removalCallbacks: Seq[Callback0] = Nil) {
+                           tags: ROSet[FlowTag] = Set.empty) {
         log.debug("Creating flow from {} for {}", wildFlow, cookieStr)
         val dpFlow = new Flow(pktCtx.packet.getMatch, wildFlow.getActions)
         try {
             datapathConn(pktCtx).flowsCreate(datapath, dpFlow)
-            notifyFlowAdded(pktCtx, dpFlow, newWildFlow, tags, removalCallbacks)
+            notifyFlowAdded(pktCtx, dpFlow, newWildFlow, tags)
         } catch {
             case e: NetlinkException =>
                 log.info("{} Failed to add flow packet: {}", cookieStr, e)
@@ -163,14 +148,13 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     private def addTranslatedFlow(pktCtx: PacketContext,
                                   wildFlow: WildcardFlow,
-                                  tags: ROSet[FlowTag],
-                                  removalCallbacks: Seq[Callback0]) {
+                                  tags: ROSet[FlowTag]) {
         if (pktCtx.packet.getReason == Packet.Reason.FlowActionUserspace)
-            runCallbacks(removalCallbacks)
+            pktCtx.runFlowRemovedCallbacks()
         else if (areTagsValid(pktCtx, tags))
-            handleValidFlow(pktCtx, wildFlow, tags, removalCallbacks)
+            handleValidFlow(pktCtx, wildFlow, tags)
         else
-            handleObsoleteFlow(pktCtx, wildFlow, removalCallbacks)
+            handleObsoleteFlow(pktCtx, wildFlow)
 
         executePacket(pktCtx, wildFlow.getActions)
     }
@@ -179,42 +163,39 @@ class PacketWorkflow(protected val dpState: DatapathState,
         FlowController.isTagSetStillValid(pktCtx.lastInvalidation, tags)
 
     private def handleObsoleteFlow(pktCtx: PacketContext,
-                                   wildFlow: WildcardFlow,
-                                   removalCallbacks: Seq[Callback0]) {
+                                   wildFlow: WildcardFlow) {
         log.debug("Skipping creation of obsolete flow {} for {}",
                   cookieStr, wildFlow.getMatch)
         if (pktCtx.ingressed)
             addToActionsCacheAndInvalidate(pktCtx, wildFlow.getActions)
-        runCallbacks(removalCallbacks)
+        pktCtx.runFlowRemovedCallbacks()
     }
 
     private def handleValidFlow(pktCtx: PacketContext,
                                 wildFlow: WildcardFlow,
-                                tags: ROSet[FlowTag],
-                                removalCallbacks: Seq[Callback0]) {
+                                tags: ROSet[FlowTag]) {
         if (pktCtx.isGenerated) {
             log.debug("Only adding wildcard flow {} for {}",
                       wildFlow, cookieStr)
-            FlowController ! AddWildcardFlow(wildFlow, null, removalCallbacks,
+            FlowController ! AddWildcardFlow(wildFlow, null, pktCtx.flowRemovedCallbacks,
                                              tags, pktCtx.lastInvalidation)
         } else if (wildFlow.wcmatch.userspaceFieldsSeen) {
             log.debug("Adding wildcard flow {} for match with userspace " +
                       "only fields, without a datapath flow", wildFlow)
-            FlowController ! AddWildcardFlow(wildFlow, null, removalCallbacks,
+            FlowController ! AddWildcardFlow(wildFlow, null, pktCtx.flowRemovedCallbacks,
                 tags, pktCtx.lastInvalidation, pktCtx.packet.getMatch,
                 actionsCache.pending, actionsCache.getSlot(cookieStr))
             actionsCache.actions.put(pktCtx.packet.getMatch, wildFlow.actions)
 
         } else {
-            createFlow(pktCtx, wildFlow, Some(wildFlow), tags, removalCallbacks)
+            createFlow(pktCtx, wildFlow, Some(wildFlow), tags)
         }
     }
 
     private def addTranslatedFlowForActions(
-                           pktCtx: PacketContext,
+                            pktCtx: PacketContext,
                             actions: Seq[FlowAction],
                             tags: ROSet[FlowTag] = Set.empty,
-                            removalCallbacks: Seq[Callback0] = Nil,
                             hardExpirationMillis: Int = 0,
                             idleExpirationMillis: Int = IDLE_EXPIRATION_MILLIS) {
 
@@ -225,7 +206,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             actions =  actions.toList,
             priority = 0)
 
-        addTranslatedFlow(pktCtx, wildFlow, tags, removalCallbacks)
+        addTranslatedFlow(pktCtx, wildFlow, tags)
     }
 
     def executePacket(pktCtx: PacketContext, actions: Seq[FlowAction]) {
@@ -252,7 +233,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     private def handlePacketWithCookie(pktCtx: PacketContext)
     : Urgent[PipelinePath] = {
         if (pktCtx.origMatch.getInputPortNumber eq null) {
-            log.error("PacketIn had no inPort number {}.", cookieStr)
+            log.error("PacketIn had no inPort number {}", cookieStr)
             return Ready(Error)
         }
         if (pktCtx.packet.getReason == Packet.Reason.FlowActionUserspace) {
@@ -385,15 +366,11 @@ class PacketWorkflow(protected val dpState: DatapathState,
     : Urgent[PipelinePath] = {
 
         result flatMap {
-            case AddVirtualWildcardFlow(flow, callbacks, tags) =>
-                val urgent = addVirtualWildcardFlow(pktCtx, flow, callbacks, tags)
+            case AddVirtualWildcardFlow(flow, tags) =>
+                val urgent = addVirtualWildcardFlow(pktCtx, flow, tags)
                 if (urgent.notReady) {
                     log.debug("AddVirtualWildcardFlow, must be postponed, " +
                               "running callbacks")
-                    // TODO: The packet context should be exposed to us so we
-                    // can have a single runCallbacks here, rather than
-                    // scattered everywhere a NotYet is generated.
-                    runCallbacks(callbacks)
                 }
                 urgent
             case SendPacket(actions) =>
@@ -401,14 +378,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
             case NoOp =>
                 addToActionsCacheAndInvalidate(pktCtx, Nil)
                 Ready(true)
-            case TemporaryDrop(tags, flowRemovalCallbacks) =>
+            case TemporaryDrop(tags) =>
                 addTranslatedFlowForActions(pktCtx, Nil, tags,
-                                            flowRemovalCallbacks,
                                             TEMPORARY_DROP_MILLIS, 0)
                 Ready(true)
-            case Drop(tags, flowRemovalCallbacks) =>
+            case Drop(tags) =>
                 addTranslatedFlowForActions(pktCtx, Nil, tags,
-                                            flowRemovalCallbacks,
                                             0, IDLE_EXPIRATION_MILLIS)
                 Ready(true)
         } map {
@@ -429,17 +404,15 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 case false => runSimulation(pktCtx)
             }
         } else {
-            Ready(TemporaryDrop(Set.empty, Nil))
+            Ready(TemporaryDrop(Set.empty))
         }
 
     def addVirtualWildcardFlow(pktCtx: PacketContext,
                                flow: WildcardFlow,
-                               flowRemovalCallbacks: Seq[Callback0],
                                tags: ROSet[FlowTag]): Urgent[Boolean] = {
         translateVirtualWildcardFlow(flow, tags) map {
             case (finalFlow, finalTags) =>
-                addTranslatedFlow(pktCtx, finalFlow, finalTags,
-                                  flowRemovalCallbacks)
+                addTranslatedFlow(pktCtx, finalFlow, finalTags)
                 true
         }
     }
@@ -508,13 +481,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     true
             }
         }
-
-    private def runCallbacks(callbacks: Iterable[Callback0]): Unit = {
-        val iterator = callbacks.iterator
-        while (iterator.hasNext) {
-            iterator.next().call()
-        }
-    }
 
     private def addToActionsCacheAndInvalidate(pktCtx: PacketContext,
                                                actions: JList[FlowAction]): Unit = {

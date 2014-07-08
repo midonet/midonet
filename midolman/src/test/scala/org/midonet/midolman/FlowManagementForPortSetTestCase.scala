@@ -125,7 +125,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
@@ -267,7 +267,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
 
         val flowToInvalidate = requestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete one host from the portSet
@@ -316,7 +316,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -366,7 +366,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -445,7 +445,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Nil, Set.empty)
+            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
 
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete the port. The dp controller will invalidate all the flow whose

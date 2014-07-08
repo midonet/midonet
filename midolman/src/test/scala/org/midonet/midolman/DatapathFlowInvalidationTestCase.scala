@@ -242,7 +242,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
 
         dpProbe().testActor ! AddVirtualWildcardFlow(
-            wildcardFlow, Nil, Set.empty)
+            wildcardFlow, Set.empty)
 
         val flow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
