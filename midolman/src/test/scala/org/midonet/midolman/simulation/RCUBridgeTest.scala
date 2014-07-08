@@ -23,6 +23,7 @@ import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.midolman.{NotYet, Ready}
+import org.midonet.odp.Packet
 
 
 @RunWith(classOf[JUnitRunner])
@@ -108,9 +109,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(None, null,
+        val context = new PacketContext(Right(UUID.randomUUID()),
+                                        Packet.fromEthernet(Ethernet.random()),
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None, ingressMatch)
+                                        null, null, None, ingressMatch)
+        context.prepareForSimulation(0)
         context.inPortId = brPort
         val result = bridge.process(context) match {
             case NotYet(ft) => Await.result(ft, 1 second)
@@ -138,9 +141,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                .setEthernetDestination(learnedMac)
                                .setInputPortUUID(rtr2port)
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(None, frame,
+        val context = new PacketContext(Right(origMatch.getInputPortUUID),
+                                        Packet.fromEthernet(frame),
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None, ingressMatch)
+                                        null, null, None, ingressMatch)
+        context.prepareForSimulation(0)
         context.inPortId = new RouterPort().setID(rtr2port)
         val result = bridge.process(context) match {
             case NotYet(ft) => Await.result(ft, 1 second)
@@ -163,9 +168,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                 .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(None, null,
+        val context = new PacketContext(Right(UUID.randomUUID()),
+                                        Packet.fromEthernet(Ethernet.random()),
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None, ingressMatch)
+                                        null, null, None, ingressMatch)
+        context.prepareForSimulation(0)
         val result = bridge.process(context) match {
             case NotYet(ft) => Await.result(ft, 1 second)
             case Ready(r) => r
@@ -195,9 +202,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                .setNetworkDestination(rtr1ipaddr)
                                .setEtherType(ARP.ETHERTYPE)
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(None, frame,
+        val context = new PacketContext(Right(UUID.randomUUID()),
+                                        Packet.fromEthernet(frame),
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None, ingressMatch)
+                                        null, null, None, ingressMatch)
+        context.prepareForSimulation(0)
         val result = bridge.process(context) match {
             case NotYet(ft) => Await.result(ft, 1 second)
             case Ready(r) => r
@@ -217,9 +226,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                 .setEthernetSource(MAC.fromString("ff:54:ce:50:44:ce"))
                 .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(None, null,
+        val context = new PacketContext(Right(UUID.randomUUID()), null,
                                         Platform.currentTime + 10000, null,
-                                        null, null, true, None, ingressMatch)
+                                        null, null, None, ingressMatch)
+        context.prepareForSimulation(0)
         val result = bridge.process(context) match {
             case NotYet(ft) => Await.result(ft, 1 second)
             case Ready(r) => r

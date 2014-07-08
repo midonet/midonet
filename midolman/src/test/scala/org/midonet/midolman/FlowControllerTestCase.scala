@@ -549,7 +549,7 @@ class FlowControllerTestCase extends MidolmanSpec {
                 WildcardFlowFactory.createHardExpiration(wcMatch, expirationMillis)
         }
 
-        val dpFlow = new Flow(flowMatch.getKeys, wcFlow.actions)
+        val dpFlow = new Flow(flowMatch, wcFlow.actions)
 
         val tagsSet = tags.toSet
 

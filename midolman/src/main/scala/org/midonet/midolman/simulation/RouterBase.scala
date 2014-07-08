@@ -83,7 +83,7 @@ abstract class RouterBase[IP <: IPAddr]()
             case inPort if !cfg.adminStateUp =>
                 log.debug("Router {} state is down, DROP", id)
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
-                    inPort, pktContext.wcmatch, pktContext.frame))
+                    inPort, pktContext.wcmatch, pktContext.ethernet))
                 pktContext.addFlowTag(deviceTag)
                 Ready(DropAction)
             case inPort =>
@@ -107,11 +107,11 @@ abstract class RouterBase[IP <: IPAddr]()
                     return Some(DropAction)
 
                 sendAnswer(inPort.id, icmpErrors.unreachableFragNeededIcmp(
-                    inPort, pktContext.wcmatch, pktContext.frame))
+                    inPort, pktContext.wcmatch, pktContext.ethernet))
                 return Some(TemporaryDropAction)
             case RuleResult.Action.REJECT =>
                 sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
-                    inPort, pktContext.wcmatch, pktContext.frame))
+                    inPort, pktContext.wcmatch, pktContext.ethernet))
                 return Some(DropAction)
             case other =>
                 log.error("Pre-routing for {} returned an action which was {}, " +
@@ -192,7 +192,7 @@ abstract class RouterBase[IP <: IPAddr]()
     private def routing(inPort: RouterPort)(implicit ec: ExecutionContext,
             context: PacketContext): Urgent[Action] = {
 
-        val frame = context.frame
+        val frame = context.ethernet
         val wcmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDestinationIP
 
@@ -315,7 +315,7 @@ abstract class RouterBase[IP <: IPAddr]()
         implicit val packetContext = pktContext
 
         val pMatch = pktContext.wcmatch
-        val pFrame = pktContext.frame
+        val pFrame = pktContext.ethernet
 
         pktContext.outPortId = outPort.id
 

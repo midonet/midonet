@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import org.midonet.odp.Datapath;
 import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMatch;
 import org.midonet.odp.flows.*;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.Net;
@@ -55,7 +56,7 @@ public class OvsFlowsCreateTest extends AbstractNetlinkProtocolTest {
         List<FlowAction> actions = new ArrayList<>();
         actions.add(output(1));
 
-        Flow flow = new Flow(keys, actions);
+        Flow flow = new Flow(new FlowMatch(keys), actions);
 
         Future<Flow> flowFuture =
             connection.futures.flowsCreate(dpFuture.get(), flow);
