@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.{NotYet, PacketsEntryPoint, Ready, Urgent}
+import org.midonet.midolman.{PacketsEntryPoint, Ready, Urgent}
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
@@ -17,8 +17,8 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
+import org.midonet.odp.Packet
 import org.midonet.packets._
-import org.midonet.midolman.topology.RouterConfig
 import org.midonet.sdn.flows.WildcardMatch
 
 /**
@@ -62,7 +62,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     : Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
-        val payload = pktContext.frame.getPayload
+        val payload = pktContext.ethernet.getPayload
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE)
             processArp(payload, inPort)
         else
@@ -75,7 +75,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
     : Option[Action] = {
         if (pktContext.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
-            val payload = pktContext.frame.getPayload
+            val payload = pktContext.ethernet.getPayload
             Some(processArp(payload, inPort))
         } else
             None
@@ -340,9 +340,9 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
-                    val egrPktContext =
-                        new PacketContext(None, eth, 0, null, null, null,
-                                          true, None, egrMatch)
+                    val egrPktContext = new PacketContext(
+                        Right(outPort.id), Packet.fromEthernet(eth), 0, null,
+                        null, null, None, egrMatch)
                     egrPktContext.outPortId = outPort.id
                     val postRoutingResult = Chain.apply(outFilter,
                                        egrPktContext, egrMatch, id, false)

@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.odp.FlowMatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +89,7 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
                       (byte) 1,
                       IPFragmentType.None));
         keys.add(icmpv6(143, 0));
-        return new Flow(keys, actions());
+        return new Flow(new FlowMatch(keys), actions());
     }
 
     static public Flow secondFlow() {
@@ -103,7 +104,7 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
                       (byte) -1,
                       IPFragmentType.None));
         keys.add(udp(5353, 5353));
-        return new Flow(keys, actions(), new FlowStats(10, 3165))
+        return new Flow(new FlowMatch(keys), actions(), new FlowStats(10, 3165))
                     .setLastUsedTime(968726990l);
     }
 
@@ -121,7 +122,7 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
         keys.add(icmpv6(135, 0));
         keys.add(
             neighborDiscovery(Net.ipv6FromString("fe80::acb3:77ff:fe8c:a148")));
-        return new Flow(keys, actions());
+        return new Flow(new FlowMatch(keys), actions());
     }
 
     static public Flow fourthFlow() {
@@ -136,7 +137,7 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
                       (byte) -1,
                       IPFragmentType.None));
         keys.add(icmpv6(133, 0));
-        return new Flow(keys, actions());
+        return new Flow(new FlowMatch(keys), actions());
     }
 
     static public Flow fifthFlow() {
@@ -151,7 +152,7 @@ public class OvsFlowsEnumerateTest extends AbstractNetlinkProtocolTest {
                       (byte) 1,
                       IPFragmentType.None));
         keys.add(icmpv6(143, 0));
-        return new Flow(keys, actions());
+        return new Flow(new FlowMatch(keys), actions());
     }
 
     static public List<FlowAction> actions() {

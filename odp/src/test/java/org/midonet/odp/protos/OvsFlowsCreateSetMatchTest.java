@@ -53,7 +53,7 @@ public abstract class OvsFlowsCreateSetMatchTest
                    retrievedFlowFuture.get().getMatch(), equalTo(flowMatch()));
 
         // update the with actions.
-        Flow updatedFlow = new Flow(flowMatch().getKeys(), flowActions());
+        Flow updatedFlow = new Flow(flowMatch(), flowActions());
 
         Future<Flow> flowWithActionsFuture = connection.futures.flowsSet(datapath,
                                                                  updatedFlow);

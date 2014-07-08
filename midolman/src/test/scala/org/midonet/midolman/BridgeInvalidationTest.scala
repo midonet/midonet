@@ -292,9 +292,7 @@ class BridgeInvalidationTest extends MidolmanSpec {
             clusterDataClient().portsUnlink(interiorPort.getId)
 
             Then("A flow invalidation should be produced")
-            eventually {
-                FlowController.getAndClear() should contain (InvalidateFlowsByTag(interiorPortTag))
-            }
+            FlowController.getAndClear() should contain (InvalidateFlowsByTag(interiorPortTag))
         }
     }
 }

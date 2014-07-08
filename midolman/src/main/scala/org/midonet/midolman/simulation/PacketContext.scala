@@ -1,15 +1,15 @@
-// Copyright 2012 Midokura Inc.
+/*
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
 
 package org.midonet.midolman.simulation
 
 import java.text.SimpleDateFormat
 import java.util.{Date, Set => JSet, UUID}
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
-import FlowTagger.FlowTag
 
-// Read-only view.  Note this is distinct from immutable.Set in that it
-// might be changed by another (mutable) view.
-import scala.collection.{Set => ROSet, Seq, mutable}
+import scala.collection.JavaConversions._
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 import akka.actor.ActorSystem
 
@@ -17,34 +17,30 @@ import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.ChainPacketContext
+import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
+import org.midonet.odp.flows.FlowActions._
+import org.midonet.odp.Packet
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.functors.Callback0
 
-
 /**
- * The PacketContext is a serialization token for the devices during the
- * simulation of a packet's traversal of the virtual topology.
- * A device may not modify the PacketContext after the Future[Action]
- * returned by the process method completes.
- *
- * More specifically:  Ownership of a PacketContext passes to the forwarding
- * element with the call to ForwardingElement::process().  It passes back
- * to the Coordinator when the Future returned by process() completes.
- * Coordinators and ForwardingElements are to read from and write to a
- * PacketContext only during the period in which they own it.
- *
- * TODO: This convention could be made explicit by having the contents
- * of the returned Future contain the PacketContext which the Coordinator
- * was to use and pass on to the next forwarding element, instead of being
- * a singleton-per-simulation token.  Investigate whether that'd be better.
+ * The PacketContext represents the simulation of a packet traversing the
+ * virtual topology. Since a simulation runs-to-completion, always in the
+ * context of the same thread, the PacketContext can be safely mutated and
+ * used to pass state between different simulation stages, or between virtual
+ * devices.
  */
 /* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
-class PacketContext(override val flowCookie: Option[Int],
-                    val frame: Ethernet,
-                    val expiry: Long, val connectionCache: Cache,
-                    val traceMessageCache: Cache, val traceIndexCache: Cache,
-                    val isGenerated: Boolean, val parentCookie: Option[Int],
+class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
+                    val packet: Packet,
+                    val expiry: Long,
+                    val connectionCache: Cache,
+                    val traceMessageCache: Cache,
+                    val traceIndexCache: Cache,
+                    val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem)
          extends ChainPacketContext {
@@ -75,12 +71,23 @@ class PacketContext(override val flowCookie: Option[Int],
 
     }
 
+    var lastInvalidation: Long = _
+
+    var idle: Boolean = true
+    var runs: Int = 0
+
     var outPortId: UUID = null
-    val wcmatch: WildcardMatch = origMatch.clone
+    val wcmatch = new WildcardMatch
 
     private var traceID: UUID = null
     private var traceStep = 0
     private var isTraced = false
+
+    def inputPort = origMatch.getInputPortUUID
+    def inputPort_=(inputPortUUID: UUID): Unit = {
+        origMatch.setInputPortUUID(inputPortUUID)
+        wcmatch.setInputPortUUID(inputPortUUID)
+    }
 
     // This set stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = mutable.ListBuffer[Callback0]()
@@ -95,11 +102,36 @@ class PacketContext(override val flowCookie: Option[Int],
         flowRemovedCallbacks.clear()
     }
 
+    def ethernet = packet.getEthernet
+
+    def isGenerated = cookieOrEgressPort.isRight
+    def ingressed = cookieOrEgressPort.isLeft
+
+    def flowCookie = cookieOrEgressPort.left.toOption
+
+    val cookieStr = (if (isGenerated) "[genPkt:" else "[cookie:") +
+                 flowCookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
+
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = mutable.Set[FlowTag]()
     override def addFlowTag(tag: FlowTag): Unit =
         flowTags.add(tag)
+
+    def prepareForSimulation(lastInvalidationSeen: Long) {
+        idle = false
+        runs += 1
+        lastInvalidation = lastInvalidationSeen
+        wcmatch.reset(origMatch)
+    }
+
+    def postpone() {
+        idle = true
+        flowRemovedCallbacks.clear()
+        flowTags.clear()
+    }
+
+    var traceConditions: TraceConditions = null
 
     def setTraced(flag: Boolean) {
         if (flag && traceMessageCache == null) {
@@ -129,13 +161,12 @@ class PacketContext(override val flowCookie: Option[Int],
 
     override def isForwardFlow: Boolean = {
 
-
         // Packets which aren't TCP-or-UDP over IPv4 aren't connection
         // tracked, and always treated as forward flows.
-        if (!IPv4.ETHERTYPE.equals(wcmatch.getEtherType) ||
-            (!TCP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol) &&
-             !UDP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol) &&
-             !ICMP.PROTOCOL_NUMBER.equals(wcmatch.getNetworkProtocol)))
+        if (!IPv4.ETHERTYPE.equals(origMatch.getEtherType) ||
+            (!TCP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol) &&
+             !UDP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol) &&
+             !ICMP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol)))
             return true
 
         // Generated packets have ingressFE == null. We will treat all generated
@@ -185,21 +216,124 @@ class PacketContext(override val flowCookie: Option[Int],
     private def icmpIdOrTransportSrc(wm: WildcardMatch): Int = {
         if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
             val icmpId: java.lang.Short = wm.getIcmpIdentifier
-            if (icmpId != null)
+            if (icmpId ne null)
                 return icmpId.toInt
         }
-        return wm.getTransportSource
+        wm.getTransportSource
     }
 
     private def icmpIdOrTransportDst(wm: WildcardMatch): Int = {
         if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
             val icmpId: java.lang.Short = wm.getIcmpIdentifier
-            if (icmpId != null)
+            if (icmpId ne null)
                 return icmpId.toInt
         }
-        return wm.getTransportDestination
+        wm.getTransportDestination
     }
 
+    def actionsFromMatchDiff(): ListBuffer[FlowAction] = {
+        val actions = ListBuffer[FlowAction]()
+        wcmatch.doNotTrackSeenFields()
+        origMatch.doNotTrackSeenFields()
+        if (!origMatch.getEthernetSource.equals(wcmatch.getEthernetSource) ||
+            !origMatch.getEthernetDestination.equals(wcmatch.getEthernetDestination)) {
+            actions.append(setKey(FlowKeys.ethernet(
+                wcmatch.getEthernetSource.getAddress,
+                wcmatch.getEthernetDestination.getAddress)))
+        }
+        if (!matchObjectsSame(origMatch.getNetworkSourceIP,
+            wcmatch.getNetworkSourceIP) ||
+                !matchObjectsSame(origMatch.getNetworkDestinationIP,
+                    wcmatch.getNetworkDestinationIP) ||
+                !matchObjectsSame(origMatch.getNetworkTTL,
+                    wcmatch.getNetworkTTL)) {
+            actions.append(setKey(
+                wcmatch.getNetworkSourceIP match {
+                    case srcIP: IPv4Addr =>
+                        FlowKeys.ipv4(srcIP,
+                            wcmatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
+                            wcmatch.getNetworkProtocol,
+                            wcmatch.getNetworkTOS,
+                            wcmatch.getNetworkTTL,
+                            wcmatch.getIpFragmentType)
+                    case srcIP: IPv6Addr =>
+                        FlowKeys.ipv6(srcIP,
+                            wcmatch.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
+                            wcmatch.getNetworkProtocol,
+                            wcmatch.getNetworkTTL,
+                            wcmatch.getIpFragmentType)
+                }
+            ))
+        }
+        // Vlan tag
+        if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
+            val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
+            val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
+            log.debug("Vlan tags to pop {}, vlan tags to push {}",
+                vlansToRemove, vlansToAdd)
+
+            for (vlan <- vlansToRemove) {
+                actions.append(popVLAN())
+            }
+
+            var count = vlansToAdd.size
+            for (vlan <- vlansToAdd) {
+                count -= 1
+                val protocol = if (count == 0) Ethernet.VLAN_TAGGED_FRAME
+                else Ethernet.PROVIDER_BRIDGING_TAG
+                actions.append(FlowActions.pushVLAN(vlan, protocol))
+            }
+        }
+
+        // ICMP errors
+        if (!matchObjectsSame(origMatch.getIcmpData,
+            wcmatch.getIcmpData)) {
+            val icmpType = wcmatch.getTransportSource
+            if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
+                    icmpType == ICMP.TYPE_UNREACH ||
+                    icmpType == ICMP.TYPE_TIME_EXCEEDED) {
+
+                actions.append(setKey(FlowKeys.icmpError(
+                    wcmatch.getTransportSource.byteValue(),
+                    wcmatch.getTransportDestination.byteValue(),
+                    wcmatch.getIcmpData
+                )))
+            }
+        }
+        if (!matchObjectsSame(origMatch.getTransportSource,
+            wcmatch.getTransportSource) ||
+                !matchObjectsSame(origMatch.getTransportDestination,
+                    wcmatch.getTransportDestination)) {
+
+            wcmatch.getNetworkProtocol.byteValue() match {
+                case TCP.PROTOCOL_NUMBER =>
+                    actions.append(setKey(FlowKeys.tcp(
+                        wcmatch.getTransportSource,
+                        wcmatch.getTransportDestination)))
+                case UDP.PROTOCOL_NUMBER =>
+                    actions.append(setKey(FlowKeys.udp(
+                        wcmatch.getTransportSource,
+                        wcmatch.getTransportDestination)))
+                case ICMP.PROTOCOL_NUMBER =>
+                // this case would only happen if icmp id in ECHO req/reply
+                // were translated, which is not the case, so leave alone
+            }
+        }
+        wcmatch.doTrackSeenFields()
+        origMatch.doTrackSeenFields()
+        actions
+    }
+
+    /*
+     * Compares two objects, which may be null, to determine if they should
+     * cause flow actions.
+     * The catch here is that if `modif` is null, the verdict is true regardless
+     * because we don't create actions that set values to null.
+     */
+    def matchObjectsSame(orig: AnyRef, modif: AnyRef) =
+        (modif eq null) || orig == modif
+
+    override def toString = s"PacketContext[$cookieStr]"
 }
 
 object PacketContext {

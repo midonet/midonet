@@ -15,11 +15,9 @@ import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cache.MockCache
-import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity, Port}
+import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
@@ -29,7 +27,7 @@ import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.DpPort
+import org.midonet.odp.{Packet, DpPort}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.protos.OvsDatapathConnection

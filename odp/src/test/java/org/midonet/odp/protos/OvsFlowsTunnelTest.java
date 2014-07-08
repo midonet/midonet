@@ -76,7 +76,7 @@ public class OvsFlowsTunnelTest {
                                                  tunnelDstIp.getAddress().toInt());
         FlowActionSetKey setKeyAction = setKey(ipv4TunnelKey);
 
-        Flow downloadFlow = new Flow(matchKey.getKeys(),
+        Flow downloadFlow = new Flow(matchKey,
                                      Arrays.<FlowAction>asList(setKeyAction));
 
         Future<Flow> flowFuture =

@@ -16,8 +16,7 @@ import org.scalatest.Assertions
 import org.midonet.cache.MockCache
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
-import org.midonet.midolman.NotYet
-import org.midonet.midolman.Ready
+import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -25,6 +24,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.odp.Packet
 
 trait VirtualTopologyHelper {
     this: MockMidolmanActors =>
@@ -46,11 +46,14 @@ trait VirtualTopologyHelper {
                      timeout.duration)
 
     def packetContextFor(frame: Ethernet, inPort: UUID): PacketContext = {
-        val context = new PacketContext(Some(1), frame, Platform.currentTime + 3000,
-            natCache, null, null, false, None,
-            WildcardMatch.fromEthernetPacket(frame))
+        val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
+                                        Platform.currentTime + 3000, natCache,
+                                        null, null, None,
+                                        WildcardMatch.fromEthernetPacket(frame))
+        context.prepareForSimulation(0)
+        context.inputPort = inPort
         context.inPortId = Await.result(
-            ask(VirtualTopologyActor, PortRequest(inPort, false)).mapTo[SimPort],
+            ask(VirtualTopologyActor, PortRequest(inPort)).mapTo[SimPort],
             timeout.duration)
         context
     }
@@ -61,7 +64,7 @@ trait VirtualTopologyHelper {
         do {
             triesLeft -= 1
             val ctx = packetContextFor(frame, inPort)
-            val action = device.process(ctx) match {
+            device.process(ctx) match {
                 case Ready(action) =>
                     return (ctx, action)
                 case NotYet(f) =>
