@@ -6,6 +6,7 @@ package org.midonet.brain.services.vxgw;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -30,6 +31,7 @@ import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.ports.VxLanPort;
@@ -38,6 +40,7 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IntIPv4;
 
 /**
  * A service to integrate a Midonet cloud with hardware VTEPs.
@@ -234,8 +237,9 @@ public class VxLanGatewayService extends AbstractService {
             return;
         }
 
-        log.info("Consolidating VTEP configuration");
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
+        log.info("Consolidating VTEP configuration for Log. Switch {}", lsName);
+
         org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
             vtepPeer.ensureLogicalSwitchExists(lsName, vxLanPort.getVni());
         vtepPeer.renewBindings(
@@ -249,6 +253,15 @@ public class VxLanGatewayService extends AbstractService {
                 }
             )
         );
+
+        log.debug("Choosing flooding proxy for {}", vtepIp);
+        IPv4Addr fpIp = chooseFloodingProxy(vtepIp);
+        if (fpIp == null) {
+            log.warn("Could not find flooding proxy for vtep {}", vtepIp);
+        } else {
+            log.info("Flooding proxy for Log. Switch {}: {}", lsName, fpIp);
+            vtepPeer.setFloodingProxy(lsName, fpIp);
+        }
 
         log.info("Monitoring bridge {} for mac updates", bridge.getId());
         if (peer.watch(bridge.getId())) {
@@ -283,4 +296,34 @@ public class VxLanGatewayService extends AbstractService {
             log.warn("Failed to deserialize resource state {}", bridgeId, e);
         }
     }
+
+    /**
+     * Selects a random host as Flooding Proxy for the given VTEP.
+     *
+     * @param vtepIp the Management IP of the VTEP
+     * @return the IP of the host that peers to the VTEP as Flooding Proxy
+     * @throws SerializationException
+     * @throws StateAccessException
+     */
+    private IPv4Addr chooseFloodingProxy(IPv4Addr vtepIp)
+        throws SerializationException, StateAccessException {
+
+        VTEP vtep = midoClient.vtepGet(vtepIp);
+        if (vtep == null) {
+            log.warn("VTEP {} not found while chosing flooding proxy", vtepIp);
+            return null;
+        }
+
+        UUID tzId = vtep.getTunnelZoneId();
+        Set<TunnelZone.HostConfig>
+            hostsCfg = midoClient.tunnelZonesGetMemberships(tzId);
+        for (TunnelZone.HostConfig hostCfg : hostsCfg) {
+            IntIPv4 ip = hostCfg.getIp();
+            if (ip != null && midoClient.hostsIsAlive(hostCfg.getId())) {
+                return ip.toIPv4Addr();
+            }
+        }
+        return null;
+    }
+
 }

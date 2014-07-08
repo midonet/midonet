@@ -269,6 +269,20 @@ public class VtepBroker implements VxLanPeer {
     }
 
     /**
+     * Sets the flooding proxy for the given logical switch.
+     *
+     * @param lsName logical switch name
+     * @param floodIp ip where all unknown mcast macs should be sent
+     */
+    public void setFloodingProxy(String lsName, IPv4Addr floodIp) {
+        Status st = vtepDataClient.addMcastMacRemote(
+            lsName, VtepConstants.UNKNOWN_DST, floodIp.toString());
+        if (st.getCode() != StatusCode.SUCCESS) {
+            log.warn("Could not set flooding proxy for LS {}: {}", lsName, st);
+        }
+    }
+
+    /**
      * Converts a Row update notification from the OVSDB client to a single
      * MacLocation update that can be applied to a VxGW Peer. A change
      * in a given row is interpreted as follows:
