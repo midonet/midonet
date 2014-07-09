@@ -77,7 +77,7 @@ object VirtualToPhysicalMapper extends Referenceable {
         protected[topology] val tag = classTag[Host]
         override def getCached = DeviceCaches.host(hostId)
     }
-    case class PortSetRequest(portSetId: UUID, update: Boolean) extends VTPMRequest[rcu.PortSet] {
+    case class PortSetRequest(portSetId: UUID, update: Boolean = false) extends VTPMRequest[rcu.PortSet] {
         protected[topology] val tag = classTag[rcu.PortSet]
         override def getCached = DeviceCaches.portSet(portSetId)
     }

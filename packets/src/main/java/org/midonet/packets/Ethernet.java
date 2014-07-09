@@ -192,6 +192,16 @@ public class Ethernet extends BasePacket {
         return this;
     }
 
+    @Override
+    public Ethernet clone() {
+        try {
+            byte[] bytes = serialize();
+            return deserialize(bytes);
+        } catch (MalformedPacketException e) {
+            return null;
+        }
+    }
+
     public byte[] serialize() {
         byte[] payloadData = null;
         if (payload != null) {
