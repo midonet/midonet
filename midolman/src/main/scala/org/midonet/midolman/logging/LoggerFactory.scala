@@ -107,23 +107,24 @@ class SimulationAwareBusLogging(val bus: LoggingBus, val logClass: Class[_]) {
     }
 
     def format(template: String, arg: Any*): String = {
+        val tl = template.toCharArray
         val sb = new StringBuilder
         var p = 0
         var templateIndex = 0
         while (p < arg.length) {
             val argIndex = template.indexOf("{}", templateIndex)
             if (argIndex == -1) {
-                return sb.append(template, templateIndex, template.length)
+                return sb.appendAll(tl, templateIndex, tl.length - templateIndex)
                          .append(" WARNING arguments left: ")
                          .append(arg.length - p)
                          .toString
             } else {
-                sb.append(template, templateIndex, argIndex)
+                sb.appendAll(tl, templateIndex, argIndex - templateIndex)
                   .append(arg(p))
                 templateIndex = argIndex + 2
                 p += 1
             }
         }
-        return sb.append(template, templateIndex, template.length).toString
+        return sb.appendAll(tl, templateIndex, tl.length - templateIndex).toString
     }
 }
