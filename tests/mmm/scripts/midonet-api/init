@@ -12,3 +12,7 @@ else
 fi
 
 sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
+
+# Copy the configuration file template for Tomcat7
+sudo cp ../../../../midonet-api/conf/midonet-api.xml \
+    /etc/tomcat7/Catalina/localhost/midonet-api.xml
