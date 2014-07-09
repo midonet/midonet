@@ -39,6 +39,10 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         parent = underlyingState;
     }
 
+    public int size() {
+        return keys.size();
+    }
+
     /**
      * Discards the ongoing transaction, clearing all state in it.
      */
