@@ -158,14 +158,6 @@
                             </mapper>
                         </data>
                         <data>
-                            <src>${project.basedir}/conf/midonet-api.xml</src>
-                            <type>file</type>
-                            <mapper>
-                                <type>perm</type>
-                                <prefix>/etc/tomcat7/Catalina/localhost</prefix>
-                            </mapper>
-                        </data>
-                        <data>
                             <src>${project.basedir}/CHANGE-LOG.txt</src>
                             <type>file</type>
                             <mapper>
