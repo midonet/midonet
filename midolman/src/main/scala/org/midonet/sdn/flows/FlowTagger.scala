@@ -11,7 +11,14 @@ import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
-    sealed trait FlowTag
+    trait FlowTag
+
+    /**
+     * Marker interface used to distinguish flow state tags from normal
+     * simulation tags, the difference being that flow state tags are
+     * always considered, even for temporary drop flows.
+     */
+    trait FlowStateTag extends FlowTag
 
     class TagsTrie {
         private var wrValue: WeakReference[FlowTag] = _
@@ -63,7 +70,7 @@ object FlowTagger {
     case class VlanFloodTag(bridgeId: UUID, vlanId: java.lang.Short,
                             dstMac: MAC) extends FlowTag {
         override def toString = "br_flood_mac:" + bridgeId + ":" + dstMac +
-                ":" + vlanId
+                                ":" + vlanId
     }
 
     val cachedVlanFloodTags = new ThreadLocal[TagsTrie] {
