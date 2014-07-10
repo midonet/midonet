@@ -1,0 +1,33 @@
+#!/bin/sh
+
+NAME="midolman"
+GROUP="midokura"
+USER="midolman"
+DATADIR=/var/lib/midolman
+POST_DIR=/var/lib/dpkg/info
+
+# shamelessly copied from debian mysql-server package...
+if ! getent group $GROUP >/dev/null ; then
+        # Adding system group
+        groupadd --system $GROUP >/dev/null
+fi
+
+# creating midonet user if it isn't already there
+if ! getent passwd $USER >/dev/null ; then
+        # Adding system user
+        adduser \
+          --system \
+          --groups $GROUP \
+          --home $DATADIR \
+          --comment "MidoNet" \
+          --shell /bin/false \
+          $USER  >/dev/null
+fi
+
+install -d -o $USER -g $GROUP /var/log/$NAME $DATADIR
+
+# allow group access to /var/run/quagga
+usermod -G quagga $USER
+
+systemctl preset midolman.service
+systemctl enable midolman.service

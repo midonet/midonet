@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+
+if [ -f /usr/share/midolman/midolman-env.sh ]; then
+    . /usr/share/midolman/midolman-env.sh
+else
+    echo "midolman-env.sh is not found"
+    exit 1
+fi
+
+if [ ! -d /sys/module/openvswitch ] && [ ! -d /sys/module/openvswitch_mod ] ; then
+    echo "Loading openvswitch kernel module"
+    modprobe openvswitch_mod 2>/dev/null || modprobe openvswitch
+fi
+test -d $MIDO_LOG_DIR || mkdir -p $MIDO_LOG_DIR
+if [ ! -d $QUAGGA_DIR ] ; then
+    mkdir -p -m 755 $QUAGGA_DIR
+    chown quagga:quagga $QUAGGA_DIR
+fi

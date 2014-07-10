@@ -75,8 +75,3 @@ EOF
     sed -i 's/HEAP_NEWSIZE=.*/HEAP_NEWSIZE="200M"/' /etc/midolman.$n/midolman-env.sh
 done
 
-echo '#! /bin/bash' >midolman
-cat /etc/init/midolman.conf |\
-    grep '^env '| sed 's/^env /export /' >>midolman
-cat /etc/init/midolman.conf |\
-    sed '1,/^script/d;/^end/,$d;s/^    //' | grep '^[^#]' >>midolman
