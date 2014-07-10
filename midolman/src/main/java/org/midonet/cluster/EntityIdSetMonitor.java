@@ -6,7 +6,6 @@ package org.midonet.cluster;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.google.inject.Inject;
 
@@ -33,14 +32,16 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher;
  *
  * This class is THREAD UNSAFE (because we assume a single ZK reactor thread
  * processing its watchers).
+ *
+ * @param <KEY> the type of the entity key (e.g.: UUID identifier)
  */
-public class EntityIdSetMonitor {
+public class EntityIdSetMonitor<KEY> {
 
     private static final Logger log =
         LoggerFactory.getLogger(EntityIdSetMonitor.class);
 
-    /* Internal cache of child IDs */
-    private Set<UUID> knownIdList = new HashSet<>();
+    /* Internal cache of child keys */
+    private Set<KEY> knownKeyList = new HashSet<>();
 
     /* Zk Manager to access the children */
     private final WatchableZkManager zkManager;
@@ -49,8 +50,8 @@ public class EntityIdSetMonitor {
     private final ZkConnectionAwareWatcher zkConnWatcher;
 
     /* Event publication streams */
-    private final Subject<UUID, UUID> creationStream = PublishSubject.create();
-    private final Subject<UUID, UUID> deletionStream = PublishSubject.create();
+    private final Subject<EntityIdSetEvent<KEY>, EntityIdSetEvent<KEY>> stream =
+        PublishSubject.create();
 
     /**
      * The notification handler for data changes in ZK, it will delegate to the
@@ -86,6 +87,7 @@ public class EntityIdSetMonitor {
         throws StateAccessException {
         this.zkManager = zkManager;
         this.zkConnWatcher = zkConnWatcher;
+
         notifyChangesAndWatch(new Watcher(this));
     }
 
@@ -93,9 +95,9 @@ public class EntityIdSetMonitor {
      * Start watching the children nodes. Note that after this is executed, the
      * 'created' Observable will emit all the current elements of the set.
      */
-    private List<UUID> getAndWatch(Directory.TypedWatcher watcher) {
+    private List<KEY> getAndWatch(Directory.TypedWatcher watcher) {
         try {
-            return zkManager.getAndWatchUuidList(watcher);
+            return zkManager.getAndWatchIdList(watcher);
         } catch (NoStatePathException e) {
             log.warn("Failed to access path, won't retry");
         } catch (StateAccessException e) {
@@ -113,47 +115,44 @@ public class EntityIdSetMonitor {
      * guarantee that notifications emitted off the observables are delivered
      * in order.
      */
-    private void notifyChangesAndWatch(Directory.TypedWatcher watcher) {
-        List<UUID> idList = getAndWatch(watcher);
-        if (idList == null) {
+    private synchronized void notifyChangesAndWatch(
+        Directory.TypedWatcher watcher) {
+        Set<KEY> oldList = knownKeyList;
+        List<KEY> keyList = getAndWatch(watcher);
+        log.info("NOTIFYING: {}", keyList);
+        if (keyList == null) {
             log.warn("Null children list returned");
             return;
         }
-        for (UUID id : idList) {
-            if (!knownIdList.remove(id)) {
-                log.debug("New entity {}", id);
-                creationStream.onNext(id);
+        for (KEY key : keyList) {
+            if (!oldList.remove(key)) {
+                stream.onNext(EntityIdSetEvent.create(key));
             }
         }
-        for (UUID id : knownIdList) {
-            log.debug("Deleted entity {}", id);
-            deletionStream.onNext(id);
+        for (KEY key : oldList) {
+            stream.onNext(EntityIdSetEvent.delete(key));
         }
-        knownIdList = new HashSet<>(idList);
+        knownKeyList = new HashSet<>(keyList);
     }
 
     /**
-     * Get the immutable set of currently known ids.
+     * Requests the monitor to notify the subscribers the current list of
+     * entities. The notification will be synchronized with any change arriving
+     * from ZooKeeper.
      */
-    public Set<UUID> getSnapshot() {
-        return knownIdList;
+    public synchronized void notifyState() {
+        for (KEY k : knownKeyList) {
+            stream.onNext(EntityIdSetEvent.state(k));
+        }
     }
 
     /**
-     * An rx.Observable with all the UUIDs that are added to the children, in
+     * An rx.Observable with all the keys that are added to the children, in
      * strict order of creation. The observable will stream all the children
      * as it first connects to the storage.
      */
-    public Observable<UUID> created() {
-        return creationStream.asObservable();
-    }
-
-    /**
-     * An rx.Observable with all the UUIDs that get removed, in strict order
-     * of removal.
-     */
-    public Observable<UUID> deleted() {
-        return deletionStream.asObservable();
+    public Observable<EntityIdSetEvent<KEY>> getObservable() {
+        return stream.asObservable();
     }
 }
 

@@ -218,7 +218,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      * subscribed to in order to listen for updates.
      * @param bridgeId is the bridge to be added to the watch list.
      * @return true if the bridge was added monitoring or false if it was
-     * discarded (e.g. due to not having a vxlan port or other errors)
+     * discarded (e.g. due to not having a vxlan port or other causes)
      */
     public synchronized boolean watch(UUID bridgeId) {
         if (!started) {
@@ -389,6 +389,16 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     public Set<UUID> getMacTableOwnerIds() {
         return this.lsContexts.keySet();
+    }
+
+    /**
+     * Tells if the MidoVxLanPeer is already managing this bridge Id.
+     *
+     * @param bridgeId
+     * @return
+     */
+    public boolean knowsBridgeId(UUID bridgeId) {
+        return this.lsContexts.keySet().contains(bridgeId);
     }
 
     /**
