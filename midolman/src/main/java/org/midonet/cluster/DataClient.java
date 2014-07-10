@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
@@ -43,24 +44,27 @@ import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.ZookeeperConnectionWatcher;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkLeaderElectionWatcher;
+import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
+
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
@@ -122,13 +126,13 @@ public interface DataClient {
     /**
      * Get an entity monitor for individual bridges
      */
-    EntityMonitor<?, Bridge> bridgesGetMonitor(
+    EntityMonitor<UUID, BridgeZkManager.BridgeConfig, Bridge> bridgesGetMonitor(
         ZookeeperConnectionWatcher zkConnection);
 
     /**
      * Get an entity monitor for the set of bridges
      */
-    EntityIdSetMonitor bridgesGetUuidSetMonitor(
+    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<UUID> bridgesGetAllIds() throws StateAccessException,
@@ -500,6 +504,18 @@ public interface DataClient {
 
     List<Host> hostsGetAll()
             throws StateAccessException, SerializationException;
+
+    /**
+     * Get an entity monitor for individual hosts
+     */
+    EntityMonitor<UUID, HostDirectory.Metadata, Host> hostsGetMonitor(
+        ZookeeperConnectionWatcher zkConnection);
+
+    /**
+     * Get an entity monitor for the set of hosts
+     */
+    EntityIdSetMonitor<UUID> hostsGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<Interface> interfacesGetByHost(UUID hostId)
             throws StateAccessException, SerializationException;
@@ -984,6 +1000,18 @@ public interface DataClient {
     public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException;
+
+    /**
+     * Get an entity monitor for individual VTEPs
+     */
+    EntityMonitor<IPv4Addr, VtepZkManager.VtepConfig, VTEP> vtepsGetMonitor(
+        ZookeeperConnectionWatcher zkConnection);
+
+    /**
+     * Get an entity monitor for the set of VTEPs
+     */
+    EntityIdSetMonitor<IPv4Addr> vtepsGetAllSetMonitor(
+        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     /**
      * Generates and returns a new VNI for VTEP logical switch creation.

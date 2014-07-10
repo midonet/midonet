@@ -80,7 +80,7 @@ public abstract class BaseZkManager {
                 ids.add(UUID.fromString(idStr));
             } catch (IllegalArgumentException ex) {
                 // Nothing we can do but log an error and move on.
-                log.error("'{}' at path '{}' is not a valid UUID. Zookeeper" +
+                log.error("'{}' at path '{}' is not a valid UUID. Zookeeper " +
                         "data may be corrupted.",
                         new Object[]{idStr, path, ex});
             }
