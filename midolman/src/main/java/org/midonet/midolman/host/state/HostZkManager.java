@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Port;
 import org.midonet.midolman.serialization.SerializationException;
@@ -40,7 +41,8 @@ import static org.midonet.midolman.host.state.HostDirectory.Command;
  * to hosts and interfaces associated with the hosts.
  */
 public class HostZkManager
-        extends AbstractZkManager<UUID, HostDirectory.Metadata> {
+        extends AbstractZkManager<UUID, HostDirectory.Metadata>
+        implements WatchableZkManager<UUID, HostDirectory.Metadata> {
 
     private final static Logger log =
         LoggerFactory.getLogger(HostZkManager.class);
@@ -483,8 +485,8 @@ public class HostZkManager
         }
 
         return serializer.deserialize(
-                zk.get(hostVrnDatapathMappingPath, watcher),
-                String.class);
+            zk.get(hostVrnDatapathMappingPath, watcher),
+            String.class);
     }
 
     public boolean virtualPortMappingExists(UUID hostId, UUID portId)
@@ -650,5 +652,11 @@ public class HostZkManager
                                       Directory.TypedWatcher watcher)
         throws StateAccessException {
         return getUuidList(paths.getHostTunnelZonesPath(hostId), watcher);
+    }
+
+    @Override
+    public List<UUID> getAndWatchIdList(Runnable watcher)
+        throws StateAccessException {
+        return getUuidList(paths.getHostsPath(), watcher);
     }
 }

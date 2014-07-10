@@ -9,20 +9,23 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+
 import rx.Observable;
 import rx.Subscription;
-import rx.functions.Action1;
 
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
+import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.EntityIdSetEvent;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.data.host.Host;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
@@ -31,8 +34,11 @@ import org.midonet.packets.IPv4Addr;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
+import static org.midonet.cluster.EntityIdSetEvent.Type.CREATE;
+import static org.midonet.cluster.EntityIdSetEvent.Type.DELETE;
+import static org.midonet.cluster.EntityIdSetEvent.Type.STATE;
 
-public class BridgeMonitorTest {
+public class BridgeMonitorTest extends DeviceMonitorTestBase<UUID, Bridge> {
 
     /*
      * Vtep parameters
@@ -70,35 +76,21 @@ public class BridgeMonitorTest {
         return bridgeId;
     }
 
-    private RxTestUtils.TestedObservable testUUIDObservable(
-        Observable<UUID> obs) {
-        return RxTestUtils.test(obs);
-    }
-
     private RxTestUtils.TestedObservable testBridgeObservable(
         Observable<Bridge> obs) {
         return RxTestUtils.test(obs);
     }
 
-    private Subscription dumpUUIDObservableToList(final Observable<UUID> obs,
-                                                  final List<UUID> list) {
-        return obs.subscribe(new Action1<UUID>() {
-            @Override
-            public void call(UUID id) {
-                list.add(id);
-            }
-        });
+    private RxTestUtils.TestedObservable testUUIDObservable(
+        Observable<UUID> obs) {
+        return RxTestUtils.test(obs);
     }
 
-    private Subscription dumpBridgeObservableToList(final Observable<Bridge> obs,
-                                                    final List<UUID> list) {
-        return obs.subscribe(new Action1<Bridge>() {
-            @Override
-            public void call(Bridge b) {
-                list.add(b.getId());
-            }
-        });
+    private RxTestUtils.TestedObservable testEventObservable(
+        Observable<EntityIdSetEvent<UUID>> obs) {
+        return RxTestUtils.test(obs);
     }
+
     @Before
     public void before() throws Exception {
         HierarchicalConfiguration config = new HierarchicalConfiguration();
@@ -140,29 +132,39 @@ public class BridgeMonitorTest {
 
         // Extract the observables
         RxTestUtils.TestedObservable updates =
-            testBridgeObservable(bMon.updated());
+            testBridgeObservable(bMon.getEntityObservable());
         updates.noElements()
                .noErrors()
                .notCompleted()
                .subscribe();
+        RxTestUtils.TestedObservable live =
+            testEventObservable(bMon.getEntityIdSetObservable());
+        live.noElements()
+            .noErrors()
+            .notCompleted()
+            .subscribe();
         RxTestUtils.TestedObservable creations =
-            testUUIDObservable(bMon.created());
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            CREATE));
         creations.noElements()
                  .noErrors()
                  .notCompleted()
                  .subscribe();
         RxTestUtils.TestedObservable deletions =
-            testUUIDObservable(bMon.deleted());
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            DELETE));
         deletions.noElements()
                  .noErrors()
                  .notCompleted()
                  .subscribe();
 
         updates.unsubscribe();
+        live.unsubscribe();
         creations.unsubscribe();
         deletions.unsubscribe();
 
         updates.evaluate();
+        live.evaluate();
         creations.evaluate();
         deletions.evaluate();
     }
@@ -176,15 +178,17 @@ public class BridgeMonitorTest {
 
         // Extract the observables
         RxTestUtils.TestedObservable deletions =
-            testUUIDObservable(bMon.deleted());
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            DELETE));
         deletions.noElements()
                  .noErrors()
                  .notCompleted()
                  .subscribe();
-        Subscription updates = dumpBridgeObservableToList(bMon.updated(),
-                                                          updateList);
-        Subscription creations = dumpUUIDObservableToList(bMon.created(),
-                                                          creationList);
+        Subscription updates = addDeviceObservableToList(
+            bMon.getEntityObservable(), updateList);
+        Subscription creations = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), CREATE),
+            creationList);
 
         // Create bridge
         UUID bridgeId = makeUnboundBridge("bridge1");
@@ -199,6 +203,48 @@ public class BridgeMonitorTest {
     }
 
     @Test
+    public void testBridgeEarlyAddition() throws Exception {
+
+        final List<UUID> creationList = new ArrayList<>();
+        final List<UUID> updateList = new ArrayList<>();
+        final List<UUID> stateList = new ArrayList<>();
+
+        // Create bridge
+        UUID bridgeId = makeUnboundBridge("bridge1");
+
+        // Create the bridge monitor
+        BridgeMonitor bMon = new BridgeMonitor(dataClient, zkConnWatcher);
+
+        // Extract the observables
+        RxTestUtils.TestedObservable deletions =
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            DELETE));
+        deletions.noElements()
+            .noErrors()
+            .notCompleted()
+            .subscribe();
+        Subscription updates = addDeviceObservableToList(
+            bMon.getEntityObservable(), updateList);
+        Subscription creations = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), CREATE), creationList);
+        Subscription states = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), STATE), stateList);
+
+        bMon.notifyState();
+
+        creations.unsubscribe();
+        updates.unsubscribe();
+        deletions.unsubscribe();
+        states.unsubscribe();
+
+        assertThat(creationList, containsInAnyOrder());
+        assertThat(updateList, containsInAnyOrder(bridgeId));
+        assertThat(stateList, containsInAnyOrder(bridgeId));
+        deletions.evaluate();
+    }
+
+
+    @Test
     public void testBridgeUpdate() throws Exception {
 
         final List<UUID> creationList = new ArrayList<>();
@@ -206,16 +252,19 @@ public class BridgeMonitorTest {
         BridgeMonitor bMon = new BridgeMonitor(dataClient, zkConnWatcher);
 
         // Extract the observables
-        RxTestUtils.TestedObservable deletions = testUUIDObservable(bMon.deleted());
+        RxTestUtils.TestedObservable deletions =
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            DELETE));
         deletions.noElements()
                  .noErrors()
                  .notCompleted()
                  .subscribe();
 
-        Subscription creations = dumpUUIDObservableToList(bMon.created(),
-                                                          creationList);
-        Subscription updates = dumpBridgeObservableToList(bMon.updated(),
-                                                          updateList);
+        Subscription creations = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), CREATE),
+            creationList);
+        Subscription updates = addDeviceObservableToList(
+            bMon.getEntityObservable(), updateList);
 
         // Create bridge and update vxlan port
         UUID bridgeId = makeBoundBridge("bridge1");
@@ -238,12 +287,14 @@ public class BridgeMonitorTest {
         BridgeMonitor bMon = new BridgeMonitor(dataClient, zkConnWatcher);
 
         // Extract the observables
-        Subscription creations = dumpUUIDObservableToList(bMon.created(),
-                                                          creationList);
-        Subscription updates = dumpBridgeObservableToList(bMon.updated(),
-                                                          updateList);
-        Subscription deletions = dumpUUIDObservableToList(bMon.deleted(),
-                                                          deletionList);
+        Subscription deletions = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), DELETE),
+            deletionList);
+        Subscription creations = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), CREATE),
+            creationList);
+        Subscription updates = addDeviceObservableToList(
+            bMon.getEntityObservable(), updateList);
 
         // Create bridge and update vxlan port
         UUID bridgeId = makeBoundBridge("bridge1");
@@ -268,16 +319,19 @@ public class BridgeMonitorTest {
         BridgeMonitor bMon = new BridgeMonitor(dataClient, zkConnWatcher);
 
         // Extract the observables
-        RxTestUtils.TestedObservable deletions = testUUIDObservable(bMon.deleted());
+        RxTestUtils.TestedObservable deletions =
+            testUUIDObservable(extractEvent(bMon.getEntityIdSetObservable(),
+                                            DELETE));
         deletions.noElements()
                  .noErrors()
                  .notCompleted()
                  .subscribe();
 
-        Subscription creations = dumpUUIDObservableToList(bMon.created(),
-                                                          creationList);
-        Subscription updates = dumpBridgeObservableToList(bMon.updated(),
-                                                          updateList);
+        Subscription creations = addIdObservableToList(
+            extractEvent(bMon.getEntityIdSetObservable(), CREATE),
+            creationList);
+        Subscription updates = addDeviceObservableToList(
+            bMon.getEntityObservable(), updateList);
 
         // Create bridge and update vxlan port
         UUID bridgeId = makeBoundBridge("bridge1");
@@ -294,5 +348,4 @@ public class BridgeMonitorTest {
                    containsInAnyOrder(bridgeId, bridgeId, bridgeId));
         deletions.evaluate();
     }
-
 }

@@ -24,12 +24,15 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
+import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.EntityIdSetEvent;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
@@ -104,32 +107,50 @@ public class VxLanGatewayService extends AbstractService {
         // Set-up bridge monitoring
         try {
             bridgeMon = new BridgeMonitor(this.midoClient, this.zkConnWatcher);
-        } catch (BridgeMonitor.BridgeMonitorException e) {
+        } catch (DeviceMonitor.DeviceMonitorException e) {
             log.warn("Service failed");
             shutdown();
             notifyFailed(e);
             return;
         }
-        Observable<UUID> bridgeUpdates = Observable.merge(
-            bridgeMon.created(),
-            bridgeMon.updated().map(
-                new Func1<Bridge, UUID> () {
+
+        // creation stream
+        Observable<UUID> creationStream =
+            bridgeMon.getEntityIdSetObservable().concatMap(
+                new Func1<EntityIdSetEvent<UUID>, Observable<UUID>>() {
+                    @Override
+                    public Observable<UUID> call(EntityIdSetEvent<UUID> ev) {
+                        switch (ev.type) {
+                            case STATE: return Observable.from(ev.value);
+                            case CREATE: return Observable.from(ev.value);
+                            default: return Observable.empty();
+                        }
+                    }
+                }
+            );
+
+        // updates stream
+        Observable<UUID> updateStream =
+            bridgeMon.getEntityObservable().map(
+                new Func1<Bridge, UUID>() {
                     @Override
                     public UUID call(Bridge b) {
                         return b.getId();
                     }
-            }));
-        bridgeSubscription = bridgeUpdates.subscribe(new Action1<UUID>() {
-            @Override
-            public void call(UUID id) {
-                assignBridgeToPeer(id);
-            }
-        });
+                }
+            );
+
+        // Subscribe to combined stream
+        bridgeSubscription = Observable.merge(creationStream, updateStream)
+            .subscribe(new Action1<UUID>() {
+                @Override
+                public void call(UUID id) {
+                    assignBridgeToPeer(id);
+                }
+            });
 
         // Make sure we get all the initial state
-        for (UUID id : bridgeMon.getCurrentBridgeIds()) {
-            assignBridgeToPeer(id);
-        }
+        bridgeMon.notifyState();
 
         log.info("Service started");
         notifyStarted();
@@ -149,7 +170,7 @@ public class VxLanGatewayService extends AbstractService {
             bridgeSubscription = null;
         }
         bridgeMon = null;
-        for (Map.Entry<IPv4Addr, VxLanGwBroker> e : vxlanGwBrokers.entrySet()) {
+        for(Map.Entry<IPv4Addr, VxLanGwBroker> e : vxlanGwBrokers.entrySet()) {
             log.info("Unsubscribing broker from VTEP: {}", e.getKey());
             e.getValue().shutdown();
             VtepDataClient cli = vtepClients.get(e.getKey());
@@ -238,29 +259,32 @@ public class VxLanGatewayService extends AbstractService {
         }
 
         String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
-        log.info("Consolidating VTEP configuration for Log. Switch {}", lsName);
-
-        org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
-            vtepPeer.ensureLogicalSwitchExists(lsName, vxLanPort.getVni());
-        vtepPeer.renewBindings(
-            lsUuid,
-            Collections2.filter(
-                midoClient.vtepGetBindings(vtepIp),
-                new Predicate<VtepBinding>() {
-                    @Override public boolean apply(@Nullable VtepBinding b) {
-                        return b != null && bridgeId.equals(b.getNetworkId());
+        if (!peer.knowsBridgeId(bridgeId)) {
+            log.info("Consolidating VTEP configuration for Log. Switch {}",
+                     lsName);
+            org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
+                vtepPeer.ensureLogicalSwitchExists(lsName, vxLanPort.getVni());
+            vtepPeer.renewBindings(
+                lsUuid,
+                Collections2.filter(
+                    midoClient.vtepGetBindings(vtepIp),
+                    new Predicate<VtepBinding>() {
+                        @Override
+                        public boolean apply(@Nullable VtepBinding b) {
+                            return b != null && bridgeId
+                                .equals(b.getNetworkId());
+                        }
                     }
-                }
-            )
-        );
-
-        log.debug("Choosing flooding proxy for {}", vtepIp);
-        IPv4Addr fpIp = chooseFloodingProxy(vtepIp);
-        if (fpIp == null) {
-            log.warn("Could not find flooding proxy for vtep {}", vtepIp);
-        } else {
-            log.info("Flooding proxy for Log. Switch {}: {}", lsName, fpIp);
-            vtepPeer.setFloodingProxy(lsName, fpIp);
+                )
+            );
+            log.debug("Choosing flooding proxy for {}", vtepIp);
+            IPv4Addr fpIp = chooseFloodingProxy(vtepIp);
+            if (fpIp == null) {
+                log.warn("Could not find flooding proxy for vtep {}", vtepIp);
+            } else {
+                log.info("Flooding proxy for Log. Switch {}: {}", lsName, fpIp);
+                vtepPeer.setFloodingProxy(lsName, fpIp);
+            }
         }
 
         log.info("Monitoring bridge {} for mac updates", bridge.getId());

@@ -15,13 +15,12 @@ import org.midonet.midolman.state.StateAccessException;
  *
  * @param <T> the type of device
  */
-public interface WatchableZkManager<T> {
+public interface WatchableZkManager<K, T> {
 
     /**
-     * Retrieve the list of UUIDs
-     * list modifications.
+     * Retrieve the list of identifiers to watch for modifications.
      */
-    List<UUID> getAndWatchUuidList(Runnable watcher)
+    List<K> getAndWatchIdList(Runnable watcher)
         throws StateAccessException;
 
     /**
@@ -29,7 +28,7 @@ public interface WatchableZkManager<T> {
      *
      * @return the item data, or null if it does not exist.
      */
-    T get(UUID id, Runnable watcher) throws StateAccessException,
+    T get(K key, Runnable watcher) throws StateAccessException,
                                             SerializationException;
 }
 

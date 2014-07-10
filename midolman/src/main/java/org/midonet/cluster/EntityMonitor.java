@@ -23,16 +23,17 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher;
  * This class monitors individual instances of a given type of entity in its ZK
  * storage, and exposes an rx.Observable with all data changes made to them.
  *
+ * @param <KEY> the type of the entity key (e.g.: UUID identifier)
  * @param <FROM> the type of the entity at storage layer (e.g.: BridgeConfig)
  * @param <TO> the type of the entity to be monitored (e.g.: Bridge)
  */
-public class EntityMonitor<FROM, TO> {
+public class EntityMonitor<KEY, FROM, TO> {
 
     private static final Logger log =
         LoggerFactory.getLogger(EntityMonitor.class);
 
     /* Access to the underlying data storage */
-    private final WatchableZkManager<FROM> zkManager;
+    private final WatchableZkManager<KEY, FROM> zkManager;
 
     /* Zk Connection watcher */
     private final ZkConnectionAwareWatcher zkConnWatcher;
@@ -40,13 +41,13 @@ public class EntityMonitor<FROM, TO> {
     /* Event publication streams */
     private final Subject<TO, TO> updateStream = PublishSubject.create();
 
-    private final Transformer<FROM, TO> converter;
+    private final Transformer<KEY, FROM, TO> converter;
 
     /**
      * An interface to map one type to another.
      */
-    public interface Transformer<FROM, TO> {
-        TO transform(UUID id, FROM data);
+    public interface Transformer<KEY, FROM, TO> {
+        TO transform(KEY key, FROM data);
     }
 
     /**
@@ -55,25 +56,25 @@ public class EntityMonitor<FROM, TO> {
      * filter out specific event types.
      */
     private class Watcher extends Directory.DefaultTypedWatcher {
-        private final EntityMonitor<FROM, TO> mon;
-        private final UUID id;
+        private final EntityMonitor<KEY, FROM, TO> mon;
+        private final KEY key;
 
-        public Watcher(EntityMonitor<FROM, TO> mon, UUID id) {
+        public Watcher(EntityMonitor<KEY, FROM, TO> mon, KEY key) {
             this.mon = mon;
-            this.id = id;
+            this.key = key;
         }
 
         @Override
         public void pathDataChanged(String path) {
-            FROM item = mon.getAndWatch(id, this);
+            FROM item = mon.getAndWatch(key, this);
             if (item != null)
-                mon.notifyUpdate(id, item);
+                mon.notifyUpdate(key, item);
         }
 
         @Override
         public void run() {
             log.debug("Received a non-data notification, reinstalling");
-            mon.getAndWatch(id, this);
+            mon.getAndWatch(key, this);
         }
     }
 
@@ -84,9 +85,9 @@ public class EntityMonitor<FROM, TO> {
      * @param zkConnWatcher the zk connection watcher
      * @param converter to translate from the storage model to the data model
      */
-    public EntityMonitor(WatchableZkManager<FROM> zkManager,
+    public EntityMonitor(WatchableZkManager<KEY, FROM> zkManager,
                          ZookeeperConnectionWatcher zkConnWatcher,
-                         Transformer<FROM, TO> converter) {
+                         Transformer<KEY, FROM, TO> converter) {
         this.zkManager = zkManager;
         this.zkConnWatcher = zkConnWatcher;
         this.converter = converter;
@@ -97,24 +98,24 @@ public class EntityMonitor<FROM, TO> {
      * there are connection problems it will arrange with the connection watcher
      * to retry until the connection is restored.
      *
-     * @param id the id of the entity
+     * @param key the key of the entity
      * @param watcher the watcher on the entity data
      * @return the entity if it could be retrieved
      */
-    private FROM getAndWatch(UUID id, Directory.TypedWatcher watcher) {
+    private FROM getAndWatch(KEY key, Directory.TypedWatcher watcher) {
         try {
-            FROM item = zkManager.get(id, watcher);
+            FROM item = zkManager.get(key, watcher);
             if (item == null)
                 log.warn("Trying to set watcher for non existing entity {}",
-                         id);
+                         key);
             return item;
         } catch (NoStatePathException e) {
-            log.warn("Entity {} doesn't exist in storage", id, e);
+            log.warn("Entity {} doesn't exist in storage", key, e);
         } catch (StateAccessException e) {
-            log.warn("Cannot retrieve entity {} from storage", id);
-            zkConnWatcher.handleError("EntityMonitor " + id, watcher, e);
+            log.warn("Cannot retrieve entity {} from storage", key);
+            zkConnWatcher.handleError("EntityMonitor " + key, watcher, e);
         } catch (SerializationException e) {
-            log.error("Failed to deserialize entity {}", id, e);
+            log.error("Failed to deserialize entity {}", key, e);
         }
         return null;
     }
@@ -122,18 +123,18 @@ public class EntityMonitor<FROM, TO> {
     /**
      * Retrieve an entity and start watching it.
      */
-    public void watch(UUID id) {
-        FROM entity = getAndWatch(id, new Watcher(this, id));
+    public void watch(KEY key) {
+        FROM entity = getAndWatch(key, new Watcher(this, key));
         if (entity != null) {
-            notifyUpdate(id, entity);
+            notifyUpdate(key, entity);
         }
     }
 
     /**
      * Process device updates.
      */
-    private void notifyUpdate(UUID id, FROM item) {
-        updateStream.onNext(converter.transform(id, item));
+    private void notifyUpdate(KEY key, FROM item) {
+        updateStream.onNext(converter.transform(key, item));
     }
 
     /**

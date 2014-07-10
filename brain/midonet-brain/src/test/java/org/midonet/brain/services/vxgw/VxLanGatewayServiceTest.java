@@ -169,6 +169,9 @@ public class VxLanGatewayServiceTest {
             vxGwBroker.start(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
+            mP.knowsBridgeId((UUID)any);
+            result = false; times = 1;
+
             // Consolidation of the vtep, name unknown until makeBoundBridge
             vB.ensureLogicalSwitchExists(anyString, vni);
                 result = lsUuid; times = 1;
@@ -194,13 +197,73 @@ public class VxLanGatewayServiceTest {
         gwsrv.startAndWait();
 
         // add a new bridge with a binding
-        UUID bId = makeBoundBridge("bridge1", "vtepPort", (short)666);
+        makeBoundBridge("bridge1", "vtepPort", (short)666);
 
         gwsrv.stopAndWait();
     }
 
     /**
-     * Test the update of a bridge.
+     * Test the addition of a bridge before the service was started, it should
+     * be detected normally.
+     */
+    @Test
+    public void testEarlyBridgeAddition(@Mocked final VxLanGwBroker vxGwBroker,
+                                        @Mocked final VtepBroker vtepBroker,
+                                        @Mocked final MidoVxLanPeer midoPeer)
+        throws Exception {
+
+        final org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
+            new org.opendaylight.ovsdb.lib.notation.UUID("meh");
+
+        new Expectations() {{
+            // Per vtep
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
+            vxGwBroker.start(); times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            mP.knowsBridgeId((UUID)any);
+            result = false; times = 1;
+
+            // Consolidation of the vtep, name unknown until makeBoundBridge
+            vB.ensureLogicalSwitchExists(anyString, vni);
+            result = lsUuid; times = 1;
+            vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
+            times = 1;
+
+            // The flooding proxy should be set
+            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
+
+            // Bridge addition
+            mP.watch((UUID)withNotNull()); result = true; times = 1;
+            vB.advertiseMacs(); times = 1;
+
+            mP.knowsBridgeId((UUID)any);
+            result = true; times = 1;
+
+            // Bridge addition
+            mP.watch((UUID)withNotNull()); result = false; times = 1;
+            // Watch returns false, bc. it does know the bridge, so it won't
+            // advertise
+
+            // Shutdown
+            vxGwBroker.shutdown(); times = 1;
+            vtepClient.disconnect(); times = 1;
+        }};
+
+        // add a new bridge with a binding before starting the service
+        makeBoundBridge("bridge1", "vtepPort", (short)666);
+
+        VxLanGatewayService gwsrv = new VxLanGatewayService(dataClient,
+                                                            vtepDataClientProvider,
+                                                            zkConnWatcher);
+        gwsrv.startAndWait();
+        gwsrv.stopAndWait();
+    }
+    /**
+     * Test the update of a bridge
      */
     @Test
     public void testBridgeUpdate(@Mocked final VxLanGwBroker vxGwBroker,
@@ -219,6 +282,9 @@ public class VxLanGatewayServiceTest {
             new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
             vxGwBroker.start(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            mP.knowsBridgeId((UUID)any);
+            result = false; times = 1;
 
             // Consolidation of the vtep, name unknown until makeBoundBridge
             vB.ensureLogicalSwitchExists(anyString, vni);
