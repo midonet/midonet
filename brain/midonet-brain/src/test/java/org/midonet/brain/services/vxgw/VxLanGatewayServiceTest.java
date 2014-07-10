@@ -16,6 +16,8 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 
+import rx.Observable;
+
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
@@ -45,6 +47,8 @@ public class VxLanGatewayServiceTest {
     private static final int vtepMgmntPort = 6632;
     private static final int vni = 42;
 
+    private static final IPv4Addr vtepMgmtIpAlt = IPv4Addr.apply("192.169.0.21");
+    private static final int vtepMgmntPortAlt = 6633;
     /*
      * Host parameters
      */
@@ -58,6 +62,12 @@ public class VxLanGatewayServiceTest {
     private VtepDataClient vtepClient;
     @Mocked
     private VtepDataClientProvider vtepDataClientProvider;
+
+    private VTEP vtep = null;
+
+    private UUID tzId = null;
+    private UUID hostId = null;
+    private Host host = null;
 
     /*
      * Midonet data client
@@ -104,7 +114,7 @@ public class VxLanGatewayServiceTest {
 
         TunnelZone tz = new TunnelZone();
         tz.setName("TestTz");
-        UUID tzId = dataClient.tunnelZonesCreate(tz);
+        tzId = dataClient.tunnelZonesCreate(tz);
         TunnelZone.HostConfig zoneHost = new TunnelZone.HostConfig(hostId);
         zoneHost.setIp(tunnelZoneHostIp.toIntIPv4());
         dataClient.tunnelZonesAddMembership(tzId, zoneHost);
@@ -118,23 +128,20 @@ public class VxLanGatewayServiceTest {
     }
 
     /**
-     * Check the suscription life cycle inside the gateway service.
+     * Check the life cycle inside the gateway service.
      */
     @Test
-    public void testBasicLifecycle(@Mocked final VxLanGwBroker vxGwBroker,
-                                   @Mocked final VtepBroker vtepBroker,
-                                   @Mocked final MidoVxLanPeer midoPeer) {
+    public void testBasicLifecycle(@Mocked VtepBroker vtepBroker) {
+
         new Expectations() {{
             // Per vtep
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
-            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
-            vxGwBroker.start(); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
             // Shutdown
-            vxGwBroker.shutdown(); times = 1;
             vtepClient.disconnect(); times = 1;
         }};
 
@@ -145,11 +152,58 @@ public class VxLanGatewayServiceTest {
     }
 
     /**
-     * Test the addition of a bridge.
+     * Check the life cycle for collaborating gateway services.
      */
     @Test
-    public void testBridgeAddition(@Mocked final VxLanGwBroker vxGwBroker,
-                                   @Mocked final VtepBroker vtepBroker,
+    public void testDoubleService(@Mocked final VtepBroker vtepBroker)
+        throws Exception {
+
+        // vtep related operations must be done just once
+        new Expectations() {{
+            // Per vtep
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
+            vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.connect(vtepMgmtIpAlt, vtepMgmntPortAlt); times = 1;
+
+            // Shutdown (one round per vtep)
+            vtepClient.disconnect(); times = 1;
+            vtepClient.disconnect(); times = 1;
+        }};
+
+        VxLanGatewayService gwsrv1 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        VxLanGatewayService gwsrv2 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        // the first service should get the initial vtep
+        gwsrv1.startAndWait();
+
+        // this might be caught by the first or second service
+        VTEP vtepAlt = new VTEP();
+        vtepAlt.setId(vtepMgmtIpAlt);
+        vtepAlt.setMgmtPort(vtepMgmntPortAlt);
+        vtepAlt.setTunnelZone(tzId);
+        dataClient.vtepCreate(vtepAlt);
+
+        gwsrv2.startAndWait();
+        gwsrv1.stopAndWait();
+        gwsrv2.stopAndWait();
+    }
+
+    /**
+     * Test the addition of a bridge
+     */
+    @Test
+    public void testBridgeAddition(@Mocked final VtepBroker vtepBroker,
                                    @Mocked final MidoVxLanPeer midoPeer)
         throws Exception {
 
@@ -165,8 +219,8 @@ public class VxLanGatewayServiceTest {
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
-            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
-            vxGwBroker.start(); times = 1;
+            mP.observableUpdates(); result = Observable.empty(); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
             mP.knowsBridgeId((UUID)any);
@@ -174,22 +228,20 @@ public class VxLanGatewayServiceTest {
 
             // Consolidation of the vtep, name unknown until makeBoundBridge
             vB.ensureLogicalSwitchExists(anyString, vni);
-                result = lsUuid; times = 1;
+            result = lsUuid; times = 1;
             vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
-                times = 1;
-
-            // The flooding proxy should be set
-            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
+            times = 1;
 
             // Bridge addition
             mP.watch((UUID)withNotNull()); result = true; times = 1;
-
+            // The flooding proxy should be set
+            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
             // Syncup macs from the VTEP
             vB.advertiseMacs(); times = 1;
 
             // Shutdown
-            vxGwBroker.shutdown(); times = 1;
             vtepClient.disconnect(); times = 1;
+            mP.stop();
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
@@ -207,8 +259,7 @@ public class VxLanGatewayServiceTest {
      * be detected normally.
      */
     @Test
-    public void testEarlyBridgeAddition(@Mocked final VxLanGwBroker vxGwBroker,
-                                        @Mocked final VtepBroker vtepBroker,
+    public void testEarlyBridgeAddition(@Mocked final VtepBroker vtepBroker,
                                         @Mocked final MidoVxLanPeer midoPeer)
         throws Exception {
 
@@ -220,8 +271,8 @@ public class VxLanGatewayServiceTest {
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
-            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
-            vxGwBroker.start(); times = 1;
+            mP.observableUpdates(); result = Observable.empty(); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
             mP.knowsBridgeId((UUID)any);
@@ -233,11 +284,9 @@ public class VxLanGatewayServiceTest {
             vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
             times = 1;
 
-            // The flooding proxy should be set
-            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
-
             // Bridge addition
             mP.watch((UUID)withNotNull()); result = true; times = 1;
+            vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
             vB.advertiseMacs(); times = 1;
 
             mP.knowsBridgeId((UUID)any);
@@ -249,8 +298,8 @@ public class VxLanGatewayServiceTest {
             // advertise
 
             // Shutdown
-            vxGwBroker.shutdown(); times = 1;
             vtepClient.disconnect(); times = 1;
+            mP.stop();
         }};
 
         // add a new bridge with a binding before starting the service
@@ -266,8 +315,7 @@ public class VxLanGatewayServiceTest {
      * Test the update of a bridge
      */
     @Test
-    public void testBridgeUpdate(@Mocked final VxLanGwBroker vxGwBroker,
-                                 @Mocked final VtepBroker vtepBroker,
+    public void testBridgeUpdate(@Mocked final VtepBroker vtepBroker,
                                  @Mocked final MidoVxLanPeer midoPeer)
         throws Exception {
 
@@ -279,8 +327,8 @@ public class VxLanGatewayServiceTest {
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
-            new VxLanGwBroker(vB, mP); result = vxGwBroker; times = 1;
-            vxGwBroker.start(); times = 1;
+            mP.observableUpdates(); result = Observable.empty(); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
             mP.knowsBridgeId((UUID)any);
@@ -292,16 +340,16 @@ public class VxLanGatewayServiceTest {
             vB.renewBindings(lsUuid, (Collection<VtepBinding>)any);
             times = 1;
 
+            // Bridge update (vxlanport addition)
+            mP.watch((UUID)withNotNull()); result = true; times = 1;
             // The flooding proxy should be set
             vB.setFloodingProxy(anyString, tunnelZoneHostIp); times = 1;
 
-            // Bridge update (vxlanport addition)
-            mP.watch((UUID)withNotNull()); result = true; times = 1;
             vB.advertiseMacs(); times = 1;
 
             // Shutdown
-            vxGwBroker.shutdown(); times = 1;
             vtepClient.disconnect(); times = 1;
+            mP.stop();
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
@@ -319,5 +367,80 @@ public class VxLanGatewayServiceTest {
         dataClient.bridgeDeleteVxLanPort(bridgeId);
 
         gwsrv.stopAndWait();
+    }
+
+    /**
+     * Check the dynamic detection of vteps
+     */
+    @Test
+    public void testVtepAddition(@Mocked final VtepBroker vtepBroker)
+        throws Exception {
+
+        // vtep related operations must be done just once
+        new Expectations() {{
+            // Per vtep
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
+            vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.connect(vtepMgmtIpAlt, vtepMgmntPortAlt); times = 1;
+
+            // Shutdown (one round per vtep)
+            vtepClient.disconnect(); times = 1;
+            vtepClient.disconnect(); times = 1;
+        }};
+
+        VxLanGatewayService gwsrv1 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        // the initial vtep should be detected
+        gwsrv1.startAndWait();
+
+        // this should be also caught by the service
+        VTEP vtepAlt = new VTEP();
+        vtepAlt.setId(vtepMgmtIpAlt);
+        vtepAlt.setMgmtPort(vtepMgmntPortAlt);
+        vtepAlt.setTunnelZone(tzId);
+        dataClient.vtepCreate(vtepAlt);
+
+        gwsrv1.stopAndWait();
+    }
+
+    /**
+     * Check the dynamic deletion of vteps
+     */
+    @Test
+    public void testVtepDeletion(@Mocked final VtepBroker vtepBroker)
+        throws Exception {
+
+        // vtep related operations must be done just once
+        new Expectations() {{
+            // Per vtep
+            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
+            vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            // Shutdown (one round per vtep)
+            vtepClient.disconnect(); times = 1;
+        }};
+
+        VxLanGatewayService gwsrv1 =
+            new VxLanGatewayService(dataClient, vtepDataClientProvider,
+                                    zkConnWatcher);
+        // the initial vtep should be detected
+        gwsrv1.startAndWait();
+
+        // the removal of the vtep should also be detected
+        dataClient.vtepDelete(vtepMgmtIp);
+
+        gwsrv1.stopAndWait();
     }
 }

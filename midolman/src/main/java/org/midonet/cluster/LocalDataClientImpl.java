@@ -83,6 +83,7 @@ import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.PortConfig;
@@ -3351,7 +3352,17 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void vtepDelete(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException {
-        zkManager.multi(vtepZkManager.prepareDelete(ipAddr));
+        List<Op> deleteNoOwner = new ArrayList<Op>(
+            vtepZkManager.prepareDelete(ipAddr));
+        List<Op> deleteOwner = new ArrayList<Op>(
+            vtepZkManager.prepareDeleteOwner(ipAddr));
+        deleteOwner.addAll(deleteNoOwner);
+
+        try {
+            zkManager.multi(deleteOwner);
+        } catch (NoStatePathException e) {
+            zkManager.multi(deleteNoOwner);
+        }
     }
 
     @Override
