@@ -44,16 +44,23 @@ def setup():
     PTM.build()
     VTM.build()
 
+    # Sets up a VTEP and add a binding.
+    set_up_vtep()
+
 
 def teardown():
     time.sleep(2)
     # Need to manually delete the _vtep_binding.
     # TODO(tomohiko) Remove once the wrapper classes are implemented.
     if _vtep_binding: _vtep_binding.delete()
+    # Deletes all VTEPs if any.
+    vteps = VTM._api.get_vteps()
+    for vtep in vteps:
+        vtep.delete()
+        Log.debug('Deleted a VTEP at %s' % vtep.get_management_ip())
+
     time.sleep(2)
-    # Cannot do the proper cleanup at the moment because VTEP cannot be properly
-    # deleted, which prevents the removal of the tunnel zone.
-    #PTM.destroy()
+    PTM.destroy()
     VTM.destroy()
 
 
@@ -84,9 +91,6 @@ def test_ping_host_on_vtep():
 #                           should_NOT_receive(pcap_filter, within_sec(5)))
 #    wait_on_futures([f1, f2])
 
-    # Sets up a VTEP and add a binding.
-    set_up_vtep()
-
     # Send an ARP request.
     f1 = sender.send_arp_request(vm_on_vtep)
     wait_on_futures([f1])
@@ -109,39 +113,31 @@ def set_up_vtep():
     '''
     LOG.debug('Setting up a VxLAN GW.')
     api = VTM._api
-    # Look up the VTEP, or create one if it doesn't exist yet.
-    vtep = None
-    vteps = api.get_vteps()
-    for v in vteps:
-        if v.get_management_ip == vtep_management_ip:
-            Log.debug('Found a VTP with mgmt IP=%s' % vtep_management_ip)
-            vtep = v
 
-    if not vtep:
-        LOG.debug('Creating a new VTEP.')
-        # Create a VTEP. Look up a tunnel zone from the host info.
-        host_1 = None
-        for h in PTM._hosts:
-            host = h['host']
-            if host.get('id') == 1: host_1 = host
-        LOG.debug('Looked up the host id 1: %s' % host_1.get('mn_host_id'))
+    LOG.debug('Creating a new VTEP.')
+    # Create a VTEP. Look up a tunnel zone from the host info.
+    host_1 = None
+    for h in PTM._hosts:
+        host = h['host']
+        if host.get('id') == 1: host_1 = host
+    LOG.debug('Looked up the host id 1: %s' % host_1.get('mn_host_id'))
 
-        LOG.debug('Look up a tunnel zone.')
-        tz_data = host_1.get('tunnel_zone')
-        tzs = api.get_tunnel_zones()
-        tz = [t for t in tzs if t.get_name() == tz_data['name']]
-        tunnel_zone = tz[0]
-        tunnel_zone_id = tunnel_zone.get_id()
-        LOG.debug('Tunnel zone name/IP/ID: %s/%s/%s' %
-                  (tz_data['name'], tz_data['ip_addr'], tunnel_zone_id))
+    LOG.debug('Look up a tunnel zone.')
+    tz_data = host_1.get('tunnel_zone')
+    tzs = api.get_tunnel_zones()
+    tz = [t for t in tzs if t.get_name() == tz_data['name']]
+    tunnel_zone = tz[0]
+    tunnel_zone_id = tunnel_zone.get_id()
+    LOG.debug('Tunnel zone name/IP/ID: %s/%s/%s' %
+              (tz_data['name'], tz_data['ip_addr'], tunnel_zone_id))
 
-        vtep = api.add_vtep()\
-                 .name('My VTEP')\
-                 .management_ip(vtep_management_ip)\
-                 .management_port(vtep_management_port)\
-                 .tunnel_zone_id(tunnel_zone_id)\
-                 .create()
-        LOG.debug('Created a VTEP at %s' % vtep_management_ip)
+    vtep = api.add_vtep()\
+             .name('My VTEP')\
+             .management_ip(vtep_management_ip)\
+             .management_port(vtep_management_port)\
+             .tunnel_zone_id(tunnel_zone_id)\
+             .create()
+    LOG.debug('Created a VTEP at %s' % vtep_management_ip)
 
     # Add a new VTEP binding. Assigning it to a global variable so that it can
     # be later deleted.
