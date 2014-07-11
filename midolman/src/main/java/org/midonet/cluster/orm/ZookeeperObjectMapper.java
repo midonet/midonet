@@ -4,6 +4,7 @@
 package org.midonet.cluster.orm;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -278,15 +279,45 @@ public class ZookeeperObjectMapper {
                                DeleteAction onDeleteLeft,
                                Class<?> rightClass, String rightFieldName,
                                DeleteAction onDeleteRight) {
-        // TODO: Check type compatibility.
-        Field leftField = getField(leftClass, leftFieldName);
-        Field rightField = getField(rightClass, rightFieldName);
-        if (leftField != null)
-            allBindings.put(leftClass, new FieldBinding(leftField,
-                    rightClass, rightField, onDeleteLeft));
-        if (rightField != null && leftClass != rightClass)
-            allBindings.put(rightClass, new FieldBinding(rightField,
-                    leftClass, leftField, onDeleteRight));
+        assert(leftFieldName != null || rightFieldName != null);
+
+        Field leftIdField = getField(leftClass, "id");
+        Field rightIdField = getField(rightClass, "id");
+        Field leftRefField = getField(leftClass, leftFieldName);
+        Field rightRefField = getField(rightClass, rightFieldName);
+
+        checkTypeCompatibilityForBinding(leftIdField, rightRefField);
+        checkTypeCompatibilityForBinding(rightIdField, leftRefField);
+
+        if (leftRefField != null)
+            allBindings.put(leftClass, new FieldBinding(leftRefField,
+                    rightClass, rightRefField, onDeleteLeft));
+        if (rightRefField != null && leftClass != rightClass)
+            allBindings.put(rightClass, new FieldBinding(rightRefField,
+                    leftClass, leftRefField, onDeleteRight));
+    }
+
+    private String getQualifiedName(Field f) {
+        return f.getDeclaringClass().getSimpleName() + '.' + f.getName();
+    }
+
+    private void checkTypeCompatibilityForBinding(Field id, Field ref) {
+        Class<?> refType = ref.getType();
+        if (isList(ref)) {
+            ParameterizedType pt = (ParameterizedType)ref.getGenericType();
+            refType = (Class<?>)pt.getActualTypeArguments()[0];
+        }
+
+        if (id.getType() != refType) {
+            String idName = getQualifiedName(id);
+            String refName = getQualifiedName(ref);
+            String idTypeName = id.getType().getSimpleName();
+            throw new IllegalArgumentException(
+                    "Cannot bind "+refName+" to "+idName+". " +
+                    "Since "+idName+"'s type is "+idTypeName+", " +
+                    refName+"'s type must be either "+idTypeName+" or " +
+                    "List<"+idTypeName+">.");
+        }
     }
 
     /**
@@ -495,8 +526,8 @@ public class ZookeeperObjectMapper {
     }
 
     /**
-     * Converts Class.getDeclaredField()'s NoSuchFieldException to a
-     * RuntimeException.
+     * Converts Class.getDeclaredField()'s NoSuchFieldException to an
+     * IllegalArgumentException.
      */
     private Field getField(Class<?> clazz, String name) {
         if (name == null)
@@ -507,7 +538,7 @@ public class ZookeeperObjectMapper {
             f.setAccessible(true);
             return f;
         } catch (NoSuchFieldException ex) {
-            throw new RuntimeException(ex);
+            throw new IllegalArgumentException(ex);
         }
     }
 
@@ -557,6 +588,7 @@ public class ZookeeperObjectMapper {
      * Adds val to o's field f. F's type must be a subclass of List.
      */
     private void addToList(Object o, Field f, Object val) {
+
         List<Object> list = (List<Object>)getValue(o, f);
         if (list == null) {
             list = new ArrayList<>();
