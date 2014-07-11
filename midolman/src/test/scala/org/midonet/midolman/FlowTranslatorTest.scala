@@ -19,6 +19,7 @@ import org.midonet.cluster.data.{TunnelZone, Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
@@ -26,16 +27,17 @@ import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.DpPort
+import org.midonet.odp.{Packet, DpPort}
 import org.midonet.odp.flows.{FlowKeys, FlowActions, FlowAction,
                               FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
+import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
                                              FlowActionOutputToVrnPortSet}
 import org.midonet.util.concurrent.ExecutionContextOps
-import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
@@ -71,9 +73,14 @@ class FlowTranslatorTest extends MidolmanSpec {
             dpState.vxlanPortNumber = num
         }
 
-        def translate(action: FlowAction): Unit = translate(List(action))
+        def translate(action: FlowAction, ethernet: Ethernet = null): Unit =
+            translate(List(action), ethernet)
 
-        def translate(actions: List[FlowAction]): Unit
+        def translate(actions: List[FlowAction]): Unit =
+            translate(actions, null)
+
+        def translate(actions: List[FlowAction], ethernet: Ethernet): Unit
+
         def verify(result: (Seq[FlowAction], ROSet[FlowTag]))
 
         protected def withInputPortTagging(tags: ROSet[FlowTag]) = inPortUUID match {
@@ -385,6 +392,40 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
     }
 
+    feature("ICMP echo is ignored") {
+        translationScenario("FlowKeyICMPEcho is removed") { ctx =>
+            ctx translate setKey(FlowKeys.icmpEcho(
+                ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE, 0.toShort))
+            ctx verify (List(), Set.empty)
+        }
+    }
+
+    feature("ICMP error mangles the payload or is ignored") {
+        translationScenario("An ICMP payload is mangled") { ctx =>
+            val data = Array[Byte](2, 4, 8)
+            val pkt = { eth addr "02:02:02:01:01:01" -> eth_zero } <<
+                        { ip4 addr "192.168.100.1" --> "192.168.100.2" } <<
+                            { icmp.unreach.host}
+            ctx.translate(
+                setKey(FlowKeys.icmpError(
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                pkt)
+            ctx verify (List(), Set.empty)
+            pkt.getPayload.getPayload.asInstanceOf[ICMP].getData should be (data)
+        }
+
+        translationScenario("A non-ICMP payload is not mangled") { ctx =>
+            val data = Array[Byte](2, 4, 8)
+            val pkt = { eth addr "02:02:02:01:01:01" -> eth_zero }
+            ctx.translate(
+                setKey(FlowKeys.icmpError(
+                    ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_HOST.toByte(), data)),
+                pkt)
+            ctx verify (List(), Set.empty)
+            pkt.getPayload should be (null)
+        }
+    }
+
     feature("Other actions are identity-translated") {
         translationScenario("A pushVLAN action is identity-translated") { ctx =>
             ctx translate pushVLAN(3)
@@ -443,19 +484,21 @@ class FlowTranslatorTest extends MidolmanSpec {
         val cookieStr = ""
 
         override def translateVirtualWildcardFlow(
+                            pktCtx: PacketContext,
                             flow: WildcardFlow,
                             tags: ROSet[FlowTag]) : Urgent[(WildcardFlow, ROSet[FlowTag])] = {
             if (flow.getMatch.getInputPortUUID == null)
                 fail("NULL in forwarded call")
-            super.translateVirtualWildcardFlow(flow, tags)
+            super.translateVirtualWildcardFlow(pktCtx, flow, tags)
         }
 
         override def translateActions(
+                            pktCtx: PacketContext,
                             actions: Seq[FlowAction],
                             inPortUUID: Option[UUID],
                             dpTags: mutable.Set[FlowTag],
                             wMatch: WildcardMatch) : Urgent[Seq[FlowAction]] =
-            super.translateActions(actions, inPortUUID, dpTags, wMatch)
+            super.translateActions(pktCtx, actions, inPortUUID, dpTags, wMatch)
     }
 
     class TestDatapathState extends DatapathState {
@@ -499,13 +542,14 @@ class FlowTranslatorTest extends MidolmanSpec {
                 protected val dpState = new TestDatapathState
                 private val wcMatch = new WildcardMatch()
 
-                def translate(actions: List[FlowAction]): Unit = {
+                def translate(actions: List[FlowAction],
+                              ethernet: Ethernet): Unit = {
                     if (inPortUUID.isDefined)
                         wcMatch.setInputPortUUID(inPortUUID.get)
 
                     translatedActions = null
                     do new TestFlowTranslator(dpState).translateActions(
-                            actions, inPortUUID,
+                            packetContext(ethernet), actions, inPortUUID,
                             if (withTags) tags else mutable.Set[FlowTag](),
                             wcMatch) match {
                         case Ready(v) =>
@@ -537,7 +581,8 @@ class FlowTranslatorTest extends MidolmanSpec {
             protected val dpState = new TestDatapathState
             private val wcMatch = new WildcardMatch()
 
-            def translate(actions: List[FlowAction]): Unit = {
+            def translate(actions: List[FlowAction],
+                          ethernet: Ethernet): Unit = {
                 val port = inPortUUID.getOrElse(null) match {
                     case null =>
                         inPortUUID = Some(UUID.randomUUID())
@@ -548,6 +593,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
                 val tags = new mutable.HashSet[FlowTag]
                 do new TestFlowTranslator(dpState).translateVirtualWildcardFlow(
+                    packetContext(ethernet),
                     WildcardFlow(wcMatch.setInputPortUUID(port), actions), tags) match {
                         case Ready(v) =>
                             translation = v
@@ -564,5 +610,14 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
 
         scenario(name + " via WildcardFlow")(testFun(ctx))
+    }
+
+    def packetContext(ethernet: Ethernet) = {
+        val wcmatch = if (ethernet eq null)
+                        new WildcardMatch()
+                      else
+                        WildcardMatch.fromEthernetPacket(ethernet)
+        new PacketContext(Left(0), new Packet(ethernet), 0,
+                          null, null, null, None, wcmatch)
     }
 }

@@ -395,18 +395,12 @@ class DeduplicationActor(
     }
 
     private def executePacket(packet: Packet, actions: JList[FlowAction]) {
-        val finalActions = if (packet.getMatch.isUserSpaceOnly) {
-            UserspaceFlowActionTranslator.translate(packet, actions)
-        } else {
-            actions
-        }
-
-        if (finalActions.isEmpty) {
+        if (actions.isEmpty) {
             return
         }
 
         try {
-            datapathConn(packet).packetsExecute(datapath, packet, finalActions)
+            datapathConn(packet).packetsExecute(datapath, packet, actions)
         } catch {
             case e: NetlinkException =>
                 log.info("Failed to execute packet: {}", e)
