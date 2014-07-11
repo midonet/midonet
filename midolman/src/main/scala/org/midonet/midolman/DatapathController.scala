@@ -1304,7 +1304,7 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         tunnelVtepVxLan.getPortNo == portNumber
 
     def isOverlayTunnellingPort(portNumber: Short) =
-        tunnelOverlayGre.getPortNo == portNumber
+        tunnelOverlayGre.getPortNo == portNumber || tunnelOverlayVxLan == portNumber
 
     /** reference to the current host information. Used to query this host ip
      *  when adding tunnel routes to peer host for given zone uuid. */
