@@ -7,7 +7,6 @@ import java.util.{List => JList}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.collection.{Set => ROSet, mutable}
 import scala.reflect.ClassTag
 
@@ -210,20 +209,14 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     def executePacket(pktCtx: PacketContext, actions: Seq[FlowAction]) {
-        val finalActions = if (pktCtx.packet.getMatch.isUserSpaceOnly) {
-            UserspaceFlowActionTranslator.translate(pktCtx.packet, actions.asJava)
-        } else {
-            actions.asJava
-        }
-
-        if (finalActions.isEmpty) {
+        if (actions.isEmpty) {
             log.debug("Dropping packet {}", cookieStr)
             return
         }
 
         try {
             log.debug("Executing packet {}", cookieStr)
-            datapathConn(pktCtx).packetsExecute(datapath, pktCtx.packet, finalActions)
+            datapathConn(pktCtx).packetsExecute(datapath, pktCtx.packet, actions)
         } catch {
             case e: NetlinkException =>
                 log.info("{} Failed to execute packet: {}", cookieStr, e)
@@ -410,7 +403,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def addVirtualWildcardFlow(pktCtx: PacketContext,
                                flow: WildcardFlow,
                                tags: ROSet[FlowTag]): Urgent[Boolean] = {
-        translateVirtualWildcardFlow(flow, tags) map {
+        translateVirtualWildcardFlow(pktCtx, flow, tags) map {
             case (finalFlow, finalTags) =>
                 addTranslatedFlow(pktCtx, finalFlow, finalTags)
                 true
@@ -475,7 +468,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         } else {
             log.debug("Sending {} {} with actions {}", cookieStr, pktCtx.packet, acts)
             val throwAwayTags = mutable.Set.empty[FlowTag]
-            translateActions(acts, None, throwAwayTags, pktCtx.origMatch) map {
+            translateActions(pktCtx, acts, None, throwAwayTags, pktCtx.origMatch) map {
                 actions =>
                     executePacket(pktCtx, actions)
                     true

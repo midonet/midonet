@@ -47,8 +47,7 @@ public class WildcardMatch implements Cloneable {
         VlanId
     }
 
-    public static final Iterable<Field> IcmpFields =
-        Arrays.asList(Field.IcmpData, Field.IcmpId);
+    public static final Field[] IcmpFields = { Field.IcmpData, Field.IcmpId };
 
     private short getLayer(Field f) {
         switch(f) {
