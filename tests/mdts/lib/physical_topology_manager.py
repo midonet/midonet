@@ -7,6 +7,7 @@ import logging
 from mdts.lib.interface import Interface
 from mdts.lib.topology_manager import TopologyManager
 from mdts.tests.utils import wait_on_futures
+from mdts.tests.utils.conf import is_vxlan_enabled
 
 
 LOG = logging.getLogger(__name__)
@@ -50,7 +51,10 @@ class PhysicalTopologyManager(TopologyManager):
                 # Ensure that TZ exists
                 tz = [t for t in tzs if t.get_name() == tz_data['name']]
                 if tz == []:
-                    tz = self._api.add_gre_tunnel_zone()
+                    if is_vxlan_enabled():
+                        tz = self._api.add_vxlan_tunnel_zone()
+                    else:
+                        tz = self._api.add_gre_tunnel_zone()
                     tz.name(tz_data['name'])
                     tz.create()
                 else:
