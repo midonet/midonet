@@ -242,7 +242,7 @@ public class LocalDataClientImpl implements DataClient {
     private Reactor reactor;
 
     final Queue<Callback2<UUID, Boolean>> subscriptionPortsActive =
-        new ConcurrentLinkedQueue<Callback2<UUID, Boolean>>();
+        new ConcurrentLinkedQueue<>();
 
     private final static Logger log =
             LoggerFactory.getLogger(LocalDataClientImpl.class);
@@ -278,7 +278,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<AdRoute> adRoutesFindByBgp(@Nonnull UUID bgpId)
             throws StateAccessException, SerializationException {
         List<UUID> adRouteIds = adRouteZkManager.list(bgpId);
-        List<AdRoute> adRoutes = new ArrayList<AdRoute>();
+        List<AdRoute> adRoutes = new ArrayList<>();
         for (UUID adRouteId : adRouteIds) {
             adRoutes.add(adRoutesGet(adRouteId));
         }
@@ -307,15 +307,15 @@ public class LocalDataClientImpl implements DataClient {
     public List<BGP> bgpFindByPort(UUID portId)
             throws StateAccessException, SerializationException {
         List<UUID> bgpIds = bgpZkManager.list(portId);
-        List<BGP> bgps = new ArrayList<BGP>();
+        List<BGP> bgps = new ArrayList<>();
         for (UUID bgpId : bgpIds) {
             bgps.add(bgpGet(bgpId));
         }
         return bgps;
     }
 
-    public List<Bridge> bridgesFindByTenant(String tenantId) throws StateAccessException,
-        SerializationException {
+    public List<Bridge> bridgesFindByTenant(String tenantId)
+        throws StateAccessException, SerializationException {
         log.debug("bridgesFindByTenant entered: tenantId={}", tenantId);
 
         List<Bridge> bridges = bridgesGetAll();
@@ -352,8 +352,9 @@ public class LocalDataClientImpl implements DataClient {
             // skip on null - caused by race condition
             // (disappeared/unbound port/bridge)
             IPv4Addr ip = vxlanTunnelEndpointForInternal(bridge, (BridgePort)p);
-            if (ip == null)
+            if (ip == null) {
                 continue;
+            }
             filtered.put(vmp, ip);
         }
         return filtered;
@@ -367,7 +368,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
             throws StateAccessException {
         // Get entries for the untagged VLAN.
-        List<VlanMacPort> allPorts = new LinkedList<VlanMacPort>();
+        List<VlanMacPort> allPorts = new LinkedList<>();
         allPorts.addAll(bridgeGetMacPorts(bridgeId, Bridge.UNTAGGED_VLAN_ID));
 
         // Get entries for the other VLANs.
@@ -391,7 +392,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Map<MAC, UUID> portsMap = MacPortMap.getAsMap(
                 bridgeZkManager.getMacPortMapDirectory(bridgeId, vlanId));
-        List<VlanMacPort> ports = new ArrayList<VlanMacPort>(portsMap.size());
+        List<VlanMacPort> ports = new ArrayList<>(portsMap.size());
         for (Map.Entry<MAC, UUID> e : portsMap.entrySet()) {
             ports.add(new VlanMacPort(e.getKey(), e.getValue(), vlanId));
         }
@@ -664,7 +665,7 @@ public class LocalDataClientImpl implements DataClient {
     public EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
-        return new EntityIdSetMonitor(bridgeZkManager, zkConnection);
+        return new EntityIdSetMonitor<>(bridgeZkManager, zkConnection);
     }
 
     @Override
@@ -751,7 +752,7 @@ public class LocalDataClientImpl implements DataClient {
             SerializationException {
         log.debug("chainsGetAll entered");
 
-        List<Chain> chains = new ArrayList<Chain>();
+        List<Chain> chains = new ArrayList<>();
 
         String path = pathBuilder.getChainsPath();
         if (zkManager.exists(path)) {
@@ -872,7 +873,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         Collection<UUID> ids = zonesZkManager.getZoneIds();
 
-        List<TunnelZone> tunnelZones = new ArrayList<TunnelZone>();
+        List<TunnelZone> tunnelZones = new ArrayList<>();
 
         for (UUID id : ids) {
             TunnelZone zone = tunnelZonesGet(id);
@@ -944,7 +945,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID tunnelZonesAddMembership(UUID zoneId, TunnelZone.HostConfig hostConfig)
+    public UUID tunnelZonesAddMembership(
+        @Nonnull UUID zoneId, @Nonnull TunnelZone.HostConfig hostConfig)
             throws StateAccessException, SerializationException {
         return zonesZkManager.addMembership(zoneId, hostConfig);
     }
@@ -1027,7 +1029,8 @@ public class LocalDataClientImpl implements DataClient {
         });
     }
 
-    public @CheckForNull Chain chainsGetByName(@Nonnull String tenantId, String name)
+    public @CheckForNull Chain chainsGetByName(@Nonnull String tenantId,
+                                               String name)
             throws StateAccessException, SerializationException {
         log.debug("Entered: tenantId={}, name={}", tenantId, name);
 
@@ -1051,7 +1054,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         log.debug("chainsFindByTenant entered: tenantId={}", tenantId);
 
-        List<Chain> chains = new ArrayList<Chain>();
+        List<Chain> chains = new ArrayList<>();
 
         String path = pathBuilder.getTenantChainNamesPath(tenantId);
         if (zkManager.exists(path)) {
@@ -1070,14 +1073,16 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpSubnetsCreate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
+    public void dhcpSubnetsCreate(@Nonnull UUID bridgeId,
+                                  @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException {
         dhcpZkManager.createSubnet(bridgeId,
                 Converter.toDhcpSubnetConfig(subnet));
     }
 
     @Override
-    public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId, @Nonnull Subnet subnet)
+    public void dhcpSubnetsUpdate(@Nonnull UUID bridgeId,
+                                  @Nonnull Subnet subnet)
             throws StateAccessException, SerializationException {
 
         Subnet oldSubnet = dhcpSubnetsGet(bridgeId, subnet.getSubnetAddr());
@@ -1102,7 +1107,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId, IPv4Subnet subnetAddr)
+    public @CheckForNull Subnet dhcpSubnetsGet(UUID bridgeId,
+                                               IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
 
         Subnet subnet = null;
@@ -1148,7 +1154,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpHostsCreate(
-            UUID bridgeId, IPv4Subnet subnet,
+            @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
             org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException {
 
@@ -1158,10 +1164,11 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpHostsUpdate(
-            UUID bridgeId, IPv4Subnet subnet,
+            @Nonnull UUID bridgeId, @Nonnull IPv4Subnet subnet,
             org.midonet.cluster.data.dhcp.Host host)
             throws StateAccessException, SerializationException {
-        dhcpZkManager.updateHost(bridgeId, subnet, Converter.toDhcpHostConfig(host));
+        dhcpZkManager.updateHost(bridgeId, subnet,
+                                 Converter.toDhcpHostConfig(host));
     }
 
     @Override
@@ -1195,7 +1202,7 @@ public class LocalDataClientImpl implements DataClient {
         List<BridgeDhcpZkManager.Host> hostConfigs =
                 dhcpZkManager.getHosts(bridgeId, subnet);
         List<org.midonet.cluster.data.dhcp.Host> hosts =
-                new ArrayList<org.midonet.cluster.data.dhcp.Host>();
+                new ArrayList<>();
         for (BridgeDhcpZkManager.Host hostConfig : hostConfigs) {
             hosts.add(Converter.fromDhcpHostConfig(hostConfig));
         }
@@ -1204,14 +1211,16 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpSubnet6Create(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+    public void dhcpSubnet6Create(@Nonnull UUID bridgeId,
+                                  @Nonnull Subnet6 subnet)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.createSubnet6(bridgeId,
                 Converter.toDhcpSubnet6Config(subnet));
     }
 
     @Override
-    public void dhcpSubnet6Update(@Nonnull UUID bridgeId, @Nonnull Subnet6 subnet)
+    public void dhcpSubnet6Update(@Nonnull UUID bridgeId,
+                                  @Nonnull Subnet6 subnet)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.updateSubnet6(bridgeId,
                 Converter.toDhcpSubnet6Config(subnet));
@@ -1223,7 +1232,8 @@ public class LocalDataClientImpl implements DataClient {
         dhcpV6ZkManager.deleteSubnet6(bridgeId, prefix);
     }
 
-    public @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId, IPv6Subnet prefix)
+    public @CheckForNull Subnet6 dhcpSubnet6Get(UUID bridgeId,
+                                                IPv6Subnet prefix)
             throws StateAccessException, SerializationException {
 
         Subnet6 subnet = null;
@@ -1242,8 +1252,9 @@ public class LocalDataClientImpl implements DataClient {
     public List<Subnet6> dhcpSubnet6sGetByBridge(UUID bridgeId)
             throws StateAccessException, SerializationException {
 
-        List<IPv6Subnet> subnet6Configs = dhcpV6ZkManager.listSubnet6s(bridgeId);
-        List<Subnet6> subnets = new ArrayList<Subnet6>(subnet6Configs.size());
+        List<IPv6Subnet> subnet6Configs =
+            dhcpV6ZkManager.listSubnet6s(bridgeId);
+        List<Subnet6> subnets = new ArrayList<>(subnet6Configs.size());
 
         for (IPv6Subnet subnet6Config : subnet6Configs) {
             subnets.add(dhcpSubnet6Get(bridgeId, subnet6Config));
@@ -1254,7 +1265,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpV6HostCreate(
-            UUID bridgeId, IPv6Subnet prefix, V6Host host)
+            @Nonnull UUID bridgeId, @Nonnull IPv6Subnet prefix, V6Host host)
             throws StateAccessException, SerializationException {
 
         dhcpV6ZkManager.addHost(bridgeId, prefix,
@@ -1263,7 +1274,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void dhcpV6HostUpdate(
-            UUID bridgeId, IPv6Subnet prefix, V6Host host)
+            @Nonnull UUID bridgeId, @Nonnull IPv6Subnet prefix, V6Host host)
             throws StateAccessException, SerializationException {
         dhcpV6ZkManager.updateHost(bridgeId, prefix,
                 Converter.toDhcpV6HostConfig(host));
@@ -1286,7 +1297,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix, String clientId)
+    public void dhcpV6HostDelete(UUID bridgId, IPv6Subnet prefix,
+                                 String clientId)
             throws StateAccessException {
         dhcpV6ZkManager.deleteHost(bridgId, prefix, clientId);
     }
@@ -1299,7 +1311,7 @@ public class LocalDataClientImpl implements DataClient {
 
         List<BridgeDhcpV6ZkManager.Host> hostConfigs =
                 dhcpV6ZkManager.getHosts(bridgeId, prefix);
-        List<V6Host> hosts = new ArrayList<V6Host>();
+        List<V6Host> hosts = new ArrayList<>();
 
         for (BridgeDhcpV6ZkManager.Host hostConfig : hostConfigs) {
             hosts.add(Converter.fromDhcpV6HostConfig(hostConfig));
@@ -1368,7 +1380,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
         Collection<UUID> ids = hostZkManager.getHostIds();
 
-        List<Host> hosts = new ArrayList<Host>();
+        List<Host> hosts = new ArrayList<>();
 
         for (UUID id : ids) {
             try {
@@ -1401,12 +1413,16 @@ public class LocalDataClientImpl implements DataClient {
                         floodingProxyWeight =
                             hostZkManager.getFloodingProxyWeight(id);
                     } catch (StateAccessException | SerializationException e) {
+                        log.warn("Failure getting flooding proxy weight", e);
                     }
                     try {
                         host.setIsAlive(hostsIsAlive(id));
-                    } catch (StateAccessException ex) { }
-                    if (floodingProxyWeight != null)
+                    } catch (StateAccessException e) {
+                        log.warn("Failure getting host status", e);
+                    }
+                    if (floodingProxyWeight != null) {
                         host.setFloodingProxyWeight(floodingProxyWeight);
+                    }
                     return host;
                 }
             });
@@ -1416,13 +1432,13 @@ public class LocalDataClientImpl implements DataClient {
     public EntityIdSetMonitor<UUID> hostsGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
-        return new EntityIdSetMonitor(hostZkManager, zkConnection);
+        return new EntityIdSetMonitor<>(hostZkManager, zkConnection);
     }
 
     @Override
     public List<Interface> interfacesGetByHost(UUID hostId)
             throws StateAccessException, SerializationException {
-        List<Interface> interfaces = new ArrayList<Interface>();
+        List<Interface> interfaces = new ArrayList<>();
 
         Collection<String> interfaceNames =
                 hostZkManager.getInterfaces(hostId);
@@ -1445,7 +1461,8 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
+    public @CheckForNull Interface interfacesGet(UUID hostId,
+                                                 String interfaceName)
             throws StateAccessException, SerializationException {
         Interface anInterface = null;
 
@@ -1487,7 +1504,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<Command> commandsGetByHost(UUID hostId)
             throws StateAccessException, SerializationException {
         List<Integer> commandsIds = hostZkManager.getCommandIds(hostId);
-        List<Command> commands = new ArrayList<Command>();
+        List<Command> commands = new ArrayList<>();
         for (Integer commandsId : commandsIds) {
 
             Command hostCommand = commandsGet(hostId, commandsId);
@@ -1503,7 +1520,7 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public @CheckForNull Command commandsGet(UUID hostId, Integer id)
             throws StateAccessException, SerializationException {
-        Command command = null;
+        Command command;
 
         try {
             HostDirectory.Command hostCommand =
@@ -1541,8 +1558,7 @@ public class LocalDataClientImpl implements DataClient {
         Set<HostDirectory.VirtualPortMapping> zkMaps =
                 hostZkManager.getVirtualPortMappings(hostId, null);
 
-        List<VirtualPortMapping> maps =
-                new ArrayList<VirtualPortMapping>(zkMaps.size());
+        List<VirtualPortMapping> maps = new ArrayList<>(zkMaps.size());
 
         for(HostDirectory.VirtualPortMapping zkMap : zkMaps) {
             maps.add(Converter.fromHostVirtPortMappingConfig(zkMap));
@@ -1587,7 +1603,7 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException, SerializationException {
 
         Collection<UUID> ids = portZkManager.getBridgePortIDs(bridgeId);
-        List<BridgePort> ports = new ArrayList<BridgePort>();
+        List<BridgePort> ports = new ArrayList<>();
         for (UUID id : ids) {
             Port<?, ?> port = portsGet(id);
             if (port instanceof BridgePort) {
@@ -3642,7 +3658,7 @@ public class LocalDataClientImpl implements DataClient {
     public EntityIdSetMonitor<IPv4Addr> vtepsGetAllSetMonitor(
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
-        return new EntityIdSetMonitor(vtepZkManager, zkConnection);
+        return new EntityIdSetMonitor<>(vtepZkManager, zkConnection);
     }
 
 
