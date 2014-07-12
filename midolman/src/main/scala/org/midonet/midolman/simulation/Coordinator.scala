@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{Arrays, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.immutable
 import scala.collection.mutable.ListBuffer
@@ -601,8 +601,9 @@ class Coordinator(var origMatch: WildcardMatch,
         }
 
         // ICMP errors
-        if (!matchObjectsSame(orig.getIcmpData,
-                              modif.getIcmpData)) {
+        if ((modif.getIcmpData ne null) &&
+            !Arrays.equals(modif.getIcmpData, orig.getIcmpData)) {
+
             val icmpType = modif.getTransportSource
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
                 icmpType == ICMP.TYPE_UNREACH ||
