@@ -192,7 +192,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             val chain3 = reject(port3)
 
             val rcuHost: Host = new Host(
-                hostId(), "midonet",
+                hostId(), 0L, "midonet",
                 Map(inPort.getId -> "in", port0.getId -> "port0"),
                 Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
                     .setIp(hostIp))
@@ -301,7 +301,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             makePortSet(bridge.getId, Set.empty, Set(inPort, port0))
 
             val rcuHost: Host = new Host(
-                hostId(), "midonet",
+                hostId(), 0L, "midonet",
                 Map(inPort.getId -> "in", port0.getId -> "port0"),
                 Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
                                              .setIp(hostIp))

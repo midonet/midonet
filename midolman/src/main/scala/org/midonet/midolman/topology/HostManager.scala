@@ -22,10 +22,15 @@ class HostManager(clusterClient: Client,
 
     class LocalHostBuilder(actor: ActorRef, host: UUID) extends HostBuilder {
 
+        var epoch = 0L
         var hostLocalPorts = mutable.Map[UUID, String]()
         var hostLocalDatapath: String = ""
         var hostTunnelZoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig]()
 
+        def setEpoch(epoch: Long): HostBuilder = {
+            this.epoch = epoch
+            this
+        }
 
         def setDatapathName(datapathName: String): HostBuilder = {
             hostLocalDatapath = datapathName
@@ -52,7 +57,7 @@ class HostManager(clusterClient: Client,
 
         def build() {
             actor !
-                new Host(host,
+                new Host(host, epoch,
                     hostLocalDatapath, hostLocalPorts.toMap,
                     hostTunnelZoneConfigs.toMap)
         }
