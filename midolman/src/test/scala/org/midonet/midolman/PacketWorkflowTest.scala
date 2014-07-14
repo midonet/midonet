@@ -62,7 +62,8 @@ object PacketWorkflowTest {
                 testKit ! ExecPacket
                 Future.successful(true)
             }
-            override def translateActions(actions: Seq[FlowAction],
+            override def translateActions(pktCtx: PacketContext,
+                                          actions: Seq[FlowAction],
                                           inPortUUID: Option[UUID],
                                           dpTags: mutable.Set[FlowTag],
                                           wMatch: WildcardMatch) = {
@@ -70,6 +71,7 @@ object PacketWorkflowTest {
                 Ready(Nil)
             }
             override def translateVirtualWildcardFlow(
+                    pktCtx: PacketContext,
                     flow: WildcardFlow,
                     tags: scala.collection.Set[FlowTag]) = {
                 testKit ! TranslateActions

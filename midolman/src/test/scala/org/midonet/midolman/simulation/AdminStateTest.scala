@@ -244,9 +244,10 @@ class AdminStateTest extends MidolmanSpec {
                  .vlanMacTableMap(ClusterBridge.UNTAGGED_VLAN_ID)
                  .remove(macBridgeSide, exteriorBridgePort.getId)
 
-            var simRes = sendPacket (fromRouterSide)
+            var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
+            var simRes = sendPacket (pktCtx)
             simRes should be (toPortSet(bridge.getId))
-            ft.translate(simRes)._1 should contain (output(1).asInstanceOf[Any])
+            ft.translate(simRes, pktCtx)._1 should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
 
@@ -255,9 +256,10 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("the port should not be flooded")
 
-            simRes = sendPacket (fromRouterSide)
+            pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
+            simRes = sendPacket(pktCtx)
             simRes should be (toPortSet(bridge.getId))
-            val (tacts, dpTags) = ft.translate(simRes)
+            val (tacts, dpTags) = ft.translate(simRes, pktCtx)
             tacts should not (contain (output(1).asInstanceOf[Any]))
             dpTags should contain(
                 FlowTagger.tagForDevice(exteriorBridgePort.getId))
@@ -401,15 +403,16 @@ class AdminStateTest extends MidolmanSpec {
             def isOverlayTunnellingPort(portNumber: Short): Boolean = false
         }
 
-        def translate(simRes: SimulationResult): (Seq[FlowAction], mutable.Set[FlowTag]) = {
+        def translate(simRes: SimulationResult,
+                      pktCtx: PacketContext): (Seq[FlowAction], mutable.Set[FlowTag]) = {
             val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
             val tags = mutable.Set[FlowTag]()
-            translateActions(actions, None, tags, null) match {
+            translateActions(pktCtx, actions, None, tags, null) match {
                 case Ready(r) => (r, tags)
                 case NotYet(f) =>
                     Await.result(f, 3 seconds)
-                    translate(simRes)
+                    translate(simRes, pktCtx)
             }
         }
 

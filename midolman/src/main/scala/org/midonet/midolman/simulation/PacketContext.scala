@@ -5,11 +5,11 @@
 package org.midonet.midolman.simulation
 
 import java.text.SimpleDateFormat
-import java.util.{ArrayList, Date, Set => JSet, UUID}
+import java.util.{Arrays, ArrayList, Date, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
 
@@ -239,22 +239,44 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         wm.getTransportDestination
     }
 
-    def actionsFromMatchDiff(): ListBuffer[FlowAction] = {
-        val actions = ListBuffer[FlowAction]()
+    def actionsFromMatchDiff(): ArrayBuffer[FlowAction] = {
+        val actions = new ArrayBuffer[FlowAction]()
         wcmatch.doNotTrackSeenFields()
         origMatch.doNotTrackSeenFields()
+        diffEthernet(actions)
+        diffIp(actions)
+        diffVlan(actions)
+        diffIcmp(actions)
+        diffL4(actions)
+        wcmatch.doTrackSeenFields()
+        origMatch.doTrackSeenFields()
+        actions
+    }
+
+    /*
+     * Compares two objects, which may be null, to determine if they should
+     * cause flow actions.
+     * The catch here is that if `modif` is null, the verdict is true regardless
+     * because we don't create actions that set values to null.
+     */
+    private def matchObjectsSame(orig: AnyRef, modif: AnyRef) =
+        (modif eq null) || orig == modif
+
+    private def diffEthernet(actions: ArrayBuffer[FlowAction]): Unit =
         if (!origMatch.getEthernetSource.equals(wcmatch.getEthernetSource) ||
             !origMatch.getEthernetDestination.equals(wcmatch.getEthernetDestination)) {
             actions.append(setKey(FlowKeys.ethernet(
                 wcmatch.getEthernetSource.getAddress,
                 wcmatch.getEthernetDestination.getAddress)))
         }
+
+    private def diffIp(actions: ArrayBuffer[FlowAction]): Unit =
         if (!matchObjectsSame(origMatch.getNetworkSourceIP,
-            wcmatch.getNetworkSourceIP) ||
-                !matchObjectsSame(origMatch.getNetworkDestinationIP,
-                    wcmatch.getNetworkDestinationIP) ||
-                !matchObjectsSame(origMatch.getNetworkTTL,
-                    wcmatch.getNetworkTTL)) {
+                              wcmatch.getNetworkSourceIP) ||
+            !matchObjectsSame(origMatch.getNetworkDestinationIP,
+                              wcmatch.getNetworkDestinationIP) ||
+            !matchObjectsSame(origMatch.getNetworkTTL,
+                              wcmatch.getNetworkTTL)) {
             actions.append(setKey(
                 wcmatch.getNetworkSourceIP match {
                     case srcIP: IPv4Addr =>
@@ -273,7 +295,8 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                 }
             ))
         }
-        // Vlan tag
+
+    private def diffVlan(actions: ArrayBuffer[FlowAction]): Unit =
         if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
             val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
             val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
@@ -293,9 +316,11 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
             }
         }
 
-        // ICMP errors
-        if (!matchObjectsSame(origMatch.getIcmpData,
-            wcmatch.getIcmpData)) {
+    private def diffIcmp(actions: ArrayBuffer[FlowAction]): Unit = {
+        val icmpData = wcmatch.getIcmpData
+        if ((icmpData ne null) &&
+            !Arrays.equals(icmpData, origMatch.getIcmpData)) {
+
             val icmpType = wcmatch.getTransportSource
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
                     icmpType == ICMP.TYPE_UNREACH ||
@@ -308,6 +333,9 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                 )))
             }
         }
+    }
+
+    private def diffL4(actions: ArrayBuffer[FlowAction]): Unit =
         if (!matchObjectsSame(origMatch.getTransportSource,
             wcmatch.getTransportSource) ||
                 !matchObjectsSame(origMatch.getTransportDestination,
@@ -327,19 +355,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                 // were translated, which is not the case, so leave alone
             }
         }
-        wcmatch.doTrackSeenFields()
-        origMatch.doTrackSeenFields()
-        actions
-    }
-
-    /*
-     * Compares two objects, which may be null, to determine if they should
-     * cause flow actions.
-     * The catch here is that if `modif` is null, the verdict is true regardless
-     * because we don't create actions that set values to null.
-     */
-    def matchObjectsSame(orig: AnyRef, modif: AnyRef) =
-        (modif eq null) || orig == modif
 
     override def toString = s"PacketContext[$cookieStr]"
 }

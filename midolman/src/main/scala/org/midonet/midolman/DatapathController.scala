@@ -47,11 +47,12 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
-import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
+import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.collection.Bimap
 import org.midonet.util.functors.Callback0
+import org.midonet.midolman.simulation.PacketContext
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
@@ -502,8 +503,9 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
 
         case msg@AddVirtualWildcardFlow(flow, tags) =>
             log.debug("Translating and installing wildcard flow: {}", flow)
-
-            translateVirtualWildcardFlow(flow, tags) match {
+            val pktCtx = new PacketContext(Left(1), null, 0, null, null, null,
+                                           None, flow.getMatch)
+            translateVirtualWildcardFlow(pktCtx, flow, tags) match {
                 case Ready((finalFlow, finalTags)) =>
                     log.debug("flow translated, installing: {}", finalFlow)
                     FlowController ! AddWildcardFlow(finalFlow, null,
