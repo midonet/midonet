@@ -342,6 +342,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             val mwcFlow = testFlowAdded(flow, state)
 
+            flowController.flowManager.forgetFlow(flow.flowMatch)
             flowController.flowManagerHelper.removeFlow(new Flow().setMatch(
                 flow.flowMatch))
 
