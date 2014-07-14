@@ -85,8 +85,10 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     def inputPort = origMatch.getInputPortUUID
     def inputPort_=(inputPortUUID: UUID): Unit = {
-        origMatch.setInputPortUUID(inputPortUUID)
-        wcmatch.setInputPortUUID(inputPortUUID)
+        if (inputPortUUID ne null) {
+            origMatch.setInputPortUUID(inputPortUUID)
+            wcmatch.setInputPortUUID(inputPortUUID)
+        }
     }
 
     // This set stores the callback to call when this flow is removed.
