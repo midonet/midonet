@@ -7,7 +7,6 @@ import java.util.concurrent.TimeoutException
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.reflect.ClassTag
-import scala.util.Try
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.pattern.{gracefulStop, ask}
@@ -24,7 +23,6 @@ import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.SupervisorActor
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
-import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -52,24 +50,19 @@ class MidolmanActorsService extends AbstractService {
     implicit def ex: ExecutionContext = _system.dispatcher
     implicit protected val tout = new Timeout(5 seconds)
 
-    protected def actorSpecs = {
-        val specs = List(
-            (propsFor(classOf[VirtualTopologyActor]),      VirtualTopologyActor.Name),
-            (propsFor(classOf[VirtualToPhysicalMapper]).
-                withDispatcher("actors.stash-dispatcher"), VirtualToPhysicalMapper.Name),
-            (propsFor(classOf[DatapathController]),        DatapathController.Name),
-            (propsFor(classOf[FlowController]),            FlowController.Name),
-            (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
-            (propsFor(classOf[HealthMonitor]).
-                withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name),
-            (propsFor(classOf[PacketsEntryPoint]),       PacketsEntryPoint.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
-
-        if (config.getMidolmanEnableMonitoring)
-            (propsFor(classOf[MonitoringActor]), MonitoringActor.Name) :: specs
-        else
-            specs
-    }
+    protected def actorSpecs = List(
+        (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
+        (propsFor(classOf[VirtualToPhysicalMapper]).
+            withDispatcher("actors.stash-dispatcher"),
+            VirtualToPhysicalMapper.Name),
+        (propsFor(classOf[DatapathController]), DatapathController.Name),
+        (propsFor(classOf[FlowController]), FlowController.Name),
+        (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
+        (propsFor(classOf[HealthMonitor]).
+            withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name),
+        (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
+        (propsFor(classOf[NetlinkCallbackDispatcher]),
+            NetlinkCallbackDispatcher.Name))
 
     protected var supervisorActor: ActorRef = _
     private var childrenActors: List[ActorRef] = Nil

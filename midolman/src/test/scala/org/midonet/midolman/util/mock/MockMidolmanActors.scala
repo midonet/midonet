@@ -5,7 +5,7 @@ package org.midonet.midolman.util.mock
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 
 import org.midonet.midolman.{MockScheduler, Referenceable}

@@ -5,14 +5,13 @@ package org.midonet.midolman;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,6 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
-import org.midonet.midolman.monitoring.store.Store;
 import org.midonet.midolman.version.guice.VersionModule;
 
 /** This static class offers a static method startCluster() which loads a
@@ -63,7 +61,6 @@ public class ZkCluster {
             new ZookeeperConnectionModule(),
             new VersionModule(),
             new ConfigProviderModule(configFilePath),
-            new ClosedStoreModule(),
             new ClusterClientModule(),
             new SerializationModule(),
             new MockCacheModule(),
@@ -132,38 +129,4 @@ public class ZkCluster {
 
     }
 
-    public static class ClosedStoreModule extends PrivateModule {
-
-        @Override
-        protected void configure() {
-            bind(Store.class)
-                .toProvider(ClosedStoreProvider.class)
-                .asEagerSingleton();
-            expose(Store.class);
-        }
-
-        public static class ClosedStoreProvider implements Provider<Store> {
-            @Override public Store get() { return new ClosedStore(); }
-        }
-
-    }
-
-    public static class ClosedStore implements Store {
-
-        public void initialize() {}
-        public void addMetricTypeToTarget(String targetIdentifier, String type) {}
-        public void addMetricToType(String type, String metricName) {}
-        public void addTSPoint(String type, String targetIdentifier,
-                               String metricName, long time, long value) {}
-        public long getTSPoint(String type, String targetIdentifier,
-                               String metricName, long time) { return 0L; }
-        public Map<String, Long> getTSPoints(String type, String targetIdentifier,
-                                             String metricName, long timeStart,
-                                             long timeEnd) { return null; }
-        public List<String> getMetricsTypeForTarget(String targetIdentifier) {
-            return null;
-        }
-        public List<String> getMetricsForType(String type) { return null; }
-
-    }
 }

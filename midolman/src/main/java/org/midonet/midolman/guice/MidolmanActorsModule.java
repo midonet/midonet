@@ -6,42 +6,50 @@ package org.midonet.midolman.guice;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import scala.concurrent.duration.Duration;
+
+import com.google.inject.BindingAnnotation;
+import com.google.inject.Exposed;
+import com.google.inject.Key;
+import com.google.inject.PrivateModule;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cache.Cache;
+import org.midonet.midolman.DatapathController;
+import org.midonet.midolman.FlowController;
+import org.midonet.midolman.NetlinkCallbackDispatcher;
+import org.midonet.midolman.PacketsEntryPoint;
+import org.midonet.midolman.SupervisorActor;
+import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.host.config.HostConfig;
+import org.midonet.midolman.io.DatapathConnectionPool;
+import org.midonet.midolman.io.UpcallDatapathConnectionManager;
+import org.midonet.midolman.l4lb.HealthMonitor;
+import org.midonet.midolman.routingprotocols.RoutingManagerActor;
+import org.midonet.midolman.services.HostIdProviderService;
+import org.midonet.midolman.services.MidolmanActorsService;
+import org.midonet.midolman.topology.VirtualToPhysicalMapper;
+import org.midonet.midolman.topology.VirtualTopologyActor;
+import org.midonet.util.eventloop.SelectLoop;
+import org.midonet.util.eventloop.SimpleSelectLoop;
 
 import akka.actor.ActorInitializationException;
 import akka.actor.ActorKilledException;
 import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
+import static akka.actor.SupervisorStrategy.escalate;
+import static akka.actor.SupervisorStrategy.resume;
+import static akka.actor.SupervisorStrategy.stop;
 import akka.japi.Function;
-import com.google.inject.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.cache.Cache;
-import org.midonet.midolman.*;
-import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.config.HostConfig;
-import org.midonet.midolman.io.DatapathConnectionPool;
-import org.midonet.midolman.io.UpcallDatapathConnectionManager;
-import org.midonet.midolman.l4lb.HealthMonitor;
-import org.midonet.midolman.monitoring.MonitoringActor;
-import org.midonet.midolman.routingprotocols.RoutingManagerActor;
-import org.midonet.midolman.services.HostIdProviderService;
-import org.midonet.midolman.services.MidolmanActorsService;
-import org.midonet.midolman.topology.*;
-import org.midonet.util.eventloop.SelectLoop;
-import org.midonet.util.eventloop.SimpleSelectLoop;
-
-import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
-
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import static akka.actor.SupervisorStrategy.resume;
-import static akka.actor.SupervisorStrategy.stop;
-import static akka.actor.SupervisorStrategy.escalate;
+import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
+import scala.concurrent.duration.Duration;
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so
@@ -95,7 +103,7 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(FlowController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
-        bind(MonitoringActor.class);
+        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
     }

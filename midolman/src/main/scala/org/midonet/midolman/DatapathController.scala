@@ -34,7 +34,6 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
-import org.midonet.midolman.monitoring.MonitoringActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
@@ -171,18 +170,6 @@ object DatapathController extends Referenceable {
 
     case class DpPortDeleteNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortDelete
-
-   /**
-    * This message encapsulates a given port stats to the monitoring agent.
-    * @param stats port stats
-    */
-    case class DpPortStats(portID: UUID, stats: DpPort.Stats)
-
-    /**
-     * This message requests stats for a given port.
-     * @param portID port id
-     */
-    case class DpPortStatsRequest(portID: UUID)
 
     object Internal {
 
@@ -527,27 +514,6 @@ class DatapathController extends Actor with ActorLogging {
             handlePortOperationReply(opReply)
             if(pendingUpdateCount == 0)
                 processNextHost()
-
-        case DpPortStatsRequest(portID) =>
-            dpState.getInterfaceForVport(portID) match {
-                case Some(portName) =>
-                    datapathConnection.portsGet(portName, datapath,
-                        new Callback[DpPort]{
-                            def onSuccess(data: DpPort) {
-                                MonitoringActor !
-                                        DpPortStats(portID, data.getStats)
-                            }
-                            def onError(e: NetlinkException) {
-                                log.error("Error retrieving port stats for " +
-                                    "port {}({}): {}",
-                                    Array(portID, portName, e))
-                            }
-                        }
-                    )
-
-                case None =>
-                    log.debug("Port was not found {}", portID)
-            }
 
         case InterfacesUpdate(interfaces) =>
             dpState.updateInterfaces(interfaces)
@@ -1367,10 +1333,6 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      */
     def removePeersForZone(zone: UUID): Seq[FlowTag] =
         _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
-
-    /** used internally by the Datapath Controller to answer DpPortStatsRequest */
-    def getInterfaceForVport(vportId: UUID): Option[String] =
-        _vportMgr.interfaceToVport.inverse.get(vportId)
 
     override def getDpPortForInterface(itfName: String): Option[DpPort] =
         _vportMgr.interfaceToDpPort.get(itfName)

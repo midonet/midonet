@@ -3,15 +3,11 @@
  */
 package org.midonet.midolman.guice.cluster;
 
-import com.google.inject.Inject;
 import com.google.inject.Key;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
+
 import org.midonet.cache.Cache;
 import org.midonet.cluster.ClusterBgpManager;
-import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterChainManager;
 import org.midonet.cluster.ClusterConditionManager;
 import org.midonet.cluster.ClusterHealthMonitorManager;
@@ -19,18 +15,8 @@ import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterLoadBalancerManager;
 import org.midonet.cluster.ClusterPoolHealthMonitorMapManager;
 import org.midonet.cluster.ClusterPoolManager;
-import org.midonet.cluster.ClusterPortsManager;
-import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.monitoring.store.Store;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
-import org.midonet.util.eventloop.Reactor;
 
 
 /**

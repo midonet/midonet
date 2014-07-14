@@ -4,13 +4,17 @@
 
 package org.midonet.cluster;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
+
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.l4lb.HealthMonitor;
@@ -22,7 +26,6 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -32,16 +35,16 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
-import org.midonet.midolman.state.zkManagers.*;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Subnet;
-
-import java.util.Arrays;
-import java.util.UUID;
 
 public class LocalDataClientImplTestBase {
 
@@ -90,7 +93,6 @@ public class LocalDataClientImplTestBase {
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new CacheModule(),
-                new MockMonitoringStoreModule(),
                 new DataClusterClientModule()
         );
         injector.injectMembers(this);

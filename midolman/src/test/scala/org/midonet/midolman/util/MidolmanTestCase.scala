@@ -47,7 +47,6 @@ import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.layer4.NatMappingFactory
-import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.services.MidolmanService
@@ -86,7 +85,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanTestCase])
 
     var injector: Injector = null
-    var mAgent: MonitoringAgent = null
     var interfaceScanner: MockInterfaceScanner = null
 
     // actor probes
@@ -159,8 +157,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
             injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
             injector.getInstance(classOf[MidolmanService]).startAndWait()
-            mAgent = injector.getInstance(classOf[MonitoringAgent])
-            mAgent.startMonitoringIfEnabled()
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
@@ -196,15 +192,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
-
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
-        if (mAgent != null) {
-            mAgent.stop()
-        }
-
         MidolmanTestCaseLock.sequential.unlock()
         log.info("Released lock")
-
         afterTest()
     }
 
@@ -240,7 +230,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                     })
                 }
             },
-            new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName),
             new ResourceProtectionModule(),
@@ -353,11 +342,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorByName(FlowController.Name)
     }
 
-    protected def monitoringController(): TestActorRef[MonitoringActor] = {
-        actorByName(MonitoringActor.Name)
-    }
-
-    protected def virtualToPhysicalMapper(): TestActorRef[VirtualToPhysicalMapper] = {
+    protected def virtualToPhysicalMapper()
+    :TestActorRef[VirtualToPhysicalMapper] = {
         actorByName(VirtualToPhysicalMapper.Name)
     }
 

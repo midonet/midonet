@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-
 import com.yammer.metrics.core.MetricsRegistry;
 import com.yammer.metrics.reporting.JmxReporter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.services.HostService;
 
@@ -46,9 +45,6 @@ public class MidolmanService extends AbstractService {
 
     @Inject(optional = true)
     HostService hostService;
-
-    @Inject(optional = true)
-    StoreService storeService;
 
     @Override
     protected void doStart() {
@@ -102,8 +98,6 @@ public class MidolmanService extends AbstractService {
         services.add(dashboardService);
         if (hostService != null)
             services.add(hostService);
-        if (storeService != null)
-            services.add(storeService);
         return services;
     }
 }

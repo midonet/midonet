@@ -15,7 +15,6 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.MockCacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -80,7 +79,6 @@ public class BrainTestUtils {
         modules.add(new MockCacheModule());
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());
-        modules.add(new MockMonitoringStoreModule());
         modules.add(new ClusterClientModule());
         return modules;
     }

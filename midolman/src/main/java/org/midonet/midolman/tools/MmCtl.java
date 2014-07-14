@@ -12,7 +12,15 @@ import java.util.UUID;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +31,6 @@ import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MidolmanModule;
-import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -256,7 +263,6 @@ public class MmCtl {
                 bind(HostConfig.class)
                         .toProvider(HostConfigProvider.class)
                         .asEagerSingleton();
-                install(new MonitoringStoreModule());
                 install(new CacheModule());
                 install(new ZookeeperConnectionModule());
                 install(new VersionModule());

@@ -9,11 +9,15 @@ import java.util.Properties;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.guice.MonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
@@ -70,7 +74,6 @@ public class HostAgent {
                 new ZookeeperConnectionModule(),
                 new DatapathModule(),
                 new HostAgentModule(),
-                new MonitoringStoreModule(),
                 new ClusterClientModule());
 
         injector.getInstance(HostAgentService.class).startAndWait();

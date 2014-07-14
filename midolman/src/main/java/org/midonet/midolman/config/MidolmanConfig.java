@@ -7,7 +7,6 @@ import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
-import org.midonet.midolman.monitoring.config.MonitoringConfiguration;
 
 /**
  * Configuration entries belonging to the midolman stanza.
@@ -18,7 +17,7 @@ import org.midonet.midolman.monitoring.config.MonitoringConfiguration;
 @ConfigGroup(MidolmanConfig.GROUP_NAME)
 public interface MidolmanConfig
     extends ZookeeperConfig, CassandraConfig, DatapathConfig,
-            ArpTableConfig, MonitoringConfiguration, HealthMonitorConfig
+            ArpTableConfig, HealthMonitorConfig
 {
     public final static String GROUP_NAME = "midolman";
 
