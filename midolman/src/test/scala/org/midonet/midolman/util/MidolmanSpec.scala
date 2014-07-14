@@ -101,7 +101,6 @@ trait MidolmanSpec extends FeatureSpecLike
                     })
                 }
             },
-            new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new MidolmanActorsModule {
                 override def configure() {

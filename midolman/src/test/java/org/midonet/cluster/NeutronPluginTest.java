@@ -4,13 +4,19 @@
 
 package org.midonet.cluster;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import com.google.common.base.Objects;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
@@ -21,14 +27,27 @@ import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.*;
+import org.midonet.cluster.data.neutron.DeviceOwner;
+import org.midonet.cluster.data.neutron.ExternalGatewayInfo;
+import org.midonet.cluster.data.neutron.FloatingIp;
+import org.midonet.cluster.data.neutron.IPAllocation;
+import org.midonet.cluster.data.neutron.Network;
+import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.cluster.data.neutron.NeutronPlugin;
+import org.midonet.cluster.data.neutron.Port;
+import org.midonet.cluster.data.neutron.Route;
+import org.midonet.cluster.data.neutron.RouterInterface;
+import org.midonet.cluster.data.neutron.RuleDirection;
+import org.midonet.cluster.data.neutron.RuleEthertype;
+import org.midonet.cluster.data.neutron.SecurityGroup;
+import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -382,7 +401,6 @@ public class NeutronPluginTest {
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
                 new CacheModule(),
-                new MockMonitoringStoreModule(),
                 new NeutronClusterModule(),
                 new AbstractModule() {
                     @Override

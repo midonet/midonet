@@ -30,7 +30,6 @@ import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports._
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.ZoneChanged
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
@@ -61,7 +60,6 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
             portRequests.map{ DpPortError(_, null) }
 
     val miscMessages = List[AnyRef](
-        DpPortStatsRequest(UUID.randomUUID),
         InterfacesUpdate(emptyJSet),
         ZoneChanged(UUID.randomUUID, TunnelZone.Type.gre, null, HostConfigOperation.Added),
         ZoneMembers(UUID.randomUUID, TunnelZone.Type.gre, Set())

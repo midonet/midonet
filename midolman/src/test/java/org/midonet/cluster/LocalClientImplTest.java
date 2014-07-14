@@ -9,13 +9,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import scala.Option;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +29,6 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.CacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -55,6 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import scala.Option;
 
 public class LocalClientImplTest {
 
@@ -104,10 +103,8 @@ public class LocalClientImplTest {
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockZookeeperConnectionModule(),
-            new TypedConfigModule<MidolmanConfig>(MidolmanConfig.class),
-
+            new TypedConfigModule<>(MidolmanConfig.class),
             new CacheModule(),
-            new MockMonitoringStoreModule(),
             new ClusterClientModule()
         );
         injector.injectMembers(this);

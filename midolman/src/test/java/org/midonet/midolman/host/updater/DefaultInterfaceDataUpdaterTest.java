@@ -10,29 +10,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import scala.collection.JavaConversions;
 
-import akka.actor.Actor;
-import akka.testkit.TestActorRef;
-import akka.testkit.TestKit;
-import com.google.inject.*;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hamcrest.collection.IsMapContaining.hasEntry;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNull.notNullValue;
 
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.MockCacheModule;
-import org.midonet.midolman.guice.MockMonitoringStoreModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
@@ -52,7 +43,17 @@ import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
 
+import akka.actor.Actor;
+import akka.testkit.TestActorRef;
+import akka.testkit.TestKit;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
+import scala.collection.JavaConversions;
 
 
 public class DefaultInterfaceDataUpdaterTest {
@@ -89,7 +90,6 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockCacheModule(),
             new MockZookeeperConnectionModule(),
             new HostModule(),
-            new MockMonitoringStoreModule(),
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
