@@ -15,14 +15,14 @@ import akka.util.Timeout
 
 import org.midonet.cluster.client.{VxLanPort, Port}
 import org.midonet.midolman.rules.{ChainPacketContext, RuleResult}
-import org.midonet.midolman.simulation.{Bridge, Chain}
+import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import FlowTagger.FlowTag
 import org.midonet.odp.flows.FlowActions.{setKey, output}
 import org.midonet.odp.flows._
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{ICMP, IPv4, Ethernet, IPv4Addr}
 import org.midonet.sdn.flows.VirtualActions
 import org.midonet.util.functors.Callback0
 
@@ -77,7 +77,8 @@ trait FlowTranslator {
     val log: LoggingAdapter
     def cookieStr: String
 
-    protected def translateVirtualWildcardFlow(flow: WildcardFlow,
+    protected def translateVirtualWildcardFlow(pktCtx: PacketContext,
+                                               flow: WildcardFlow,
                                                tags: ROSet[FlowTag])
     : Urgent[(WildcardFlow, ROSet[FlowTag])] = {
 
@@ -87,7 +88,7 @@ trait FlowTranslator {
         val dpTags = mutable.HashSet[FlowTag]()
         dpTags ++= tags
 
-        translateActions(flow.getActions, Option(inPortId), dpTags, wcMatch)
+        translateActions(pktCtx, flow.getActions, Option(inPortId), dpTags, wcMatch)
             .map { translated =>
                 (WildcardFlow(wcmatch = wcMatch,
                               actions = translated.toList,
@@ -137,7 +138,8 @@ trait FlowTranslator {
     /** translates a Seq of FlowActions expressed in virtual references into a
      *  Seq of FlowActions expressed in physical references. Returns the
      *  results as an Urgent. */
-    protected def translateActions(actions: Seq[FlowAction],
+    protected def translateActions(pktCtx: PacketContext,
+                                   actions: Seq[FlowAction],
                                    inPortUUID: Option[UUID],
                                    dpTags: mutable.Set[FlowTag],
                                    wMatch: WildcardMatch)
@@ -167,6 +169,16 @@ trait FlowTranslator {
                     epsa(s.portSetId, inPortUUID, dpTags, wMatch)
                 case p: FlowActionOutputToVrnPort =>
                     expandPortAction(p.portId, dpTags)
+                case a: FlowActionSetKey =>
+                    a.getFlowKey match {
+                        case k: FlowKeyICMPError =>
+                            mangleIcmp(pktCtx.ethernet, k.getIcmpData)
+                            Ready(Nil)
+                        case k: FlowKeyICMPEcho =>
+                            Ready(Nil)
+                        case _ =>
+                            Ready(Seq[FlowAction](a))
+                    }
                 case a =>
                     Ready(Seq[FlowAction](a))
             }
@@ -180,6 +192,21 @@ trait FlowTranslator {
         }
 
         translatedActs map { acts => acts.flatten }
+    }
+
+    // This is very limited but we don't really need more
+    // This method takes a Ethernet packet and modifies it if it carries an
+    // icmp payload
+    private def mangleIcmp(eth: Ethernet, data: Array[Byte]) {
+        eth.getPayload match {
+            case ipv4: IPv4 =>
+                ipv4.getPayload match {
+                    case icmp: ICMP =>
+                        icmp.setData(data)
+                    case _ =>
+                }
+            case _ =>
+        }
     }
 
     /** Update the list of action and list of tags with the output actions

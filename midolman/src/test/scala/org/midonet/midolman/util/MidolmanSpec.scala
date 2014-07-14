@@ -20,7 +20,7 @@ import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.midolman.util.mock.MockMidolmanActors
 import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.{Coordinator, CustomMatchers}
+import org.midonet.midolman.simulation.{PacketContext, Coordinator, CustomMatchers}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
@@ -85,12 +85,16 @@ trait MidolmanSpec extends FeatureSpecLike
         sendPacket(t._1, t._2)
 
     def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
-        new Coordinator(packetContextFor(pkt, port.getId)) simulate() match {
+        sendPacket(packetContextFor(pkt, port.getId))
+
+    def sendPacket(pktCtx: PacketContext): SimulationResult = {
+        new Coordinator(pktCtx) simulate() match {
             case Ready(r) => r
             case NotYet(f) =>
                 Await.result(f, 3 seconds)
-                sendPacket(port, pkt)
+                sendPacket(pktCtx)
         }
+    }
 
     def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)
