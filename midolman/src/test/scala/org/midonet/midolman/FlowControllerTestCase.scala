@@ -146,8 +146,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.RemoveWildcardFlow],
-                classOf[FlowController.Internal.FlowRemoved]))
+                classOf[FlowController.RemoveWildcardFlow]))
         }
 
         scenario("Addition of a duplicate flow.") {
@@ -181,8 +180,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
                 classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.RemoveWildcardFlow],
-                classOf[FlowController.Internal.FlowRemoved]))
+                classOf[FlowController.RemoveWildcardFlow]))
         }
 
         scenario("Invalidate an existing flow by tag.") {
@@ -213,8 +211,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.InvalidateFlowsByTag],
-                classOf[FlowController.Internal.FlowRemoved]))
+                classOf[FlowController.InvalidateFlowsByTag]))
         }
 
         scenario("Invalidate a non-existing tag.") {
@@ -263,8 +260,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
                 FlowController.Internal.CheckFlowExpiration.getClass(),
-                classOf[FlowController.Internal.FlowMissing],
-                classOf[FlowController.Internal.FlowRemoved]))
+                classOf[FlowController.Internal.FlowMissing]))
         }
 
         scenario("Check hard expired flows are removed from the flow" +
@@ -295,8 +291,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                FlowController.Internal.CheckFlowExpiration.getClass(),
-                classOf[FlowController.Internal.FlowRemoved]))
+                FlowController.Internal.CheckFlowExpiration.getClass()))
         }
 
         scenario("Check non-expired flows are not removed from the flow" +
@@ -343,6 +338,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             val mwcFlow = testFlowAdded(flow, state)
 
+            flowController.flowManager.forgetFlow(flow.flowMatch)
             flowController.flowManagerHelper.removeFlow(flow.flowMatch)
 
             Then("The flow should not appear in the wildcard flow table.")
@@ -374,9 +370,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             And("The flow removal callback method should not have been called.")
             flow.isFlowRemoved should be (false)
 
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.Internal.FlowRemoved]))
+            testMessages(Seq(classOf[FlowController.AddWildcardFlow]))
         }
 
         scenario("Check a wildcard flow is removed via the flow manager helper.") {
@@ -399,9 +393,7 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             testFlowRemoved(flow, mwcFlow, state)
 
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.Internal.FlowRemoved]))
+            testMessages(Seq(classOf[FlowController.AddWildcardFlow]))
         }
     }
 
