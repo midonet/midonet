@@ -26,11 +26,12 @@ class RoutingTable extends RoutesTrie {
     private final static Logger log = LoggerFactory.getLogger(RoutingTable.class);
 
     Iterable<Route> lookup(int src, int dst) {
-        log.debug("lookup: src {} dst {} in table with {} routes",
-                new Object[] {
-                    IPv4Addr.intToString(src),
-                    IPv4Addr.intToString(dst),
-                    numRoutes} );
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("lookup: src %s dst %s in table with %d routes",
+                                    IPv4Addr.intToString(src),
+                                    IPv4Addr.intToString(dst),
+                                    numRoutes));
+        }
 
         List<Route> ret = new Vector<>();
         Iterator<Collection<Route>> rtIter = findBestMatch(dst);
@@ -54,11 +55,12 @@ class RoutingTable extends RoutesTrie {
                 break;
         }
 
-        log.debug("lookup: return {} for src {} dst {}",
-                new Object[] {
-                ret,
-                IPv4Addr.intToString(src),
-                IPv4Addr.intToString(dst)});
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("lookup: return %s for src %s dst %s",
+                      ret.toString(),
+                      IPv4Addr.intToString(src),
+                      IPv4Addr.intToString(dst)));
+        }
 
         return ret;
     }
