@@ -9,6 +9,7 @@ import org.apache.zookeeper.KeeperException.NoChildrenForEphemeralsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.junit.Assert;
 import org.junit.Before;
@@ -152,6 +153,88 @@ public class TestMockDirectory {
         dir.delete("/a/b/d");
         Assert.assertEquals(2, runner1.ran);
         Assert.assertEquals(1, runner2.ran);
+    }
+
+    private class MyWatcher implements Watcher, Runnable {
+        int creates = 0;
+        int deletes = 0;
+        int dataChanges = 0;
+        int childUpdates = 0;
+
+        @Override
+        public void process(WatchedEvent event) {
+            if (Event.EventType.NodeCreated == event.getType()) {
+                creates++;
+            } else if (Event.EventType.NodeDeleted == event.getType()) {
+                deletes++;
+            } else if (Event.EventType.NodeDataChanged == event.getType()) {
+                dataChanges++;
+            } else if (Event.EventType.NodeChildrenChanged == event.getType()) {
+                childUpdates++;
+            }
+        }
+
+        @Override
+        public void run() {
+            dataChanges++;
+        }
+
+        public int total() {
+            return creates + deletes + dataChanges + childUpdates;
+        }
+    }
+
+    @Test
+    public void testExistsWatcher() throws NoNodeException, NodeExistsException,
+                                           NoChildrenForEphemeralsException,
+                                           NotEmptyException {
+        MyWatcher watcher1 = new MyWatcher();
+        MyWatcher watcher2 = new MyWatcher();
+        Assert.assertEquals(dir.exists("/a", watcher1), false);
+        Assert.assertEquals(dir.exists("/a", watcher2), false);
+        Assert.assertEquals(watcher1.total(), 0);
+        Assert.assertEquals(watcher2.total(), 0);
+        dir.add("/a", "one".getBytes(), CreateMode.PERSISTENT);
+        Assert.assertEquals(watcher1.creates, 1);
+        Assert.assertEquals(watcher2.creates, 1);
+        Assert.assertEquals(watcher1.total(), 1);
+        Assert.assertEquals(watcher2.total(), 1);
+        Assert.assertArrayEquals("one".getBytes(), dir.get("/a", watcher1));
+        Assert.assertArrayEquals("one".getBytes(), dir.get("/a", watcher2));
+        dir.update("/a", "two".getBytes());
+        Assert.assertEquals(watcher1.dataChanges, 1);
+        Assert.assertEquals(watcher2.dataChanges, 1);
+        Assert.assertEquals(watcher1.total(), 2);
+        Assert.assertEquals(watcher2.total(), 2);
+        Assert.assertEquals(dir.exists("/a", watcher1), true);
+        dir.delete("/a");
+        Assert.assertEquals(watcher1.deletes, 1);
+        Assert.assertEquals(watcher2.deletes, 0);
+        Assert.assertEquals(watcher1.total(), 3);
+        Assert.assertEquals(watcher2.total(), 2);
+
+        MyWatcher watcher3 = new MyWatcher();
+        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), false);
+        dir.add("/a", "a".getBytes(), CreateMode.PERSISTENT);
+        Assert.assertEquals(watcher3.total(), 0);
+        dir.add("/a/b", "ab".getBytes(), CreateMode.PERSISTENT);
+        Assert.assertEquals(watcher3.total(), 0);
+        dir.add("/a/b/c", "abc".getBytes(), CreateMode.PERSISTENT);
+        Assert.assertEquals(watcher3.total(), 0);
+        dir.add("/a/b/c/d", "abcd0".getBytes(), CreateMode.PERSISTENT);
+        Assert.assertEquals(watcher3.creates, 1);
+        Assert.assertEquals(watcher3.total(), 1);
+        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), true);
+        dir.update("/a/b/c/d", "abcd1".getBytes());
+        Assert.assertEquals(watcher3.dataChanges, 1);
+        Assert.assertEquals(watcher3.total(), 2);
+        dir.update("/a/b/c/d", "abcd2".getBytes());
+        Assert.assertEquals(watcher3.dataChanges, 1);
+        Assert.assertEquals(watcher3.total(), 2);
+        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), true);
+        dir.delete("/a/b/c/d");
+        Assert.assertEquals(watcher3.deletes, 1);
+        Assert.assertEquals(watcher3.total(), 3);
     }
 
     @Test
