@@ -127,6 +127,7 @@ public class Converter {
         PortGroupConfig portGroupConfig = new PortGroupConfig();
 
         portGroupConfig.name = portGroup.getData().name;
+        portGroupConfig.stateful = portGroup.getData().stateful;
         portGroupConfig.properties = new HashMap<String, String>(
                 portGroup.getData().properties);
 
@@ -139,7 +140,8 @@ public class Converter {
 
         return new PortGroup()
                 .setName(portGroup.name)
-                .setProperties(portGroup.properties);
+                .setProperties(portGroup.properties)
+                .setStateful(portGroup.stateful);
     }
 
     public static IpAddrGroupConfig toIpAddrGroupConfig(IpAddrGroup group) {

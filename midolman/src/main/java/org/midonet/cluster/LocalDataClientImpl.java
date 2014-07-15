@@ -1780,6 +1780,21 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void portGroupsUpdate(@Nonnull PortGroup portGroup)
+            throws StateAccessException, SerializationException {
+        PortGroupZkManager.PortGroupConfig pgConfig =
+            Converter.toPortGroupConfig(portGroup);
+        List<Op> ops = new ArrayList<>();
+
+        // Update the config
+        ops.addAll(portGroupZkManager.prepareUpdate(portGroup.getId(), pgConfig));
+
+        if (!ops.isEmpty()) {
+            zkManager.multi(ops);
+        }
+    }
+
+    @Override
     public boolean portGroupsExists(UUID id) throws StateAccessException {
         return portGroupZkManager.exists(id);
     }

@@ -14,6 +14,7 @@ public class DtoPortGroup {
     private UUID id;
     private String tenantId;
     private String name;
+    private boolean stateful;
     private URI uri;
     private URI ports;
 
@@ -39,6 +40,14 @@ public class DtoPortGroup {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isStateful() {
+        return stateful;
+    }
+
+    public void setStateful(boolean stateful) {
+        this.stateful = stateful;
     }
 
     public URI getUri() {
@@ -76,7 +85,7 @@ public class DtoPortGroup {
         if (uri != null ? !uri.equals(that.uri) : that.uri != null)
             return false;
 
-        return true;
+        return stateful == that.stateful;
     }
 
     @Override
@@ -86,6 +95,7 @@ public class DtoPortGroup {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (uri != null ? uri.hashCode() : 0);
         result = 31 * result + (ports != null ? ports.hashCode() : 0);
+        result = 31 * result + (stateful ? 0 : 1);
         return result;
     }
 }

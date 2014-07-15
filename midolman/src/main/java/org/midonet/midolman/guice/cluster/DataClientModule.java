@@ -3,6 +3,9 @@
  */
 package org.midonet.midolman.guice.cluster;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.inject.Inject;
 import com.google.inject.Key;
@@ -11,11 +14,8 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
-import org.midonet.cluster.ClusterBridgeManager;
-import org.midonet.cluster.ClusterPortsManager;
-import org.midonet.cluster.ClusterRouterManager;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.LocalDataClientImpl;
+
+import org.midonet.cluster.*;
 import org.midonet.cluster.data.neutron.*;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -25,37 +25,11 @@ import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
+import org.midonet.midolman.state.PortGroupCache;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
-import org.midonet.midolman.state.zkManagers.BgpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.ChainZkManager;
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
-import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
-import org.midonet.midolman.state.zkManagers.LicenseZkManager;
-import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
-import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RuleZkManager;
-import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
-import org.midonet.midolman.state.zkManagers.TenantZkManager;
-import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager;
-import org.midonet.midolman.state.zkManagers.VtepZkManager;
+import org.midonet.midolman.state.zkManagers.*;
 import org.midonet.util.eventloop.Reactor;
-
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Guice module to install dependencies for data access.
@@ -116,6 +90,12 @@ public class DataClientModule extends PrivateModule {
 
         bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
         expose(LoadBalancerApi.class);
+
+        bind(PortGroupCache.class).toProvider(PortGroupCacheProvider.class)
+                .in(Singleton.class);
+
+        bind(ClusterPortGroupManager.class)
+                .in(Singleton.class);
     }
 
     private static class PathBuilderProvider implements Provider<PathBuilder> {
@@ -242,6 +222,29 @@ public class DataClientModule extends PrivateModule {
         public PortConfigCache get() {
             return new PortConfigCache(reactor, directory,
                     config.getMidolmanRootKey(), connWatcher, serializer);
+        }
+    }
+
+    private static class PortGroupCacheProvider
+            implements Provider<PortGroupCache> {
+
+        @Inject
+        @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+        Reactor reactor;
+
+        @Inject
+        ZkConnectionAwareWatcher connWatcher;
+
+        @Inject
+        Serializer serializer;
+
+        @Inject
+        PortGroupZkManager portGroupMgr;
+
+        @Override
+        public PortGroupCache get() {
+            return new PortGroupCache(reactor, portGroupMgr,
+                                      connWatcher, serializer);
         }
     }
 }

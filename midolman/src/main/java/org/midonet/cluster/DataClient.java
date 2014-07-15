@@ -731,6 +731,9 @@ public interface DataClient {
     UUID portGroupsCreate(@Nonnull PortGroup portGroup)
             throws StateAccessException, SerializationException;
 
+    void portGroupsUpdate(@Nonnull PortGroup portGroup)
+            throws StateAccessException, SerializationException;
+
     boolean portGroupsExists(UUID id) throws StateAccessException;
 
     @CheckForNull PortGroup portGroupsGetByName(String tenantId, String name)

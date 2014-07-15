@@ -14,6 +14,7 @@ import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.client.IPAddrGroupBuilder;
 import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
 import org.midonet.cluster.client.PortBuilder;
+import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TraceConditionsBuilder;
@@ -49,6 +50,8 @@ public interface Client {
     void getLoadBalancer(UUID uuid, LoadBalancerBuilder builder);
 
     void getPool(UUID uuid, PoolBuilder builder);
+
+    void getPortGroup(UUID uuid, PortGroupBuilder builder);
 
     void getPoolHealthMonitorMap(PoolHealthMonitorMapBuilder builder);
 
