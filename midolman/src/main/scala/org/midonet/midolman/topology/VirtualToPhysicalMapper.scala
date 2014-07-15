@@ -133,30 +133,40 @@ object VirtualToPhysicalMapper extends Referenceable {
         }
     }
 
+    @throws(classOf[NotYetException])
+    def tryAsk[D](req: VTPMRequest[D])
+                 (implicit system: ActorSystem): D = {
+        log.debug("Expiring ask for device {}", req)
+        req.getCached match {
+            case Some(d) => d
+            case None =>
+                log.debug("Device {} not cached, requesting..", req)
+                throw NotYetException(
+                    VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
+                        .mapTo[D](req.tag)
+                        .andThen {
+                        case Failure(ex: ClassCastException) =>
+                            log.error("Returning wrong type for request of " +
+                                req.tag.runtimeClass.getSimpleName, ex)
+                        case Failure(ex) =>
+                            log.error("Failed to get: " +
+                                req.tag.runtimeClass.getSimpleName, ex)
+                    }(ExecutionContext.callingThread),
+                    "Device not found in cache")
+        }
+    }
+
     /**
      * Performs a lookup in the local cache trying to find the requested device
      * in case of a miss, it will ask the VTPM actor.
      */
     def expiringAsk[D](req: VTPMRequest[D])
                       (implicit system: ActorSystem): Urgent[D] = {
-        log.debug("Expiring ask for device {}", req)
-        req.getCached match {
-            case Some(d) => Ready(d)
-            case None =>
-                log.debug("Device {} not cached, requesting..", req)
-                NotYet (
-                    VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
-                    .mapTo[D](req.tag)
-                    .andThen {
-                        case Failure(ex: ClassCastException) =>
-                            log.error("Returning wrong type for request of " +
-                                      req.tag.runtimeClass.getSimpleName, ex)
-                        case Failure(ex) =>
-                            log.error("Failed to get: " +
-                                      req.tag.runtimeClass.getSimpleName, ex)
-                    }(ExecutionContext.callingThread)
-                )
-            }
+        try {
+            Ready(tryAsk(req))
+        } catch {
+            case NotYetException(f, _) => NotYet(f)
+        }
     }
 
     /**

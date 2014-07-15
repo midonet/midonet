@@ -7,6 +7,11 @@ package org.midonet.midolman
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.mutable
 
+case class NotYetException(waitFor: Future[_],
+        msg: String = "Async computation in progress") extends Exception(msg) {
+    override def fillInStackTrace(): Throwable = this
+}
+
 /**
  * A monad that is very similar to Try, but whose semantics for Failure are
  * not based on a Throwable but a Future. An Urgent represents a
