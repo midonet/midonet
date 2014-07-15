@@ -87,21 +87,27 @@ public class L3ZkManager extends BaseZkManager {
         return routers;
     }
 
+    private UUID prepareCreateChain(List<Op> ops, String name,
+                                    String tenantId)
+        throws SerializationException, StateAccessException {
+        UUID chainId = UUID.randomUUID();
+        ChainConfig chainConfig = new ChainConfig(name);
+        chainConfig.setTenantId(tenantId);
+        chainZkManager.prepareCreate(ops, chainId, chainConfig);
+        return chainId;
+    }
+
     public void prepareCreateRouter(List<Op> ops, Router router)
             throws SerializationException, StateAccessException,
             Rule.RuleIndexOutOfBoundsException {
 
-        UUID preChainId = UUID.randomUUID();
-        UUID postChainId = UUID.randomUUID();
-
-        // Create chains with no rule.  These chains will be used for
-        // floating IP static NAT
-        ops.addAll(chainZkManager.prepareCreate(preChainId,
-                new ChainConfig(router.preRouteChainName())));
-        ops.addAll(chainZkManager.prepareCreate(postChainId,
-                new ChainConfig(router.postRouteChainName())));
+        UUID preChainId = prepareCreateChain(ops, router.preRouteChainName(),
+                                             router.tenantId);
+        UUID postChainId = prepareCreateChain(ops, router.postRouteChainName(),
+                                              router.tenantId);
 
         RouterConfig config = new RouterConfig(router, preChainId, postChainId);
+        config.setTenantId(router.tenantId);
         ops.addAll(routerZkManager.prepareRouterCreate(router.id, config));
 
         // The path to 'ref' directory gets created twice, once in

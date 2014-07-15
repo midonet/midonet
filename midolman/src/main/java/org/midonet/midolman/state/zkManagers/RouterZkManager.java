@@ -31,14 +31,13 @@ public class RouterZkManager
     private final static Logger log = LoggerFactory
             .getLogger(RouterZkManager.class);
 
-    public static class RouterConfig extends BaseConfig {
+    public static class RouterConfig extends ConfigWithProperties {
 
         public String name;
         public boolean adminStateUp;
         public UUID inboundFilter;
         public UUID outboundFilter;
         public UUID loadBalancer;
-        public Map<String, String> properties = new HashMap<String, String>();
 
         public RouterConfig() {
             super();
