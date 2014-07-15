@@ -17,6 +17,9 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+
 import org.apache.jute.Record;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -29,7 +32,6 @@ import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.common.PathUtils;
-import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.proto.CreateRequest;
 import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
@@ -48,6 +50,8 @@ public class MockDirectory implements Directory {
 
     private final static Logger log = LoggerFactory.getLogger(
         MockDirectory.class);
+    private final ListMultimap<String, Watcher> existsWatchers =
+        ArrayListMultimap.create();
 
     protected class Node {
         // The node's path from the root.
@@ -66,8 +70,9 @@ public class MockDirectory implements Directory {
             this.data = data;
             this.mode = mode;
             this.sequence = 0;
-            this.children = new HashMap<String, Node>();
-            this.watchers = new HashSet<Watcher>();
+            this.children = new HashMap<>();
+            this.watchers = new HashSet<>();
+            this.watchers.addAll(existsWatchers.removeAll(path));
         }
 
         synchronized Node getChild(String name) throws NoNodeException {
@@ -95,6 +100,7 @@ public class MockDirectory implements Directory {
             Node child = new Node(childPath, data, mode);
             children.put(name, child);
             fireWatchers(multi, EventType.NodeChildrenChanged);
+            child.fireWatchers(multi, EventType.NodeCreated);
             return childPath;
         }
 
@@ -362,6 +368,9 @@ public class MockDirectory implements Directory {
         try {
             return getNode(path).exists(watcher);
         } catch (NoNodeException nne) {
+            if (null != watcher) {
+                existsWatchers.put(path, watcher);
+            }
             return false;
         }
     }
