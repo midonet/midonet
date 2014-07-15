@@ -6,11 +6,12 @@ package org.midonet.midolman.state.zkManagers;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -30,15 +31,27 @@ public class PortGroupZkManager
         }
 
         public PortGroupConfig(String name) {
+            this(name, false);
+        }
+
+        public PortGroupConfig(String name, boolean stateful) {
             super();
             this.name = name;
+            this.stateful = stateful;
         }
 
         public String name;
+        public boolean stateful;
     }
 
     private final PortZkManager portDao;
     private final RuleZkManager ruleDao;
+
+    public void getMembersAsync(UUID id,
+                                DirectoryCallback<Set<UUID>> cb,
+                                Directory.TypedWatcher watcher) {
+        getUUIDSetAsync(paths.getPortGroupPortsPath(id), cb, watcher);
+    }
 
     /**
      * Initializes a PortGroupZkManager object with a ZooKeeper client and the
@@ -94,6 +107,30 @@ public class PortGroupZkManager
                 Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
 
         log.debug("PortGroupZkManager.prepareCreate: exiting");
+        return ops;
+    }
+
+    public List<Op> prepareUpdate(UUID id, PortGroupConfig config)
+            throws StateAccessException, SerializationException {
+        List<Op> ops = new ArrayList<Op>();
+        PortGroupConfig oldConfig = get(id);
+        boolean dataChanged = false;
+
+        String newName = config.name;
+        String oldName = oldConfig.name;
+        if (newName == null ? oldName != null : !newName.equals(oldName))
+            dataChanged = true;
+
+        if (config.stateful != oldConfig.stateful)
+            dataChanged = true;
+
+        if (dataChanged) {
+            config.properties.clear();
+            config.properties.putAll(oldConfig.properties);
+            ops.add(Op.setData(paths.getPortGroupPath(id),
+                    serializer.serialize(config), -1));
+        }
+
         return ops;
     }
 

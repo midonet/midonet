@@ -43,6 +43,15 @@ public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
         return this;
     }
 
+    public boolean isStateful() {
+        return getData().stateful;
+    }
+
+    public PortGroup setStateful(boolean stateful) {
+        getData().stateful = stateful;
+        return this;
+    }
+
     public PortGroup setProperty(Property property, String value) {
         getData().properties.put(property.name(), value);
         return this;
@@ -64,6 +73,7 @@ public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
     public static class Data {
         public String name;
         public Map<String, String> properties = new HashMap<String, String>();
+        public boolean stateful = false;
 
         @Override
         public boolean equals(Object o) {
@@ -77,7 +87,7 @@ public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
             if (name != null ? !name.equals(that.name) : that.name != null)
                 return false;
 
-            return true;
+            return stateful == that.stateful;
         }
 
         @Override
@@ -88,7 +98,7 @@ public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
 
         @Override
         public String toString() {
-            return "PortGroup " + "{name=" + name + '}';
+            return "PortGroup " + "{name=" + name +  ", stateful=" + stateful + '}';
         }
     }
 }

@@ -36,6 +36,8 @@ public class PortGroup extends UriResource {
     @Size(min = MIN_PORT_GROUP_NAME_LEN, max = MAX_PORT_GROUP_NAME_LEN)
     private String name;
 
+    private boolean stateful;
+
     /**
      * Default constructor
      */
@@ -51,7 +53,7 @@ public class PortGroup extends UriResource {
      */
     public PortGroup(org.midonet.cluster.data.PortGroup data) {
         this(data.getId(), data.getName(),
-                data.getProperty(Property.tenant_id));
+                data.getProperty(Property.tenant_id), data.isStateful());
     }
 
     /**
@@ -63,11 +65,18 @@ public class PortGroup extends UriResource {
      *            PortGroup name
      * @param tenantId
      *            Tenant ID
+     * @param stateful
+     *            Is this a stateful port group
      */
     public PortGroup(UUID id, String name, String tenantId) {
+        this(id, name, tenantId, false);
+    }
+
+    public PortGroup(UUID id, String name, String tenantId, boolean stateful) {
         this.id = id;
         this.name = name;
         this.tenantId = tenantId;
+        this.stateful = stateful;
     }
 
     /**
@@ -115,6 +124,14 @@ public class PortGroup extends UriResource {
         this.name = name;
     }
 
+    public boolean isStateful() {
+        return stateful;
+    }
+
+    public void setStateful(boolean stateful) {
+        this.stateful = stateful;
+    }
+
     /**
      * @return the self URI
      */
@@ -140,7 +157,8 @@ public class PortGroup extends UriResource {
         return new org.midonet.cluster.data.PortGroup()
                 .setId(this.id)
                 .setName(this.name)
-                .setProperty(Property.tenant_id, this.tenantId);
+                .setProperty(Property.tenant_id, this.tenantId)
+                .setStateful(this.stateful);
     }
 
     /*
@@ -150,7 +168,8 @@ public class PortGroup extends UriResource {
      */
     @Override
     public String toString() {
-        return "id=" + id + " tenantId=" + tenantId + ", name=" + name;
+        return "id=" + id + " tenantId=" + tenantId + ", name=" + name +
+                ", stateful=" + stateful;
     }
 
     /**

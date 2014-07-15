@@ -11,7 +11,10 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, _}
+import org.midonet.cluster.data.{Bridge => ClusterBridge,
+                                 Router => ClusterRouter,
+                                 PortGroup => ClusterPortGroup,
+                                 _}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 import org.midonet.cluster.data.host.Host
@@ -261,6 +264,25 @@ trait VirtualConfigurationBuilders {
 
     def deletePort(port: Port[_, _], host: Host){
         clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
+    }
+
+    def newPortGroup(name: String, stateful: Boolean = false) = {
+        val pg = new ClusterPortGroup().setName(name).setStateful(stateful)
+        val id = clusterDataClient().portGroupsCreate(pg)
+        Thread.sleep(50)
+        clusterDataClient().portGroupsGet(id)
+    }
+
+    def updatePortGroup(pg: ClusterPortGroup) = {
+        clusterDataClient().portGroupsUpdate(pg)
+    }
+
+    def newPortGroupMember(pgId: UUID, portId: UUID) = {
+        clusterDataClient().portGroupsAddPortMembership(pgId, portId)
+    }
+
+    def deletePortGroupMember(pgId: UUID, portId: UUID) = {
+        clusterDataClient().portGroupsRemovePortMembership(pgId, portId)
     }
 
     def newRouter(router: ClusterRouter): ClusterRouter = {

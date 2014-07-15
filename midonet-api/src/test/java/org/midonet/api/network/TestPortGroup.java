@@ -80,15 +80,18 @@ public class TestPortGroup {
                     APPLICATION_PORTGROUP_JSON, group1, DtoPortGroup.class);
             assertEquals("Group1", group1.getName());
             assertEquals("tenant1-id", group1.getTenantId());
+            assertEquals(false, group1.isStateful());
 
             // Create another port group for Tenant1
             DtoPortGroup group2 = new DtoPortGroup();
             group2.setName("Group2");
             group2.setTenantId("tenant1-id");
+            group2.setStateful(true);
             group2 = dtoResource.postAndVerifyCreated(app.getPortGroups(),
                     APPLICATION_PORTGROUP_JSON, group2, DtoPortGroup.class);
             assertEquals("Group2", group2.getName());
             assertEquals("tenant1-id", group2.getTenantId());
+            assertEquals(true, group2.isStateful());
 
             // Create a port group for Tenant2
             DtoPortGroup group3 = new DtoPortGroup();

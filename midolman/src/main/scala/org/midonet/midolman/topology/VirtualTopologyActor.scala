@@ -133,6 +133,17 @@ object VirtualTopologyActor extends Referenceable {
             () => new PoolManager(id, client)
     }
 
+    case class PortGroupRequest(id: UUID, update: Boolean = false)
+        extends DeviceRequest {
+
+        protected[VirtualTopologyActor]
+        override val managerName = portGroupManagerName(id)
+
+        protected[VirtualTopologyActor]
+        def managerFactory(client: Client, config: MidolmanConfig) =
+            () => new PortGroupManager(id, client)
+    }
+
     case class PoolHealthMonitorMapRequest(update: Boolean=false)
             extends DeviceRequest {
 
@@ -262,7 +273,8 @@ object VirtualTopologyActor extends Referenceable {
         classTag[IPAddrGroup]       -> (new IPAddrGroupRequest(_)),
         classTag[LoadBalancer]      -> (new LoadBalancerRequest(_)),
         classTag[Pool]              -> (new PoolRequest(_)),
-        classTag[TraceConditions]   -> (new ConditionListRequest(_))
+        classTag[TraceConditions]   -> (new ConditionListRequest(_)),
+        classTag[PortGroup]         -> (new PortGroupRequest(_))
     )
 
     private def requestFuture[D](id: UUID,
@@ -305,6 +317,8 @@ object VirtualTopologyActor extends Referenceable {
             "LoadBalancerManager-" + loadBalancerId
 
     def poolManagerName(poolId: UUID) = "PoolManager-" + poolId
+
+    def portGroupManagerName(portGroupId: UUID) = "PortGroupManager-" + portGroupId
 
     def poolHealthMonitorManagerName() = "PoolHealthMonitorMapRequest"
 
@@ -456,6 +470,9 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
             updated(router)
+        case pg: PortGroup =>
+            log.debug("Received a PortGroup for {}", pg.id)
+            updated(pg)
         case traceCondition @ TraceConditions(conditions) =>
             log.debug("TraceConditions updated to {}", conditions)
             updated(TraceConditionsManager.uuid, conditions)

@@ -57,6 +57,15 @@ public class PortGroup extends ResourceBase<PortGroup, DtoPortGroup> {
     }
 
     /**
+     * Gets stateful flag
+     *
+     * @return stateful flag
+     */
+    public boolean isStateful() {
+        return principalDto.isStateful();
+    }
+
+    /**
      * Sets name of this portgroup for creation
      *
      * @param name name of the port group
@@ -75,6 +84,17 @@ public class PortGroup extends ResourceBase<PortGroup, DtoPortGroup> {
      */
     public PortGroup tenantId(String tenantId) {
         principalDto.setTenantId(tenantId);
+        return this;
+    }
+
+    /**
+     * Sets stateful flag.
+     *
+     * @param stateful
+     * @return this
+     */
+    public PortGroup stateful(boolean stateful) {
+        principalDto.setStateful(stateful);
         return this;
     }
 

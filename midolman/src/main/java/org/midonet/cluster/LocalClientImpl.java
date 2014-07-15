@@ -13,20 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.apache.zookeeper.KeeperException;
-import org.midonet.cluster.client.BGPListBuilder;
-import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.ChainBuilder;
-import org.midonet.cluster.client.HealthMonitorBuilder;
-import org.midonet.cluster.client.HostBuilder;
-import org.midonet.cluster.client.IPAddrGroupBuilder;
-import org.midonet.cluster.client.PortBuilder;
-import org.midonet.cluster.client.PortSetBuilder;
-import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.TraceConditionsBuilder;
-import org.midonet.cluster.client.LoadBalancerBuilder;
-import org.midonet.cluster.client.PoolBuilder;
-import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
-import org.midonet.cluster.client.TunnelZones;
+import org.midonet.cluster.client.*;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -78,6 +65,9 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterPoolManager poolManager;
+
+    @Inject
+    ClusterPortGroupManager portGroupManager;
 
     @Inject
     ClusterPoolHealthMonitorMapManager poolHealthMonitorMapManager;
@@ -144,14 +134,20 @@ public class LocalClientImpl implements Client {
 
     @Override
     public void getLoadBalancer(UUID loadBalancerID, LoadBalancerBuilder builder) {
-        log.debug("getLoadBalancer");
+        log.debug("getLoadBalancer {}", loadBalancerID);
         loadBalancerManager.registerNewBuilder(loadBalancerID, builder);
     }
 
     @Override
     public void getPool(UUID poolID, PoolBuilder builder) {
-        log.debug("getPool");
+        log.debug("getPool {}", poolID);
         poolManager.registerNewBuilder(poolID, builder);
+    }
+
+    @Override
+    public void getPortGroup(UUID id, PortGroupBuilder builder) {
+        log.debug("getPortGroup {}", id);
+        portGroupManager.registerNewBuilder(id, builder);
     }
 
     @Override
