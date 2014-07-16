@@ -154,3 +154,11 @@ if [ "x$JMXDISABLE" = "x" ] ; then
     HOSTNAME=`hostname`
     JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=$HOSTNAME"
 fi
+
+if [ "$MIDOLMAN_HPROF" = "1" ] ; then
+    DATE=$(date +'%H%M%S')
+    HPROF_FILENAME=${HPROF_FILENAME:-/tmp/midolman-$DATE.hprof}
+    JVM_OPTS="$JVM_OPTS -agentlib:hprof=cpu=samples,depth=100,interval=1,lineno=y,thread=y,file=$HPROF_FILENAME"
+fi
+
+

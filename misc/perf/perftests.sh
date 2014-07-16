@@ -99,6 +99,7 @@ UPLOAD_HOST=
 UPLOAD_DESTDIR=
 UPLOAD_KEY=
 
+TOMCAT7_CONF_DIR=/etc/tomcat7/Catalina/localhost/
 
 #######################################################################
 # Utility functions
@@ -179,20 +180,6 @@ setup_tests() {
 
     create_scenario
     connectivity_check
-}
-
-run_tests() {
-    setup_tests
-    setup_jmxtrans
-    warm_up
-    test_throughput
-    long_running_tests
-    stop_jmxtrans
-    midolman_heapdump
-    do_cleanup
-    make_graphs
-    make_report
-    upload_report $TEST_ID
 }
 
 start_logging() {
@@ -295,6 +282,12 @@ install_midolman() {
     install_config_file midolman/midolman-akka.conf /etc/midolman/
     install_config_file midolman/midolman.conf /etc/midolman/
     install_config_file midolman/midolman-env.sh /etc/midolman/
+
+    [ -d $TOMCAT7_CONF_DIR ] || mkdir -p $TOMCAT7_CONF_DIR
+    cp -f $$MIDONET_SRC_DIR/midonet-api/conf/midonet-api.xml $TOMCAT7_CONF_DIR/
+
+     # set a meaningful name for the hprof file, just in case it's enabled...
+    export HPROF_FILENAME=$REPORT_DIR/midolman-$TOPOLOGY_NAME-$PROFILE.hprof
 
     start midolman || err_exit "starting midolman"
     sleep 30
@@ -551,6 +544,7 @@ flows_graph() {
 make_report() {
     test_phase "Creating test report"
     . /etc/midolman/midolman-env.sh
+
     while true ; do
         echo "git rev: $GITREV"
         echo "date: `date`"
@@ -681,14 +675,14 @@ destroy_scenario() {
 # Script body
 ########################################################################
 
-setup_only=no
+setup_only="no"
 
-if [ $1 == '-s' ] || [ $1 == '--setup'] ; then
+if [ "$1" == "-s" ] || [ "$1" == "--setup" ] ; then
     shift
-    setup_only=yes
+    setup_only = "yes"
 fi
 
-if [ -z $1 ] ; then
+if [ -z "$1" ] ; then
     echo "Usage: perftests.sh [-s|--setup] scenario profile" >&2
     exit 1
 fi
@@ -701,25 +695,43 @@ fi
 pushd `dirname $0`
 
 TOPOLOGY_NAME=$1
-topology=topologies.d/$1
-if [ ! -f "$topology" ] ; then
+TOPOLOGY_FILE=topologies.d/$1
+if [ ! -f "$TOPOLOGY_FILE" ] ; then
     err_exit "Topology file ($1) does not exist"
     exit 1
 fi
 
-echo "Sourcing topology description from $topology"
-source $topology
+echo "Sourcing topology description from $TOPOLOGY_FILE"
+source $TOPOLOGY_FILE
 echo "Executing tests.."
 
-if [ $setup_only = 'yes' ] ; then
+if [ "$setup_only" = "yes" ] ; then
     setup_tests
 else
     if [ -z $2 ] ; then
         echo "Usage: perftests.sh [-s|--setup] scenario profile" >&2
         exit 1
     fi
+
     PROFILE=$2
-    run_tests
+
+    setup_tests
+    setup_jmxtrans
+
+    warm_up
+
+    test_throughput
+    long_running_tests
+    stop_jmxtrans
+    midolman_heapdump
+
+    do_cleanup
+
+    make_graphs
+    make_report
+
+    upload_report $TEST_ID
 fi
 
 popd
+
