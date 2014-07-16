@@ -10,6 +10,7 @@ import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import akka.testkit._
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
+import org.midonet.cluster.data.neutron.{NeutronPlugin, LBaaSApi}
 import org.mockito.Mockito.{verify, reset, times}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
@@ -61,6 +62,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
     var managerActor: ActorRef = _
     val poolId = UUID.randomUUID()
     var mockClient = mock[LocalDataClientImpl]
+    var mockLBaaSApi = mock[NeutronPlugin]
 
     // Accounting variables to keep track of events that happen
     var confWrites = 0
@@ -98,12 +100,13 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Props(new HaproxyHealthMonitorUT(
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
                 managerActor, UUID.randomUUID(),
-                mockClient, UUID.randomUUID())))
+                mockLBaaSApi, mockClient, UUID.randomUUID())))
         expectMsg(MonitorActorUp)
     }
 
     after {
         reset(mockClient)
+        reset(mockLBaaSApi)
     }
 
     feature("HaproxyHealthMonitor writes its config file") {
@@ -112,7 +115,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Then ("A config write should happen once")
             eventually { confWrites should be (1) }
             haproxyRestarts should be (1)
-            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(1)).poolSetMapStatus(poolId,
                     PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("Config change") {
@@ -123,7 +126,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             eventually { confWrites should be (2) }
             And ("Haproxy should have been restarted")
             eventually { haproxyRestarts should be (1) }
-            verify(mockClient, times(2)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(2)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("Config write is delayed") {
@@ -136,7 +139,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Then ("The last IP written should be the last config sent")
             eventually (timeout(Span(3, Seconds)))
                 { lastIpWritten should equal (NormalIp) }
-            verify(mockClient, times(3)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(3)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
             And ("The there is a problem with the update")
             failUpdate = true
@@ -145,9 +148,9 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Then ("The status should have been set to ERROR")
             eventually { confWrites should be (4) }
             eventually { setupFailures should be (1) }
-            verify(mockClient, times(3)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(3)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
-            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ERROR)
             failUpdate = false
         }
@@ -158,7 +161,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             When ("HaproxyHealthMonitor is started")
             Then ("then socket should read.")
             eventually (timeout(Span(2, Seconds))) { socketReads should be > 0}
-            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
         }
         scenario ("HaproxyHealthMonitor fails to read a socket") {
@@ -168,7 +171,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             Then ("The manager should receive a failure notification")
             eventually (timeout(Span(2, Seconds)))
                 { sockReadFailures should be > 0 }
-            verify(mockClient, times(1)).poolSetMapStatus(poolId,
+            verify(mockLBaaSApi, times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ERROR)
         }
     }
@@ -192,11 +195,13 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
     class HaproxyHealthMonitorUT(config: PoolConfig,
                                  manager: ActorRef,
                                  routerId: UUID,
+                                 api: LBaaSApi,
                                  client: DataClient,
                                  hostId: UUID)
         extends HaproxyHealthMonitor(config: PoolConfig,
                                      manager: ActorRef,
                                      routerId: UUID,
+                                     api: LBaaSApi,
                                      client: DataClient,
                                      hostId: UUID) {
 

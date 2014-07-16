@@ -6,8 +6,6 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.*;
 
 import com.google.common.base.Objects;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs;
 import org.midonet.cluster.data.neutron.Router;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
@@ -20,7 +18,6 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Class to manage the router ZooKeeper data.

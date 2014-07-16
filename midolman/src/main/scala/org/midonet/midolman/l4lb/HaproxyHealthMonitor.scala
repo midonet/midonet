@@ -12,14 +12,15 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.neutron.LBaaSApi
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.CheckHealth
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
+import org.midonet.midolman.layer3.Route.NextHop.PORT
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.LBStatus
 import LBStatus.{INACTIVE => MemberInactive}
@@ -30,7 +31,6 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet
 import scala.collection.mutable.Set
 import scala.concurrent.duration._
-import org.midonet.midolman.state.l4lb.LBStatus
 
 
 /**
@@ -42,9 +42,9 @@ import org.midonet.midolman.state.l4lb.LBStatus
  */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              client: DataClient, hostId: UUID): Props = Props(
-                  new HaproxyHealthMonitor(config, manager, routerId, client,
-                                           hostId))
+              api: LBaaSApi, dataClient: DataClient, hostId: UUID):
+        Props = Props(new HaproxyHealthMonitor(config, manager, routerId, api,
+                                               dataClient, hostId))
 
     sealed trait HHMMessage
     // This is a way of alerting the manager that setup has failed
@@ -82,7 +82,8 @@ object HaproxyHealthMonitor {
 class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
                            var routerId: UUID,
-                           val client: DataClient,
+                           val api: LBaaSApi,
+                           val dataClient: DataClient,
                            val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
     implicit def system: ActorSystem = context.system
@@ -138,7 +139,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 // routes on the router.
                 if (config.vip != conf.vip) {
                     if (routeId != null) {
-                        client.routesDelete(routeId)
+                        dataClient.routesDelete(routeId)
                         deleteIpTableRules(healthMonitorName, config.vip.ip)
                     }
                     if (routerId != null && routerPortId != null) {
@@ -165,9 +166,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newDownNodes = downNodes diff currentDownNodes
 
                 newUpNodes foreach (id =>
-                    client.poolMemberUpdateStatus(id, MemberActive))
+                    api.poolMemberUpdateStatus(id, MemberActive))
                 newDownNodes foreach (id =>
-                    client.poolMemberUpdateStatus(id, MemberInactive))
+                    api.poolMemberUpdateStatus(id, MemberInactive))
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -393,13 +394,13 @@ class HaproxyHealthMonitor(var config: PoolConfig,
         route.setDstNetworkLength(32)
         route.setNextHopGateway(NameSpaceIp)
         route.setWeight(100)
-        routeId = client.routesCreateEphemeral(route)
+        routeId = dataClient.routesCreateEphemeral(route)
     }
 
     def hookNamespaceToRouter(): Unit = {
         if (routerId == null)
             return
-        val ports = client.portsFindByRouter(routerId)
+        val ports = dataClient.portsFindByRouter(routerId)
         var portId: UUID = null
 
         // see if the port already exists, and delete it if it does. This can
@@ -408,7 +409,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             port match {
                 case rpc: RouterPort =>
                     if (rpc.getPortAddr == RouterIp) {
-                        client.hostsDelVrnPortMapping(hostId, rpc.getId)
+                        dataClient.hostsDelVrnPortMapping(hostId, rpc.getId)
                         portId = rpc.getId
                     }
             }
@@ -422,21 +423,21 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             routerPort.setNwAddr(NetAddr)
             routerPort.setNwLength(NetLen)
             routerPort.setInterfaceName(namespaceName)
-            portId = client.portsCreate(routerPort)
+            portId = dataClient.portsCreate(routerPort)
         }
         routerPortId = portId
         addVipRoute(config.vip.ip)
 
-        client.hostsAddVrnPortMapping(hostId, portId, namespaceName)
+        dataClient.hostsAddVrnPortMapping(hostId, portId, namespaceName)
 
         createIpTableRules(healthMonitorName, config.vip.ip)
     }
 
     def unhookNamespaceFromRouter() = {
         if (routerPortId != null) {
-            client.hostsDelVrnPortMapping(hostId, routerPortId)
-            client.routesDelete(routeId)
-            client.portsDelete(routerPortId)
+            dataClient.hostsDelVrnPortMapping(hostId, routerPortId)
+            dataClient.routesDelete(routeId)
+            dataClient.portsDelete(routerPortId)
             deleteIpTableRules(healthMonitorName, config.vip.ip)
             routeId = null
             routerPortId = null
@@ -445,6 +446,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     //wrapping this call so we can mock it in the unit tests
     def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
-        client.poolSetMapStatus(config.id, status)
+        api.poolSetMapStatus(config.id, status)
     }
 }

@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.neutron.LBaaSApi;
 import org.midonet.event.topology.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -56,11 +57,14 @@ public class PoolMemberResource extends AbstractResource {
 
     private final PoolMemberEvent poolMemberEvent = new PoolMemberEvent();
 
+    private final LBaaSApi api;
+
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context, DataClient dataClient,
+                              SecurityContext context, LBaaSApi api,
                               Validator validator) {
-        super(config, uriInfo, context, dataClient, validator);
+        super(config, uriInfo, context, null, validator);
+        this.api = api;
     }
 
     @GET
@@ -72,7 +76,7 @@ public class PoolMemberResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers = null;
 
-        dataPoolMembers = dataClient.poolMembersGetAll();
+        dataPoolMembers = api.poolMembersGetAll();
         List<PoolMember> poolMembers = new ArrayList<PoolMember>();
         if (dataPoolMembers != null) {
             for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
@@ -94,7 +98,7 @@ public class PoolMemberResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
-                dataClient.poolMemberGet(id);
+                api.poolMemberGet(id);
         if (PoolMemberData == null)
             throwNotFound(id, "pool member");
 
@@ -113,7 +117,7 @@ public class PoolMemberResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         try {
-            dataClient.poolMemberDelete(id);
+            api.poolMemberDelete(id);
             poolMemberEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so do nothing.
@@ -133,8 +137,8 @@ public class PoolMemberResource extends AbstractResource {
         validate(poolMember);
 
         try {
-            UUID id = dataClient.poolMemberCreate(poolMember.toData());
-            poolMemberEvent.create(id, dataClient.poolMemberGet(id));
+            UUID id = api.poolMemberCreate(poolMember.toData());
+            poolMemberEvent.create(id, api.poolMemberGet(id));
             return Response.created(
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                     .build();
@@ -162,16 +166,16 @@ public class PoolMemberResource extends AbstractResource {
         try {
             // Ignore `address`, `protocolPort` and `status` property
             // populated by users.
-            if (dataClient.poolMemberExists(id)) {
+            if (api.poolMemberExists(id)) {
                 org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
-                        dataClient.poolMemberGet(id);
+                        api.poolMemberGet(id);
                 poolMember.setAddress(oldPoolMember.getAddress());
                 poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
                 poolMember.setStatus(oldPoolMember.getStatus().toString());
             }
 
-            dataClient.poolMemberUpdate(poolMember.toData());
-            poolMemberEvent.update(id, dataClient.poolMemberGet(id));
+            api.poolMemberUpdate(poolMember.toData());
+            poolMemberEvent.update(id, api.poolMemberGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
@@ -186,14 +190,17 @@ public class PoolMemberResource extends AbstractResource {
     public static class PoolPoolMemberResource extends AbstractResource {
         private final UUID poolId;
 
+        private final LBaaSApi api;
+
         @Inject
         public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                                       SecurityContext context,
-                                      DataClient dataClient,
+                                      LBaaSApi api,
                                       Validator validator,
                                       @Assisted UUID id) {
-            super(config, uriInfo, context, dataClient, validator);
+            super(config, uriInfo, context, null, validator);
             this.poolId = id;
+            this.api = api;
         }
 
         @GET
@@ -205,7 +212,7 @@ public class PoolMemberResource extends AbstractResource {
 
             List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers;
             try {
-                dataPoolMembers = dataClient.poolGetMembers(poolId);
+                dataPoolMembers = api.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
@@ -235,7 +242,7 @@ public class PoolMemberResource extends AbstractResource {
             validate(poolMember);
 
             try {
-                UUID id = dataClient.poolMemberCreate(poolMember.toData());
+                UUID id = api.poolMemberCreate(poolMember.toData());
                 return Response.created(
                         ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                         .build();

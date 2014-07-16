@@ -17,11 +17,6 @@ import org.junit.Before;
 
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.dhcp.Subnet;
-import org.midonet.cluster.data.l4lb.HealthMonitor;
-import org.midonet.cluster.data.l4lb.LoadBalancer;
-import org.midonet.cluster.data.l4lb.Pool;
-import org.midonet.cluster.data.l4lb.PoolMember;
-import org.midonet.cluster.data.l4lb.VIP;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
@@ -31,25 +26,13 @@ import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
-import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.PoolLBMethod;
-import org.midonet.midolman.state.l4lb.PoolProtocol;
-import org.midonet.midolman.state.l4lb.VipSessionPersistence;
-import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.RouteZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Subnet;
 
 public class LocalDataClientImplTestBase {
 
-    @Inject
-    protected DataClient client;
+    @Inject protected DataClient client;
     Injector injector = null;
     String zkRoot = "/test/v3/midolman";
 
@@ -59,23 +42,6 @@ public class LocalDataClientImplTestBase {
                 Arrays.asList(new HierarchicalConfiguration.Node
                         ("midolman_root_key", zkRoot)));
         return config;
-
-    }
-
-    protected RouteZkManager getRouteZkManager() {
-        return injector.getInstance(RouteZkManager.class);
-    }
-
-    protected RouterZkManager getRouterZkManager() {
-        return injector.getInstance(RouterZkManager.class);
-    }
-
-    protected PoolZkManager getPoolZkManager() {
-        return injector.getInstance(PoolZkManager.class);
-    }
-
-    protected BridgeDhcpZkManager getBridgeDhcpZkManager() {
-        return injector.getInstance(BridgeDhcpZkManager.class);
     }
 
     Directory zkDir() {
@@ -108,66 +74,5 @@ public class LocalDataClientImplTestBase {
         return new Subnet().setSubnetAddr(IPv4Subnet.fromCidr(cidr));
     }
 
-    protected HealthMonitor getStockHealthMonitor() {
-        return new HealthMonitor()
-                .setDelay(100)
-                .setMaxRetries(100)
-                .setTimeout(1000);
-    }
-
-    protected UUID createStockHealthMonitor()
-            throws SerializationException, StateAccessException {
-        return client.healthMonitorCreate(getStockHealthMonitor());
-    }
-
-    protected LoadBalancer getStockLoadBalancer() {
-        return new LoadBalancer();
-    }
-
-    protected UUID createStockLoadBalancer()
-            throws InvalidStateOperationException, SerializationException,
-            StateAccessException {
-        return client.loadBalancerCreate(getStockLoadBalancer());
-    }
-
-    protected Pool getStockPool(UUID loadBalancerId) {
-        return new Pool().setLoadBalancerId(loadBalancerId)
-                .setLbMethod(PoolLBMethod.ROUND_ROBIN)
-                .setProtocol(PoolProtocol.TCP);
-    }
-
-    protected UUID createStockPool(UUID loadBalancerId)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
-        return client.poolCreate(getStockPool(loadBalancerId));
-    }
-
-    protected PoolMember getStockPoolMember(UUID poolId) {
-        return new PoolMember()
-                .setPoolId(poolId)
-                .setAddress("192.168.10.1")
-                .setProtocolPort(80)
-                .setWeight(100);
-    }
-
-    protected UUID createStockPoolMember(UUID poolId)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
-        return client.poolMemberCreate(getStockPoolMember(poolId));
-    }
-
-    protected VIP getStockVip(UUID poolId) {
-        return new VIP()
-                .setAddress("192.168.100.1")
-                .setPoolId(poolId)
-                .setProtocolPort(80)
-                .setSessionPersistence(VipSessionPersistence.SOURCE_IP);
-    }
-
-    protected UUID createStockVip(UUID poolId)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
-        return client.vipCreate(getStockVip(poolId));
-    }
 }
 

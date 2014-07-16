@@ -19,6 +19,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.neutron.LBaaSApi;
 import org.midonet.event.topology.PoolEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -59,14 +60,17 @@ public class PoolResource extends AbstractResource {
 
     private final ResourceFactory factory;
 
+    private final LBaaSApi api;
+
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
-                        DataClient dataClient,
+                        LBaaSApi api,
                         ResourceFactory factory,
                         Validator validator) {
-        super(config, uriInfo, context, dataClient, validator);
+        super(config, uriInfo, context, null, validator);
         this.factory = factory;
+        this.api = api;
     }
 
     @GET
@@ -78,7 +82,7 @@ public class PoolResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
 
-        dataPools = dataClient.poolsGetAll();
+        dataPools = api.poolsGetAll();
         List<Pool> pools = new ArrayList<Pool>();
         if (dataPools != null) {
             for (org.midonet.cluster.data.l4lb.Pool dataPool :
@@ -100,7 +104,7 @@ public class PoolResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.l4lb.Pool poolData =
-                dataClient.poolGet(id);
+                api.poolGet(id);
         if (poolData == null)
             throwNotFound(id, "pool");
 
@@ -119,7 +123,7 @@ public class PoolResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         try {
-            dataClient.poolDelete(id);
+            api.poolDelete(id);
             poolEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
@@ -139,8 +143,8 @@ public class PoolResource extends AbstractResource {
         validate(pool);
 
         try {
-            UUID id = dataClient.poolCreate(pool.toData());
-            poolEvent.create(id, dataClient.poolGet(id));
+            UUID id = api.poolCreate(pool.toData());
+            poolEvent.create(id, api.poolGet(id));
             return Response.created(
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
@@ -165,8 +169,8 @@ public class PoolResource extends AbstractResource {
         validate(pool);
 
         try {
-            dataClient.poolUpdate(pool.toData());
-            poolEvent.update(id, dataClient.poolGet(id));
+            api.poolUpdate(pool.toData());
+            poolEvent.update(id, api.poolGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingViolationException ex) {
@@ -208,14 +212,17 @@ public class PoolResource extends AbstractResource {
     public static class LoadBalancerPoolResource extends AbstractResource {
         private final UUID loadBalancerId;
 
+        private final LBaaSApi api;
+
         @Inject
         public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
                                         SecurityContext context,
-                                        DataClient dataClient,
+                                        LBaaSApi api,
                                         Validator validator,
                                         @Assisted UUID id) {
-            super(config, uriInfo, context, dataClient, validator);
+            super(config, uriInfo, context, null, validator);
             this.loadBalancerId = id;
+            this.api = api;
         }
 
         @GET
@@ -227,7 +234,7 @@ public class PoolResource extends AbstractResource {
 
             List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
 
-            dataPools = dataClient.loadBalancerGetPools(loadBalancerId);
+            dataPools = api.loadBalancerGetPools(loadBalancerId);
             List<Pool> pools = new ArrayList<Pool>();
             if (dataPools != null) {
                 for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
@@ -251,7 +258,7 @@ public class PoolResource extends AbstractResource {
             validate(pool);
 
             try {
-                UUID id = dataClient.poolCreate(pool.toData());
+                UUID id = api.poolCreate(pool.toData());
                 return Response.created(
                         ResourceUriBuilder.getPool(getBaseUri(), id))
                         .build();
