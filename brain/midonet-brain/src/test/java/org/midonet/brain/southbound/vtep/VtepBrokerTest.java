@@ -176,6 +176,38 @@ public class VtepBrokerTest {
     }
 
     /**
+     * Covers the case where the VtepBroker hasn't yet been able to intercept
+     * the vxlan tunnel IP of the VTEP. In this case, it should not be able
+     * to emit MacLocation items even if the VTEP reports changes in the table.
+     */
+    @Test
+    public void testObservableUpdatesMacAdditionResilientToLSDeletions() {
+
+        // Prepare an update consisting of a new row being added
+        TableUpdates ups = makeLocalMacsUpdate(
+            null, makeUcastLocal(mac1.toString(), vxTunEndpoint.toString())
+        );
+        feedPhysicalSwitchUpdate(ups);
+
+        // Don't find the logical switch
+        new Expectations() {{
+            vtepDataClient.getLogicalSwitch(new UUID("meh"));
+            times = 1; result = null;
+        }};
+
+        RxTestUtils.TestedObservable obs =
+            RxTestUtils.test(vtepBroker.observableUpdates())
+                .noElements()
+                .noErrors()
+                .notCompleted()
+                .subscribe();
+
+        vtepUpdStream.onNext(ups);
+
+        obs.evaluate();
+    }
+
+    /**
      * Tests the processing of an update from the VTEP corresponding to a mac
      * entry being removed from the Ucast_macs_local table, which should
      * generate a corresponding MacLocation that reports the mac not being
@@ -296,6 +328,57 @@ public class VtepBrokerTest {
         vb.advertiseMacs();
 
         obs.evaluate();
+    }
+
+    /**
+     * If a Logical Switch is deleted while a MacLocation is processed, we don't
+     * want to die: the VtepBroker should just ignore the MacLocation.
+     */
+    @Test
+    public void testAdvertiseMacsResilientToLogicalSwitchDeletions() {
+
+        VtepBroker vb = new VtepBroker(vtepDataClient);
+
+        // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
+        // is able to capture the IP and process MAC updates.
+        vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
+
+        final UUID lsId1 = new UUID("blah1");
+        final UUID lsId2 = new UUID("blah2");
+
+        new Expectations() {{
+            vtepDataClient.listUcastMacsLocal();
+            times = 1;
+            result = Arrays.asList(
+                new UcastMac(sMac1, lsId1, new UUID("loc1"), null),
+                new UcastMac(sMac2, lsId2, new UUID("loc2"), null)
+            );
+        }};
+
+        new Expectations() {{
+            vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
+            times = 2;
+            result = new Object[] {
+                new LogicalSwitch(lsId2, "oo", "meh2", 2),
+                null // the switch goes away on the second call
+            };
+        }};
+
+        RxTestUtils.TestedObservable obs =
+            RxTestUtils.test(vb.observableUpdates());
+        obs.expect(new MacLocation(mac1, "meh2", vxTunEndpoint))
+            .noErrors()
+            .notCompleted()
+            .subscribe();
+
+        vb.advertiseMacs();
+
+        obs.evaluate();
+    }
+
+    @Test
+    public void testApplyResilientToNullMacLocations() {
+        vtepBroker.apply(null); // expect no NPE
     }
 
     private Ucast_Macs_Local makeUcastLocal(String mac, String ip) {
