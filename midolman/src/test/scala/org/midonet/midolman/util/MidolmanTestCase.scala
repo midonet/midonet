@@ -3,8 +3,7 @@
 */
 package org.midonet.midolman.util
 
-import java.util.{List => JList}
-import java.util.UUID
+import java.util.{List => JList, ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import scala.annotation.tailrec
@@ -16,7 +15,7 @@ import scala.compat.Platform
 import language.implicitConversions
 
 import akka.actor._
-import akka.event.EventStream
+import akka.event.{NoLogging, LoggingAdapter, EventStream}
 import akka.testkit._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -29,17 +28,14 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.midolman.DatapathController
+import org.midonet.midolman.{NotYet, Ready, FlowTranslator, DatapathController, DatapathState, FlowController, PacketsEntryPoint}
 import org.midonet.midolman.DatapathController.{DatapathReady, DpPortCreate, Initialize}
-import org.midonet.midolman.DatapathState
 import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.FlowController.FlowUpdateCompleted
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
@@ -55,6 +51,7 @@ import org.midonet.midolman.monitoring.{MonitoringActor, MonitoringAgent}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.services.MidolmanService
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -69,7 +66,8 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
-import org.midonet.util.functors.Callback2
+import org.midonet.util.functors.{Callback0, Callback2}
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -79,7 +77,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                                      with OneInstancePerTest
                                      with Matchers
                                      with MidolmanServices
-                                     with VirtualConfigurationBuilders {
+                                     with VirtualConfigurationBuilders { self =>
 
     case class PacketsExecute(packet: Packet, actions: JList[FlowAction])
     case class FlowAdded(flow: Flow)
@@ -514,6 +512,36 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         }.asInstanceOf[WildcardFlowRemoved].f
 
     def expectPacketIn() = expect[PacketIn].on(packetInProbe)
+
+    def addVirtualWildcardFlow(wcMatch: WildcardMatch,
+                               action: FlowAction): Unit = {
+        val flowTranslator = new FlowTranslator {
+            override implicit protected def system: ActorSystem = actors()
+            override val log: LoggingAdapter = NoLogging
+            override protected val dpState: DatapathState = self.dpState()
+        }
+        val pktCtx = new PacketContext(Left(-1), null, 0L, null, null, null,
+            None, wcMatch)
+        pktCtx.inputPort = wcMatch.getInputPortUUID
+        dpState().getDpPortNumberForVport(pktCtx.inputPort) map { port =>
+            wcMatch.setInputPortNumber(port.toShort)
+        }
+
+        var retries = 10
+        while (retries >= 0) {
+            flowTranslator.translateActions(pktCtx, List(action)) match {
+                case Ready(actions) =>
+                    val flow = WildcardFlow(pktCtx.origMatch, actions.toList)
+                    flowProbe().testActor ! AddWildcardFlow(flow, null,
+                        new ArrayList[Callback0],
+                        pktCtx.flowTags)
+                    return
+                case NotYet(f) =>
+                    Await.result(f, 3 seconds)
+                    retries -= 1
+            }
+        }
+    }
 }
 
 trait Dilation {

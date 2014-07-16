@@ -16,7 +16,6 @@ import akka.actor.ActorSystem
 import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.LoggerFactory
-import org.midonet.midolman.rules.ChainPacketContext
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
 import org.midonet.odp.flows.FlowActions._
@@ -42,8 +41,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val traceIndexCache: Cache,
                     val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
-                   (implicit actorSystem: ActorSystem)
-         extends ChainPacketContext {
+                   (implicit actorSystem: ActorSystem) {
     import PacketContext._
 
     private val log =
@@ -58,10 +56,10 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     var portGroups: JSet[UUID] = null
     private var forwardFlow = false
     private var connectionTracked = false
-    override def isConnTracked: Boolean = connectionTracked
+    def isConnTracked: Boolean = connectionTracked
 
     private var _inPortId: UUID = null
-    override def inPortId: UUID = _inPortId
+    def inPortId: UUID = _inPortId
     def inPortId_=(port: Port) {
         _inPortId = if (port == null) null else port.id
         // ingressFE is set only once, so it always points to the
@@ -77,7 +75,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     var runs: Int = 0
 
     var outPortId: UUID = null
-    val wcmatch = new WildcardMatch
+    val wcmatch = origMatch.clone()
 
     private var traceID: UUID = null
     private var traceStep = 0
@@ -93,7 +91,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     // This set stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
-    override def addFlowRemovedCallback(cb: Callback0): Unit = {
+    def addFlowRemovedCallback(cb: Callback0): Unit = {
         flowRemovedCallbacks.add(cb)
     }
 
@@ -118,14 +116,13 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = mutable.Set[FlowTag]()
-    override def addFlowTag(tag: FlowTag): Unit =
+    def addFlowTag(tag: FlowTag): Unit =
         flowTags.add(tag)
 
     def prepareForSimulation(lastInvalidationSeen: Long) {
         idle = false
         runs += 1
         lastInvalidation = lastInvalidationSeen
-        wcmatch.reset(origMatch)
     }
 
     def prepareForDrop(lastInvalidationSeen: Long) {
@@ -139,6 +136,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         idle = true
         runFlowRemovedCallbacks()
         flowTags.clear()
+        wcmatch.reset(origMatch)
     }
 
     var traceConditions: TraceConditions = null
@@ -169,7 +167,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         }
     }
 
-    override def isForwardFlow: Boolean = {
+    def isForwardFlow: Boolean = {
 
         // Packets which aren't TCP-or-UDP over IPv4 aren't connection
         // tracked, and always treated as forward flows.

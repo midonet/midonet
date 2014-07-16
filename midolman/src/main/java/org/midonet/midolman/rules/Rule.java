@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright (c) 2011 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.midolman.rules;
@@ -8,14 +8,14 @@ import java.util.*;
 
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
-import org.midonet.packets.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
-
+import org.midonet.midolman.simulation.PacketContext;
+import org.midonet.packets.*;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -59,7 +59,7 @@ public abstract class Rule {
      * If the packet specified by res.pmatch matches this rule's condition,
      * apply the rule.
      *
-     * @param fwdInfo      the PacketContext for the packet being processed
+     * @param pktCtx       the PacketContext for the packet being processed
      * @param res          contains a match of the packet after all
      *                     transformations preceding this rule. This may be
      *                     modified.
@@ -67,11 +67,11 @@ public abstract class Rule {
      * @param isPortFilter whether the rule is being processed in a port filter
      *                     context
      */
-    public void process(ChainPacketContext fwdInfo, RuleResult res,
+    public void process(PacketContext pktCtx, RuleResult res,
                         NatMapping natMapping, boolean isPortFilter) {
-        if (condition.matches(fwdInfo, res.pmatch, isPortFilter)) {
+        if (condition.matches(pktCtx, res.pmatch, isPortFilter)) {
             log.debug("Condition matched");
-            apply(fwdInfo, res, natMapping);
+            apply(pktCtx, res, natMapping);
         }
     }
 
@@ -82,13 +82,13 @@ public abstract class Rule {
     /**
      * Apply this rule to the packet specified by res.pmatch.
      *
-     * @param fwdInfo    the PacketContext for the packet being processed.
+     * @param pktCtx     the PacketContext for the packet being processed.
      * @param res        contains a match of the packet after all
      *                   transformations preceding this rule. This may be
      *                   modified.
      * @param natMapping NAT state of the element using this chain.
      */
-    protected abstract void apply(ChainPacketContext fwdInfo,
+    protected abstract void apply(PacketContext pktCtx,
                                   RuleResult res, NatMapping natMapping);
 
     public Map<String, String> getProperties() {

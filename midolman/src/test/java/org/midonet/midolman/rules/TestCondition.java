@@ -72,8 +72,7 @@ public class TestCondition {
         rand = new Random();
 
         connCache = new DummyCache();
-        fwdInfo = new ForwardInfo(false, connCache, UUID.randomUUID());
-        fwdInfo.flowMatch = pktMatch;
+        fwdInfo = new ForwardInfo(false, pktMatch, connCache, UUID.randomUUID());
     }
 
     @Test

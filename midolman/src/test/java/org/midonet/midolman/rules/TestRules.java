@@ -174,8 +174,7 @@ public class TestRules {
 
         expRes = new RuleResult(null, null, pktMatch.clone());
         argRes = new RuleResult(null, null, pktMatch.clone());
-        fwdInfo = new ForwardInfo(false, null, null);
-        fwdInfo.flowMatch = new WildcardMatch();
+        fwdInfo = new ForwardInfo(false, pktMatch, null, null);
     }
 
     @Test

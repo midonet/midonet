@@ -11,7 +11,6 @@ import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
-import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -81,14 +80,6 @@ class FlowTranslatorTest extends MidolmanSpec {
         def translate(actions: List[FlowAction], ethernet: Ethernet): Unit
 
         def verify(result: (Seq[FlowAction], ROSet[FlowTag]))
-
-        protected def withInputPortTagging(tags: ROSet[FlowTag]) = inPortUUID match {
-            case Some(p) =>
-                val inId = dpState.getDpPortNumberForVport(inPortUUID.get).get
-                tags + FlowTagger.tagForDpPort(inId.shortValue())
-            case None =>
-                tags
-        }
     }
 
     var nextId = 0
@@ -337,7 +328,6 @@ class FlowTranslatorTest extends MidolmanSpec {
                                                         bridge.getId),
                     FlowTagger.tagForDevice(port0.getId),
                     FlowTagger.tagForTunnelRoute(hostIp.toInt, vtepIp.toInt),
-                    FlowTagger.tagForDpPort(7),
                     FlowTagger.tagForDpPort(8)
                 )
             )
@@ -478,26 +468,20 @@ class FlowTranslatorTest extends MidolmanSpec {
     sealed class TestFlowTranslator(val dpState: DatapathState) extends FlowTranslator {
         implicit protected def system: ActorSystem = actorSystem
         implicit override protected def executor = ExecutionContext.callingThread
-        implicit protected val requestReplyTimeout: Timeout = Timeout(3 seconds)
         val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
-        val cookieStr = ""
 
         override def translateVirtualWildcardFlow(
                             pktCtx: PacketContext,
-                            flow: WildcardFlow,
-                            tags: ROSet[FlowTag]) : Urgent[(WildcardFlow, ROSet[FlowTag])] = {
+                            flow: WildcardFlow) : Urgent[WildcardFlow] = {
             if (flow.getMatch.getInputPortUUID == null)
                 fail("NULL in forwarded call")
-            super.translateVirtualWildcardFlow(pktCtx, flow, tags)
+            super.translateVirtualWildcardFlow(pktCtx, flow)
         }
 
         override def translateActions(
                             pktCtx: PacketContext,
-                            actions: Seq[FlowAction],
-                            inPortUUID: Option[UUID],
-                            dpTags: mutable.Set[FlowTag],
-                            wMatch: WildcardMatch) : Urgent[Seq[FlowAction]] =
-            super.translateActions(pktCtx, actions, inPortUUID, dpTags, wMatch)
+                            actions: Seq[FlowAction]) : Urgent[Seq[FlowAction]] =
+            super.translateActions(pktCtx, actions)
     }
 
     class TestDatapathState extends DatapathState {
@@ -533,90 +517,88 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def translateWithAndWithoutTags(name: String,
                                     testFun: TranslationContext => Unit): Unit = {
-        for (withTags <- Array(false, true)) {
-            val tags = mutable.Set[FlowTag]()
+        scenario(name) {
             var translatedActions: Seq[FlowAction] = null
+            var pktCtx: PacketContext = null
 
             val ctx = new TranslationContext() {
                 protected val dpState = new TestDatapathState
-                private val wcMatch = new WildcardMatch()
 
                 def translate(actions: List[FlowAction],
                               ethernet: Ethernet): Unit = {
-                    if (inPortUUID.isDefined)
-                        wcMatch.setInputPortUUID(inPortUUID.get)
-
                     translatedActions = null
-                    do new TestFlowTranslator(dpState).translateActions(
-                            packetContext(ethernet), actions, inPortUUID,
-                            if (withTags) tags else mutable.Set[FlowTag](),
-                            wcMatch) match {
-                        case Ready(v) =>
-                            translatedActions = v
-                        case NotYet(f) =>
-                            Await.result(f, 200 millis)
+                    do {
+                        pktCtx = packetContext(ethernet, inPortUUID)
+                        new TestFlowTranslator(dpState)
+                                .translateActions(pktCtx, actions) match {
+                            case Ready(v) =>
+                                translatedActions = v
+                            case NotYet(f) =>
+                                Await.result(f, 200 millis)
+                        }
                     } while (translatedActions == null)
                 }
 
                 def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
                     translatedActions should contain theSameElementsAs result._1
-                    if (withTags)
-                        tags should be (withInputPortTagging(result._2))
-                    else
-                        tags should be (Set.empty)
+                    pktCtx.flowTags should be (result._2)
                 }
             }
-
-            scenario(name +
-                    (if (withTags) " and proper tags are applied" else "")
-            )(testFun(ctx))
+            testFun(ctx)
         }
     }
 
     def translateWildcardFlow(name: String,
                               testFun: TranslationContext => Unit): Unit = {
-        var translation: (WildcardFlow, ROSet[FlowTag]) = null
+        var translation: WildcardFlow = null
         val ctx = new TranslationContext() {
             protected val dpState = new TestDatapathState
-            private val wcMatch = new WildcardMatch()
+            var pktCtx: PacketContext = _
 
             def translate(actions: List[FlowAction],
                           ethernet: Ethernet): Unit = {
-                val port = inPortUUID.getOrElse(null) match {
-                    case null =>
+                inPortUUID match {
+                    case None =>
                         inPortUUID = Some(UUID.randomUUID())
                         local (inPortUUID.get -> 99)
-                        inPortUUID.get
-                    case p => p
+                    case _ =>
                 }
 
-                val tags = new mutable.HashSet[FlowTag]
-                do new TestFlowTranslator(dpState).translateVirtualWildcardFlow(
-                    packetContext(ethernet),
-                    WildcardFlow(wcMatch.setInputPortUUID(port), actions), tags) match {
+                do {
+                    pktCtx = packetContext(ethernet, inPortUUID)
+                    val wildFlow = WildcardFlow(pktCtx.wcmatch, actions)
+                    new TestFlowTranslator(dpState)
+                            .translateVirtualWildcardFlow(pktCtx, wildFlow) match {
                         case Ready(v) =>
                             translation = v
                         case NotYet(f) =>
                             Await.result(f, 200 millis)
-                            tags.clear()
+                    }
                 } while (translation == null)
             }
 
             def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
-                translation._1.actions should contain theSameElementsAs result._1
-                translation._2 should be (withInputPortTagging(result._2))
+                translation.actions should contain theSameElementsAs result._1
+                pktCtx.flowTags should be (result._2)
             }
         }
 
         scenario(name + " via WildcardFlow")(testFun(ctx))
     }
 
-    def packetContext(ethernet: Ethernet) = {
+    def packetContext(ethernet: Ethernet, inputPortId: Option[UUID],
+                      tags: mutable.Set[FlowTag] = mutable.Set[FlowTag]()) = {
         val wcmatch = if (ethernet eq null)
                         new WildcardMatch()
                       else
                         WildcardMatch.fromEthernetPacket(ethernet)
-        new PacketContext(Left(0), new Packet(ethernet), 0,
-                          null, null, null, None, wcmatch)
+
+        val pktCtx = new PacketContext(Left(0), new Packet(ethernet), 0, null,
+                                       null, null, None, wcmatch)
+
+        if (inputPortId.isDefined)
+            pktCtx.inputPort = inputPortId.get
+
+        pktCtx
     }
 }

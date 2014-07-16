@@ -19,7 +19,7 @@ import akka.actor._
 import akka.pattern.{after, pipe}
 import akka.event.LoggingAdapter
 import akka.event.LoggingReceive
-import akka.util.Timeout
+
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
@@ -35,24 +35,23 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.monitoring.MonitoringActor
+import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
     ZoneMembers, HostRequest, TunnelZoneRequest}
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
-import FlowTagger.FlowTag
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
+import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.ports._
-import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
-import org.midonet.sdn.flows.WildcardFlow
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.Bimap
 import org.midonet.util.functors.Callback0
-import org.midonet.midolman.simulation.PacketContext
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
@@ -259,21 +258,17 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController extends Actor with ActorLogging with FlowTranslator {
+class DatapathController extends Actor with ActorLogging {
 
     import DatapathController._
     import DatapathController.Internal._
     import FlowController.AddWildcardFlow
-    import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualPortManager.Controller
     import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
+    import context.system
 
     implicit val logger: LoggingAdapter = log
-
-    override implicit val requestReplyTimeout: Timeout = new Timeout(1 second)
-    override val cookieStr: String = ""
-
-    override protected implicit val system = context.system
+    implicit protected def executor = context.dispatcher
 
     @Inject
     val dpConnPool: DatapathConnectionPool = null
@@ -433,7 +428,8 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 log.warning("Unhandled message {}", m)
         })
 
-        Seq[ActorRef](FlowController, PacketsEntryPoint, initializer) foreach {
+        Seq[ActorRef](FlowController, PacketsEntryPoint, RoutingManagerActor,
+                      initializer) foreach {
             _ ! DatapathReady(datapath, dpState)
         }
 
@@ -500,24 +496,6 @@ class DatapathController extends Actor with ActorLogging with FlowTranslator {
                 portWatcher.unsubscribe()
             }
             self ! Initialize
-
-        case msg@AddVirtualWildcardFlow(flow, tags) =>
-            log.debug("Translating and installing wildcard flow: {}", flow)
-            val pktCtx = new PacketContext(Left(1), null, 0, null, null, null,
-                                           None, flow.getMatch)
-            translateVirtualWildcardFlow(pktCtx, flow, tags) match {
-                case Ready((finalFlow, finalTags)) =>
-                    log.debug("flow translated, installing: {}", finalFlow)
-                    FlowController ! AddWildcardFlow(finalFlow, null,
-                                                     new ArrayList[Callback0],
-                                                     finalTags)
-                case NotYet(f) => f onComplete {
-                    case Success(_) =>
-                        self ! msg
-                    case Failure(ex) =>
-                        log.error(ex, "AddVirtualWildcardFlow failed to complete")
-                }
-            }
 
         case h: Host =>
             this.nextHost = h

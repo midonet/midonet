@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright (c) 2011 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.midolman.rules;
@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.slf4j.Logger;
@@ -37,7 +38,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(ChainPacketContext fwdInfo, RuleResult res,
+    public void apply(PacketContext pktCtx, RuleResult res,
                       NatMapping natMapping) {
 
         if (!isNatSupported(res.pmatch))

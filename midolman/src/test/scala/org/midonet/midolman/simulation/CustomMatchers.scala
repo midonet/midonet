@@ -16,37 +16,39 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait CustomMatchers {
 
-    def dropped(expectedTags: FlowTag*) = new BePropertyMatcher[SimulationResult] {
-        def apply(simRes: SimulationResult) =
-            BePropertyMatchResult(simRes match {
-                case drop: DropSimulationResult =>
-                    expectedTags forall drop.tags.contains
-                case _ =>
-                    false
-            }, s"a drop flow containing tags {${expectedTags.toList}")
+    def dropped(expectedTags: FlowTag*) =
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult(simRes._1 match {
+                    case x if x == Drop || x == TemporaryDrop =>
+                        expectedTags forall simRes._2.flowTags.contains
+                    case _ =>
+                        false
+                }, s"a drop flow containing tags {${expectedTags.toList}")
     }
 
-    def toPort(portId: UUID)(expectedTags: FlowTag*) = new BePropertyMatcher[SimulationResult] {
-        def apply(simRes: SimulationResult) =
-            BePropertyMatchResult((simRes match {
-                case AddVirtualWildcardFlow(flow, tags) =>
-                    if (expectedTags forall tags.contains)
-                        flow.actions
-                    else Nil
-                case SendPacket(actions) => actions
-                case _ => Nil
-            }).exists({
-                case FlowActionOutputToVrnPort(id) => id == portId
-                case _ => false
-            }), s"a port action to $portId")
+    def toPort(portId: UUID)(expectedTags: FlowTag*) =
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult((simRes._1 match {
+                    case AddVirtualWildcardFlow(flow) =>
+                        if (expectedTags forall simRes._2.flowTags.contains)
+                            flow.actions
+                        else Nil
+                    case SendPacket(actions) => actions
+                    case _ => Nil
+                }).exists({
+                    case FlowActionOutputToVrnPort(id) => id == portId
+                    case _ => false
+                }), s"a port action to $portId")
     }
 
     def toPortSet(portSetId: UUID, expectedTags: FlowTag*) =
-        new BePropertyMatcher[SimulationResult] {
-            def apply(simRes: SimulationResult) =
-                BePropertyMatchResult((simRes match {
-                        case AddVirtualWildcardFlow(flow, tags) =>
-                            if (expectedTags forall tags.contains)
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult((simRes._1 match {
+                        case AddVirtualWildcardFlow(flow) =>
+                            if (expectedTags forall simRes._2.flowTags.contains)
                                 flow.actions
                             else Nil
                         case SendPacket(actions) => actions
@@ -59,12 +61,12 @@ trait CustomMatchers {
     }
 
     def flowMatching(pkt: Ethernet, expectedTags: FlowTag*) =
-        new BePropertyMatcher[SimulationResult] {
-            def apply(simRes: SimulationResult) =
-                BePropertyMatchResult(simRes match {
-                    case AddVirtualWildcardFlow(flow, tags) =>
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult(simRes._1 match {
+                    case AddVirtualWildcardFlow(flow) =>
                         flowMatchesPacket(flow, pkt) &&
-                        (expectedTags forall tags.contains)
+                        (expectedTags forall simRes._2.flowTags.contains)
                     case _ =>
                         false
                 } , s"a flow matching $pkt containing tags " +

@@ -1,13 +1,8 @@
 package org.midonet.midolman.logging
 
 import akka.event._
-import akka.event.Logging.{Debug, Info, Warning, Error}
-import scala.Error
+
 import org.midonet.midolman.simulation.PacketContext
-import akka.event.Logging.Info
-import akka.event.Logging.Warning
-import akka.event.Logging.Debug
-import org.midonet.midolman.rules.ChainPacketContext
 
 object LoggerFactory {
 
@@ -25,7 +20,7 @@ class SimulationAwareBusLogging(val bus: LoggingBus, val logClass: Class[_]) {
 
     import Logging._
 
-    def formatSimCookie(implicit context: ChainPacketContext): String = {
+    def formatSimCookie(implicit context: PacketContext): String = {
         if (context != null) {
             (if (context.flowCookie != None) "[cookie:" else "[genPkt:") +
             context.flowCookie.getOrElse(context.parentCookie.getOrElse("No Cookie")) +
@@ -50,41 +45,41 @@ class SimulationAwareBusLogging(val bus: LoggingBus, val logClass: Class[_]) {
 
     protected def notifyDebug(message: String, source: String) { bus.publish(Debug(source, logClass, message)) }
 
-    def error(cause: Throwable, message: String)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(cause, message,formatSimCookie) }
-    def error(cause: Throwable, template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(cause, format1(template, arg1),formatSimCookie) }
-    def error(cause: Throwable, template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2),formatSimCookie) }
-    def error(cause: Throwable, template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2, arg3),formatSimCookie) }
-    def error(cause: Throwable, template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def error(cause: Throwable, message: String)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(cause, message,formatSimCookie) }
+    def error(cause: Throwable, template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(cause, format1(template, arg1),formatSimCookie) }
+    def error(cause: Throwable, template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2),formatSimCookie) }
+    def error(cause: Throwable, template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2, arg3),formatSimCookie) }
+    def error(cause: Throwable, template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(cause, format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
-    def error(message: String)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(message,formatSimCookie) }
-    def error(template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(format1(template, arg1), formatSimCookie) }
-    def error(template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2),formatSimCookie) }
-    def error(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2, arg3),formatSimCookie) }
-    def error(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def error(message: String)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(message,formatSimCookie) }
+    def error(template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(format1(template, arg1), formatSimCookie) }
+    def error(template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2),formatSimCookie) }
+    def error(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2, arg3),formatSimCookie) }
+    def error(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isErrorEnabled) notifyError(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
-    def warning(message: String)(implicit pktContext: ChainPacketContext) { if (isWarningEnabled) notifyWarning(message,formatSimCookie) }
-    def warning(template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isWarningEnabled) notifyWarning(format1(template, arg1),formatSimCookie) }
-    def warning(template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2),formatSimCookie) }
-    def warning(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2, arg3),formatSimCookie) }
-    def warning(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def warning(message: String)(implicit pktContext: PacketContext) { if (isWarningEnabled) notifyWarning(message,formatSimCookie) }
+    def warning(template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isWarningEnabled) notifyWarning(format1(template, arg1),formatSimCookie) }
+    def warning(template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2),formatSimCookie) }
+    def warning(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2, arg3),formatSimCookie) }
+    def warning(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isWarningEnabled) notifyWarning(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
-    def info(message: String)(implicit pktContext: ChainPacketContext) { if (isInfoEnabled) notifyInfo(message,formatSimCookie) }
-    def info(template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isInfoEnabled) notifyInfo(format1(template, arg1),formatSimCookie) }
-    def info(template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2),formatSimCookie) }
-    def info(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2, arg3),formatSimCookie) }
-    def info(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def info(message: String)(implicit pktContext: PacketContext) { if (isInfoEnabled) notifyInfo(message,formatSimCookie) }
+    def info(template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isInfoEnabled) notifyInfo(format1(template, arg1),formatSimCookie) }
+    def info(template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2),formatSimCookie) }
+    def info(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2, arg3),formatSimCookie) }
+    def info(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isInfoEnabled) notifyInfo(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
-    def debug(message: String)(implicit pktContext: ChainPacketContext) { if (isDebugEnabled) notifyDebug(message,formatSimCookie) }
-    def debug(template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isDebugEnabled) notifyDebug(format1(template, arg1),formatSimCookie) }
-    def debug(template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2),formatSimCookie) }
-    def debug(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2, arg3),formatSimCookie) }
-    def debug(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def debug(message: String)(implicit pktContext: PacketContext) { if (isDebugEnabled) notifyDebug(message,formatSimCookie) }
+    def debug(template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isDebugEnabled) notifyDebug(format1(template, arg1),formatSimCookie) }
+    def debug(template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2),formatSimCookie) }
+    def debug(template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2, arg3),formatSimCookie) }
+    def debug(template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isDebugEnabled) notifyDebug(format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
-    def log(level: Logging.LogLevel, message: String)(implicit pktContext: ChainPacketContext) { if (isEnabled(level)) notifyLog(level, message,formatSimCookie) }
-    def log(level: Logging.LogLevel, template: String, arg1: Any)(implicit pktContext: ChainPacketContext) { if (isEnabled(level)) notifyLog(level, format1(template, arg1),formatSimCookie) }
-    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any)(implicit pktContext: ChainPacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2),formatSimCookie) }
-    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: ChainPacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2, arg3),formatSimCookie) }
-    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: ChainPacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
+    def log(level: Logging.LogLevel, message: String)(implicit pktContext: PacketContext) { if (isEnabled(level)) notifyLog(level, message,formatSimCookie) }
+    def log(level: Logging.LogLevel, template: String, arg1: Any)(implicit pktContext: PacketContext) { if (isEnabled(level)) notifyLog(level, format1(template, arg1),formatSimCookie) }
+    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any)(implicit pktContext: PacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2),formatSimCookie) }
+    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any, arg3: Any)(implicit pktContext: PacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2, arg3),formatSimCookie) }
+    def log(level: Logging.LogLevel, template: String, arg1: Any, arg2: Any, arg3: Any, arg4: Any)(implicit pktContext: PacketContext) { if (isEnabled(level)) notifyLog(level, format(template, arg1, arg2, arg3, arg4),formatSimCookie) }
 
     final def isEnabled(level: Logging.LogLevel): Boolean = level match {
         case Logging.ErrorLevel   ⇒ isErrorEnabled

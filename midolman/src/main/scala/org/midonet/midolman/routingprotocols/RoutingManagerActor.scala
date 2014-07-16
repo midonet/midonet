@@ -3,15 +3,18 @@
  */
 package org.midonet.midolman.routingprotocols
 
-import collection.mutable
-import akka.actor._
-import com.google.inject.Inject
 import java.util.UUID
+import scala.collection.mutable
+
+import akka.actor._
+
+import com.google.inject.Inject
 
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, RouterPort}
-import org.midonet.midolman.Referenceable
+import org.midonet.midolman.{DatapathState, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -52,6 +55,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     private val activePorts = mutable.Set[UUID]()
     private val portHandlers = mutable.Map[UUID, ActorRef]()
 
+    var dpState: DatapathState = null
+
     private case class LocalPortActive(portID: UUID, active: Boolean)
 
     val localPortsCB = new Callback2[UUID, java.lang.Boolean]() {
@@ -74,6 +79,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     }
 
     override def receive = {
+        case DatapathReady(_, state) =>
+            dpState = state
         case LocalPortActive(portID, true) =>
             log.debug("RoutingManager - LocalPortActive(true)" + portID)
             if (!activePorts.contains(portID)) {
@@ -132,7 +139,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, client,
+                        Props(new RoutingHandler(port, bgpPortIdx, dpState, client,
                                 dataClient, config, zkConnWatcher, zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
