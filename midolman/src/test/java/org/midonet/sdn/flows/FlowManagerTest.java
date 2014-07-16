@@ -121,6 +121,35 @@ public class FlowManagerTest {
     }
 
     @Test
+    public void testRemoveAddRace() {
+        FlowMatch flowMatch =
+                new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+        WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
+        WildcardFlow wildcardFlow =
+                WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
+        Flow flow = new Flow(flowMatch, actionsAsJava(wildcardFlow));
+        ManagedWildcardFlow wflow = ManagedWildcardFlow.create(wildcardFlow);
+
+        flowManager.add(wflow);
+        flowManager.add(flow, wflow);
+
+        assertThat("DpFlowTable was not updated",
+                flowManager.getDpFlowTable().size(),
+                equalTo(1));
+
+        flowManager.remove(wflow);
+
+        ManagedWildcardFlow wflow2 = ManagedWildcardFlow.create(wildcardFlow);
+        Flow flow2 = new Flow(flowMatch, actionsAsJava(wflow2));
+        flowManager.add(wflow2);
+        flowManager.add(flow2, wflow2);
+
+        assertThat("DpFlowTable couldn't handle racy flow add/remove ops",
+                flowManager.getDpFlowTable().size(),
+                equalTo(1));
+    }
+
+    @Test
     public void testIdleExpiration() throws InterruptedException {
         FlowMatch flowMatch =
             new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
@@ -326,24 +355,27 @@ public class FlowManagerTest {
         int maxAcceptedDpFlows = (int) (maxDpFlowSize - dpFlowRemoveBatchSize);
         // fill the table with a number of flow > maxAcceptedDpFlows
         FlowMatch firstFlowMatch = null;
-        ManagedWildcardFlow firstWcFlow = null;
+
+        FlowMatch baseDpMatch =
+                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200));
+        WildcardMatch wcMatch =
+                WildcardMatch.fromFlowMatch(baseDpMatch);
+        WildcardFlow wcFlow =
+                WildcardFlowFactory.create(wcMatch);
+        ManagedWildcardFlow managedFlow = ManagedWildcardFlow.create(wcFlow);
+        flowManager.add(managedFlow);
+
         for (int i=0; i<=maxAcceptedDpFlows; i++) {
             FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(i+1, 100, 200));
-            WildcardMatch wildcardMatch =
-                WildcardMatch.fromFlowMatch(flowMatch);
-            // no time out set
-            WildcardFlow wildcardFlow =
-                WildcardFlowFactory.create(wildcardMatch);
-            Flow flow = new Flow(flowMatch, actionsAsJava(wildcardFlow));
-            ManagedWildcardFlow managedFlow = ManagedWildcardFlow.create(wildcardFlow);
-            flowManager.add(managedFlow);
+                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200));
+            flowMatch.addKey(FlowKeys.etherType((short)(23+i)));
+
+            Flow flow = new Flow(flowMatch, actionsAsJava(wcFlow));
             flowManager.add(flow, managedFlow);
             flowManagerHelper.addFlow(flow);
 
             if (i == 0) {
                 firstFlowMatch = flowMatch;
-                firstWcFlow = managedFlow;
             }
         }
 
@@ -356,9 +388,6 @@ public class FlowManagerTest {
         assertThat("First flow was not deleted",
                    flowManagerHelper.flowsMap.get(firstFlowMatch),
                    nullValue());
-
-        assertThat("Flow was not deleted from ManagedWildcardFlow",
-                   !firstWcFlow.dpFlows().contains(firstFlowMatch));
     }
 
     @Test
@@ -442,7 +471,6 @@ public class FlowManagerTest {
 
         private void doRemoveFlow(Flow flow) {
             flowsMap.remove(flow.getMatch());
-            flowManager.removeFlowCompleted(flow.getMatch());
         }
 
         @Override
