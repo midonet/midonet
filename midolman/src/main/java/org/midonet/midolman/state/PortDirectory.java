@@ -247,6 +247,8 @@ public class PortDirectory {
         public String mgmtIpAddr;
         public int mgmtPort;
         public int vni;
+        public String tunIpAddr;
+        public UUID tunnelZoneId;
 
         public String getMgmtIpAddr() {
             return mgmtIpAddr;
@@ -272,6 +274,22 @@ public class PortDirectory {
             this.vni = vni;
         }
 
+        public String getTunIpAddr() {
+            return tunIpAddr;
+        }
+
+        public void setTunIpAddr(String tunIpAddr) {
+            this.tunIpAddr = tunIpAddr;
+        }
+
+        public UUID getTunnelZoneId() {
+            return tunnelZoneId;
+        }
+
+        public void setTunnelZoneId(UUID tunnelZoneId) {
+            this.tunnelZoneId = tunnelZoneId;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -282,6 +300,8 @@ public class PortDirectory {
 
             return mgmtPort == that.mgmtPort &&
                    vni == that.vni &&
+                   Objects.equals(tunIpAddr , that.tunIpAddr) &&
+                   Objects.equals(tunnelZoneId , that.tunnelZoneId) &&
                    Objects.equals(mgmtIpAddr, that.mgmtIpAddr);
         }
 
@@ -293,7 +313,9 @@ public class PortDirectory {
         @Override
         public String toString() {
             return "VxLanPortConfig{mgmtIpAddr=" + mgmtIpAddr +
-                    ", mgmtPort=" + mgmtPort + ", vni=" + vni +"}";
+                    ", mgmtPort=" + mgmtPort + ", vni=" + vni +
+                    ", tunnelIp=" + tunIpAddr + ", tunnelZoneId=" +
+                    tunnelZoneId + "}";
         }
     }
 }

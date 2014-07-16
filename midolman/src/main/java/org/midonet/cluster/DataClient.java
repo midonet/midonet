@@ -59,6 +59,7 @@ import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -1025,7 +1026,8 @@ public interface DataClient {
     public int getNewVni() throws StateAccessException;
 
     public VxLanPort bridgeCreateVxLanPort(
-            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
+            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,
+            IPv4Addr tunnelIp, UUID tunnelZoneId)
             throws StateAccessException, SerializationException;
 
     /**

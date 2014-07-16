@@ -3,11 +3,11 @@
  */
 package org.midonet.cluster.data.ports;
 
-import org.midonet.cluster.data.Port;
-import org.midonet.packets.IPv4Addr;
-
 import java.util.Objects;
 import java.util.UUID;
+
+import org.midonet.cluster.data.Port;
+import org.midonet.packets.IPv4Addr;
 
 public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
 
@@ -15,12 +15,14 @@ public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
         super(new Data());
     }
 
-    public VxLanPort(UUID bridgeId, IPv4Addr mgmtIpAddr,
-                     int mgmtPort, int vni) {
+    public VxLanPort(UUID bridgeId, IPv4Addr mgmtIpAddr, int mgmtPort, int vni,
+                     IPv4Addr tunnelIp, UUID tunnelZoneId) {
         super(UUID.randomUUID(), new Data());
         setDeviceId(bridgeId);
         setMgmtIpAddr(mgmtIpAddr);
         setMgmtPort(mgmtPort);
+        setTunnelIp(tunnelIp);
+        setTunnelZoneId(tunnelZoneId);
         setVni(vni);
     }
 
@@ -56,10 +58,24 @@ public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
         return self();
     }
 
+    public IPv4Addr getTunnelIp() { return getData().tunnelIp; }
+    public VxLanPort setTunnelIp(IPv4Addr tunnelIp) {
+        getData().tunnelIp = tunnelIp;
+        return self();
+    }
+
+    public UUID getTunnelZoneId() { return getData().tunnelZoneId; }
+    public VxLanPort setTunnelZoneId(UUID tunnelZoneId) {
+        getData().tunnelZoneId = tunnelZoneId;
+        return self();
+    }
+
     public static class Data extends Port.Data {
         public IPv4Addr mgmtIpAddr;
         public int mgmtPort;
+        public IPv4Addr tunnelIp;
         public int vni;
+        public UUID tunnelZoneId;
 
         @Override
         public boolean equals(Object o) {
@@ -70,9 +86,12 @@ public class VxLanPort extends Port<VxLanPort.Data, VxLanPort> {
             Data data = (Data) o;
             return mgmtPort == data.mgmtPort &&
                    vni != data.vni &&
-                   Objects.equals(mgmtIpAddr, data.mgmtIpAddr);
+                   Objects.equals(mgmtIpAddr, data.mgmtIpAddr) &&
+                   Objects.equals(tunnelIp, data.tunnelIp) &&
+                   Objects.equals(tunnelZoneId, data.tunnelZoneId);
         }
 
+        // FIXME: is vni enough as hash code??
         @Override
         public int hashCode() {
             return vni;
