@@ -113,7 +113,8 @@ public class MidoVxLanPeerTest {
         UUID bridgeId = dataClient.bridgesCreate(bridge);
         // Fake a binding
         dataClient.bridgeCreateVxLanPort(bridgeId, tunnelZoneVtepIP,
-                                         vtepMgmtPort, bridgePortVNI);
+                                         vtepMgmtPort, bridgePortVNI,
+                                         tunnelZoneVtepIP, UUID.randomUUID());
         return bridgeId;
     }
 
@@ -399,7 +400,9 @@ public class MidoVxLanPeerTest {
         // removed.
         MidoVxLanPeer altPeer = new MidoVxLanPeer(this.dataClient);
         dataClient.bridgeCreateVxLanPort(bridgeId, tunnelZoneVtepIPAlt,
-                                         vtepMgmtPortAlt, bridgePortVNIAlt);
+                                         vtepMgmtPortAlt, bridgePortVNIAlt,
+                                         tunnelZoneVtepIPAlt,
+                                         UUID.randomUUID());
         assertTrue(altPeer.watch(bridgeId));
 
         // extract the observable

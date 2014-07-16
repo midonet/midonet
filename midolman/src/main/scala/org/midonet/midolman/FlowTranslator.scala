@@ -221,11 +221,19 @@ trait FlowTranslator {
     }
 
     /** Update the list of action and list of tags with the output tunnelling
-     *  action for the given vtep addr and vni key. */
-    private def outputActionsToVtep(vni: Int, vtepIp: Int,
+     *  action for the given vtep tunnel addr and vni key. The tzId is the
+     *  id of the tunnel zone specified by this VTEP's config which allows
+     *  us to determine which of the host's IP we should use */
+    private def outputActionsToVtep(vni: Int, vtepIp: Int, tzId: UUID,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[Any]) {
-        val localIp =  dpState.host.zones.values.head.getIp.addressAsInt()
+        val tzMembership = dpState.host.zones.get(tzId)
+        if (tzMembership eq None) {
+            log.warning("Can't output to VTEP with tunnel IP: {}, host not in "
+                        + "VTEP's tunnel zone: {}", vtepIp, tzId)
+            return
+        }
+        val localIp =  tzMembership.get.getIp.addressAsInt()
         if (dpTags != null)
             dpTags += FlowTagger.invalidateTunnelRoute(localIp, vtepIp)
         actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
@@ -277,8 +285,8 @@ trait FlowTranslator {
                 val vxlanPortId = br.vxlanPortId.get
                 expiringAsk[Port](vxlanPortId, log) map {
                     case p: VxLanPort =>
-                        outputActionsToVtep(p.vni, p.vtepAddr.addr,
-                                            actions, dpTags)
+                        outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
+                                            p.tunnelZoneId, actions, dpTags)
                         actions
                     case _ =>
                         log.warning("could not find VxLanPort {} " +
@@ -348,7 +356,8 @@ trait FlowTranslator {
             // therefore it needs to be matched first.
             expiringAsk[Port](port, log) map {
                 case p: VxLanPort =>
-                    towardsVtepPeer(p.vni, p.vtepAddr, dpTags)
+                    towardsVtepPeer(p.vni, p.vtepTunAddr,
+                                    p.tunnelZoneId, dpTags)
                 case p: Port if p.isExterior =>
                     towardsRemoteHost(p.tunnelKey, p.hostID, dpTags)
                 case _ =>
@@ -381,11 +390,11 @@ trait FlowTranslator {
 
     /** Emits a list of output FlowActions for tunnelling traffic to a remote
      *  vtep gateway given its ip address and a vni key. */
-    private def towardsVtepPeer(vni: Int, vtepIp: IPv4Addr,
+    private def towardsVtepPeer(vni: Int, vtepTunIp: IPv4Addr, tzId: UUID,
                                 dpTags: mutable.Set[Any]): Seq[FlowAction] = {
-        log.debug("Emitting towards vtep at {} with vni {}", vtepIp, vni)
+        log.debug("Emitting towards vtep at {} with vni {}", vtepTunIp, vni)
         val actions = ListBuffer[FlowAction]()
-        outputActionsToVtep(vni, vtepIp.addr, actions, dpTags)
+        outputActionsToVtep(vni, vtepTunIp.addr, tzId, actions, dpTags)
         actions
     }
 }

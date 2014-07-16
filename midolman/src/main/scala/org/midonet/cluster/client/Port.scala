@@ -103,11 +103,15 @@ sealed trait Port {
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the
  *  24 bits VxLan Network Identifier (vni key) of the logical switch this
- *  port belongs to as well as the underlay ip address of the vtep gateway.
+ *  port belongs to as well as the underlay ip address of the vtep gateway, its
+ *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
+ *  to this VTEP should belong to determine their own endpoint IP.
  *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
  *  of the vni int field. */
 abstract class VxLanPort extends Port {
-    def vtepAddr: IPv4Addr
+    def vtepAddr: IPv4Addr // management ip
+    def vtepTunAddr: IPv4Addr // tunnel end point
+    def tunnelZoneId: UUID
     def vni: Int
     override def isExterior = true
     override def isInterior = false

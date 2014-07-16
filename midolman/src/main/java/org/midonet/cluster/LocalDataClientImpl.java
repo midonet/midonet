@@ -3497,7 +3497,8 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public VxLanPort bridgeCreateVxLanPort(
-            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni)
+            UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,
+            IPv4Addr tunnelIp, UUID tunnelZoneId)
             throws StateAccessException, SerializationException {
 
         BridgeConfig bridgeConfig = bridgeZkManager.get(bridgeId);
@@ -3507,7 +3508,8 @@ public class LocalDataClientImpl implements DataClient {
                     ", which already has one: " + bridgeConfig.vxLanPortId);
         }
 
-        VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni);
+        VxLanPort port = new VxLanPort(bridgeId, mgmtIp, mgmtPort, vni,
+                                       tunnelIp, tunnelZoneId);
         PortConfig portConfig = Converter.toPortConfig(port);
 
         List<Op> ops = new ArrayList<>();

@@ -1343,10 +1343,14 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
      */
     def addPeer(peer: UUID, zone: UUID,
                 srcIp: Int, dstIp: Int, t: TunnelType): Seq[Any] = versionUp {
+        if (t == TunnelType.vtep)
+            return Seq.empty[Any]
+
         val outputAction = t match {
             case TunnelType.gre => greOverlayTunnellingOutputAction
             case TunnelType.vxlan => vxlanOverlayTunnellingOutputAction
         }
+
         val newRoute = Route(srcIp, dstIp, outputAction)
         log.info("new tunnel route {} to peer {}", newRoute, peer)
 

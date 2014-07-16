@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 public class TunnelZone extends Entity.Base<UUID, TunnelZone.Data, TunnelZone> {
 
     public static enum Type {
-        gre, vxlan
+        gre, vxlan, vtep
     }
 
     public Type getType() {

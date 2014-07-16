@@ -309,6 +309,8 @@ public class Converter {
             typedConfig.setMgmtIpAddr(typedPort.getMgmtIpAddr().toString());
             typedConfig.setMgmtPort(typedPort.getMgmtPort());
             typedConfig.setVni(typedPort.getVni());
+            typedConfig.setTunIpAddr(typedPort.getTunnelIp().toString());
+            typedConfig.setTunnelZoneId(typedPort.getTunnelZoneId());
             portConfig = typedConfig;
         }
 
@@ -377,10 +379,15 @@ public class Converter {
             IPv4Addr mgmtIpAddr = IPv4Addr$.MODULE$.fromString(
                     vxLanPortConfig.getMgmtIpAddr());
 
+            IPv4Addr tunnelIPAddr = IPv4Addr$.MODULE$.fromString(
+                    vxLanPortConfig.getTunIpAddr());
+
             port = new VxLanPort()
                     .setMgmtIpAddr(mgmtIpAddr)
                     .setMgmtPort(vxLanPortConfig.getMgmtPort())
-                    .setVni(vxLanPortConfig.getVni());
+                    .setVni(vxLanPortConfig.getVni())
+                    .setTunnelIp(tunnelIPAddr)
+                    .setTunnelZoneId(vxLanPortConfig.getTunnelZoneId());
         }
 
         if (port == null)

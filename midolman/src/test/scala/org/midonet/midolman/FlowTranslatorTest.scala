@@ -102,11 +102,13 @@ class FlowTranslatorTest extends MidolmanSpec {
         port
     }
 
-    def makeVxLanPort(host: UUID, bridge: Bridge, vni: Int, vtepIp: IPv4Addr)
+    def makeVxLanPort(host: UUID, bridge: Bridge, vni: Int, vtepIp: IPv4Addr,
+                      vtepTunIp: IPv4Addr, tzId: UUID)
                      (f: VxLanPort => VxLanPort): VxLanPort = {
 
         val port = clusterDataClient().bridgeCreateVxLanPort(bridge.getId,
-                                                             vtepIp, 4789, vni)
+                                                             vtepIp, 4789, vni,
+                                                             vtepTunIp, tzId)
         fetchTopology(port, bridge)
         port
     }
@@ -180,12 +182,15 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     feature("FlowActionOutputToVrnPortSet is translated") {
         translationScenario("The port set has local ports, from VTEP") { ctx =>
-            val vtepIp = IPv4Addr("102.32.2.1")
+            val vtepIp = IPv4Addr("192.167.34.1")
+            val vtepTunIp = IPv4Addr("102.32.2.1")
             val hostIp = IPv4Addr("102.32.2.2")
             val vni = 394
+            val tzId = UUID.randomUUID()
             val bridge = newBridge("portSetBridge")
 
-            val inPort = makeVxLanPort(hostId(), bridge, vni, vtepIp)(identity)
+            val inPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
+                                       vtepTunIp, tzId)(identity)
             val port0 = makePort(hostId(), bridge)(identity) // code assumes
             val port1 = makePort(hostId(), bridge)(identity) // them exterior
             val chain1 = accept(port1)
@@ -289,15 +294,19 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         translationScenario("The port set has a vxlan port") { ctx =>
 
-            val hostIp = IPv4Addr("10.0.2.1")
-            val vtepIp = IPv4Addr("10.0.2.2")
+            val hostIp = IPv4Addr("172.167.3.3")
+            val hostTunIp = IPv4Addr("10.0.2.1")
+            val vtepTunIp = IPv4Addr("10.0.2.2")
+            val vtepIp = IPv4Addr("192.168.20.2")
             val vni = 11
+            val tzId = UUID.randomUUID()
 
             val host = clusterDataClient().hostsGet(hostId())
             var bridge = newBridge("portSetBridge")
             val inPort = makePort(hostId(), bridge)(identity)
             val port0 = makePort(hostId(), bridge)(identity)
-            val vxlanPort = makeVxLanPort(hostId(), bridge, vni, vtepIp)(identity)
+            val vxlanPort = makeVxLanPort(hostId(), bridge, vni, vtepIp,
+                                          vtepTunIp, tzId)(identity)
 
             // refetch bridge, it was updated with the vxlan port
             bridge = clusterDataClient().bridgesGet(bridge.getId)
@@ -306,8 +315,12 @@ class FlowTranslatorTest extends MidolmanSpec {
             val rcuHost: Host = new Host(
                 hostId(), "midonet",
                 Map(inPort.getId -> "in", port0.getId -> "port0"),
-                Map(UUID.randomUUID() -> new TunnelZone.HostConfig()
-                                             .setIp(hostIp.toIntIPv4))
+                Map(
+                    UUID.randomUUID() -> new TunnelZone.HostConfig()
+                                             .setIp(hostIp.toIntIPv4),
+                    tzId -> new TunnelZone.HostConfig()
+                            .setIp(hostTunIp.toIntIPv4)
+                )
             )
 
             ctx input inPort.getId
@@ -322,15 +335,16 @@ class FlowTranslatorTest extends MidolmanSpec {
                 List(
                     output(8),
                     setKey(
-                        FlowKeys.tunnel(vni.toLong, hostIp.toInt,
-                                        vtepIp.toInt)
+                        FlowKeys.tunnel(vni.toLong, hostTunIp.toInt,
+                                        vtepTunIp.toInt)
                     ),
                     output(666)
                 ),
                 Set(FlowTagger.invalidateBroadcastFlows(bridge.getId,
                                                         bridge.getId),
                     FlowTagger.invalidateFlowsByDevice(port0.getId),
-                    FlowTagger.invalidateTunnelRoute(hostIp.toInt, vtepIp.toInt),
+                    FlowTagger.invalidateTunnelRoute(hostTunIp.toInt,
+                                                     vtepTunIp.toInt),
                     FlowTagger.invalidateDPPort(7),
                     FlowTagger.invalidateDPPort(8)
                 )
