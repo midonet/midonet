@@ -312,6 +312,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 if (dpFlow != null) {
                     flowManagerHelper.removeFlow(dpFlow)
                     runCallbacks(callbacks)
+                    metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             }
 
@@ -396,6 +397,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
             wildFlow.unref() // FlowController's ref
         }
+        metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 
     private def handleFlowAddedForExistingWildcard(dpFlow: Flow,
