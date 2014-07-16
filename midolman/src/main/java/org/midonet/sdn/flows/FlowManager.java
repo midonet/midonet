@@ -113,8 +113,8 @@ public class FlowManager {
      * by a callback of the DpConnection, that notifies the deletion or the
      * addiction of a flow.
      */
-    private LinkedHashMap<FlowMatch, FlowMetadata> dpFlowTable =
-            new LinkedHashMap<FlowMatch, FlowMetadata>();
+    private LinkedHashMap<FlowMatch, Flow> dpFlowTable =
+            new LinkedHashMap<FlowMatch, Flow>();
 
     //TODO(ross) size for the priority queue?
     final int priorityQueueSize = 10000;
@@ -238,8 +238,7 @@ public class FlowManager {
         }
 
         wildFlow.dpFlows().add(flow.getMatch());
-        FlowMetadata metadata = new FlowMetadata(flow.getActions(), wildFlow);
-        dpFlowTable.put(flow.getMatch(), metadata);
+        dpFlowTable.put(flow.getMatch(), flow);
 
         log.debug("Added flow with match {} that matches wildcard flow {}",
                   flow.getMatch(), wildFlow);
@@ -268,22 +267,20 @@ public class FlowManager {
     public boolean remove(ManagedWildcardFlow wildFlow) {
         log.debug("remove(WildcardFlow wildFlow) - Removing flow {}", wildFlow.getMatch());
 
-        Set<FlowMatch> removedDpFlows = wildFlow.dpFlows();
-        int dpFlows = 0;
-        if (removedDpFlows != null) {
-            /* The FlowMaches will be removed from wildFlow.dpFlows() by the
-             * conclusion of the DP flow removal. We know said conclusion will
-             * be executed serially wrt this method, after a round-trip to the
-             * kernel, so we avoid making a defensive copy of wildFlow.dpFlows
-             * as no ConcurrentModificationException will be thrown.
-             */
-            for (FlowMatch flowMatch : removedDpFlows) {
+        Set<FlowMatch> dpFlowsToRemove = wildFlow.dpFlows();
+        int removed = 0;
+        for (FlowMatch flowMatch : dpFlowsToRemove) {
+            Flow flow = dpFlowTable.get(flowMatch);
+            /* the flow may have been evicted already, leaving for lazy
+             * clean up of the wildcard flow reference */
+            if (flow != null) {
                 flowManagerHelper.removeFlow(flowMatch);
-                dpFlows += 1;
+                forgetFlow(flowMatch);
+                removed++;
             }
         }
-
-        log.debug("Removed {} datapath flows", dpFlows);
+        dpFlowsToRemove.clear();
+        log.debug("Removed {} datapath flows", removed);
 
         // Get the WildcardFlowTable for this wildflow's pattern and remove
         // the wild flow.
@@ -327,20 +324,8 @@ public class FlowManager {
      * @return
      */
     public List<FlowAction> getActionsForDpFlow(FlowMatch flowMatch) {
-        FlowMetadata data = dpFlowTable.get(flowMatch);
-        return (data != null) ? data.actions : null;
-    }
-
-    /**
-     * If a datapath flow matching this FlowMatch was already computed, return
-     * its time of creation.
-     *
-     * @param flowMatch
-     * @return
-     */
-    public long getCreationTimeForDpFlow(FlowMatch flowMatch) {
-        FlowMetadata data = dpFlowTable.get(flowMatch);
-        return (data != null) ? data.creationTime : 0;
+        Flow flow = dpFlowTable.get(flowMatch);
+        return (flow != null) ? flow.getActions() : null;
     }
 
     private void checkHardTimeOutExpiration() {
@@ -443,6 +428,7 @@ public class FlowManager {
             // this call will eventually lead to the removal of this flow
             // from dpFlowTable
             flowManagerHelper.removeFlow(match);
+            forgetFlow(match);
             nFlowsRemoved++;
         }
     }
@@ -465,14 +451,7 @@ public class FlowManager {
     }
 
     public void forgetFlow(FlowMatch flowMatch) {
-        FlowMetadata metadata = dpFlowTable.remove(flowMatch);
-        if (metadata != null) {
-            metadata.wcflow.dpFlows().remove(flowMatch);
-        }
-    }
-
-    public void removeFlowCompleted(FlowMatch flowMatch) {
-        forgetFlow(flowMatch);
+        dpFlowTable.remove(flowMatch);
     }
 
     private abstract class WildcardFlowComparator implements Comparator<ManagedWildcardFlow> {
@@ -504,24 +483,11 @@ public class FlowManager {
         }
     }
 
-    class FlowMetadata {
-        public final List<FlowAction> actions;
-        public final ManagedWildcardFlow wcflow;
-        public final long creationTime;
-
-        public FlowMetadata(List<FlowAction> actions, ManagedWildcardFlow wcflow) {
-            this.actions = actions;
-            this.wcflow = wcflow;
-            this.creationTime = System.currentTimeMillis();
-        }
-    }
-
-
     Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> getWildcardTables() {
         return wildcardTables.tables();
     }
 
-    LinkedHashMap<FlowMatch, FlowMetadata> getDpFlowTable() {
+    LinkedHashMap<FlowMatch, Flow> getDpFlowTable() {
         return dpFlowTable;
     }
 

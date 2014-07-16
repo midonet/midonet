@@ -112,8 +112,6 @@ object FlowController extends Referenceable {
 
         case object CheckFlowExpiration
 
-        case class FlowRemoved(flowMatch: FlowMatch)
-
         case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
 
         case class GetFlowSucceeded(flow: Flow, flowCallback: Callback1[Flow])
@@ -310,6 +308,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 if (dpFlow != null) {
                     flowManagerHelper removeFlow dpFlow.getMatch
                     runCallbacks(callbacks)
+                    metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             }
 
@@ -367,11 +366,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 flowManager.forgetFlow(flowMatch)
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
-
-        case FlowRemoved(flowMatch) =>
-            log.debug("DP confirmed removal of flow with match {}", flowMatch)
-            flowManager.removeFlowCompleted(flowMatch)
-            metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
@@ -394,6 +388,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
             wildFlow.unref() // FlowController's ref
         }
+        metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 
     private def handleFlowAddedForExistingWildcard(dpFlow: Flow,
@@ -491,12 +486,13 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     }
 
                     def notifyRemoval(flowMatch: FlowMatch) {
-                        self ! FlowRemoved(flowMatch)
+                        log.debug("DP confirmed removal of flow with match {}", flowMatch)
                     }
                 })
         }
 
         def removeFlow(flowMatch: FlowMatch) {
+            metrics.currentDpFlows = flowManager.getNumDpFlows
             _removeFlow(flowMatch, 10)
         }
 
