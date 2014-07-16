@@ -139,7 +139,9 @@ public class VtepBroker implements VxLanPeer {
 
     @Override
     public void apply(MacLocation ml) {
-        if (ml.vxlanTunnelEndpoint == null) {
+        if (ml == null) {
+            log.warn("Ignoring null MAC-port update");
+        } else if (ml.vxlanTunnelEndpoint == null) {
             this.applyDelete(ml);
         } else {
             this.applyAddition(ml);
@@ -161,7 +163,6 @@ public class VtepBroker implements VxLanPeer {
         log.info("Advertising MACs from VTEP at tunnel IP: {}",
                  vxlanTunnelEndPoint);
         List<UcastMac> macs = vtepDataClient.listUcastMacsLocal();
-        List<MacLocation> macLocations = new ArrayList<>();
         for (UcastMac ucastMac : macs) {
             LogicalSwitch ls =
                 vtepDataClient.getLogicalSwitch(ucastMac.logicalSwitch);
@@ -187,9 +188,13 @@ public class VtepBroker implements VxLanPeer {
             ml.mac.toString(),
             ml.vxlanTunnelEndpoint.toString());
         if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException(
-                String.format("VTEP replied: %s, %s",
-                              st.getCode(), st.getDescription()), ml);
+            if (st.getCode().equals(StatusCode.CONFLICT)) {
+                log.info("Conflict writing {}, not expected", ml);
+            } else {
+                throw new VxLanPeerSyncException(
+                    String.format("VTEP replied: %s, %s",
+                                  st.getCode(), st.getDescription()), ml);
+            }
         }
     }
 
@@ -202,9 +207,14 @@ public class VtepBroker implements VxLanPeer {
             ml.mac.toString(),
             ml.logicalSwitchName);
         if (!st.isSuccess()) {
-            throw new VxLanPeerSyncException(
-                String.format("VTEP replied: %s, %s",
-                              st.getCode(), st.getDescription()), ml);
+            if (st.getCode().equals(StatusCode.NOTFOUND)) {
+                log.debug("Trying to delete entry but not present {}", ml);
+            } else {
+                throw new VxLanPeerSyncException(
+                    String.format("VTEP replied: %s, %s",
+                                  st.getCode(), st.getDescription()), ml
+                );
+            }
         }
     }
 
@@ -215,33 +225,53 @@ public class VtepBroker implements VxLanPeer {
 
     /**
      * Ensures that the Logical Switch defined in the VtepBinding exists in
-     * the given VTEP.
+     * the given VTEP. Note that we only create new logical switches from the
+     * VxLanGwService which guarantees that a single node will be doing writes
+     * to the Logical_Switch table. This protects us against races. We expect
+     * that if we try to delete/create a VTEP, we don't need to take into
+     * account any races, and shout if we detect one.
      */
     public UUID ensureLogicalSwitchExists(String lsName, int vni) {
         assert(lsName != null);
-        final LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsName);
-        UUID lsUuid = null;
+        LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsName);
         if (ls != null) {
             if (vni == ls.tunnelKey) {
-                log.debug("Logical Switch {} with VNI {} is present",
-                          lsName, vni);
-                lsUuid = ls.uuid;
+                log.debug("Logical switch {} with VNI {} exists", lsName, vni);
             } else {
-                log.info("Logical switch {} has wrong VNI, recreating", ls);
+                log.info("Logical switch {} has wrong VNI {}, delete", ls, vni);
                 vtepDataClient.deleteLogicalSwitch(lsName);
             }
         }
 
-        if (lsUuid == null) {
+        UUID lsUuid = null;
+        if (ls == null) { // we will try to add it ourselves
             StatusWithUuid st = vtepDataClient.addLogicalSwitch(lsName, vni);
             if (st.isSuccess()) {
                 lsUuid = st.getUuid();
-                log.info("Logical switch {} created with uuid: {}", lsName,
-                         lsUuid);
-            } else {
-                throw new VxLanPeerConsolidationException(
-                    "Failed to create logical switch in VTEP", lsName);
+                log.info("Logical switch {} created, uuid: {}", lsName, lsUuid);
+            } else if (st.getCode().equals(StatusCode.CONFLICT)) {
+                ls = vtepDataClient.getLogicalSwitch(lsName);
+                if (ls != null && ls.tunnelKey.equals(vni)) {
+                    log.warn("Tried to create logical switch {} and got "
+                             + "unexpected conflict. State looks correct, but "
+                             + "the conflict was unexpected, are there several"
+                             + "writers to the VTEP?", lsName);
+                } else if (ls != null) {
+                    throw new VxLanPeerConsolidationException(
+                        "Logical switch creation causes conflict, found row"
+                        + "with different VNI than expected. Does the VTEP"
+                        + "have several writers?", lsName
+                    );
+                } else {
+                    throw new VxLanPeerConsolidationException(
+                        "Logical switch creation causes conflict, but I can't"
+                        + "find matching row. This is unexpected.", lsName
+                    );
+                }
+                lsUuid = st.getUuid();
             }
+        } else {
+            lsUuid = ls.uuid;
         }
 
         return lsUuid;
@@ -294,6 +324,9 @@ public class VtepBroker implements VxLanPeer {
      *   change so it will be ignored.
      *   - The locator changed: this refers to the local tunnel IP,
      *   which being local should remain the same.
+     *
+     *   @return the corresponding MacLocation instance, or null if the logical
+     *   switch doesn't exist (e.g. bc. it is deleted during the call)
      */
     private MacLocation toMacLocation(TableUpdate.Row<Ucast_Macs_Local> r) {
         // The only thing we care about is the IP
@@ -309,7 +342,13 @@ public class VtepBroker implements VxLanPeer {
         IPv4Addr ip = (r.getNew() == null) ? null : vxlanTunnelEndPoint;
 
         LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsId); // cached
-        return new MacLocation(MAC.fromString(sMac), ls.name, ip);
+        if (ls == null) {
+            log.warn("Won't sync change for MAC {}, logical switch {} not " +
+                     "present", sMac, lsId);
+            return null;
+        } else {
+            return new MacLocation(MAC.fromString(sMac), ls.name, ip);
+        }
     }
 
 }

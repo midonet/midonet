@@ -31,6 +31,11 @@ public interface VtepDataClient {
     public IPv4Addr getManagementIp();
 
     /**
+     * @return the tunnel ip of this VTEP
+     */
+    public IPv4Addr getTunnelIp();
+
+    /**
      * @return the management UDP port where this client connects to.
      */
     public int getManagementPort();
@@ -178,7 +183,7 @@ public interface VtepDataClient {
     /**
      * Deletes a binding between the given port and vlan.
      *
-     * @param portName the of the physical port
+     * @param portName of the physical port
      * @param vlanId the vlan id
      * @return the result of the operation
      */
