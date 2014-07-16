@@ -115,6 +115,8 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                     val p = new VxLanPort {
                       override def vni = idx
                       override def vtepAddr = IPv4Addr(idx)
+                      override def vtepTunAddr: IPv4Addr = IPv4Addr(idx+1)
+                      override def tunnelZoneId: UUID = UUID.randomUUID()
                     }
                     p.id = UUID.randomUUID
                     p

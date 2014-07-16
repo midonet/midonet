@@ -36,7 +36,8 @@ public class TunnelZone extends UriResource {
     private String name;
 
     @NotNull
-    @AllowedValue(values = { TunnelZoneType.GRE, TunnelZoneType.VxLAN })
+    @AllowedValue(values = { TunnelZoneType.GRE, TunnelZoneType.VxLAN,
+                             TunnelZoneType.VTEP })
     private String type;
 
     /**
@@ -133,6 +134,9 @@ public class TunnelZone extends UriResource {
 
         if (this.type.equals(TunnelZoneType.VxLAN))
             t = org.midonet.cluster.data.TunnelZone.Type.vxlan;
+
+        if (this.type.equals(TunnelZoneType.VTEP))
+            t = org.midonet.cluster.data.TunnelZone.Type.vtep;
 
         return new org.midonet.cluster.data.TunnelZone()
                 .setId(this.id)

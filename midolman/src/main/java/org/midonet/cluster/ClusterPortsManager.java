@@ -7,7 +7,11 @@ package org.midonet.cluster;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.BridgePort;
 import org.midonet.cluster.client.Port;
@@ -20,8 +24,6 @@ import org.midonet.midolman.state.PortDirectory;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
@@ -67,9 +69,13 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             PortDirectory.VxLanPortConfig cfg =
                 (PortDirectory.VxLanPortConfig) config;
             final IPv4Addr vtepAddr = IPv4Addr.fromString(cfg.mgmtIpAddr);
+            final IPv4Addr vtepTunAddr = IPv4Addr.fromString(cfg.tunIpAddr);
+            final UUID tzId = cfg.tunnelZoneId;
             final int vni = cfg.vni;
             port = new VxLanPort() {
                 public IPv4Addr vtepAddr() { return vtepAddr; }
+                public IPv4Addr vtepTunAddr() { return vtepTunAddr; }
+                public UUID tunnelZoneId() { return tzId; }
                 public int vni() { return vni; }
             };
         } else {
