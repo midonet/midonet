@@ -15,6 +15,7 @@ import org.midonet.api.network.Router;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.neutron.LBaaSApi;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -60,7 +61,7 @@ public class L4LBResourceTestBase {
     protected UriInfo uriInfo;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected DataClient dataClient;
+    protected LBaaSApi api;
 
     protected LoadBalancerResource loadBalancerResource;
     protected HealthMonitorResource healthMonitorResource;
@@ -72,15 +73,15 @@ public class L4LBResourceTestBase {
     @Before
     public void setUp() throws Exception {
         loadBalancerResource = new LoadBalancerResource(config, uriInfo,
-                context, dataClient, factory);
+                context, api, factory);
         healthMonitorResource = new HealthMonitorResource(config, uriInfo,
-                context, dataClient, validator);
-        poolResource = new PoolResource(config, uriInfo, context, dataClient,
+                context, api, validator);
+        poolResource = new PoolResource(config, uriInfo, context, api,
                 factory, validator);
-        vipResource = new VipResource(config, uriInfo, context, dataClient,
+        vipResource = new VipResource(config, uriInfo, context, api,
                 validator);
         poolMemberResource = new PoolMemberResource(config, uriInfo, context,
-                dataClient, validator);
+                api, validator);
     }
 
     private static void assertCreated(Response response) {

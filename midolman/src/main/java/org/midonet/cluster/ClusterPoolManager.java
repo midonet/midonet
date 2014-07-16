@@ -20,12 +20,12 @@ import org.midonet.cluster.data.l4lb.Pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
-import org.midonet.cluster.client.PoolBuilder;
 
 public class ClusterPoolManager extends ClusterManager<PoolBuilder> {
     private static final Logger log = LoggerFactory
