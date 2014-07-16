@@ -14,12 +14,9 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.{TunnelZone, Port, Bridge}
+import org.midonet.cluster.data.{TunnelZone, Bridge}
 import org.midonet.midolman.DeduplicationActor.HandlePackets
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
+import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
@@ -119,13 +116,10 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         val localPortNumber2 = getPortNumber("port1b")
         val localPortNumber3 = getPortNumber("port1c")
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId)
-                                          .setEthernetSource(srcMAC),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
+        addVirtualWildcardFlow(new WildcardMatch()
+                                .setInputPortUUID(port1OnHost1.getId)
+                                .setEthernetSource(srcMAC),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
 
         val addFlowMsg = fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
 
@@ -262,12 +256,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
+        addVirtualWildcardFlow(new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
 
         val flowToInvalidate = requestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete one host from the portSet
@@ -311,12 +301,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
+        addVirtualWildcardFlow(new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -361,12 +347,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
+        addVirtualWildcardFlow(new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
 
         val flowToInvalidate =
             fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
@@ -440,12 +422,8 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         portsProbe.expectMsgAllClassOf(classOf[LocalPortActive],
                                        classOf[LocalPortActive])
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor !
-            AddVirtualWildcardFlow(wildcardFlow, Set.empty)
+        addVirtualWildcardFlow(new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
 
         fishForRequestOfType[WildcardFlowAdded](wflowAddedProbe)
         // delete the port. The dp controller will invalidate all the flow whose

@@ -33,7 +33,7 @@ class ChainTest extends Suite
 
     private implicit val actorSystem = ActorSystem("ChainTest")
 
-    private var fwdInfo: ChainPacketContext = _
+    private var pktCtx: PacketContext = _
     private var pktMatch: WildcardMatch = _
     private val ownerId: UUID = UUID.randomUUID
 
@@ -42,8 +42,8 @@ class ChainTest extends Suite
         pktMatch.setEthernetDestination("01:02:03:04:05:06")
         pktMatch.setNetworkDestination(IPAddr.fromString("1.2.3.4"))
 
-        fwdInfo = new PacketContext(Left(1), null, 0, null, null, null,
-                                    None, pktMatch)
+        pktCtx = new PacketContext(Left(1), null, 0, null, null, null,
+                                   None, pktMatch)
     }
 
     override def beforeAll() {
@@ -237,7 +237,7 @@ class ChainTest extends Suite
     }
 
     private def applyChain(c: Chain) =
-        Chain.apply(c, fwdInfo, pktMatch, ownerId, false)
+        Chain.apply(c, pktCtx, ownerId, false)
 
     private def makeChain(rules: List[Rule],
                           jumpTargets: List[Chain] = Nil): Chain = {

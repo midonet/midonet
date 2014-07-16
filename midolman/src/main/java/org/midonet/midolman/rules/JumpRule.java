@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright (c) 2011 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.midolman.rules;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
-
+import org.midonet.midolman.simulation.PacketContext;
 
 public class JumpRule extends Rule {
 
@@ -46,7 +46,7 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(ChainPacketContext fwdInfo, RuleResult res,
+    public void apply(PacketContext pktCtx, RuleResult res,
                       NatMapping natMapping) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;

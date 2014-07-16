@@ -138,8 +138,7 @@ class Bridge(val id: UUID,
 
             // Call ingress (pre-bridging) chain. InputPort is already set.
             packetContext.outPortId = null
-            val preBridgeResult = Chain.apply(inFilter, packetContext,
-                                              packetContext.wcmatch, id, false)
+            val preBridgeResult = Chain.apply(inFilter, packetContext, id, false)
             log.debug("The ingress chain returned {}", preBridgeResult)
 
             preBridgeResult.action match {
@@ -158,10 +157,9 @@ class Bridge(val id: UUID,
 
             if (preBridgeResult.pmatch ne packetContext.wcmatch) {
                 log.error("Pre-bridging for {} returned a different match" +
-                          "object", id)
+                        "object", id)
                 return Ready(ErrorDropAction)
             }
-
         } else {
             log.info("Ignoring pre/post chains on vlan tagged traffic")
         }
@@ -483,8 +481,7 @@ class Bridge(val id: UUID,
             case a => log.warning("Unhandled Coordinator.Action {}", a)
         }
 
-        val postBridgeResult = Chain.apply(
-            outFilter, packetContext, packetContext.wcmatch, id, false)
+        val postBridgeResult = Chain.apply(outFilter, packetContext, id, false)
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
                 log.debug("Forwarding the packet with action {}", act)

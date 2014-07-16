@@ -4,7 +4,6 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -27,7 +26,7 @@ import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{Packet, DpPort}
+import org.midonet.odp.DpPort
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -244,9 +243,9 @@ class AdminStateTest extends MidolmanSpec {
                  .remove(macBridgeSide, exteriorBridgePort.getId)
 
             var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
-            var simRes = sendPacket (pktCtx)
+            var simRes = simulate (pktCtx)
             simRes should be (toPortSet(bridge.getId))
-            ft.translate(simRes, pktCtx)._1 should contain (output(1).asInstanceOf[Any])
+            ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
 
@@ -256,11 +255,10 @@ class AdminStateTest extends MidolmanSpec {
             Then("the port should not be flooded")
 
             pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
-            simRes = sendPacket(pktCtx)
+            simRes = simulate(pktCtx)
             simRes should be (toPortSet(bridge.getId))
-            val (tacts, dpTags) = ft.translate(simRes, pktCtx)
-            tacts should not (contain (output(1).asInstanceOf[Any]))
-            dpTags should contain(
+            ft.translate(simRes) should not (contain (output(1).asInstanceOf[Any]))
+            pktCtx.flowTags should contain(
                 FlowTagger.tagForDevice(exteriorBridgePort.getId))
         }
 
@@ -381,8 +379,6 @@ class AdminStateTest extends MidolmanSpec {
 
         protected val datapathConnection: OvsDatapathConnection = null
         protected implicit val system = context.system
-        implicit protected val requestReplyTimeout =
-            new Timeout(5, TimeUnit.SECONDS)
 
         val cookieStr: String = ""
 
@@ -402,16 +398,15 @@ class AdminStateTest extends MidolmanSpec {
             def isOverlayTunnellingPort(portNumber: Short): Boolean = false
         }
 
-        def translate(simRes: SimulationResult,
-                      pktCtx: PacketContext): (Seq[FlowAction], mutable.Set[FlowTag]) = {
-            val actions = simRes.asInstanceOf[AddVirtualWildcardFlow]
+        def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
+            val actions = simRes._1.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
             val tags = mutable.Set[FlowTag]()
-            translateActions(pktCtx, actions, None, tags, null) match {
-                case Ready(r) => (r, tags)
+            translateActions(simRes._2, actions) match {
+                case Ready(r) => r
                 case NotYet(f) =>
                     Await.result(f, 3 seconds)
-                    translate(simRes, pktCtx)
+                    translate(simRes)
             }
         }
 

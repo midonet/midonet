@@ -199,7 +199,7 @@ class IPFragmentationTest extends MidolmanSpec {
 
     private[this] def sendPacket(fragType: IPFragmentType,
                                  etherType: Short = IPv4.ETHERTYPE)
-            : SimulationResult = {
+    : (SimulationResult, PacketContext) = {
         val pkt = makePacket(fragType, etherType)
         sendPacket(srcPort, pkt)
     }
@@ -218,21 +218,20 @@ class IPFragmentationTest extends MidolmanSpec {
         builder.ether_type(etherType).packet
     }
 
-    private def assertToPortFlowCreated(simRes: SimulationResult) {
+    private def assertToPortFlowCreated(simRes: (SimulationResult, PacketContext)) {
         simRes should be (toPort(dstPort.getId)
             (FlowTagger.tagForDevice(srcPort.getId),
              FlowTagger.tagForDevice(device.getId),
              FlowTagger.tagForDevice(dstPort.getId)))
     }
 
-    private def assertDropFlowCreated(simRes: SimulationResult,
+    private def assertDropFlowCreated(simRes: (SimulationResult, PacketContext),
                                       temporary: Boolean = false) {
         if (temporary) {
-            simRes shouldBe a [TemporaryDrop]
+            simRes._1 shouldBe TemporaryDrop
             return
         }
 
-        simRes shouldBe a [Drop]
         simRes shouldBe dropped(
             FlowTagger.tagForDevice(srcPort.getId),
             FlowTagger.tagForDevice(device.getId))

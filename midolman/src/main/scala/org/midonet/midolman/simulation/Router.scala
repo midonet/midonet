@@ -344,8 +344,8 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                         Right(outPort.id), Packet.fromEthernet(eth), 0, null,
                         null, null, None, egrMatch)
                     egrPktContext.outPortId = outPort.id
-                    val postRoutingResult = Chain.apply(outFilter,
-                                       egrPktContext, egrMatch, id, false)
+                    val postRoutingResult = Chain.apply(outFilter, egrPktContext,
+                                                        id, false)
                     _applyPostActions(eth, postRoutingResult)
 
                     postRoutingResult.action match {

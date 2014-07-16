@@ -1,22 +1,21 @@
 /*
- * Copyright 2011 Midokura KK
+ * Copyright (c) 2011 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.midolman.rules;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback0;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class ForwardNatRule extends NatRule {
     protected transient Set<NatTarget> targets;
@@ -55,7 +54,7 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(ChainPacketContext fwdInfo, RuleResult res,
+    public void apply(PacketContext fwdInfo, RuleResult res,
                       NatMapping natMapping) {
         if (null == natMapping)
             log.debug("Cannot apply a ForwardNatRule without a NatMapping.");
@@ -86,8 +85,8 @@ public class ForwardNatRule extends NatRule {
      * @param res contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    protected void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
-                           final NatMapping natMapping)
+    protected void applyDnat(PacketContext pktCtx, RuleResult res,
+                             final NatMapping natMapping)
         throws MalformedPacketException {
 
         WildcardMatch match = res.pmatch;
@@ -126,7 +125,7 @@ public class ForwardNatRule extends NatRule {
         }
         res.action = action;
 
-        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
+        pktCtx.addFlowRemovedCallback(makeUnrefCallback(natMapping, conn.unrefKey));
     }
 
     /**
@@ -135,7 +134,7 @@ public class ForwardNatRule extends NatRule {
      * @param res contains the match of the packet as seen by this rule,
      *            possibly modified by preceding routers and chains.
      */
-    private void applySnat(ChainPacketContext fwdInfo,  RuleResult res,
+    private void applySnat(PacketContext pktCtx,  RuleResult res,
                            final NatMapping natMapping)
         throws MalformedPacketException {
 
@@ -178,8 +177,8 @@ public class ForwardNatRule extends NatRule {
         }
         res.action = action;
 
-        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping,
-                                                         conn.unrefKey));
+        pktCtx.addFlowRemovedCallback(makeUnrefCallback(natMapping,
+                                                        conn.unrefKey));
     }
 
     // Used by RuleEngine to discover resources that must be initialized

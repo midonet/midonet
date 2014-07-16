@@ -19,7 +19,6 @@ import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.midolman.layer4.NatMappingFactory;
 import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.midolman.logging.SimulationAwareBusLogging;
-import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
@@ -82,17 +81,17 @@ public class Chain {
      *     Keeps track of chains that have been visited to prevent
      *     infinite recursion in the event of a cycle.
      */
-    private void apply(ChainPacketContext fwdInfo, UUID ownerId,
+    private void apply(PacketContext pktCtx, UUID ownerId,
                        boolean isPortFilter, RuleResult res,
                        int depth, List<UUID> traversedChains) {
 
-        log.debug("Processing chain with name {} and ID {}", name, id, fwdInfo);
+        log.debug("Processing chain with name {} and ID {}", name, id, pktCtx);
         if (depth > 10) {
             throw new IllegalStateException("Deep recursion when processing " +
                                             "chain " + traversedChains.get(0));
         }
 
-        fwdInfo.addFlowTag(flowInvTag);
+        pktCtx.addFlowTag(flowInvTag);
         traversedChains.add(id);
 
         Iterator<Rule> iter = rules.iterator();
@@ -100,23 +99,23 @@ public class Chain {
         while (iter.hasNext() && res.action == Action.CONTINUE) {
 
             Rule r = iter.next();
-            r.process(fwdInfo, res, natMappingFactory.get(ownerId), isPortFilter);
+            r.process(pktCtx, res, natMappingFactory.get(ownerId), isPortFilter);
 
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);
                 if (null == jumpChain) {
                     log.error("ignoring jump to chain {} -- not found.",
-                              res.jumpToChain, fwdInfo);
+                              res.jumpToChain, pktCtx);
                     res.action = Action.CONTINUE;
                 } else if (traversedChains.contains(jumpChain.id)) {
                     log.warning("Chain.apply cannot jump from chain " +
                                 "{} to chain {} -- already visited",
-                                this, jumpChain, fwdInfo);
+                                this, jumpChain, pktCtx);
                     res.action = Action.CONTINUE;
                 } else {
                     // Apply the jump chain and return if it produces a
                     // decisive action. If not, on to the next rule.
-                    jumpChain.apply(fwdInfo, ownerId, isPortFilter,
+                    jumpChain.apply(pktCtx, ownerId, isPortFilter,
                                     res, depth + 1, traversedChains);
                     if (res.action == Action.RETURN)
                         res.action = Action.CONTINUE;
@@ -130,27 +129,25 @@ public class Chain {
     /**
      * @param chain
      *            The chain where processing starts.
-     * @param fwdInfo
+     * @param pktCtx
      *            The packet's PacketContext.
-     * @param pktMatch
-     *            matches the packet that would be seen in this router/chain. It
-     *            WILL be modified by the rule chain if it affects matches.
      * @param ownerId
      *            UUID of the element using chainId.
      * @param isPortFilter
      *            whether the chain is being processed in a port filter context
      */
     public static RuleResult apply(
-            Chain chain, ChainPacketContext fwdInfo,
-            WildcardMatch pktMatch, UUID ownerId, boolean isPortFilter) {
+            Chain chain, PacketContext pktCtx,
+            UUID ownerId, boolean isPortFilter) {
 
+        WildcardMatch pktMatch = pktCtx.wcmatch();
         if (null == chain) {
             return new RuleResult(Action.ACCEPT, null, pktMatch);
         }
 
         if (chain.log.isDebugEnabled()) {
             chain.log.debug("Testing {} against Chain:\n{}",
-                    pktMatch, chain.asTree(4), fwdInfo);
+                    pktMatch, chain.asTree(4), pktCtx);
         }
 
         // Use ArrayList rather than HashSet because the list will be
@@ -162,7 +159,7 @@ public class Chain {
         // determine how big a list to allocate.
         List<UUID> traversedChains = new ArrayList<>();
         RuleResult res = new RuleResult(Action.CONTINUE, null, pktMatch);
-        chain.apply(fwdInfo, ownerId, isPortFilter, res, 0, traversedChains);
+        chain.apply(pktCtx, ownerId, isPortFilter, res, 0, traversedChains);
 
         // Accept if the chain didn't make an explicit decision.
         if (!res.action.isDecisive())
@@ -172,7 +169,7 @@ public class Chain {
             // It's unlikely that this will come up a lot, but if it does,
             // consider using a different structure for traversedChains.
             chain.log.warning("Traversed {} chains when applying chain {}.",
-                              traversedChains.size(), chain.id, fwdInfo);
+                              traversedChains.size(), chain.id, pktCtx);
         }
 
         return res;

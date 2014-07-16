@@ -42,7 +42,7 @@ class PoolMember(val id: UUID, val address: IPv4Addr,
                                  null, 0, true, natTargets, stickyIpTimeout)
 
     protected[simulation] def applyDnat(res: RuleResult,
-                                        pktContext: ChainPacketContext,
+                                        pktContext: PacketContext,
                                         natMapping: NatMapping,
                                         stickySourceIP: Boolean,
                                         stickyTimeoutSeconds: Int) {

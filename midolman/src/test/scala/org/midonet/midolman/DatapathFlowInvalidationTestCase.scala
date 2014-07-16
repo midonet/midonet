@@ -237,13 +237,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         // assert that a invalidateFlowByTag where tag is the route info is sent
         flowProbe().fishForMessage(3 seconds,"Tag")(matchATagInvalidation(tag1))
 
-        val wildcardFlow = WildcardFlow(
-            wcmatch = new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
-            actions = List(new FlowActionOutputToVrnPortSet(bridge.getId)))
-
-        dpProbe().testActor ! AddVirtualWildcardFlow(
-            wildcardFlow, Set.empty)
-
+        addVirtualWildcardFlow(new WildcardMatch().setInputPortUUID(port1OnHost1.getId),
+                               FlowActionOutputToVrnPortSet(bridge.getId))
         val flow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // update the gre ip of the second host

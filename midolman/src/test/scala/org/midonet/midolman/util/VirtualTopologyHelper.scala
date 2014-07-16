@@ -79,20 +79,19 @@ trait VirtualTopologyHelper {
         Assertions.fail("Failed to complete simulation")
     }
 
-    def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
+    def sendPacket(t: (Port[_,_], Ethernet)): (SimulationResult, PacketContext) =
         sendPacket(t._1, t._2)
 
-    def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
-        sendPacket(packetContextFor(pkt, port.getId))
+    def sendPacket(port: Port[_,_], pkt: Ethernet): (SimulationResult, PacketContext) =
+        simulate(packetContextFor(pkt, port.getId))
 
-    def sendPacket(pktCtx: PacketContext): SimulationResult = {
+    def simulate(pktCtx: PacketContext): (SimulationResult, PacketContext) =
         new Coordinator(pktCtx) simulate() match {
-            case Ready(r) => r
+            case Ready(r) => (r, pktCtx)
             case NotYet(f) =>
                 Await.result(f, 3 seconds)
-                sendPacket(pktCtx)
+                simulate(pktCtx)
         }
-    }
 
     def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)

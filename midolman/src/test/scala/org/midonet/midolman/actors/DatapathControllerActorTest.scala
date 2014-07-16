@@ -64,8 +64,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         DpPortStatsRequest(UUID.randomUUID),
         InterfacesUpdate(emptyJSet),
         ZoneChanged(UUID.randomUUID, TunnelZone.Type.gre, null, HostConfigOperation.Added),
-        ZoneMembers(UUID.randomUUID, TunnelZone.Type.gre, Set()),
-        AddVirtualWildcardFlow(null, Set())
+        ZoneMembers(UUID.randomUUID, TunnelZone.Type.gre, Set())
     )
 
     val commonMessages = List[AnyRef](

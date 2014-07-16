@@ -525,7 +525,7 @@ class PoolTest extends MidolmanSpec {
                 val srcPort = (10000 + i).toShort
                 val flow = sendPacket(
                     (exteriorClientPort, clientToVipPkt(srcPort)))
-                val wc = flow.asInstanceOf[AddVirtualWildcardFlow]
+                val wc = flow._1.asInstanceOf[AddVirtualWildcardFlow]
                 val action = wc.flow.actions(1).asInstanceOf[FlowActionSetKey]
                 val ip = action.getFlowKey.asInstanceOf[FlowKeyIPv4].getDst
                 val index = (ip & 0xff00) >> 8
@@ -674,10 +674,10 @@ class PoolTest extends MidolmanSpec {
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
                 { tcp src srcTpPort dst vipPort }
 
-    private[this] def getDestIpsFromResult(simResult: SimulationResult)
+    private[this] def getDestIpsFromResult(simResult: (SimulationResult, PacketContext))
     : Seq[Int] = {
-        simResult match {
-            case AddVirtualWildcardFlow(flow, _) =>
+        simResult._1 match {
+            case AddVirtualWildcardFlow(flow) =>
                 flow.actions flatMap {
                     case f: FlowActionSetKey =>
                         f.getFlowKey match {
@@ -705,23 +705,14 @@ class PoolTest extends MidolmanSpec {
     }
 
     private[this] def sendPacketsAndGetDestIpSet(beginOffset: Int,
-                                                 endOffset: Int)
-    : Set[Int] = {
-        val simResults: Seq[SimulationResult] = (beginOffset to endOffset) map {
+                                                 endOffset: Int): Set[Int] =
+        (beginOffset to endOffset) map {
             n => sendPacket (fromClientToVipOffset(n.toShort))
-        }
-        val destIps = simResults flatMap getDestIpsFromResult
-        destIps.toSet
-    }
+        } flatMap getDestIpsFromResult toSet
 
-    private[this] def sendPacketsAndGetDestIpSet(numPackets: Int)
-    : Set[Int] = {
-        val simResults: Seq[SimulationResult] = (1 to numPackets) map {
-            n => sendPacket (fromClientToVip)
-        }
-        val destIps = simResults flatMap getDestIpsFromResult
-        destIps.toSet
-    }
+    private[this] def sendPacketsAndGetDestIpSet(numPackets: Int): Set[Int] =
+        (1 to numPackets) map {
+            n => sendPacket (fromClientToVip) } flatMap getDestIpsFromResult toSet
 
     private[this] def sendInTwoHalvesNonSticky(
                         actionBetweenHalves: DisableAction.DisableAction)

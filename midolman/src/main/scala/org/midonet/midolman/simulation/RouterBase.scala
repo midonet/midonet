@@ -155,8 +155,7 @@ abstract class RouterBase[IP <: IPAddr]()
         val preRoutingAction = applyServicesInbound() map {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to inFilter / ingress chain
-                val chainResult = Chain.apply(inFilter, pktContext, pktContext.wcmatch,
-                    id, false)
+                val chainResult = Chain.apply(inFilter, pktContext, id, false)
                 handlePreRoutingResult(chainResult, inPort)
             case res =>
                 // Skip the inFilter / ingress chain
@@ -322,7 +321,7 @@ abstract class RouterBase[IP <: IPAddr]()
         val postRoutingResult = applyServicesOutbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to outFilter / egress chain
-                Chain.apply(outFilter, pktContext, pMatch, id, false)
+                Chain.apply(outFilter, pktContext, id, false)
             case res =>
                 // Skip outFilter / egress chain
                 res

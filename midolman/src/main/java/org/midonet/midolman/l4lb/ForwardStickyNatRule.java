@@ -11,11 +11,11 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.layer4.NwTpPair;
-import org.midonet.midolman.rules.ChainPacketContext;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.ForwardNatRule;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.sdn.flows.WildcardMatch;
@@ -35,8 +35,8 @@ public class ForwardStickyNatRule extends ForwardNatRule {
     }
 
     @Override
-    protected void applyDnat(ChainPacketContext fwdInfo, RuleResult res,
-                   final NatMapping natMapping)
+    protected void applyDnat(PacketContext pktCtx, RuleResult res,
+                             final NatMapping natMapping)
             throws MalformedPacketException {
 
         WildcardMatch match = res.pmatch;
@@ -72,7 +72,7 @@ public class ForwardStickyNatRule extends ForwardNatRule {
         }
         res.action = action;
 
-        fwdInfo.addFlowRemovedCallback(makeUnrefCallback(natMapping,
-                                                         conn.unrefKey));
+        pktCtx.addFlowRemovedCallback(makeUnrefCallback(natMapping,
+                                                        conn.unrefKey));
     }
 }

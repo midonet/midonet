@@ -11,10 +11,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import akka.actor.ActorSystem$;
+import akka.event.LoggingAdapter;
+import akka.event.NoLogging;
+import akka.event.NoLogging$;
 import scala.Option;
+import scala.util.Left;
+import scala.util.Right;
 
 import org.midonet.cache.Cache;
-import org.midonet.midolman.rules.ChainPacketContext;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4;
@@ -30,7 +36,7 @@ import org.midonet.util.functors.Callback0;
  * decisions:  the next action for the packet, the egress port,
  * the packet at egress (i.e. after possible modifications).
  */
-public class ForwardInfo implements ChainPacketContext {
+public class ForwardInfo extends PacketContext {
 
     // These fields are filled by the caller of ForwardingElement.process():
     public UUID inPortId;
@@ -75,7 +81,11 @@ public class ForwardInfo implements ChainPacketContext {
     private Cache connectionCache;
     private UUID ingressFE;
 
-    public ForwardInfo(boolean internallyGenerated, Cache c, UUID ingressFE) {
+    public ForwardInfo(boolean internallyGenerated, WildcardMatch wcMatch,
+                       Cache c, UUID ingressFE) {
+        super(internallyGenerated ? new Right<>(UUID.randomUUID()) : new Left<Object, UUID>(1),
+              null, 0L, c, null, null, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
+        flowMatch = wcMatch;
         connectionCache = c;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;

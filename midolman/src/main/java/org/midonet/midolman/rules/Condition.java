@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.midolman.simulation.IPAddrGroup;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
@@ -84,8 +85,10 @@ public class Condition extends BaseConfig {
         private final boolean matches;
 
         @Override
-        public boolean matches(ChainPacketContext fwdInfo, WildcardMatch pktMatch,
-                               boolean isPortFilter) { return matches; }
+        public boolean matches(PacketContext fwdInfo, WildcardMatch pktMatch,
+                               boolean isPortFilter) {
+            return matches;
+        }
 
         @Override
         public boolean equals(Object o) { return this == o; }
@@ -132,10 +135,8 @@ public class Condition extends BaseConfig {
         return outPortIds != null && outPortIds.contains(portId);
     }
 
-    public boolean matches(ChainPacketContext fwdInfo,
-                           WildcardMatch pktMatch,
+    public boolean matches(PacketContext pktCtx, WildcardMatch pktMatch,
                            boolean isPortFilter) {
-
         // Matching on fragmentPolicy is unaffected by conjunctionInv,
         // so that gets tested separately.
         if (!fragmentPolicy.accepts(pktMatch.getIpFragmentType()))
@@ -154,16 +155,16 @@ public class Condition extends BaseConfig {
          * of 'conjunctionInv'.  If the conjunction evaluates to true, then
          * we return 'NOT conjunctionInv'.
          */
-        if (matchForwardFlow && !fwdInfo.isForwardFlow())
+        if (matchForwardFlow && !pktCtx.isForwardFlow())
             return conjunctionInv;
-        if (matchReturnFlow && fwdInfo.isForwardFlow())
+        if (matchReturnFlow && pktCtx.isForwardFlow())
             return conjunctionInv;
 
-        UUID inPortId = isPortFilter ? null : fwdInfo.inPortId();
-        UUID outPortId = isPortFilter ? null : fwdInfo.outPortId();
+        UUID inPortId = isPortFilter ? null : pktCtx.inPortId();
+        UUID outPortId = isPortFilter ? null : pktCtx.outPortId();
         IPAddr pmSrcIP = pktMatch.getNetworkSourceIP();
         IPAddr pmDstIP = pktMatch.getNetworkDestinationIP();
-        if (!matchPortGroup(fwdInfo.portGroups(), portGroup, invPortGroup))
+        if (!matchPortGroup(pktCtx.portGroups(), portGroup, invPortGroup))
             return conjunctionInv;
         if (!matchPort(this.inPortIds, inPortId, this.inPortInv))
             return conjunctionInv;

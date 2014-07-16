@@ -17,7 +17,6 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
@@ -109,12 +108,9 @@ class Coordinator(pktCtx: PacketContext)
         pktCtx.traceMessage(null, "Dropping flow")
         Ready(
             if (pktCtx.ingressed) {
-                val tags = if (withTags) pktCtx.flowTags
-                           else Set.empty[FlowTag]
-                if (temporary)
-                    TemporaryDrop(tags)
-                else
-                    Drop(tags)
+                if (!withTags)
+                    pktCtx.flowTags.clear()
+                if (temporary) TemporaryDrop else Drop
             } else {
                 // Internally-generated packet. Do nothing.
                 pktCtx.runFlowRemovedCallbacks()
@@ -182,12 +178,10 @@ class Coordinator(pktCtx: PacketContext)
         (first, second) match {
             case (SendPacket(acts1), SendPacket(acts2)) =>
                 SendPacket(acts1 ++ acts2)
-            case (AddVirtualWildcardFlow(wcf1, _),
-                  AddVirtualWildcardFlow(wcf2, _)) =>
+            case (AddVirtualWildcardFlow(wcf1),
+                  AddVirtualWildcardFlow(wcf2)) =>
                 //TODO(rossella) set the other fields Priority
-                val res = AddVirtualWildcardFlow(
-                    wcf1.combine(wcf2),
-                    pktCtx.flowTags)
+                val res = AddVirtualWildcardFlow(wcf1.combine(wcf2))
                 log.debug("Forked action merged results {}", res)
                 res
             case (firstAction, secondAction) =>
@@ -328,8 +322,7 @@ class Coordinator(pktCtx: PacketContext)
             return thunk(port)
 
         expiringAsk[Chain](filterID, log, pktCtx.expiry) flatMap { chain =>
-            val result = Chain.apply(chain, pktCtx,
-                                     pktCtx.wcmatch, port.id, true)
+            val result = Chain.apply(chain, pktCtx, port.id, true)
             result.action match {
                 case RuleResult.Action.ACCEPT =>
                     thunk(port)
@@ -358,7 +351,7 @@ class Coordinator(pktCtx: PacketContext)
                     pktCtx.outPortId = p.id
                     applyPortFilter(p, p.outboundFilter, {
                         case p: Port if p.isExterior =>
-                            emit(portID, isPortSet = false, p)
+                            emit(p.id, isPortSet = false, p)
                         case p: Port if p.isInterior =>
                             packetIngressesPort(p.peerID, getPortGroups = false)
                         case _ =>
@@ -372,8 +365,6 @@ class Coordinator(pktCtx: PacketContext)
      * Complete the simulation by emitting the packet from the specified
      * virtual port or PortSet.  If the packet was internally generated
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
-     * @param outputID The ID of the virtual port or PortSet from which the
-     *                 packet must be emitted.
      * @param isPortSet Whether the packet is output to a port set.
      * @param port The port output to; unused if outputting to a port set.
      */
@@ -456,6 +447,6 @@ class Coordinator(pktCtx: PacketContext)
     /** Generates a final AddVirtualWildcardFlow simulation result */
     private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
         wcFlow.wcmatch.propagateUserspaceFieldsOf(pktCtx.wcmatch)
-        AddVirtualWildcardFlow(wcFlow, pktCtx.flowTags)
+        AddVirtualWildcardFlow(wcFlow)
     }
 }
