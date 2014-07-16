@@ -47,7 +47,7 @@ public class BridgeZkManager
         private static final long serialVersionUID = 1L;
     }
 
-    public static class BridgeConfig extends BaseConfig
+    public static class BridgeConfig extends ConfigWithProperties
                                      implements TaggableConfig {
         public BridgeConfig() {
             super();
@@ -73,7 +73,6 @@ public class BridgeZkManager
         public UUID vxLanPortId;
         public String name;
         public boolean adminStateUp;
-        public Map<String, String> properties = new HashMap<>();
 
         @Override
         public boolean equals(Object o) {

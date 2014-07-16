@@ -18,6 +18,7 @@ import org.midonet.midolman.state.PortDirectory.InteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.ExteriorRouterPortConfig;
 import org.midonet.midolman.state.PortDirectory.VxLanPortConfig;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.midolman.state.zkManagers.ConfigWithProperties;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Subnet;
 
@@ -38,7 +39,7 @@ import org.midonet.packets.IPv4Subnet;
         name = "InteriorRouterPort"),
     @JsonSubTypes.Type(value = VxLanPortConfig.class,
         name = "VxLanPort")})
-public abstract class PortConfig extends BaseConfig {
+public abstract class PortConfig extends ConfigWithProperties {
 
     PortConfig(UUID device_id) {
         this(device_id, false);
@@ -58,7 +59,6 @@ public abstract class PortConfig extends BaseConfig {
     public UUID outboundFilter;
     public Set<UUID> portGroupIDs;
     public int tunnelKey;
-    public Map<String, String> properties = new HashMap<String, String>();
 
     public UUID hostId;
     public String interfaceName;
