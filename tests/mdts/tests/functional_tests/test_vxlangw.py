@@ -30,14 +30,11 @@ binding1 = {
     }
 
 # TODO(tomohiko) Move those to the virtual topology data file.
-vtep_management_ip = '119.15.112.22'
-vtep_management_port = '6633'
-port_name = 'fakevm1_out'  # Physical port set up on the emulator.
-vlan_id = 1234
-vm_on_vtep = '10.0.1.1'
-
-# An evil global variable:P
-_vtep_binding = None
+vtep_management_ip = '119.15.120.117'
+vtep_management_port = '6632'
+port_name = 'in6'  # Physical port set up on the emulator.
+vlan_id = 0
+vm_on_vtep = '10.0.2.4'
 
 
 def setup():
@@ -50,14 +47,19 @@ def setup():
 
 def teardown():
     time.sleep(2)
-    # Need to manually delete the _vtep_binding.
+    # Need to manually delete all VTEPs and their bindings if any.
     # TODO(tomohiko) Remove once the wrapper classes are implemented.
-    if _vtep_binding: _vtep_binding.delete()
-    # Deletes all VTEPs if any.
     vteps = VTM._api.get_vteps()
     for vtep in vteps:
+        LOG.debug('Clean up a VTEP at: %s', vtep.get_management_ip())
+        for binding in vtep.get_bindings():
+            binding.delete()
+            LOG.debug('Deleted a VTEP binding: %s, %s, %s',
+                      binding.get_port_name(),
+                      binding.get_vlan_id(),
+                      binding.get_network_id())
         vtep.delete()
-        Log.debug('Deleted a VTEP at %s' % vtep.get_management_ip())
+        LOG.debug('Deleted a VTEP at %s' % vtep.get_management_ip())
 
     time.sleep(2)
     PTM.destroy()
@@ -139,15 +141,14 @@ def set_up_vtep():
              .create()
     LOG.debug('Created a VTEP at %s' % vtep_management_ip)
 
-    # Add a new VTEP binding. Assigning it to a global variable so that it can
-    # be later deleted.
+    # Add a new VTEP binding.
     # Look up a bridge with which to bind the VTEP.
     bridge = VTM.get_bridge('bridge-000-001')
     bridge_id = bridge._mn_resource.get_id()
     LOG.debug('Bridge ID: %s' % bridge_id)
-    _vtep_binding = vtep.add_binding()\
-                       .port_name(port_name)\
-                       .vlan_id(vlan_id)\
-                       .network_id(bridge_id)\
-                       .create()
+    vtep.add_binding()\
+        .port_name(port_name)\
+        .vlan_id(vlan_id)\
+        .network_id(bridge_id)\
+        .create()
     LOG.debug('Added a binding')
