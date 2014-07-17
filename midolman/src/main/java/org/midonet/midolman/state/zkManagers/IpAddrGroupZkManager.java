@@ -26,7 +26,7 @@ public class IpAddrGroupZkManager extends
     private final static Logger log = LoggerFactory
             .getLogger(IpAddrGroupZkManager.class);
 
-    public static class IpAddrGroupConfig extends BaseConfig {
+    public static class IpAddrGroupConfig extends ConfigWithProperties {
 
         public IpAddrGroupConfig() {
         }
@@ -42,29 +42,6 @@ public class IpAddrGroupZkManager extends
 
         public UUID id;
         public String name;
-        public Map<String, String> properties = new HashMap<>();
-
-        // TODO: Move these up to BaseConfig if all configs have properties
-        @JsonIgnore
-        public UUID getPropertyUuid(String key) {
-            String val = properties.get(key);
-            return val == null ? null : UUID.fromString(properties.get(key));
-        }
-
-        @JsonIgnore
-        public UUID getPropertyUuid(Object key) {
-            return getPropertyUuid(key.toString());
-        }
-
-        @JsonIgnore
-        public void putProperty(String key, String val) {
-            properties.put(key, val);
-        }
-
-        @JsonIgnore
-        public void putProperty(Object key, Object val) {
-            putProperty(key.toString(), val.toString());
-        }
     }
 
     private final RuleZkManager ruleDao;

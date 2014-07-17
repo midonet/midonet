@@ -30,11 +30,10 @@ import org.midonet.util.functors.Functor;
 public class ChainZkManager
         extends AbstractZkManager<UUID, ChainZkManager.ChainConfig> {
 
-    public static class ChainConfig extends BaseConfig {
+    public static class ChainConfig extends ConfigWithProperties {
 
         // The chain name should only be used for logging.
         public final String name;
-        public Map<String, String> properties = new HashMap<>();
 
         public ChainConfig() {
             this.name = "";

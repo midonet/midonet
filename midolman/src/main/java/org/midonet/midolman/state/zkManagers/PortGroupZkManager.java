@@ -23,7 +23,7 @@ public class PortGroupZkManager
     private final static Logger log = LoggerFactory
             .getLogger(PortGroupZkManager.class);
 
-    public static class PortGroupConfig extends BaseConfig {
+    public static class PortGroupConfig extends ConfigWithProperties {
 
         public PortGroupConfig() {
             super();
@@ -35,7 +35,6 @@ public class PortGroupZkManager
         }
 
         public String name;
-        public Map<String, String> properties = new HashMap<String, String>();
     }
 
     private final PortZkManager portDao;
