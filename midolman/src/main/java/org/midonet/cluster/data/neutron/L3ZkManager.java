@@ -517,9 +517,9 @@ public class L3ZkManager extends BaseZkManager {
         // Add NAT rules on tenant router
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
         ruleZkManager.prepareCreateStaticSnatRule(ops, rCfg.outboundFilter,
-            gwPort.id, fip.floatingIpv4Addr());
+            gwPort.id, fip.fixedIpv4Addr(), fip.floatingIpv4Addr());
         ruleZkManager.prepareCreateStaticDnatRule(ops, rCfg.inboundFilter,
-            gwPort.id, fip.fixedIpv4Addr());
+            gwPort.id, fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
     }
 
     public void prepareDisassociateFloatingIp(List<Op> ops, Port port)

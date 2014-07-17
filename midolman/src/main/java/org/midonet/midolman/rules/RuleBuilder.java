@@ -5,6 +5,7 @@ package org.midonet.midolman.rules;
 import org.midonet.cluster.data.neutron.RuleProtocol;
 import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.packets.ARP;
+import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
@@ -58,6 +59,24 @@ public class RuleBuilder {
         r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, true,
             targets);
         return r;
+    }
+
+    public RuleBuilder fromIp(IPv4Addr addr) {
+        return fromSubnet(addr.subnet(32));
+    }
+
+    public RuleBuilder fromSubnet(IPSubnet addr) {
+        c.nwSrcIp = addr;
+        return this;
+    }
+
+    public RuleBuilder toIp(IPv4Addr addr) {
+        return toSubnet(addr.subnet(32));
+    }
+
+    public RuleBuilder toSubnet(IPSubnet addr) {
+        c.nwDstIp = addr;
+        return this;
     }
 
     public RuleBuilder comingInPort(UUID portId) {
