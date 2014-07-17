@@ -287,7 +287,8 @@ class DeduplicationActor(
      */
     private def complete(pktCtx: PacketContext, path: PipelinePath): Unit = {
         log.debug("Packet with {} processed", pktCtx.cookieStr)
-        waitingRoom leave pktCtx
+        if (pktCtx.runs > 1)
+            waitingRoom leave pktCtx
         pktCtx.cookieOrEgressPort match {
             case Left(cookie) =>
                 applyFlow(cookie, pktCtx)
