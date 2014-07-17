@@ -23,9 +23,8 @@ import org.midonet.sdn.flows.FlowTagger.{TunnelKeyTag, FlowTag}
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTestCase extends MidolmanSpec {
 
-    override def registerActors = List(
-        FlowController -> (() => new FlowController
-                with MessageAccumulator))
+    registerActors(FlowController -> (() => new FlowController
+                                            with MessageAccumulator))
 
     val flowTimeout: Int = 1000
     val tagCount: Int = 10

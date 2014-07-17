@@ -82,10 +82,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec {
 
     }
 
-    protected override def registerActors = {
-        List(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                            with MessageAccumulator))
-    }
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
+                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()

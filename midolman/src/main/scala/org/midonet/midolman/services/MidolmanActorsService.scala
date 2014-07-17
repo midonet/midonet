@@ -116,6 +116,12 @@ class MidolmanActorsService extends AbstractService {
                     log.warn("Failed to gracefully stop the actor system")
             }
             system.shutdown()
+            system.awaitTermination()
+            // Because Akka sucks...
+            system.dispatchers
+                  .defaultGlobalDispatcher
+                  .asInstanceOf[{def shutdown(): Unit}]
+                  .shutdown()
             notifyStopped()
         } catch {
             case e: Throwable =>

@@ -25,8 +25,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
         with ImplicitSender {
     var vta: TestableVTA = null
 
-    protected override def registerActors =
-        List(VirtualTopologyActor -> (() => new TestableVTA))
+    registerActors(VirtualTopologyActor -> (() => new TestableVTA))
 
     protected override def beforeTest() {
         vta = VirtualTopologyActor.as[TestableVTA]

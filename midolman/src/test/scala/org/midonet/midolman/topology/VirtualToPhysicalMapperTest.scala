@@ -28,11 +28,10 @@ import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class VirtualToPhysicalMapperTest extends MidolmanSpec {
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator),
-        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-                                          with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator),
+                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
+                                                     with MessageAccumulator))
 
     class Subscriber(request: AnyRef) extends Actor {
         override def preStart(): Unit = {

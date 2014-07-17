@@ -71,10 +71,8 @@ class ConntrackTestCase extends MidolmanSpec {
         macTable.add(MAC.fromString(rightMac), rightPort.getId)
     }
 
-    protected override def registerActors = {
-        List(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                            with MessageAccumulator))
-    }
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
+                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()

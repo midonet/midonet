@@ -37,10 +37,8 @@ object DisableAction extends Enumeration {
 class PoolTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-            with MessageAccumulator)
-    )
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator))
 
     /*
      * The topology for this test consists of one router with one port

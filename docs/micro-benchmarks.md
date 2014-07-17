@@ -567,7 +567,7 @@ yields the following list of supported profilers:
     iteration.
 
 * stack: Simple and naive Java stack profiler
-  * Gives us a rough evaluation of methods which took most of your CPU. It works
+  * Gives us a rough evaluation of methods which took most of the CPU. It works
     in a separate thread that wakes up periodically and gets stack traces of all
     application threads. It keeps top N stack lines until the end of test. This
     profiler is not much different from the sampling functionality of commercial

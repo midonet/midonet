@@ -1,13 +1,15 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
 package org.midonet.midolman.guice;
 
-import com.google.inject.Key;
 import com.google.inject.Singleton;
 
 import org.midonet.cache.Cache;
 import org.midonet.cache.MockCache;
+import org.midonet.util.eventloop.CallingThreadReactor;
+import org.midonet.util.eventloop.Reactor;
 
 public class MockCacheModule extends CacheModule {
 
@@ -26,8 +28,12 @@ public class MockCacheModule extends CacheModule {
             .annotatedWith(TRACE_INDEX.class)
             .to(MockCache.class)
             .in(Singleton.class);
-        expose(Key.get(Cache.class, NAT_CACHE.class));
-        expose(Key.get(Cache.class, TRACE_MESSAGES.class));
-        expose(Key.get(Cache.class, TRACE_INDEX.class));
+    }
+
+    @Override
+    protected void bindReactor() {
+        bind(Reactor.class).
+                annotatedWith(CACHE_REACTOR.class).
+                toInstance(new CallingThreadReactor());
     }
 }

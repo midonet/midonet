@@ -41,11 +41,10 @@ import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator),
-        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-                                          with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator),
+                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
+                                                     with MessageAccumulator))
 
     trait TranslationContext {
         protected val dpState: TestDatapathState

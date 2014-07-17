@@ -41,11 +41,10 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 class AdminStateTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator),
-        VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-                                          with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator),
+                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
+                                                     with MessageAccumulator))
 
     /*
      * The topology for this test consists of one bridge and one router,
