@@ -645,21 +645,25 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     public UUID prepareCreateStaticSnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr targetIp)
+                                            UUID portId, IPv4Addr matchIp,
+                                            IPv4Addr targetIp)
             throws RuleIndexOutOfBoundsException, SerializationException,
             StateAccessException {
         Rule rule = new RuleBuilder(chainId)
             .goingOutPort(portId)
+            .fromIp(matchIp)
             .sourceNat(new NatTarget(targetIp, 0, 0));
         return prepareCreateRuleFirstPosition(ops, rule);
     }
 
     public UUID prepareCreateStaticDnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr targetIp)
+                                            UUID portId, IPv4Addr matchIp,
+                                            IPv4Addr targetIp)
             throws RuleIndexOutOfBoundsException, SerializationException,
             StateAccessException {
         Rule rule = new RuleBuilder(chainId)
             .comingInPort(portId)
+            .toIp(matchIp)
             .destNat(new NatTarget(targetIp, 0, 0));
         return prepareCreateRuleFirstPosition(ops, rule);
     }
