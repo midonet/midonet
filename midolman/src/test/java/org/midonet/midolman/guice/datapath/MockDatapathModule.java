@@ -37,7 +37,6 @@ public class MockDatapathModule extends DatapathModule {
         @Override
         public UpcallDatapathConnectionManager get() {
             return new MockUpcallDatapathConnectionManager(config);
-
         }
     }
 }

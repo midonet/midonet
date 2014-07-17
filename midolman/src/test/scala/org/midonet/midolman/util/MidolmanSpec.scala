@@ -1,29 +1,33 @@
-/**
+/*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.util
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Await
-import scala.concurrent.duration._
+
+import java.util.UUID
 
 import com.google.inject._
 import org.apache.commons.configuration.HierarchicalConfiguration
+
 import org.scalatest.BeforeAndAfter
 import org.scalatest.FeatureSpecLike
 import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
-import org.midonet.cluster.data.Port
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.midolman.{NotYet, Ready}
-import org.midonet.midolman.util.mock.MockMidolmanActors
-import org.midonet.midolman.services.MidolmanService
-import org.midonet.midolman.simulation.{PacketContext, Coordinator, CustomMatchers}
-import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
+import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
+import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.guice.config.ConfigProviderModule
+import org.midonet.midolman.guice.datapath.MockDatapathModule
+import org.midonet.midolman.guice._
+import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.guice.cluster.ClusterClientModule
+import org.midonet.midolman.host.scanner.InterfaceScanner
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -57,8 +61,6 @@ trait MidolmanSpec extends FeatureSpecLike
             val config = fillConfig(new HierarchicalConfiguration)
             injector = Guice.createInjector(getModules(config))
 
-            actorsService.register(registerActors)
-
             injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
             injector.getInstance(classOf[MidolmanService]).startAndWait()
 
@@ -70,7 +72,8 @@ trait MidolmanSpec extends FeatureSpecLike
 
     after {
         afterTest()
-        actorSystem.shutdown()
+        injector.getInstance(classOf[MidolmanService]).stopAndWait()
+        injector.getInstance(classOf[MidostoreSetupService]).stopAndWait()
     }
 
     protected def fillConfig(config: HierarchicalConfiguration)
@@ -81,22 +84,41 @@ trait MidolmanSpec extends FeatureSpecLike
         config
     }
 
-    def sendPacket(t: (Port[_,_], Ethernet)): SimulationResult =
-        sendPacket(t._1, t._2)
-
-    def sendPacket(port: Port[_,_], pkt: Ethernet): SimulationResult =
-        sendPacket(packetContextFor(pkt, port.getId))
-
-    def sendPacket(pktCtx: PacketContext): SimulationResult = {
-        new Coordinator(pktCtx) simulate() match {
-            case Ready(r) => r
-            case NotYet(f) =>
-                Await.result(f, 3 seconds)
-                sendPacket(pktCtx)
-        }
+    protected def getModules(config: HierarchicalConfiguration) = {
+        List(
+            new VersionModule(),
+            new SerializationModule(),
+            new ConfigProviderModule(config),
+            new MockDatapathModule(),
+            new MockCacheModule(),
+            new MockZookeeperConnectionModule(),
+            new AbstractModule {
+                def configure() {
+                    bind(classOf[HostIdProviderService])
+                            .toInstance(new HostIdProviderService() {
+                        val hostId = UUID.randomUUID()
+                        def getHostId: UUID = hostId
+                    })
+                }
+            },
+            new MockMonitoringStoreModule(),
+            new ClusterClientModule(),
+            new MidolmanActorsModule {
+                override def configure() {
+                    bind(classOf[MidolmanActorsService])
+                            .toInstance(actorsService)
+                    expose(classOf[MidolmanActorsService])
+                }
+            },
+            new ResourceProtectionModule(),
+            new MidolmanModule(),
+            new PrivateModule {
+                override def configure() {
+                    bind(classOf[InterfaceScanner])
+                            .to(classOf[MockInterfaceScanner]).asEagerSingleton()
+                    expose(classOf[InterfaceScanner])
+                }
+            }
+        )
     }
-
-    def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
-        WildcardMatch.fromEthernetPacket(pkt)
-            .setInputPortUUID(port.getId)
 }

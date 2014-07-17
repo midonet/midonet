@@ -31,9 +31,8 @@ import org.midonet.sdn.flows.FlowTagger
 class IPFragmentationTest extends MidolmanSpec {
     implicit val askTimeout: Timeout = 1 second
 
-    override def registerActors = List(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
+                                                  with MessageAccumulator))
 
     /*
      * The topology for this test consists of a single bridge or

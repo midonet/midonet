@@ -191,8 +191,12 @@ subprojects {
     sourceSets {
         main.compileClasspath += configurations.provided
         test.compileClasspath += configurations.provided
+        perf.compileClasspath += sourceSets.main.compileClasspath
+        perf.compileClasspath += sourceSets.test.compileClasspath
         perf.compileClasspath += sourceSets.main.output
         perf.compileClasspath += sourceSets.test.output
+        perf.runtimeClasspath += sourceSets.main.runtimeClasspath
+        perf.runtimeClasspath += sourceSets.test.runtimeClasspath
     }
 
     repositories {
@@ -253,8 +257,7 @@ subprojects {
 
     task benchmarks(type: JavaExec) {
         main = 'org.openjdk.jmh.Main'
-        classpath = sourceSets.perf.runtimeClasspath  + sourceSets.main.output +
-                    sourceSets.test.output + files(benchOutput)
+        classpath = sourceSets.perf.runtimeClasspath + files(benchOutput)
         maxHeapSize = "1024m"
         description 'Executes the specified benchmarks. By default runs all. ' +
                     'Example command: ./gradlew :midonet-util:benchmarks \'-Pjmh=.*Statistical.*\''
@@ -268,12 +271,14 @@ subprojects {
 
     shadowJar {
         archiveName = "benchmarks.jar"
-        from sourceSets.perf.output + sourceSets.test.output + files(benchOutput)
+        from sourceSets.perf.runtimeClasspath + files(benchOutput)
         from configurations.perfRuntime
 
         appendManifest {
             attributes 'Main-Class': 'org.openjdk.jmh.Main'
         }
+
+        dependsOn(compileBenchmarks)
     }
 
     cobertura {
@@ -321,7 +326,6 @@ def reorderIdeaJdkBootstrapDependency(iml) {
     }
 }
 
-// Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle
 task wrapper(type: Wrapper) {
     description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
     gradleVersion = '1.12'

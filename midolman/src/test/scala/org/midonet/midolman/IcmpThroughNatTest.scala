@@ -110,9 +110,8 @@ class IcmpThroughNatTest extends MidolmanSpec {
                   RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
     }
 
-    protected override def registerActors =
-        List(VirtualTopologyActor -> (() => new VirtualTopologyActor()
-                                            with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
+                                                  with MessageAccumulator))
 
     override def beforeTest() {
         buildTopology()

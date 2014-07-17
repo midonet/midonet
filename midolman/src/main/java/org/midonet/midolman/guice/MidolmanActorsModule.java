@@ -96,7 +96,6 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
         bind(MonitoringActor.class);
-        //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
     }
@@ -135,11 +134,14 @@ public class MidolmanActorsModule extends PrivateModule {
                 new Function<Throwable, Directive>() {
                     @Override
                     public Directive apply(Throwable t) {
-                        if (t instanceof ActorKilledException)
+                        if (t instanceof ActorKilledException) {
+                            log.warn("Actor crashed, escalating", t);
                             return escalate();
-                        else if (t instanceof ActorInitializationException)
+                        } else if (t instanceof ActorInitializationException) {
+                            log.warn("Actor crashed, stopping", t);
                             return stop();
-                        else
+                        } else
+                            log.warn("Actor crashed, resuming", t);
                             return resume();
                     }
                 });

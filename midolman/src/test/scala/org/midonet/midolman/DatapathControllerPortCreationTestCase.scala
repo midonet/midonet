@@ -43,13 +43,13 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
     var connManager: MockUpcallDatapathConnectionManager = null
     var interfaceScanner: MockInterfaceScanner = null
 
-    override def registerActors = List(
+    registerActors(
         VirtualTopologyActor -> (() => new VirtualTopologyActor
-            with MessageAccumulator),
+                                       with MessageAccumulator),
         VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-            with MessageAccumulator),
+                                          with MessageAccumulator),
         DatapathController -> (() => new DatapathController
-            with MessageAccumulator))
+                                     with MessageAccumulator))
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
