@@ -416,15 +416,13 @@ public class FlowManager {
             return;
 
         Iterator<FlowMatch> it = dpFlowTable.keySet().iterator();
-        int nFlowsRemoved = 0;
-        while(it.hasNext() && nFlowsRemoved < nFlowsToRemove) {
+        while(it.hasNext() && nFlowsToRemove-- > 0) {
             // we will update the wildFlowToDpFlows lazily
             FlowMatch match = it.next();
             // this call will eventually lead to the removal of this flow
             // from dpFlowTable
             flowManagerHelper.removeFlow(new Flow().setMatch(match));
-            forgetFlow(match);
-            nFlowsRemoved++;
+            it.remove();
         }
     }
 
