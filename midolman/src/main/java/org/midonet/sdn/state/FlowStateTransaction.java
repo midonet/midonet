@@ -33,7 +33,7 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
 
     private ArrayList<K> keys = new ArrayList<>();
     private ArrayList<V> values = new ArrayList<>();
-    private ArrayList<K> refcounts = new ArrayList<>();
+    private ArrayList<K> refs = new ArrayList<>();
 
     public FlowStateTransaction(FlowStateTable<K, V> underlyingState) {
         parent = underlyingState;
@@ -45,7 +45,7 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     public void flush() {
         keys.clear();
         values.clear();
-        refcounts.clear();
+        refs.clear();
     }
 
     /**
@@ -55,8 +55,8 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         for (int i = 0; i < keys.size(); i++)
             parent.putAndRef(keys.get(i), values.get(i));
 
-        for (int i = 0; i < refcounts.size(); i++)
-            parent.ref(refcounts.get(i));
+        for (int i = 0; i < refs.size(); i++)
+            parent.ref(refs.get(i));
     }
 
     @Override
@@ -64,6 +64,12 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         for (int i = 0; i < keys.size(); i++) {
             seed = func.apply(seed, keys.get(i), values.get(i));
         }
+        return seed;
+    }
+
+    public <U> U foldOverRefs(U seed, Reducer<K, V, U> func) {
+        for (int i = 0; i < refs.size(); i++)
+            seed = func.apply(seed, refs.get(i), parent.get(refs.get(i)));
         return seed;
     }
 
@@ -92,7 +98,7 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
 
     @Override
     public V ref(K key) {
-        refcounts.add(key);
+        refs.add(key);
         return get(key);
     }
 }
