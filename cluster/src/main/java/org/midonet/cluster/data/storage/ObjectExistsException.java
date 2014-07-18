@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.orm;
+package org.midonet.cluster.data.storage;
 
 /**
  * Thrown when a caller attempts to use the ZookeeperObjectMapper to store
