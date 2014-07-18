@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.orm;
+package org.midonet.cluster.data.storage;
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the

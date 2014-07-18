@@ -1,47 +1,43 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.orm;
+package org.midonet.cluster.data.storage;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.zookeeper.CreateMode;
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.curator.test.TestingServer;
+import org.apache.zookeeper.KeeperException;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import org.midonet.cluster.orm.FieldBinding.DeleteAction;
-import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.MockDirectory;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.VersionComparator;
-import org.midonet.midolman.version.serialization.JsonVersionZkSerializer;
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.orm.FieldBinding.DeleteAction.CASCADE;
-import static org.midonet.cluster.orm.FieldBinding.DeleteAction.CLEAR;
-import static org.midonet.cluster.orm.FieldBinding.DeleteAction.ERROR;
+import static org.midonet.cluster.data.storage.FieldBinding.DeleteAction.CLEAR;
 
 public class ZookeeperObjectMapperTest {
 
     private static class Bridge {
-        UUID id;
-        String name;
-        UUID inChainId;
-        UUID outChainId;
-        List<UUID> portIds;
+        public UUID id;
+        public String name;
+        public UUID inChainId;
+        public UUID outChainId;
+        public List<UUID> portIds;
 
         Bridge() {}
 
@@ -54,11 +50,11 @@ public class ZookeeperObjectMapperTest {
     }
 
     private static class Router {
-        UUID id;
-        String name;
-        UUID inChainId;
-        UUID outChainId;
-        List<UUID> portIds;
+        public UUID id;
+        public String name;
+        public UUID inChainId;
+        public UUID outChainId;
+        public List<UUID> portIds;
 
         Router() {}
 
@@ -71,14 +67,14 @@ public class ZookeeperObjectMapperTest {
     }
 
     private static class Port {
-        UUID id;
-        String name;
-        UUID peerId;
-        UUID bridgeId;
-        UUID routerId;
-        UUID inChainId;
-        UUID outChainId;
-        List<UUID> ruleIds;
+        public UUID id;
+        public String name;
+        public UUID peerId;
+        public UUID bridgeId;
+        public UUID routerId;
+        public UUID inChainId;
+        public UUID outChainId;
+        public List<UUID> ruleIds;
 
         Port() {}
 
@@ -99,12 +95,12 @@ public class ZookeeperObjectMapperTest {
     }
 
     private static class Chain {
-        UUID id;
-        String name;
-        List<UUID> ruleIds;
-        List<UUID> bridgeIds;
-        List<UUID> routerIds;
-        List<UUID> portIds;
+        public UUID id;
+        public String name;
+        public List<UUID> ruleIds;
+        public List<UUID> bridgeIds;
+        public List<UUID> routerIds;
+        public List<UUID> portIds;
 
         Chain() {}
 
@@ -115,11 +111,11 @@ public class ZookeeperObjectMapperTest {
     }
 
     private static class Rule {
-        UUID id;
-        UUID chainId;
-        String name;
-        List<UUID> portIds;
-        List<String> strings; // Needed for a declareBinding() test.
+        public UUID id;
+        public UUID chainId;
+        public String name;
+        public List<UUID> portIds;
+        public List<String> strings; // Needed for a declareBinding() test.
 
         Rule() {}
 
@@ -132,27 +128,34 @@ public class ZookeeperObjectMapperTest {
     }
 
     private static class NoIdField {
-        UUID notId;
-        List<UUID> refIds;
+        public UUID notId;
+        public List<UUID> refIds;
     }
 
     private ZookeeperObjectMapper orm;
+    private static TestingServer testingServer;
+
+    private static final int zkPort = 12181; // Avoid conflicting with real ZK.
+    private static final String zkConnectionString = "127.0.0.1:" + zkPort;
+    private static final String zkRootDir = "/zkomtest";
+
+    @BeforeClass
+    public static void classSetup() throws Exception {
+        testingServer = new TestingServer(zkPort);
+    }
+
+    @AfterClass
+    public static void classTeardown() throws Exception {
+        testingServer.close();
+    }
 
     @Before
     public void setup() throws Exception {
-        final String rootDir = "/zkormtest";
-        Directory directory = new MockDirectory();
-        ZkManager zkManager = new ZkManager(directory, rootDir);
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFramework client =
+            CuratorFrameworkFactory.newClient(zkConnectionString, retryPolicy);
 
-        SystemDataProvider provider = Mockito.mock(SystemDataProvider.class);
-        Mockito.when(provider.getWriteVersion()).thenReturn("2.0");
-        Serializer serializer =
-                new JsonVersionZkSerializer(provider, new VersionComparator());
-
-        ZookeeperConfig zkConfig = Mockito.mock(ZookeeperConfig.class);
-        Mockito.when(zkConfig.getMidolmanRootKey()).thenReturn(rootDir);
-
-        orm = new ZookeeperObjectMapper(zkManager, serializer, zkConfig);
+        orm = new ZookeeperObjectMapper(zkRootDir, client);
 
         orm.declareBinding(Bridge.class, "inChainId", DeleteAction.CLEAR,
                            Chain.class, "bridgeIds", DeleteAction.CLEAR);
@@ -181,10 +184,16 @@ public class ZookeeperObjectMapperTest {
         orm.declareBinding(Rule.class, "portIds", DeleteAction.CLEAR,
                            Port.class, "ruleIds", DeleteAction.CLEAR);
 
-        directory.add(rootDir, null, CreateMode.PERSISTENT);
+        try {
+            client.delete().deletingChildrenIfNeeded().forPath(zkRootDir);
+        } catch (KeeperException.NoNodeException ex) {
+            // Won't exist the first time.
+        }
+
+        client.create().forPath(zkRootDir);
         for (String s : new String[]{
                 "Bridge", "Router", "Port", "Chain", "Rule"})
-            directory.add(rootDir + "/" + s, null, CreateMode.PERSISTENT);
+            client.create().forPath(zkRootDir + "/" + s);
     }
 
     @Test
@@ -365,6 +374,120 @@ public class ZookeeperObjectMapperTest {
         orm.declareBinding(Chain.class, "ruleIds", CLEAR,
                 Rule.class, "strings", CLEAR);
         fail("Should not allow ref from List<String> to UUID.");
+    }
+
+    @Test
+    public void testGetNonExistingItem() throws Exception {
+        UUID id = UUID.randomUUID();
+        try {
+            orm.get(Bridge.class, id);
+            fail("Should not be able to get non-existing object.");
+        } catch (NotFoundException ex) {
+            assertEquals(Bridge.class, ex.getClazz());
+            assertEquals(id, ex.getId());
+        }
+    }
+
+    @Test
+    public void testCreateWithExistingId() throws Exception {
+        Chain chain = new Chain("chain");
+        orm.create(chain);
+        try {
+            orm.create(chain);
+            fail("Should not be able to create object with in-use ID.");
+        } catch (ObjectExistsException ex) {
+            assertEquals(Chain.class, ex.getClazz());
+            assertEquals(chain.id, ex.getId());
+        }
+    }
+
+    @Test
+    public void testCreateWithMissingReference() throws Exception {
+        Rule rule = new Rule("rule", UUID.randomUUID());
+        try {
+            orm.create(rule);
+            fail("Should not be able to create object with reference missing.");
+        } catch (NotFoundException ex) {
+            assertEquals(Chain.class, ex.getClazz());
+            assertEquals(rule.chainId, ex.getId());
+        }
+    }
+
+    @Test
+    public void testUpdateWithNonExistingId() throws Exception {
+        Chain chain = new Chain("chain");
+        try {
+            orm.update(chain);
+            fail("Should not be able to update nonexisting item.");
+        } catch (NotFoundException ex) {
+            assertEquals(Chain.class, ex.getClazz());
+            assertEquals(chain.id, ex.getId());
+        }
+    }
+
+    @Test
+    public void testUpdateWithMissingReference() throws Exception {
+        Rule rule = new Rule("rule", null);
+        orm.create(rule);
+
+        rule.chainId = UUID.randomUUID();
+        try {
+            orm.update(rule);
+            fail("Should not be able to update with missing reference.");
+        } catch (NotFoundException ex) {
+            assertEquals(Chain.class, ex.getClazz());
+            assertEquals(rule.chainId, ex.getId());
+        }
+    }
+
+    @Test
+    public void testUpdateWithReferenceConflict() throws Exception {
+        Rule rule = new Rule("rule", null);
+        orm.create(rule);
+
+        Chain chain1 = new Chain("chain1");
+        chain1.ruleIds = Arrays.asList(rule.id);
+        orm.create(chain1);
+
+        Chain chain2 = new Chain("chain2");
+        orm.create(chain2);
+
+        chain2.ruleIds = Arrays.asList(rule.id);
+        try {
+            orm.update(chain2);
+            fail("Should not be able to steal rule from another chain.");
+        } catch (ReferenceConflictException ex) {
+            assertThat(ex.getReferencingObj(), instanceOf(Rule.class));
+            assertEquals("chainId", ex.getReferencingField().getName());
+            assertEquals(Chain.class, ex.getReferencedClass());
+            assertEquals(chain1.id, ex.getReferencedId());
+        }
+    }
+
+    @Test
+    public void testDeleteNonExistingObject() throws Exception {
+        UUID id = UUID.randomUUID();
+        try {
+            orm.delete(Bridge.class, id);
+        } catch (NotFoundException ex) {
+            assertEquals(Bridge.class, ex.getClazz());
+            assertEquals(id, ex.getId());
+        }
+    }
+
+    @Test
+    public void testGetAllWithEmptyResult() throws Exception {
+        List<Chain> chains = orm.getAll(Chain.class);
+        assertThat(chains, empty());
+    }
+
+    @Test
+    public void testGetAllWithMultipleObjects() throws Exception {
+        Chain chain1 = new Chain("chain1");
+        Chain chain2 = new Chain("chain2");
+        createObjects(chain1, chain2);
+        List<Chain> chains = orm.getAll(Chain.class);
+        assertEquals(2, chains.size());
     }
 
     private void assertPortsRuleIds(Port port, UUID... ruleIds)

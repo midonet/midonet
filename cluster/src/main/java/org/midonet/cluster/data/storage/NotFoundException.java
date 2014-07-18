@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.orm;
+package org.midonet.cluster.data.storage;
 
 public class NotFoundException extends Exception {
 

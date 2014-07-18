@@ -1,8 +1,10 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.orm;
+package org.midonet.cluster.data.storage;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -15,27 +17,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.inject.Inject;
 
-import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.zookeeper.Op;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+import org.apache.zookeeper.KeeperException.BadVersionException;
+import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.data.Stat;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.orm.FieldBinding.DeleteAction;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.StateVersionException;
-import org.midonet.midolman.state.ZkManager;
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -94,17 +95,18 @@ public class ZookeeperObjectMapper {
     private final ListMultimap<Class<?>, FieldBinding> allBindings =
             ArrayListMultimap.create();
 
-    private final ZkManager zk;
-    private final Serializer serializer;
     private final String basePath;
 
-    @Inject
-    public ZookeeperObjectMapper(ZkManager zk,
-                                 Serializer serializer,
-                                 ZookeeperConfig config) {
-        this.zk = zk;
-        this.serializer = serializer;
-        this.basePath = config.getMidolmanRootKey();
+    private final JsonFactory jsonFactory;
+
+    private final CuratorFramework client;
+
+    public ZookeeperObjectMapper(String basePath,
+                                 CuratorFramework client) {
+        this.basePath = basePath;
+        this.jsonFactory = new JsonFactory(new ObjectMapper());
+        this.client = client;
+        client.start();
     }
 
     /**
@@ -118,7 +120,7 @@ public class ZookeeperObjectMapper {
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class ReferencedObjManager {
+    private class TransactionManager {
 
         private class Key {
 
@@ -146,7 +148,13 @@ public class ZookeeperObjectMapper {
             }
         }
 
-        private Map<Key, Entry<?, Integer>> map = new HashMap<>();
+        private CuratorTransactionFinal transaction;
+        private final Map<Key, Entry<?, Integer>> objCache = new HashMap<>();
+        private final Map<Key, Integer> objsToDelete = new HashMap<>();
+
+        private TransactionManager(CuratorTransactionFinal transaction) {
+            this.transaction = transaction;
+        }
 
         /**
          * Gets the specified object from the internal cache. If not found,
@@ -155,27 +163,16 @@ public class ZookeeperObjectMapper {
         private Object cachedGet(Class<?> clazz, Object id)
                 throws NotFoundException {
             Key key = new Key(clazz, id);
-            Entry<?, Integer> entry = map.get(key);
+            if (objsToDelete.containsKey(key))
+                return null;
+
+            Entry<?, Integer> entry = objCache.get(key);
             if (entry == null) {
                 entry = getWithVersion(clazz, id);
-                map.put(key, entry);
+                objCache.put(key, entry);
             }
 
             return entry.getKey();
-        }
-
-        /**
-         * Get a list of operations to update all cached objects.
-         */
-        private List<Op> getUpdateOps() {
-            List<Op> ops = new ArrayList<>(map.size());
-            for (Entry<Key, Entry<?, Integer>> entry : map.entrySet()) {
-                String path = getPath(entry.getKey().clazz, entry.getKey().id);
-                Object obj = entry.getValue().getKey();
-                Integer version = entry.getValue().getValue();
-                ops.add(updateOp(path, obj, version));
-            }
-            return ops;
         }
 
         /**
@@ -206,7 +203,7 @@ public class ZookeeperObjectMapper {
                     setValue(thatObj, bdg.thatField, thisId);
                 } else {
                     throw new ReferenceConflictException(thatObj, bdg.thatField,
-                            bdg.thisField.getDeclaringClass(), thisId);
+                            bdg.thisField.getDeclaringClass(), curFieldVal);
                 }
             }
         }
@@ -221,8 +218,11 @@ public class ZookeeperObjectMapper {
         private void clearBackReference(FieldBinding bdg,
                                         Object thisId, Object thatId)
                 throws NotFoundException {
+            // May return null if we're doing a delete and thatObj has already
+            // been flagged for delete. If so, there's nothing to do.
             Object thatObj = cachedGet(bdg.thatClass, thatId);
-            assert(thatObj != null);
+            if (thatObj == null)
+                return;
 
             if (isList(bdg.thatField)) {
                 removeFromList(thatObj, bdg.thatField, thisId);
@@ -238,6 +238,67 @@ public class ZookeeperObjectMapper {
                 }
                 setValue(thatObj, bdg.thatField, null);
             }
+        }
+
+        private void prepareDelete(Class<?> clazz, Object id)
+            throws NotFoundException, ObjectReferencedException {
+
+            Entry<?, Integer> entry = getWithVersion(clazz, id);
+            Object thisObj = entry.getKey();
+            Integer thisVersion = entry.getValue();
+
+            objsToDelete.put(new Key(clazz, id), thisVersion);
+
+            for (FieldBinding bdg : allBindings.get(clazz)) {
+                // Nothing to do if thatClass has no backref field.
+                if (bdg.thatField == null)
+                    continue;
+
+                // Get ID(s) from thisField. Nothing to do if there are none.
+                List<?> thoseIds = getValueAsList(thisObj, bdg.thisField);
+                if (thoseIds.isEmpty())
+                    continue;
+
+                for (Object thatId : new HashSet<>(thoseIds)) {
+                    if (objsToDelete.containsKey(
+                        new Key(bdg.thatClass, thatId)))
+                        continue;
+
+                    if (bdg.onDeleteThis == DeleteAction.ERROR) {
+                        throw new ObjectReferencedException(
+                            thisObj, bdg.thatClass, thatId);
+                    } else if (bdg.onDeleteThis == DeleteAction.CLEAR) {
+                        clearBackReference(bdg, id, thatId);
+                    } else { // CASCADE
+                        // Breaks if A has bindings with cascading delete to B
+                        // and C, and B has a binding to C with ERROR semantics.
+                        // This would be complicated to fix and probably isn't
+                        // needed, so I'm leaving it as is.
+                        prepareDelete(bdg.thatClass, thatId);
+                    }
+                }
+            }
+        }
+
+        private void commit() throws Exception {
+            CuratorTransactionFinal ctf = transaction;
+
+            for (Entry<Key, Entry<?, Integer>> entry : objCache.entrySet()) {
+                String path = getPath(entry.getKey().clazz, entry.getKey().id);
+                Object obj = entry.getValue().getKey();
+                Integer version = entry.getValue().getValue();
+                ctf = ctf.setData().withVersion(version)
+                    .forPath(path, serialize(obj)).and();
+            }
+
+            for (Entry<Key, Integer> entry : objsToDelete.entrySet()) {
+                Key key = entry.getKey();
+                String path = getPath(key.clazz, key.id);
+                Integer version = entry.getValue();
+                ctf = ctf.delete().withVersion(version).forPath(path).and();
+            }
+
+            ctf.commit();
         }
     }
 
@@ -343,26 +404,37 @@ public class ZookeeperObjectMapper {
         Field idField = getField(thisClass, "id");
         Object thisId = getValue(o, idField);
 
-        ReferencedObjManager referencedObjManager = new ReferencedObjManager();
+        TransactionManager transactionManager =
+            transactionManagerForCreate(o, thisId);
         for (FieldBinding bdg : allBindings.get(thisClass)) {
             for (Object thatId : getValueAsList(o, bdg.thisField)) {
-                referencedObjManager.addBackreference(bdg, thisId, thatId);
+                transactionManager.addBackreference(bdg, thisId, thatId);
             }
         }
 
-        List<Op> ops = new ArrayList<>();
-        ops.add(createOp(o, thisId));
-        ops.addAll(referencedObjManager.getUpdateOps());
         try {
-            zk.multi(ops);
-        } catch (StateVersionException | NoStatePathException ex) {
+            transactionManager.commit();
+        } catch (NodeExistsException ex) {
+            throw new ObjectExistsException(thisClass, thisId);
+        } catch (BadVersionException | NoNodeException ex) {
             // NoStatePathException is assumed to be due to concurrent delete
             // operation because we already sucessfully fetched any objects
             // that are being updated.
             throw new ConcurrentModificationException(ex);
-        }catch (StatePathExistsException ex) {
-            throw new ObjectExistsException(thisClass, thisId, ex);
-        } catch (StateAccessException ex) {
+        } catch (ReferenceConflictException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new InternalObjectMapperException(ex);
+        }
+    }
+
+    private TransactionManager transactionManagerForCreate(Object o,
+                                                           Object id) {
+        try {
+            return new TransactionManager(
+                client.inTransaction().create()
+                    .forPath(getPath(o.getClass(), id), serialize(o)).and());
+        } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
     }
@@ -381,35 +453,45 @@ public class ZookeeperObjectMapper {
         Object oldThisObj = e.getKey();
         Integer thisVersion = e.getValue();
 
-        ReferencedObjManager referencedObjManager = new ReferencedObjManager();
+        TransactionManager transactionManager =
+            transactionManagerForUpdate(newThisObj, thisId, thisVersion);
         for (FieldBinding bdg : allBindings.get(thisClass)) {
-            List<?> oldThoseIds = getValueAsList(oldThisObj, bdg.thisField);
-            List<?> newThoseIds = getValueAsList(newThisObj, bdg.thisField);
+            List<Object> oldThoseIds =
+                getValueAsList(oldThisObj, bdg.thisField);
+            List<Object> newThoseIds =
+                getValueAsList(newThisObj, bdg.thisField);
 
-            // ListUtils.subtract uses a quadratic-time algorithm. We can
-            // write a hash-based algorithm if this becomes a problem.
             List<?> removedIds = ListUtils.subtract(oldThoseIds, newThoseIds);
             for (Object thatId : removedIds) {
-                referencedObjManager.clearBackReference(bdg, thisId, thatId);
+                transactionManager.clearBackReference(bdg, thisId, thatId);
             }
 
             List<?> addedIds = ListUtils.subtract(newThoseIds, oldThoseIds);
             for (Object thatId : addedIds) {
-                referencedObjManager.addBackreference(bdg, thisId, thatId);
+                transactionManager.addBackreference(bdg, thisId, thatId);
             }
         }
 
-        List<Op> ops = referencedObjManager.getUpdateOps();
-        ops.add(updateOp(getPath(thisClass, thisId), newThisObj, thisVersion));
-
         try {
-            zk.multi(ops);
-        } catch (StateVersionException | NoStatePathException ex) {
+            transactionManager.commit();
+        } catch (BadVersionException | NoNodeException ex) {
             // NoStatePathException is assumed to be due to concurrent delete
             // operation because we already sucessfully fetched any objects
             // that are being updated.
             throw new ConcurrentModificationException(ex);
-        } catch (StateAccessException ex) {
+        } catch (Exception ex) {
+            throw new InternalObjectMapperException(ex);
+        }
+    }
+
+    private TransactionManager transactionManagerForUpdate(Object o,
+                                                           Object id,
+                                                           int version) {
+        try {
+            return new TransactionManager(
+                client.inTransaction().setData().withVersion(version)
+                    .forPath(getPath(o.getClass(), id), serialize(o)).and());
+        } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
     }
@@ -420,114 +502,62 @@ public class ZookeeperObjectMapper {
     public void delete(Class<?> clazz, Object id)
             throws NotFoundException, ObjectReferencedException {
 
-        ReferencedObjManager referencedObjManager = new ReferencedObjManager();
-        List<Object> idsToIgnore = new ArrayList<>();
-        List<Op> deleteOps =
-                prepareDelete(clazz, id, idsToIgnore, referencedObjManager);
+        TransactionManager transactionManager =
+            new TransactionManager((CuratorTransactionFinal)client.inTransaction());
+        transactionManager.prepareDelete(clazz, id);
 
-        // Execute updates before deletes, so we don't try to update a
-        // deleted node.
-        List<Op> ops = new ArrayList<>();
-        ops.addAll(referencedObjManager.getUpdateOps());
-        ops.addAll(deleteOps);
         try {
-            zk.multi(ops);
-        } catch (StateVersionException | NoStatePathException ex) {
+            transactionManager.commit();
+        } catch (BadVersionException | NoNodeException ex) {
             // NoStatePathException is assumed to be due to concurrent delete
             // operation because we already sucessfully fetched any objects
             // that are being updated.
             throw new ConcurrentModificationException(ex);
-        } catch (StateAccessException ex) {
+        } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
-    }
-
-    private List<Op> prepareDelete(Class<?> clazz, Object id,
-                                   List<Object> idsToIgnore,
-                                   ReferencedObjManager referencedObjManager)
-                throws NotFoundException, ObjectReferencedException {
-
-        // We're deleting this object, so we can ignore references to it.
-        idsToIgnore.add(id);
-
-        Entry<?, Integer> entry = getWithVersion(clazz, id);
-        Object thisObj = entry.getKey();
-        Integer thisVersion = entry.getValue();
-
-        List<Op> deleteOps = new ArrayList<>();
-        deleteOps.add(Op.delete(getPath(clazz, id), thisVersion));
-
-        for (FieldBinding bdg : allBindings.get(clazz)) {
-            // Nothing to do if thatClass has no backref field.
-            if (bdg.thatField == null)
-                continue;
-
-            // Get ID(s) from thisField. Nothing to do if there are none.
-            List<?> thoseIds = getValueAsList(thisObj, bdg.thisField);
-            if (thoseIds.isEmpty())
-                continue;
-
-            for (Object thatId : new HashSet<>(thoseIds)) {
-                if (idsToIgnore.contains(thatId))
-                    continue;
-
-                if (bdg.onDeleteThis == DeleteAction.ERROR) {
-                    throw new ObjectReferencedException(
-                            thisObj, bdg.thatClass, thatId);
-                } else if (bdg.onDeleteThis == DeleteAction.CLEAR) {
-                    referencedObjManager.clearBackReference(bdg, id, thatId);
-                } else { // CASCADE
-                    // This will break in the case where A has bindings with
-                    // cascading delete to B and C, and B has a binding to
-                    // C with ERROR semantics. This would be complicated to
-                    // fix and probably isn't needed, so I'm leaving it as is.
-                    deleteOps.addAll(
-                            prepareDelete(bdg.thatClass, thatId, idsToIgnore,
-                                          referencedObjManager));
-                }
-            }
-        }
-
-        return deleteOps;
     }
 
     private <T> Entry<T, Integer> getWithVersion(Class<T> clazz, Object id)
             throws NotFoundException {
+        byte[] data;
+        Stat stat = new Stat();
         try {
-            Entry<byte[], Integer> entry =
-                    zk.getWithVersion(getPath(clazz, id), null);
-            return new ImmutablePair<>(
-                    serializer.deserialize(entry.getKey(), clazz),
-                    entry.getValue());
-        } catch (NoStatePathException ex) {
+            String path = getPath(clazz, id);
+            data = client.getData().storingStatIn(stat).forPath(path);
+        } catch (NoNodeException ex) {
             throw new NotFoundException(clazz, id, ex);
         } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
+
+        return new ImmutablePair<>(deserialize(data, clazz), stat.getVersion());
     }
 
     /**
      * Gets the specified instance of the specified class.
      */
     public <T> T get(Class<T> clazz, Object id) throws NotFoundException {
+        byte[] data;
         try {
-            byte[] data = zk.get(getPath(clazz, id));
-            return serializer.deserialize(data, clazz);
-        } catch (NoStatePathException ex) {
+            data = client.getData().forPath(getPath(clazz, id));
+        } catch (NoNodeException ex) {
             throw new NotFoundException(clazz, id, ex);
-        } catch (SerializationException | StateAccessException ex) {
+        } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
+
+        return deserialize(data, clazz);
     }
 
     /**
      * Gets all instances of the specified class in Zookeeper.
      */
     public <T> List<T> getAll(Class<T> clazz) {
-        Set<String> ids;
+        List<String> ids;
         try {
-            ids = zk.getChildren(getPath(clazz));
-        } catch (StateAccessException ex) {
+            ids = client.getChildren().forPath(getPath(clazz));
+        } catch (Exception ex) {
             // We should make sure top-level class nodes exist during startup.
             throw new InternalObjectMapperException(
                     "Node "+getPath(clazz)+" does not exist in Zookeeper.", ex);
@@ -546,8 +576,8 @@ public class ZookeeperObjectMapper {
 
     public boolean exists(Class<?> clazz, Object id) {
         try {
-            return zk.exists(getPath(clazz, id));
-        } catch (StateAccessException ex) {
+            return client.checkExists().forPath(getPath(clazz, id)) != null;
+        } catch (Exception ex) {
             throw new InternalObjectMapperException(ex);
         }
     }
@@ -558,23 +588,6 @@ public class ZookeeperObjectMapper {
 
     private String getPath(Class<?> clazz, Object id) {
         return getPath(clazz) + "/" + id;
-    }
-
-    private Op createOp(Object o, Object id) {
-        try {
-            return zk.getPersistentCreateOp(getPath(o.getClass(), id),
-                                            serializer.serialize(o));
-        } catch (SerializationException ex) {
-            throw new InternalObjectMapperException(ex);
-        }
-    }
-
-    private Op updateOp(String path, Object o, int version) {
-        try {
-            return Op.setData(path, serializer.serialize(o), version);
-        } catch (SerializationException ex) {
-            throw new InternalObjectMapperException(ex);
-        }
     }
 
     /**
@@ -614,12 +627,12 @@ public class ZookeeperObjectMapper {
      *      -If the value is not a list, a list containing only the value.
      *      -If the value is a list, the value itself.
      */
-    private List<?> getValueAsList(Object o, Field f) {
+    private List<Object> getValueAsList(Object o, Field f) {
         Object val = getValue(o, f);
         if (val == null)
             return Collections.emptyList();
 
-        return (val instanceof List<?>) ? (List<?>)val : Arrays.asList(val);
+        return (val instanceof List) ? (List<Object>)val : Arrays.asList(val);
     }
 
     /**
@@ -660,6 +673,33 @@ public class ZookeeperObjectMapper {
             throw new ConcurrentModificationException(
                     "Expected to find "+val+" in list "+f.getName()+" of "+o+
                     ", but did not.");
+        }
+    }
+
+    // TODO: Replace with protobuf serialization.
+    private byte[] serialize(Object o) {
+        StringWriter writer = new StringWriter();
+        try {
+            JsonGenerator generator = jsonFactory.createJsonGenerator(writer);
+            generator.writeObject(o);
+            generator.close();
+        } catch (IOException ex) {
+            throw new InternalObjectMapperException(
+                "Could not serialize "+o, ex);
+        }
+        return writer.toString().trim().getBytes();
+    }
+
+    // TODO: Replace with protobuf deserialization.
+    private <T> T deserialize(byte[] json, Class<T> clazz) {
+        try {
+            JsonParser parser = jsonFactory.createJsonParser(json);
+            T t = parser.readValueAs(clazz);
+            parser.close();
+            return t;
+        } catch (IOException ex) {
+            throw new InternalObjectMapperException(
+                "Could not parse JSON: " + new String(json), ex);
         }
     }
 }
