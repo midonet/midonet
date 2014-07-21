@@ -358,9 +358,12 @@ public class LocalDataClientImpl implements DataClient {
             if (p == null || !p.isExterior()) {
                continue;
             }
-            filtered.put(vmp,
-                         vxlanTunnelEndpointForWithoutVerification(bridge,
-                                                                   (BridgePort) p));
+            // skip on null - caused by race condition
+            // (disappeared/unbound port/bridge)
+            IPv4Addr ip = vxlanTunnelEndpointForInternal(bridge, (BridgePort)p);
+            if (ip == null)
+                continue;
+            filtered.put(vmp, ip);
         }
         return filtered;
     }
@@ -3429,7 +3432,8 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public IPv4Addr vxlanTunnelEndpointFor(UUID id)
         throws SerializationException, StateAccessException {
-        return vxlanTunnelEndpointFor((BridgePort)portsGet(id));
+        BridgePort port = (BridgePort) portsGet(id);
+        return (port == null)? null: vxlanTunnelEndpointFor(port);
     }
 
     @Override
@@ -3442,33 +3446,42 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         Bridge b = bridgesGet(port.getDeviceId());
-        if (null == b.getVxLanPortId()) {
-            throw new IllegalArgumentException("Can't resolve vxlan tunnel " +
-                                               "endpoint on bridge not bound " +
-                                               "to a vtep: " + b.getId());
+        if (null == b) {
+            log.warn("Bridge {} for port {} does not exist anymore",
+                     port.getDeviceId(), port.getId());
+            return null;
         }
 
-        return vxlanTunnelEndpointForWithoutVerification(b, port);
+        return vxlanTunnelEndpointForInternal(b, port);
     }
 
     /*
-     * Utility method to use internaly. It will not perform any verifications to
-     * ensure that the passed bridge and port meet expectations. These are
-     * assumed to be verified by the caller. It's convenient to slice this out
-     * so other methods can fetch the parameters as they prefer, and then use
-     * this to retrieve the vxlan tunnel endpoing.
+     * Utility method to use internaly. It assumes that the caller has verified
+     * that both the bridge and port are non-null.
+     * It's convenient to slice this out so other methods can fetch the
+     * parameters as they prefer, and then use this to retrieve the vxlan
+     * tunnel endpoint. The method returns a null IP if the endpoint cannot
+     * be retrieved for any reason (bridge unbound, etc.)
      *
-     * @param b a bridge, that must exist, be bound to a VTEP, and contain the
+     * @param b a bridge, expected to exist, be bound to a VTEP, and contain the
      *          given port
      * @param port a bridge port on the given bridge, that must be exterior
      * @return the IP address of the bound host's membership in the VTEP's
      * tunnel zone.
      */
-    private IPv4Addr vxlanTunnelEndpointForWithoutVerification(Bridge b,
-                                                               BridgePort port)
-    throws SerializationException, StateAccessException {
+    private IPv4Addr vxlanTunnelEndpointForInternal(Bridge b, BridgePort port)
+        throws SerializationException, StateAccessException {
 
+        if (b.getVxLanPortId() == null) {
+            log.warn("Bridge {} is not bound to a vtep", b.getId());
+            return null;
+        }
         VxLanPort vxlanPort = (VxLanPort)this.portsGet(b.getVxLanPortId());
+        if (vxlanPort == null) {
+            log.warn("VxLanPort {} at bridge {} does not exist anymore",
+                     b.getVxLanPortId(), b.getId());
+            return null;
+        }
         IPv4Addr vtepMgmtIp = vxlanPort.getMgmtIpAddr();
         log.debug("Port's bridge {} has a VxLanPort {}", port.getId(),
                   vxlanPort.getId());
@@ -3476,20 +3489,28 @@ public class LocalDataClientImpl implements DataClient {
         // We will need the host where the given BridgePort is bound
         UUID hostId = port.getHostId();
         if (hostId == null) {
-            throw new IllegalArgumentException(
-                String.format("Port %s isn't bound to a host ", port.getId()));
+            log.error("Port {} is not bound to a host", port.getId());
+            return null;
         }
 
         // Let's get the tunnel zone this host should be in, and get the IP of
         // the host in that tunnel zone.
-        UUID tzId = vtepGet(vtepMgmtIp).getTunnelZoneId();
+        VTEP vtep = vtepGet(vtepMgmtIp);
+        if (vtep == null) {
+            log.warn("Vtep {} bound to bridge {} does not exist anymore",
+                     vtepMgmtIp, b.getId());
+            return null;
+        }
+        UUID tzId = vtep.getTunnelZoneId();
         TunnelZone.HostConfig hostCfg =
             this.tunnelZonesGetMembership(tzId, hostId);
         if (hostCfg == null) {
-            throw new IllegalStateException(String.format(
-                "Port %s on bridge %s is bound to interface in host %s was " +
-                "expected to belong to tunnel zone %s through binding to " +
-                "VTEP %s", port.getId(), b.getId(), hostId, tzId, vtepMgmtIp));
+            log.error("Port {} on bridge {} bount to an interface in host {} " +
+                      "was expected to belong to tunnel zone {} through " +
+                      "binding to VTEP {}",
+                      new Object[]{port.getId(), b.getId(), hostId, tzId,
+                          vtepMgmtIp});
+            return null;
         }
 
         return hostCfg.getIp().toIPv4Addr();

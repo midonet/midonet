@@ -1061,6 +1061,8 @@ public interface DataClient {
 
     /**
      * See vxlanTunnelEndpointFor(BridgePort port)
+     * @return null if the bridge port id does not correspond to a bridge
+     * currently connected to a vtep.
      */
     public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
