@@ -379,7 +379,7 @@ class TestableFlowStateReplicator(
     override val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
 
     override def getHost(id: UUID): Host =
-        new Host(id, 23L, "midonet", Map.empty, Map.empty)
+        new Host(id, true, 23L, "midonet", Map.empty, Map.empty)
 
     override def getPort(id: UUID): Port = ports(id)
 
@@ -402,7 +402,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
 
     val output = FlowActions.output(23)
 
-    override def host = Host(hostId, 23L, "midonet", Map.empty, Map.empty)
+    override def host = Host(hostId, true, 23L, "midonet", Map.empty, Map.empty)
 
     override def peerTunnelInfo(peer: UUID): Option[Route] = {
         if (peers.contains(peer))

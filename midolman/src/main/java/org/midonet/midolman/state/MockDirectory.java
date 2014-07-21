@@ -376,6 +376,11 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public boolean exists(String path, Runnable watcher) {
+        return exists(path, wrapCallback(watcher));
+    }
+
+    @Override
     public boolean has(String path) {
         PathUtils.validatePath(path);
         try {
