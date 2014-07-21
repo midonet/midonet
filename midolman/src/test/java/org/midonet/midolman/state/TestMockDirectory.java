@@ -190,8 +190,8 @@ public class TestMockDirectory {
                                            NotEmptyException {
         MyWatcher watcher1 = new MyWatcher();
         MyWatcher watcher2 = new MyWatcher();
-        Assert.assertEquals(dir.exists("/a", watcher1), false);
-        Assert.assertEquals(dir.exists("/a", watcher2), false);
+        Assert.assertEquals(dir.exists("/a", (Watcher)watcher1), false);
+        Assert.assertEquals(dir.exists("/a", (Watcher)watcher2), false);
         Assert.assertEquals(watcher1.total(), 0);
         Assert.assertEquals(watcher2.total(), 0);
         dir.add("/a", "one".getBytes(), CreateMode.PERSISTENT);
@@ -206,7 +206,7 @@ public class TestMockDirectory {
         Assert.assertEquals(watcher2.dataChanges, 1);
         Assert.assertEquals(watcher1.total(), 2);
         Assert.assertEquals(watcher2.total(), 2);
-        Assert.assertEquals(dir.exists("/a", watcher1), true);
+        Assert.assertEquals(dir.exists("/a", (Watcher)watcher1), true);
         dir.delete("/a");
         Assert.assertEquals(watcher1.deletes, 1);
         Assert.assertEquals(watcher2.deletes, 0);
@@ -214,7 +214,7 @@ public class TestMockDirectory {
         Assert.assertEquals(watcher2.total(), 2);
 
         MyWatcher watcher3 = new MyWatcher();
-        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), false);
+        Assert.assertEquals(dir.exists("/a/b/c/d", (Watcher)watcher3), false);
         dir.add("/a", "a".getBytes(), CreateMode.PERSISTENT);
         Assert.assertEquals(watcher3.total(), 0);
         dir.add("/a/b", "ab".getBytes(), CreateMode.PERSISTENT);
@@ -224,14 +224,14 @@ public class TestMockDirectory {
         dir.add("/a/b/c/d", "abcd0".getBytes(), CreateMode.PERSISTENT);
         Assert.assertEquals(watcher3.creates, 1);
         Assert.assertEquals(watcher3.total(), 1);
-        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), true);
+        Assert.assertEquals(dir.exists("/a/b/c/d", (Watcher)watcher3), true);
         dir.update("/a/b/c/d", "abcd1".getBytes());
         Assert.assertEquals(watcher3.dataChanges, 1);
         Assert.assertEquals(watcher3.total(), 2);
         dir.update("/a/b/c/d", "abcd2".getBytes());
         Assert.assertEquals(watcher3.dataChanges, 1);
         Assert.assertEquals(watcher3.total(), 2);
-        Assert.assertEquals(dir.exists("/a/b/c/d", watcher3), true);
+        Assert.assertEquals(dir.exists("/a/b/c/d", (Watcher)watcher3), true);
         dir.delete("/a/b/c/d");
         Assert.assertEquals(watcher3.deletes, 1);
         Assert.assertEquals(watcher3.total(), 3);

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -117,11 +116,6 @@ public class HostZkManager
         zk.ensureEphemeral(path, new byte[0]);
     }
 
-    public void makeNotAlive(UUID hostId) throws StateAccessException {
-        String path = paths.getHostPath(hostId) + "/alive";
-        zk.deleteEphemeral(path);
-    }
-
     /**
      * Set this host's version in ZK. This value will be read by
      * the upgrade coordinator to see which version everyone is on.
@@ -148,8 +142,11 @@ public class HostZkManager
         return zk.exists(paths.getHostPath(id) + "/alive");
     }
 
-    public boolean isAlive(UUID id, Watcher watcher)
-        throws StateAccessException {
+    public boolean isAlive(UUID id, Runnable watcher) throws StateAccessException {
+        return zk.exists(paths.getHostPath(id) + "/alive", watcher);
+    }
+
+    public boolean isAlive(UUID id, Watcher watcher) throws StateAccessException {
         return zk.exists(paths.getHostPath(id) + "/alive", watcher);
     }
 

@@ -18,4 +18,6 @@ public interface HostBuilder extends Builder<HostBuilder> {
     HostBuilder delMaterializedPortMapping(UUID portId, String interfaceName);
 
     HostBuilder setTunnelZones(Map<UUID, TunnelZone.HostConfig> zoneConfigsForHost);
+
+    HostBuilder setAlive(boolean alive);
 }
