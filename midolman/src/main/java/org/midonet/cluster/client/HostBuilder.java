@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.midonet.cluster.data.TunnelZone;
 
 public interface HostBuilder extends Builder<HostBuilder> {
+    HostBuilder setEpoch(long epoch);
 
     HostBuilder setDatapathName(String datapathName);
 

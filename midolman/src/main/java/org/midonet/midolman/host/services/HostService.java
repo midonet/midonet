@@ -69,6 +69,8 @@ public class HostService extends AbstractService
     @Inject
     private ZkManager zkManager;
 
+    public final long epoch = System.currentTimeMillis();
+
     public static class HostIdAlreadyInUseException extends Exception {
 
         private static final long serialVersionUID = 1L;
@@ -138,6 +140,8 @@ public class HostService extends AbstractService
         // Try to get the host Id
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
 
+        metadata.setEpoch(epoch);
+
         // Retrieve the interfaces and store the addresses in the metadata
         ArrayList<InetAddress> listAddresses = new ArrayList<>();
         for (InterfaceDescription info : getInterfaces()) {
@@ -177,10 +181,11 @@ public class HostService extends AbstractService
             throws StateAccessException, SerializationException {
 
         if (zkManager.exists(id)) {
-            if (!metadata.equals(zkManager.get(id))) {
+            if (!metadata.isSameHost(zkManager.get(id))) {
                 if (zkManager.isAlive(id))
                     return false;
-                zkManager.updateMetadata(id, metadata);
+                if (!metadata.equals(zkManager.get(id)))
+                    zkManager.updateMetadata(id, metadata);
             }
         } else {
             zkManager.createHost(id, metadata);

@@ -166,6 +166,7 @@ public class HostDirectory {
     public static class Metadata {
         String name;
         InetAddress[] addresses;
+        long epoch = 0;
 
         @JsonIgnore
         transient Set<UUID> tunnelZones = new HashSet<>();
@@ -180,6 +181,14 @@ public class HostDirectory {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public long getEpoch() {
+            return epoch;
+        }
+
+        public void setEpoch(long epoch) {
+            this.epoch = epoch;
         }
 
         public InetAddress[] getAddresses() {
@@ -200,6 +209,10 @@ public class HostDirectory {
 
         @Override
         public boolean equals(Object o) {
+            return isSameHost(o) && epoch == ((Metadata)o).epoch;
+        }
+
+        public boolean isSameHost(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
@@ -209,7 +222,7 @@ public class HostDirectory {
             if (name != null ? !name.equals(metadata.name) : metadata.name != null)
                 return false;
             if (tunnelZones != null ? !tunnelZones.equals(metadata.tunnelZones)
-                                    : metadata.tunnelZones != null)
+                    : metadata.tunnelZones != null)
                 return false;
 
             return true;
@@ -220,6 +233,7 @@ public class HostDirectory {
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (addresses != null ? Arrays.hashCode(addresses) : 0);
             result = 31 * result + (tunnelZones != null ? tunnelZones.hashCode() : 0);
+            result = 31 * result + (int)epoch;
             return result;
         }
     }

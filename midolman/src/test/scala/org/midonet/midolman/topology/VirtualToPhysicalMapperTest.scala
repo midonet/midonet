@@ -50,7 +50,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
         scenario("Subscribes to a host.") {
             newHost("myself", hostId())
 
-            val host = Host(hostId(), "midonet", Map[UUID, String](),
+            val host = Host(hostId(), 0L, "midonet", Map[UUID, String](),
                             Map[UUID, TunnelZone.HostConfig]())
 
             val subscriber = subscribe(HostRequest(hostId()))
