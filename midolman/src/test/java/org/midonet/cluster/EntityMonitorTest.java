@@ -48,6 +48,7 @@ import org.midonet.util.eventloop.Reactor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class EntityMonitorTest {
@@ -231,6 +232,10 @@ public class EntityMonitorTest {
         @Override
         public void call(T t) { found.add(t); }
         public void verify() { assertEquals(expected, found); }
+        public void verifyIgnoreOrder() {
+            assertTrue(expected.containsAll(found) &&
+                       expected.size() == found.size());
+        }
     }
 
     /*

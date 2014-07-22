@@ -138,6 +138,6 @@ public class EntityIdSetMonitorTest {
 
         m.notifyState();
 
-        expectedUpdates.verify();
+        expectedUpdates.verifyIgnoreOrder();
     }
 }
