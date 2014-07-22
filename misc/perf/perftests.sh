@@ -284,7 +284,7 @@ install_midolman() {
     install_config_file midolman/midolman-env.sh /etc/midolman/
 
     [ -d $TOMCAT7_CONF_DIR ] || mkdir -p $TOMCAT7_CONF_DIR
-    cp -f $$MIDONET_SRC_DIR/midonet-api/conf/midonet-api.xml $TOMCAT7_CONF_DIR/
+    cp -f $MIDONET_SRC_DIR/midonet-api/conf/midonet-api.xml $TOMCAT7_CONF_DIR/
 
      # set a meaningful name for the hprof file, just in case it's enabled...
     export HPROF_FILENAME=$REPORT_DIR/midolman-$TOPOLOGY_NAME-$PROFILE.hprof
