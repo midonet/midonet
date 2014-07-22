@@ -234,7 +234,7 @@ public class ZookeeperObjectMapperTest {
         try {
             orm.update(bPort1);
             fail("Linking to an already-linked port should not be allowed.");
-        } catch (Exception ex) {}
+        } catch (ReferenceConflictException ex) {}
 
         // Link bPort1 and rPort1 with an update.
         bPort1.peerId = rPort1.id;
@@ -278,7 +278,7 @@ public class ZookeeperObjectMapperTest {
         try {
             orm.delete(Bridge.class, bridge.id);
             fail("Delete should fail while bridge has ports.");
-        } catch (RuntimeException ex) {}
+        } catch (ObjectReferencedException ex) {}
 
         // Delete a bridge port and verify that references to it are cleared.
         orm.delete(Port.class, bPort1.id);
@@ -315,7 +315,7 @@ public class ZookeeperObjectMapperTest {
         assertPortsRuleIds(rPort1, c2Rule1.id);
     }
 
-    @Test
+    @Test(expected = ObjectReferencedException.class)
     public void testCascadeToDeleteError() throws Exception {
         orm.clearBindings();
         orm.declareBinding(Bridge.class, "inChainId", DeleteAction.CASCADE,
@@ -328,14 +328,7 @@ public class ZookeeperObjectMapperTest {
         Bridge bridge = new Bridge("bridge", chain.id, null);
         createObjects(chain, rule, bridge);
 
-        try {
-            orm.delete(Bridge.class, bridge.id);
-            fail("Should not be able to delete chain while rule exists.");
-        } catch (RuntimeException ex) {
-            assertTrue(orm.exists(Bridge.class, bridge.id));
-            assertTrue(orm.exists(Chain.class, chain.id));
-            assertTrue(orm.exists(Rule.class, rule.id));
-        }
+        orm.delete(Bridge.class, bridge.id);
     }
 
     @Test
