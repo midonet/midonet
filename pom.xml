@@ -33,6 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+        <!-- Default for SNAPSHOTS, should be overriden at finals -->
         <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
@@ -168,7 +169,7 @@
                 <artifactId>rpm-maven-plugin</artifactId>
                 <version>2.1-alpha-2</version>
                 <configuration>
-                    <copyright>2013, Midokura</copyright>
+                    <copyright>2014, Midokura</copyright>
                     <packager>Midokura</packager>
                     <prefix>/usr</prefix>
                     <group>System Environment/Daemons</group>
