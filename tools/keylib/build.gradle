@@ -1,0 +1,11 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet license key library',
+                   'Implementation-Version': version
+    }
+}
+
+
+dependencies {
+    compile libraries.truelicense, libraries.findbugs, libraries.commons_codec
+}
