@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.inject.Inject;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
@@ -304,13 +305,13 @@ public class ZookeeperObjectMapper {
 
         // TODO: Cache id field for each class?
         // TODO: Initialize ID if null?
-        Class<?> objClass = o.getClass();
-        Field idField = getField(objClass, "id");
+        Class<?> thisClass = o.getClass();
+        Field idField = getField(thisClass, "id");
         Object thisId = getValue(o, idField);
 
         ReferencedObjManager referencedObjManager = new ReferencedObjManager();
-        for (FieldBinding bdg : allBindings.get(objClass)) {
-            for(Object thatId : getValueAsList(o, bdg.thisField)) {
+        for (FieldBinding bdg : allBindings.get(thisClass)) {
+            for (Object thatId : getValueAsList(o, bdg.thisField)) {
                 referencedObjManager.addBackreference(bdg, thisId, thatId);
             }
         }
@@ -321,6 +322,46 @@ public class ZookeeperObjectMapper {
         zk.multi(ops);
     }
 
+    /**
+     * Updates the specified object in Zookeeper.
+     */
+    public void update(Object newThisObj)
+            throws SerializationException, StateAccessException {
+
+        Class<?> thisClass = newThisObj.getClass();
+        Field idField = getField(thisClass, "id");
+        Object thisId = getValue(newThisObj, idField);
+
+        Entry<?, Integer> e = getWithVersion(thisClass, thisId);
+        Object oldThisObj = e.getKey();
+        Integer thisVersion = e.getValue();
+
+        ReferencedObjManager referencedObjManager = new ReferencedObjManager();
+        for (FieldBinding bdg : allBindings.get(thisClass)) {
+            List<?> oldThoseIds = getValueAsList(oldThisObj, bdg.thisField);
+            List<?> newThoseIds = getValueAsList(newThisObj, bdg.thisField);
+
+            // ListUtils.subtract uses a quadratic-time algorithm. We can
+            // write a hash-based algorithm if this becomes a problem.
+            List<?> removedIds = ListUtils.subtract(oldThoseIds, newThoseIds);
+            for (Object thatId : removedIds) {
+                referencedObjManager.clearBackReference(bdg, thisId, thatId);
+            }
+
+            List<?> addedIds = ListUtils.subtract(newThoseIds, oldThoseIds);
+            for (Object thatId : addedIds) {
+                referencedObjManager.addBackreference(bdg, thisId, thatId);
+            }
+        }
+
+        List<Op> ops = referencedObjManager.getUpdateOps();
+        ops.add(updateOp(getPath(thisClass, thisId), newThisObj, thisVersion));
+        zk.multi(ops);
+    }
+
+    /**
+     * Deletes the specified object from Zookeeper.
+     */
     public void delete(Class<?> clazz, Object id)
             throws SerializationException, StateAccessException {
 
@@ -407,8 +448,7 @@ public class ZookeeperObjectMapper {
     }
 
     /**
-     * Gets all instances of the specified class that have been created
-     * with create() and not yet deleted.
+     * Gets all instances of the specified class in Zookeeper.
      */
     public <T> List<T> getAll(Class<T> clazz)
             throws SerializationException {
