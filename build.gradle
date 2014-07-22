@@ -39,8 +39,11 @@ project.ext {
         guice: ["com.google.inject:guice:${versions.guice}",
                 "com.google.inject.extensions:guice-assistedinject:${versions.guice}"],
         guice_servlet: "com.google.inject.extensions:guice-servlet:${versions.guice}",
+        guice_multibind: "com.google.inject.extensions:guice-multibindings:${versions.guice}",
         yammer: ["com.yammer.metrics:metrics-core:2.1.2",
                  "com.yammer.metrics:metrics-ganglia:2.1.2"],
+
+        rx: "com.netflix.rxjava:rxjava-core:0.17.6",
 
         jackson_jaxrs: "org.codehaus.jackson:jackson-jaxrs:${versions.jackson}",
         jackson_xc: "org.codehaus.jackson:jackson-xc:${versions.jackson}",
@@ -126,6 +129,12 @@ project.ext {
         jersey_test_core: dependencies.create(
             "com.sun.jersey.jersey-test-framework:jersey-test-framework-core:${versions.jersey}") {
                 exclude group: 'junit', module: 'junit'},
+
+        truelicense: "net.java.truelicense:truelicense-json:2.3.3",
+
+        vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
+        jcabi: "com.jcabi:jcabi-aspects:0.15.1",
+        aspectj: "org.aspectj:aspectjrt:1.8.0"
     ]
 
     timestamp = new Date().format("YYYYMMddHHmm")
@@ -162,11 +171,12 @@ idea.project {
     outputFile = file("${rootDir}/idea/midonet.ipr")
 }
 
-subprojects {
+configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     apply plugin: 'java'
     apply from: "${rootProject.projectDir}/git.gradle"
 
     sourceCompatibility = versions.java
+
     version = midonetVersion
     group = 'org.midonet'
 
@@ -199,8 +209,40 @@ subprojects {
     }
 }
 
+configure(subprojects.findAll {it.name.contains('ovsdb')}) {
+    group = 'org.midonet'
+    version = '0.5.0-1-MIDO'
 
-// Utiilty methods start here
+    apply plugin: 'java'
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
+    dependencies {
+        compile "com.google.guava:guava:14.0.1",
+                "com.google.code.gson:gson:2.1",
+                "com.netflix.rxjava:rxjava-core:0.17.6",
+                "org.opendaylight.controller:clustering.services:0.5.0",
+                "org.opendaylight.controller:sal.connection:0.1.1",
+                "org.opendaylight.controller:sal.networkconfiguration:0.0.2",
+                "javax.portlet:portlet-api:2.0",
+                "org.apache.httpcomponents:httpcore-nio:4.2.1",
+                "io.netty:netty-all:4.0.10.Final",
+                "commons-collections:commons-collections:1.0",
+                "com.fasterxml.jackson.core:jackson-databind:2.3.2",
+                "com.fasterxml.jackson.core:jackson-core:2.3.2",
+                "com.fasterxml.jackson.core:jackson-annotations:2.3.2",
+                "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521"
+    }
+
+    repositories {
+        mavenLocal()
+        maven { url "http://repo.maven.apache.org/maven2" }
+        maven { url "http://nexus.opendaylight.org/content/groups/public/" }
+        maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+    }
+}
+
+// Utility methods start here
 
 def addScalaLangLevelToIdea(iml) {
     def facets = iml.asNode().component.find { it.@name == 'FacetManager' } ?:

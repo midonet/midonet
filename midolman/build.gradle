@@ -30,7 +30,7 @@ dependencies {
             libraries.commons_cli, libraries.commons_io, libraries.guava,
             libraries.guice, libraries.yammer, libraries.cassandra,
             libraries.hector, libraries.jetty, libraries.jackson_scala,
-            libraries.zookeeper, libraries.jetty_server,
+            libraries.zookeeper, libraries.jetty_server, libraries.rx,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix
 
     testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit
