@@ -6,16 +6,14 @@ package org.midonet.midolman.host.config;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
+import org.midonet.config.HostIdConfig;
 
 /**
  * Interface that provides access to various configuration values
  * available to the host.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/8/12
  */
 @ConfigGroup(HostConfig.GROUP_NAME)
-public interface HostConfig {
+public interface HostConfig extends HostIdConfig {
 
     public static final String GROUP_NAME = "host";
 
