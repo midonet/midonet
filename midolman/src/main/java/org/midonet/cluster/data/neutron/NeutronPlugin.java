@@ -4,11 +4,13 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.inject.Inject;
+
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.l4lb.LoadBalancer;
@@ -35,12 +37,14 @@ import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,10 +58,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @SuppressWarnings("unused")
 public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
-        LBaaSApi {
+                                      LBaaSApi {
 
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(NeutronPlugin.class);
+        LoggerFactory.getLogger(NeutronPlugin.class);
 
     @Inject
     private ZkManager zkManager;
@@ -102,11 +106,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     private Serializer serializer;
 
     private final static Logger log =
-            LoggerFactory.getLogger(NeutronPlugin.class);
+        LoggerFactory.getLogger(NeutronPlugin.class);
 
     private static void printOps(List<Op> ops) {
 
-        if (!LOGGER.isDebugEnabled()) return;
+        if (!LOGGER.isDebugEnabled()) {
+            return;
+        }
 
         LOGGER.debug("******** BEGIN PRINTING ZK OPs *********");
 
@@ -126,7 +132,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Network createNetwork(@Nonnull Network network)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         if (network.external) {
             // Ensure that the provider router is created for this provider.
@@ -146,8 +152,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Network> createNetworkBulk(
-            @Nonnull List<Network> networks)
-            throws StateAccessException, SerializationException {
+        @Nonnull List<Network> networks)
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         for (Network network : networks) {
@@ -165,7 +171,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteNetwork(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         Network net = networkZkManager.prepareDeleteNetwork(ops, id);
@@ -182,20 +188,20 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Network getNetwork(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getNetwork(id);
     }
 
     @Override
     public List<Network> getNetworks()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getNetworks();
     }
 
     @Override
     public Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
-            throws StateAccessException, SerializationException,
-            BridgeZkManager.VxLanPortIdUpdateException {
+        throws StateAccessException, SerializationException,
+               BridgeZkManager.VxLanPortIdUpdateException {
 
         List<Op> ops = new ArrayList<>();
         networkZkManager.prepareUpdateNetwork(ops, network);
@@ -210,7 +216,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Subnet createSubnet(@Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         networkZkManager.prepareCreateSubnet(ops, subnet);
@@ -228,10 +234,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        for (Subnet subnet: subnets) {
+        for (Subnet subnet : subnets) {
             networkZkManager.prepareCreateSubnet(ops, subnet);
         }
         commitOps(ops);
@@ -246,7 +252,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSubnet(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         Subnet sub = networkZkManager.prepareDeleteSubnet(ops, id);
@@ -261,21 +267,21 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Subnet getSubnet(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getSubnet(id);
     }
 
     @Override
     public List<Subnet> getSubnets()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getSubnets();
     }
 
     @Override
     public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
-        List<Op> ops  = new ArrayList<>();
+        List<Op> ops = new ArrayList<>();
         networkZkManager.prepareUpdateSubnet(ops, subnet);
 
         // This should throw NoStatePathException if it doesn't exist.
@@ -285,7 +291,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     private void createPortOps(List<Op> ops, Port port)
-            throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException {
 
         networkZkManager.prepareCreateNeutronPort(ops, port);
 
@@ -294,7 +300,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             PortConfig cfg = networkZkManager.prepareCreateVifPort(ops, port);
 
             securityGroupZkManager.preparePortSecurityGroupBindings(ops, port,
-                    cfg);
+                                                                    cfg);
 
             Network net = getNetwork(port.networkId);
             if (net.external) {
@@ -321,7 +327,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Port createPort(@Nonnull Port port)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         createPortOps(ops, port);
@@ -332,8 +338,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Port> createPortBulk(@Nonnull List<Port> ports)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         for (Port port : ports) {
@@ -350,8 +356,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deletePort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         Port port = getPort(id);
         if (port == null) {
@@ -360,7 +366,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         List<Op> ops = new ArrayList<>();
 
-        if(port.isVif()) {
+        if (port.isVif()) {
 
             // Remove routes on the provider router if external network
             Network net = getNetwork(port.networkId);
@@ -372,12 +378,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             securityGroupZkManager.prepareDeletePortSecurityGroup(ops, port);
             networkZkManager.prepareDeleteVifPort(ops, port);
 
-        } else if(port.isDhcp()) {
+        } else if (port.isDhcp()) {
 
             networkZkManager.prepareDeleteDhcpPort(ops, port);
             l3ZkManager.prepareRemoveMetadataServiceRoute(ops, port);
 
-        }  else if (port.isRouterInterface()) {
+        } else if (port.isRouterInterface()) {
 
             networkZkManager.prepareDeletePortConfig(ops, port.id);
 
@@ -393,20 +399,20 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Port getPort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getPort(id);
     }
 
     @Override
     public List<Port> getPorts()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return networkZkManager.getPorts();
     }
 
     @Override
     public Port updatePort(@Nonnull UUID id, @Nonnull Port port)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         // Fixed IP and security groups can be updated
         List<Op> ops = new ArrayList<>();
@@ -414,7 +420,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         if (port.isVif()) {
 
             securityGroupZkManager.prepareUpdatePortSecurityGroupBindings(
-                    ops, port);
+                ops, port);
             networkZkManager.prepareUpdateVifPort(ops, port);
 
         } else if (port.isDhcp()) {
@@ -434,8 +440,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Router createRouter(@Nonnull Router router)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
 
@@ -448,19 +454,19 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Router getRouter(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return l3ZkManager.getRouter(id);
     }
 
     @Override
     public List<Router> getRouters()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return l3ZkManager.getRouters();
     }
 
     @Override
     public void deleteRouter(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         l3ZkManager.prepareDeleteRouter(ops, id);
@@ -469,8 +475,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
 
@@ -486,8 +492,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public RouterInterface addRouterInterface(
-            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-            throws StateAccessException, SerializationException {
+        @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         l3ZkManager.prepareCreateRouterInterface(ops, routerInterface);
@@ -498,7 +504,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public RouterInterface removeRouterInterface(
-            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface) {
+        @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface) {
 
         // Since the ports are already deleted by the time this is called,
         // there is nothing to do.
@@ -508,8 +514,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         l3ZkManager.prepareCreateFloatingIp(ops, floatingIp);
@@ -520,21 +526,21 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public FloatingIp getFloatingIp(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         return l3ZkManager.getFloatingIp(id);
     }
 
     @Override
     public List<FloatingIp> getFloatingIps()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         return l3ZkManager.getFloatingIps();
     }
 
     @Override
     public void deleteFloatingIp(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         // Delete FIP in Neutron deletes the router interface port, which
         // calls MN's deletePort and disassociates FIP.  The only thing left
@@ -545,9 +551,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     @Override
-    public FloatingIp updateFloatingIp(@Nonnull UUID id, @Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+    public FloatingIp updateFloatingIp(@Nonnull UUID id,
+                                       @Nonnull FloatingIp floatingIp)
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         FloatingIp oldFip = l3ZkManager.getFloatingIp(id);
         if (oldFip == null) {
@@ -563,8 +570,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroup createSecurityGroup(@Nonnull SecurityGroup sg)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
@@ -575,11 +582,11 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<SecurityGroup> createSecurityGroupBulk(
-            @Nonnull List<SecurityGroup> sgs)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        @Nonnull List<SecurityGroup> sgs)
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
         List<Op> ops = new ArrayList<>();
-        for(SecurityGroup sg : sgs) {
+        for (SecurityGroup sg : sgs) {
             securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
         }
         commitOps(ops);
@@ -594,7 +601,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSecurityGroup(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         securityGroupZkManager.prepareDeleteSecurityGroup(ops, id);
@@ -603,7 +610,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroup getSecurityGroup(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         SecurityGroup sg = securityGroupZkManager.getSecurityGroup(id);
         if (sg == null) {
@@ -612,21 +619,21 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Also return security group rules.
         sg.securityGroupRules = securityGroupZkManager.getSecurityGroupRules(
-                sg.id);
+            sg.id);
 
         return sg;
     }
 
     @Override
     public List<SecurityGroup> getSecurityGroups()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<SecurityGroup> sgs = securityGroupZkManager.getSecurityGroups();
 
         // Also get their rules
         for (SecurityGroup sg : sgs) {
             sg.securityGroupRules =
-                    securityGroupZkManager.getSecurityGroupRules(sg.id);
+                securityGroupZkManager.getSecurityGroupRules(sg.id);
         }
 
         return sgs;
@@ -634,8 +641,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroup updateSecurityGroup(
-            @Nonnull UUID id, @Nonnull SecurityGroup sg)
-            throws StateAccessException, SerializationException {
+        @Nonnull UUID id, @Nonnull SecurityGroup sg)
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         securityGroupZkManager.prepareUpdateSecurityGroup(ops, sg);
@@ -648,9 +655,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroupRule createSecurityGroupRule(
-            @Nonnull SecurityGroupRule rule)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        @Nonnull SecurityGroupRule rule)
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
         securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
@@ -661,18 +668,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<SecurityGroupRule> createSecurityGroupRuleBulk(
-            @Nonnull List<SecurityGroupRule> rules)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        @Nonnull List<SecurityGroupRule> rules)
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        for(SecurityGroupRule rule : rules) {
+        for (SecurityGroupRule rule : rules) {
             securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
         }
         commitOps(ops);
 
         List<SecurityGroupRule> newRules = new ArrayList<>(rules.size());
-        for(SecurityGroupRule rule : rules) {
+        for (SecurityGroupRule rule : rules) {
             newRules.add(getSecurityGroupRule(rule.id));
         }
 
@@ -681,7 +688,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSecurityGroupRule(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
         securityGroupZkManager.prepareDeleteSecurityGroupRule(ops, id);
@@ -690,32 +697,32 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroupRule getSecurityGroupRule(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRule(id);
 
     }
 
     @Override
     public List<SecurityGroupRule> getSecurityGroupRules()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         return securityGroupZkManager.getSecurityGroupRules();
     }
 
     /* load balancer related methods */
     @Override
     public boolean loadBalancerExists(UUID id)
-            throws StateAccessException {
+        throws StateAccessException {
         return loadBalancerZkManager.exists(id);
     }
 
     @Override
     @CheckForNull
     public LoadBalancer loadBalancerGet(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         LoadBalancer loadBalancer = null;
         if (loadBalancerZkManager.exists(id)) {
             loadBalancer = Converter.fromLoadBalancerConfig(
-                    loadBalancerZkManager.get(id));
+                loadBalancerZkManager.get(id));
             loadBalancer.setId(id);
         }
 
@@ -724,7 +731,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void loadBalancerDelete(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
 
         Set<UUID> poolIds = loadBalancerZkManager.getPoolIds(id);
@@ -733,11 +740,11 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
 
         LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-                loadBalancerZkManager.get(id);
+            loadBalancerZkManager.get(id);
         if (loadBalancerConfig.routerId != null) {
             ops.addAll(
-                    routerZkManager.prepareClearRefsToLoadBalancer(
-                            loadBalancerConfig.routerId, id));
+                routerZkManager.prepareClearRefsToLoadBalancer(
+                    loadBalancerConfig.routerId, id));
         }
 
         ops.addAll(loadBalancerZkManager.prepareDelete(id));
@@ -746,41 +753,41 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException,
-            InvalidStateOperationException {
+        throws StateAccessException, SerializationException,
+               InvalidStateOperationException {
         if (loadBalancer.getId() == null) {
             loadBalancer.setId(UUID.randomUUID());
         }
 
         LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-                Converter.toLoadBalancerConfig(loadBalancer);
+            Converter.toLoadBalancerConfig(loadBalancer);
         loadBalancerZkManager.create(loadBalancer.getId(),
-                loadBalancerConfig);
+                                     loadBalancerConfig);
 
         return loadBalancer.getId();
     }
 
     @Override
     public void loadBalancerUpdate(@Nonnull LoadBalancer loadBalancer)
-            throws StateAccessException, SerializationException,
-            InvalidStateOperationException {
+        throws StateAccessException, SerializationException,
+               InvalidStateOperationException {
         LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
-                Converter.toLoadBalancerConfig(loadBalancer);
+            Converter.toLoadBalancerConfig(loadBalancer);
         loadBalancerZkManager.update(loadBalancer.getId(),
-                loadBalancerConfig);
+                                     loadBalancerConfig);
     }
 
     @Override
     public List<LoadBalancer> loadBalancersGetAll()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<LoadBalancer> loadBalancers = new ArrayList<>();
 
         String path = pathBuilder.getLoadBalancersPath();
         if (zkManager.exists(path)) {
             Set<String> loadBalancerIds = zkManager.getChildren(path);
-            for (String id: loadBalancerIds) {
+            for (String id : loadBalancerIds) {
                 LoadBalancer loadBalancer =
-                        loadBalancerGet(UUID.fromString(id));
+                    loadBalancerGet(UUID.fromString(id));
                 if (loadBalancer != null) {
                     loadBalancers.add(loadBalancer);
                 }
@@ -792,7 +799,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Pool> loadBalancerGetPools(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         Set<UUID> poolIds = loadBalancerZkManager.getPoolIds(id);
         List<Pool> pools = new ArrayList<>(poolIds.size());
         for (UUID poolId : poolIds) {
@@ -806,7 +813,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<VIP> loadBalancerGetVips(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         Set<UUID> vipIds = loadBalancerZkManager.getVipIds(id);
         List<VIP> vips = new ArrayList<>(vipIds.size());
         for (UUID vipId : vipIds) {
@@ -818,12 +825,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     private void validatePoolConfigMappingStatus(UUID poolId)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
         if (poolConfig.isImmutable()) {
             throw new MappingStatusException(
-                    poolConfig.mappingStatus.toString());
+                poolConfig.mappingStatus.toString());
         }
     }
 
@@ -833,74 +840,88 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
      */
     private MutablePair<String, PoolZkManager.PoolHealthMonitorMappingConfig>
     preparePoolHealthMonitorMappings(
-            @Nonnull UUID poolId,
-            @Nonnull PoolZkManager.PoolConfig poolConfig,
-            ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig> poolMemberConfigGetter,
-            ConfigGetter<UUID, VipZkManager.VipConfig> vipConfigGetter)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
+        @Nonnull UUID poolId,
+        @Nonnull PoolZkManager.PoolConfig poolConfig,
+        ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig> poolMemberConfigGetter,
+        ConfigGetter<UUID, VipZkManager.VipConfig> vipConfigGetter)
+        throws MappingStatusException, SerializationException,
+               StateAccessException {
         UUID healthMonitorId = poolConfig.healthMonitorId;
         // If the health monitor ID is null, the mapping should not be created
         // and therefore `null` is returned.
-        if (healthMonitorId == null)
+        if (healthMonitorId == null) {
             return null;
+        }
         // If `mappingStatus` property of Pool is in PENDING_*, it throws the
         // exception and prevent the mapping from being updated.
         validatePoolConfigMappingStatus(poolId);
 
         String mappingPath = pathBuilder.getPoolHealthMonitorMappingsPath(
-                poolId, healthMonitorId);
+            poolId, healthMonitorId);
 
         assert poolConfig.loadBalancerId != null;
         UUID loadBalancerId = checkNotNull(
-                poolConfig.loadBalancerId, "LoadBalancer ID is null.");
-        PoolZkManager.PoolHealthMonitorMappingConfig.LoadBalancerConfigWithId loadBalancerConfig =
-                new PoolZkManager.PoolHealthMonitorMappingConfig.LoadBalancerConfigWithId(
-                        loadBalancerZkManager.get(loadBalancerId));
+            poolConfig.loadBalancerId, "LoadBalancer ID is null.");
+        PoolZkManager.PoolHealthMonitorMappingConfig.LoadBalancerConfigWithId
+            loadBalancerConfig =
+            new PoolZkManager.PoolHealthMonitorMappingConfig.LoadBalancerConfigWithId(
+                loadBalancerZkManager.get(loadBalancerId));
 
         List<UUID> memberIds = poolZkManager.getMemberIds(poolId);
-        List<PoolZkManager.PoolHealthMonitorMappingConfig.PoolMemberConfigWithId> memberConfigs =
-                new ArrayList<>(memberIds.size());
+        List<PoolZkManager.PoolHealthMonitorMappingConfig.PoolMemberConfigWithId>
+            memberConfigs =
+            new ArrayList<>(memberIds.size());
         for (UUID memberId : memberIds) {
-            PoolMemberZkManager.PoolMemberConfig config = poolMemberConfigGetter.get(memberId);
+            PoolMemberZkManager.PoolMemberConfig
+                config =
+                poolMemberConfigGetter.get(memberId);
             if (config != null) {
                 config.id = memberId;
-                memberConfigs.add(new PoolZkManager.PoolHealthMonitorMappingConfig.PoolMemberConfigWithId(config));
+                memberConfigs.add(
+                    new PoolZkManager.PoolHealthMonitorMappingConfig.PoolMemberConfigWithId(
+                        config));
             }
         }
 
         List<UUID> vipIds = poolZkManager.getVipIds(poolId);
-        List<PoolZkManager.PoolHealthMonitorMappingConfig.VipConfigWithId> vipConfigs = new ArrayList<>(vipIds.size());
+        List<PoolZkManager.PoolHealthMonitorMappingConfig.VipConfigWithId>
+            vipConfigs =
+            new ArrayList<>(vipIds.size());
         for (UUID vipId : vipIds) {
             VipZkManager.VipConfig config = vipConfigGetter.get(vipId);
             if (config != null) {
                 config.id = vipId;
-                vipConfigs.add(new PoolZkManager.PoolHealthMonitorMappingConfig.VipConfigWithId(config));
+                vipConfigs.add(
+                    new PoolZkManager.PoolHealthMonitorMappingConfig.VipConfigWithId(
+                        config));
             }
         }
 
-        PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId healthMonitorConfig =
-                new PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId(
-                        healthMonitorZkManager.get(healthMonitorId));
+        PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId
+            healthMonitorConfig =
+            new PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId(
+                healthMonitorZkManager.get(healthMonitorId));
 
         PoolZkManager.PoolHealthMonitorMappingConfig mappingConfig =
-                new PoolZkManager.PoolHealthMonitorMappingConfig(
-                        loadBalancerConfig,
-                        vipConfigs,
-                        memberConfigs,
-                        healthMonitorConfig);
+            new PoolZkManager.PoolHealthMonitorMappingConfig(
+                loadBalancerConfig,
+                vipConfigs,
+                memberConfigs,
+                healthMonitorConfig);
         return new MutablePair<>(mappingPath, mappingConfig);
     }
 
     private List<Op> preparePoolHealthMonitorMappingUpdate(
-            Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair)
-            throws SerializationException {
+        Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair)
+        throws SerializationException {
         List<Op> ops = new ArrayList<>();
         if (pair != null) {
             String mappingPath = pair.getLeft();
-            PoolZkManager.PoolHealthMonitorMappingConfig mappingConfig = pair.getRight();
+            PoolZkManager.PoolHealthMonitorMappingConfig
+                mappingConfig =
+                pair.getRight();
             ops.add(Op.setData(mappingPath,
-                    serializer.serialize(mappingConfig), -1));
+                               serializer.serialize(mappingConfig), -1));
         }
         return ops;
     }
@@ -909,25 +930,30 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     private List<Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig>>
     buildPoolHealthMonitorMappings(UUID healthMonitorId,
                                    @Nullable HealthMonitorZkManager.HealthMonitorConfig config)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
+        throws MappingStatusException, SerializationException,
+               StateAccessException {
         List<UUID> poolIds =
-                healthMonitorZkManager.getPoolIds(healthMonitorId);
+            healthMonitorZkManager.getPoolIds(healthMonitorId);
         List<Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig>> pairs =
-                new ArrayList<>();
+            new ArrayList<>();
 
-        for (UUID poolId: poolIds) {
+        for (UUID poolId : poolIds) {
             PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
-            MutablePair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                    preparePoolHealthMonitorMappings(poolId,
-                            poolConfig, poolMemberZkManager, vipZkManager);
+            MutablePair<String, PoolZkManager.PoolHealthMonitorMappingConfig>
+                pair =
+                preparePoolHealthMonitorMappings(poolId,
+                                                 poolConfig,
+                                                 poolMemberZkManager,
+                                                 vipZkManager);
 
             if (pair != null) {
                 // Update health monitor config, which can be null
-                PoolZkManager.PoolHealthMonitorMappingConfig updatedMappingConfig =
-                        pair.getRight();
+                PoolZkManager.PoolHealthMonitorMappingConfig
+                    updatedMappingConfig =
+                    pair.getRight();
                 updatedMappingConfig.healthMonitorConfig =
-                        new PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId(config);
+                    new PoolZkManager.PoolHealthMonitorMappingConfig.HealthMonitorConfigWithId(
+                        config);
                 pair.setRight(updatedMappingConfig);
                 pairs.add(pair);
             }
@@ -937,18 +963,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public boolean healthMonitorExists(UUID id)
-            throws StateAccessException {
+        throws StateAccessException {
         return healthMonitorZkManager.exists(id);
     }
 
     @Override
     @CheckForNull
     public HealthMonitor healthMonitorGet(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         HealthMonitor healthMonitor = null;
         if (healthMonitorZkManager.exists(id)) {
             healthMonitor = Converter.fromHealthMonitorConfig(
-                    healthMonitorZkManager.get(id));
+                healthMonitorZkManager.get(id));
             healthMonitor.setId(id);
         }
 
@@ -957,8 +983,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void healthMonitorDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         List<Op> ops = new ArrayList<>();
 
         List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
@@ -967,14 +993,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
             ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
-                    serializer.serialize(poolConfig), -1));
+                               serializer.serialize(poolConfig), -1));
             // Pool-HealthMonitor mappings
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                    poolId, id), -1));
+                poolId, id), -1));
             poolConfig.healthMonitorId = null;
             // Indicate the mapping is being deleted.
             poolConfig.mappingStatus =
-                    PoolHealthMonitorMappingStatus.PENDING_DELETE;
+                PoolHealthMonitorMappingStatus.PENDING_DELETE;
             ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
             ops.addAll(healthMonitorZkManager.prepareRemovePool(id, poolId));
         }
@@ -985,38 +1011,39 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public UUID healthMonitorCreate(@Nonnull HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         if (healthMonitor.getId() == null) {
             healthMonitor.setId(UUID.randomUUID());
         }
 
         HealthMonitorZkManager.HealthMonitorConfig config =
-                Converter.toHealthMonitorConfig(healthMonitor);
+            Converter.toHealthMonitorConfig(healthMonitor);
 
         zkManager.multi(
-                healthMonitorZkManager.prepareCreate(
-                        healthMonitor.getId(), config));
+            healthMonitorZkManager.prepareCreate(
+                healthMonitor.getId(), config));
 
         return healthMonitor.getId();
     }
 
     @Override
     public void healthMonitorUpdate(@Nonnull HealthMonitor healthMonitor)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         HealthMonitorZkManager.HealthMonitorConfig newConfig =
-                Converter.toHealthMonitorConfig(healthMonitor);
+            Converter.toHealthMonitorConfig(healthMonitor);
         HealthMonitorZkManager.HealthMonitorConfig oldConfig =
-                healthMonitorZkManager.get(healthMonitor.getId());
+            healthMonitorZkManager.get(healthMonitor.getId());
         UUID id = healthMonitor.getId();
-        if (newConfig.equals(oldConfig))
+        if (newConfig.equals(oldConfig)) {
             return;
+        }
         List<Op> ops = new ArrayList<>();
         ops.addAll(healthMonitorZkManager.prepareUpdate(id, newConfig));
 
         // Pool-HealthMonitor mappings
         for (Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair :
-                buildPoolHealthMonitorMappings(id, newConfig)) {
+            buildPoolHealthMonitorMappings(id, newConfig)) {
             List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
             for (UUID poolId : poolIds) {
                 validatePoolConfigMappingStatus(poolId);
@@ -1024,9 +1051,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                 PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
                 // Indicate the mapping is being updated.
                 poolConfig.mappingStatus =
-                        PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+                    PoolHealthMonitorMappingStatus.PENDING_UPDATE;
                 ops.add(Op.setData(pathBuilder.getPoolPath(poolId),
-                        serializer.serialize(poolConfig), -1));
+                                   serializer.serialize(poolConfig), -1));
             }
             ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
         }
@@ -1035,7 +1062,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<HealthMonitor> healthMonitorsGetAll()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<HealthMonitor> healthMonitors = new ArrayList<>();
 
         String path = pathBuilder.getHealthMonitorsPath();
@@ -1043,7 +1070,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             Set<String> healthMonitorIds = zkManager.getChildren(path);
             for (String id : healthMonitorIds) {
                 HealthMonitor healthMonitor
-                        = healthMonitorGet(UUID.fromString(id));
+                    = healthMonitorGet(UUID.fromString(id));
                 if (healthMonitor != null) {
                     healthMonitors.add(healthMonitor);
                 }
@@ -1055,7 +1082,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Pool> healthMonitorGetPools(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<UUID> poolIds = healthMonitorZkManager.getPoolIds(id);
         List<Pool> pools = new ArrayList<>(poolIds.size());
         for (UUID poolId : poolIds) {
@@ -1071,8 +1098,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     buildPoolHealthMonitorMappings(final UUID poolMemberId,
                                    final @Nonnull PoolMemberZkManager.PoolMemberConfig config,
                                    final boolean deletePoolMember)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
+        throws MappingStatusException, SerializationException,
+               StateAccessException {
         UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
 
@@ -1082,47 +1109,48 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         // intercepts the request for this PoolMember and returns the updated
         // PoolMemberConfig, or null if it's been deleted.
         ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig> configGetter =
-                new ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig>() {
-                    @Override
-                    public PoolMemberZkManager.PoolMemberConfig get(UUID key)
-                            throws StateAccessException, SerializationException {
-                        if (key.equals(poolMemberId)) {
-                            return deletePoolMember ? null : config;
-                        }
-                        return poolMemberZkManager.get(key);
+            new ConfigGetter<UUID, PoolMemberZkManager.PoolMemberConfig>() {
+                @Override
+                public PoolMemberZkManager.PoolMemberConfig get(UUID key)
+                    throws StateAccessException, SerializationException {
+                    if (key.equals(poolMemberId)) {
+                        return deletePoolMember ? null : config;
                     }
-                };
+                    return poolMemberZkManager.get(key);
+                }
+            };
 
         return preparePoolHealthMonitorMappings(
-                poolId, poolConfig, configGetter, vipZkManager);
+            poolId, poolConfig, configGetter, vipZkManager);
     }
 
     private List<Op> buildPoolMappingStatusUpdate(
-            PoolMemberZkManager.PoolMemberConfig poolMemberConfig)
-            throws StateAccessException, SerializationException {
+        PoolMemberZkManager.PoolMemberConfig poolMemberConfig)
+        throws StateAccessException, SerializationException {
         UUID poolId = poolMemberConfig.poolId;
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
         // Indicate the mapping is being updated.
         poolConfig.mappingStatus =
-                PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+            PoolHealthMonitorMappingStatus.PENDING_UPDATE;
         return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
-                serializer.serialize(poolConfig), -1));
+                                        serializer.serialize(poolConfig), -1));
     }
 
     @Override
     @CheckForNull
     public boolean poolMemberExists(UUID id)
-            throws StateAccessException {
+        throws StateAccessException {
         return poolMemberZkManager.exists(id);
     }
 
     @Override
     @CheckForNull
     public PoolMember poolMemberGet(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         PoolMember poolMember = null;
         if (poolMemberZkManager.exists(id)) {
-            poolMember = Converter.fromPoolMemberConfig(poolMemberZkManager.get(id));
+            poolMember =
+                Converter.fromPoolMemberConfig(poolMemberZkManager.get(id));
             poolMember.setId(id);
         }
 
@@ -1131,11 +1159,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void poolMemberDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         List<Op> ops = new ArrayList<>();
 
-        PoolMemberZkManager.PoolMemberConfig config = poolMemberZkManager.get(id);
+        PoolMemberZkManager.PoolMemberConfig
+            config =
+            poolMemberZkManager.get(id);
         if (config.poolId != null) {
             ops.addAll(poolZkManager.prepareRemoveMember(config.poolId, id));
         }
@@ -1144,7 +1174,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Pool-HealthMonitor mappings
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, config, true);
+            buildPoolHealthMonitorMappings(id, config, true);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1155,15 +1185,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public UUID poolMemberCreate(@Nonnull PoolMember poolMember)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         validatePoolConfigMappingStatus(poolMember.getPoolId());
 
-        if (poolMember.getId() == null)
+        if (poolMember.getId() == null) {
             poolMember.setId(UUID.randomUUID());
+        }
         UUID id = poolMember.getId();
 
-        PoolMemberZkManager.PoolMemberConfig config = Converter.toPoolMemberConfig(poolMember);
+        PoolMemberZkManager.PoolMemberConfig
+            config =
+            Converter.toPoolMemberConfig(poolMember);
 
         List<Op> ops = new ArrayList<>();
         ops.addAll(poolMemberZkManager.prepareCreate(id, config));
@@ -1174,7 +1207,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         ops.clear();
 
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, config, false);
+            buildPoolHealthMonitorMappings(id, config, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1187,24 +1220,30 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void poolMemberUpdate(@Nonnull PoolMember poolMember)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         validatePoolConfigMappingStatus(poolMember.getPoolId());
 
         UUID id = poolMember.getId();
-        PoolMemberZkManager.PoolMemberConfig newConfig = Converter.toPoolMemberConfig(poolMember);
-        PoolMemberZkManager.PoolMemberConfig oldConfig = poolMemberZkManager.get(id);
+        PoolMemberZkManager.PoolMemberConfig
+            newConfig =
+            Converter.toPoolMemberConfig(poolMember);
+        PoolMemberZkManager.PoolMemberConfig
+            oldConfig =
+            poolMemberZkManager.get(id);
         boolean isPoolIdChanged =
-                !com.google.common.base.Objects.equal(newConfig.poolId, oldConfig.poolId);
-        if (newConfig.equals(oldConfig))
+            !com.google.common.base.Objects.equal(newConfig.poolId,
+                                                  oldConfig.poolId);
+        if (newConfig.equals(oldConfig)) {
             return;
+        }
 
         List<Op> ops = new ArrayList<>();
         if (isPoolIdChanged) {
             ops.addAll(poolZkManager.prepareRemoveMember(
-                    oldConfig.poolId, id));
+                oldConfig.poolId, id));
             ops.addAll(poolZkManager.prepareAddMember(
-                    newConfig.poolId, id));
+                newConfig.poolId, id));
         }
 
         ops.addAll(poolMemberZkManager.prepareUpdate(id, newConfig));
@@ -1215,13 +1254,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         if (isPoolIdChanged) {
             // Remove pool member from its old owner's mapping node.
             Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> oldPair =
-                    buildPoolHealthMonitorMappings(id, oldConfig, true);
+                buildPoolHealthMonitorMappings(id, oldConfig, true);
             ops.addAll(preparePoolHealthMonitorMappingUpdate(oldPair));
         }
 
         // Update the pool's pool-HM mapping with the new member.
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, newConfig, false);
+            buildPoolHealthMonitorMappings(id, newConfig, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1232,8 +1271,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void poolMemberUpdateStatus(UUID poolMemberId, LBStatus status)
-            throws StateAccessException, SerializationException {
-        PoolMemberZkManager.PoolMemberConfig config = poolMemberZkManager.get(poolMemberId);
+        throws StateAccessException, SerializationException {
+        PoolMemberZkManager.PoolMemberConfig
+            config =
+            poolMemberZkManager.get(poolMemberId);
         if (config == null) {
             log.error("pool member does not exist" + poolMemberId.toString());
             return;
@@ -1245,7 +1286,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<PoolMember> poolMembersGetAll() throws StateAccessException,
-            SerializationException {
+                                                       SerializationException {
         List<PoolMember> poolMembers = new ArrayList<>();
 
         String path = pathBuilder.getPoolMembersPath();
@@ -1265,12 +1306,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     /* pool related methods */
     private List<Op> prepareDeletePoolHealthMonitorMappingOps(UUID poolId)
-            throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException {
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
         List<Op> ops = new ArrayList<>();
         if (poolConfig.healthMonitorId != null) {
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                    poolId, poolConfig.healthMonitorId), -1));
+                poolId, poolConfig.healthMonitorId), -1));
         }
         return ops;
     }
@@ -1278,14 +1319,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     @CheckForNull
     public boolean poolExists(UUID id)
-            throws StateAccessException {
+        throws StateAccessException {
         return poolZkManager.exists(id);
     }
 
     @Override
     @CheckForNull
     public Pool poolGet(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         Pool pool = null;
         if (poolZkManager.exists(id)) {
             pool = Converter.fromPoolConfig(poolZkManager.get(id));
@@ -1296,7 +1337,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     private List<Op> buildPoolDeleteOps(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
         PoolZkManager.PoolConfig config = poolZkManager.get(id);
 
@@ -1311,23 +1352,23 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             ops.addAll(poolZkManager.prepareRemoveVip(id, vipId));
             ops.addAll(vipZkManager.prepareDelete(vipId));
             ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                    config.loadBalancerId, vipId));
+                config.loadBalancerId, vipId));
         }
 
         if (config.healthMonitorId != null) {
             ops.addAll(healthMonitorZkManager.prepareRemovePool(
-                    config.healthMonitorId, id));
+                config.healthMonitorId, id));
         }
         ops.addAll(loadBalancerZkManager.prepareRemovePool(
-                config.loadBalancerId, id));
+            config.loadBalancerId, id));
         ops.addAll(poolZkManager.prepareDelete(id));
         return ops;
     }
 
     @Override
     public void poolDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         List<Op> ops = buildPoolDeleteOps(id);
         // Pool-HealthMonitor mappings
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(id);
@@ -1335,15 +1376,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         if (poolConfig.healthMonitorId != null) {
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                    id, poolConfig.healthMonitorId), -1));
+                id, poolConfig.healthMonitorId), -1));
         }
         zkManager.multi(ops);
     }
 
     @Override
     public UUID poolCreate(@Nonnull Pool pool)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         if (pool.getId() == null) {
             pool.setId(UUID.randomUUID());
         }
@@ -1356,12 +1397,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         if (config.loadBalancerId != null) {
             ops.addAll(loadBalancerZkManager.prepareAddPool(
-                    config.loadBalancerId, id));
+                config.loadBalancerId, id));
         }
 
         if (config.healthMonitorId != null) {
             ops.addAll(healthMonitorZkManager.prepareAddPool(
-                    config.healthMonitorId, id));
+                config.healthMonitorId, id));
         }
         // Flush the pool create ops first.
         zkManager.multi(ops);
@@ -1369,16 +1410,19 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         ops.clear();
         // Pool-HealthMonitor mappings
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                preparePoolHealthMonitorMappings(
-                        id, config, poolMemberZkManager, vipZkManager);
+            preparePoolHealthMonitorMappings(
+                id, config, poolMemberZkManager, vipZkManager);
         if (pair != null) {
             String mappingPath = pair.getLeft();
-            PoolZkManager.PoolHealthMonitorMappingConfig mappingConfig = pair.getRight();
+            PoolZkManager.PoolHealthMonitorMappingConfig
+                mappingConfig =
+                pair.getRight();
             ops.add(Op.create(mappingPath,
-                    serializer.serialize(mappingConfig),
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                              serializer.serialize(mappingConfig),
+                              ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                              CreateMode.PERSISTENT));
             config.mappingStatus =
-                    PoolHealthMonitorMappingStatus.PENDING_CREATE;
+                PoolHealthMonitorMappingStatus.PENDING_CREATE;
             ops.addAll(poolZkManager.prepareUpdate(id, config));
         }
         zkManager.multi(ops);
@@ -1387,16 +1431,17 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void poolUpdate(@Nonnull Pool pool)
-            throws MappingStatusException, MappingViolationException,
-            SerializationException, StateAccessException {
+        throws MappingStatusException, MappingViolationException,
+               SerializationException, StateAccessException {
         UUID id = pool.getId();
         PoolZkManager.PoolConfig newConfig = Converter.toPoolConfig(pool);
         PoolZkManager.PoolConfig oldConfig = poolZkManager.get(id);
         boolean isHealthMonitorChanged =
-                !com.google.common.base.Objects.equal(newConfig.healthMonitorId,
-                        oldConfig.healthMonitorId);
-        if (newConfig.equals(oldConfig))
+            !com.google.common.base.Objects.equal(newConfig.healthMonitorId,
+                                                  oldConfig.healthMonitorId);
+        if (newConfig.equals(oldConfig)) {
             return;
+        }
 
         // Set the internal status for the Pool-HealthMonitor mapping with the
         // previous value.
@@ -1406,29 +1451,29 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         if (isHealthMonitorChanged) {
             if (oldConfig.healthMonitorId != null) {
                 ops.addAll(healthMonitorZkManager.prepareRemovePool(
-                        oldConfig.healthMonitorId, id));
+                    oldConfig.healthMonitorId, id));
             }
             if (newConfig.healthMonitorId != null) {
                 ops.addAll(healthMonitorZkManager.prepareAddPool(
-                        newConfig.healthMonitorId, id));
+                    newConfig.healthMonitorId, id));
             }
         }
 
         if (!com.google.common.base.Objects.equal(oldConfig.loadBalancerId,
-                newConfig.loadBalancerId)) {
+                                                  newConfig.loadBalancerId)) {
             // Move the pool from the previous load balancer to the new one.
             ops.addAll(loadBalancerZkManager.prepareRemovePool(
-                    oldConfig.loadBalancerId, id));
+                oldConfig.loadBalancerId, id));
             ops.addAll(loadBalancerZkManager.prepareAddPool(
-                    newConfig.loadBalancerId, id));
+                newConfig.loadBalancerId, id));
             // Move the VIPs belong to the pool from the previous load balancer
             // to the new one.
             List<UUID> vipIds = poolZkManager.getVipIds(id);
             for (UUID vipId : vipIds) {
                 ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                        oldConfig.loadBalancerId, vipId));
+                    oldConfig.loadBalancerId, vipId));
                 ops.addAll(loadBalancerZkManager.prepareAddVip(
-                        newConfig.loadBalancerId, vipId));
+                    newConfig.loadBalancerId, vipId));
                 VipZkManager.VipConfig vipConfig = vipZkManager.get(vipId);
                 // Update the load balancer ID of the VIPs with the pool's one.
                 vipConfig.loadBalancerId = newConfig.loadBalancerId;
@@ -1446,36 +1491,40 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             if (pool.getHealthMonitorId() == null) {
                 validatePoolConfigMappingStatus(id);
                 newConfig.mappingStatus =
-                        PoolHealthMonitorMappingStatus.PENDING_DELETE;
+                    PoolHealthMonitorMappingStatus.PENDING_DELETE;
                 // Delete the old entry
                 ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
-                        id, poolConfig.healthMonitorId), -1));
+                    id, poolConfig.healthMonitorId), -1));
             }
             // Throws an exception if users try to update the health monitor ID
             // with another one even if the pool is already associated with
             // another health monitor.
             if (poolConfig.healthMonitorId != null
-                    && pool.getHealthMonitorId() != null) {
+                && pool.getHealthMonitorId() != null) {
                 throw new MappingViolationException();
             }
             Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                    preparePoolHealthMonitorMappings(
-                            id, newConfig, poolMemberZkManager, vipZkManager);
+                preparePoolHealthMonitorMappings(
+                    id, newConfig, poolMemberZkManager, vipZkManager);
             if (pair != null) {
                 String mappingPath = pair.getLeft();
-                PoolZkManager.PoolHealthMonitorMappingConfig mappingConfig = pair.getRight();
+                PoolZkManager.PoolHealthMonitorMappingConfig
+                    mappingConfig =
+                    pair.getRight();
                 ops.add(Op.create(mappingPath,
-                        serializer.serialize(mappingConfig),
-                        ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT));
+                                  serializer.serialize(mappingConfig),
+                                  ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                                  CreateMode.PERSISTENT));
                 // Indicate the update is being processed and once it's confirmed
                 // by the health monitor, it's replaced with ACTIVE.
-                if (com.google.common.base.Objects.equal(oldConfig.mappingStatus,
-                        PoolHealthMonitorMappingStatus.INACTIVE)) {
+                if (com.google.common.base.Objects.equal(
+                    oldConfig.mappingStatus,
+                    PoolHealthMonitorMappingStatus.INACTIVE)) {
                     newConfig.mappingStatus =
-                            PoolHealthMonitorMappingStatus.PENDING_CREATE;
+                        PoolHealthMonitorMappingStatus.PENDING_CREATE;
                 } else {
                     newConfig.mappingStatus =
-                            PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+                        PoolHealthMonitorMappingStatus.PENDING_UPDATE;
                 }
             }
         }
@@ -1485,7 +1534,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Pool> poolsGetAll() throws StateAccessException,
-            SerializationException {
+                                           SerializationException {
         List<Pool> pools = new ArrayList<>();
 
         String path = pathBuilder.getPoolsPath();
@@ -1504,12 +1553,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<PoolMember> poolGetMembers(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<UUID> memberIds = poolZkManager.getMemberIds(id);
         List<PoolMember> members = new ArrayList<>(memberIds.size());
         for (UUID memberId : memberIds) {
             PoolMember member = Converter.fromPoolMemberConfig(
-                    poolMemberZkManager.get(memberId));
+                poolMemberZkManager.get(memberId));
             member.setId(memberId);
             members.add(member);
         }
@@ -1518,7 +1567,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<VIP> poolGetVips(@Nonnull UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<UUID> vipIds = poolZkManager.getVipIds(id);
         List<VIP> vips = new ArrayList<>(vipIds.size());
         for (UUID vipId : vipIds) {
@@ -1532,10 +1581,11 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public void poolSetMapStatus(UUID id,
                                  PoolHealthMonitorMappingStatus status)
-            throws StateAccessException, SerializationException{
+        throws StateAccessException, SerializationException {
         PoolZkManager.PoolConfig pool = poolZkManager.get(id);
-        if (pool == null)
+        if (pool == null) {
             return;
+        }
         pool.mappingStatus = status;
         zkManager.multi(poolZkManager.prepareUpdate(id, pool));
     }
@@ -1544,8 +1594,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     buildPoolHealthMonitorMappings(final UUID vipId,
                                    final @Nonnull VipZkManager.VipConfig config,
                                    final boolean deleteVip)
-            throws MappingStatusException, SerializationException,
-            StateAccessException {
+        throws MappingStatusException, SerializationException,
+               StateAccessException {
         UUID poolId = checkNotNull(config.poolId, "Pool ID is null.");
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
 
@@ -1555,30 +1605,31 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         // intercepts the request for this VIP and returns the updated
         // VipConfig, or null if it's been deleted.
         ConfigGetter<UUID, VipZkManager.VipConfig> configGetter =
-                new ConfigGetter<UUID, VipZkManager.VipConfig>() {
-                    @Override
-                    public VipZkManager.VipConfig get(UUID key)
-                            throws StateAccessException, SerializationException {
-                        if (key.equals(vipId)) {
-                            return deleteVip ? null : config;
-                        }
-                        return vipZkManager.get(key);
+            new ConfigGetter<UUID, VipZkManager.VipConfig>() {
+                @Override
+                public VipZkManager.VipConfig get(UUID key)
+                    throws StateAccessException, SerializationException {
+                    if (key.equals(vipId)) {
+                        return deleteVip ? null : config;
                     }
-                };
+                    return vipZkManager.get(key);
+                }
+            };
 
         return preparePoolHealthMonitorMappings(
-                poolId, poolConfig, poolMemberZkManager, configGetter);
+            poolId, poolConfig, poolMemberZkManager, configGetter);
     }
 
-    private List<Op> buildPoolMappingStatusUpdate(VipZkManager.VipConfig vipConfig)
-            throws StateAccessException, SerializationException {
+    private List<Op> buildPoolMappingStatusUpdate(
+        VipZkManager.VipConfig vipConfig)
+        throws StateAccessException, SerializationException {
         UUID poolId = vipConfig.poolId;
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(poolId);
         // Indicate the mapping is being updated.
         poolConfig.mappingStatus =
-                PoolHealthMonitorMappingStatus.PENDING_UPDATE;
+            PoolHealthMonitorMappingStatus.PENDING_UPDATE;
         return Arrays.asList(Op.setData(pathBuilder.getPoolPath(poolId),
-                serializer.serialize(poolConfig), -1));
+                                        serializer.serialize(poolConfig), -1));
     }
 
     @Override
@@ -1590,7 +1641,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     @CheckForNull
     public VIP vipGet(UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         VIP vip = null;
         if (vipZkManager.exists(id)) {
             vip = Converter.fromVipConfig(vipZkManager.get(id));
@@ -1601,14 +1652,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void vipDelete(UUID id)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         List<Op> ops = new ArrayList<>();
         VipZkManager.VipConfig config = vipZkManager.get(id);
 
         if (config.loadBalancerId != null) {
             ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                    config.loadBalancerId, id));
+                config.loadBalancerId, id));
         }
 
         if (config.poolId != null) {
@@ -1619,7 +1670,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Pool-HealthMonitor mappings
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, config, true);
+            buildPoolHealthMonitorMappings(id, config, true);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1630,8 +1681,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public UUID vipCreate(@Nonnull VIP vip)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         validatePoolConfigMappingStatus(vip.getPoolId());
 
         if (vip.getId() == null) {
@@ -1648,7 +1699,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         ops.addAll(vipZkManager.prepareCreate(id, config));
         ops.addAll(poolZkManager.prepareAddVip(config.poolId, id));
         ops.addAll(loadBalancerZkManager.prepareAddVip(
-                config.loadBalancerId, id));
+            config.loadBalancerId, id));
 
         // Flush the VIP first.
         zkManager.multi(ops);
@@ -1656,7 +1707,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Pool-HealthMonitor mappings
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, config, false);
+            buildPoolHealthMonitorMappings(id, config, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1668,8 +1719,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void vipUpdate(@Nonnull VIP vip)
-            throws MappingStatusException, StateAccessException,
-            SerializationException {
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
         validatePoolConfigMappingStatus(vip.getPoolId());
 
         // See if new config is different from old config.
@@ -1680,23 +1731,27 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         // User can't set loadBalancerId directly because we get it from
         // from the pool indicated by poolId.
         newConfig.loadBalancerId = oldConfig.loadBalancerId;
-        if (newConfig.equals(oldConfig))
+        if (newConfig.equals(oldConfig)) {
             return;
+        }
 
         List<Op> ops = new ArrayList<>();
 
         boolean poolIdChanged =
-                !com.google.common.base.Objects.equal(newConfig.poolId, oldConfig.poolId);
+            !com.google.common.base.Objects.equal(newConfig.poolId,
+                                                  oldConfig.poolId);
         if (poolIdChanged) {
             ops.addAll(poolZkManager.prepareRemoveVip(oldConfig.poolId, id));
             ops.addAll(loadBalancerZkManager.prepareRemoveVip(
-                    oldConfig.loadBalancerId, id));
+                oldConfig.loadBalancerId, id));
 
-            PoolZkManager.PoolConfig newPoolConfig = poolZkManager.get(newConfig.poolId);
+            PoolZkManager.PoolConfig
+                newPoolConfig =
+                poolZkManager.get(newConfig.poolId);
             newConfig.loadBalancerId = newPoolConfig.loadBalancerId;
             ops.addAll(poolZkManager.prepareAddVip(newConfig.poolId, id));
             ops.addAll(loadBalancerZkManager.prepareAddVip(
-                    newPoolConfig.loadBalancerId, id));
+                newPoolConfig.loadBalancerId, id));
         }
 
         ops.addAll(vipZkManager.prepareUpdate(id, newConfig));
@@ -1706,13 +1761,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         if (poolIdChanged) {
             // Remove the VIP from the old pool-HM mapping.
             Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> oldPair =
-                    buildPoolHealthMonitorMappings(id, oldConfig, true);
+                buildPoolHealthMonitorMappings(id, oldConfig, true);
             ops.addAll(preparePoolHealthMonitorMappingUpdate(oldPair));
         }
 
         // Update the appropriate pool-HM mapping with the new VIP config.
         Pair<String, PoolZkManager.PoolHealthMonitorMappingConfig> pair =
-                buildPoolHealthMonitorMappings(id, newConfig, false);
+            buildPoolHealthMonitorMappings(id, newConfig, false);
         ops.addAll(preparePoolHealthMonitorMappingUpdate(pair));
 
         if (pair != null) {
@@ -1723,13 +1778,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<VIP> vipGetAll()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
         List<VIP> vips = new ArrayList<>();
 
         String path = pathBuilder.getVipsPath();
         if (zkManager.exists(path)) {
             Set<String> vipIds = zkManager.getChildren(path);
-            for (String id: vipIds) {
+            for (String id : vipIds) {
                 VIP vip = vipGet(UUID.fromString(id));
                 if (vip != null) {
                     vips.add(vip);
@@ -1738,5 +1793,155 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
 
         return vips;
+    }
+
+    /**
+     * ***********************************************************************
+     * NEUTRON LBaaS calls. ***********************************************************************
+     */
+
+    // Pools
+    public org.midonet.cluster.data.neutron.loadbalancer.Pool
+    createNeutronPool(org.midonet.cluster.data.neutron.loadbalancer.Pool pool)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Pool();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.Pool>
+    createPoolBulk(
+        List<org.midonet.cluster.data.neutron.loadbalancer.Pool> pool)
+        throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Pool
+    getPool(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Pool();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.Pool>
+    getPools() throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Pool
+    updatePool(UUID id, org.midonet.cluster.data.neutron.loadbalancer.Pool pool)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Pool();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Pool
+    deletePool(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Pool();
+    }
+
+    // Members
+    public org.midonet.cluster.data.neutron.loadbalancer.Member
+    createNeutronMember(
+        org.midonet.cluster.data.neutron.loadbalancer.Member member)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Member();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.Member>
+    createMemberBulk(
+        List<org.midonet.cluster.data.neutron.loadbalancer.Member> member)
+        throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Member
+    getMember(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Member();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.Member>
+    getMembers() throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Member
+    updateMember(UUID id,
+                 org.midonet.cluster.data.neutron.loadbalancer.Member member)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Member();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.Member
+    deleteMember(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.Member();
+    }
+
+    // Vips
+    public org.midonet.cluster.data.neutron.loadbalancer.VIP
+    createNeutronVip(org.midonet.cluster.data.neutron.loadbalancer.VIP vip)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.VIP();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.VIP>
+    createVipBulk(List<org.midonet.cluster.data.neutron.loadbalancer.VIP> vip)
+        throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.VIP
+    getVip(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.VIP();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.VIP>
+    getVips() throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.VIP
+    updateVip(UUID id, org.midonet.cluster.data.neutron.loadbalancer.VIP vip)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.VIP();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.VIP
+    deleteVip(UUID id) throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.VIP();
+    }
+
+    // Health Monitors
+    public org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor
+    createNeutronHealthMonitor(
+        org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor healthMonitor)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor>
+    createHealthMonitorBulk(
+        List<org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor> healthMonitor)
+        throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor
+    getHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor();
+    }
+
+    public List<org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor>
+    getHealthMonitors() throws StateAccessException, SerializationException {
+        return new ArrayList<>();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor
+    updateHealthMonitor(UUID id,
+                        org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor healthMonitor)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor();
+    }
+
+    public org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor
+    deleteHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException {
+        return new org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor();
     }
 }
