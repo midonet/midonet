@@ -219,6 +219,19 @@ public class ZookeeperObjectMapperTest {
                    contains(rPort1.id, rPort2.id));
         assertEquals(rPort2.id, orm.get(Port.class, bPort2.id).peerId);
 
+        // Should not be able to link bPort1 to rPort2 because rPort2 is
+        // already linked.
+        bPort1.peerId = rPort2.id;
+        try {
+            orm.update(bPort1);
+            fail("Linking to an already-linked port should not be allowed.");
+        } catch (Exception ex) {}
+
+        // Link bPort1 and rPort1 with an update.
+        bPort1.peerId = rPort1.id;
+        orm.update(bPort1);
+        assertEquals(bPort1.id, orm.get(Port.class, rPort1.id).peerId);
+
         // Add some rules to the chains.
         Rule c1Rule1 = new Rule("chain1-rule1", chain1.id,
                                 bPort1.id, bPort2.id);
@@ -233,12 +246,24 @@ public class ZookeeperObjectMapperTest {
         assertThat(orm.get(Chain.class, chain2.id).ruleIds,
                 contains(c2Rule1.id));
 
-        assertThat(orm.get(Port.class, bPort1.id).ruleIds,
-                contains(c1Rule1.id, c2Rule1.id));
-        assertThat(orm.get(Port.class, bPort2.id).ruleIds,
-                contains(c1Rule1.id, c1Rule2.id));
-        assertThat(orm.get(Port.class, rPort1.id).ruleIds,
-                contains(c1Rule2.id, c2Rule1.id));
+        assertPortsRuleIds(bPort1, c1Rule1.id, c2Rule1.id);
+        assertPortsRuleIds(bPort2, c1Rule1.id, c1Rule2.id);
+        assertPortsRuleIds(rPort1, c1Rule2.id, c2Rule1.id);
+
+        // Try some updates on c2Rule1's ports.
+        c2Rule1.portIds = Arrays.asList(bPort2.id, rPort1.id, rPort2.id);
+        orm.update(c2Rule1);
+        assertPortsRuleIds(bPort1, c1Rule1.id);
+        assertPortsRuleIds(bPort2, c1Rule1.id, c1Rule2.id, c2Rule1.id);
+        assertPortsRuleIds(rPort1, c1Rule2.id, c2Rule1.id);
+        assertPortsRuleIds(rPort2, c2Rule1.id);
+
+        c2Rule1.portIds = Arrays.asList(rPort1.id, bPort1.id);
+        orm.update(c2Rule1);
+        assertPortsRuleIds(bPort1, c1Rule1.id, c2Rule1.id);
+        assertPortsRuleIds(bPort2, c1Rule1.id, c1Rule2.id);
+        assertPortsRuleIds(rPort1, c1Rule2.id, c2Rule1.id);
+        assertThat(orm.get(Port.class, rPort2.id).ruleIds, empty());
 
         // Should not be able to delete the bridge while it has ports.
         try {
@@ -278,8 +303,7 @@ public class ZookeeperObjectMapperTest {
 
         // Additionally, the cascading delete of c1Rule2 should have cleared
         // rPort1's reference to it.
-        assertThat(orm.get(Port.class, rPort1.id).ruleIds,
-                contains(c2Rule1.id));
+        assertPortsRuleIds(rPort1, c2Rule1.id);
     }
 
     @Test
@@ -303,6 +327,11 @@ public class ZookeeperObjectMapperTest {
             assertTrue(orm.exists(Chain.class, chain.id));
             assertTrue(orm.exists(Rule.class, rule.id));
         }
+    }
+
+    private void assertPortsRuleIds(Port port, UUID... ruleIds)
+            throws Exception {
+        assertThat(orm.get(Port.class, port.id).ruleIds, contains(ruleIds));
     }
 
     private void createObjects(Object... objects) throws Exception {
