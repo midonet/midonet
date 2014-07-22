@@ -1,3 +1,5 @@
 include "packets", "midonet-util", "midonet-jdk-bootstrap", "netlink", "odp",
         "cluster", "midolman", "midonet-api", "midonet-client",
-        "midonet-brain", "midonet-brain-deps"
+        "brain:midonet-brain", 'brain:odl-ovsdb:commons:parent',
+        'brain:odl-ovsdb:distribution:opendaylight', 'brain:odl-ovsdb:ovsdb',
+        'tools:keygen', 'tools:keylib'

@@ -1,0 +1,13 @@
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet keygen tool',
+                   'Implementation-Version': version
+    }
+}
+
+
+dependencies {
+    compile project(':tools:keylib')
+
+    compile libraries.truelicense, libraries.findbugs, libraries.commons_codec
+}
