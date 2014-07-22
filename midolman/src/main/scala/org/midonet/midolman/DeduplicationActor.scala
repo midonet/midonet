@@ -50,7 +50,7 @@ object DeduplicationActor {
     // the WildcardFlowTable. After updating the table, the FlowController
     // will place the FlowMatch in the pending ring buffer so the DDA can
     // evict the entry from the cache.
-    sealed class ActionsCache(var size: Int = 256,
+    sealed class ActionsCache(var size: Int = 1024,
                               log: LoggingAdapter) {
         size = findNextPowerOfTwo(size)
         private val mask = size - 1
