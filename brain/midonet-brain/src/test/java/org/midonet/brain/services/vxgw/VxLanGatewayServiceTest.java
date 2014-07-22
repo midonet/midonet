@@ -21,6 +21,7 @@ import org.junit.Test;
 import rx.Observable;
 
 import org.midonet.brain.BrainTestUtils;
+import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
@@ -61,6 +62,8 @@ public class VxLanGatewayServiceTest {
     private VtepDataClient vtepClient;
     @Mocked
     private VtepDataClientProvider vtepDataClientProvider;
+    @Mocked
+    private MidoBrainConfig config;
 
     private VTEP vtep = null;
 
@@ -143,7 +146,7 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientProvider, zkConnWatcher);
+            dataClient, vtepDataClientProvider, zkConnWatcher, config);
         gwsrv.startAndWait();
         gwsrv.stopAndWait();
     }
@@ -180,11 +183,11 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(dataClient, vtepDataClientProvider,
-                                    zkConnWatcher);
+            new VxLanGatewayService(
+                dataClient, vtepDataClientProvider, zkConnWatcher, config);
         VxLanGatewayService gwsrv2 =
-            new VxLanGatewayService(dataClient, vtepDataClientProvider,
-                                    zkConnWatcher);
+            new VxLanGatewayService(
+                dataClient, vtepDataClientProvider, zkConnWatcher, config);
         // the first service should get the initial vtep
         gwsrv1.startAndWait();
 
@@ -247,7 +250,7 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientProvider, zkConnWatcher);
+            dataClient, vtepDataClientProvider, zkConnWatcher, config);
         gwsrv.startAndWait();
 
         // add a new bridge with a binding
@@ -312,7 +315,7 @@ public class VxLanGatewayServiceTest {
         preexistingBridgeIds.add(id);
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientProvider, zkConnWatcher);
+            dataClient, vtepDataClientProvider, zkConnWatcher, config);
         gwsrv.startAndWait();
         gwsrv.stopAndWait();
     }
@@ -358,7 +361,7 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientProvider, zkConnWatcher);
+            dataClient, vtepDataClientProvider, zkConnWatcher, config);
         gwsrv.startAndWait();
 
         // add a new bridge without a binding
@@ -406,8 +409,8 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(dataClient, vtepDataClientProvider,
-                                    zkConnWatcher);
+            new VxLanGatewayService(
+                dataClient, vtepDataClientProvider, zkConnWatcher, config);
         // the initial vtep should be detected
         gwsrv1.startAndWait();
 
@@ -444,8 +447,8 @@ public class VxLanGatewayServiceTest {
         }};
 
         VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(dataClient, vtepDataClientProvider,
-                                    zkConnWatcher);
+            new VxLanGatewayService(
+                dataClient, vtepDataClientProvider, zkConnWatcher, config);
         // the initial vtep should be detected
         gwsrv1.startAndWait();
 

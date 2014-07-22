@@ -1,33 +1,27 @@
 package org.midonet.midolman.l4lb
 
-import akka.actor.{ActorRef, Actor}
-import com.google.inject.Inject
 import java.io._
 import java.util.UUID
 
-import org.midonet.cluster.DataClient
+import scala.collection.JavaConversions._
 
+import akka.actor.{Actor, ActorRef}
+
+import com.google.inject.Inject
+import org.slf4j.{Logger, LoggerFactory}
+
+import org.midonet.cluster.DataClient
+import org.midonet.config.HostIdGenerator
+import org.midonet.midolman.Referenceable
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.config.HostConfig
-import org.midonet.midolman.host.HostIdGenerator
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.ConfigUpdate
-import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{SetupFailure,
-                                                       SockReadFailure,
-                                                       RouterAdded,
-                                                       RouterRemoved}
+import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded, RouterRemoved, SetupFailure, SockReadFailure}
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted,
-                                                ConfigUpdated, RouterChanged}
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.Referenceable
 import org.midonet.midolman.routingprotocols.IP
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
-
-import org.slf4j.{LoggerFactory, Logger}
-import scala.collection.JavaConversions._
-import scala.Some
-
 
 object HealthMonitor extends Referenceable {
     override val Name = "HealthMonitor"

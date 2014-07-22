@@ -30,6 +30,10 @@ public class JerseyGuiceServletContextListener extends
     protected ServletContext servletContext;
     protected Injector injector;
 
+    private RestApiService restApiService = null;
+    private VxLanGatewayService vxLanGatewayService = null;
+    private LicenseService licenseService = null;
+
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         log.debug("contextInitialized: entered");
@@ -55,30 +59,38 @@ public class JerseyGuiceServletContextListener extends
 
         // TODO: Once the cluster work is completed, RestApiService may not be
         // needed since currently it only initializes the ZK root directories.
-        injector.getInstance(RestApiService.class).startAndWait();
-        injector.getInstance(LicenseService.class).startAndWait();
+        restApiService = injector.getInstance(RestApiService.class);
+        restApiService.startAndWait();
+
+        licenseService = injector.getInstance(LicenseService.class);
+        licenseService.startAndWait();
+
         if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
             log.info("initializeApplication: starting VxLAN gateway");
-            injector.getInstance(VxLanGatewayService.class).startAndWait();
+            vxLanGatewayService = injector.getInstance(VxLanGatewayService.class);
+            vxLanGatewayService.startAndWait();
         } else {
             log.info("initializeApplication: skipping VxLAN gateway");
         }
 
-        log.debug("initializeApplication: exiting.");
+        log.debug("initializeApplication: exiting");
     }
 
     protected void destroyApplication() {
         log.debug("destroyApplication: entered");
 
-        injector.getInstance(LicenseService.class).stopAndWait();
+        // TODO: Check if we need to do this after the cluster is completed.
+        if (null != vxLanGatewayService) {
+            vxLanGatewayService.stopAndWait();
+        }
+        if (null != licenseService) {
+            licenseService.stopAndWait();
+        }
+        if (null != restApiService) {
+            restApiService.stopAndWait();
+        }
 
-        // TODO: Check if we need to do this after the cluster work is
-        // completed.
-        RestApiService restApiService = injector.getInstance(
-                RestApiService.class);
-        restApiService.stopAndWait();
-
-        log.debug("destroyApplication: entered");
+        log.debug("destroyApplication: exiting");
     }
 
     @Override
