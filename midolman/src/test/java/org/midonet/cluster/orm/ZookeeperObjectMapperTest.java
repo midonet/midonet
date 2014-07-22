@@ -26,10 +26,13 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.midonet.cluster.orm.FieldBinding.DeleteAction.CASCADE;
+import static org.midonet.cluster.orm.FieldBinding.DeleteAction.CLEAR;
+import static org.midonet.cluster.orm.FieldBinding.DeleteAction.ERROR;
 
 public class ZookeeperObjectMapperTest {
 
@@ -116,6 +119,7 @@ public class ZookeeperObjectMapperTest {
         UUID chainId;
         String name;
         List<UUID> portIds;
+        List<String> strings; // Needed for a declareBinding() test.
 
         Rule() {}
 
@@ -125,6 +129,11 @@ public class ZookeeperObjectMapperTest {
             this.chainId = chainId;
             this.portIds = Arrays.asList(portIds);
         }
+    }
+
+    private static class NoIdField {
+        UUID notId;
+        List<UUID> refIds;
     }
 
     private ZookeeperObjectMapper orm;
@@ -327,6 +336,42 @@ public class ZookeeperObjectMapperTest {
             assertTrue(orm.exists(Chain.class, chain.id));
             assertTrue(orm.exists(Rule.class, rule.id));
         }
+    }
+
+    @Test
+    public void testCreateBindingForClassWithNoId() throws Exception {
+        try {
+            orm.declareBinding(NoIdField.class, "notId", CLEAR,
+                Bridge.class, "portIds", CLEAR);
+            fail("Should not allow binding of class with no id field.");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("id", ex.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void testCreateBindingWithUnrecognizedFieldName() throws Exception {
+        try {
+            orm.declareBinding(Bridge.class, "noSuchField", CLEAR,
+                    Port.class, "bridgeId", CLEAR);
+            fail("Should not allow binding with unrecognized field name.");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("noSuchField", ex.getCause().getMessage());
+        }
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateBindingWithWrongScalarRefType() throws Exception {
+        orm.declareBinding(Bridge.class, "name", CLEAR,
+                Port.class, "bridgeId", CLEAR);
+        fail("Should not allow ref from String to UUID.");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateBindingWithWrongListRefType() throws Exception {
+        orm.declareBinding(Chain.class, "ruleIds", CLEAR,
+                Rule.class, "strings", CLEAR);
+        fail("Should not allow ref from List<String> to UUID.");
     }
 
     private void assertPortsRuleIds(Port port, UUID... ruleIds)
