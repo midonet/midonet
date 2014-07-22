@@ -447,7 +447,8 @@ public class FlowManagerTest {
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
         // when adding a new wildcard flow it will clean the expired flows.
         assertThat("FlowManager didn't accept the new wildcard flow", flowManager.add(flows.get(5)));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(),
+            equalTo((int)maxWildcardFlowSize - dpFlowRemoveBatchSize + 1));
     }
 
     private List<FlowAction>actionsAsJava(WildcardFlow wflow) {
