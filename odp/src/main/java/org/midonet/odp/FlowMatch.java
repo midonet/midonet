@@ -25,6 +25,7 @@ public class FlowMatch implements AttributeHandler {
     private boolean userSpaceOnly = false;
     private final List<FlowKey> keys = new ArrayList<>();
     private int keysHashCode = 0;
+    private int connectionHash = 0;
 
     public FlowMatch() { }
 
@@ -62,6 +63,26 @@ public class FlowMatch implements AttributeHandler {
         return this.keys.equals(that.keys);
     }
 
+    public int connectionHash() {
+        if (connectionHash == 0) {
+            int connectionKeys = 0; // should be two
+            int connHash = 0;
+            for (int i = 0; i < keys.size(); i++) {
+                int keyHash = keys.get(i).connectionHash();
+                if (keyHash != 0) {
+                    connectionKeys++;
+                    connHash = 31 * connHash + keyHash;
+                }
+            }
+            if (connectionKeys == 2)
+                this.connectionHash = connHash;
+            else
+                this.connectionHash = hashCode();
+        }
+
+        return this.connectionHash;
+    }
+
     @Override
     public int hashCode() {
         if (keysHashCode == 0) {
@@ -72,6 +93,7 @@ public class FlowMatch implements AttributeHandler {
 
     private void invalidateHashCode() {
         keysHashCode = 0;
+        connectionHash = 0;
     }
 
     @Override
