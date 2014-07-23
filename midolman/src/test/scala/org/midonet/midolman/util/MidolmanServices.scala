@@ -3,7 +3,7 @@
 */
 package org.midonet.midolman.util
 
-import org.midonet.cluster.data.neutron.LBaaSApi
+import org.midonet.cluster.data.neutron.LoadBalancerApi
 
 import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
@@ -24,9 +24,6 @@ trait MidolmanServices {
 
     def clusterClient() =
         injector.getInstance(classOf[Client])
-
-    def loadBalancerApi() =
-        injector.getInstance(classOf[LBaaSApi])
 
     def clusterDataClient() =
         injector.getInstance(classOf[DataClient])

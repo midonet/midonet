@@ -4,36 +4,10 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.PoolMember;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LBaaSApi;
-import org.midonet.event.topology.PoolMemberEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -49,6 +23,31 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.PoolMember;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.PoolMemberEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
@@ -57,14 +56,14 @@ public class PoolMemberResource extends AbstractResource {
 
     private final PoolMemberEvent poolMemberEvent = new PoolMemberEvent();
 
-    private final LBaaSApi api;
+    private final DataClient dataClient;
 
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context, LBaaSApi api,
+                              SecurityContext context, DataClient dataClient,
                               Validator validator) {
         super(config, uriInfo, context, null, validator);
-        this.api = api;
+        this.dataClient = dataClient;
     }
 
     @GET
@@ -76,7 +75,7 @@ public class PoolMemberResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers = null;
 
-        dataPoolMembers = api.poolMembersGetAll();
+        dataPoolMembers = dataClient.poolMembersGetAll();
         List<PoolMember> poolMembers = new ArrayList<PoolMember>();
         if (dataPoolMembers != null) {
             for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
@@ -98,7 +97,7 @@ public class PoolMemberResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
-                api.poolMemberGet(id);
+            dataClient.poolMemberGet(id);
         if (PoolMemberData == null)
             throwNotFound(id, "pool member");
 
@@ -117,7 +116,7 @@ public class PoolMemberResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         try {
-            api.poolMemberDelete(id);
+            dataClient.poolMemberDelete(id);
             poolMemberEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so do nothing.
@@ -137,8 +136,8 @@ public class PoolMemberResource extends AbstractResource {
         validate(poolMember);
 
         try {
-            UUID id = api.poolMemberCreate(poolMember.toData());
-            poolMemberEvent.create(id, api.poolMemberGet(id));
+            UUID id = dataClient.poolMemberCreate(poolMember.toData());
+            poolMemberEvent.create(id, dataClient.poolMemberGet(id));
             return Response.created(
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                     .build();
@@ -166,16 +165,16 @@ public class PoolMemberResource extends AbstractResource {
         try {
             // Ignore `address`, `protocolPort` and `status` property
             // populated by users.
-            if (api.poolMemberExists(id)) {
+            if (dataClient.poolMemberExists(id)) {
                 org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
-                        api.poolMemberGet(id);
+                    dataClient.poolMemberGet(id);
                 poolMember.setAddress(oldPoolMember.getAddress());
                 poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
                 poolMember.setStatus(oldPoolMember.getStatus().toString());
             }
 
-            api.poolMemberUpdate(poolMember.toData());
-            poolMemberEvent.update(id, api.poolMemberGet(id));
+            dataClient.poolMemberUpdate(poolMember.toData());
+            poolMemberEvent.update(id, dataClient.poolMemberGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
@@ -190,17 +189,17 @@ public class PoolMemberResource extends AbstractResource {
     public static class PoolPoolMemberResource extends AbstractResource {
         private final UUID poolId;
 
-        private final LBaaSApi api;
+        private final DataClient dataClient;
 
         @Inject
         public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                                       SecurityContext context,
-                                      LBaaSApi api,
+                                      DataClient dataClient,
                                       Validator validator,
                                       @Assisted UUID id) {
             super(config, uriInfo, context, null, validator);
             this.poolId = id;
-            this.api = api;
+            this.dataClient = dataClient;
         }
 
         @GET
@@ -212,7 +211,7 @@ public class PoolMemberResource extends AbstractResource {
 
             List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers;
             try {
-                dataPoolMembers = api.poolGetMembers(poolId);
+                dataPoolMembers = dataClient.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
@@ -242,7 +241,7 @@ public class PoolMemberResource extends AbstractResource {
             validate(poolMember);
 
             try {
-                UUID id = api.poolMemberCreate(poolMember.toData());
+                UUID id = dataClient.poolMemberCreate(poolMember.toData());
                 return Response.created(
                         ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                         .build();
