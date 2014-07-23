@@ -35,9 +35,11 @@ dependencies {
             libraries.guice, libraries.yammer, libraries.rx, libraries.cassandra,
             libraries.hector, libraries.jetty, libraries.jackson_scala,
             libraries.zookeeper, libraries.jetty_server,
-            libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix
+            libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
+            libraries.jsonpath
 
-    testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit
+    testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit,
+                libraries.jsonpath_assert
 }
 
 cobertura {
