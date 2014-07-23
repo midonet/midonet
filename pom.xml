@@ -16,6 +16,7 @@
         <!-- subprojects this pom file controls. If maven cannot figure out in
         which order it should build them, it uses this list ordering. -->
         <module>midonet-jdk-bootstrap</module>
+        <module>rpc</module>
         <module>midonet-util</module>
         <module>packets</module>
         <module>netlink</module>
@@ -207,6 +208,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>packets</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>rpc</artifactId>
             <version>${project.version}</version>
         </dependency>
 
