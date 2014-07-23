@@ -2,12 +2,14 @@
  * Copyright 2014 Midokura PTE LTD.
  */
 
-package org.midonet.cluster;
+package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,25 +25,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
-import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.DeviceOwner;
-import org.midonet.cluster.data.neutron.ExternalGatewayInfo;
-import org.midonet.cluster.data.neutron.FloatingIp;
-import org.midonet.cluster.data.neutron.IPAllocation;
-import org.midonet.cluster.data.neutron.Network;
-import org.midonet.cluster.data.neutron.NeutronClusterModule;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
-import org.midonet.cluster.data.neutron.Port;
-import org.midonet.cluster.data.neutron.Route;
-import org.midonet.cluster.data.neutron.RouterInterface;
-import org.midonet.cluster.data.neutron.RuleDirection;
-import org.midonet.cluster.data.neutron.RuleEthertype;
-import org.midonet.cluster.data.neutron.SecurityGroup;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
-import org.midonet.cluster.data.neutron.Subnet;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
@@ -57,6 +44,9 @@ import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryVerifier;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -64,16 +54,22 @@ import org.midonet.packets.ARP;
 
 public class NeutronPluginTest {
 
-    @Inject NeutronPlugin plugin;
-    @Inject DataClient dataClient;
+    @Inject
+    NeutronPlugin plugin;
+    @Inject
+    DataClient dataClient;
+
+    @Inject
+    PathBuilder pathBuilder;
 
     Injector injector = null;
     String zkRoot = "/test";
-
+    private DirectoryVerifier dirVerifier;
 
     HierarchicalConfiguration fillConfig(HierarchicalConfiguration config) {
         config.addNodes(ZookeeperConfig.GROUP_NAME,
-                Arrays.asList(new HierarchicalConfiguration.Node("midolman_root_key", zkRoot)));
+                        Arrays.asList(new HierarchicalConfiguration.Node(
+                            "midolman_root_key", zkRoot)));
         return config;
     }
 
@@ -85,8 +81,8 @@ public class NeutronPluginTest {
      * Simple utility functions used in UT to test types of rules.
      */
 
-    public static <T extends Rule.Data,U extends Rule<T,U>>
-            boolean isDropAllExceptArpRule(Rule<T,U> rule) {
+    public static <T extends Rule.Data, U extends Rule<T, U>>
+    boolean isDropAllExceptArpRule(Rule<T, U> rule) {
         if (rule == null) {
             return false;
         }
@@ -106,8 +102,8 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static <T extends Rule.Data,U extends Rule<T,U>>
-            boolean isMacSpoofProtectionRule(String macAddress, Rule<T,U> rule) {
+    public static <T extends Rule.Data, U extends Rule<T, U>>
+    boolean isMacSpoofProtectionRule(String macAddress, Rule<T, U> rule) {
         if (rule == null) {
             return false;
         }
@@ -128,8 +124,8 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static <T extends Rule.Data,U extends Rule<T,U>>
-            boolean isIpSpoofProtectionRule(IPAllocation subnet, Rule<T,U> rule) {
+    public static <T extends Rule.Data, U extends Rule<T, U>>
+    boolean isIpSpoofProtectionRule(IPAllocation subnet, Rule<T, U> rule) {
         if (rule == null) {
             return false;
         }
@@ -150,11 +146,17 @@ public class NeutronPluginTest {
         return true;
     }
 
-    public static boolean isAcceptReturnFlowRule(Rule<?,?> rule) {
-        if (rule == null) return false;
+    public static boolean isAcceptReturnFlowRule(Rule<?, ?> rule) {
+        if (rule == null) {
+            return false;
+        }
         Condition cond = rule.getCondition();
-        if (cond == null) return false;
-        if (!cond.matchReturnFlow) return false;
+        if (cond == null) {
+            return false;
+        }
+        if (!cond.matchReturnFlow) {
+            return false;
+        }
         if (!Objects.equal(rule.getAction(), RuleResult.Action.ACCEPT)) {
             return false;
         }
@@ -168,6 +170,15 @@ public class NeutronPluginTest {
         network.tenantId = "tenant";
         network.shared = true;
         network.id = UUID.randomUUID();
+        return network;
+    }
+
+    public Network createStockExternalNetwork() {
+        Network network = new Network();
+        network.adminStateUp = true;
+        network.name = "ext_net";
+        network.tenantId = "admin";
+        network.external = true;
         return network;
     }
 
@@ -195,6 +206,20 @@ public class NeutronPluginTest {
         subnet.name = "sub";
         subnet.tenantId = "tenant";
         subnet.id = UUID.randomUUID();
+
+        return subnet;
+    }
+
+    public Subnet createStockExternalSubnet(UUID netId) {
+        Subnet subnet = new Subnet();
+        subnet.networkId = netId;
+        subnet.cidr = "200.0.0.0/24";
+        subnet.enableDhcp = false;
+        subnet.gatewayIp = "200.0.0.1";
+        subnet.ipVersion = 4;
+        subnet.name = "ext_sub";
+        subnet.tenantId = "admin";
+        subnet.id = UUID.randomUUID();
         return subnet;
     }
 
@@ -208,13 +233,29 @@ public class NeutronPluginTest {
         ip.subnetId = subnetId;
         ips.add(ip);
         List<UUID> secGroups = new ArrayList<>();
-        if (defaultSgId != null) secGroups.add(defaultSgId);
+        if (defaultSgId != null) {
+            secGroups.add(defaultSgId);
+        }
         port.fixedIps = ips;
         port.tenantId = "tenant";
         port.networkId = networkId;
         port.macAddress = "aa:bb:cc:00:11:22";
         port.securityGroups = secGroups;
         port.id = UUID.randomUUID();
+        return port;
+    }
+
+    public Port createStockRouterInterfacePort(UUID subnetId, UUID networkId,
+                                               UUID routerId) {
+        Port port = createStockPort(subnetId, networkId, null);
+        port.deviceOwner = DeviceOwner.ROUTER_INTF;
+        port.deviceId = routerId.toString();
+        return port;
+    }
+
+    public Port createStockGatewayPort(UUID subnetId, UUID networkId) {
+        Port port = createStockPort(subnetId, networkId, null);
+        port.deviceOwner = DeviceOwner.ROUTER_GW;
         return port;
     }
 
@@ -240,8 +281,8 @@ public class NeutronPluginTest {
         return sg;
     }
 
-    public org.midonet.cluster.data.neutron.Router createStockRouter() {
-        org.midonet.cluster.data.neutron.Router r = new org.midonet.cluster.data.neutron.Router();
+    public Router createStockRouter() {
+        Router r = new Router();
         r.id = UUID.randomUUID();
         r.externalGatewayInfo = new ExternalGatewayInfo();
         r.adminStateUp = true;
@@ -249,10 +290,17 @@ public class NeutronPluginTest {
         return r;
     }
 
+    public Router createStockRouter(UUID extNetId, UUID gwPortId) {
+        Router r = createStockRouter();
+        r.externalGatewayInfo.enableSnat = true;
+        r.externalGatewayInfo.networkId = extNetId;
+        r.gwPortId = gwPortId;
+        return r;
+    }
 
     public RouterInterface createStockRouterInterface(UUID portId,
                                                       UUID subnetId)
-            throws StateAccessException {
+        throws StateAccessException {
         RouterInterface ri = new RouterInterface();
         ri.id = UUID.randomUUID();
         ri.portId = portId;
@@ -260,8 +308,21 @@ public class NeutronPluginTest {
         return ri;
     }
 
+    public FloatingIp createStockFloatingIp(Port p, UUID routerId, UUID netId) {
+
+        FloatingIp fip = new FloatingIp();
+        fip.routerId = routerId;
+        fip.fixedIpAddress = p.fixedIps.get(0).ipAddress;
+        fip.floatingIpAddress = "200.0.0.5";
+        fip.portId = p.id;
+        fip.floatingNetworkId = netId;
+        fip.tenantId = "tenant";
+        fip.id = UUID.randomUUID();
+        return fip;
+    }
+
     public void verifyIpAddrGroups() throws StateAccessException,
-            SerializationException {
+                                            SerializationException {
         List<IpAddrGroup> ipgs = dataClient.ipAddrGroupsGetAll();
         List<Port> ports = plugin.getPorts();
 
@@ -285,34 +346,45 @@ public class NeutronPluginTest {
     }
 
     public void verifySGRules(Port port) throws StateAccessException,
-            SerializationException {
+                                                SerializationException {
 
         // Ensure that the port has both of its INBOUND and OUTBOUND chains.
         Chain inbound = null, outbound = null;
         for (Chain c : dataClient.chainsGetAll()) {
             String cName = c.getName();
-            if (cName == null) continue;
-            if (cName.contains("INBOUND") && cName.contains(port.id.toString())) {
+            if (cName == null) {
+                continue;
+            }
+            if (cName.contains("INBOUND") && cName
+                .contains(port.id.toString())) {
                 inbound = c;
-            } else if (cName.contains("OUTBOUND") && cName.contains(port.id.toString())) {
+            } else if (cName.contains("OUTBOUND") && cName
+                .contains(port.id.toString())) {
                 outbound = c;
             }
         }
         Assert.assertNotNull(inbound);
         Assert.assertNotNull(outbound);
 
-        List<Rule<?,?>> inboundRules = dataClient.rulesFindByChain(inbound.getId());
-        List<Rule<?,?>> outboundRules = dataClient.rulesFindByChain(outbound.getId());
+        List<Rule<?, ?>>
+            inboundRules =
+            dataClient.rulesFindByChain(inbound.getId());
+        List<Rule<?, ?>>
+            outboundRules =
+            dataClient.rulesFindByChain(outbound.getId());
 
         Assert.assertTrue(isAcceptReturnFlowRule(outboundRules.get(0)));
-        Assert.assertTrue(isDropAllExceptArpRule(outboundRules.get(outboundRules.size() - 1)));
+        Assert.assertTrue(isDropAllExceptArpRule(
+            outboundRules.get(outboundRules.size() - 1)));
 
-        List<Rule<?, ?>> spoofRules = inboundRules.subList(0, port.fixedIps.size());
+        List<Rule<?, ?>>
+            spoofRules =
+            inboundRules.subList(0, port.fixedIps.size());
         for (IPAllocation ip : port.fixedIps) {
 
             // verify the rule exists
             boolean found = false;
-            for (Rule<?,?> r : spoofRules) {
+            for (Rule<?, ?> r : spoofRules) {
                 if (isIpSpoofProtectionRule(ip, r)) {
                     found = true;
                     break;
@@ -322,17 +394,23 @@ public class NeutronPluginTest {
         }
 
         Assert.assertTrue(isMacSpoofProtectionRule(port.macAddress,
-            inboundRules.get(spoofRules.size())));
+                                                   inboundRules.get(
+                                                       spoofRules.size())));
 
-        Assert.assertTrue(isAcceptReturnFlowRule(inboundRules.get(spoofRules.size() + 1)));
+        Assert.assertTrue(
+            isAcceptReturnFlowRule(inboundRules.get(spoofRules.size() + 1)));
 
-        List<Rule<?, ?>> sgJumpRulesInbound = inboundRules.subList(spoofRules.size() + 2,
-            inboundRules.size() - 1);
+        List<Rule<?, ?>>
+            sgJumpRulesInbound =
+            inboundRules.subList(spoofRules.size() + 2,
+                                 inboundRules.size() - 1);
         // TODO: FAILS
         //Assert.assertEquals(sgJumpRulesInbound.size(),
         //        port.securityGroups.size());
 
-        List<Rule<?, ?>> sgJumpRulesOutbound = outboundRules.subList(1, outboundRules.size() - 1);
+        List<Rule<?, ?>>
+            sgJumpRulesOutbound =
+            outboundRules.subList(1, outboundRules.size() - 1);
 
         // TODO: FAILS
         //Assert.assertEquals(sgJumpRulesOutbound.size(),
@@ -343,10 +421,14 @@ public class NeutronPluginTest {
             Chain ingress = null, egress = null;
             for (Chain c : dataClient.chainsGetAll()) {
                 String cName = c.getName();
-                if (cName == null) continue;
-                if (cName.contains("INGRESS") && cName.contains(sgid.toString())) {
+                if (cName == null) {
+                    continue;
+                }
+                if (cName.contains("INGRESS") && cName
+                    .contains(sgid.toString())) {
                     ingress = c;
-                } else if (cName.contains("EGRESS") && cName.contains(sgid.toString())) {
+                } else if (cName.contains("EGRESS") && cName
+                    .contains(sgid.toString())) {
                     egress = c;
                 }
             }
@@ -357,22 +439,23 @@ public class NeutronPluginTest {
             for (IPAllocation ip : port.fixedIps) {
                 // verify this ip is part of the ip addr group associated
                 // with this security group
-                Assert.assertTrue(dataClient.ipAddrGroupHasAddr(sgid, ip.ipAddress));
+                Assert.assertTrue(
+                    dataClient.ipAddrGroupHasAddr(sgid, ip.ipAddress));
             }
 
             //Verify that there is a jump rule to the egress and ingress chains
             boolean inboundFound = false, outboundFound = false;
-            for (Rule<?,?> r : sgJumpRulesInbound) {
-                JumpRule jr = (JumpRule)r;
+            for (Rule<?, ?> r : sgJumpRulesInbound) {
+                JumpRule jr = (JumpRule) r;
                 if (egress.getName().equals(jr.getJumpToChainName()) &&
-                        egress.getId().equals(jr.getJumpToChainId())) {
+                    egress.getId().equals(jr.getJumpToChainId())) {
                     inboundFound = true;
                 }
             }
-            for (Rule<?,?> r : sgJumpRulesOutbound) {
-                JumpRule jr = (JumpRule)r;
+            for (Rule<?, ?> r : sgJumpRulesOutbound) {
+                JumpRule jr = (JumpRule) r;
                 if (ingress.getName().equals(jr.getJumpToChainName()) &&
-                        ingress.getId().equals(jr.getJumpToChainId())) {
+                    ingress.getId().equals(jr.getJumpToChainId())) {
                     outboundFound = true;
                 }
             }
@@ -383,40 +466,96 @@ public class NeutronPluginTest {
             for (SecurityGroupRule sgr : sg.securityGroupRules) {
                 SecurityGroupRule zkSgr = plugin.getSecurityGroupRule(sgr.id);
                 Assert.assertTrue(Objects.equal(sgr, zkSgr));
-                Rule<?,?> r = dataClient.rulesGet(sgr.id);
+                Rule<?, ?> r = dataClient.rulesGet(sgr.id);
                 Assert.assertNotNull(r);
             }
         }
 
-        Assert.assertTrue(isDropAllExceptArpRule(inboundRules.get(inboundRules.size() - 1)));
+        Assert.assertTrue(
+            isDropAllExceptArpRule(inboundRules.get(inboundRules.size() - 1)));
     }
 
     @Before
     public void initialize() throws InterruptedException, KeeperException {
-        HierarchicalConfiguration config = fillConfig(new HierarchicalConfiguration());
+        HierarchicalConfiguration
+            config =
+            fillConfig(new HierarchicalConfiguration());
         injector = Guice.createInjector(
-                new VersionModule(),
-                new SerializationModule(),
-                new ConfigProviderModule(config),
-                new MockZookeeperConnectionModule(),
-                new TypedConfigModule<>(MidolmanConfig.class),
-                new CacheModule(),
-                new NeutronClusterModule(),
-                new AbstractModule() {
-                    @Override
-                    protected void configure() {
-                        bind(NeutronPlugin.class);
-                    }
+            new VersionModule(),
+            new SerializationModule(),
+            new ConfigProviderModule(config),
+            new MockZookeeperConnectionModule(),
+            new TypedConfigModule<>(MidolmanConfig.class),
+            new CacheModule(),
+            new NeutronClusterModule(),
+            new AbstractModule() {
+                @Override
+                protected void configure() {
+                    bind(NeutronPlugin.class);
                 }
+            }
 
         );
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
+
+        dirVerifier = new DirectoryVerifier(
+            injector.getInstance(Directory.class));
+    }
+
+    @Test
+    public void testFloatingIp() throws Exception {
+
+        // Create a network, subnet and a port with fixed IP
+        Network net = createStockNetwork();
+        net = plugin.createNetwork(net);
+        Subnet sub = createStockSubnet();
+        sub.networkId = net.id;
+        sub = plugin.createSubnet(sub);
+        Port port = createStockPort(sub.id, net.id, null);
+        port = plugin.createPort(port);
+
+        // Create an external network and floating IP subnet
+        Network extNet = createStockExternalNetwork();
+        extNet = plugin.createNetwork(extNet);
+        Subnet extSub = createStockExternalSubnet(extNet.id);
+        extSub = plugin.createSubnet(extSub);
+
+        // Create a router and set the gateway
+        Port gwPort = createStockGatewayPort(extSub.id, extNet.id);
+        gwPort = plugin.createPort(gwPort);
+        Router router = createStockRouter(extNet.id, gwPort.id);
+        router = plugin.createRouter(router);
+        Port riPort = createStockRouterInterfacePort(sub.id, net.id, router.id);
+        riPort = plugin.createPort(riPort);
+        RouterInterface ri = createStockRouterInterface(riPort.id, extSub.id);
+
+        // Create a floating IP to associate with a fixed IP
+        FloatingIp fip = createStockFloatingIp(port, router.id, extNet.id);
+        fip = plugin.createFloatingIp(fip);
+
+        String rulesPath = pathBuilder.getRulesPath();
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("type", "ForwardNat");
+        matches.put("condition.nwSrcIp.address", "10.0.0.10");
+        matches.put("natTargets[0].nwStart", "200.0.0.5");
+        matches.put("natTargets[0].nwEnd", "200.0.0.5");
+
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches, 1);
+
+        matches = new HashMap<>();
+        matches.put("type", "ForwardNat");
+        matches.put("condition.nwDstIp.address", "200.0.0.5");
+        matches.put("natTargets[0].nwStart", "10.0.0.10");
+        matches.put("natTargets[0].nwEnd", "10.0.0.10");
+
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches, 1);
     }
 
     @Test
     public void testSubnetCRUD() throws StateAccessException,
-            SerializationException {
+                                        SerializationException {
         int cp1 = zkDir().createCheckPoint();
         Network network = plugin.createNetwork(createStockNetwork());
         int cp2 = zkDir().createCheckPoint();
@@ -430,36 +569,37 @@ public class NeutronPluginTest {
         plugin.updateSubnet(subnet.id, subnet);
         int cp4 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp3, cp4).size() == 0);
-        assert(zkDir().getModifiedPaths(cp3, cp4).size() == 1);
-        assert(zkDir().getAddedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getRemovedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 1);
+        assert (zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
         subnet.enableDhcp = true;
         plugin.updateSubnet(subnet.id, subnet);
         int cp5 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp4, cp5).size() == 0);
-        assert(zkDir().getModifiedPaths(cp4, cp5).size() == 1);
-        assert(zkDir().getAddedPaths(cp4, cp5).size() == 0);
+        assert (zkDir().getRemovedPaths(cp4, cp5).size() == 0);
+        assert (zkDir().getModifiedPaths(cp4, cp5).size() == 1);
+        assert (zkDir().getAddedPaths(cp4, cp5).size() == 0);
 
         plugin.deleteSubnet(subnet.id);
         int cp6 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp2, cp6).size() == 0);
-        assert(zkDir().getModifiedPaths(cp2, cp6).size() == 0);
-        assert(zkDir().getAddedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getRemovedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getModifiedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getAddedPaths(cp2, cp6).size() == 0);
 
         plugin.deleteNetwork(network.id);
         int cp7 = zkDir().createCheckPoint();
-        assert(zkDir().getRemovedPaths(cp1, cp7).size() == 0);
-        assert(zkDir().getModifiedPaths(cp1, cp7).size() == 0);
+        assert (zkDir().getRemovedPaths(cp1, cp7).size() == 0);
+        assert (zkDir().getModifiedPaths(cp1, cp7).size() == 0);
         // There is one added path we expect: the gre tunnel key
-        assert(zkDir().getAddedPaths(cp1, cp7).size() == 1);
+        assert (zkDir().getAddedPaths(cp1, cp7).size() == 1);
     }
 
     @Test
     public void testNetworkCRUD() throws SerializationException,
-            StateAccessException, BridgeZkManager.VxLanPortIdUpdateException {
+                                         StateAccessException,
+                                         BridgeZkManager.VxLanPortIdUpdateException {
         int cp1 = zkDir().createCheckPoint();
         Network network = createStockNetwork();
         network.external = true;
@@ -470,33 +610,33 @@ public class NeutronPluginTest {
         network = plugin.updateNetwork(network.id, network);
         int cp3 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp2, cp3).size() == 0);
-        assert(zkDir().getModifiedPaths(cp2, cp3).size() == 2);
-        assert(zkDir().getAddedPaths(cp2, cp3).size() == 0);
+        assert (zkDir().getRemovedPaths(cp2, cp3).size() == 0);
+        assert (zkDir().getModifiedPaths(cp2, cp3).size() == 2);
+        assert (zkDir().getAddedPaths(cp2, cp3).size() == 0);
 
         network.adminStateUp = true;
         network = plugin.updateNetwork(network.id, network);
         int cp4 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp3, cp4).size() == 0);
-        assert(zkDir().getModifiedPaths(cp3, cp4).size() == 2);
-        assert(zkDir().getAddedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getRemovedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 2);
+        assert (zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
-        assert(zkDir().getRemovedPaths(cp2, cp4).size() == 0);
-        assert(zkDir().getModifiedPaths(cp2, cp4).size() == 0);
-        assert(zkDir().getAddedPaths(cp2, cp4).size() == 0);
+        assert (zkDir().getRemovedPaths(cp2, cp4).size() == 0);
+        assert (zkDir().getModifiedPaths(cp2, cp4).size() == 0);
+        assert (zkDir().getAddedPaths(cp2, cp4).size() == 0);
 
         plugin.deleteNetwork(network.id);
         int cp5 = zkDir().createCheckPoint();
-        assert(zkDir().getRemovedPaths(cp1, cp5).size() == 0);
-        assert(zkDir().getModifiedPaths(cp1, cp5).size() == 0);
-        assert(zkDir().getAddedPaths(cp1, cp5).size() == 1);
+        assert (zkDir().getRemovedPaths(cp1, cp5).size() == 0);
+        assert (zkDir().getModifiedPaths(cp1, cp5).size() == 0);
+        assert (zkDir().getAddedPaths(cp1, cp5).size() == 1);
     }
 
     @Test
     public void testPortCRUD() throws SerializationException,
-            StateAccessException,
-        Rule.RuleIndexOutOfBoundsException {
+                                      StateAccessException,
+                                      Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
         subnet.networkId = network.id;
@@ -519,24 +659,24 @@ public class NeutronPluginTest {
 
         int cp4 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp3, cp4).size() == 0);
-        assert(zkDir().getModifiedPaths(cp3, cp4).size() == 1);
-        assert(zkDir().getAddedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getRemovedPaths(cp3, cp4).size() == 0);
+        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 1);
+        assert (zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
         plugin.deletePort(dhcpPort.id);
         int cp6 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp2, cp6).size() == 0);
-        assert(zkDir().getModifiedPaths(cp2, cp6).size() == 0);
-        assert(zkDir().getAddedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getRemovedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getModifiedPaths(cp2, cp6).size() == 0);
+        assert (zkDir().getAddedPaths(cp2, cp6).size() == 0);
 
         plugin.deletePort(port.id);
 
         int cp7 = zkDir().createCheckPoint();
 
-        assert(zkDir().getRemovedPaths(cp1, cp7).size() == 0);
-        assert(zkDir().getModifiedPaths(cp1, cp7).size() == 0);
-        assert(zkDir().getAddedPaths(cp1, cp7).size() == 0);
+        assert (zkDir().getRemovedPaths(cp1, cp7).size() == 0);
+        assert (zkDir().getModifiedPaths(cp1, cp7).size() == 0);
+        assert (zkDir().getAddedPaths(cp1, cp7).size() == 0);
 
         plugin.deleteSubnet(subnet.id);
         plugin.deleteNetwork(network.id);
@@ -544,8 +684,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testSecurityGroupCRUD() throws SerializationException,
-            StateAccessException,
-        Rule.RuleIndexOutOfBoundsException {
+                                               StateAccessException,
+                                               Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
         subnet.networkId = network.id;
@@ -641,8 +781,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testSGSameIpCreate() throws StateAccessException,
-            SerializationException,
-        Rule.RuleIndexOutOfBoundsException {
+                                            SerializationException,
+                                            Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
         subnet.networkId = network.id;
@@ -684,8 +824,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testSGSameIpUpdate() throws StateAccessException,
-            SerializationException,
-        Rule.RuleIndexOutOfBoundsException {
+                                            SerializationException,
+                                            Rule.RuleIndexOutOfBoundsException {
         Network network = plugin.createNetwork(createStockNetwork());
         Subnet subnet = createStockSubnet();
         subnet.networkId = network.id;
@@ -728,8 +868,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testAddRouterInterfaceCreateDelete()
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network = plugin.createNetwork(network);
         Subnet subnet = createStockSubnet();
@@ -737,7 +877,7 @@ public class NeutronPluginTest {
         subnet = plugin.createSubnet(subnet);
         int cp1 = zkDir().createCheckPoint();
 
-        org.midonet.cluster.data.neutron.Router r = createStockRouter();
+        Router r = createStockRouter();
         r = plugin.createRouter(r);
         int cp2 = zkDir().createCheckPoint();
 
@@ -767,7 +907,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testRouterInterfaceConvertPort() throws StateAccessException,
-            SerializationException, Rule.RuleIndexOutOfBoundsException {
+                                                        SerializationException,
+                                                        Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network = plugin.createNetwork(network);
         Subnet subnet = createStockSubnet();
@@ -775,7 +916,7 @@ public class NeutronPluginTest {
         subnet = plugin.createSubnet(subnet);
         int cp1 = zkDir().createCheckPoint();
 
-        org.midonet.cluster.data.neutron.Router r = createStockRouter();
+        Router r = createStockRouter();
         r = plugin.createRouter(r);
         int cp2 = zkDir().createCheckPoint();
 
@@ -804,7 +945,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testRouterGatewayCreate() throws StateAccessException,
-            SerializationException, Rule.RuleIndexOutOfBoundsException {
+                                                 SerializationException,
+                                                 Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network.external = true;
         network = plugin.createNetwork(network);
@@ -817,7 +959,7 @@ public class NeutronPluginTest {
         port.deviceOwner = DeviceOwner.ROUTER_GW;
         port = plugin.createPort(port);
 
-        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        Router router = createStockRouter();
         router.externalGatewayInfo.networkId = network.id;
         router.externalGatewayInfo.enableSnat = true;
         router.gwPortId = port.id;
@@ -834,28 +976,32 @@ public class NeutronPluginTest {
     }
 
     private void verifySnatAddr(UUID routerId, String snatIp)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
-        Router routerMido = dataClient.routersGet(routerId);
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
+        org.midonet.cluster.data.Router routerMido =
+            dataClient.routersGet(routerId);
 
-        List<Rule<?,?>> inboundRules
-                = dataClient.rulesFindByChain(routerMido.getInboundFilter());
-        List<Rule<?,?>> outboundRules
-                = dataClient.rulesFindByChain(routerMido.getOutboundFilter());
+        List<Rule<?, ?>> inboundRules
+            = dataClient.rulesFindByChain(routerMido.getInboundFilter());
+        List<Rule<?, ?>> outboundRules
+            = dataClient.rulesFindByChain(routerMido.getOutboundFilter());
 
         boolean foundSnat = false;
         boolean foundRevSnat = false;
 
-        for (Rule<?,?> r : inboundRules) {
+        for (Rule<?, ?> r : inboundRules) {
             String dstAddr = r.getCondition().nwDstIp.toString();
             if (dstAddr.equals(snatIp + "/32")) {
                 foundSnat = true;
             }
         }
 
-        for (Rule<?,?> r : outboundRules) {
-            Set<org.midonet.midolman.rules.NatTarget> targets
-                    = ((org.midonet.cluster.data.rules.ForwardNatRule) r).getTargets();
+        for (Rule<?, ?> r : outboundRules) {
+            Set<org.midonet.midolman.rules.NatTarget>
+                targets
+                =
+                ((org.midonet.cluster.data.rules.ForwardNatRule) r)
+                    .getTargets();
             for (NatTarget nt : targets) {
                 if (nt.getNwEnd().equals(snatIp) &&
                     nt.getNwStart().equals(snatIp)) {
@@ -868,21 +1014,22 @@ public class NeutronPluginTest {
     }
 
     private void verifyStaticNat(FloatingIp floatingIp, Port port,
-                                 org.midonet.cluster.data.neutron.Router router)
-            throws StateAccessException, SerializationException {
+                                 Router router)
+        throws StateAccessException, SerializationException {
         boolean snatRuleFound = false;
         boolean dnatRuleFound = false;
 
-        Router zkRouter = dataClient.routersGet(router.id);
+        org.midonet.cluster.data.Router zkRouter =
+            dataClient.routersGet(router.id);
 
-        List<Rule<?,?>> outRules =
+        List<Rule<?, ?>> outRules =
             dataClient.rulesFindByChain(zkRouter.getInboundFilter());
-        List<Rule<?,?>> inRules =
+        List<Rule<?, ?>> inRules =
             dataClient.rulesFindByChain(zkRouter.getOutboundFilter());
 
-        for (Rule<?,?> r : inRules) {
+        for (Rule<?, ?> r : inRules) {
             if (r instanceof ForwardNatRule) {
-                ForwardNatRule fnr = (ForwardNatRule)r;
+                ForwardNatRule fnr = (ForwardNatRule) r;
                 for (NatTarget target : fnr.getTargets()) {
                     if (Objects.equal(target.getNwStart(),
                                       floatingIp.floatingIpAddress) &&
@@ -895,15 +1042,15 @@ public class NeutronPluginTest {
             }
         }
         Assert.assertTrue(snatRuleFound);
-        for (Rule<?,?> r : outRules) {
+        for (Rule<?, ?> r : outRules) {
             if (r instanceof ForwardNatRule) {
-                ForwardNatRule fnr = (ForwardNatRule)r;
+                ForwardNatRule fnr = (ForwardNatRule) r;
                 for (NatTarget target : fnr.getTargets()) {
                     if (Objects.equal(target.getNwStart(),
                                       port.fixedIps.get(0).ipAddress) &&
-                            Objects.equal(target.getNwEnd(),
-                                          port.fixedIps.get(0).ipAddress) &&
-                            target.tpEnd == 0 && target.tpStart == 0) {
+                        Objects.equal(target.getNwEnd(),
+                                      port.fixedIps.get(0).ipAddress) &&
+                        target.tpEnd == 0 && target.tpStart == 0) {
                         dnatRuleFound = true;
                     }
                 }
@@ -914,7 +1061,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testRouterGatewayUpdate() throws StateAccessException,
-            SerializationException, Rule.RuleIndexOutOfBoundsException {
+                                                 SerializationException,
+                                                 Rule.RuleIndexOutOfBoundsException {
         Network network = createStockNetwork();
         network.external = true;
         network = plugin.createNetwork(network);
@@ -945,7 +1093,7 @@ public class NeutronPluginTest {
         port.deviceOwner = DeviceOwner.ROUTER_GW;
         port = plugin.createPort(port);
 
-        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        Router router = createStockRouter();
         router = plugin.createRouter(router);
 
         router.externalGatewayInfo.networkId = network.id;
@@ -980,7 +1128,8 @@ public class NeutronPluginTest {
 
     @Test
     public void testFIPCreateDelete() throws StateAccessException,
-            SerializationException, Rule.RuleIndexOutOfBoundsException {
+                                             SerializationException,
+                                             Rule.RuleIndexOutOfBoundsException {
 
         // Create the external network
         Network network = createStockNetwork();
@@ -995,7 +1144,7 @@ public class NeutronPluginTest {
         Port port = createStockPort(subnet.id, network.id, null);
         port.deviceOwner = DeviceOwner.ROUTER_GW;
         port = plugin.createPort(port);
-        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        Router router = createStockRouter();
         router.externalGatewayInfo.networkId = network.id;
         router.gwPortId = port.id;
         router = plugin.createRouter(router);
@@ -1031,8 +1180,9 @@ public class NeutronPluginTest {
     }
 
     @Test
-    public void testFIPUpdate() throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException {
+    public void testFIPUpdate()
+        throws StateAccessException, SerializationException,
+               Rule.RuleIndexOutOfBoundsException {
         // Create the external network
         Network network = createStockNetwork();
         network.external = true;
@@ -1045,7 +1195,7 @@ public class NeutronPluginTest {
         Port port = createStockPort(subnet.id, network.id, null);
         port.deviceOwner = DeviceOwner.ROUTER_GW;
         port = plugin.createPort(port);
-        org.midonet.cluster.data.neutron.Router router = createStockRouter();
+        Router router = createStockRouter();
         router.externalGatewayInfo.networkId = network.id;
         router.gwPortId = port.id;
         router = plugin.createRouter(router);
@@ -1141,7 +1291,7 @@ public class NeutronPluginTest {
         // of the paths is logically the same, different UUIDs will be used
         // for the new routes.
         Assert.assertEquals(zkDir().getRemovedPaths(cp4, cp6).size(),
-            zkDir().getAddedPaths(cp4, cp6).size(), 4);
+                            zkDir().getAddedPaths(cp4, cp6).size(), 4);
         Assert.assertEquals(zkDir().getModifiedPaths(cp4, cp6).size(), 2);
 
         // update to associate with a different port
@@ -1156,7 +1306,7 @@ public class NeutronPluginTest {
         int cp7 = zkDir().createCheckPoint();
 
         Assert.assertEquals(zkDir().getRemovedPaths(cp4, cp7).size(),
-            zkDir().getAddedPaths(cp4, cp7).size(), 4);
+                            zkDir().getAddedPaths(cp4, cp7).size(), 4);
         Assert.assertEquals(zkDir().getModifiedPaths(cp4, cp7).size(), 2);
     }
 }
