@@ -6,7 +6,6 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.promise
 
 import akka.actor.Props
@@ -22,17 +21,20 @@ import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.topology.rcu.{Host, TraceConditions}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{FlowMatch, FlowMatches, Packet, Datapath}
+import org.midonet.odp.{DpPort, FlowMatch, FlowMatches, Packet, Datapath}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.odp.flows.FlowAction
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.DatapathController.DatapathReady
+import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
+import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.midolman.UnderlayResolver.Route
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends MidolmanSpec {
@@ -56,7 +58,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
-            dpConnPool, clusterDataClient(), null, null, null,
+            dpConnPool, clusterDataClient(), null, null,
             new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
@@ -64,7 +66,19 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
-        ddaRef ! DatapathController.DatapathReady(datapath, null)
+        ddaRef ! DatapathController.DatapathReady(datapath, new DatapathState {
+            override def version: Long = ???
+            override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
+            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
+            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
+            override def getDpPortName(num: Integer): Option[String] = ???
+            override def host: Host = new Host(UUID.randomUUID(), true, 0, "",
+                                               Map(), Map())
+            override def peerTunnelInfo(peer: UUID): Option[Route] = ???
+            override def isVtepTunnellingPort(portNumber: Short): Boolean = ???
+            override def isOverlayTunnellingPort(portNumber: Short): Boolean = ???
+            override def vtepTunnellingOutputAction: FlowActionOutput = ???
+        })
         dda.hookPacketHandler()
     }
 
@@ -270,14 +284,15 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     class TestableDDA(cookieGen: CookieGenerator,
                       dpConnPool: DatapathConnectionPool,
                       clusterDataClient: DataClient,
-                      cCache: Cache,
                       tmCache: Cache,
                       tiCache: Cache,
                       metrics: PacketPipelineMetrics,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
             extends DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
-                                       cCache, tmCache, tiCache, metrics,
+                                       new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
+                                       new ShardedFlowStateTable[NatKey, NatBinding](),
+                                       tmCache, tiCache, metrics,
                                        packetOut)
             with MessageAccumulator {
 

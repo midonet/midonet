@@ -342,7 +342,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext = new PacketContext(
                         Right(outPort.id), Packet.fromEthernet(eth), 0, null,
-                        null, null, None, egrMatch)
+                        null, None, egrMatch)
                     egrPktContext.outPortId = outPort.id
                     val postRoutingResult = Chain.apply(outFilter, egrPktContext,
                                                         id, false)

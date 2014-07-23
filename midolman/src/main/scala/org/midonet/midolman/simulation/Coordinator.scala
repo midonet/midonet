@@ -95,28 +95,10 @@ class Coordinator(pktCtx: PacketContext)
     implicit val logPktCtx: PacketContext = pktCtx
     implicit val log = LoggerFactory.getSimulationAwareLog(
         this.getClass)(actorSystem.eventStream)
-    private val RETURN_FLOW_EXPIRATION_MILLIS = 60 * 1000
     private val MAX_DEVICES_TRAVERSED = 12
 
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
-
-    private def dropFlow(temporary: Boolean, withTags: Boolean)
-    : Ready[SimulationResult] = {
-        // If the packet is from the datapath, install a temporary Drop flow.
-        // Note: a flow with no actions drops matching packets.
-        pktCtx.traceMessage(null, "Dropping flow")
-        Ready(
-            if (pktCtx.ingressed) {
-                if (!withTags)
-                    pktCtx.flowTags.clear()
-                if (temporary) TemporaryDrop else Drop
-            } else {
-                // Internally-generated packet. Do nothing.
-                pktCtx.runFlowRemovedCallbacks()
-                NoOp
-            })
-    }
 
     /**
      * Simulate the packet moving through the virtual topology. The packet
@@ -193,7 +175,7 @@ class Coordinator(pktCtx: PacketContext)
                 } else {
                     log.debug("Receive unrecognized action {}", firstAction)
                 }
-                dropFlow(temporary = true, withTags = false).get
+                TemporaryDrop
         }
     }
 
@@ -251,24 +233,25 @@ class Coordinator(pktCtx: PacketContext)
 
             case ConsumedAction =>
                 pktCtx.traceMessage(null, "Consumed")
-                pktCtx.runFlowRemovedCallbacks()
                 Ready(NoOp)
 
             case ErrorDropAction =>
                 pktCtx.traceMessage(null, "Encountered error")
-                dropFlow(temporary = true, withTags = false)
+                Ready(TemporaryDrop)
 
-            case act: AbstractDropAction =>
+            case TemporaryDropAction =>
+                log.debug("Device returned TemporaryDropAction for {}", pktCtx.origMatch)
+                Ready(TemporaryDrop)
+
+            case DropAction =>
                 log.debug("Device returned DropAction for {}", pktCtx.origMatch)
-                dropFlow(act.temporary || pktCtx.isConnTracked,
-                         withTags = !act.temporary)
+                Ready(Drop)
 
             case NotIPv4Action =>
                 pktCtx.traceMessage(null, "Unsupported protocol")
                 log.debug("Device returned NotIPv4Action for {}", pktCtx.origMatch)
                 Ready(
                     if (pktCtx.isGenerated) {
-                        pktCtx.runFlowRemovedCallbacks()
                         NoOp
                     } else {
                         val notIPv4Match =
@@ -290,7 +273,7 @@ class Coordinator(pktCtx: PacketContext)
                 pktCtx.traceMessage(null,
                                     "ERROR Unexpected action returned")
                 log.error("Device returned unexpected action!")
-                dropFlow(temporary = true, withTags = false)
+                Ready(TemporaryDrop)
         } // end action match
     }
 
@@ -298,7 +281,7 @@ class Coordinator(pktCtx: PacketContext)
     : Urgent[SimulationResult] =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            dropFlow(temporary = true, withTags = false)
+            Ready(TemporaryDrop)
         } else {
             expiringAsk[Port](portID, log) flatMap { port =>
                 pktCtx.addFlowTag(port.deviceTag)
@@ -327,11 +310,11 @@ class Coordinator(pktCtx: PacketContext)
                 case RuleResult.Action.ACCEPT =>
                     thunk(port)
                 case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    dropFlow(temporary = false, withTags = true)
+                    Ready(Drop)
                 case other =>
                     log.error("Port filter {} returned {} which was " +
                             "not ACCEPT, DROP or REJECT.", filterID, other)
-                    dropFlow(temporary = true, withTags = false)
+                    Ready(TemporaryDrop)
             }
         }
     }
@@ -356,7 +339,7 @@ class Coordinator(pktCtx: PacketContext)
                             packetIngressesPort(p.peerID, getPortGroups = false)
                         case _ =>
                             log.warning("Port {} is unplugged", portID)
-                            dropFlow(temporary = true, withTags = false)
+                            Ready(TemporaryDrop)
                     })
             }
         }
@@ -378,45 +361,23 @@ class Coordinator(pktCtx: PacketContext)
             case true =>
                 log.debug("Emitting packet from port set {}", outputID)
                 actions.append(FlowActionOutputToVrnPortSet(outputID))
+                pktCtx.toPortSet = true
         }
 
         Ready(
             if (pktCtx.isGenerated) {
                 log.debug("SendPacket with actions {}", actions)
-                pktCtx.runFlowRemovedCallbacks()
                 SendPacket(actions.toList)
             } else {
                 log.debug("Add a flow with actions {}", actions)
                 // TODO(guillermo,pino) don't assume that portset id == bridge id
-                if (pktCtx.isConnTracked && pktCtx.isForwardFlow) {
-                    // Write the packet's data to the connectionCache.
-                    pktCtx.installConnectionCacheEntry(
-                            if (isPortSet) outputID else port.deviceID)
-                }
+                val dev = if (isPortSet) outputID else port.deviceID
+                pktCtx.state.trackConnection(dev)
 
-                var idleExp = 0
-                var hardExp = 0
-
-                if (pktCtx.isConnTracked) {
-                    if (pktCtx.isForwardFlow) {
-                        // See #577: if fwd flow we expire the fwd bc. we want
-                        // it to keep refreshing the cache key
-                        hardExp = RETURN_FLOW_EXPIRATION_MILLIS / 2
-                    } else {
-                        // if ret flow, we need to simulate periodically to
-                        // ensure that it's legit by checking that there is a
-                        // matching fwd flow
-                        hardExp = RETURN_FLOW_EXPIRATION_MILLIS
-                    }
-                } else {
-                    idleExp = IDLE_EXPIRATION_MILLIS
-                }
-                val wFlow = WildcardFlow(
-                        wcmatch = pktCtx.origMatch,
-                        actions = actions.toList,
-                        idleExpirationMillis = idleExp,
-                        hardExpirationMillis = hardExp)
-                virtualWildcardFlowResult(wFlow)
+                virtualWildcardFlowResult(WildcardFlow(
+                    wcmatch = pktCtx.origMatch,
+                    actions = actions.toList,
+                    idleExpirationMillis = IDLE_EXPIRATION_MILLIS))
             })
     }
 
@@ -434,7 +395,7 @@ class Coordinator(pktCtx: PacketContext)
             case _ =>
         }
 
-        dropFlow(temporary = false, withTags = true)
+        Ready(Drop)
     }
 
     private def sendIcmpProhibited(port: RouterPort) {

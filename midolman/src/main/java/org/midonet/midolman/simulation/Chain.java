@@ -37,12 +37,12 @@ public class Chain {
     @Inject
     static NatMappingFactory natMappingFactory;
 
-    public Chain(UUID id_, List<Rule> rules_, Map<UUID, Chain> jumpTargets_,
-                 String name_, LoggingBus loggingBus) {
-        id = id_;
-        rules = new ArrayList<>(rules_);
-        jumpTargets = jumpTargets_;
-        name = name_;
+    public Chain(UUID id, List<Rule> rules, Map<UUID, Chain> jumpTargets,
+                 String name, LoggingBus loggingBus) {
+        this.id = id;
+        this.rules = new ArrayList<>(rules);
+        this.jumpTargets = jumpTargets;
+        this.name = name;
         flowInvTag = FlowTagger.tagForDevice(id);
         log = LoggerFactory.getSimulationAwareLog(this.getClass(),
                                                   loggingBus);

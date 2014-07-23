@@ -230,9 +230,9 @@ class L2FilteringTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         ackWCAdded()
 
         log.info("waiting for the return drop flows to timeout")
-        // Flow expiration is checked every 10 seconds. The DROP flows should
-        // expire in 3 seconds, but we wait 15 seconds for expiration to run.
-        wflowRemovedProbe.within (15 seconds) {
+        FlowController ! InvalidateFlowsByTag(
+            FlowTagger.tagForDpPort(vmPortNameToPortNumber(vmPortNames(4))))
+        wflowRemovedProbe.within (3 seconds) {
             requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         }
         // The remaining (allowed) LLDP flow has an idle expiration of 60

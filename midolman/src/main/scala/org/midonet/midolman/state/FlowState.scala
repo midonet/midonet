@@ -25,5 +25,5 @@ trait FlowState {
      * Eventually reset any state associated with this instance for
      * future reuse.
      */
-    def clear(): Unit
+    def clear(): Unit = { }
 }

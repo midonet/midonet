@@ -33,13 +33,13 @@ class VIPTest extends MidolmanTestCase {
 
         val tcpContext = new PacketContext(Left(1), null,
                                            Platform.currentTime + 10000, null,
-                                           null, null, None,
+                                           null, None,
                                            tcpIngressMatch)(actors())
 
         val udpIngressMatch = tcpIngressMatch.clone().setNetworkProtocol(UDP.PROTOCOL_NUMBER)
         val udpContext = new PacketContext(Left(1), null,
                                            Platform.currentTime + 10000, null,
-                                           null, null, None,
+                                           null, None,
                                            udpIngressMatch)(actors())
 
         // Admin state up VIP with same addr / port should match
@@ -70,7 +70,6 @@ object VIPTest {
         val poolId = UUID.randomUUID()
 
         new VIP(vipId, adminStateUp, poolId,address,
-            protocolPort, isStickySourceIP = true,
-            l4lb.VIP.VIP_STICKY_TIMEOUT_SECONDS)
+            protocolPort, isStickySourceIP = true)
     }
 }

@@ -12,6 +12,8 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
 import org.midonet.rpc.{FlowStateProto => Proto}
+import org.midonet.odp.{Packet, FlowMatch}
+import org.midonet.odp.flows.FlowKeyTunnel
 
 object FlowStatePackets {
     /**
@@ -38,6 +40,20 @@ object FlowStatePackets {
 
     /* 14 (eth) + 20 (ip) + 8 (udp) */
     val OVERHEAD = 42
+
+    def isStateMessage(packet: Packet): Boolean = {
+        var i = 0
+        val flowKeys = packet.getMatch.getKeys
+        while (i < flowKeys.size) {
+            val key = flowKeys.get(i)
+            key match {
+                case tunnel: FlowKeyTunnel =>
+                    return tunnel.getTunnelID == TUNNEL_KEY
+                case _ => i += 1
+            }
+        }
+        false
+    }
 
     def makeUdpShell(data: Array[Byte]): Ethernet = {
         import org.midonet.packets.util.PacketBuilder._
@@ -88,7 +104,7 @@ object FlowStatePackets {
         case Proto.NatKey.Type.FWD_STICKY_DNAT => NatKey.FWD_STICKY_DNAT
         case Proto.NatKey.Type.REV_SNAT => NatKey.REV_SNAT
         case Proto.NatKey.Type.REV_DNAT => NatKey.REV_DNAT
-        case Proto.NatKey.Type.REV_STICKY_DNAT => NatKey.FWD_STICKY_DNAT
+        case Proto.NatKey.Type.REV_STICKY_DNAT => NatKey.REV_STICKY_DNAT
     }
 
     implicit def natKeyTypeToProto(t: NatKey.Type): Proto.NatKey.Type = t match {

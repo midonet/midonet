@@ -139,12 +139,8 @@ trait NatState extends FlowState {
     import org.midonet.midolman.state.NatState._
     import org.midonet.midolman.state.NatState.NatKey._
 
-    protected var natTx: FlowStateTransaction[NatKey, NatBinding] = _
+    var natTx: FlowStateTransaction[NatKey, NatBinding] = _
     private val rand = new Random
-
-    def clear(): Unit = {
-        natTx.flush()
-    }
 
     def applyDnat(natTargets: Array[NatTarget]): Boolean =
         applyDnat(FWD_DNAT, natTargets)
@@ -157,21 +153,29 @@ trait NatState extends FlowState {
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, natType)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
-            pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
-            if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-                pktCtx.wcmatch.setTransportDestination(binding.transportPort)
+            dnatTransformation(natKey, binding)
             true
         } else false
+
+    private def dnatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
+        pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
+        if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
+            pktCtx.wcmatch.setTransportDestination(binding.transportPort)
+    }
 
     def applySnat(natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, FWD_SNAT)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
-            pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
-            if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-                pktCtx.wcmatch.setTransportSource(binding.transportPort)
+            snatTransformation(natKey, binding)
             true
         } else false
+
+    def snatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
+        pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
+        if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
+            pktCtx.wcmatch.setTransportSource(binding.transportPort)
+    }
 
     def reverseDnat(): Boolean = reverseDnat(REV_DNAT)
 
@@ -181,37 +185,75 @@ trait NatState extends FlowState {
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, natType)
             val binding = natTx.get(natKey)
-            if (binding ne null) {
-                log.debug("Found reverse DNAT. Use {} for {}", binding, natKey)
-                if (isIcmp) {
-                    if (natType ne REV_STICKY_DNAT)
-                        return reverseNatOnICMPData(binding, isSnat = false)
-                } else {
-                    pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
-                    pktCtx.wcmatch.setTransportSource(binding.transportPort)
-                    return true
-                }
-            }
+            if (binding ne null)
+                return reverseDnatTransformation(natKey, binding)
         }
         false
+    }
+
+    private def reverseDnatTransformation(natKey: NatKey, binding: NatBinding): Boolean = {
+        log.debug("Found reverse DNAT. Use {} for {}", binding, natKey)
+        if (isIcmp) {
+            if (natKey.keyType ne REV_STICKY_DNAT)
+                reverseNatOnICMPData(binding, isSnat = false)
+            else false
+        } else {
+            pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
+            pktCtx.wcmatch.setTransportSource(binding.transportPort)
+            true
+        }
     }
 
     def reverseSnat(): Boolean = {
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, REV_SNAT)
             val binding = natTx.get(natKey)
-            if (binding ne null) {
-                log.debug("Found reverse SNAT. Use {} for {}", binding, natKey)
-                if (isIcmp) {
-                    return reverseNatOnICMPData(binding, isSnat = true)
-                } else {
-                    pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
-                    pktCtx.wcmatch.setTransportDestination(binding.transportPort)
-                    return true
-                }
-            }
+            if (binding ne null)
+                return reverseSnatTransformation(natKey, binding)
         }
         false
+    }
+
+    private def reverseSnatTransformation(natKey: NatKey, binding: NatBinding): Boolean = {
+        log.debug("Found reverse SNAT. Use {} for {}", binding, natKey)
+        if (isIcmp) {
+            reverseNatOnICMPData(binding, isSnat = true)
+        } else {
+            pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
+            pktCtx.wcmatch.setTransportDestination(binding.transportPort)
+            true
+        }
+    }
+
+    def applyIfExists(natKey: NatKey): Boolean = {
+        val binding = natTx.get(natKey)
+        if (binding eq null) {
+            false
+        } else natKey.keyType match {
+            case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+                dnatTransformation(natKey, binding)
+                refKey(natKey, binding)
+                true
+            case NatKey.REV_DNAT | NatKey.REV_STICKY_DNAT =>
+                reverseDnatTransformation(natKey, binding)
+            case NatKey.FWD_SNAT =>
+                snatTransformation(natKey, binding)
+                refKey(natKey, binding)
+                true
+            case NatKey.REV_SNAT =>
+                reverseSnatTransformation(natKey, binding)
+        }
+    }
+
+    def deleteNatBinding(natKey: NatKey): Unit = {
+        val binding = natTx.get(natKey)
+        if (binding ne null) {
+            pktCtx.addFlowTag(natKey)
+            natTx.delete(natKey)
+            val returnKey = natKey.returnKey(binding)
+            natTx.delete(returnKey)
+            pktCtx.addFlowTag(returnKey)
+        }
     }
 
     def isNatSupported: Boolean = {
@@ -285,24 +327,31 @@ trait NatState extends FlowState {
     private def getOrAllocateNatBinding(natKey: NatKey,
                                         natTargets: Array[NatTarget]): NatBinding = {
         var binding = natTx.get(natKey)
-        var inverseKey: NatKey = null
         if (binding eq null) {
             binding = tryAllocateNatBinding(natKey, natTargets)
             natTx.putAndRef(natKey, binding)
+            log.debug("Obtained NAT key {}->{}", natKey, binding)
 
-            inverseKey = natKey.returnKey(binding)
+            val returnKey = natKey.returnKey(binding)
             val inverseBinding = natKey.returnBinding
-            natTx.putAndRef(inverseKey, inverseBinding)
-        } else {
-            log.debug("Found existing mapping for NAT key {}:{}", natKey, binding)
-            inverseKey = natKey.returnKey(binding)
-            natTx.ref(natKey)
-            natTx.ref(inverseKey)
-        }
+            natTx.putAndRef(returnKey, inverseBinding)
+            log.debug("With reverse NAT key {}->{}", returnKey, inverseBinding)
 
-        pktCtx.addFlowTag(natKey)
-        pktCtx.addFlowTag(inverseKey)
+            pktCtx.addFlowTag(natKey)
+            pktCtx.addFlowTag(returnKey)
+        } else {
+            log.debug("Found existing mapping for NAT {}->{}", natKey, binding)
+            refKey(natKey, binding)
+        }
         binding
+    }
+
+    private def refKey(natKey: NatKey, binding: NatBinding): Unit = {
+        natTx.ref(natKey)
+        pktCtx.addFlowTag(natKey)
+        val returnKey = natKey.returnKey(binding)
+        natTx.ref(returnKey)
+        pktCtx.addFlowTag(returnKey)
     }
 
     private def tryAllocateNatBinding(key: NatKey,

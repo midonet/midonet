@@ -21,10 +21,14 @@ import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.util.StatisticalCounter
+import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTable}
+import org.midonet.midolman.state.FlowStateReplicator
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -86,6 +90,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var counter: StatisticalCounter = null
 
+    var connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]
+    var natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]
+
     override def preStart() {
         super.preStart()
         NUM_WORKERS = config.getSimulationThreads
@@ -103,7 +110,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         val props = Props(classOf[DeduplicationActor],
                             cookieGen, dpConnPool, clusterDataClient,
-                            connectionCache, traceMessageCache, traceIndexCache,
+                            connTrackStateTable.addShard(),
+                            natStateTable.addShard(),
+                            traceMessageCache, traceIndexCache,
                             metrics, counter.addAndGet(index, _: Int))
                     .withDispatcher("actors.pinned-dispatcher")
 
