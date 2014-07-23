@@ -9,11 +9,11 @@ import akka.testkit.{ImplicitSender, TestKit}
 import akka.actor.ActorSystem
 import org.midonet.cluster.data.l4lb.{Pool, HealthMonitor, VIP}
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{VipConfigWithId, HealthMonitorConfigWithId}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PoolHealthMonitorMapRequest
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{VipConfigWithId, HealthMonitorConfigWithId}
 
 @RunWith(classOf[JUnitRunner])
 class PoolHealthMonitorMapManagerTest
@@ -32,7 +32,7 @@ class PoolHealthMonitorMapManagerTest
 
     private def emulatePoolHealthMonitorMapping(
             pool: Pool, status: PoolHealthMonitorMappingStatus): Unit =
-        clusterDataClient().poolSetMapStatus(pool.getId, status)
+        loadBalancerApi().poolSetMapStatus(pool.getId, status)
 
     private def emulatePoolHealthMonitorMappingActivate(pool: Pool): Unit =
         emulatePoolHealthMonitorMapping(pool,

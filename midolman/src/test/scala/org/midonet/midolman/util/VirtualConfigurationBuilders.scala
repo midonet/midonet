@@ -5,6 +5,8 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 import java.util.{HashSet => JSet}
+import org.midonet.cluster.data.neutron.LBaaSApi
+
 import scala.util.Random
 
 import scala.collection.JavaConversions._
@@ -30,6 +32,8 @@ import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBS
 trait VirtualConfigurationBuilders {
 
     protected def clusterDataClient(): DataClient
+
+    protected def loadBalancerApi(): LBaaSApi
 
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)
@@ -410,13 +414,13 @@ trait VirtualConfigurationBuilders {
         val loadBalancer = new LoadBalancer()
         loadBalancer.setAdminStateUp(true)
         loadBalancer.setId(id)
-        clusterDataClient().loadBalancerCreate(loadBalancer)
+        loadBalancerApi().loadBalancerCreate(loadBalancer)
         Thread.sleep(50)
         loadBalancer
     }
 
     def deleteLoadBalancer(id: UUID) {
-        clusterDataClient().loadBalancerDelete(id)
+        loadBalancerApi().loadBalancerDelete(id)
     }
 
     def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
@@ -430,7 +434,7 @@ trait VirtualConfigurationBuilders {
 
     def setLoadBalancerDown(loadBalancer: LoadBalancer) {
         loadBalancer.setAdminStateUp(false)
-        clusterDataClient().loadBalancerUpdate(loadBalancer)
+        loadBalancerApi().loadBalancerUpdate(loadBalancer)
     }
 
     def createVip(pool: Pool): VIP = createVip(pool, "10.10.10.10", 10)
@@ -445,19 +449,19 @@ trait VirtualConfigurationBuilders {
         vip.setLoadBalancerId(pool.getLoadBalancerId)
         vip.setProtocolPort(port)
         vip.setAdminStateUp(true)
-        clusterDataClient().vipCreate(vip)
+        loadBalancerApi().vipCreate(vip)
         Thread.sleep(50)
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
         // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
+        loadBalancerApi().vipGet(vip.getId)
     }
 
-    def deleteVip(vip: VIP): Unit = clusterDataClient().vipDelete(vip.getId)
+    def deleteVip(vip: VIP): Unit = loadBalancerApi().vipDelete(vip.getId)
 
     def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer) {
         vip.setLoadBalancerId(null)
-        clusterDataClient().vipUpdate(vip)
+        loadBalancerApi().vipUpdate(vip)
     }
 
     def createRandomVip(pool: Pool): VIP = {
@@ -468,32 +472,32 @@ trait VirtualConfigurationBuilders {
         vip.setProtocolPort(rand.nextInt(1000) + 1)
         vip.setAdminStateUp(true)
         vip.setPoolId(pool.getId)
-        clusterDataClient().vipCreate(vip)
+        loadBalancerApi().vipCreate(vip)
         Thread.sleep(50)
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
         // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
+        loadBalancerApi().vipGet(vip.getId)
     }
 
     def setVipPool(vip: VIP, pool: Pool) {
         vip.setPoolId(pool.getId)
-        clusterDataClient().vipUpdate(vip)
+        loadBalancerApi().vipUpdate(vip)
     }
 
     def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean) {
         vip.setAdminStateUp(adminStateUp)
-        clusterDataClient().vipUpdate(vip)
+        loadBalancerApi().vipUpdate(vip)
     }
 
     def vipEnableStickySourceIP(vip: VIP) {
         vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP)
-        clusterDataClient().vipUpdate(vip)
+        loadBalancerApi().vipUpdate(vip)
     }
 
     def vipDisableStickySourceIP(vip: VIP) {
         vip.setSessionPersistence(null)
-        clusterDataClient().vipUpdate(vip)
+        loadBalancerApi().vipUpdate(vip)
     }
 
     def createHealthMonitor(id: UUID = UUID.randomUUID(),
@@ -507,7 +511,7 @@ trait VirtualConfigurationBuilders {
         hm.setDelay(delay)
         hm.setMaxRetries(maxRetries)
         hm.setTimeout(timeout)
-        clusterDataClient().healthMonitorCreate(hm)
+        loadBalancerApi().healthMonitorCreate(hm)
         Thread.sleep(50)
         hm
     }
@@ -521,18 +525,18 @@ trait VirtualConfigurationBuilders {
         hm.setDelay(rand.nextInt(100) + 1)
         hm.setMaxRetries(rand.nextInt(100) + 1)
         hm.setTimeout(rand.nextInt(100) + 1)
-        clusterDataClient().healthMonitorCreate(hm)
+        loadBalancerApi().healthMonitorCreate(hm)
         Thread.sleep(50)
         hm
     }
 
     def setHealthMonitorDelay(hm: HealthMonitor, delay: Int) = {
         hm.setDelay(delay)
-        clusterDataClient().healthMonitorUpdate(hm)
+        loadBalancerApi().healthMonitorUpdate(hm)
     }
 
     def deleteHealthMonitor(hm: HealthMonitor) {
-        clusterDataClient().healthMonitorDelete(hm.getId)
+        loadBalancerApi().healthMonitorDelete(hm.getId)
     }
 
     def createPool(loadBalancer: LoadBalancer,
@@ -547,24 +551,24 @@ trait VirtualConfigurationBuilders {
         pool.setLbMethod(lbMethod)
         pool.setLoadBalancerId(loadBalancer.getId)
         pool.setId(id)
-        clusterDataClient().poolCreate(pool)
+        loadBalancerApi().poolCreate(pool)
         Thread.sleep(50)
         pool
     }
 
     def setPoolHealthMonitor(pool: Pool, hmId: UUID) = {
         pool.setHealthMonitorId(hmId)
-        clusterDataClient().poolUpdate(pool)
+        loadBalancerApi().poolUpdate(pool)
     }
 
     def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean) {
         pool.setAdminStateUp(adminStateUp)
-        clusterDataClient().poolUpdate(pool)
+        loadBalancerApi().poolUpdate(pool)
     }
 
     def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod) {
         pool.setLbMethod(lbMethod)
-        clusterDataClient().poolUpdate(pool)
+        loadBalancerApi().poolUpdate(pool)
     }
 
     def createPoolMember(pool: Pool): PoolMember = {
@@ -582,7 +586,7 @@ trait VirtualConfigurationBuilders {
         poolMember.setProtocolPort(port)
         poolMember.setPoolId(pool.getId)
         poolMember.setWeight(weight)
-        clusterDataClient().poolMemberCreate(poolMember)
+        loadBalancerApi().poolMemberCreate(poolMember)
         Thread.sleep(50)
         poolMember
     }
@@ -596,11 +600,11 @@ trait VirtualConfigurationBuilders {
         adminStateUp.foreach(poolMember.setAdminStateUp(_))
         weight.foreach(poolMember.setWeight(_))
         status.foreach(poolMember.setStatus(_))
-        clusterDataClient().poolMemberUpdate(poolMember)
+        loadBalancerApi().poolMemberUpdate(poolMember)
     }
 
     def deletePoolMember(poolMember: PoolMember): Unit =
-        clusterDataClient().poolMemberDelete(poolMember.getId)
+        loadBalancerApi().poolMemberDelete(poolMember.getId)
 
     def setPoolMemberAdminStateUp(poolMember: PoolMember,
                                   adminStateUp: Boolean) =

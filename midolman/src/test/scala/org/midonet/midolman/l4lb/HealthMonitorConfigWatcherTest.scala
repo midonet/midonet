@@ -8,18 +8,19 @@ import akka.testkit.{ImplicitSender, TestKit}
 import com.typesafe.config.ConfigFactory
 import java.util.UUID
 import org.junit.runner.RunWith
-import org.midonet.midolman.l4lb.HealthMonitor.{ConfigUpdated, ConfigDeleted, ConfigAdded}
-import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{PoolMemberConfigWithId,
                                                                                            VipConfigWithId,
                                                                                            HealthMonitorConfigWithId,
                                                                                            LoadBalancerConfigWithId}
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager
 import org.midonet.midolman.state.zkManagers.VipZkManager
+import org.midonet.midolman.l4lb.HealthMonitor.{ConfigUpdated, ConfigDeleted, ConfigAdded}
+import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
+import org.midonet.midolman.simulation.CustomMatchers
+
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import scala.collection.mutable.{HashMap => MMap}
