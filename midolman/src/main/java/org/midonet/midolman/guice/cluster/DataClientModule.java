@@ -11,12 +11,12 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
-import org.midonet.cache.Cache;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterPortsManager;
 import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
+import org.midonet.cluster.data.neutron.*;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -27,7 +27,30 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
+import org.midonet.midolman.state.zkManagers.BgpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
+import org.midonet.midolman.state.zkManagers.LicenseZkManager;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
+import org.midonet.midolman.state.zkManagers.PortSetZkManager;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
+import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
+import org.midonet.midolman.state.zkManagers.TenantZkManager;
+import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
+import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
 import java.lang.reflect.Constructor;
@@ -75,6 +98,24 @@ public class DataClientModule extends PrivateModule {
         bind(PortConfigCache.class)
                 .toProvider(PortConfigCacheProvider.class)
                 .in(Singleton.class);
+
+        bind(NetworkZkManager.class).in(Singleton.class);
+        expose(NetworkZkManager.class);
+
+        bind(L3ZkManager.class).in(Singleton.class);
+        expose(L3ZkManager.class);
+
+        bind(ProviderRouterZkManager.class).in(Singleton.class);
+        expose(ProviderRouterZkManager.class);
+
+        bind(ExternalNetZkManager.class).in(Singleton.class);
+        expose(ExternalNetZkManager.class);
+
+        bind(SecurityGroupZkManager.class).in(Singleton.class);
+        expose(SecurityGroupZkManager.class);
+
+        bind(LBaaSApi.class).to(NeutronPlugin.class).asEagerSingleton();
+        expose(LBaaSApi.class);
     }
 
     private static class PathBuilderProvider implements Provider<PathBuilder> {
@@ -109,13 +150,16 @@ public class DataClientModule extends PrivateModule {
         managers.add(TaggableConfigZkManager.class);
         managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
-        managers.add(HealthMonitorZkManager.class);
-        managers.add(LoadBalancerZkManager.class);
-        managers.add(PoolMemberZkManager.class);
-        managers.add(PoolZkManager.class);
-        managers.add(VipZkManager.class);
         managers.add(VtepZkManager.class);
         managers.add(LicenseZkManager.class);
+        /*
+         * The Cluster.*Managers managers still the L4LB zkmanagers.
+         */
+        managers.add(HealthMonitorZkManager.class);
+        managers.add(LoadBalancerZkManager.class);
+        managers.add(PoolZkManager.class);
+        managers.add(PoolMemberZkManager.class);
+        managers.add(VipZkManager.class);
 
         for (Class<? extends BaseZkManager> managerClass : managers) {
             //noinspection unchecked
