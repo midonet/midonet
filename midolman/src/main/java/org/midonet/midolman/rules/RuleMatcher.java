@@ -6,6 +6,7 @@ package org.midonet.midolman.rules;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -26,11 +27,11 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
             this.target = target;
         }
 
-        public SnatRuleMatcher(IPAddr nwStart, IPAddr nwEnd) {
+        public SnatRuleMatcher(IPv4Addr nwStart, IPv4Addr nwEnd) {
             this(new NatTarget(nwStart, nwEnd));
         }
 
-        public SnatRuleMatcher(IPAddr addr) {
+        public SnatRuleMatcher(IPv4Addr addr) {
             this(new NatTarget(addr, 0, 0));
         }
 
@@ -76,11 +77,11 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
             this.target = target;
         }
 
-        public DnatRuleMatcher(IPAddr nwStart, IPAddr nwEnd) {
+        public DnatRuleMatcher(IPv4Addr nwStart, IPv4Addr nwEnd) {
             this(new NatTarget(nwStart, nwEnd));
         }
 
-        public DnatRuleMatcher(IPAddr addr) {
+        public DnatRuleMatcher(IPv4Addr addr) {
             this(new NatTarget(addr, 0, 0));
         }
 

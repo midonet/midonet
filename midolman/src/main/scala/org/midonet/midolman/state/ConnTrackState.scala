@@ -14,59 +14,116 @@ import org.midonet.packets.{ICMP, UDP, TCP, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.functors.Callback0
 
 object ConnTrackState {
     type ConnTrackValue = java.lang.Boolean
 
-    val FORWARD_FLOW = java.lang.Boolean.TRUE
-    val RETURN_FLOW = java.lang.Boolean.FALSE
+    val FORWARD_FLOW: ConnTrackValue = java.lang.Boolean.TRUE
+    val RETURN_FLOW: ConnTrackValue = java.lang.Boolean.FALSE
 
     object ConnTrackKey {
         def apply(wcMatch: WildcardMatch, deviceId: UUID): ConnTrackKey =
             ConnTrackKey(wcMatch.getNetworkSourceIP,
-                icmpIdOr(wcMatch, wcMatch.getTransportSource),
-                wcMatch.getNetworkDestinationIP,
-                icmpIdOr(wcMatch, wcMatch.getTransportDestination),
-                wcMatch.getNetworkProtocol.byteValue(),
-                deviceId)
+                         icmpIdOr(wcMatch, wcMatch.getTransportSource),
+                         wcMatch.getNetworkDestinationIP,
+                         icmpIdOr(wcMatch, wcMatch.getTransportDestination),
+                         wcMatch.getNetworkProtocol.byteValue(),
+                         deviceId)
     }
 
-    case class ConnTrackKey(var networkSrc: IPAddr = null,
-                            var icmpIdOrTransportSrc: Int = 0,
-                            var networkDst: IPAddr = null,
-                            var icmpIdOrTransportDst: Int = 0,
-                            var networkProtocol: Byte = 0,
-                            var deviceId: UUID = null) extends FlowStateTag {
+    case class ConnTrackKey(networkSrc: IPAddr = null,
+                            icmpIdOrTransportSrc: Int = 0,
+                            networkDst: IPAddr = null,
+                            icmpIdOrTransportDst: Int = 0,
+                            networkProtocol: Byte = 0,
+                            deviceId: UUID = null) extends FlowStateTag {
         override def toString = s"conntrack:$networkSrc:$icmpIdOrTransportSrc:" +
                                 s"$networkDst:$icmpIdOrTransportDst:" +
                                 s"$networkProtocol:$deviceId"
-
-        def invertInPlace(egressDeviceId: UUID): Unit = {
-            val src = networkSrc
-            networkSrc = networkDst
-            networkDst = src
-
-            val transportSrc = icmpIdOrTransportSrc
-            icmpIdOrTransportSrc = icmpIdOrTransportDst
-            icmpIdOrTransportDst = transportSrc
-
-            deviceId = egressDeviceId
-        }
     }
 
-    def supportsConnectionTracking(wcMatch: WildcardMatch) = {
-        val proto = wcMatch.getNetworkProtocol.byteValue
+    def EgressConnTrackKey(wcMatch: WildcardMatch, egressDeviceId: UUID): ConnTrackKey =
+        ConnTrackKey(wcMatch.getNetworkDestinationIP,
+                     icmpIdOr(wcMatch, wcMatch.getTransportDestination),
+                     wcMatch.getNetworkSourceIP,
+                     icmpIdOr(wcMatch, wcMatch.getTransportSource),
+                     wcMatch.getNetworkProtocol.byteValue(),
+                     egressDeviceId)
+
+    def supportsConnectionTracking(wcMatch: WildcardMatch): Boolean = {
+        val proto = wcMatch.getNetworkProtocol
         TCP.PROTOCOL_NUMBER == proto || UDP.PROTOCOL_NUMBER == proto ||
         ICMP.PROTOCOL_NUMBER == proto
     }
 
     private def icmpIdOr(wcMatch: WildcardMatch, or: Int): Int = {
-        if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProtocol.byteValue()) {
+        if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProtocol) {
             val icmpId: java.lang.Short = wcMatch.getIcmpIdentifier
             if (icmpId ne null)
                 return icmpId.intValue()
         }
         or
+    }
+}
+
+/**
+ * Connection tracking state. A ConnTrackKey is generated using the forward
+ * flow's egress device ID (a device is used instead of a port in order to
+ * support underlay asymmetric routing as well as bridge flooding). For return
+ * packets, the ingress device is used to lookup the connection tracking key
+ * that would have been written by the forward packet.
+ */
+trait ConnTrackState extends FlowState {
+    import ConnTrackState._
+
+    protected var conntrackTx: FlowStateTransaction[ConnTrackKey,
+                                                    ConnTrackValue] = _
+    // TODO: make these fields private
+    var isConnectionTracked: Boolean = _
+    var flowDirection: ConnTrackValue = _
+    private var connKey: ConnTrackKey = _
+
+    def clear(): Unit = {
+        conntrackTx.flush()
+        connKey = null
+        isConnectionTracked = false
+    }
+
+    def isForwardFlow: Boolean =
+        if (isConnectionTracked) {
+            flowDirection ne RETURN_FLOW
+        } else if (supportsConnectionTracking(pktCtx.wcmatch)) {
+            if (pktCtx.isGenerated) { // We treat generated packets as return flows
+                false
+            } else {
+                isConnectionTracked = true
+                connKey = ConnTrackKey(pktCtx.wcmatch,
+                                       fetchIngressDevice(pktCtx.wcmatch))
+                pktCtx.addFlowTag(connKey)
+                flowDirection = conntrackTx.get(connKey)
+                flowDirection ne RETURN_FLOW
+            }
+        } else {
+            true
+        }
+
+    def trackForwardFlow(egressDeviceId: UUID): Unit =
+        if (isConnectionTracked) {
+            val returnKey = EgressConnTrackKey(pktCtx.wcmatch, egressDeviceId)
+            pktCtx.addFlowTag(returnKey)
+            if (flowDirection eq null) { // A new forward flow
+                conntrackTx.putAndRef(connKey, FORWARD_FLOW)
+                conntrackTx.putAndRef(returnKey, RETURN_FLOW)
+            } else if (flowDirection eq FORWARD_FLOW) {
+                // We don't ref count the return flow key, which is a weak
+                // reference
+                conntrackTx.ref(connKey)
+                conntrackTx.ref(returnKey)
+            }
+        }
+
+    private def fetchIngressDevice(wcMatch: WildcardMatch): UUID = {
+        implicit val actorSystem: ActorSystem = null
+        VirtualTopologyActor.tryAsk[Port](wcMatch.getInputPortUUID).deviceID
     }
 }

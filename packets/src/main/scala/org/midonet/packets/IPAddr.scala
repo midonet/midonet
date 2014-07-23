@@ -35,7 +35,6 @@ trait IPAddr {
     /** Returns an inclusive range of IPAddr as a Java Iterable, up to
      *  the given argument, or starting from it (order does not matter). */
     def range(that: T): java.lang.Iterable[T]
-
 }
 
 object IPAddr {
