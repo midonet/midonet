@@ -110,7 +110,7 @@
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
                     <requires>
-                        <require>java7</require>
+                        <require>java-1.7.0-openjdk</require>
                     </requires>
                     <mappings>
                         <mapping>
