@@ -63,6 +63,11 @@ public class FlowKeyICMPv6 implements FlowKey {
     }
 
     @Override
+    public int connectionHash() {
+        return hashCode();
+    }
+
+    @Override
     public String toString() {
         return "FlowKeyICMPv6{" +
             "icmpv6_type=" + unsign(icmpv6_type) +

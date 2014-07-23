@@ -97,6 +97,9 @@ public class FlowKeyARP implements CachedFlowKey {
         return hashCode;
     }
 
+    @Override
+    public int connectionHash() { return 0; }
+
     private void computeHashCode() {
         hashCode = arp_sip;
         hashCode = 31 * hashCode + arp_tip;

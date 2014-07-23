@@ -18,6 +18,12 @@ public interface FlowKey {
      *  iterator of NetlinkMessage when reconstructing a flow match. */
     void deserializeFrom(ByteBuffer buf);
 
+    /** Returns a hash code which only uses for its calculation fields that are
+     *  part of a stateful L4 connection. This allows for  a consistent result
+     *  across multiple matches that belong to the same connection.
+     */
+    int connectionHash();
+
     /**
      * Should be used by those keys that are only supported in user space.
      *
