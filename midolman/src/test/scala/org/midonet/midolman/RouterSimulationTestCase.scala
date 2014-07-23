@@ -169,7 +169,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
     implicit private def dummyPacketContext =
         new PacketContext(Left(0), null, Platform.currentTime+5000,
-                          null, null, null, None, new WildcardMatch())(actors())
+                          null, null, None, new WildcardMatch())(actors())
 
     def testBalancesRoutes() {
         val routeDst = "21.31.41.51"

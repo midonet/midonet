@@ -240,13 +240,13 @@ def test_long_connection_loadbalancing():
     # Sticky traffic fails - connection dropped
     assert_sticky_traffic_fails()
 
-    # re-enable all backends
-    action_pool_members("enable")
+    # Re-enable the backend
+    getattr(remaining_pool_member, "enable")()
 
     assert_non_sticky_traffic_succeeds()
     assert_sticky_traffic_succeeds()
 
-    # When disable loadbalancer, both sticky and non sticky fail
+    # When disabling the loadbalancer, both sticky and non sticky fail
     action_loadbalancer("disable")
 
     assert_non_sticky_traffic_fails()

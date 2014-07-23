@@ -35,8 +35,7 @@ object WeightedSelector {
  * Entry for weight table. CumWeight is the cumulative weight of this
  * entry and all preceding entries.
  */
-private
-case class WeightTableEntry[T](val cumWeight: Int, val obj: T)
+private case class WeightTableEntry[T](cumWeight: Int, obj: T)
 
 /**
  * Performs weighted random selection from the specified weight table.

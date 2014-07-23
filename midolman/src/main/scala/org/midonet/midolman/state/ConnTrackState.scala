@@ -71,20 +71,22 @@ object ConnTrackState {
  * flow's egress device ID (a device is used instead of a port in order to
  * support underlay asymmetric routing as well as bridge flooding). For return
  * packets, the ingress device is used to lookup the connection tracking key
- * that would have been written by the forward packet.
+ * that would have been written by the forward packet. The forward flow takes
+ * into account the original wildcard match, that is, the state of the packet
+ * when it ingressed. The return flow key, however, is built using the modified
+ * wildcard match, which, the source fields swapped with the destination fields,
+ * translates to the original wildcard match when the return flow ingresses.
  */
 trait ConnTrackState extends FlowState {
     import ConnTrackState._
 
-    protected var conntrackTx: FlowStateTransaction[ConnTrackKey,
-                                                    ConnTrackValue] = _
+    var conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = _
     // TODO: make these fields private
-    var isConnectionTracked: Boolean = _
+    var isConnectionTracked: Boolean = false
     var flowDirection: ConnTrackValue = _
     private var connKey: ConnTrackKey = _
 
-    def clear(): Unit = {
-        conntrackTx.flush()
+    override def clear(): Unit = {
         connKey = null
         isConnectionTracked = false
     }
@@ -97,18 +99,20 @@ trait ConnTrackState extends FlowState {
                 false
             } else {
                 isConnectionTracked = true
-                connKey = ConnTrackKey(pktCtx.wcmatch,
+                connKey = ConnTrackKey(pktCtx.origMatch,
                                        fetchIngressDevice(pktCtx.wcmatch))
                 pktCtx.addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
-                flowDirection ne RETURN_FLOW
+                val res = flowDirection ne RETURN_FLOW
+                log.debug("Connection is forward flow = {}", res)
+                res
             }
         } else {
             true
         }
 
-    def trackForwardFlow(egressDeviceId: UUID): Unit =
-        if (isConnectionTracked) {
+    def trackConnection(egressDeviceId: UUID): Unit =
+        if (isConnectionTracked && (flowDirection ne RETURN_FLOW)) {
             val returnKey = EgressConnTrackKey(pktCtx.wcmatch, egressDeviceId)
             pktCtx.addFlowTag(returnKey)
             if (flowDirection eq null) { // A new forward flow
@@ -122,7 +126,7 @@ trait ConnTrackState extends FlowState {
             }
         }
 
-    private def fetchIngressDevice(wcMatch: WildcardMatch): UUID = {
+    protected def fetchIngressDevice(wcMatch: WildcardMatch): UUID = {
         implicit val actorSystem: ActorSystem = null
         VirtualTopologyActor.tryAsk[Port](wcMatch.getInputPortUUID).deviceID
     }

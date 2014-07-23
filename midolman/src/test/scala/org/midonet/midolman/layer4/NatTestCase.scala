@@ -5,13 +5,14 @@ package org.midonet.midolman.layer4
 
 import scala.collection.JavaConversions._
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.UUID
 import java.{util => ju}
+
+import org.slf4j.LoggerFactory
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.Chain
 import org.midonet.cluster.data.ports.RouterPort
@@ -22,12 +23,14 @@ import org.midonet.midolman.VMsBehindRouterFixture
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.sdn.state.FlowStateTable.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -45,16 +48,17 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
     private val snatAddressStart = IPv4Addr("180.0.1.200")
     private val snatAddressEnd = IPv4Addr("180.0.1.205")
 
-    private var leaseManager: NatLeaseManager = null
-    private var mappings = Set[String]()
+    private var natTable: ShardedFlowStateTable[NatKey, NatBinding] = _
+    private var mappings = Set[NatKey]()
 
     private var rtrOutChain: Chain = null
     private var rtrInChain: Chain = null
 
-    private class Mapping(val key: String, val flowCount: AtomicInteger,
+    private class Mapping(val key: NatKey,
         val fwdInPort: String, val fwdOutPort: String,
         val fwdInPacket: Ethernet, val fwdOutPacket: Ethernet) {
 
+        def flowCount: Int = natTable.getRefCount(key)
         def revInPort: String = fwdOutPort
         def revOutPort: String = fwdInPort
 
@@ -201,10 +205,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
 
         clusterDataClient().routersUpdate(router)
 
-        // get hold of the NatLeaseManager object
-        leaseManager = natMappingFactory().
-            get(router.getId).asInstanceOf[NatLeaseManager]
-        leaseManager should not be null
+        natTable = deduplicationActor().underlyingActor.natStateTable
 
         // feed the router arp cache with the uplink gateway's mac address
         feedArpCache("uplinkPort", uplinkGatewayAddr.addr, uplinkGatewayMac,
@@ -222,9 +223,22 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         drainProbes()
     }
 
-    def updateAndDiffMappings(): Set[String] = {
+    def fwdKeys(): Set[NatKey] = {
+        val reducer =  new Reducer[NatKey, NatBinding, Set[NatKey]] {
+            def apply(acc: Set[NatKey], key: NatKey, value: NatBinding): Set[NatKey] =
+                key.keyType match {
+                    case NatKey.FWD_SNAT | NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+                        acc + key
+                    case _ =>
+                        acc
+                }
+        }
+        natTable.fold(Set.empty[NatKey], reducer).toSet
+    }
+
+    def updateAndDiffMappings(): Set[NatKey] = {
         val oldMappings = mappings
-        mappings = leaseManager.fwdKeys.keySet.toSet
+        mappings = fwdKeys()
         mappings -- oldMappings
     }
 
@@ -279,13 +293,12 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         drainProbes()
-        val newMappings: Set[String] = updateAndDiffMappings()
+        val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+        natTable.getRefCount(newMappings.head) should be (1)
         outPorts.size should be (1)
 
         val mapping = new Mapping(newMappings.head,
-                leaseManager.fwdKeys.get(newMappings.head).flowCount,
                 "uplinkPort", localPortNumberToName(outPorts.head).get,
                 pktOut.packet.getEthernet,
                 applyOutPacketActions(pktOut))
@@ -302,7 +315,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some(mapping.fwdInPort))
         mapping.matchReturnOutPacket(applyOutPacketActions(pktOut))
-        mapping.flowCount.get should be (1)
+        mapping.flowCount should be (1)
 
         log.debug("sending a second forward packet, from a different router")
         injectTcp("uplinkPort",
@@ -315,7 +328,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some(mapping.fwdOutPort))
         mapping.matchForwardOutPacket(applyOutPacketActions(pktOut))
-        mapping.flowCount.get should be (2)
+        mapping.flowCount should be (2)
 
         drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
@@ -324,8 +337,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
-        mapping.flowCount.get should be (0)
-        leaseManager.fwdKeys.size should be (0)
+        mapping.flowCount should be (0)
+        natTable.expireIdleEntries(0)
+        fwdKeys().size should be (0)
     }
 
     def testSnat() {
@@ -336,14 +350,13 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         var pktOut = requestOfType[PacketsExecute](packetsEventsProbe)
         var outPorts = getOutPacketPorts(pktOut)
         drainProbes()
-        val newMappings: Set[String] = updateAndDiffMappings()
+        val newMappings: Set[NatKey] = updateAndDiffMappings()
         newMappings.size should be (1)
-        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+        natTable.getRefCount(newMappings.head) should be (1)
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some("uplinkPort"))
 
         val mapping = new Mapping(newMappings.head,
-            leaseManager.fwdKeys.get(newMappings.head).flowCount,
             vmPortNames.head, "uplinkPort",
             pktOut.packet.getEthernet,
             applyOutPacketActions(pktOut))
@@ -361,7 +374,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some(mapping.fwdInPort))
         mapping.matchReturnOutPacket(applyOutPacketActions(pktOut))
-        mapping.flowCount.get should be (1)
+        mapping.flowCount should be (1)
 
         log.debug("sending a second forward packet, from a different network card")
         injectTcp(vmPortNames.head, "02:34:34:43:43:20", vmIps.head, 30501,
@@ -374,7 +387,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         localPortNumberToName(outPorts.head) should be (Some(mapping.fwdOutPort))
         mapping.matchForwardOutPacket(applyOutPacketActions(pktOut))
-        mapping.flowCount.get should be (2)
+        mapping.flowCount should be (2)
 
         drainProbe(wflowRemovedProbe)
         flowController() ! InvalidateFlowsByTag(
@@ -383,8 +396,9 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
-        mapping.flowCount.get should be (0)
-        leaseManager.fwdKeys.size should be (0)
+        mapping.flowCount should be (0)
+        natTable.expireIdleEntries(0)
+        fwdKeys().size should be (0)
     }
 
     // -----------------------------------------------
@@ -406,13 +420,12 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val outPorts = getOutPacketPorts(pktOut)
         outPorts.size should be (1)
 
-        val newMappings: Set[String] = updateAndDiffMappings()
+        val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+        natTable.getRefCount(newMappings.head) should be (1)
 
         val eth = applyOutPacketActions(pktOut)
         val mapping = new Mapping(newMappings.head,
-            leaseManager.fwdKeys.get(newMappings.head).flowCount,
             outPort, localPortNumberToName(outPorts.head).get,
             pktOut.packet.getEthernet,
             eth)
@@ -600,7 +613,6 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         icmpPak should not be null
         icmpPak.getType shouldBe ICMP.TYPE_ECHO_REPLY
         icmpPak.getIdentifier shouldBe icmpReply.getIdentifier
-
     }
 
     /**
@@ -678,15 +690,14 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         drainProbes()
 
-        val newMappings: Set[String] = updateAndDiffMappings()
+        val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+        natTable.getRefCount(newMappings.head) should be (1)
         localPortNumberToName(outPorts.head) should be (Some("uplinkPort"))
 
         val eth = pktOut.packet.getEthernet
         val ethApplied = applyOutPacketActions(pktOut)
         val mp = new Mapping(newMappings.head,
-            leaseManager.fwdKeys.get(newMappings.head).flowCount,
             vmPortNames.head, "uplinkPort", eth,
             ethApplied)
 
@@ -713,14 +724,13 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         outPorts.size should be (1)
         drainProbes()
 
-        val newMappings: Set[String] = updateAndDiffMappings()
+        val newMappings = updateAndDiffMappings()
         newMappings.size should be (1)
-        leaseManager.fwdKeys.get(newMappings.head).flowCount.get should be (1)
+        natTable.getRefCount(newMappings.head) should be (1)
 
         val eth = pktOut.packet.getEthernet
         val ethApplied = applyOutPacketActions(pktOut)
         val mapping = new Mapping(newMappings.head,
-            leaseManager.fwdKeys.get(newMappings.head).flowCount,
             "uplinkPort", localPortNumberToName(outPorts.head).get,
             eth, ethApplied)
 
@@ -794,5 +804,4 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             uplinkPortMac, dnatAddress, 7, 6)
         verifyDnatICMPErrorAfterPacket()
     }
-
 }

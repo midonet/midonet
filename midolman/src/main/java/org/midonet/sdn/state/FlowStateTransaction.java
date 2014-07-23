@@ -1,6 +1,7 @@
 package org.midonet.sdn.state;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Represents an open transaction on a per-flow stateful data table.
@@ -34,13 +35,14 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     private ArrayList<K> keys = new ArrayList<>();
     private ArrayList<V> values = new ArrayList<>();
     private ArrayList<K> refs = new ArrayList<>();
+    private HashSet<K> deletes = new HashSet<>();
 
     public FlowStateTransaction(FlowStateTable<K, V> underlyingState) {
         parent = underlyingState;
     }
 
     public int size() {
-        return keys.size();
+        return keys.size() + refs.size();
     }
 
     /**
@@ -50,6 +52,7 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         keys.clear();
         values.clear();
         refs.clear();
+        deletes.clear();
     }
 
     /**
@@ -64,14 +67,14 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     }
 
     @Override
-    public <U> U fold(U seed, Reducer<K, V, U> func) {
+    public <U> U fold(U seed, Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < keys.size(); i++) {
             seed = func.apply(seed, keys.get(i), values.get(i));
         }
         return seed;
     }
 
-    public <U> U foldOverRefs(U seed, Reducer<K, V, U> func) {
+    public <U> U foldOverRefs(U seed, Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < refs.size(); i++)
             seed = func.apply(seed, refs.get(i), parent.get(refs.get(i)));
         return seed;
@@ -79,20 +82,27 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
 
     @Override
     public V putAndRef(K key, V value) {
-        V oldV = get(key);
-        for (int i = 0; i < keys.size(); i++) {
-            if (keys.get(i).equals(key)) {
-                values.add(i, value);
-                return oldV;
+        if (deletes.contains(key)) {
+            deletes.remove(key);
+        } else {
+            for (int i = 0; i < keys.size(); i++) {
+                if (keys.get(i).equals(key)) {
+                    V oldV = values.get(i);
+                    values.add(i, value);
+                    return oldV;
+                }
             }
         }
         keys.add(key);
         values.add(value);
-        return oldV;
+        return parent.get(key);
     }
 
     @Override
     public V get(K key) {
+        if (deletes.contains(key))
+            return null;
+
         for (int i = 0; i < keys.size(); i++) {
             if (keys.get(i).equals(key))
                 return values.get(i);
@@ -104,5 +114,24 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     public V ref(K key) {
         refs.add(key);
         return get(key);
+    }
+
+    public void delete(K key) {
+        for (int i  = 0; i < keys.size(); ++i) {
+            if (keys.get(i).equals(key)) {
+                keys.remove(i);
+                values.remove(i);
+                break;
+            }
+        }
+
+        for (int i  = 0; i < refs.size(); ++i) {
+            if (refs.get(i).equals(key)) {
+                refs.remove(i);
+                break;
+            }
+        }
+
+        deletes.add(key);
     }
 }

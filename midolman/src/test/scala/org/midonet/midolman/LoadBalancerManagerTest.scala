@@ -191,10 +191,12 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
                 .setTransportSource(1)
                 .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             val pktContextIngress = new PacketContext(Left(1), null,
-                Platform.currentTime + 10000, null,
-                null, null, None, ingressMatch)(actorSystem)
+                Platform.currentTime + 10000, null, null, None,
+                ingressMatch)(actorSystem)
 
-            val f = lb.processInbound(pktContextIngress)(executionContext, actorSystem)
+            try {
+                lb.processInbound(pktContextIngress)(executionContext, actorSystem)
+            } catch { case _: NotYetException => }
 
             Then("the VTA should receive a pool request")
             val vtaMessages = vta.getAndClear()

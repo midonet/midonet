@@ -3,21 +3,18 @@
 */
 package org.midonet.midolman.simulation
 
-import java.lang.reflect.Field
 import scala.concurrent.duration._
 
 import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cache.{CacheWithPrefix, MockCache}
-import org.midonet.cache.MockCache.CacheEntry
 import org.midonet.cluster.data.l4lb
 import org.midonet.cluster.data.{Router => ClusterRouter, Entity}
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.layer4.NatLeaseManager
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -26,7 +23,7 @@ import org.midonet.odp.flows.{FlowActionSetKey, FlowKeyIPv4}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 
 object DisableAction extends Enumeration {
     type DisableAction = Value
@@ -74,10 +71,6 @@ class PoolTest extends MidolmanSpec {
     var exteriorClientPort: RouterPort = _
     var exteriorBackendPorts: Seq[RouterPort] = _
 
-    // Access private cache member of NatLeaseManager
-    var leaseMgrCacheField: Field = _
-    var cachePrefixCacheField: Field = _
-
     lazy val fromClientToVipUDP = (exteriorClientPort, clientToVipPktUDP)
     def clientToVipPktUDP: Ethernet =
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
@@ -116,6 +109,8 @@ class PoolTest extends MidolmanSpec {
     lazy val responseToClientPkt: Ethernet =
         { eth src exteriorClientPort.getHwAddr dst macClientSide } <<
             { ip4 src vipIp.toUnicastString dst ipClientSide.toUnicastString }
+
+    implicit var natTx: FlowStateTransaction[NatKey, NatBinding] = _
 
     override def beforeTest() {
         newHost("myself", hostId)
@@ -185,12 +180,8 @@ class PoolTest extends MidolmanSpec {
             n => arpTable.set(ipsBackendSide(n).getAddress, macsBackendSide(n))
         }
 
-        // Make it possible to access NatLeaseManager's internal MockCache
-        leaseMgrCacheField = classOf[NatLeaseManager].getDeclaredField("cache")
-        leaseMgrCacheField.setAccessible(true)
-
-        cachePrefixCacheField = classOf[CacheWithPrefix].getDeclaredField("cache")
-        cachePrefixCacheField.setAccessible(true)
+        val natTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        natTx = new FlowStateTransaction(natTable)
     }
 
     feature("When loadbalancer is admin state down, behaves as if no loadbalancer present") {
@@ -334,7 +325,6 @@ class PoolTest extends MidolmanSpec {
     }
 
     feature("Backend is disabled, sticky vs non-sticky behavior differs") {
-
         scenario("With sticky source IP, multiple backends") {
             Given("VIP has sticky source IP enabled")
 
@@ -588,87 +578,6 @@ class PoolTest extends MidolmanSpec {
         }
     }
 
-    feature("Sticky source IP attribute in VIP affects cache timeouts") {
-        scenario("Without sticky source IP") {
-            Given("VIP has sticky source IP disabled")
-
-            vipDisableStickySourceIP(vip)
-
-            When("A packet is sent to the VIP")
-
-            val flow = sendPacket (fromClientToVip)
-
-            Then("cache should contain one map entry, with a low timeout")
-
-            // Expect both cache values to have normal NAT timeout
-            val expectedExpirationLength = 60000
-            assertCacheValueExpirations(expectedExpirationLength)
-
-            Then("Another of the same packet is sent to the VIP")
-
-            sendPacket (fromClientToVip)
-
-            Then("Cache entries should be refreshed and be correct lengths")
-
-            assertCacheValueExpirations(expectedExpirationLength)
-        }
-
-        scenario("With sticky source IP") {
-            Given("VIP has sticky source IP enabled")
-
-            vipEnableStickySourceIP(vip)
-
-            When("A packet is sent to the VIP")
-
-            val flow = sendPacket (fromClientToVip)
-
-            Then("cache should contain one map entry, with a high timeout")
-
-            // Expect both cache values to have
-            // sticky source IP timeout - 24 hours / 86,400s
-            val expectedExpirationLength = 86400000
-            assertCacheValueExpirations(expectedExpirationLength)
-
-            Then("Another of the same packet is sent to the VIP")
-
-            sendPacket (fromClientToVip)
-
-            Then("Cache entries should be refreshed and be correct lengths")
-
-            assertCacheValueExpirations(expectedExpirationLength)
-        }
-
-    }
-
-    // Helper functions
-
-    private[this] def assertCacheValueExpirations(expirationLength: Int)
-    {
-        val leaseManager = Chain.natMappingFactory.
-            get(loadBalancer.getId).asInstanceOf[NatLeaseManager]
-        leaseManager should not be null
-
-        val mockCache = getMockCache(leaseManager)
-        val cacheValues: List[CacheEntry] =
-            mockCache.map.values().toArray.map(
-                _.asInstanceOf[CacheEntry]).toList
-
-        cacheValues.size shouldBe 2
-
-        val expirationLengths = cacheValues.map {
-            c: CacheEntry => c.expirationMillis
-        }.toSet
-        expirationLengths.size shouldBe 1
-        expirationLengths.toList(0) shouldBe expirationLength
-    }
-
-    private[this] def getMockCache(leaseManager: NatLeaseManager): MockCache = {
-        val cacheWithPrefix: CacheWithPrefix =
-            leaseMgrCacheField.get(leaseManager).asInstanceOf[CacheWithPrefix]
-
-        cachePrefixCacheField.get(cacheWithPrefix).asInstanceOf[MockCache]
-    }
-
     private def clientToVipPkt(srcTpPort: Short): Ethernet =
         { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
@@ -735,13 +644,11 @@ class PoolTest extends MidolmanSpec {
 
         val endFirstHalf = timesRun / 2
         val startSecondHalf = endFirstHalf + 1
-        val destIpSetFirstHalf =
-            sendPacketsAndGetDestIpSet(1, endFirstHalf)
+        val destIpSetFirstHalf = sendPacketsAndGetDestIpSet(1, endFirstHalf)
 
         doPoolMemberAction(destIpSetFirstHalf, actionBetweenHalves)
 
-        val destIpSetSecondHalf =
-            sendPacketsAndGetDestIpSet(startSecondHalf, timesRun)
+        val destIpSetSecondHalf = sendPacketsAndGetDestIpSet(startSecondHalf, timesRun)
 
         (destIpSetFirstHalf, destIpSetSecondHalf)
     }
@@ -749,7 +656,7 @@ class PoolTest extends MidolmanSpec {
     private[this] def doPoolMemberAction(destIpSet: Set[Int],
                              actionBetweenHalves: DisableAction.DisableAction) {
         destIpSet.size shouldBe 1
-        val destIp = destIpSet.toSeq(0)
+        val destIp = destIpSet.head
         actionBetweenHalves match {
             case DisableAction.SetDisabled =>
                 setPoolMemberDisabledByIp(destIp)
@@ -760,7 +667,7 @@ class PoolTest extends MidolmanSpec {
 
     private[this] def getPoolMemberFromIp(ip: Int): l4lb.PoolMember = {
         val ipStr: String = IPv4Addr.intToString(ip)
-        poolMembers.find(p => p.getAddress == ipStr).get
+        poolMembers.find(_.getAddress == ipStr).get
     }
 
     private[this] def setPoolMemberDisabledByIp(ip: Int) {
@@ -772,5 +679,4 @@ class PoolTest extends MidolmanSpec {
         val pm = getPoolMemberFromIp(ip)
         setPoolMemberHealth(pm, LBStatus.INACTIVE)
     }
-
 }

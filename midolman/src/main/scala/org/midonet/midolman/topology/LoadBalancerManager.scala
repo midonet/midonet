@@ -28,8 +28,7 @@ object LoadBalancerManager {
             dataVip.getPoolId,
             IPv4Addr(dataVip.getAddress),
             dataVip.getProtocolPort,
-            dataVip.getSessionPersistence == VipSessionPersistence.SOURCE_IP,
-            VIP.VIP_STICKY_TIMEOUT_SECONDS
+            dataVip.getSessionPersistence == VipSessionPersistence.SOURCE_IP
         )
 }
 

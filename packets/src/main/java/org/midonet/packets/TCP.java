@@ -262,23 +262,19 @@ public class TCP extends BasePacket implements Transport {
     }
 
     public static int getSourcePort(ByteBuffer bb) throws MalformedPacketException {
-        Short srcPort = 0;
         try {
-            srcPort = bb.getShort(0);
+            return Unsigned.unsign(bb.getShort(0));
         } catch (Exception e) {
             throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
         }
-        return srcPort;
     }
 
     public static int getDestinationPort(ByteBuffer bb) throws MalformedPacketException {
-        Short srcPort = 0;
         try {
-            srcPort = bb.getShort(2);
+            return Unsigned.unsign(bb.getShort(2));
         } catch (Exception e) {
-            throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
+            throw new MalformedPacketException("Cannot read tpDst, corrupted data");
         }
-        return srcPort;
     }
 
     public static void ensurePortInRange(int port) {

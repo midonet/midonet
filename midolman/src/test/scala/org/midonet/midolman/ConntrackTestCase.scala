@@ -20,6 +20,10 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{MAC, IPacket}
+import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -103,33 +107,41 @@ class ConntrackTestCase extends MidolmanSpec {
     feature("TCP, UDP and ICMP flows are conntracked") {
         scenario("return packets are detected as such") {
             val bridge: Bridge = fetchDevice(clusterBridge)
+            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+                                            .addShard()
+            implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
-                val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.installConnectionCacheEntry(bridge.id)
-                fwdContext.isConnTracked should be (true)
-                fwdContext.isForwardFlow should be (true)
+                val (pktCtx, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
+                pktCtx.state.trackConnection(bridge.id)
+                conntrackTx.commit()
+                conntrackTx.flush()
+                pktCtx.state.isConnectionTracked should be (true)
+                pktCtx.state.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.isConnTracked should be (true)
-                retContext.isForwardFlow should be (false)
+                retContext.state.isConnectionTracked should be (true)
+                retContext.state.isForwardFlow should be (false)
                 retAct should be (ToPortAction(leftPort.getId))
             }
         }
 
         scenario("return packets are not detected if a conntrack key is not installed") {
             val bridge: Bridge = fetchDevice(clusterBridge)
+            val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
+                    .addShard()
+            implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.isConnTracked should be (true)
-                fwdContext.isForwardFlow should be (true)
+                fwdContext.state.isConnectionTracked should be (true)
+                fwdContext.state.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.isConnTracked should be (true)
-                retContext.isForwardFlow should be (true)
+                retContext.state.isConnectionTracked should be (true)
+                retContext.state.isForwardFlow should be (true)
                 retAct should be (DropAction)
             }
         }

@@ -49,8 +49,16 @@ class MockScheduler(config: Config,
     }
 
     implicit private val ordering = new Ordering[ScheduledRunnable] {
-        override def compare(x: ScheduledRunnable, y: ScheduledRunnable): Int =
-            implicitly[Ordering[Long]].compare(x.shouldStartAt, y.shouldStartAt)
+        override def compare(x: ScheduledRunnable, y: ScheduledRunnable): Int = {
+            if ((x eq null) && (y eq null))
+                0
+            else if (x eq null)
+                1
+            else if (y eq null)
+                -1
+            else
+                implicitly[Ordering[Long]].compare(x.shouldStartAt, y.shouldStartAt)
+        }
     }
 
     private val scheduledRunnables = PriorityQueue[ScheduledRunnable]()

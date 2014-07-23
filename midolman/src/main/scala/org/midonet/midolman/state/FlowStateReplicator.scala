@@ -17,7 +17,7 @@ import com.google.protobuf.MessageLite
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
-import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
                                       VirtualToPhysicalMapper => VTPM}
@@ -30,13 +30,12 @@ import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.sdn.state.FlowStateLifecycle
+import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
 import org.midonet.sdn.state.FlowStateTable.Reducer
-import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.FixedArrayOutputStream
-
+import org.midonet.util.functors.Callback0
 
 /**
  * Dead simple thread-unsafe class to keep book keeping data for locally owned
@@ -63,8 +62,9 @@ class StrongRefLibrarian {
     }
 
     def addPeersFor(key: FlowStateTag, peers: JSet[UUID]) {
-        if (isLocallyOwned(key)) {
-            val current = keyToPeers.get(key)
+        val current = keyToPeers.get(key)
+        val keyIsOwned = current ne null
+        if (keyIsOwned) {
             if (current eq NO_PEERS)
                 keyToPeers.put(key, peers)
             else
@@ -162,17 +162,12 @@ class WeakRefLibrarian {
  * Sample usage:
  *
  * <code>
- * val result = replicator.accumulateNewKeys(natTx, conntrackTx, ingressPort,
- *                                           egressPort, null)
- * if (result.isReady) {
- *     replicator.pushState()
- *     natTx.commit()
- *     conntrackTx.commit()
- * }
+ * replicator.accumulateNewKeys(natTx, conntrackTx, ingressPort, egressPort, null)
+ * replicator.pushState()
+ * natTx.commit()
+ * conntrackTx.commit()
  *
  * natTable.expireIdleEntries(interval, replicator.natRemover)
- * replicator.pushState()
- *
  * conntrackTable.expireIdleEntries(interval, replicator.conntrackRemover)
  * replicator.pushState()
  *
@@ -210,7 +205,7 @@ class WeakRefLibrarian {
 abstract class BaseFlowStateReplicator() {
     import FlowStatePackets._
 
-    def conntrackTable: FlowStateLifecycle[ConnTrackKey, String]
+    def conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue]
     def natTable: FlowStateLifecycle[NatKey, NatBinding]
     def underlay: UnderlayResolver
     def datapath: Datapath
@@ -242,8 +237,6 @@ abstract class BaseFlowStateReplicator() {
         new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
     }
 
-    private[this] val hostToUdpShell = new JMap[UUID, Ethernet]()
-
     /* Book-keeping data structures
      *
      * ownedKeys: manages keys owned by this host. Needs not be thread-safe,
@@ -266,8 +259,8 @@ abstract class BaseFlowStateReplicator() {
 
     }
 
-    private val _conntrackAdder = new Reducer[ConnTrackKey, String, StrongRefLibrarian] {
-        override def apply(refs: StrongRefLibrarian, k: ConnTrackKey, v: String) = {
+    private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, StrongRefLibrarian] {
+        override def apply(refs: StrongRefLibrarian, k: ConnTrackKey, v: ConnTrackValue) = {
             if (refs.isLocallyOwned(k) || (conntrackTable.get(k) eq null)) {
                 log.debug("push-add conntrack key: {}", k)
                 txState.setConntrackKey(connTrackKeyToProto(k))
@@ -292,6 +285,28 @@ abstract class BaseFlowStateReplicator() {
         }
     }
 
+    private val _conntrackCallbacks = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
+        override def apply(callbacks: ArrayList[Callback0],
+                           key: ConnTrackKey,
+                           value: ConnTrackValue): ArrayList[Callback0] = {
+            callbacks.add(new Callback0 {
+                override def call(): Unit = conntrackTable.unref(key)
+            })
+            callbacks
+        }
+    }
+
+    private val _natCallbacks = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
+        override def apply(callbacks: ArrayList[Callback0],
+                           key: NatKey,
+                           value: NatBinding): ArrayList[Callback0] = {
+            callbacks.add(new Callback0 {
+                override def call(): Unit = natTable.unref(key)
+            })
+            callbacks
+        }
+    }
+
     private def isKeyStillLocallyOwned(key: FlowStateTag): Boolean = {
         val portId = ownedKeys.ingressPortForKey(key)
         if (portId eq null)
@@ -310,8 +325,8 @@ abstract class BaseFlowStateReplicator() {
      * EXPECTED CALLING THREADS: only the packet processing thread that owns
      * this replicator.
      */
-    val conntrackRemover = new Reducer[ConnTrackKey, String, BaseFlowStateReplicator] {
-        override def apply(s: BaseFlowStateReplicator, k: ConnTrackKey, v: String) = {
+    val conntrackRemover = new Reducer[ConnTrackKey, ConnTrackValue, BaseFlowStateReplicator] {
+        override def apply(s: BaseFlowStateReplicator, k: ConnTrackKey, v: ConnTrackValue) = {
             if (isKeyStillLocallyOwned(k)) {
                 val peers = ownedKeys.peersForKey(k)
                 if ((peers ne null) && !peers.isEmpty) {
@@ -335,6 +350,7 @@ abstract class BaseFlowStateReplicator() {
                 val peers = ownedKeys.peersForKey(k)
                 if ((peers ne null) && !peers.isEmpty) {
                     resetCurrentMessage()
+                    log.debug("push-delete for key: {}", k)
                     currentMessage.addDeleteNatKeys(natKeyToProto(k))
                     pendingMessages.add((peers, currentMessage.build()))
                 }
@@ -418,47 +434,61 @@ abstract class BaseFlowStateReplicator() {
      * @param tags A mutable set to collect tags that will invalidate the
      *             soon-to-be-installed flow. The caller is responsible
      *             for tagging the flow.
+     * @param callbacks A mutable list of callbacks that will be called when the
+     *                  current flow is deleted.
      *
      * @throws NotYetException This agent is missing pieces of topology in its
      *                         local cache that would be necessary in order to
      *                         calculate the peers that should receive this keys.
      */
     @throws(classOf[NotYetException])
-    def accumulateNewKeys(natTx: FlowStateTransaction[NatKey, NatBinding],
-                          conntrackTx: FlowStateTransaction[ConnTrackKey, String],
+    def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
+                          natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPort: UUID,
-                          egressPortSet: UUID, tags: mutable.Set[FlowTag]) {
+                          egressPortSet: UUID, tags: mutable.Set[FlowTag],
+                          callbacks: ArrayList[Callback0]) {
         if (natTx.size() == 0 && conntrackTx.size() == 0)
             return
 
         txPeers = resolvePeers(ingressPort, egressPort, egressPortSet, tags)
-        txIngressPort = ingressPort
-
         if (!txPeers.isEmpty) {
             txState.clear()
             resetCurrentMessage()
-
-            if (natTx != null) {
-                natTx.fold(ownedKeys, _natAdder)
-                natTx.foldOverRefs(ownedKeys, _natAdder)
-            }
-            if (conntrackTx != null) {
-                conntrackTx.fold(ownedKeys, _conntrackAdder)
-                conntrackTx.foldOverRefs(ownedKeys, _conntrackAdder)
-            }
-
-            if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
-                txState.setIngressPort(uuidToProto(ingressPort))
-                if (egressPort != null)
-                    txState.setEgressPort(uuidToProto(egressPort))
-                if (egressPortSet != null)
-                    txState.setEgressPortSet(uuidToProto(egressPortSet))
-
-                currentMessage.addNewState(txState.build())
-                pendingMessages.add((txPeers, currentMessage.build()))
-            }
+            txIngressPort = ingressPort
+            handleConntrack(conntrackTx)
+            handleNat(natTx)
+            buildMessage(ingressPort, egressPort, egressPortSet)
         }
+
+        conntrackTx.fold(callbacks, _conntrackCallbacks)
+        conntrackTx.foldOverRefs(callbacks, _conntrackCallbacks)
+        natTx.fold(callbacks, _natCallbacks)
+        natTx.foldOverRefs(callbacks, _natCallbacks)
     }
+
+    private def handleConntrack(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue]): Unit =
+        if (conntrackTx.size() > 0) {
+            conntrackTx.fold(ownedKeys, _conntrackAdder)
+            conntrackTx.foldOverRefs(ownedKeys, _conntrackAdder)
+         }
+
+    private def handleNat(natTx: FlowStateTransaction[NatKey, NatBinding]): Unit =
+        if (natTx.size() > 0) {
+            natTx.fold(ownedKeys, _natAdder)
+            natTx.foldOverRefs(ownedKeys, _natAdder)
+        }
+
+    def buildMessage(ingressPort: UUID, egressPort: UUID, egressPortSet: UUID): Unit =
+        if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
+            txState.setIngressPort(uuidToProto(ingressPort))
+            if (egressPort != null)
+                txState.setEgressPort(uuidToProto(egressPort))
+            else if (egressPortSet != null)
+                txState.setEgressPortSet(uuidToProto(egressPortSet))
+
+            currentMessage.addNewState(txState.build())
+            pendingMessages.add((txPeers, currentMessage.build()))
+        }
 
     private def hostsToActions(hosts: JSet[UUID]): JList[FlowAction] = {
         val actions = new ArrayList[FlowAction]()
@@ -515,7 +545,7 @@ abstract class BaseFlowStateReplicator() {
                 log.debug("got new conntrack key: {}", k)
 
                 if (conntrackTable.get(k) eq null) {
-                    conntrackTable.putAndRef(k, "r")
+                    conntrackTable.putAndRef(k, ConnTrackState.RETURN_FLOW)
                 }
 
                 if (fromThePast) {
@@ -589,9 +619,9 @@ abstract class BaseFlowStateReplicator() {
             return
         }
 
-        log.debug("Got state replication message from: {}", msg.getSender)
-
         val peer: UUID = msg.getSender
+        log.debug("Got state replication message from: {}", peer)
+
         val fromThePast = (msg.getEpoch < getHost(peer).epoch) || isZombie(peer, msg.getEpoch)
         if (fromThePast)
             log.info("Got a flow state message from a host that has since rebooted")
@@ -658,7 +688,7 @@ abstract class BaseFlowStateReplicator() {
 }
 
 class FlowStateReplicator(
-        override val conntrackTable: FlowStateLifecycle[ConnTrackKey, String],
+        override val conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
         override val natTable: FlowStateLifecycle[NatKey, NatBinding],
         override val underlay: UnderlayResolver,
         override val invalidateFlowsFor: (FlowStateTag) => Unit,

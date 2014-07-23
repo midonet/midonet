@@ -33,10 +33,9 @@ public interface FlowStateTable<K, V> {
     /**
      * Folds the entries of this transaction using the specified Reducer.
      */
-    <U> U fold(U seed, Reducer<K, V, U> func);
+    <U> U fold(U seed, Reducer<? super K, ? super V, U> func);
 
     public interface Reducer<K, V, U> {
-        U apply(U seed, K key, V value);
+        U apply(U acc, K key, V value);
     }
-
 }
