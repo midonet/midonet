@@ -3392,6 +3392,27 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID bridgeId)
+        throws StateAccessException, SerializationException {
+        List<VtepBinding> bindings = new ArrayList<>();
+        Bridge br = bridgesGet(bridgeId);
+        if (br.getVxLanPortId() == null) {
+           return bindings;
+        }
+        VxLanPort vxLanPort = (VxLanPort)portsGet(br.getVxLanPortId());
+        List<VtepBinding> all = vtepZkManager
+                                .getBindings(vxLanPort.getMgmtIpAddr());
+
+        for (VtepBinding b : all) {
+            if (b.getNetworkId().equals(bridgeId)) {
+                bindings.add(b);
+            }
+        }
+
+        return bindings;
+    }
+
+    @Override
     public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException {
