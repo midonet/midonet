@@ -4,37 +4,10 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.Pool;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LBaaSApi;
-import org.midonet.event.topology.PoolEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -50,6 +23,32 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.l4lb.Pool;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
+import org.midonet.event.topology.PoolEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
+
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
@@ -60,17 +59,17 @@ public class PoolResource extends AbstractResource {
 
     private final ResourceFactory factory;
 
-    private final LBaaSApi api;
+    private final DataClient dataClient;
 
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
-                        LBaaSApi api,
+                        DataClient dataClient,
                         ResourceFactory factory,
                         Validator validator) {
         super(config, uriInfo, context, null, validator);
         this.factory = factory;
-        this.api = api;
+        this.dataClient = dataClient;
     }
 
     @GET
@@ -82,7 +81,7 @@ public class PoolResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
 
-        dataPools = api.poolsGetAll();
+        dataPools = dataClient.poolsGetAll();
         List<Pool> pools = new ArrayList<Pool>();
         if (dataPools != null) {
             for (org.midonet.cluster.data.l4lb.Pool dataPool :
@@ -104,7 +103,7 @@ public class PoolResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.l4lb.Pool poolData =
-                api.poolGet(id);
+            dataClient.poolGet(id);
         if (poolData == null)
             throwNotFound(id, "pool");
 
@@ -123,7 +122,7 @@ public class PoolResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         try {
-            api.poolDelete(id);
+            dataClient.poolDelete(id);
             poolEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
@@ -143,8 +142,8 @@ public class PoolResource extends AbstractResource {
         validate(pool);
 
         try {
-            UUID id = api.poolCreate(pool.toData());
-            poolEvent.create(id, api.poolGet(id));
+            UUID id = dataClient.poolCreate(pool.toData());
+            poolEvent.create(id, dataClient.poolGet(id));
             return Response.created(
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
@@ -169,8 +168,8 @@ public class PoolResource extends AbstractResource {
         validate(pool);
 
         try {
-            api.poolUpdate(pool.toData());
-            poolEvent.update(id, api.poolGet(id));
+            dataClient.poolUpdate(pool.toData());
+            poolEvent.update(id, dataClient.poolGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingViolationException ex) {
@@ -212,17 +211,17 @@ public class PoolResource extends AbstractResource {
     public static class LoadBalancerPoolResource extends AbstractResource {
         private final UUID loadBalancerId;
 
-        private final LBaaSApi api;
+        private final DataClient dataClient;
 
         @Inject
         public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
                                         SecurityContext context,
-                                        LBaaSApi api,
+                                        DataClient dataClient,
                                         Validator validator,
                                         @Assisted UUID id) {
             super(config, uriInfo, context, null, validator);
             this.loadBalancerId = id;
-            this.api = api;
+            this.dataClient = dataClient;
         }
 
         @GET
@@ -234,7 +233,7 @@ public class PoolResource extends AbstractResource {
 
             List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
 
-            dataPools = api.loadBalancerGetPools(loadBalancerId);
+            dataPools = dataClient.loadBalancerGetPools(loadBalancerId);
             List<Pool> pools = new ArrayList<Pool>();
             if (dataPools != null) {
                 for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
@@ -258,7 +257,7 @@ public class PoolResource extends AbstractResource {
             validate(pool);
 
             try {
-                UUID id = api.poolCreate(pool.toData());
+                UUID id = dataClient.poolCreate(pool.toData());
                 return Response.created(
                         ResourceUriBuilder.getPool(getBaseUri(), id))
                         .build();

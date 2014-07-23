@@ -1,17 +1,36 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.api.neutron;
+package org.midonet.api.neutron.loadbalancer;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.data.neutron.LBaaSApi;
+import org.midonet.client.neutron.loadbalancer.LBMediaType;
+import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.event.neutron.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -20,50 +39,40 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.midonet.api.validation.MessageProperty.*;
-
-public class PoolMemberResource extends AbstractResource {
+public class MemberResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
-        PoolMemberResource.class);
+        MemberResource.class);
     private final static PoolMemberEvent POOL_MEMBER_EVENT =
         new PoolMemberEvent();
 
-    private final LBaaSApi api;
+    private final LoadBalancerApi api;
 
     @Inject
-    public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
-                              SecurityContext context, LBaaSApi api) {
+    public MemberResource(RestApiConfig config, UriInfo uriInfo,
+                          SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
     }
 
     @POST
-    @Consumes(NeutronMediaType.POOL_MEMBER_JSON_V1)
-    @Produces(NeutronMediaType.POOL_MEMBER_JSON_V1)
+    @Consumes(LBMediaType.MEMBER_JSON_V1)
+    @Produces(LBMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(Member member)
         throws SerializationException, StateAccessException {
         log.info("PoolMemberResource.create entered {}", member);
 
         try {
-            Member createdMember = api.createNeutronMember(member);
+            Member createdMember = api.createMember(member);
             POOL_MEMBER_EVENT.create(member.id, member);
             log.info("PoolMemberResource.create exiting {}", createdMember);
             return Response.created(
-                NeutronUriBuilder.getMember(getBaseUri(), createdMember.id))
+                LBUriBuilder.getMember(getBaseUri(), createdMember.id))
                 .entity(createdMember).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
@@ -72,8 +81,8 @@ public class PoolMemberResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(NeutronMediaType.POOL_MEMBERS_JSON_V1)
-    @Produces(NeutronMediaType.POOL_MEMBERS_JSON_V1)
+    @Consumes(LBMediaType.MEMBERS_JSON_V1)
+    @Produces(LBMediaType.MEMBERS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response createBulk(List<Member> members)
         throws SerializationException, StateAccessException {
@@ -84,7 +93,7 @@ public class PoolMemberResource extends AbstractResource {
             for (Member member : createdMembers) {
                 POOL_MEMBER_EVENT.create(member.id, member);
             }
-            return Response.created(NeutronUriBuilder.getMembers(
+            return Response.created(LBUriBuilder.getMembers(
                 getBaseUri())).entity(createdMembers).build();
         } catch (StatePathExistsException e) {
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
@@ -103,7 +112,7 @@ public class PoolMemberResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(NeutronMediaType.POOL_MEMBER_JSON_V1)
+    @Produces(LBMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Member get(@PathParam("id") UUID id)
         throws SerializationException, StateAccessException {
@@ -119,7 +128,7 @@ public class PoolMemberResource extends AbstractResource {
     }
 
     @GET
-    @Produces(NeutronMediaType.POOL_MEMBERS_JSON_V1)
+    @Produces(LBMediaType.MEMBERS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<Member> list()
         throws SerializationException, StateAccessException {
@@ -130,8 +139,8 @@ public class PoolMemberResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(NeutronMediaType.POOL_MEMBER_JSON_V1)
-    @Produces(NeutronMediaType.POOL_MEMBER_JSON_V1)
+    @Consumes(LBMediaType.MEMBER_JSON_V1)
+    @Produces(LBMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id, Member member)
         throws SerializationException, StateAccessException,
@@ -143,7 +152,7 @@ public class PoolMemberResource extends AbstractResource {
             POOL_MEMBER_EVENT.update(id, updatedMember);
             log.info("PoolMemberResource.update exiting {}", updatedMember);
             return Response.ok(
-                NeutronUriBuilder.getMember(getBaseUri(), updatedMember.id))
+                LBUriBuilder.getMember(getBaseUri(), updatedMember.id))
                 .entity(updatedMember).build();
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);

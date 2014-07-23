@@ -1,18 +1,37 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.api.neutron;
+package org.midonet.api.neutron.loadbalancer;
+
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.neutron.NeutronUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.data.neutron.LBaaSApi;
-import org.midonet.cluster.data.neutron.Network;
+import org.midonet.client.neutron.loadbalancer.LBMediaType;
+import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.event.neutron.HealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -21,19 +40,9 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-
-import java.util.List;
-import java.util.UUID;
-
-import static org.midonet.api.validation.MessageProperty.*;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class HealthMonitorResource extends AbstractResource {
 
@@ -42,18 +51,18 @@ public class HealthMonitorResource extends AbstractResource {
     private final static HealthMonitorEvent HEALTH_MONITOR_EVENT =
         new HealthMonitorEvent();
 
-    private final LBaaSApi api;
+    private final LoadBalancerApi api;
 
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
-                                 SecurityContext context, LBaaSApi api) {
+                                 SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
     }
 
     @POST
-    @Consumes(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
-    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
+    @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(HealthMonitor healthMonitor)
         throws SerializationException, StateAccessException {
@@ -61,14 +70,14 @@ public class HealthMonitorResource extends AbstractResource {
 
         try {
             HealthMonitor createdHealthMonitor
-                = api.createNeutronHealthMonitor(healthMonitor);
+                = api.createHealthMonitor(healthMonitor);
             HEALTH_MONITOR_EVENT.create(createdHealthMonitor.id,
                                         createdHealthMonitor);
             log.info("HealthMonitorResource.create exiting {}",
                      createdHealthMonitor);
             return Response.created(
-                NeutronUriBuilder.getHealthMonitor(getBaseUri(),
-                                                   createdHealthMonitor.id))
+                LBUriBuilder.getHealthMonitor(getBaseUri(),
+                                              createdHealthMonitor.id))
                 .entity(healthMonitor).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
@@ -77,8 +86,8 @@ public class HealthMonitorResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(NeutronMediaType.HEALTH_MONITORS_JSON_V1)
-    @Produces(NeutronMediaType.HEALTH_MONITORS_JSON_V1)
+    @Consumes(LBMediaType.HEALTH_MONITORS_JSON_V1)
+    @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response createBulk(List<HealthMonitor> healthMonitors)
         throws SerializationException, StateAccessException {
@@ -90,7 +99,7 @@ public class HealthMonitorResource extends AbstractResource {
             for (HealthMonitor healthMonitor : createdHealthMonitors) {
                 HEALTH_MONITOR_EVENT.create(healthMonitor.id, healthMonitor);
             }
-            return Response.created(NeutronUriBuilder.getHealthMonitors(
+            return Response.created(LBUriBuilder.getHealthMonitors(
                 getBaseUri())).entity(createdHealthMonitors).build();
         } catch (StatePathExistsException e) {
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
@@ -109,7 +118,7 @@ public class HealthMonitorResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public HealthMonitor get(@PathParam("id") UUID id)
         throws SerializationException, StateAccessException {
@@ -125,7 +134,7 @@ public class HealthMonitorResource extends AbstractResource {
     }
 
     @GET
-    @Produces(NeutronMediaType.HEALTH_MONITORS_JSON_V1)
+    @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<HealthMonitor> list()
         throws SerializationException, StateAccessException {
@@ -136,8 +145,8 @@ public class HealthMonitorResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
-    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
+    @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id,
                            HealthMonitor healthMonitor)

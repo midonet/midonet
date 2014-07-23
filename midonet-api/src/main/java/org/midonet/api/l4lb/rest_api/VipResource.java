@@ -19,7 +19,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LBaaSApi;
+import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.event.topology.VipEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -53,14 +53,14 @@ public class VipResource extends AbstractResource {
 
     private final VipEvent vipEvent = new VipEvent();
 
-    private final LBaaSApi api;
+    private final DataClient dataClient;
 
     @Inject
     public VipResource(RestApiConfig config, UriInfo uriInfo,
-                       SecurityContext context, LBaaSApi api,
+                       SecurityContext context, DataClient dataClient,
                        Validator validator) {
         super(config, uriInfo, context, null, validator);
-        this.api = api;
+        this.dataClient = dataClient;
     }
 
     /**
@@ -78,7 +78,7 @@ public class VipResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
-        vipsData = api.vipGetAll();
+        vipsData = dataClient.vipGetAll();
         List<VIP> vips = new ArrayList<VIP>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
@@ -107,7 +107,7 @@ public class VipResource extends AbstractResource {
             MediaType.APPLICATION_JSON })
     public VIP get(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
-        org.midonet.cluster.data.l4lb.VIP vipData = api.vipGet(id);
+        org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
         if (vipData == null)
             throwNotFound(id, "VIP");
 
@@ -131,7 +131,7 @@ public class VipResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         try {
-            api.vipDelete(id);
+            dataClient.vipDelete(id);
             vipEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
@@ -161,8 +161,8 @@ public class VipResource extends AbstractResource {
         validate(vip);
 
         try {
-            UUID id = api.vipCreate(vip.toData());
-            vipEvent.create(id, api.vipGet(id));
+            UUID id = dataClient.vipCreate(vip.toData());
+            vipEvent.create(id, dataClient.vipGet(id));
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
@@ -196,8 +196,8 @@ public class VipResource extends AbstractResource {
         validate(vip);
 
         try {
-            api.vipUpdate(vip.toData());
-            vipEvent.update(id, api.vipGet(id));
+            dataClient.vipUpdate(vip.toData());
+            vipEvent.update(id, dataClient.vipGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
@@ -212,16 +212,16 @@ public class VipResource extends AbstractResource {
     public static class PoolVipResource extends AbstractResource {
         private final UUID poolId;
 
-        private final LBaaSApi api;
+        private final DataClient dataClient;
 
         @Inject
         public PoolVipResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
-                               LBaaSApi api,
+                               DataClient dataClient,
                                Validator validator,
                                @Assisted UUID id) {
             super(config, uriInfo, context, null, validator);
-            this.api = api;
+            this.dataClient = dataClient;
             this.poolId = id;
         }
 
@@ -235,7 +235,7 @@ public class VipResource extends AbstractResource {
             List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
 
             try {
-                dataVips = api.poolGetVips(poolId);
+                dataVips = dataClient.poolGetVips(poolId);
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
@@ -259,7 +259,7 @@ public class VipResource extends AbstractResource {
             vip.setPoolId(poolId);
             validate(vip);
             try {
-                UUID id = api.vipCreate(vip.toData());
+                UUID id = dataClient.vipCreate(vip.toData());
                 return Response.created(
                         ResourceUriBuilder.getVip(getBaseUri(), id))
                         .build();

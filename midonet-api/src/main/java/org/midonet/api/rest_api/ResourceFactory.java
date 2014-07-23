@@ -35,11 +35,6 @@ import org.midonet.api.network.rest_api.RouterResource;
 import org.midonet.api.network.rest_api.VtepBindingResource;
 import org.midonet.api.network.rest_api.VtepResource;
 import org.midonet.api.network.rest_api.VxLanPortBindingResource;
-import org.midonet.api.neutron.NetworkResource;
-import org.midonet.api.neutron.NeutronResource;
-import org.midonet.api.neutron.SecurityGroupResource;
-import org.midonet.api.neutron.SecurityGroupRuleResource;
-import org.midonet.api.neutron.SubnetResource;
 import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
@@ -148,21 +143,6 @@ public interface ResourceFactory {
     VtepBindingResource getVtepBindingResource(String ipAddrStr);
 
     VxLanPortBindingResource getVxLanPortBindingResource(UUID vxLanPortId);
-
-    // Neutron Resource factory methods
-    NeutronResource getNeutronResource();
-
-    NetworkResource getNeutronNetworkResource();
-
-    SubnetResource getNeutronSubnetResource();
-
-    org.midonet.api.neutron.PortResource getNeutronPortResource();
-
-    org.midonet.api.neutron.RouterResource getNeutronRouterResource();
-
-    SecurityGroupResource getNeutronSecurityGroupResource();
-
-    SecurityGroupRuleResource getNeutronSecurityGroupRuleResource();
 
     LicenseResource getLicenseResource();
 }

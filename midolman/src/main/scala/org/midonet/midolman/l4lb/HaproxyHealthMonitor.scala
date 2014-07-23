@@ -12,7 +12,6 @@ import java.nio.channels.spi.SelectorProvider
 import java.util.UUID
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.neutron.LBaaSApi
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor._
@@ -42,8 +41,8 @@ import scala.concurrent.duration._
  */
 object HaproxyHealthMonitor {
     def props(config: PoolConfig, manager: ActorRef, routerId: UUID,
-              api: LBaaSApi, dataClient: DataClient, hostId: UUID):
-        Props = Props(new HaproxyHealthMonitor(config, manager, routerId, api,
+              dataClient: DataClient, hostId: UUID):
+        Props = Props(new HaproxyHealthMonitor(config, manager, routerId,
                                                dataClient, hostId))
 
     sealed trait HHMMessage
@@ -82,7 +81,6 @@ object HaproxyHealthMonitor {
 class HaproxyHealthMonitor(var config: PoolConfig,
                            val manager: ActorRef,
                            var routerId: UUID,
-                           val api: LBaaSApi,
                            val dataClient: DataClient,
                            val hostId: UUID)
     extends Actor with ActorLogWithoutPath with Stash {
@@ -166,9 +164,9 @@ class HaproxyHealthMonitor(var config: PoolConfig,
                 val newDownNodes = downNodes diff currentDownNodes
 
                 newUpNodes foreach (id =>
-                    api.poolMemberUpdateStatus(id, MemberActive))
+                    dataClient.poolMemberUpdateStatus(id, MemberActive))
                 newDownNodes foreach (id =>
-                    api.poolMemberUpdateStatus(id, MemberInactive))
+                    dataClient.poolMemberUpdateStatus(id, MemberInactive))
 
                 currentUpNodes = upNodes
                 currentDownNodes = downNodes
@@ -446,6 +444,6 @@ class HaproxyHealthMonitor(var config: PoolConfig,
 
     //wrapping this call so we can mock it in the unit tests
     def setPoolMapStatus(status: PoolHealthMonitorMappingStatus) {
-        api.poolSetMapStatus(config.id, status)
+        dataClient.poolSetMapStatus(config.id, status)
     }
 }

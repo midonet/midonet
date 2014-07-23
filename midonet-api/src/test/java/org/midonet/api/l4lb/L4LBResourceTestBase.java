@@ -4,31 +4,30 @@
 
 package org.midonet.api.l4lb;
 
+import java.util.UUID;
+
+import javax.validation.Validator;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
 import org.midonet.api.l4lb.rest_api.HealthMonitorResource;
 import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
-import org.midonet.api.network.Router;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LBaaSApi;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.Random;
-import java.util.UUID;
-import javax.validation.Validator;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -61,7 +60,7 @@ public class L4LBResourceTestBase {
     protected UriInfo uriInfo;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    protected LBaaSApi api;
+    protected DataClient dataClient;
 
     protected LoadBalancerResource loadBalancerResource;
     protected HealthMonitorResource healthMonitorResource;
@@ -73,15 +72,15 @@ public class L4LBResourceTestBase {
     @Before
     public void setUp() throws Exception {
         loadBalancerResource = new LoadBalancerResource(config, uriInfo,
-                context, api, factory);
+                context, dataClient, factory);
         healthMonitorResource = new HealthMonitorResource(config, uriInfo,
-                context, api, validator);
-        poolResource = new PoolResource(config, uriInfo, context, api,
+                context, dataClient, validator);
+        poolResource = new PoolResource(config, uriInfo, context, dataClient,
                 factory, validator);
-        vipResource = new VipResource(config, uriInfo, context, api,
+        vipResource = new VipResource(config, uriInfo, context, dataClient,
                 validator);
         poolMemberResource = new PoolMemberResource(config, uriInfo, context,
-                api, validator);
+                                                    dataClient, validator);
     }
 
     private static void assertCreated(Response response) {

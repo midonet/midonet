@@ -43,25 +43,4 @@ public class NeutronMediaType {
         "application/vnd.org.midonet.neutron.SecurityGroupRule-v1+json";
     public final static String SECURITY_GROUP_RULES_JSON_V1 =
         "application/vnd.org.midonet.neutron.SecurityGroupRules-v1+json";
-
-    // LBaaS media types below
-    public final static String VIP_JSON_V1 =
-        "application/vnd.org.midonet.neutron.Vip-v1+json";
-    public final static String VIPS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.Vips-v1+json";
-
-    public final static String POOL_JSON_V1 =
-        "application/vnd.org.midonet.neutron.Pool-v1+json";
-    public final static String POOLS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.Pool-v1+json";
-
-    public final static String POOL_MEMBER_JSON_V1 =
-        "application/vnd.org.midonet.neutron.PoolMember-v1+json";
-    public final static String POOL_MEMBERS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.PoolMembers-v1+json";
-
-    public final static String HEALTH_MONITOR_JSON_V1 =
-        "application/vnd.org.midonet.neutron.HealthMonitor-v1+json";
-    public final static String HEALTH_MONITORS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.HealthMonitors-v1+json";
 }

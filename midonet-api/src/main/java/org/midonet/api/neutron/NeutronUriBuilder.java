@@ -4,12 +4,12 @@
 package org.midonet.api.neutron;
 
 
-import org.midonet.api.ResourceUriBuilder;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import java.net.URI;
-import java.util.UUID;
+import org.midonet.api.ResourceUriBuilder;
 
 public class NeutronUriBuilder {
 
@@ -23,11 +23,6 @@ public class NeutronUriBuilder {
     public final static String FLOATING_IPS = "/floating_ips";
     public final static String SECURITY_GROUPS = "/security_groups";
     public final static String SECURITY_GROUP_RULES = "/security_group_rules";
-    // LBaaS resources
-    public final static String VIPS = "/vips";
-    public final static String POOLS = "/pools";
-    public final static String MEMBERS = "/members";
-    public final static String HEALTH_MONITORS = "/health_monitors";
 
     public static URI getNeutron(URI baseUri) {
         return UriBuilder.fromUri(ResourceUriBuilder.getRoot(baseUri)).path(
@@ -144,63 +139,5 @@ public class NeutronUriBuilder {
     public static String getSecurityGroupRuleTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(
             getSecurityGroupRules(baseUri));
-    }
-
-    // Vips
-    public static URI getVips(URI baseUri) {
-        return UriBuilder.fromUri(getNeutron(baseUri)).path(VIPS).build();
-    }
-
-    public static URI getVip(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getVips(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getVipTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getVips(baseUri));
-    }
-
-    // Pools
-    public static URI getPools(URI baseUri) {
-        return UriBuilder.fromUri(getNeutron(baseUri)).path(POOLS).build();
-    }
-
-    public static URI getPool(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getPools(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getPoolTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getPools(baseUri));
-    }
-
-    // Pools
-    public static URI getMembers(URI baseUri) {
-        return UriBuilder.fromUri(getNeutron(baseUri)).path(MEMBERS).build();
-    }
-
-    public static URI getMember(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getMembers(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getMemberTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(getMembers(baseUri));
-    }
-
-    // Health Monitors
-    public static URI getHealthMonitors(URI baseUri) {
-        return UriBuilder.fromUri(getNeutron(baseUri))
-            .path(HEALTH_MONITORS).build();
-    }
-
-    public static URI getHealthMonitor(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(
-            getHealthMonitors(baseUri)).path(id.toString()).build();
-    }
-
-    public static String getHealthMonitorTemplate(URI baseUri) {
-        return ResourceUriBuilder.buildIdTemplateUri(
-            getHealthMonitors(baseUri));
     }
 }
