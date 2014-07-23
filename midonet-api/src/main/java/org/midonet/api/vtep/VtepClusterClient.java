@@ -5,10 +5,8 @@ package org.midonet.api.vtep;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.inject.Inject;
 
@@ -474,56 +472,53 @@ public class VtepClusterClient {
      * binding's target bridge if the VTEP has no other bindings for
      * that bridge.
      */
-    public final void deleteBinding(IPv4Addr ipAddr,
-                                    String portName, short vlanId)
+    public final void deleteBinding(IPv4Addr mgmtIp,
+                                    String portName, short vlan)
             throws SerializationException, StateAccessException {
 
-        VTEP vtep = getVtepOrThrow(ipAddr, true);
-        VtepDataClient vtepClient = getVtepClient(ipAddr, vtep.getMgmtPort());
+        org.midonet.cluster.data.VtepBinding binding =
+            dataClient.vtepGetBinding(mgmtIp, portName, vlan);
 
-        // Delete the binding in Midonet.
-        org.midonet.cluster.data.VtepBinding
-            vb = dataClient.vtepGetBinding(ipAddr, portName, vlanId);
-
-        if (vb == null) {
-            throw new NotFoundHttpException(getMessage(
-                VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
+        if (binding == null) {
+            log.warn("Binding to port {}, vlan {} not found", portName, vlan);
+            throw new NotFoundHttpException(getMessage(VTEP_BINDING_NOT_FOUND,
+                                                       mgmtIp, vlan, portName));
         }
 
+        java.util.UUID bridgeId = binding.getNetworkId();
+
+        dataClient.vtepDeleteBinding(mgmtIp, portName, vlan);
+        boolean lastBinding = dataClient.bridgeGetVtepBindings(bridgeId).isEmpty();
+        if (lastBinding) {
+            dataClient.bridgeDeleteVxLanPort(bridgeId);
+        }
+
+        log.debug("Delete binding on vtep {}, port {}, vlan {} persisted",
+                  new Object[]{mgmtIp, portName, vlan});
+
+        // Now try to write it to the VTEP
+        VTEP vtep = getVtepOrThrow(mgmtIp, true);
+        VtepDataClient vtepClient;
         try {
-            dataClient.vtepDeleteBinding(ipAddr, portName, vlanId);
-        } catch (NoStatePathException e) {
-            // A race, the binding did exist, now it's gone as we want
+            vtepClient = getVtepClient(mgmtIp, vtep.getMgmtPort());
+        } catch (GatewayTimeoutHttpException e) {
+            log.warn("VTEP {} unreachable but binding deletion is persisted, " +
+                     "VxLanGatewayService will consolidate state", mgmtIp);
+            return;
         }
 
-        // Go through all the bindings and find the one with the
-        // specified portName and vlanId. Get its networkId, and
-        // remember whether we saw any others with the same networkId.
-        Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
-        List<VtepBinding> bindings = listVtepBindings(
-                vtepClient, ipAddr, vtep.getMgmtPort(), null);
-        for (VtepBinding binding : bindings) {
-            java.util.UUID nwId = binding.getNetworkId();
-            if (!(binding.getPortName().equals(portName) &&
-                  binding.getVlanId() == vlanId)) {
-                boundLogicalSwitchUuids.add(nwId);
+        // Delete the binding on the VTEP
+        Status st = vtepClient.deleteBinding(portName, vlan);
+        if (!st.isSuccess()) {
+            log.warn("Error deleting binding from VTEP {}", st);
+        }
+        if (lastBinding && !st.getCode().equals(StatusCode.NOSERVICE)) {
+            String lsName = bridgeIdToLogicalSwitchName(bridgeId);
+            st = vtepClient.deleteLogicalSwitch(lsName);
+            if (!st.isSuccess()) {
+                log.warn("Error deleting logical switch from VTEP {}", st);
             }
         }
-
-        Status st = vtepClient.deleteBinding(portName, vlanId);
-        if (st.getCode() == StatusCode.NOTFOUND) {
-            log.warn("Binding not present in VTEP {}", vb);
-        }
-
-        // If that was the only binding for this network, delete
-        // the VXLAN port and logical switch.
-        if (!boundLogicalSwitchUuids.contains(vb.getNetworkId()) &&
-            dataClient.bridgesGet(vb.getNetworkId()).getVxLanPortId() != null) {
-            deleteVxLanPort(vtepClient, vb.getNetworkId());
-        }
-
-        log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
-                new Object[]{ipAddr, portName, vlanId});
     }
 
     public void deleteVxLanPort(VxLanPort vxLanPort)
