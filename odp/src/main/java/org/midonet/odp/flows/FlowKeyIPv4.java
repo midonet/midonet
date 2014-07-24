@@ -19,6 +19,7 @@ public class FlowKeyIPv4 implements FlowKey {
     /*__u8*/ private byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     private int hashCode = 0;
+    private int connectionHash = 0;
 
     // This is used for deserialization purposes only.
     FlowKeyIPv4() { }
@@ -86,6 +87,18 @@ public class FlowKeyIPv4 implements FlowKey {
         hashCode = 31 * hashCode + (int) ipv4_tos;
         hashCode = 31 * hashCode + (int) ipv4_ttl;
         hashCode = 31 * hashCode + (int) ipv4_frag;
+        computeConnectionHash();
+    }
+
+    @Override
+    public int connectionHash() {
+        return connectionHash;
+    }
+
+    private void computeConnectionHash() {
+        connectionHash = ipv4_src;
+        connectionHash = 31 * connectionHash + ipv4_dst;
+        connectionHash = 31 * connectionHash + (int) ipv4_proto;
     }
 
     @Override
