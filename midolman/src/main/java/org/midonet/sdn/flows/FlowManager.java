@@ -60,7 +60,7 @@ public class FlowManager {
     private long maxDpFlows;
     private long maxWildcardFlows;
     //TODO(ross) is this a reasonable value? Take it from conf file?
-    private int dpFlowRemoveBatchSize = 100;
+    private int dpFlowRemoveBatchSize = 512;
     private int flowRequestsInFlight = 0;
     private long idleFlowToleranceInterval;
 
@@ -139,6 +139,15 @@ public class FlowManager {
         return numWildcardFlows;
     }
 
+    public int evictOldestFlows() {
+        int evicted = 0;
+        for (evicted=0; evicted < dpFlowRemoveBatchSize; evicted++) {
+            if (!evictOneFlow())
+                break;
+        }
+        return evicted;
+    }
+
     public boolean evictOneFlow() {
         ManagedWildcardFlow toEvict = !hardTimeOutQueue.isEmpty() ?
                 hardTimeOutQueue.poll() : idleTimeOutQueue.poll();
@@ -165,7 +174,7 @@ public class FlowManager {
 
         // check the wildcard flows limit
         if (maxWildcardFlows != NO_LIMIT && getNumWildcardFlows() >= maxWildcardFlows) {
-            if (!evictOneFlow()) {
+            if (evictOldestFlows() == 0) {
                 log.error("Could not add the new wildcardflow as the system reached its maximum.");
                 return false;
             }

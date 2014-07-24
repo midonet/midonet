@@ -281,7 +281,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 wildFlowPool.take.orElse {
-                    flowManager.evictOneFlow()
+                    flowManager.evictOldestFlows()
                     wildFlowPool.take
                 } match {
                     case None =>
