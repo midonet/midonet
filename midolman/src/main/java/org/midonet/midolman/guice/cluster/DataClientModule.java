@@ -114,8 +114,8 @@ public class DataClientModule extends PrivateModule {
         bind(SecurityGroupZkManager.class).in(Singleton.class);
         expose(SecurityGroupZkManager.class);
 
-        bind(LBaaSApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        expose(LBaaSApi.class);
+        bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
+        expose(LoadBalancerApi.class);
     }
 
     private static class PathBuilderProvider implements Provider<PathBuilder> {

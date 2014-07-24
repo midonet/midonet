@@ -18,7 +18,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.data.neutron.LBaaSApi;
+import org.midonet.cluster.DataClient;
 import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -53,14 +53,14 @@ public class LoadBalancerResource extends AbstractResource {
 
     private final ResourceFactory factory;
 
-    private final LBaaSApi api;
+    private final DataClient dataClient;
 
     @Inject
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
-                                SecurityContext context, LBaaSApi api,
+                                SecurityContext context, DataClient dataClient,
                                 ResourceFactory factory) {
         super(config, uriInfo, context, null);
-        this.api = api;
+        this.dataClient = dataClient;
         this.factory = factory;
     }
 
@@ -80,7 +80,7 @@ public class LoadBalancerResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.LoadBalancer> dataLoadBalancers;
 
-        dataLoadBalancers = api.loadBalancersGetAll();
+        dataLoadBalancers = dataClient.loadBalancersGetAll();
         List<LoadBalancer> loadBalancers = new ArrayList<LoadBalancer>();
         if (dataLoadBalancers != null) {
             for (org.midonet.cluster.data.l4lb.LoadBalancer dataLoadBalancer:
@@ -110,7 +110,7 @@ public class LoadBalancerResource extends AbstractResource {
     public LoadBalancer get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
         org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
-                api.loadBalancerGet(id);
+            dataClient.loadBalancerGet(id);
         if (loadBalancerData == null)
             throwNotFound(id, "load balancer");
 
@@ -136,7 +136,7 @@ public class LoadBalancerResource extends AbstractResource {
             InvalidStateOperationException, SerializationException {
 
         try {
-            api.loadBalancerDelete(id);
+            dataClient.loadBalancerDelete(id);
             loadBalancerEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent; do nothing.
@@ -170,8 +170,8 @@ public class LoadBalancerResource extends AbstractResource {
         }
 
         try {
-            UUID id = api.loadBalancerCreate(loadBalancer.toData());
-            loadBalancerEvent.create(id, api.loadBalancerGet(id));
+            UUID id = dataClient.loadBalancerCreate(loadBalancer.toData());
+            loadBalancerEvent.create(id, dataClient.loadBalancerGet(id));
             return Response.created(
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
@@ -200,8 +200,8 @@ public class LoadBalancerResource extends AbstractResource {
             SerializationException {
         loadBalancer.setId(id);
         try {
-            api.loadBalancerUpdate(loadBalancer.toData());
-            loadBalancerEvent.update(id, api.loadBalancerGet(id));
+            dataClient.loadBalancerUpdate(loadBalancer.toData());
+            loadBalancerEvent.update(id, dataClient.loadBalancerGet(id));
         } catch (InvalidStateOperationException ex) {
             throw new BadRequestHttpException(ex,
                 getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
@@ -238,7 +238,7 @@ public class LoadBalancerResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
-        vipsData = api.loadBalancerGetVips(loadBalancerId);
+        vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
         List<VIP> vips = new ArrayList<VIP>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {

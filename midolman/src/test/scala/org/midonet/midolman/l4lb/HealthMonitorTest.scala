@@ -8,7 +8,6 @@ import java.util.UUID
 import akka.actor.{Actor, ActorRef, Props, ActorSystem}
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.neutron.NeutronPlugin
 import org.mockito.Mockito.{verify => mverify, reset, timeout => mtimeo}
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
@@ -53,7 +52,6 @@ class HealthMonitorTest extends FeatureSpec
     var actorSystem: ActorSystem = null
     val poolId = UUID.randomUUID()
     var mockClient = mock[LocalDataClientImpl]
-    var mockLBaaSApi = mock[NeutronPlugin]
 
     //Accounting
     var newActors = 0
@@ -70,7 +68,6 @@ class HealthMonitorTest extends FeatureSpec
     after {
         actorSystem.shutdown()
         reset(mockClient)
-        reset(mockLBaaSApi)
     }
 
     feature("HealthMonitor notifies config updates") {
@@ -92,7 +89,7 @@ class HealthMonitorTest extends FeatureSpec
             healthMonitorUT ! ConfigUpdated(poolId, createFakePoolConfig(true),
                                             null)
             Then ("the status should be set to INACTIVE")
-            mverify(mockLBaaSApi, mtimeo(100).times(1)).poolSetMapStatus(poolId,
+            mverify(mockClient, mtimeo(100).times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.INACTIVE)
         }
     }
@@ -102,7 +99,7 @@ class HealthMonitorTest extends FeatureSpec
             healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(true),
                                             null)
             Then ("the status should be updated to INACTIVE")
-            mverify(mockLBaaSApi, mtimeo(100).times(1)).poolSetMapStatus(poolId,
+            mverify(mockClient, mtimeo(100).times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.INACTIVE)
         }
         scenario ("new config is added with admin state down") {
@@ -110,7 +107,7 @@ class HealthMonitorTest extends FeatureSpec
             healthMonitorUT ! ConfigAdded(poolId, createFakePoolConfig(false),
                                           UUID.randomUUID())
             Then ("The status should be set to INACTIVE")
-            mverify(mockLBaaSApi, mtimeo(100).times(1)).poolSetMapStatus(poolId,
+            mverify(mockClient, mtimeo(100).times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.INACTIVE)
         }
     }
@@ -143,7 +140,7 @@ class HealthMonitorTest extends FeatureSpec
             healthMonitorUT ! RouterChanged(poolId, createFakePoolConfig(true),
                                             null)
             Then ("The state should be set to INACTIVE")
-            mverify(mockLBaaSApi, mtimeo(100).times(1)).poolSetMapStatus(poolId,
+            mverify(mockClient, mtimeo(100).times(1)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.INACTIVE)
         }
     }
@@ -169,7 +166,6 @@ class HealthMonitorTest extends FeatureSpec
     class HealthMonitorUT extends HealthMonitor {
         override def preStart(): Unit = {
             client = mockClient
-            api = mockLBaaSApi
         }
         override def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                               routerId: UUID) = {

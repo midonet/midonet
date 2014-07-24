@@ -3,12 +3,12 @@
  */
 package org.midonet.api.neutron;
 
+import org.midonet.api.neutron.loadbalancer.LBResource;
+
 /**
  * Resource factory used by Guice to inject Neutron resource classes.
  */
 public interface NeutronResourceFactory {
-
-    NeutronResource getNeutronResource();
 
     NetworkResource getNeutronNetworkResource();
 

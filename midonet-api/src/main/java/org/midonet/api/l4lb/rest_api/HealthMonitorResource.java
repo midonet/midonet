@@ -12,30 +12,22 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.l4lb.HealthMonitor;
 import org.midonet.api.l4lb.Pool;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.neutron.LBaaSApi;
 import org.midonet.event.topology.HealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -60,14 +52,14 @@ public class HealthMonitorResource extends AbstractResource {
     private final static HealthMonitorEvent healthMonitorEvent
             = new HealthMonitorEvent();
 
-    private final LBaaSApi api;
+    private final DataClient dataClient;
 
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
                                  SecurityContext context,
-                                 LBaaSApi api, Validator validator) {
+                                 DataClient dataClient, Validator validator) {
         super(config, uriInfo, context, null, validator);
-        this.api = api;
+        this.dataClient = dataClient;
     }
 
     @GET
@@ -79,7 +71,7 @@ public class HealthMonitorResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.HealthMonitor> dataHealthMonitors;
 
-        dataHealthMonitors = api.healthMonitorsGetAll();
+        dataHealthMonitors = dataClient.healthMonitorsGetAll();
         List<HealthMonitor> healthMonitors = new ArrayList<HealthMonitor>();
         if (dataHealthMonitors != null) {
             for (org.midonet.cluster.data.l4lb.HealthMonitor dataHealthMonitor :
@@ -102,7 +94,7 @@ public class HealthMonitorResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
-                api.healthMonitorGet(id);
+            dataClient.healthMonitorGet(id);
         if (healthMonitorData == null)
             throwNotFound(id, "health monitor");
 
@@ -120,7 +112,7 @@ public class HealthMonitorResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         try {
-            api.healthMonitorDelete(id);
+            dataClient.healthMonitorDelete(id);
             healthMonitorEvent.delete(id);
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
@@ -137,8 +129,8 @@ public class HealthMonitorResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         validate(healthMonitor);
         try {
-            UUID id = api.healthMonitorCreate(healthMonitor.toData());
-            healthMonitorEvent.create(id, api.healthMonitorGet(id));
+            UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
+            healthMonitorEvent.create(id, dataClient.healthMonitorGet(id));
             return Response.created(
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
@@ -160,8 +152,8 @@ public class HealthMonitorResource extends AbstractResource {
         validate(healthMonitor);
 
         try {
-            api.healthMonitorUpdate(healthMonitor.toData());
-            healthMonitorEvent.update(id, api.healthMonitorGet(id));
+            dataClient.healthMonitorUpdate(healthMonitor.toData());
+            healthMonitorEvent.update(id, dataClient.healthMonitorGet(id));
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
         } catch (MappingStatusException ex) {
@@ -179,7 +171,7 @@ public class HealthMonitorResource extends AbstractResource {
 
         List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
         try {
-            dataPools = api.healthMonitorGetPools(id);
+            dataPools = dataClient.healthMonitorGetPools(id);
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
         }
