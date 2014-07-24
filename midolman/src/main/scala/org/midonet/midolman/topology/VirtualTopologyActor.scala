@@ -21,16 +21,17 @@ import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager._
 import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYet
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.Ready
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.Urgent
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
+import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.util.concurrent._
 
@@ -171,9 +172,19 @@ object VirtualTopologyActor extends Referenceable {
                                 (implicit tag: ClassTag[D], system: ActorSystem) =
         doExpiringAsk(id, 0L, null, null)(tag, null, system)
 
+    @throws(classOf[NotYetException])
+    def tryAsk[D <: AnyRef](id: UUID)
+                           (implicit tag: ClassTag[D], system: ActorSystem) =
+        doTryAsk(id, 0L, null, null)(tag, null, system)
+
     def expiringAsk[D <: AnyRef](id: UUID, log: LoggingAdapter)
                                 (implicit tag: ClassTag[D], system: ActorSystem) =
         doExpiringAsk(id, 0L, log, null)(tag, null, system)
+
+    @throws(classOf[NotYetException])
+    def tryAsk[D <: AnyRef](id: UUID, log: LoggingAdapter)
+                           (implicit tag: ClassTag[D], system: ActorSystem) =
+        doTryAsk(id, 0L, log, null)(tag, null, system)
 
     def expiringAsk[D <: AnyRef](
                        id: UUID,
@@ -184,7 +195,15 @@ object VirtualTopologyActor extends Referenceable {
                                 pktContext: PacketContext) =
         doExpiringAsk(id, expiry, null, simLog)(tag, pktContext, system)
 
-    // Note that the expiry is the exact expiration time, not a timeout.
+    @throws(classOf[NotYetException])
+    def tryAsk[D <: AnyRef](id: UUID,
+                            simLog: SimulationAwareBusLogging,
+                            expiry: Long = 0L)
+                           (implicit tag: ClassTag[D],
+                                     system: ActorSystem,
+                                     pktContext: PacketContext) =
+        doTryAsk(id, expiry, null, simLog)(tag, pktContext, system)
+
     private def doExpiringAsk[D <: AnyRef](
                                  id: UUID,
                                  expiry: Long = 0L,
@@ -193,8 +212,25 @@ object VirtualTopologyActor extends Referenceable {
                                 (implicit tag: ClassTag[D],
                                           pktContext: PacketContext,
                                           system: ActorSystem): Urgent[D] = {
+        try {
+            Ready(doTryAsk(id, expiry, log, simLog))
+        } catch {
+            case NotYetException(future, msg) =>
+                NotYet(future)
+        }
+    }
+
+    // Note that the expiry is the exact expiration time, not a timeout.
+    @throws(classOf[NotYetException])
+    private def doTryAsk[D <: AnyRef](id: UUID,
+                                      expiry: Long = 0L,
+                                      log: LoggingAdapter,
+                                      simLog: SimulationAwareBusLogging)
+                                     (implicit tag: ClassTag[D],
+                                               pktContext: PacketContext,
+                                               system: ActorSystem): D = {
         val timeLeft = if (expiry == 0L) 3000L
-                       else expiry - Platform.currentTime
+        else expiry - Platform.currentTime
 
         // TODO this case is absurd, we'll remove the expire (unused) in a
         // separate patch
@@ -205,14 +241,15 @@ object VirtualTopologyActor extends Referenceable {
         if (dev eq null) {
             if (log ne null)
                 log.debug("{} {} not found in the virtual topology, " +
-                          "will suspend", tag, id)
+                    "will suspend", tag, id)
             else if (simLog ne null)
                 simLog.debug("{} {} not found in the virtual topology, " +
-                             "will suspend", tag, id)
-            NotYet(requestFuture(id, timeLeft, log, simLog))
-        } else {
-            Ready(dev)
+                    "will suspend", tag, id)
+            throw NotYetException(requestFuture(id, timeLeft, log, simLog),
+                                  s"Waiting for device: $id")
         }
+
+        dev
     }
 
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](

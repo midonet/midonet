@@ -360,6 +360,7 @@ class DeduplicationActor(
                 case NotYet(f) => postponeOn(pktCtx, f)
             }
         } catch {
+            case NotYetException(f, _) => postponeOn(pktCtx, f)
             case ex: Exception => handleErrorOn(pktCtx, ex)
         }
 
