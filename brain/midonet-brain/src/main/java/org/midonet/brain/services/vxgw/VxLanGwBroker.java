@@ -65,13 +65,14 @@ public class VxLanGwBroker {
     };
 
     /**
-     * Creates a new Broker between a vtep and the corresponding midonet peers.
+     * Creates a new Broker between a vtep and the corresponding midonet peers,
+     * once ready, it'll immediately connect the Vtep client.
      */
     public VxLanGwBroker(DataClient midoClient,
                          VtepDataClientProvider vtepDataClientProvider,
                          IPv4Addr vtepMgmtIp,
                          int vtepMgmtPort) {
-        log.info("Wiring broker for {}", vtepMgmtIp);
+        log.info("Wiring broker for VTEP: {}", vtepMgmtIp);
         this.midoClient = midoClient;
         this.vtepDataClientProvider = vtepDataClientProvider;
         this.vtepClient = this.vtepDataClientProvider.get();
@@ -104,15 +105,15 @@ public class VxLanGwBroker {
     private Subscription wirePeers(final VxLanPeer src, final VxLanPeer dst) {
         return src.observableUpdates()
                   .subscribe( // apply the update on the peer
-                              new Action1<MacLocation>() {
-                                  @Override
-                                  public void call(MacLocation macLocation) {
-                                      log.debug("Apply {} to {}", macLocation, dst);
-                                      dst.apply(macLocation);
-                                  }
-                              },
-                              errorHandler,
-                              completionHandler
+                      new Action1<MacLocation>() {
+                          @Override
+                          public void call(MacLocation macLocation) {
+                              log.debug("Apply {} to {}", macLocation, dst);
+                              dst.apply(macLocation);
+                          }
+                      },
+                      errorHandler,
+                      completionHandler
                   );
     }
 }

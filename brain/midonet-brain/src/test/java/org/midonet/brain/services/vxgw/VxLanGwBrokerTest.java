@@ -11,8 +11,14 @@ import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+
 import org.junit.Before;
 import org.junit.Test;
+
+import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
+
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
@@ -20,9 +26,7 @@ import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import rx.Observable;
-import rx.subjects.PublishSubject;
-import rx.subjects.Subject;
+
 import static org.junit.Assert.assertEquals;
 
 public class VxLanGwBrokerTest {

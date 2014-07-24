@@ -4,6 +4,8 @@
 package org.midonet.brain.services.vxgw;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Guice;
@@ -44,8 +46,8 @@ public class VxLanGatewayServiceTest {
     private static final int vtepMgmntPort = 6632;
     private static final int vni = 42;
 
-    private static final IPv4Addr vtepMgmtIpAlt = IPv4Addr.apply("192.169.0.21");
-    private static final int vtepMgmntPortAlt = 6633;
+    private static final IPv4Addr vtepMgmtIp2 = IPv4Addr.apply("192.169.0.21");
+    private static final int vtepMgmntPort2 = 6633;
     /*
      * Host parameters
      */
@@ -134,6 +136,8 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+
             // Shutdown
             vtepClient.disconnect(); times = 1;
         }};
@@ -160,11 +164,15 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
             vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(vtepMgmtIpAlt, vtepMgmntPortAlt); times = 1;
+            vtepClient.connect(vtepMgmtIp2, vtepMgmntPort2); times = 1;
+
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 
             // Shutdown (one round per vtep)
             vtepClient.disconnect(); times = 1;
@@ -182,8 +190,8 @@ public class VxLanGatewayServiceTest {
 
         // this might be caught by the first or second service
         VTEP vtepAlt = new VTEP();
-        vtepAlt.setId(vtepMgmtIpAlt);
-        vtepAlt.setMgmtPort(vtepMgmntPortAlt);
+        vtepAlt.setId(vtepMgmtIp2);
+        vtepAlt.setMgmtPort(vtepMgmntPort2);
         vtepAlt.setTunnelZone(tzId);
         dataClient.vtepCreate(vtepAlt);
 
@@ -215,6 +223,8 @@ public class VxLanGatewayServiceTest {
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
@@ -258,6 +268,8 @@ public class VxLanGatewayServiceTest {
         final org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
             new org.opendaylight.ovsdb.lib.notation.UUID("meh");
 
+        final Set<UUID> preexistingBridgeIds = new HashSet<>();
+
         new Expectations() {{
             // Per vtep
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
@@ -266,6 +278,8 @@ public class VxLanGatewayServiceTest {
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vB.pruneUnwantedLogicalSwitches(preexistingBridgeIds);
 
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
@@ -294,14 +308,15 @@ public class VxLanGatewayServiceTest {
         }};
 
         // add a new bridge with a binding before starting the service
-        makeBoundBridge("bridge1", "vtepPort", (short)666);
+        UUID id = makeBoundBridge("bridge1", "vtepPort", (short)666);
+        preexistingBridgeIds.add(id);
 
-        VxLanGatewayService gwsrv = new VxLanGatewayService(dataClient,
-                                                            vtepDataClientProvider,
-                                                            zkConnWatcher);
+        VxLanGatewayService gwsrv = new VxLanGatewayService(
+            dataClient, vtepDataClientProvider, zkConnWatcher);
         gwsrv.startAndWait();
         gwsrv.stopAndWait();
     }
+
     /**
      * Test the update of a bridge
      */
@@ -321,6 +336,8 @@ public class VxLanGatewayServiceTest {
             mP.observableUpdates(); result = Observable.empty(); times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
+
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 
             mP.knowsBridgeId((UUID)any);
             result = false; times = 1;
@@ -373,11 +390,15 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+
             vtepDataClientProvider.get(); result = vtepClient; times = 1;
             VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
             MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
             vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(vtepMgmtIpAlt, vtepMgmntPortAlt); times = 1;
+            vtepClient.connect(vtepMgmtIp2, vtepMgmntPort2); times = 1;
+
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
 
             // Shutdown (one round per vtep)
             vtepClient.disconnect(); times = 1;
@@ -392,8 +413,8 @@ public class VxLanGatewayServiceTest {
 
         // this should be also caught by the service
         VTEP vtepAlt = new VTEP();
-        vtepAlt.setId(vtepMgmtIpAlt);
-        vtepAlt.setMgmtPort(vtepMgmntPortAlt);
+        vtepAlt.setId(vtepMgmtIp2);
+        vtepAlt.setMgmtPort(vtepMgmntPort2);
         vtepAlt.setTunnelZone(tzId);
         dataClient.vtepCreate(vtepAlt);
 
@@ -416,6 +437,8 @@ public class VxLanGatewayServiceTest {
             vB.observableUpdates(); result = Observable.empty(); times = 1;
             vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
 
+            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+
             // Shutdown (one round per vtep)
             vtepClient.disconnect(); times = 1;
         }};
@@ -431,4 +454,5 @@ public class VxLanGatewayServiceTest {
 
         gwsrv1.stopAndWait();
     }
+
 }
