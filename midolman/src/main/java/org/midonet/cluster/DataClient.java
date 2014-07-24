@@ -66,6 +66,7 @@ import org.midonet.packets.IntIPv4;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
 
+import akka.serialization.Serialization;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
@@ -1019,6 +1020,14 @@ public interface DataClient {
      * Successive calls will return monotonically increasing values.
      */
     public int getNewVni() throws StateAccessException;
+
+    /**
+     * Get all the vtep bindings for this bridge.
+     * @param bridgeId
+     * @throws StateAccessException, SerializationException
+     */
+    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID bridgeId)
+        throws StateAccessException, SerializationException;
 
     public VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,

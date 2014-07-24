@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.NonStrictExpectations;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
@@ -34,9 +38,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static junit.framework.Assert.assertEquals;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
@@ -357,6 +358,23 @@ public class VtepDataClientImplTest {
 
         Status st = vtepDataClient.deleteBinding(PHYS_PORT_1, 10);
         assertEquals(StatusCode.NOTFOUND, st.getCode());
+    }
+
+    @Test // see MN-2545
+    public void testDeleteBindingVtepDisconnected() {
+        final Map<String, ConcurrentMap<String, Table<?>>> mockCache =
+            this.makeMockCache();
+        successfulConnection(mockCache);
+
+        // Now return null table cache, pretending that we lost connection
+        new Expectations() {{
+            cnxnSrv.getInventoryServiceInternal();
+            minTimes = 1; result = invSrv;
+            invSrv.getCache(node); minTimes = 1; result = null;
+        }};
+
+        Status st = vtepDataClient.deleteBinding(PHYS_PORT_1, 10);
+        assertEquals(StatusCode.NOSERVICE, st.getCode());
     }
 
     @Test

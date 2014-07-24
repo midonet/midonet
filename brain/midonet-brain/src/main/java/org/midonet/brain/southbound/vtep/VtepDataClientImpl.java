@@ -176,6 +176,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     /**
      * Returns the ovsdb internal cache for the given table, if it doesn't
      * exist or it's empty, returns an empty map.
+     *
      * @param tableName the requested table.
      * @return the cached contents, if any.
      */
@@ -195,6 +196,7 @@ public class VtepDataClientImpl implements VtepDataClient {
         if (tableCache == null) {
             tableCache = new HashMap<>(0);
         }
+
         return tableCache;
     }
 
@@ -202,6 +204,9 @@ public class VtepDataClientImpl implements VtepDataClient {
     public List<PhysicalSwitch> listPhysicalSwitches() {
         Map<String, Table<?>> tableCache =
             getTableCache(Physical_Switch.NAME.getName());
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<PhysicalSwitch> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Physical Switch {} {}", e.getKey(), e.getValue());
@@ -223,6 +228,9 @@ public class VtepDataClientImpl implements VtepDataClient {
     public List<PhysicalPort> listPhysicalPorts(UUID psUUID) {
         Map<String, Table<?>> tableCache =
             getTableCache(Physical_Port.NAME.getName());
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<PhysicalPort> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Physical Port {} {}", e.getKey(), e.getValue());
@@ -236,6 +244,9 @@ public class VtepDataClientImpl implements VtepDataClient {
     public List<LogicalSwitch> listLogicalSwitches() {
         Map<String, Table<?>> tableCache =
             getTableCache(Logical_Switch.NAME.getName());
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<LogicalSwitch> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Logical Switch {} {}", e.getKey(), e.getValue());
@@ -250,6 +261,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Listing mcast macs local");
         String tableName = Mcast_Macs_Local.NAME.getName();
         Map<String, Table<?>> tableCache = getTableCache(tableName);
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<McastMac> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Mac {} {}", e.getKey(), e.getValue());
@@ -263,6 +277,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Listing mcast macs remote");
         String tableName = Mcast_Macs_Remote.NAME.getName();
         Map<String, Table<?>> tableCache = getTableCache(tableName);
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<McastMac> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Mac {} {}", e.getKey(), e.getValue());
@@ -276,6 +293,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Listing ucast macs local");
         String tableName = Ucast_Macs_Local.NAME.getName();
         Map<String, Table<?>> tableCache = getTableCache(tableName);
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<UcastMac> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Mac {} {}", e.getKey(), e.getValue());
@@ -289,6 +309,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Listing ucast macs remote");
         String tableName = Ucast_Macs_Remote.NAME.getName();
         Map<String, Table<?>> tableCache = getTableCache(tableName);
+        if (tableCache == null) {
+            return new ArrayList<>();
+        }
         List<UcastMac> res = new ArrayList<>(tableCache.size());
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             log.debug("Found Mac {} {}", e.getKey(), e.getValue());
@@ -302,6 +325,9 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Fetching logical switch {}", id);
         Map<String, Table<?>> tableCache =
             getTableCache(Logical_Switch.NAME.getName());
+        if (tableCache == null) {
+            return null;
+        }
         for (Map.Entry<String, Table<?>> e : tableCache.entrySet()) {
             if (e.getKey().equals(id.toString())) {
                 log.debug("Found logical switch {} {}", e.getKey(), e.getValue());
@@ -408,7 +434,10 @@ public class VtepDataClientImpl implements VtepDataClient {
         log.debug("Removing binding of port {} and vlan {}", portName, vlanId);
         Map<String, Table<?>> psCache =
             this.getTableCache(Physical_Switch.NAME.getName());
-        if (psCache == null || psCache.isEmpty()) {
+        if (psCache == null) {
+            log.warn("Looks like we're disconnected from the VTEP");
+            return new Status(StatusCode.NOSERVICE, "No table cache present");
+        } else if (psCache.isEmpty()) {
             log.warn("Cannot find any physical switches in VTEP db");
             return new Status(StatusCode.NOTFOUND, "Physical Switch missing");
         } else if (psCache.size() > 1) {
