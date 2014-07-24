@@ -31,8 +31,11 @@ public class LoadBalancer {
     @JsonProperty("vip_template")
     public String vipTemplate;
 
+    @JsonProperty("pool_health_monitor")
+    public URI poolHealthMonitor;
+
     @Override
-    public boolean equals(Object obj) {
+    public final boolean equals(Object obj) {
 
         if (obj == this) {
             return true;
@@ -51,18 +54,19 @@ public class LoadBalancer {
                && Objects.equal(pools, other.pools)
                && Objects.equal(poolTemplate, other.poolTemplate)
                && Objects.equal(vips, other.vips)
-               && Objects.equal(vipTemplate, other.vipTemplate);
+               && Objects.equal(vipTemplate, other.vipTemplate)
+               && Objects.equal(poolHealthMonitor, other.poolHealthMonitor);
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return Objects.hashCode(healthMonitors, healthMonitorTemplate,
                                 members, memberTemplate, pools, poolTemplate,
-                                vips, vipTemplate);
+                                vips, vipTemplate, poolHealthMonitor);
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
 
         return Objects.toStringHelper(this)
             .add("healthMonitors", healthMonitors)
@@ -72,6 +76,7 @@ public class LoadBalancer {
             .add("pools", pools)
             .add("poolTemplate", poolTemplate)
             .add("vips", vips)
-            .add("vipTemplate", vipTemplate).toString();
+            .add("vipTemplate", vipTemplate)
+            .add("poolHealthMonitor", poolHealthMonitor).toString();
     }
 }

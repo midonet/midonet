@@ -29,5 +29,9 @@ public class AbstractVirtualTopologyEvent extends AbstractEvent {
     public void delete(UUID id) {
         handleEvent("DELETE", id);
     }
+
+    public void delete(UUID id1, UUID id2) {
+        handleEvent("DELETE", id1, id2);
+    }
 }
 
