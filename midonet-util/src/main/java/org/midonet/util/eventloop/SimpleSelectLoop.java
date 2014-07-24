@@ -61,6 +61,8 @@ public class SimpleSelectLoop implements SelectLoop {
     protected long timeout;
     protected final Object registerLock = new Object();
 
+    private int numberOfRegistrations = 0;
+
     protected Runnable endOfLoopCallback = null;
 
     private Multimap<SelectableChannel, Registration> registrations =
@@ -70,6 +72,30 @@ public class SimpleSelectLoop implements SelectLoop {
         dontStop = true;
         selector = SelectorProvider.provider().openSelector();
         this.timeout = 0;
+    }
+
+    /* updates the number of registrations */
+    private void registrationAdded(int ops) {
+        if ((ops & SelectionKey.OP_ACCEPT) != 0)
+            numberOfRegistrations++;
+        if ((ops & SelectionKey.OP_READ) != 0)
+            numberOfRegistrations++;
+        if ((ops & SelectionKey.OP_WRITE) != 0)
+            numberOfRegistrations++;
+        if ((ops & SelectionKey.OP_CONNECT) != 0)
+            numberOfRegistrations++;
+    }
+
+    /* updates the number of registrations */
+    private void registrationRemoved(int ops) {
+        if ((ops & SelectionKey.OP_ACCEPT) != 0)
+            numberOfRegistrations--;
+        if ((ops & SelectionKey.OP_READ) != 0)
+            numberOfRegistrations--;
+        if ((ops & SelectionKey.OP_WRITE) != 0)
+            numberOfRegistrations--;
+        if ((ops & SelectionKey.OP_CONNECT) != 0)
+            numberOfRegistrations--;
     }
 
     public void setEndOfLoopCallback(Runnable cb) {
@@ -102,6 +128,7 @@ public class SimpleSelectLoop implements SelectLoop {
             // because select() returns immediately if a wakeup() was
             // called while the selector didn't have a select in progress.
             registrations.put(ch, new Registration(ch, ops, arg, null));
+            registrationAdded(ops);
         }
     }
 
@@ -128,6 +155,7 @@ public class SimpleSelectLoop implements SelectLoop {
             for (Registration reg: registrations.get(ch)) {
                 if (reg.ops == ops) {
                     registrations.remove(ch, reg);
+                    registrationRemoved(ops);
                     break;
                 }
             }
@@ -155,6 +183,7 @@ public class SimpleSelectLoop implements SelectLoop {
             selector.wakeup();
             queue.bind(selector);
             registrations.put(ch, new Registration(ch, ops, arg, queue));
+            registrationAdded(ops);
         }
     }
 
@@ -165,8 +194,37 @@ public class SimpleSelectLoop implements SelectLoop {
             for (Registration reg: registrations.values()) {
                 if (reg.queue == queue) {
                     registrations.remove(reg.ch, reg);
+                    registrationRemoved(reg.ops);
                     break;
                 }
+            }
+        }
+    }
+
+    private boolean spinOnQueue(SelectorInputQueue<?> queue) {
+        for (int retries = 200; retries > 0 && queue.isEmpty(); retries--) {
+            if (retries < 100)
+                Thread.yield();
+        }
+        return !queue.isEmpty();
+    }
+
+    /* If this select loop has a single registration, and it's a write
+     * registration, and it has a queue associated with it, and the queue
+     * has elements in it, we can skip the syscall and serve the registration
+     * directly.
+     */
+    private void readyDedicatedWriterLoopIteration(Registration reg) {
+        try {
+            reg.listener.handleEvent(null);
+        } catch (Exception e) {
+            log.error("Callback threw an exception", e);
+        }
+        if (endOfLoopCallback != null) {
+            try {
+                endOfLoopCallback.run();
+            } catch (Throwable e) {
+                log.error("end-of-select-loop callback failed", e);
             }
         }
     }
@@ -180,6 +238,7 @@ public class SimpleSelectLoop implements SelectLoop {
 
         int nEvents;
 
+    outer:
         while (dontStop) {
             log.trace("looping");
 
@@ -188,6 +247,12 @@ public class SimpleSelectLoop implements SelectLoop {
                     int ops = 0;
                     for (Registration reg: registrations.get(ch)) {
                         if (reg.queue != null) {
+                            if (numberOfRegistrations == 1) {
+                                if (spinOnQueue(reg.queue)) {
+                                    readyDedicatedWriterLoopIteration(reg);
+                                    continue outer;
+                                }
+                            }
                             reg.queue.wakeupOn();
                             if (!reg.queue.isEmpty()) {
                                 reg.queue.wakeupOff();
