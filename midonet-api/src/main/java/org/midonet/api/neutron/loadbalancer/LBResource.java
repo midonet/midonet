@@ -28,6 +28,23 @@ public class LBResource extends AbstractResource {
         this.factory = factory;
     }
 
+    public static LoadBalancer buildLoadBalancer(URI baseUri) {
+        LoadBalancer lb = new LoadBalancer();
+
+        lb.healthMonitors = LBUriBuilder.getHealthMonitors(baseUri);
+        lb.healthMonitorTemplate = LBUriBuilder.getHealthMonitorTemplate(
+            baseUri);
+        lb.members = LBUriBuilder.getMembers(baseUri);
+        lb.memberTemplate = LBUriBuilder.getMemberTemplate(baseUri);
+        lb.pools = LBUriBuilder.getPools(baseUri);
+        lb.poolTemplate = LBUriBuilder.getPoolTemplate(baseUri);
+        lb.vips = LBUriBuilder.getVips(baseUri);
+        lb.vipTemplate = LBUriBuilder.getVipTemplate(baseUri);
+        lb.poolHealthMonitor = LBUriBuilder.getPoolHealthMonitor(baseUri);
+
+        return lb;
+    }
+
     @Path(LBUriBuilder.HEALTH_MONITORS)
     public HealthMonitorResource getHealthMonitorResource() {
         return factory.getHealthMonitorResource();
@@ -48,19 +65,8 @@ public class LBResource extends AbstractResource {
         return factory.getVipResource();
     }
 
-    public static LoadBalancer buildLoadBalancer(URI baseUri) {
-        LoadBalancer lb = new LoadBalancer();
-
-        lb.healthMonitors = LBUriBuilder.getHealthMonitors(baseUri);
-        lb.healthMonitorTemplate = LBUriBuilder.getHealthMonitorTemplate(
-            baseUri);
-        lb.members = LBUriBuilder.getMembers(baseUri);
-        lb.memberTemplate = LBUriBuilder.getMemberTemplate(baseUri);
-        lb.pools = LBUriBuilder.getPools(baseUri);
-        lb.poolTemplate = LBUriBuilder.getPoolTemplate(baseUri);
-        lb.vips = LBUriBuilder.getVips(baseUri);
-        lb.vipTemplate = LBUriBuilder.getVipTemplate(baseUri);
-
-        return lb;
+    @Path(LBUriBuilder.POOL_HEALTH_MONITOR)
+    public PoolHealthMonitorResource getPoolHealthMonitorResource() {
+        return factory.getPoolHealthMonitorResource();
     }
 }

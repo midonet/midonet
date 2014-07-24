@@ -24,4 +24,7 @@ public class LBMediaType {
         "application/vnd.org.midonet.neutron.lb.HealthMonitor-v1+json";
     public final static String HEALTH_MONITORS_JSON_V1 =
         "application/vnd.org.midonet.neutron.lb.HealthMonitors-v1+json";
+
+    public final static String POOL_HEALTH_MONITOR_JSON_V1 =
+        "application/vnd.org.midonet.neutron.lb.PoolHealthMonitor-v1+json";
 }

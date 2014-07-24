@@ -21,6 +21,7 @@ import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
+import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.PathBuilder;
@@ -43,8 +44,6 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                                       LoadBalancerApi {
 
     private static final Logger LOGGER =
-        LoggerFactory.getLogger(NeutronPlugin.class);
-    private final static Logger log =
         LoggerFactory.getLogger(NeutronPlugin.class);
     @Inject
     private ZkManager zkManager;
@@ -432,7 +431,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     @Override
-    public void deleteRouter(@Nonnull UUID id)
+    public final void deleteRouter(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
@@ -823,5 +822,20 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public HealthMonitor deleteHealthMonitor(UUID id)
         throws StateAccessException, SerializationException {
         return new HealthMonitor();
+    }
+
+    // Pool Health Monitors
+    @Override
+    public PoolHealthMonitor createPoolHealthMonitor(
+        PoolHealthMonitor poolHealthMonitor)
+        throws StateAccessException, SerializationException {
+        return poolHealthMonitor;
+    }
+
+    @Override
+    public PoolHealthMonitor deletePoolHealthMonitor(
+        PoolHealthMonitor poolHealthMonitor)
+        throws StateAccessException, SerializationException {
+        return poolHealthMonitor;
     }
 }
