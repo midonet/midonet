@@ -236,12 +236,17 @@ public class VxLanGatewayService extends AbstractService {
         IPv4Addr mgmtIp = vtep.getId();
 
         // Try to get ownership
+        /*
+        TODO: remove this for now so that we don't force the API to wait for
+              30 sec before restart due to our inability to recognize the
+              our previous owner id if we restart earlier. MN-2572.
         UUID ownerId = midoClient.tryOwnVtep(mgmtIp, srvId);
         if (!srvId.equals(ownerId)) {
             log.debug("VxLanGatewayService {} ignoring VTEP {} owned by {}",
                       new Object[]{srvId, vtep.getId(), ownerId});
             return;
         }
+        */
 
         // Sanity check
         if (vxlanGwBrokers.containsKey(mgmtIp)) {

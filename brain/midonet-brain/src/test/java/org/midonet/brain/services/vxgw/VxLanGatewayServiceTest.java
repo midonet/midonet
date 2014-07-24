@@ -14,6 +14,7 @@ import mockit.Mocked;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import rx.Observable;
@@ -155,6 +156,7 @@ public class VxLanGatewayServiceTest {
      * Check the life cycle for collaborating gateway services.
      */
     @Test
+    @Ignore
     public void testDoubleService(@Mocked final VtepBroker vtepBroker)
         throws Exception {
 
