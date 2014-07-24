@@ -22,6 +22,7 @@ public class FlowKeyIPv6 implements FlowKey {
     /*__u8*/ private byte ipv6_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     private int hashCode = 0;
+    private int connectionHash = 0;
 
     // This is used for deserialization purposes only.
     FlowKeyIPv6() { }
@@ -130,13 +131,25 @@ public class FlowKeyIPv6 implements FlowKey {
     }
 
     public void computeHashCode() {
-        hashCode =  Arrays.hashCode(ipv6_src);
+        hashCode = Arrays.hashCode(ipv6_src);
         hashCode = 31 * hashCode + Arrays.hashCode(ipv6_dst);
         hashCode = 31 * hashCode + ipv6_label;
         hashCode = 31 * hashCode + (int) ipv6_proto;
         hashCode = 31 * hashCode + (int) ipv6_tclass;
         hashCode = 31 * hashCode + (int) ipv6_hlimit;
         hashCode = 31 * hashCode + (int) ipv6_frag;
+        computeConnectionHash();
+    }
+
+    @Override
+    public int connectionHash() {
+        return connectionHash;
+    }
+
+    public void computeConnectionHash() {
+        connectionHash =  Arrays.hashCode(ipv6_src);
+        connectionHash = 31 * connectionHash + Arrays.hashCode(ipv6_dst);
+        connectionHash = 31 * connectionHash + (int) ipv6_proto;
     }
 
     @Override

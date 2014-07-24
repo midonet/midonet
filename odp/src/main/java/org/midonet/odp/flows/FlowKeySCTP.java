@@ -65,6 +65,9 @@ public class FlowKeySCTP implements FlowKey {
     }
 
     @Override
+    public int connectionHash() { return hashCode(); }
+
+    @Override
     public String toString() {
         return "FlowKeySCTP{sctp_src=" + sctp_src + ", sctp_dst=" + sctp_dst + "}";
     }

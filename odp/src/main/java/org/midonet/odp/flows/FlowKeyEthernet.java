@@ -66,6 +66,9 @@ public class FlowKeyEthernet implements CachedFlowKey {
         return hashCode;
     }
 
+    @Override
+    public int connectionHash() { return 0; }
+
     private void computeHashCode() {
         hashCode = 31 * Arrays.hashCode(eth_src) + Arrays.hashCode(eth_dst);
     }
