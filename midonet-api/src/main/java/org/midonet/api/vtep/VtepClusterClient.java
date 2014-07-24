@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
-import org.midonet.midolman.state.NoStatePathException;
+
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.notation.UUID;
@@ -19,8 +19,8 @@ import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.network.VtepBinding;
 import org.midonet.api.network.VTEPPort;
+import org.midonet.api.network.VtepBinding;
 import org.midonet.api.rest_api.BadGatewayHttpException;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
@@ -36,6 +36,7 @@ import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
@@ -307,11 +308,24 @@ public class VtepClusterClient {
                     vxlanPort.getId(), vxlanPort.getVni());
         } else {
             // Need to create a VXLAN port.
+            VtepDataClient vc = getVtepClient(vtep.getId(), vtep.getMgmtPort());
+            List<PhysicalSwitch> physSwitches = vc.listPhysicalSwitches();
+            IPv4Addr tunIp = vtep.getId(); // default to the VTEP's mgmt ip
+            for (PhysicalSwitch ps : physSwitches) {
+                if (ps.mgmtIps.contains(vtep.getId().toString())) {
+                    if (!ps.tunnelIps.isEmpty()) {
+                        tunIp = IPv4Addr.fromString(
+                            ps.tunnelIps.iterator().next());
+                        break;
+                    }
+                }
+            }
             newPortVni = dataClient.getNewVni();
             VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
-                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni);
-            log.debug("New VxLan port created, uuid: {}, vni: {}",
-                    vxlanPort.getId(), newPortVni);
+                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni,
+                    tunIp, vtep.getTunnelZoneId());
+            log.debug("New VxLan port created, uuid: {}, vni: {}, tunIp: {}",
+                      new Object[]{vxlanPort.getId(), newPortVni, tunIp});
         }
 
         // Create the binding in Midonet.
@@ -445,7 +459,7 @@ public class VtepClusterClient {
 
         // Delete the corresponding logical switch on the VTEP.
         Status st = vtepClient.deleteLogicalSwitch(
-                bridgeIdToLogicalSwitchName(networkId));
+            bridgeIdToLogicalSwitchName(networkId));
         throwIfFailed(st);
     }
 

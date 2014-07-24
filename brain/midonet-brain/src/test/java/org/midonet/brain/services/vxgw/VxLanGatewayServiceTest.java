@@ -84,7 +84,7 @@ public class VxLanGatewayServiceTest {
         UUID bridgeId = makeUnboundBridge(name);
         dataClient.vtepAddBinding(vtepMgmtIp, vtepPort, vlan, bridgeId);
         dataClient.bridgeCreateVxLanPort(bridgeId, vtepMgmtIp, vtepMgmntPort,
-                                         vni);
+                                         vni, vtepMgmtIp, tzId);
         return bridgeId;
     }
 
@@ -349,7 +349,7 @@ public class VxLanGatewayServiceTest {
 
         // add a binding to the bridge
         dataClient.bridgeCreateVxLanPort(bridgeId, vtepMgmtIp, vtepMgmntPort,
-                                         vni);
+                                         vni, vtepMgmtIp, tzId);
 
         // remove binding from the bridge
         dataClient.bridgeDeleteVxLanPort(bridgeId);
