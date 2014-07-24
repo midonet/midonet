@@ -503,7 +503,7 @@ public class LocalDataClientImpl implements DataClient {
     public void bridgesUpdate(@Nonnull Bridge bridge)
             throws StateAccessException, SerializationException,
             BridgeZkManager.VxLanPortIdUpdateException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
 
         // Get the original data
         Bridge oldBridge = bridgesGet(bridge.getId());
@@ -524,7 +524,7 @@ public class LocalDataClientImpl implements DataClient {
     public List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException {
         log.debug("bridgesGetAll entered");
-        List<Bridge> bridges = new ArrayList<Bridge>();
+        List<Bridge> bridges = new ArrayList<>();
 
         List<UUID> bridgeIds = bridgesGetAllIds();
         for (UUID id : bridgeIds) {
@@ -550,6 +550,19 @@ public class LocalDataClientImpl implements DataClient {
                 }
             }
         );
+    }
+
+    @Override
+    public Set<UUID> bridgesBoundToVtep(IPv4Addr mgmtIp)
+        throws StateAccessException, SerializationException {
+        assert(mgmtIp != null);
+        // more efficient to go via the VTEP
+        List<VtepBinding> bindings = vtepGetBindings(mgmtIp);
+        Set<UUID> bridgeIds = new HashSet<>();
+        for (VtepBinding b : bindings) {
+            bridgeIds.add(b.getNetworkId());
+        }
+        return bridgeIds;
     }
 
     @Override

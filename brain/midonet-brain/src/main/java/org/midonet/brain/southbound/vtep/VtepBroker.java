@@ -37,6 +37,8 @@ import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
+import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
+
 /**
  * This class exposes a hardware VTEP as a vxlan gateway peer.
  */
@@ -275,6 +277,28 @@ public class VtepBroker implements VxLanPeer {
         }
 
         return lsUuid;
+    }
+
+    /**
+     * Will remove all the Midonet created logical switches from the VTEP that
+     * that don't have a corresponding network id in the given list.
+     */
+    public void pruneUnwantedLogicalSwitches(
+        Collection<java.util.UUID> wantedNetworks) {
+        List<LogicalSwitch> lsList = vtepDataClient.listLogicalSwitches();
+        for (LogicalSwitch ls : lsList) {
+            java.util.UUID networkId = logicalSwitchNameToBridgeId(ls.name);
+            if (networkId == null || wantedNetworks.contains(networkId)) {
+                log.debug("Logical Switch {} kept in VTEP", ls);
+                continue;
+            }
+            Status st = vtepDataClient.deleteLogicalSwitch(ls.name);
+            if (st.isSuccess() || st.getCode().equals(StatusCode.NOTFOUND)) {
+                log.info("Unused logical switch {} was removed from VTEP", ls);
+            } else {
+                log.warn("Can't remove unused logical switch {}: {}", ls, st);
+            }
+        }
     }
 
     /**

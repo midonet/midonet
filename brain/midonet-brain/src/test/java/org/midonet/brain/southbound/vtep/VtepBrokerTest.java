@@ -4,6 +4,7 @@
 package org.midonet.brain.southbound.vtep;
 
 import java.util.Arrays;
+import java.util.List;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -30,6 +31,8 @@ import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+
+import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class VtepBrokerTest {
 
@@ -290,8 +293,6 @@ public class VtepBrokerTest {
     @Test
     public void testAdvertiseMacs() {
 
-        VtepBroker vb = new VtepBroker(vtepDataClient);
-
         // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
         // is able to capture the IP and process MAC updates.
         vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
@@ -318,14 +319,14 @@ public class VtepBrokerTest {
         }};
 
         RxTestUtils.TestedObservable obs =
-            RxTestUtils.test(vb.observableUpdates());
+            RxTestUtils.test(vtepBroker.observableUpdates());
         obs.expect(new MacLocation(mac1, "meh1", vxTunEndpoint),
                    new MacLocation(mac2, "meh2", vxTunEndpoint))
            .noErrors()
            .notCompleted()
            .subscribe();
 
-        vb.advertiseMacs();
+        vtepBroker.advertiseMacs();
 
         obs.evaluate();
     }
@@ -379,6 +380,37 @@ public class VtepBrokerTest {
     @Test
     public void testApplyResilientToNullMacLocations() {
         vtepBroker.apply(null); // expect no NPE
+    }
+
+    @Test
+    public void testPruneUnwantedLogicalSwitches() {
+
+        final java.util.UUID boundNetworkId = java.util.UUID.randomUUID();
+
+        final String oldLs =
+            bridgeIdToLogicalSwitchName(java.util.UUID.randomUUID());
+        final String nonMidoLs = "private_logical_switch";
+        final String curLs = bridgeIdToLogicalSwitchName(boundNetworkId);
+
+        // The id of the network that does have a binding
+        List<java.util.UUID> ids = Arrays.asList(boundNetworkId);
+
+        final List<LogicalSwitch> lsList = Arrays.asList(
+            new LogicalSwitch(new UUID("ls1"), "midonet unwanted", oldLs, 1),
+            new LogicalSwitch(new UUID("ls2"), "non midonet", nonMidoLs, 2),
+            new LogicalSwitch(new UUID("ls3"), "midonet wanted", curLs, 3)
+        );
+
+        new Expectations() {{
+            vtepDataClient.listLogicalSwitches();
+            result = lsList;
+            times = 1;
+            vtepDataClient.deleteLogicalSwitch(oldLs);
+            result = new Status(StatusCode.SUCCESS);
+            times = 1;
+        }};
+
+        vtepBroker.pruneUnwantedLogicalSwitches(ids);
     }
 
     private Ucast_Macs_Local makeUcastLocal(String mac, String ip) {

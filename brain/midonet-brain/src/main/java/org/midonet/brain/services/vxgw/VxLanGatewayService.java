@@ -3,6 +3,7 @@
  */
 package org.midonet.brain.services.vxgw;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,7 @@ public class VxLanGatewayService extends AbstractService {
             vtepMon = new VtepMonitor(this.midoClient, this.zkConnWatcher);
             bridgeMon = new BridgeMonitor(this.midoClient, this.zkConnWatcher);
         } catch (DeviceMonitor.DeviceMonitorException e) {
-            log.warn("Service failed");
+            log.warn("Service startup failed", e);
             shutdown();
             notifyFailed(e);
             return;
@@ -252,7 +253,10 @@ public class VxLanGatewayService extends AbstractService {
                                                      mgmtIp,
                                                      vtep.getMgmtPort());
         vxlanGwBrokers.put(mgmtIp, vxGwBroker);
-        // TODO: in a future patch, find associated bridges and watch them
+
+        // Remove Logical Switches that don't have a network bound to them
+        Collection<UUID> boundNetworks = midoClient.bridgesBoundToVtep(mgmtIp);
+        vxGwBroker.vtepPeer.pruneUnwantedLogicalSwitches(boundNetworks);
     }
 
     /**
@@ -307,7 +311,7 @@ public class VxLanGatewayService extends AbstractService {
     }
 
     /**
-     * Assign a bridge to a midonet. vxlan peer
+     * Assign a bridge to a midonet vxlan peer
      */
     private synchronized void assignBridgeToPeerInternal(final UUID bridgeId)
         throws StateAccessException, SerializationException {

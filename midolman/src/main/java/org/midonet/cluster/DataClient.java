@@ -59,7 +59,6 @@ import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -119,12 +118,15 @@ public interface DataClient {
 
     /**
      * Return all bridges with a VxLan Port
-     * @throws StateAccessException
-     * @throws SerializationException
      */
     List<Bridge> bridgesGetAllWithVxlanPort() throws StateAccessException,
                                                      SerializationException;
 
+    /**
+     * Provide the ids of all the bridges with a binding to the given VTEP.
+     */
+    Set<UUID> bridgesBoundToVtep(IPv4Addr mgmtIp)
+        throws StateAccessException, SerializationException;
     /**
      * Get an entity monitor for individual bridges
      */
@@ -134,7 +136,7 @@ public interface DataClient {
     /**
      * Get an entity monitor for the set of bridges
      */
-    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
+    EntityIdSetMonitor bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<UUID> bridgesGetAllIds() throws StateAccessException,
