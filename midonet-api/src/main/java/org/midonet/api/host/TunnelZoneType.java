@@ -11,4 +11,5 @@ package org.midonet.api.host;
 public class TunnelZoneType {
     public static final String GRE = "gre";
     public static final String VxLAN = "vxlan";
+    public static final String VTEP = "vtep";
 }

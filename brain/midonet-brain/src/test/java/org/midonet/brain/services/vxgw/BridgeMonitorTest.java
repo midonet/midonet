@@ -72,7 +72,8 @@ public class BridgeMonitorTest extends DeviceMonitorTestBase<UUID, Bridge> {
                                                 StateAccessException {
         UUID bridgeId = makeUnboundBridge(name);
         dataClient.bridgeCreateVxLanPort(bridgeId, vtepMgmtIp, vtepMgmntPort,
-                                         bridgePortVNI);
+                                         bridgePortVNI, vtepMgmtIp,
+                                         UUID.randomUUID());
         return bridgeId;
     }
 
