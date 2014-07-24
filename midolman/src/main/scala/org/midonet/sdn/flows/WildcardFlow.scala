@@ -95,13 +95,15 @@ abstract class WildcardFlow {
 
     // CAREFUL: this class is used as a key in various maps. DO NOT use
     // mutable fields when constructing the hashCode or evaluating equality.
-    override def hashCode: Int = new HashCodeBuilder(17, 37).
-        append(hardExpirationMillis).
-        append(idleExpirationMillis).
-        append(priority).
-        append(actions).
-        append(wcmatch).
-        toHashCode
+    override def hashCode(): Int = {
+        new HashCodeBuilder(17, 37).
+            append(hardExpirationMillis).
+            append(idleExpirationMillis).
+            append(priority).
+            append(actions).
+            append(wcmatch).
+            toHashCode
+    }
 }
 
 /**
@@ -155,6 +157,9 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
     var idleExpirationMillis = 0
     var priority: Short = 0
 
+    val INVALID_HASH_CODE = 0
+    var cachedHashCode = INVALID_HASH_CODE
+
     def reset(wflow: WildcardFlow): ManagedWildcardFlow = {
         this.wcmatch.reset(wflow.wcmatch)
         this.actions = ManagedWildcardFlow.actionsPool.sharedRef(wflow.actions)
@@ -162,6 +167,7 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
         this.idleExpirationMillis = wflow.idleExpirationMillis
         this.priority = wflow.priority
         this.dpFlows.clear()
+        cachedHashCode = super.hashCode()
         this
     }
 
@@ -171,6 +177,7 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
         this.callbacks = null
         this.tags = null
         this.dpFlows.clear()
+        cachedHashCode = INVALID_HASH_CODE
     }
 
     def immutable = WildcardFlow(wcmatch, actions, hardExpirationMillis,
@@ -188,6 +195,12 @@ class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
         this.creationTimeMillis = creationTimeMillis
         this
     }
+
+    override def hashCode(): Int =
+        if (cachedHashCode == INVALID_HASH_CODE)
+            super.hashCode()
+        else
+            cachedHashCode
 
     override def toString: String = {
         "ManagedWildcardFlow{"+
