@@ -5,10 +5,14 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.neutron.loadbalancer.LBResource;
+import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.Neutron;
 import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.client.neutron.loadbalancer.LoadBalancer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,6 +109,7 @@ public class NeutronResource extends AbstractResource {
                 NeutronUriBuilder.getSecurityGroupRules(baseUri);
         neutron.securityGroupRuleTemplate =
                 NeutronUriBuilder.getSecurityGroupRuleTemplate(baseUri);
+        neutron.loadBalancer = LBResource.buildLoadBalancer(baseUri);
         return neutron;
     }
 }

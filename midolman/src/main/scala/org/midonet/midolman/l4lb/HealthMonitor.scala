@@ -6,7 +6,6 @@ import java.io._
 import java.util.UUID
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.neutron.LBaaSApi
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.config.HostConfig
@@ -176,7 +175,6 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     @Inject private val configuration: HostConfig = null
     @Inject private val midolmanConfig: MidolmanConfig = null
     @Inject var client: DataClient = null
-    @Inject var api: LBaaSApi = null
 
     private var fileLocation: String = null
     private var namespaceSuffix: String = null
@@ -230,7 +228,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    api.poolSetMapStatus(poolId,
+                    client.poolSetMapStatus(poolId,
                         PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
@@ -242,7 +240,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None if !config.isConfigurable || routerId == null =>
                     log.info("received unconfigurable add for pool {}",
                         poolId.toString)
-                    api.poolSetMapStatus(poolId,
+                    client.poolSetMapStatus(poolId,
                         PoolHealthMonitorMappingStatus.INACTIVE)
                     // Wait until this is configurable start this.
 
@@ -262,7 +260,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None =>
                     log.info("received delete for non-existent pool {}",
                              poolId.toString)
-                    api.poolSetMapStatus(poolId,
+                    client.poolSetMapStatus(poolId,
                             PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
@@ -284,7 +282,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("router changed for unconfigurable and non-" +
                              "existent pool {}", poolId.toString)
-                    api.poolSetMapStatus(poolId,
+                    client.poolSetMapStatus(poolId,
                             PoolHealthMonitorMappingStatus.INACTIVE)
             }
 
@@ -297,7 +295,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     def startChildHaproxyMonitor(poolId: UUID, config: PoolConfig,
                                  routerId: UUID) = {
         context.actorOf(HaproxyHealthMonitor.props(config, self, routerId,
-            api, client, hostId).withDispatcher("actors.pinned-dispatcher"),
+            client, hostId).withDispatcher("actors.pinned-dispatcher"),
                  config.id.toString)
     }
 

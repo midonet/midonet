@@ -35,7 +35,7 @@ public class TestPoolResource extends L4LBResourceTestBase {
         // Assume the model passed the validation.
         doReturn(new HashSet<>()).when(validator).validate(any());
         // Emulate the Pool-HealthMonitorMapping violation.
-        doThrow(new MappingViolationException()).when(api)
+        doThrow(new MappingViolationException()).when(dataClient)
                 .poolUpdate(any(
                         org.midonet.cluster.data.l4lb.Pool.class));
 
@@ -53,7 +53,7 @@ public class TestPoolResource extends L4LBResourceTestBase {
         // Assume the model passed the validation.
         doReturn(new HashSet<>()).when(validator).validate(any());
         // Emulate the Pool-HealthMonitorMapping violation.
-        doThrow(new MappingStatusException()).when(api)
+        doThrow(new MappingStatusException()).when(dataClient)
                 .poolUpdate(any(
                         org.midonet.cluster.data.l4lb.Pool.class));
 
