@@ -7,9 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -251,7 +249,7 @@ public class BridgeZkManager
             // Users cannot set vxLanPortId directly.
             if (userUpdate)
                 throw new VxLanPortIdUpdateException();
-            log.debug("The vxLanPortId of bridge{} changed from {} to {}",
+            log.debug("The vxLanPortId of bridge {} changed from {} to {}",
                     new Object[]{id, oldConfig.vxLanPortId, config.vxLanPortId});
             dataChanged = true;
         }

@@ -15,7 +15,6 @@ import com.google.inject.Inject;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,7 @@ import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
@@ -169,8 +169,9 @@ public class VtepClusterClient {
      * Gets the PhysicalPort named portName from the specified VTEP
      * using the provided VtepDataClient.
      */
-    protected final PhysicalPort getPhysicalPort(VtepDataClient vtepClient,
-            IPv4Addr mgmtIp, int mgmtPort, String portName)
+    protected final PhysicalPort getPhysicalPortOrThrow(
+        VtepDataClient vtepClient,
+        IPv4Addr mgmtIp, int mgmtPort, String portName)
             throws StateAccessException, SerializationException {
         // Find the requested port.
         List<PhysicalPort> pports =
@@ -284,108 +285,187 @@ public class VtepClusterClient {
     /**
      * Creates the specified binding on the VTEP at ipAddr.
      *
+     * We will store the configuration first in ZK. Additionally, if this is not
+     * the first binding of the given bridge we will also add the binding to the
+     * VTEP db. First bindings are completely handled by the VxGW Service, and
+     * will fail if the VTEP is unreachable.
+     *
+     * If the VTEP is reachable, we will also validate that the physical port is
+     * present in it.
+     *
+     * When this is not the first binding of the bridge we will try to access
+     * the VTEP database to inject the new binding. However, when it is the
+     * first binding of the bridge, all configuration (adding a logical switch
+     * and the binding) will be done by the VTEP.
+     *
+     * TODO: remove all writes to the VTEP and make the VxGwService deal with it
+     *
      * @param binding Binding to create.
-     * @param ipAddr VTEP's management IP address.
+     * @param mgmtIp VTEP's management IP address.
      * @param bridge Binding's target bridge.
+     *
+     * @throws org.midonet.api.rest_api.GatewayTimeoutHttpException when the
+     * VTEP is unreachable and this prevents us from completing the operation
+     * successfully.
+     * @throws org.midonet.api.rest_api.ConflictHttpException if the binding
+     * already exists in the Midonet store.
+     * @throws org.midonet.api.rest_api.NotFoundHttpException when the physical
+     * port is not present in the VTEP (only checked if the VTEP is reachable).
      */
-    public final void createBinding(VtepBinding binding,
-                                    IPv4Addr ipAddr, Bridge bridge)
+    public final void createBinding(VtepBinding binding, IPv4Addr mgmtIp,
+                                    Bridge bridge)
             throws SerializationException, StateAccessException {
 
-        VTEP vtep = getVtepOrThrow(ipAddr, true);
-
-        // Get the VXLAN port and make sure it's not already bound
-        // to another VTEP.
-        Integer newPortVni = null;
-        if (bridge.getVxLanPortId() != null) {
-            VxLanPort vxlanPort =
-                    (VxLanPort)dataClient.portsGet(bridge.getVxLanPortId());
-            if (!vxlanPort.getMgmtIpAddr().equals(ipAddr)) {
-                throw new ConflictHttpException(getMessage(
-                        NETWORK_ALREADY_BOUND, binding.getNetworkId(), ipAddr));
-            }
-            log.info("Found VxLanPort {}, vni {}",
-                    vxlanPort.getId(), vxlanPort.getVni());
+        // Let's see if the bridge is already bound to a VTEP
+        VxLanPort vxlanPort = null;
+        if (bridge.getVxLanPortId() == null) {
+            createFirstNetworkBinding(mgmtIp, bridge, binding);
         } else {
-            // Need to create a VXLAN port.
-            VtepDataClient vc = getVtepClient(vtep.getId(), vtep.getMgmtPort());
-            List<PhysicalSwitch> physSwitches = vc.listPhysicalSwitches();
-            IPv4Addr tunIp = vtep.getId(); // default to the VTEP's mgmt ip
-            for (PhysicalSwitch ps : physSwitches) {
-                if (ps.mgmtIps.contains(vtep.getId().toString())) {
-                    if (!ps.tunnelIps.isEmpty()) {
-                        tunIp = IPv4Addr.fromString(
-                            ps.tunnelIps.iterator().next());
-                        break;
-                    }
-                }
+            vxlanPort = (VxLanPort)dataClient.portsGet(bridge.getVxLanPortId());
+            if (!vxlanPort.getMgmtIpAddr().equals(mgmtIp)) {
+                throw new ConflictHttpException(getMessage(
+                    NETWORK_ALREADY_BOUND, binding.getNetworkId(), mgmtIp));
             }
-            newPortVni = dataClient.getNewVni();
-            VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
-                    bridge.getId(), ipAddr, vtep.getMgmtPort(), newPortVni,
-                    tunIp, vtep.getTunnelZoneId());
-            log.debug("New VxLan port created, uuid: {}, vni: {}, tunIp: {}",
-                      new Object[]{vxlanPort.getId(), newPortVni, tunIp});
+            createAdditionalNetworkBinding(mgmtIp, bridge, vxlanPort, binding);
+        }
+    }
+
+    /**
+     * Adds a new binding to a bridge that *already* has at least one binding
+     * to the VTEP.
+     */
+    private void createAdditionalNetworkBinding(IPv4Addr mgmtIp,
+                                                Bridge bridge,
+                                                VxLanPort vxlanPort,
+                                                VtepBinding binding)
+        throws SerializationException, StateAccessException {
+
+        log.info("Adding a new binding to network {} to VTEP {} with VNI {}",
+                 new Object[]{bridge.getId(), mgmtIp, vxlanPort.getVni()});
+
+        VTEP vtep = getVtepOrThrow(mgmtIp, true);
+        int mgmtPort = vtep.getMgmtPort();
+
+        // Try to validate the port if the VTEP is reachable
+        VtepDataClient vtepCli = null;
+        try {
+            vtepCli = getVtepClient(mgmtIp, mgmtPort);
+            getPhysicalPortOrThrow(vtepCli, mgmtIp, mgmtPort,
+                                   binding.getPortName());
+        } catch (GatewayTimeoutHttpException e) {
+            log.warn("VTEP {} unreachable; will try to continue without " +
+                     "validating physical port..", mgmtIp);
+            vtepCli = null;
         }
 
-        // Create the binding in Midonet.
-        dataClient.vtepAddBinding(
-                ipAddr, binding.getPortName(),
-                binding.getVlanId(), binding.getNetworkId());
+        // Create the binding in Midonet, or throw with a Conflict HTTP error
+        tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
+                        binding.getVlanId(), binding.getNetworkId());
 
-        VtepDataClient vtepClient =
-                getVtepClient(vtep.getId(), vtep.getMgmtPort());
-
-        PhysicalPort pp = getPhysicalPort(vtepClient, vtep.getId(),
-                                          vtep.getMgmtPort(),
-                                          binding.getPortName());
-        if (pp == null) {
-            throw new NotFoundHttpException(getMessage(
-                VTEP_PORT_NOT_FOUND, vtep.getId(), vtep.getMgmtPort(),
-                binding.getPortName()
-            ));
-        }
-
-        UUID lsUuid = pp.vlanBindings.get((int) binding.getVlanId());
-        if (lsUuid != null) {
-            // TODO: when the new getLogicalSwitch operation gets merged, we
-            // should use it here to include it in the error message
-            throw new ConflictHttpException(getMessage(
-                VTEP_PORT_VLAN_PAIR_ALREADY_USED, vtep.getId(),
-                vtep.getMgmtPort(), binding.getPortName(), binding.getVlanId()
-            ));
-        }
-
-        // Create the logical switch on the VTEP if necessary.
-        String lsName = bridgeIdToLogicalSwitchName(binding.getNetworkId());
-        if (newPortVni != null) {
-            StatusWithUuid status =
-                    vtepClient.addLogicalSwitch(lsName, newPortVni);
-
-            // Ignore CONFLICT error. It's fine if the LS already exists.
-            if (status.getCode() != StatusCode.CONFLICT)
-                throwIfFailed(status);
-
-
-            // For all known macs, instruct the vtep to add a ucast
-            // MAC entry to tunnel packets over to the right host.
-            log.debug("Preseeding macs from bridge {}",
-                    binding.getNetworkId());
-            try {
-                feedUcastRemote(vtepClient, binding.getNetworkId(), lsName);
-            } catch (Exception ex) {
-                log.error("Call to feedUcastRemote failed.", ex);
+        // Try to store the binding in the VTEP if it's reachable
+        if (vtepCli == null) {
+            log.warn("Binding stored in Midonet, but could not be written to "
+                     + "VTEP {}, will be done by VxLanGatewayService", mgmtIp);
+        } else {
+            String lsName = bridgeIdToLogicalSwitchName(bridge.getId());
+            Status status = vtepCli.bindVlan(lsName, binding.getPortName(),
+                                             binding.getVlanId(),
+                                             vxlanPort.getVni(),
+                                             new ArrayList<String>());
+            if (StatusCode.CONFLICT.equals(status.getCode())) {
+                log.warn("Binding was already present in VTEP");
+            } else if (status.isSuccess()) {
+                log.warn("Binding persisted, but could not be written to "
+                         + "VTEP {}, relying on VxlanGatewayService to "
+                         + "consolidate", status);
             }
         }
+    }
 
-        // TODO: fill this list with all the host ips where we want
-        // the VTEP to flood unknown dst mcasts. Not adding all host's
-        // IPs because we'd send the same packet to all of them, so
-        // for now we add none and will just populate ucasts.
-        List<String> floodToIps = new ArrayList<>();
-        Status status = vtepClient.bindVlan(lsName, binding.getPortName(),
-                binding.getVlanId(), newPortVni, floodToIps);
-        throwIfFailed(status);
+    /**
+     * Performs the FIRST binding of a bridge to a VTEP. It will require that
+     * the VTEP is reachable so we can extract the tunnel IP and verify the
+     * physical port existence. But we will not write to the VTEP, that will be
+     * left to the VxGwService.
+     */
+    private void createFirstNetworkBinding(IPv4Addr mgmtIp, Bridge bridge,
+                                           VtepBinding binding)
+
+        throws SerializationException, StateAccessException {
+
+        log.info("First binding: network {} - VTEP {}", bridge.getId(), mgmtIp);
+
+        VTEP vtep = getVtepOrThrow(mgmtIp, true);
+        int mgmtPort = vtep.getMgmtPort();
+        VtepDataClient vtepCli;
+        try {
+            vtepCli = getVtepClient(mgmtIp, mgmtPort);
+        } catch (GatewayTimeoutHttpException e) {
+            log.error("VTEP reachability required on network's first binding");
+            throw new GatewayTimeoutHttpException(
+                getMessage(VTEP_INACCESSIBLE, mgmtIp, mgmtPort));
+        }
+
+        // Validate that we can get a Tunnel IP from the VTEP
+        IPv4Addr tunIp = vtepCli.getTunnelIp();
+        if (tunIp == null) {
+            throw new NotFoundHttpException(
+                getMessage(VTEP_TUNNEL_IP_NOT_FOUND, mgmtIp, mgmtPort,
+                           binding.getPortName()
+                )
+            );
+        }
+
+        // Validate that the Physical Port does exist
+        getPhysicalPortOrThrow(vtepCli, mgmtIp, mgmtPort,
+                               binding.getPortName());
+
+
+        // Store stuff in Midonet's storage
+        VxLanPort vxlanPort = dataClient.bridgeCreateVxLanPort(
+            bridge.getId(), mgmtIp, vtep.getMgmtPort(),
+            dataClient.getNewVni(), tunIp, vtep.getTunnelZoneId());
+
+        try {
+            tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
+                            binding.getVlanId(), binding.getNetworkId());
+        } catch (ConflictHttpException e) {
+            dataClient.bridgeDeleteVxLanPort(bridge.getId()); // rollback
+            throw e;
+        }
+
+        log.debug("First binding of network {} to VTEP {}. VxlanPort in " +
+                  "bridge has id {}, vni: {}, vtep tunnelIp {}. Delegating" +
+                  "VTEP config on the VxlanGatewayService",
+                  new Object[]{bridge.getId(), mgmtIp, vxlanPort.getId(),
+                               vxlanPort.getVni(), vxlanPort.getTunnelIp()}
+        );
+    }
+
+    /**
+     * Tries to store a binding in the Midonet store, but will throw if the
+     * port/vlan is already taken by any bridge (including the given one)
+     *
+     * @throws org.midonet.api.rest_api.ConflictHttpException if the binding
+     * already exsts.
+     */
+    private void tryStoreBinding(IPv4Addr mgmtIp, int mgmtPort,
+                                 String physPortName, short vlanId,
+                                 java.util.UUID bridgeId)
+        throws StateAccessException {
+        List<org.midonet.cluster.data.VtepBinding>
+            bindings = dataClient.vtepGetBindings(mgmtIp);
+
+        for (org.midonet.cluster.data.VtepBinding binding : bindings) {
+            if (binding.getVlanId() == vlanId &&
+                binding.getPortName().equals(physPortName)) {
+                throw new ConflictHttpException(getMessage(
+                    VTEP_PORT_VLAN_PAIR_ALREADY_USED, mgmtIp, mgmtPort,
+                    physPortName, vlanId, binding.getNetworkId()
+                ));
+            }
+        }
+        dataClient.vtepAddBinding(mgmtIp, physPortName, vlanId, bridgeId);
     }
 
     /**
@@ -401,41 +481,45 @@ public class VtepClusterClient {
         VTEP vtep = getVtepOrThrow(ipAddr, true);
         VtepDataClient vtepClient = getVtepClient(ipAddr, vtep.getMgmtPort());
 
+        // Delete the binding in Midonet.
+        org.midonet.cluster.data.VtepBinding
+            vb = dataClient.vtepGetBinding(ipAddr, portName, vlanId);
+
+        if (vb == null) {
+            throw new NotFoundHttpException(getMessage(
+                VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
+        }
+
+        try {
+            dataClient.vtepDeleteBinding(ipAddr, portName, vlanId);
+        } catch (NoStatePathException e) {
+            // A race, the binding did exist, now it's gone as we want
+        }
+
         // Go through all the bindings and find the one with the
         // specified portName and vlanId. Get its networkId, and
         // remember whether we saw any others with the same networkId.
-        java.util.UUID affectedNwId = null;
         Set<java.util.UUID> boundLogicalSwitchUuids = new HashSet<>();
         List<VtepBinding> bindings = listVtepBindings(
                 vtepClient, ipAddr, vtep.getMgmtPort(), null);
         for (VtepBinding binding : bindings) {
             java.util.UUID nwId = binding.getNetworkId();
-            if (binding.getPortName().equals(portName) &&
-                    binding.getVlanId() == vlanId) {
-                affectedNwId = nwId;
-            } else {
+            if (!(binding.getPortName().equals(portName) &&
+                  binding.getVlanId() == vlanId)) {
                 boundLogicalSwitchUuids.add(nwId);
             }
         }
 
-        if (affectedNwId == null) {
-            log.warn("No bindings found for port {} and vlan {}",
-                     portName, vlanId);
-            throw new NotFoundHttpException(getMessage(
-                    VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
-        }
-
-        // Delete the binding in Midonet.
-        dataClient.vtepDeleteBinding(ipAddr, portName, vlanId);
-
-        // Delete the binding on the VTEP.
         Status st = vtepClient.deleteBinding(portName, vlanId);
-        throwIfFailed(st);
+        if (st.getCode() == StatusCode.NOTFOUND) {
+            log.warn("Binding not present in VTEP {}", vb);
+        }
 
         // If that was the only binding for this network, delete
         // the VXLAN port and logical switch.
-        if (!boundLogicalSwitchUuids.contains(affectedNwId)) {
-            deleteVxLanPort(vtepClient, affectedNwId);
+        if (!boundLogicalSwitchUuids.contains(vb.getNetworkId()) &&
+            dataClient.bridgesGet(vb.getNetworkId()).getVxLanPortId() != null) {
+            deleteVxLanPort(vtepClient, vb.getNetworkId());
         }
 
         log.debug("Delete binding on vtep {}, port {}, vlan {} completed",
@@ -458,9 +542,13 @@ public class VtepClusterClient {
         dataClient.bridgeDeleteVxLanPort(networkId);
 
         // Delete the corresponding logical switch on the VTEP.
-        Status st = vtepClient.deleteLogicalSwitch(
-            bridgeIdToLogicalSwitchName(networkId));
-        throwIfFailed(st);
+        String ls = bridgeIdToLogicalSwitchName(networkId);
+        Status st = vtepClient.deleteLogicalSwitch(ls);
+        if (st.getCode() == StatusCode.NOTFOUND) {
+            log.warn("Logical Switch {} was already gone from the VTEP", ls);
+        } else {
+            throwIfFailed(st);
+        }
     }
 
     public void deleteVtep(IPv4Addr ipAddr) throws
