@@ -6,10 +6,8 @@ package org.midonet.cluster.data.storage;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,6 +18,8 @@ import java.util.Objects;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.protobuf.Message;
+import com.google.protobuf.TextFormat;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -176,9 +176,24 @@ public class ZookeeperObjectMapper {
         }
 
         /**
+         * Update the cached object with the specified object.
+         */
+        private void updateCache(Class<?> clazz, Object id, Object value) {
+            Key key = new Key(clazz, id);
+            if (objsToDelete.containsKey(key)) return;
+
+            Entry<?, Integer> entry = objCache.get(key);
+            if (entry != null) {
+                ImmutablePair<?, Integer> updatedEntry =
+                        new ImmutablePair<>(value, entry.getValue());
+                objCache.put(key, updatedEntry);
+            }
+        }
+
+        /**
          * Adds a backreference from the instance of thatClass whose ID is
-         * thatId (thatObj) to thisId, using field thatField. Adds thatObj to
-         * the cache.
+         * thatId (thatObj) to thisId, using field thatField. Adds an
+         * updated thatObj with back references added to the cache.
          *
          * If thatField is null, thatObj will be loaded and cached, but no
          * backreference will be added.
@@ -187,31 +202,19 @@ public class ZookeeperObjectMapper {
                                       Object thisId, Object thatId)
                 throws NotFoundException, ReferenceConflictException {
 
-            Object thatObj = cachedGet(bdg.thatClass, thatId);
+            Object thatObj = cachedGet(bdg.getReferencedClass(), thatId);
 
             // If thatObj has no field for a backref, then we don't actually
             // need to add one. We did need to load it so that we can increment
             // its version later to guard against concurrent updates.
-            if (bdg.thatField == null)
-                return;
-
-            if (isList(bdg.thatField)) {
-                addToList(thatObj, bdg.thatField, thisId);
-            } else {
-                Object curFieldVal = getValue(thatObj, bdg.thatField);
-                if (curFieldVal == null) {
-                    setValue(thatObj, bdg.thatField, thisId);
-                } else {
-                    throw new ReferenceConflictException(thatObj, bdg.thatField,
-                            bdg.thisField.getDeclaringClass(), curFieldVal);
-                }
-            }
+            Object updatedThatObj = bdg.addBackReference(thatObj, thisId);
+            updateCache(bdg.getReferencedClass(), thatId, updatedThatObj);
         }
 
         /**
          * Removes a backreference from the instance of thatClass whose ID
-         * is thatId (thatObj) to thisId, using field thatField. Adds
-         * thatObj to the cache.
+         * is thatId (thatObj) to thisId, using field thatField. Adds an
+         * updated thatObj with back references removed to the cache.
          *
          * ThatObj is assumed to exist.
          */
@@ -220,24 +223,11 @@ public class ZookeeperObjectMapper {
                 throws NotFoundException {
             // May return null if we're doing a delete and thatObj has already
             // been flagged for delete. If so, there's nothing to do.
-            Object thatObj = cachedGet(bdg.thatClass, thatId);
-            if (thatObj == null)
-                return;
+            Object thatObj = cachedGet(bdg.getReferencedClass(), thatId);
+            if (thatObj == null) return;
 
-            if (isList(bdg.thatField)) {
-                removeFromList(thatObj, bdg.thatField, thisId);
-            } else {
-                Object curFieldVal = getValue(thatObj, bdg.thatField);
-                if (!Objects.equals(curFieldVal, thisId)) {
-                    // Zookeeper doesn't support atomic reads of multiple
-                    // nodes, so assume that this is caused by a concurrent
-                    // modification.
-                    throw new ConcurrentModificationException(String.format(
-                            "Expected field %s of %s to be %s, but was not.",
-                            bdg.thatField.getName(), thatObj, thisId));
-                }
-                setValue(thatObj, bdg.thatField, null);
-            }
+            Object updatedThatObj = bdg.clearBackReference(thatObj, thisId);
+            updateCache(bdg.getReferencedClass(), thatId, updatedThatObj);
         }
 
         private void prepareDelete(Class<?> clazz, Object id)
@@ -251,30 +241,29 @@ public class ZookeeperObjectMapper {
 
             for (FieldBinding bdg : allBindings.get(clazz)) {
                 // Nothing to do if thatClass has no backref field.
-                if (bdg.thatField == null)
-                    continue;
+                if (!bdg.hasBackReference()) continue;
 
                 // Get ID(s) from thisField. Nothing to do if there are none.
-                List<?> thoseIds = getValueAsList(thisObj, bdg.thisField);
+                List<?> thoseIds = bdg.getFwdReferenceAsList(thisObj);
                 if (thoseIds.isEmpty())
                     continue;
 
                 for (Object thatId : new HashSet<>(thoseIds)) {
                     if (objsToDelete.containsKey(
-                        new Key(bdg.thatClass, thatId)))
+                        new Key(bdg.getReferencedClass(), thatId)))
                         continue;
 
-                    if (bdg.onDeleteThis == DeleteAction.ERROR) {
+                    if (bdg.onDeleteThis() == DeleteAction.ERROR) {
                         throw new ObjectReferencedException(
-                            thisObj, bdg.thatClass, thatId);
-                    } else if (bdg.onDeleteThis == DeleteAction.CLEAR) {
+                            thisObj, bdg.getReferencedClass(), thatId);
+                    } else if (bdg.onDeleteThis() == DeleteAction.CLEAR) {
                         clearBackReference(bdg, id, thatId);
                     } else { // CASCADE
                         // Breaks if A has bindings with cascading delete to B
                         // and C, and B has a binding to C with ERROR semantics.
                         // This would be complicated to fix and probably isn't
                         // needed, so I'm leaving it as is.
-                        prepareDelete(bdg.thatClass, thatId);
+                        prepareDelete(bdg.getReferencedClass(), thatId);
                     }
                 }
             }
@@ -303,85 +292,21 @@ public class ZookeeperObjectMapper {
     }
 
     /**
-     * Declares a binding which create, update, and delete operations will use
-     * to perform referential integrity. The bindings are bidirectional, and
-     * it does not matter which field is "left" and which is "right".
-     *
-     * Both classes must have a field called "id". This field may be of any
-     * type provided that the referencing field in the other class is of
-     * the same type.
-     *
-     * @param leftClass
-     *      First class to bind.
-     *
-     * @param leftFieldName
-     *      Name of the field on leftClass which references the ID of an
-     *      instance of rightClass. Must be either the same type as
-     *      rightClass's id field, or a List of that type.
-     *
-     * @param onDeleteLeft
-     *      Indicates what should be done on an attempt to delete an instance
-     *      of leftClass.
-     *
-     *      CASCADE: Delete the bound rightClass instance.
-     *
-     *      CLEAR: Remove the bound rightClass instance's reference to this
-     *      leftClass instance. If rightFieldName is a list, then this will
-     *      remove the leftClass instance's id from the rightClass instance's
-     *      list field named by rightField. Otherwise it will set that field
-     *      to null.
-     *
-     *      ERROR: Do not allow an instance of leftClass to be deleted unless
-     *      the value of the field named by leftFieldName is either null or
-     *      an empty list.
-     *
-     * @param rightClass See leftClass.
-     * @param rightFieldName See leftFieldName.
-     * @param onDeleteRight See onDeleteLeft.
+     * Add a new FieldBinding to class in ZooKeeperObjectMapper.
+     * @param clazz A Class object for which to add a binding.
+     * @param binding A FieldBinding.
      */
-    public void declareBinding(Class<?> leftClass, String leftFieldName,
-                               DeleteAction onDeleteLeft,
-                               Class<?> rightClass, String rightFieldName,
-                               DeleteAction onDeleteRight) {
-        assert(leftFieldName != null || rightFieldName != null);
-
-        Field leftIdField = getField(leftClass, "id");
-        Field rightIdField = getField(rightClass, "id");
-        Field leftRefField = getField(leftClass, leftFieldName);
-        Field rightRefField = getField(rightClass, rightFieldName);
-
-        checkTypeCompatibilityForBinding(leftIdField, rightRefField);
-        checkTypeCompatibilityForBinding(rightIdField, leftRefField);
-
-        if (leftRefField != null)
-            allBindings.put(leftClass, new FieldBinding(leftRefField,
-                    rightClass, rightRefField, onDeleteLeft));
-        if (rightRefField != null && leftClass != rightClass)
-            allBindings.put(rightClass, new FieldBinding(rightRefField,
-                    leftClass, leftRefField, onDeleteRight));
+    public void addBinding(Class<?> clazz,  FieldBinding binding) {
+         this.allBindings.put(clazz, binding);
     }
 
-    private String getQualifiedName(Field f) {
-        return f.getDeclaringClass().getSimpleName() + '.' + f.getName();
-    }
-
-    private void checkTypeCompatibilityForBinding(Field id, Field ref) {
-        Class<?> refType = ref.getType();
-        if (isList(ref)) {
-            ParameterizedType pt = (ParameterizedType)ref.getGenericType();
-            refType = (Class<?>)pt.getActualTypeArguments()[0];
-        }
-
-        if (id.getType() != refType) {
-            String idName = getQualifiedName(id);
-            String refName = getQualifiedName(ref);
-            String idTypeName = id.getType().getSimpleName();
-            throw new IllegalArgumentException(
-                    "Cannot bind "+refName+" to "+idName+". " +
-                    "Since "+idName+"'s type is "+idTypeName+", " +
-                    refName+"'s type must be either "+idTypeName+" or " +
-                    "List<"+idTypeName+">.");
-        }
+    /**
+     * Add a set of new FieldBindings to ZooKeeperObjectMapper.
+     * @param bindings A multi-map from a class to a set of FieldBindings for
+     * the class.
+     */
+    public void addBindings(ListMultimap<Class<?>, FieldBinding> bindings) {
+         this.allBindings.putAll(bindings);
     }
 
     /**
@@ -392,22 +317,19 @@ public class ZookeeperObjectMapper {
     }
 
     /**
-     * Persists the specified object to Zookeeper. The object must
-     * have a field named "id".
+     * Persists the specified object to Zookeeper. The object must have a field
+     * named "id", and an appropriate unique ID must already be assigned to the
+     * object before the call.
      */
     public void create(Object o) throws NotFoundException,
             ObjectExistsException, ReferenceConflictException {
-
-        // TODO: Cache id field for each class?
-        // TODO: Initialize ID if null?
         Class<?> thisClass = o.getClass();
-        Field idField = getField(thisClass, "id");
-        Object thisId = getValue(o, idField);
+        Object thisId = getObjectId(thisClass, o);
 
         TransactionManager transactionManager =
             transactionManagerForCreate(o, thisId);
         for (FieldBinding bdg : allBindings.get(thisClass)) {
-            for (Object thatId : getValueAsList(o, bdg.thisField)) {
+            for (Object thatId : bdg.getFwdReferenceAsList(o)) {
                 transactionManager.addBackreference(bdg, thisId, thatId);
             }
         }
@@ -446,8 +368,7 @@ public class ZookeeperObjectMapper {
             throws NotFoundException, ReferenceConflictException {
 
         Class<?> thisClass = newThisObj.getClass();
-        Field idField = getField(thisClass, "id");
-        Object thisId = getValue(newThisObj, idField);
+        Object thisId = getObjectId(thisClass, newThisObj);
 
         Entry<?, Integer> e = getWithVersion(thisClass, thisId);
         Object oldThisObj = e.getKey();
@@ -456,10 +377,8 @@ public class ZookeeperObjectMapper {
         TransactionManager transactionManager =
             transactionManagerForUpdate(newThisObj, thisId, thisVersion);
         for (FieldBinding bdg : allBindings.get(thisClass)) {
-            List<Object> oldThoseIds =
-                getValueAsList(oldThisObj, bdg.thisField);
-            List<Object> newThoseIds =
-                getValueAsList(newThisObj, bdg.thisField);
+            List<Object> oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj);
+            List<Object> newThoseIds = bdg.getFwdReferenceAsList(newThisObj);
 
             List<?> removedIds = ListUtils.subtract(oldThoseIds, newThoseIds);
             for (Object thatId : removedIds) {
@@ -476,7 +395,7 @@ public class ZookeeperObjectMapper {
             transactionManager.commit();
         } catch (BadVersionException | NoNodeException ex) {
             // NoStatePathException is assumed to be due to concurrent delete
-            // operation because we already sucessfully fetched any objects
+            // operation because we already successfully fetched any objects
             // that are being updated.
             throw new ConcurrentModificationException(ex);
         } catch (Exception ex) {
@@ -587,97 +506,17 @@ public class ZookeeperObjectMapper {
     }
 
     private String getPath(Class<?> clazz, Object id) {
-        return getPath(clazz) + "/" + id;
-    }
-
-    /**
-     * Converts Class.getDeclaredField()'s NoSuchFieldException to an
-     * IllegalArgumentException.
-     */
-    private Field getField(Class<?> clazz, String name) {
-        if (name == null)
-            return null;
-
-        try {
-            Field f = clazz.getDeclaredField(name);
-            f.setAccessible(true);
-            return f;
-        } catch (NoSuchFieldException ex) {
-            throw new IllegalArgumentException(ex);
+        Object uuidOrProto = id;
+        if (Message.class.isAssignableFrom(clazz)) {
+            uuidOrProto = ProtoFieldBinding.getIdString(id);
         }
+        return getPath(clazz) + "/" + uuidOrProto;
     }
 
-    /**
-     * Converts Field.get()'s IllegalAccessException to an
-     * InternalObjectMapperException.
-     */
-    private Object getValue(Object o, Field f) {
-        try {
-            return f.get(o);
-        } catch (IllegalAccessException ex) {
-            throw new InternalObjectMapperException(ex);
-        }
-    }
-
-    /**
-     * Gets the value of field f on object o as a list.
-     *
-     * @return
-     *      -If the value is null, an empty list.
-     *      -If the value is not a list, a list containing only the value.
-     *      -If the value is a list, the value itself.
-     */
-    private List<Object> getValueAsList(Object o, Field f) {
-        Object val = getValue(o, f);
-        if (val == null)
-            return Collections.emptyList();
-
-        return (val instanceof List) ? (List<Object>)val : Arrays.asList(val);
-    }
-
-    /**
-     * Convert Field.set()'s IllegalAccessException to an
-     * InternalObjectMapperException.
-     */
-    private void setValue(Object o, Field f, Object val) {
-        try {
-            f.set(o, val);
-        } catch (IllegalAccessException ex) {
-            throw new InternalObjectMapperException(ex);
-        }
-    }
-
-    private boolean isList(Field f) {
-        return List.class.isAssignableFrom(f.getType());
-    }
-
-    /**
-     * Adds val to o's field f. F's type must be a subclass of List.
-     */
-    private void addToList(Object o, Field f, Object val) {
-
-        List<Object> list = (List<Object>)getValue(o, f);
-        if (list == null) {
-            list = new ArrayList<>();
-            setValue(o, f, list);
-        }
-        list.add(val);
-    }
-
-    /**
-     * Removes a value from o's field f. F's type must be a subclass of List.
-     */
-    private void removeFromList(Object o, Field f, Object val) {
-        List<?> list = (List<?>)getValue(o, f);
-        if (!list.remove(val)) {
-            throw new ConcurrentModificationException(
-                    "Expected to find "+val+" in list "+f.getName()+" of "+o+
-                    ", but did not.");
-        }
-    }
-
-    // TODO: Replace with protobuf serialization.
     private byte[] serialize(Object o) {
+        if (o instanceof Message)
+            return o.toString().getBytes();
+
         StringWriter writer = new StringWriter();
         try {
             JsonGenerator generator = jsonFactory.createJsonGenerator(writer);
@@ -690,16 +529,59 @@ public class ZookeeperObjectMapper {
         return writer.toString().trim().getBytes();
     }
 
-    // TODO: Replace with protobuf deserialization.
+    @SuppressWarnings("unchecked")
     private <T> T deserialize(byte[] json, Class<T> clazz) {
         try {
-            JsonParser parser = jsonFactory.createJsonParser(json);
-            T t = parser.readValueAs(clazz);
-            parser.close();
-            return t;
+            T deserialized = null;
+            if (Message.class.isAssignableFrom(clazz)) {
+                Message.Builder builder = (Message.Builder)
+                        clazz.getMethod("newBuilder").invoke(null);
+                TextFormat.merge(new String(json), builder);
+                deserialized = (T) builder.build();
+            } else {
+                JsonParser parser = jsonFactory.createJsonParser(json);
+                deserialized = parser.readValueAs(clazz);
+                parser.close();
+            }
+            return deserialized;
+        } catch (NoSuchMethodException nsme) {
+            throw new InternalObjectMapperException(
+                "Cannot create a message builder.", nsme);
+        } catch (IllegalAccessException iae) {
+            throw new InternalObjectMapperException(
+                "Cannot invoke a message builder factory.", iae);
+        } catch (InvocationTargetException ite) {
+            // This basically never happens.
+            throw new InternalObjectMapperException(
+                "The factory method is called on a wrong object.", ite);
         } catch (IOException ex) {
             throw new InternalObjectMapperException(
                 "Could not parse JSON: " + new String(json), ex);
         }
+    }
+
+    /* Looks up the ID value of the given object by calling its getter. The
+     * protocol buffer doesn't create a member field as the same name as defined
+     * in its definition, therefore instead we call its getter.
+     */
+    private Object getObjectId(Class<?> clazz, Object o) {
+        Object id = null;
+        try {
+            if (Message.class.isAssignableFrom(clazz)) {
+                id = ProtoFieldBinding.getMessageId((Message) o);
+            } else {
+                Field f = clazz.getDeclaredField("id");
+                f.setAccessible(true);
+                id = f.get(o);
+            }
+        } catch (NoSuchFieldException nsfe) {
+            // The ID field does not exist.
+            log.error("No object ID field.", nsfe);
+        } catch (IllegalAccessException iae) {
+            // Has no access to the ID getter.
+            log.error("Cannot access the object ID", iae);
+        }
+
+        return id;
     }
 }
