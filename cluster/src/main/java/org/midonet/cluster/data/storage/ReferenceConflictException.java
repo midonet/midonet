@@ -3,8 +3,6 @@
  */
 package org.midonet.cluster.data.storage;
 
-import java.lang.reflect.Field;
-
 /**
  * Thrown by the ZookeeperObjectMapper in response to a create or update
  * request that would otherwise overwrite an existing non-list reference.
@@ -33,20 +31,20 @@ public class ReferenceConflictException extends Exception {
     private static final long serialVersionUID = 2117334227803555760L;
 
     private final Object referencingObj;
-    private final Field referencingField;
-    private final Class<?> referencedClass;
-    private final Object referencedId;
+    private final String referencingFieldName;
+    private final String referencedClass;
+    private final String referencedId;
 
     public ReferenceConflictException(Object referencingObj,
-                                      Field referencingField,
-                                      Class<?> referencedClass,
-                                      Object referencedId) {
-        super("Operation failed because "+referencingObj+" already " +
-              "references the "+referencedClass.getSimpleName()+" with ID "+
-              referencedId+" via the field "+referencingField.getName()+". "+
+                                      String referencingFieldName,
+                                      String referencedClass,
+                                      String referencedId) {
+        super("Operation failed because "+referencingObj+" already "+
+              "references the "+referencedClass+" with ID "+
+              referencedId+" via the field "+referencingFieldName+". "+
               "This field can accommodate only one reference.");
         this.referencingObj = referencingObj;
-        this.referencingField = referencingField;
+        this.referencingFieldName = referencingFieldName;
         this.referencedClass = referencedClass;
         this.referencedId = referencedId;
     }
@@ -56,31 +54,31 @@ public class ReferenceConflictException extends Exception {
      * This is p2 in the example above.
      */
     public Object getReferencingObj() {
-        return referencingObj;
+        return this.referencingObj;
     }
 
     /**
-     * Field by which the object referenced by the operation's primary
-     * target references a third object. The operation failed because
+     * The name of the field by which the object referenced by the operation's
+     * primary target references a third object. The operation failed because
      * this field was not null. This is peerId in the example above.
      */
-    public Field getReferencingField() {
-        return referencingField;
+    public String getReferencingFieldName() {
+        return this.referencingFieldName;
     }
 
     /**
      * Class of object referenced by referencingObj. This is Port in the
      * example above.
      */
-    public Class<?> getReferencedClass() {
-        return referencedClass;
+    public String getReferencedClass() {
+         return this.referencedClass;
     }
 
     /**
      * ID of object referenced by referencingObj. This is p1.id in the
      * example above.
      */
-    public Object getReferencedId() {
-        return referencedId;
+    public String getReferencedId() {
+        return this.referencedId;
     }
 }

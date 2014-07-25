@@ -1,0 +1,13 @@
+import "commons.proto";
+
+package org.midonet.cluster.models;
+option java_package = "org.midonet.cluster.models";
+option java_outer_classname = "TestModels";
+
+message FakeDevice {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    // Back references
+    repeated string port_ids = 101;
+}
