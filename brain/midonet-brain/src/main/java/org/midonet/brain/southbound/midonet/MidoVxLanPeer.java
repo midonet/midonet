@@ -174,6 +174,12 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     @Override
     public void apply(MacLocation macLocation) {
+
+        if (macLocation == null) {
+            log.debug("Ignoring null MAC-port change");
+            return;
+        }
+
         UUID bridgeId = VtepConstants.logicalSwitchNameToBridgeId(
             macLocation.logicalSwitchName);
         LogicalSwitchContext ctx = lsContexts.get(bridgeId);
