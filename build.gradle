@@ -1,7 +1,7 @@
 checkUserConfig()
 
 project.ext {
-    midonetVersion = "1.5-SNAPSHOT"
+    midonetVersion = "1.5.1"
     vendor = 'Midokura'
     maintainer = "MidoNet Team <info@midokura.com>"
     url = "http://midokura.com"
