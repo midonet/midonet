@@ -82,6 +82,15 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
+    public IPv4Addr getTunnelIp() {
+        if (myPhysicalSwitch == null || myPhysicalSwitch.tunnelIps == null ||
+            myPhysicalSwitch.tunnelIps.isEmpty()) {
+            return null;
+        }
+        return IPv4Addr.apply(myPhysicalSwitch.tunnelIps.iterator().next());
+    }
+
+    @Override
     public int getManagementPort() {
         return this.mgmtPort;
     }

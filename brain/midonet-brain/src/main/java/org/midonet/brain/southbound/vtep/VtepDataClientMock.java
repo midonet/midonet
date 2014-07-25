@@ -33,6 +33,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     protected String mgmtIp;
     protected int mgmtPort;
+    protected Set<String> tunnelIps;
     protected boolean connected = false;
 
     protected final Map<String, PhysicalSwitch> physicalSwitches =
@@ -53,6 +54,7 @@ public class VtepDataClientMock implements VtepDataClient {
                               Collection<String> portNames) {
         this.mgmtIp = mgmtIp;
         this.mgmtPort = mgmtPort;
+        this.tunnelIps = tunnelIps;
         PhysicalSwitch ps = new PhysicalSwitch(
                 new UUID(java.util.UUID.randomUUID().toString()),
                 desc, name, portNames, Sets.newHashSet(mgmtIp), tunnelIps);
@@ -67,6 +69,11 @@ public class VtepDataClientMock implements VtepDataClient {
     @Override
     public IPv4Addr getManagementIp() {
         return IPv4Addr.fromString(this.mgmtIp);
+    }
+
+    @Override
+    public IPv4Addr getTunnelIp() {
+        return IPv4Addr.fromString(this.tunnelIps.iterator().next());
     }
 
     @Override
@@ -176,9 +183,12 @@ public class VtepDataClientMock implements VtepDataClient {
                     "Physical port " + portName + " not found");
 
         LogicalSwitch ls = logicalSwitches.get(lsName);
-        if (ls == null)
+        if (ls == null && vni != null) {
+            this.addLogicalSwitch(lsName, vni);
+        } else if (vni == null) {
             return new Status(StatusCode.BADREQUEST,
                               "Logical switch " + lsName + " not found");
+        }
 
         pp.vlanBindings.put(vlan, logicalSwitchUuids.get(lsName));
 

@@ -142,6 +142,11 @@ public class MidoVxLanPeerTest {
     }
 
     @Test
+    public void testApplyResilientToNullUpdates() {
+        midoVxLanPeer.apply(null); // expect no NPE
+    }
+
+    @Test
     public void testBrokerStartsStopsWatchingTwoBridgeTables()
         throws Exception {
         // Create two bridges and one bridge port per each.
