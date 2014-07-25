@@ -532,6 +532,10 @@ public class L3ZkManager extends BaseZkManager {
             return;
         }
 
+        fip.portId = null;
+        String path = paths.getNeutronFloatingIpPath(fip.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(fip)));
+
         UUID prId = providerRouterZkManager.getId();
 
         // Remove all routes to this floating IP on provider router
@@ -566,9 +570,11 @@ public class L3ZkManager extends BaseZkManager {
             RouterPortConfig gwPort =
                 portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
             ruleZkManager.prepareReplaceSnatRules(ops, rCfg.outboundFilter,
-                gwPort.id, oldFip.floatingIpv4Addr(), fip.floatingIpv4Addr());
+                gwPort.id, fip.fixedIpv4Addr(), oldFip.floatingIpv4Addr(),
+                fip.floatingIpv4Addr());
             ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
-                gwPort.id, oldFip.fixedIpv4Addr(), fip.fixedIpv4Addr());
+                gwPort.id, fip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
+                fip.fixedIpv4Addr());
         } else {
             // the else case is a no-op because its an update of something
             // other than the fixed/floating ip fields.

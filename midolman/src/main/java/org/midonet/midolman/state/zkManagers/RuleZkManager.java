@@ -512,21 +512,25 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     public UUID prepareReplaceDnatRules(List<Op> ops, UUID chainId, UUID portId,
-                                        IPv4Addr oldTarget, IPv4Addr newTarget)
+                                        IPv4Addr matchIp, IPv4Addr oldTarget,
+                                        IPv4Addr newTarget)
             throws SerializationException, StateAccessException {
         Rule r = new RuleBuilder(chainId)
             .comingInPort(portId)
+            .toIp(matchIp)
             .destNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
             new RuleMatcher.DnatRuleMatcher(oldTarget), r);
     }
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
-                                        IPv4Addr oldTarget, IPv4Addr target)
+                                        IPv4Addr matchIp, IPv4Addr oldTarget,
+                                        IPv4Addr newTarget)
             throws SerializationException, StateAccessException {
         Rule r = new RuleBuilder(chainId)
             .goingOutPort(portId)
-            .sourceNat(new NatTarget(target, 0, 0));
+            .fromIp(matchIp)
+            .sourceNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
             new RuleMatcher.SnatRuleMatcher(oldTarget), r);
     }
