@@ -3,15 +3,14 @@
  */
 package org.midonet.midolman.topology
 
-import collection.{Map => ROMap, mutable}
+import collection.{Map => ROMap}
 import compat.Platform
-
-import scala.concurrent.duration.Duration
-import akka.event.LoggingAdapter
-
 import java.lang.{Short => JShort}
-import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.UUID
+import scala.concurrent.duration.Duration
+
+import akka.event.LoggingAdapter
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
@@ -21,6 +20,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.util.concurrent.ConcurrentRefAccountant
 import org.midonet.util.functors.Callback0
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
@@ -53,27 +53,25 @@ object BridgeManager {
 
     case class CheckExpiredMacPorts()
 
+    case class MacPortMapping(mac: MAC, vlan: JShort, port: UUID) {
+        override def toString = s"{vlan=$vlan mac=$mac port=$port}"
+    }
+
 }
 
-class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
-    var vlanMacTableMap: ROMap[JShort, MacLearningTable] = null
+/**
+ * A ConcurrentRefAccountant for a bridge's mac-port associations.
+ *
+ * Its keys are (MAC, VLAN, PORT) tuples and it's add/delete callbacks
+ * invoke add/remove on the underlying replicated map. The callbacks guarantee
+ * the required happens-before relationship because all zookeeper requests
+ * are served by a single threaded reactor.
+ */
+class MacLearningManager(override val log: LoggingAdapter,
+        override val expirationMillis: Long) extends ConcurrentRefAccountant {
+    @volatile var vlanMacTableMap: ROMap[JShort, MacLearningTable] = null
 
-    private val vlanFlowCountMap = mutable.Map[(MAC, JShort, UUID), Int]()
-    // Map mac-port pairs that need to be deleted to the time at which they
-    // should be deleted. A map allows easy updates as the flowCounts change.
-    // The ordering provided by the LinkedHashMap allows traversing in
-    // insertion-order, which should be identical to the expiration order.
-    // A mac-port pair will only be present this this map if it is also present
-    // in the flowCountMap. The life-cycle of a mac-port pair is:
-    // - When it's first learned, add ((mac,port), 1) to flowCountMap and
-    //   write to to backendMap (which reflects distributed/shared map).
-    // - When flows are added/removed, increment/decrement the flowCount
-    // - If flowCount goes from 1 to 0, add (mac,port) to macPortToRemove
-    // - If flowCount goes from 0 to 1, remove (mac,port) from macPortToRemove
-    // - When iterating macPortToRemove, if the (mac,port) deletion time is
-    //   in the past, remove it from macPortToRemove, flowCountMap and
-    //   backendMap.
-    private val vlanMacPortsToRemove = mutable.LinkedHashMap[(MAC, JShort, UUID), Long]()
+    override type Entry = BridgeManager.MacPortMapping
 
     private def vlanMacTableOperation(vlanId: JShort, fun: MacLearningTable => Unit) {
         vlanMacTableMap.get(vlanId) match {
@@ -82,78 +80,12 @@ class MacLearningManager(log: LoggingAdapter, expirationMillis: Long) {
         }
     }
 
-    private def addToMacTable(mac: MAC, vlanId: JShort, port: UUID) {
-        vlanMacTableOperation(vlanId, (map: MacLearningTable) => map.add(mac, port))
+    override def newRefCb(e: Entry) {
+        vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.add(e.mac, e.port))
     }
 
-    private def removeFromMacTable(mac: MAC, vlanId: JShort, port: UUID) {
-        vlanMacTableOperation(vlanId, (map: MacLearningTable) => map.remove(mac, port))
-    }
-
-    def incRefCount(mac: MAC, vlanId: JShort, port: UUID): Unit = {
-        vlanFlowCountMap.get((mac, vlanId, port)) match {
-            case None =>
-                log.debug("First learning mac-port association. " +
-                    "Incrementing reference count of {} on {}, vlan ID {}" +
-                    " to 1", mac, port, vlanId)
-                vlanFlowCountMap.put((mac, vlanId, port), 1)
-                addToMacTable(mac, vlanId, port)
-            case Some(i: Int) =>
-                log.debug("Incrementing reference count of {} on {}, vlan ID" +
-                    " {} to {}", mac, port, vlanId, i+1)
-                vlanFlowCountMap.put((mac, vlanId, port), i+1)
-                if (i == 0) {
-                    log.debug("Unscheduling removal of mac-port pair," +
-                        " mac {}, port {}, vlan ID {}.", mac, port, vlanId)
-                    vlanMacPortsToRemove.remove((mac, vlanId, port))
-                }
-        }
-    }
-
-    def decRefCount(mac: MAC, vlanId: JShort, port: UUID,
-                    currentTime: Long): Unit = {
-        vlanFlowCountMap.get((mac, vlanId, port)) match {
-            case None =>
-                log.error("Decrement flow count for unlearned mac-port " +
-                    "{} {}, vlan ID {}", mac, port, vlanId)
-            case Some(i: Int) =>
-                if (i <= 0) {
-                    log.error("Decrement a flow count past {} " +
-                        "for mac-port {} {}, vlan ID", i, mac, port, vlanId)
-                } else {
-                    log.debug("Decrementing reference count of {} on {}" +
-                        ", vlan ID {} to {}", mac, port, vlanId, i-1)
-                    vlanFlowCountMap.put((mac, vlanId, port), i-1)
-                    if (i == 1) {
-                        log.debug("Scheduling removal of mac-port pair, mac {}, " +
-                            "port {}, vlan ID {}.", mac, port, vlanId)
-                        vlanMacPortsToRemove.put((mac, vlanId, port),
-                            currentTime + expirationMillis)
-                    }
-                }
-        }
-    }
-
-    def doDeletions(currentTime: Long): Unit = {
-        if (vlanMacPortsToRemove.isEmpty){
-            return
-        }
-
-        log.debug("Found vlanMacPortsToRemove={}, currentTime={}",
-                  vlanMacPortsToRemove, currentTime)
-
-        val expiredEntries = vlanMacPortsToRemove.takeWhile
-            {case (_, expireTime: Long) => expireTime <= currentTime}.toSeq
-
-        expiredEntries.foreach {
-                case ((mac, vlanId, port), _) => {
-                    log.debug("Forgetting mac-port entry {} {}, vlan ID {}",
-                        mac, port, vlanId)
-                    removeFromMacTable(mac, vlanId, port)
-                    vlanFlowCountMap.remove((mac, vlanId, port))
-                    vlanMacPortsToRemove.remove((mac, vlanId, port))
-                }
-        }
+    override def deletedRefCb(e: Entry) {
+        vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.remove(e.mac, e.port))
     }
 }
 
@@ -207,17 +139,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             Duration(2000, TimeUnit.MILLISECONDS), self, CheckExpiredMacPorts())
     }
 
-    private case class FlowIncrement(mac: MAC, vlanId: JShort, port: UUID)
-
-    private case class FlowDecrement(mac: MAC, vlanId: JShort, port: UUID)
-
     override def receive = super.receive orElse {
-
-        case FlowIncrement(mac, vlanId, port) =>
-            learningMgr.incRefCount(mac, vlanId, port)
-
-        case FlowDecrement(mac, vlanId, port) =>
-            learningMgr.decRefCount(mac, vlanId, port, Platform.currentTime)
 
         case CheckExpiredMacPorts() =>
             learningMgr.doDeletions(Platform.currentTime)
@@ -245,22 +167,21 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private class MacFlowCountImpl extends MacFlowCount {
         override def increment(mac: MAC, vlanId: JShort, port: UUID) {
-            self ! FlowIncrement(mac, vlanId, port)
+            learningMgr.incRefCount(MacPortMapping(mac, vlanId, port))
         }
 
         override def decrement(mac: MAC, vlanId: JShort, port: UUID) {
-            self ! FlowDecrement(mac, vlanId, port)
+            learningMgr.decRefCount(MacPortMapping(mac, vlanId, port),
+                                    Platform.currentTime)
         }
     }
 
     class RemoveFlowCallbackGeneratorImpl() extends RemoveFlowCallbackGenerator{
         def getCallback(mac: MAC, vlanId: JShort, port: UUID): Callback0 = {
             new Callback0() {
-                def call() {
-                    // TODO(ross): check, is this the proper self, that is
-                    // BridgeManager?  or it will be the self of the actor who
-                    // execute this callback?
-                    self ! FlowDecrement(mac, vlanId, port)
+                override def call() {
+                    learningMgr.decRefCount(MacPortMapping(mac, vlanId, port),
+                                            Platform.currentTime)
                 }
             }
         }

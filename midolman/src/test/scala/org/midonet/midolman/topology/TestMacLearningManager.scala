@@ -9,6 +9,7 @@ import collection.mutable
 import akka.actor.ActorSystem
 import akka.event.Logging
 
+import org.midonet.midolman.topology.BridgeManager.MacPortMapping
 import org.scalatest.{FunSuite, Matchers}
 
 import org.midonet.cluster.client.MacLearningTable
@@ -39,19 +40,19 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         var p = table.get(mac1)
         p should equal (None)
         // Then we increase the refCount and the backend gets the entry.
-        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
+        mgr.incRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1))
         p = table.get(mac1)
         p should equal (Some(port1))
         // We increase the refCount again, and the entry is still there.
-        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
+        mgr.incRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1))
         p = table.get(mac1)
         p should equal (Some(port1))
         // We decrease the refCount at time 10 and the entry is still there.
-        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 10)
+        mgr.decRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1), 10)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We decrease the refCount again at 20 and the entry is still there.
-        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 20)
+        mgr.decRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1), 20)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We do a cleanup at time 59 and the entry is still there
@@ -64,28 +65,28 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         p should equal (None)
 
         // We decrement the refcount past zero, nothing happens
-        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 60)
+        mgr.decRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1), 60)
         p = table.get(mac1)
         p should equal (None)
 
         // Again, we decrement the refcount past zero, nothing happens
-        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 60)
+        mgr.decRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1), 60)
         p = table.get(mac1)
         p should equal (None)
 
         // We increase then decrease the refCount back-to-back. Entry is added.
-        mgr.incRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1)
-        mgr.decRefCount(mac1, Bridge.UNTAGGED_VLAN_ID, port1, 100)
+        mgr.incRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1))
+        mgr.decRefCount(MacPortMapping(mac1, Bridge.UNTAGGED_VLAN_ID, port1), 100)
         p = table.get(mac1)
         p should equal (Some(port1))
 
         // Increase then decrease the refCount of other mac-port entries.
-        mgr.incRefCount(mac2, Bridge.UNTAGGED_VLAN_ID, port1)
-        mgr.decRefCount(mac2, Bridge.UNTAGGED_VLAN_ID, port1, 110)
-        mgr.incRefCount(mac3, Bridge.UNTAGGED_VLAN_ID, port2)
-        mgr.decRefCount(mac3, Bridge.UNTAGGED_VLAN_ID, port2, 110)
-        mgr.incRefCount(mac4, Bridge.UNTAGGED_VLAN_ID, port2)
-        mgr.decRefCount(mac4, Bridge.UNTAGGED_VLAN_ID, port2, 110)
+        mgr.incRefCount(MacPortMapping(mac2, Bridge.UNTAGGED_VLAN_ID, port1))
+        mgr.decRefCount(MacPortMapping(mac2, Bridge.UNTAGGED_VLAN_ID, port1), 110)
+        mgr.incRefCount(MacPortMapping(mac3, Bridge.UNTAGGED_VLAN_ID, port2))
+        mgr.decRefCount(MacPortMapping(mac3, Bridge.UNTAGGED_VLAN_ID, port2), 110)
+        mgr.incRefCount(MacPortMapping(mac4, Bridge.UNTAGGED_VLAN_ID, port2))
+        mgr.decRefCount(MacPortMapping(mac4, Bridge.UNTAGGED_VLAN_ID, port2), 110)
 
         // At time 139 we do a cleanup, but the entry is not removed.
         mgr.doDeletions(139)
