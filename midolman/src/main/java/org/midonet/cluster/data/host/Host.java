@@ -16,7 +16,6 @@ import java.util.UUID;
  */
 public class Host extends Entity.Base<UUID, Host.Data, Host> {
 
-    static public final int IGNORE_FLOODING_PROXY_WEIGHT = 0;
     static public final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
 
     private boolean isAlive;

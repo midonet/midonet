@@ -12,10 +12,13 @@ import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import org.apache.zookeeper.Watcher;
+
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Chain;
+import org.midonet.cluster.data.Entity;
 import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.IpAddrGroup;
@@ -65,7 +68,6 @@ import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback2;
 
-import akka.serialization.Serialization;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
 
 public interface DataClient {
@@ -362,6 +364,16 @@ public interface DataClient {
     void tunnelZonesDeleteMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException;
 
+    EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
+            ZookeeperConnectionWatcher zkConnection);
+
+    EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
+            ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
+
+    EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
+            @Nonnull UUID zoneId,
+            ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
+
     UUID hostsCreate(@Nonnull UUID id, @Nonnull Host host)
             throws StateAccessException, SerializationException;
 
@@ -509,6 +521,9 @@ public interface DataClient {
 
     boolean hostsIsAlive(UUID hostId) throws StateAccessException;
 
+    boolean hostsIsAlive(UUID hostId, Watcher watcher)
+        throws StateAccessException;
+
     boolean hostsHasPortBindings(UUID hostId) throws StateAccessException;
 
     List<Host> hostsGetAll()
@@ -568,6 +583,22 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
+            throws StateAccessException, SerializationException;
+
+    Integer hostsGetFloodingProxyWeight(UUID hostId)
+            throws StateAccessException, SerializationException;
+
+    /**
+     * Gets the flooding proxy weight value for the host, and sets up
+     * a watcher on the flooding proxy weight path. The method returns null, and
+     * does not set any watcher if the host node does not exist.
+     *
+     * @param hostId The host identifier.
+     * @param watcher The watcher.
+     * @return The flooding proxy weight or null if the host or the weight
+     *         ZooKeeper node does not exist.
+     */
+    Integer hostsGetFloodingProxyWeight(UUID hostId, Watcher watcher)
             throws StateAccessException, SerializationException;
 
     void hostsSetFloodingProxyWeight(UUID hostId, int weight)

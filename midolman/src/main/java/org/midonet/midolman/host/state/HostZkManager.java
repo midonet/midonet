@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,6 +117,11 @@ public class HostZkManager
         zk.ensureEphemeral(path, new byte[0]);
     }
 
+    public void makeNotAlive(UUID hostId) throws StateAccessException {
+        String path = paths.getHostPath(hostId) + "/alive";
+        zk.deleteEphemeral(path);
+    }
+
     /**
      * Set this host's version in ZK. This value will be read by
      * the upgrade coordinator to see which version everyone is on.
@@ -140,6 +146,11 @@ public class HostZkManager
 
     public boolean isAlive(UUID id) throws StateAccessException {
         return zk.exists(paths.getHostPath(id) + "/alive");
+    }
+
+    public boolean isAlive(UUID id, Watcher watcher)
+        throws StateAccessException {
+        return zk.exists(paths.getHostPath(id) + "/alive", watcher);
     }
 
     /**
@@ -185,6 +196,32 @@ public class HostZkManager
         } else {
             byte[] data = zk.get(path);
             return serializer.deserialize(data, int.class);
+        }
+    }
+
+    /**
+     * Gets the flooding proxy weight value for the host, and sets up
+     * a watcher on the flooding proxy weight path. The method returns null, and
+     * does not set any watcher if the host node does not exist.
+     *
+     * @param hostId The host identifier.
+     * @param watcher The watcher.
+     * @return The flooding proxy weight value or null if it was not
+     * initialized.
+     */
+    public Integer getFloodingProxyWeight(UUID hostId, Watcher watcher)
+        throws StateAccessException, SerializationException {
+        String path = paths.getHostFloodingProxyWeightPath(hostId);
+        String hostPath = paths.getHostPath(hostId);
+
+        if (!zk.exists(hostPath))
+            return null;
+
+        if (zk.exists(path, watcher)) {
+            byte[] data = zk.get(path);
+            return serializer.deserialize(data, int.class);
+        } else {
+            return null;
         }
     }
 
