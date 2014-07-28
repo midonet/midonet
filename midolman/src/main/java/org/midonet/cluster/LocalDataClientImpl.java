@@ -3811,9 +3811,21 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
         throws SerializationException, StateAccessException {
-        return this.vtepZkManager.tryOwnVtep(mgmtIp, nodeId);
+        return vtepZkManager.tryOwnVtep(mgmtIp, ownerId);
+    }
+
+    @Override
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId, Watcher watcher)
+        throws SerializationException, StateAccessException {
+        return vtepZkManager.tryOwnVtep(mgmtIp, ownerId, watcher);
+    }
+
+    @Override
+    public boolean deleteVtepOwner(IPv4Addr mgmtIp, UUID ownerId)
+        throws SerializationException, StateAccessException {
+        return vtepZkManager.deleteVtepOwner(mgmtIp, ownerId);
     }
 
     @Override
