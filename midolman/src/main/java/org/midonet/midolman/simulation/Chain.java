@@ -11,12 +11,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 import akka.event.LoggingBus;
-import com.google.inject.Inject;
 import scala.Option;
 import scala.collection.Map;
 
 import org.midonet.sdn.flows.WildcardMatch;
-import org.midonet.midolman.layer4.NatMappingFactory;
 import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.midolman.logging.SimulationAwareBusLogging;
 import org.midonet.midolman.rules.JumpRule;
@@ -33,9 +31,6 @@ public class Chain {
     private final Map<UUID, Chain> jumpTargets;
     public final String name;
     public final FlowTagger.FlowTag flowInvTag;
-
-    @Inject
-    static NatMappingFactory natMappingFactory;
 
     public Chain(UUID id, List<Rule> rules, Map<UUID, Chain> jumpTargets,
                  String name, LoggingBus loggingBus) {
@@ -99,7 +94,7 @@ public class Chain {
         while (iter.hasNext() && res.action == Action.CONTINUE) {
 
             Rule r = iter.next();
-            r.process(pktCtx, res, natMappingFactory.get(ownerId), isPortFilter);
+            r.process(pktCtx, res, isPortFilter);
 
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);

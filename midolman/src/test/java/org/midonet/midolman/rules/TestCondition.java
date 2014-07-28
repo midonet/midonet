@@ -14,7 +14,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -27,7 +26,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.midonet.cache.Cache;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.vrn.ForwardInfo;
 import org.midonet.packets.*;
@@ -44,7 +42,6 @@ public class TestCondition {
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
     private ForwardInfo fwdInfo;
-    private DummyCache connCache;
 
     static {
         objectMapper.setVisibilityChecker(objectMapper.getVisibilityChecker()
@@ -71,8 +68,7 @@ public class TestCondition {
         pktMatch.setTransportDestination(1234);
         rand = new Random();
 
-        connCache = new DummyCache();
-        fwdInfo = new ForwardInfo(false, pktMatch, connCache, UUID.randomUUID());
+        fwdInfo = new ForwardInfo(false, pktMatch, UUID.randomUUID());
     }
 
     @Test
@@ -622,22 +618,5 @@ public class TestCondition {
         Condition c = jsonParser.readValueAs(Condition.class);
         in.close();
         Assert.assertTrue(cond.equals(c));
-    }
-
-    static class DummyCache implements Cache {
-        public void set(String key, String value) { }
-        public void setWithExpiration(String key, String value,
-                                      int overrideExpirationSeconds) { }
-        public String get(String key) { return storedValue; }
-        public Map<String, String> dump(int maxEntries) {return null;}
-        public void delete(String key) {}
-        public String getAndTouch(String key) { return storedValue; }
-        public String getAndTouchWithExpiration(String key,
-                                                int expirationSeconds) {
-            return storedValue; }
-        public int getExpirationSeconds() { return 0; }
-        public void setStoredValue(String value) { storedValue = value; }
-
-        private String storedValue = null;
     }
 }

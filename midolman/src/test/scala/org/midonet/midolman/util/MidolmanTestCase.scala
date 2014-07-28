@@ -46,7 +46,6 @@ import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.layer4.NatMappingFactory
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.services.MidolmanService
@@ -106,7 +105,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }
@@ -116,10 +114,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     implicit protected def system: ActorSystem = actors()
     implicit protected def executor: ExecutionContext = actors().dispatcher
-
-    protected def natMappingFactory(): NatMappingFactory = {
-        injector.getInstance(classOf[NatMappingFactory])
-    }
 
     protected def newProbe(): TestProbe = {
         new TestProbe(actors())
@@ -219,7 +213,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
@@ -506,8 +499,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             override val log: LoggingAdapter = NoLogging
             override protected val dpState: DatapathState = self.dpState()
         }
-        val pktCtx = new PacketContext(Left(-1), null, 0L, null, null,
-                                       None, wcMatch)
+        val pktCtx = new PacketContext(Left(-1), null, 0L, None, wcMatch)
         pktCtx.inputPort = wcMatch.getInputPortUUID
         dpState().getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)

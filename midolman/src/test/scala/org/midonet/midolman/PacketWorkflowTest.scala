@@ -52,7 +52,7 @@ object PacketWorkflowTest {
         val dpState = new DatapathStateManager(null)(null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
         val pktCtx = new PacketContext(Left(cookie), pkt,
-            Platform.currentTime + 10000, null,	null, None, wcMatch)
+            Platform.currentTime + 10000, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     new ActionsCache(log = NoLogging), null) {
             override def runSimulation(pktCtx: PacketContext) =

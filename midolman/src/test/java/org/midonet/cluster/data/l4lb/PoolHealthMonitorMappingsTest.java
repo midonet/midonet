@@ -19,7 +19,6 @@ import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -154,7 +153,6 @@ public class PoolHealthMonitorMappingsTest {
                 new ConfigProviderModule(config),
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
-                new CacheModule(),
                 new NeutronClusterModule()
         );
 

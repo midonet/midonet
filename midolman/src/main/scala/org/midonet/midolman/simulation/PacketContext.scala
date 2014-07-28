@@ -13,7 +13,6 @@ import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
 
-import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.FlowStatePackets
@@ -37,8 +36,6 @@ import org.midonet.util.functors.Callback0
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val expiry: Long,
-                    val traceMessageCache: Cache,
-                    val traceIndexCache: Cache,
                     val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem) {
@@ -136,10 +133,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     var traceConditions: TraceConditions = null
 
     def setTraced(flag: Boolean) {
-        if (flag && traceMessageCache == null) {
-            log.error("Attempting to trace with no message cache")
-            return
-        }
         if (!isTraced && flag) {
             traceID = UUID.randomUUID
         }
@@ -156,8 +149,8 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                                        equipmentID.toString
             val value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS ")
                             .format(new Date) + equipStr + " " + msg
-            traceMessageCache.set(key, value)
-            traceIndexCache.set(traceID.toString, traceStep.toString)
+            //traceMessageCache.set(key, value)
+            //traceIndexCache.set(traceID.toString, traceStep.toString)
         }
     }
 

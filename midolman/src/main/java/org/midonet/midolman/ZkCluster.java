@@ -19,7 +19,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.MockCacheModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -63,7 +62,6 @@ public class ZkCluster {
             new ConfigProviderModule(configFilePath),
             new ClusterClientModule(),
             new SerializationModule(),
-            new MockCacheModule(),
             new MidolmanConfigModule()
         );
     }

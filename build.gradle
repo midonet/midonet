@@ -21,8 +21,12 @@ project.ext {
                "com.typesafe.akka:akka-actor_2.10:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit_2.10:${versions.akka}",
 
-        jboss: "org.jboss.netty:netty:3.2.2.Final",
-        guava: "com.google.guava:guava:14.0.1",
+        cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.1",
+        cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.1") {
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+
+        netty: "io.netty:netty:3.7.0.Final",
+        guava: "com.google.guava:guava:15.0",
         slf4j: "org.slf4j:slf4j-api:1.6.4",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.0.1",
@@ -54,8 +58,7 @@ project.ext {
             exclude group: 'com.google.guava', module: 'guava'},
         jsonpath: "com.jayway.jsonpath:json-path:${versions.jsonpath}",
         jsonpath_assert: "com.jayway.jsonpath:json-path-assert:${versions.jsonpath}",
-        test_frameworks: ["junit:junit-dep:4.10",
-                          "org.testng:testng:6.5.2",
+        test_frameworks: ["junit:junit:4.11",
                           "org.powermock:powermock-module-junit4:1.4.11",
                           "org.powermock:powermock-api-mockito:1.4.11",
                           "org.mockito:mockito-all:1.9.0",
@@ -66,28 +69,6 @@ project.ext {
         hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
         hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
         hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
-
-        cassandra: dependencies.create("org.apache.cassandra:cassandra-all:1.0.7") {
-            exclude group: 'junit', module: 'junit'
-            exclude group: 'org.mortbay.jetty', module: 'servlet-api'
-            exclude group: 'javax.servlet', module: 'servlet-api'
-            exclude group: 'commons-lang', module: 'commons-lang'
-            exclude group: 'log4j', module: 'log4j'
-            exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
-        cassandra_unit: dependencies.create("org.cassandraunit:cassandra-unit:1.0.3.1") {
-            exclude group: 'org.apache.cassandra', module: 'cassandra-all'
-            exclude group: 'org.apache.cassandra', module: 'cassandra-parent'
-            exclude group: 'org.apache.cassandra', module: 'cassandra-thrift'
-            exclude group: 'org.hamcrest', module: 'hamcrest-all'
-            exclude group: 'junit', module: 'junit'
-            exclude group: 'log4j', module: 'log4j'
-            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-            exclude group: 'com.google.guava', module: 'guava'},
-        hector: dependencies.create("me.prettyprint:hector-core:1.0-3") {
-            exclude group: 'org.apache.cassandra', module: 'cassandra-all'
-            exclude group: 'org.apache.cassandra', module: 'cassandra-parent'
-            exclude group: 'org.apache.cassandra', module: 'cassandra-thrift'
-            exclude group: 'com.google.guava', module: 'guava'},
 
         zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.5") {
             exclude group: 'jline', module: 'jline'

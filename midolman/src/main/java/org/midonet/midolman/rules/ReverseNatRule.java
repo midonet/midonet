@@ -6,7 +6,6 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
-import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -27,8 +26,7 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res,
-                      NatMapping natMapping) {
+    public void apply(PacketContext pktCtx, RuleResult res) {
         boolean reversed = dnat ? applyReverseDnat(pktCtx)
                                 : applyReverseSnat(pktCtx);
 

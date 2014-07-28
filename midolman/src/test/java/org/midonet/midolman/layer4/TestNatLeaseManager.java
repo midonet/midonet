@@ -4,24 +4,14 @@
 
 package org.midonet.midolman.layer4;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.apache.zookeeper.CreateMode;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.midonet.cache.Cache;
-import org.midonet.cache.MockCache;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
@@ -31,11 +21,6 @@ import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv6Addr;
-import org.midonet.packets.TCP;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
 import static org.junit.Assert.assertEquals;
@@ -43,7 +28,6 @@ import static org.junit.Assert.assertTrue;
 
 public class TestNatLeaseManager {
 
-    private NatMapping natManager;
     private Injector injector;
 
     public class TestModule extends AbstractModule {
@@ -56,7 +40,6 @@ public class TestNatLeaseManager {
 
         @Override
         protected void configure() {
-            bind(Cache.class).toInstance(new MockCache());
             bind(Reactor.class).toInstance(new MockReactor());
             bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
         }
@@ -97,19 +80,6 @@ public class TestNatLeaseManager {
                                                         Serializer serializer) {
             return new FiltersZkManager(zkManager, paths, serializer);
         }
-
-        @Provides
-        public NatLeaseManager provideNatLeaseManager(
-                FiltersZkManager zk, Cache cache, Reactor reactor,
-                RouterZkManager routerZkManager) {
-            try {
-                return new NatLeaseManager(zk, routerZkManager.create(), cache,
-                        reactor);
-            } catch (Exception e) {
-                throw new RuntimeException(
-                        "Could not initialize NatLeaseManager", e);
-            }
-        }
     }
 
     @Before
@@ -120,9 +90,9 @@ public class TestNatLeaseManager {
                 new VersionModule(),
                 new SerializationModule()
         );
-        natManager = injector.getInstance(NatLeaseManager.class);
     }
 
+    /*
     @Test
     public void testSnatPingIPv4() {
         List<NatTarget> nats = new ArrayList<NatTarget>();
@@ -298,4 +268,5 @@ public class TestNatLeaseManager {
                 TCP.PROTOCOL_NUMBER, nwSrc, tpSrc, pairF.nwAddr, pairF.tpPort));
         }
     }
+    */
 }
