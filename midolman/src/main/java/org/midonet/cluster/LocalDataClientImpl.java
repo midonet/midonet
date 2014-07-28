@@ -31,6 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -876,6 +877,47 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
+        ZookeeperConnectionWatcher zkConnection) {
+        return new EntityMonitor<>(
+            zonesZkManager, zkConnection,
+            new EntityMonitor.Transformer<UUID, TunnelZone.Data, TunnelZone> () {
+                @Override
+                public TunnelZone transform(UUID id, TunnelZone.Data data) {
+                    return new TunnelZone(id, data);
+                }
+            });
+    }
+
+    @Override
+    public EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection)
+        throws StateAccessException {
+        return new EntityIdSetMonitor(zonesZkManager, zkConnection);
+    }
+
+    @Override
+    public EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
+        final UUID zoneId, ZookeeperConnectionWatcher zkConnection)
+        throws StateAccessException {
+        return new EntityIdSetMonitor<>(
+            new WatchableZkManager<UUID, TunnelZone.HostConfig>() {
+                @Override
+                public List<UUID> getAndWatchIdList(Runnable watcher)
+                    throws StateAccessException {
+                    return zonesZkManager.getAndWatchMembershipsList(
+                        zoneId, watcher);
+                }
+
+                @Override
+                public TunnelZone.HostConfig get(UUID id, Runnable watcher)
+                    throws StateAccessException, SerializationException {
+                    return null;
+                }
+            }, zkConnection);
+    }
+
+    @Override
     public void portsSetLocalAndActive(final UUID portID,
                                        final boolean active) {
         // use the reactor thread for this operations
@@ -1228,6 +1270,12 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public boolean hostsIsAlive(UUID hostId) throws StateAccessException {
         return hostZkManager.isAlive(hostId);
+    }
+
+    @Override
+    public boolean hostsIsAlive(UUID hostId, Watcher watcher)
+        throws StateAccessException {
+        return hostZkManager.isAlive(hostId, watcher);
     }
 
     @Override
@@ -3004,6 +3052,17 @@ public class LocalDataClientImpl implements DataClient {
         return vips;
     }
 
+    @Override
+    public Integer hostsGetFloodingProxyWeight(UUID hostId)
+        throws StateAccessException, SerializationException {
+        return hostZkManager.getFloodingProxyWeight(hostId);
+    }
+
+    @Override
+    public Integer hostsGetFloodingProxyWeight(UUID hostId, Watcher watcher)
+            throws StateAccessException, SerializationException {
+        return hostZkManager.getFloodingProxyWeight(hostId, watcher);
+    }
 
     @Override
     public @CheckForNull Route routesGet(UUID id)

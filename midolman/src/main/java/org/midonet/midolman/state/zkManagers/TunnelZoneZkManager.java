@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+
+import org.midonet.cluster.WatchableZkManager;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,8 @@ import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 
 public class TunnelZoneZkManager
-        extends AbstractZkManager<UUID, TunnelZone.Data> {
+        extends AbstractZkManager<UUID, TunnelZone.Data>
+        implements WatchableZkManager<UUID, TunnelZone.Data> {
 
     private final static Logger log =
         LoggerFactory.getLogger(TunnelZoneZkManager.class);
@@ -239,7 +242,7 @@ public class TunnelZoneZkManager
     public void delMembership(UUID zoneId, UUID membershipId)
         throws StateAccessException {
         try {
-            List<Op> ops = new ArrayList<Op>();
+            List<Op> ops = new ArrayList<>(2);
 
             ops.add(
                     zk.getDeleteOp(paths.getTunnelZoneMembershipPath(zoneId,
@@ -255,5 +258,16 @@ public class TunnelZoneZkManager
         } catch (NoStatePathException e) {
             // silently fail if the node was already deleted.
         }
+    }
+
+    @Override
+    public List<UUID> getAndWatchIdList(Runnable watcher)
+        throws StateAccessException {
+        return getUuidList(paths.getTunnelZonesPath(), watcher);
+    }
+
+    public List<UUID> getAndWatchMembershipsList(UUID zoneId, Runnable watcher)
+        throws StateAccessException {
+        return getUuidList(paths.getTunnelZoneMembershipsPath(zoneId), watcher);
     }
 }
