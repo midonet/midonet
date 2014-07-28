@@ -46,9 +46,9 @@ import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class HealthMonitorResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory.getLogger(
+    private static final Logger LOG = LoggerFactory.getLogger(
         HealthMonitorResource.class);
-    private final static HealthMonitorEvent HEALTH_MONITOR_EVENT =
+    private static final HealthMonitorEvent HEALTH_MONITOR_EVENT =
         new HealthMonitorEvent();
 
     private final LoadBalancerApi api;
@@ -64,23 +64,23 @@ public class HealthMonitorResource extends AbstractResource {
     @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response create(HealthMonitor healthMonitor)
+    public final Response create(HealthMonitor healthMonitor)
         throws SerializationException, StateAccessException {
-        log.info("HealthMonitorResource.create entered {}", healthMonitor);
+        LOG.info("HealthMonitorResource.create entered {}", healthMonitor);
 
         try {
             HealthMonitor createdHealthMonitor
                 = api.createHealthMonitor(healthMonitor);
             HEALTH_MONITOR_EVENT.create(createdHealthMonitor.id,
                                         createdHealthMonitor);
-            log.info("HealthMonitorResource.create exiting {}",
+            LOG.info("HealthMonitorResource.create exiting {}",
                      createdHealthMonitor);
             return Response.created(
                 LBUriBuilder.getHealthMonitor(getBaseUri(),
                                               createdHealthMonitor.id))
                 .entity(healthMonitor).build();
         } catch (StatePathExistsException e) {
-            log.error("Duplicate resource error", e);
+            LOG.error("Duplicate resource error", e);
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
@@ -89,9 +89,9 @@ public class HealthMonitorResource extends AbstractResource {
     @Consumes(LBMediaType.HEALTH_MONITORS_JSON_V1)
     @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<HealthMonitor> healthMonitors)
+    public final Response createBulk(List<HealthMonitor> healthMonitors)
         throws SerializationException, StateAccessException {
-        log.info("HealthMonitorResource.createBulk entered");
+        LOG.info("HealthMonitorResource.createBulk entered");
 
         try {
             List<HealthMonitor> createdHealthMonitors
@@ -109,9 +109,9 @@ public class HealthMonitorResource extends AbstractResource {
     @DELETE
     @Path("{id}")
     @RolesAllowed(AuthRole.ADMIN)
-    public void delete(@PathParam("id") UUID id)
+    public final void delete(@PathParam("id") UUID id)
         throws SerializationException, StateAccessException {
-        log.info("HealthMonitorResource.delete entered {}", id);
+        LOG.info("HealthMonitorResource.delete entered {}", id);
         api.deleteHealthMonitor(id);
         HEALTH_MONITOR_EVENT.delete(id);
     }
@@ -120,27 +120,26 @@ public class HealthMonitorResource extends AbstractResource {
     @Path("{id}")
     @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public HealthMonitor get(@PathParam("id") UUID id)
+    public final HealthMonitor get(@PathParam("id") UUID id)
         throws SerializationException, StateAccessException {
-        log.info("HealthMonitorResource.get entered {}", id);
+        LOG.info("HealthMonitorResource.get entered {}", id);
 
         HealthMonitor healthMonitor = api.getHealthMonitor(id);
         if (healthMonitor == null) {
             throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
         }
 
-        log.info("HealthMonitorResource.get exiting {}", healthMonitor);
+        LOG.info("HealthMonitorResource.get exiting {}", healthMonitor);
         return healthMonitor;
     }
 
     @GET
     @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public List<HealthMonitor> list()
+    public final List<HealthMonitor> list()
         throws SerializationException, StateAccessException {
-        log.info("HealthMonitorResource.list entered");
-        List<HealthMonitor> healthMonitors = api.getHealthMonitors();
-        return healthMonitors;
+        LOG.info("HealthMonitorResource.list entered");
+        return api.getHealthMonitors();
     }
 
     @PUT
@@ -148,24 +147,24 @@ public class HealthMonitorResource extends AbstractResource {
     @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id,
-                           HealthMonitor healthMonitor)
+    public final Response update(@PathParam("id") UUID id,
+                                 HealthMonitor healthMonitor)
         throws SerializationException, StateAccessException,
                BridgeZkManager.VxLanPortIdUpdateException {
-        log.info("HealthMonitorResource.update entered {}", healthMonitor);
+        LOG.info("HealthMonitorResource.update entered {}", healthMonitor);
 
         try {
             HealthMonitor updatedHealthMonitor
                 = api.updateHealthMonitor(id, healthMonitor);
             HEALTH_MONITOR_EVENT.update(id, updatedHealthMonitor);
-            log.info("HealthMonitorResource.update exiting {}",
+            LOG.info("HealthMonitorResource.update exiting {}",
                      updatedHealthMonitor);
             return Response.ok(
                 NeutronUriBuilder.getNetwork(getBaseUri(),
                                              updatedHealthMonitor.id))
                 .entity(healthMonitor).build();
         } catch (NoStatePathException e) {
-            log.error("Resource does not exist", e);
+            LOG.error("Resource does not exist", e);
             throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
         }
     }

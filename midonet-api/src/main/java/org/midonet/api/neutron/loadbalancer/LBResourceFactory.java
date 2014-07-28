@@ -3,6 +3,7 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+
 /**
  * Resource factory used by Guice to inject LB resource classes.
  */
@@ -15,4 +16,6 @@ public interface LBResourceFactory {
     PoolResource getPoolResource();
 
     VipResource getVipResource();
+
+    PoolHealthMonitorResource getPoolHealthMonitorResource();
 }

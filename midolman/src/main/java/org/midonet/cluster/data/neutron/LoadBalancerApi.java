@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
+import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -85,5 +86,13 @@ public interface LoadBalancerApi {
         throws StateAccessException, SerializationException;
 
     HealthMonitor deleteHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException;
+
+    PoolHealthMonitor createPoolHealthMonitor(
+        PoolHealthMonitor poolHealthMonitor)
+        throws StateAccessException, SerializationException;
+
+    PoolHealthMonitor deletePoolHealthMonitor(
+        PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException;
 }

@@ -11,14 +11,19 @@ import javax.ws.rs.core.UriBuilder;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.neutron.NeutronUriBuilder;
 
-public class LBUriBuilder {
+public final class LBUriBuilder {
 
     // LBaaS resources
-    public final static String LB = "/lb";
-    public final static String VIPS = "/vips";
-    public final static String POOLS = "/pools";
-    public final static String MEMBERS = "/members";
-    public final static String HEALTH_MONITORS = "/health_monitors";
+    public static final String LB = "/lb";
+    public static final String VIPS = "/vips";
+    public static final String POOLS = "/pools";
+    public static final String MEMBERS = "/members";
+    public static final String HEALTH_MONITORS = "/health_monitors";
+    public static final String POOL_HEALTH_MONITOR = "/pool_health_monitor";
+
+    private LBUriBuilder() {
+        // not called
+    }
 
     public static URI getLoadBalancer(URI baseUri) {
         return UriBuilder.fromUri(NeutronUriBuilder.getNeutron(baseUri)).path(
@@ -82,5 +87,11 @@ public class LBUriBuilder {
     public static String getHealthMonitorTemplate(URI baseUri) {
         return ResourceUriBuilder.buildIdTemplateUri(
             getHealthMonitors(baseUri));
+    }
+
+    // Pool Health Monitor
+    public static URI getPoolHealthMonitor(URI baseUri) {
+        return UriBuilder.fromUri(getLoadBalancer(baseUri))
+            .path(POOL_HEALTH_MONITOR).build();
     }
 }
