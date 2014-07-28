@@ -191,7 +191,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
                 .setTransportSource(1)
                 .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             val pktContextIngress = new PacketContext(Left(1), null,
-                Platform.currentTime + 10000, null, null, None,
+                Platform.currentTime + 10000, None,
                 ingressMatch)(actorSystem)
 
             try {

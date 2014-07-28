@@ -5,7 +5,6 @@
 package org.midonet.cluster;
 
 import java.util.Arrays;
-import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -20,7 +19,6 @@ import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -58,7 +56,6 @@ public class LocalDataClientImplTestBase {
                 new ConfigProviderModule(config),
                 new MockZookeeperConnectionModule(),
                 new TypedConfigModule<>(MidolmanConfig.class),
-                new CacheModule(),
                 new DataClusterClientModule()
         );
         injector.injectMembers(this);

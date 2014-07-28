@@ -608,7 +608,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                         WildcardMatch.fromEthernetPacket(ethernet)
 
         val pktCtx = new PacketContext(Left(0), new Packet(ethernet), 0,
-                                       null, null, None, wcmatch)
+                                       None, wcmatch)
 
         if (inputPortId.isDefined)
             pktCtx.inputPort = inputPortId.get

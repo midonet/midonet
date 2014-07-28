@@ -341,8 +341,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext = new PacketContext(
-                        Right(outPort.id), Packet.fromEthernet(eth), 0, null,
-                        null, None, egrMatch)
+                        Right(outPort.id), Packet.fromEthernet(eth), 0, None, egrMatch)
                     egrPktContext.outPortId = outPort.id
                     val postRoutingResult = Chain.apply(outFilter, egrPktContext,
                                                         id, false)

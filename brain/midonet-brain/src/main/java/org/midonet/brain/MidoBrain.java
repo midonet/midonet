@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.brain.guice.BrainModule;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -48,7 +47,6 @@ public class MidoBrain {
             new BrainModule(),     // this is the service
             new ZookeeperConnectionModule(),
             new VersionModule(),
-            new CacheModule(),
             new ClusterClientModule(),
             new SerializationModule()
         );

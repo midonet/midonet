@@ -3,10 +3,8 @@
  */
 package org.midonet.midolman.guice.cluster;
 
-import com.google.inject.Key;
 import com.google.inject.Singleton;
 
-import org.midonet.cache.Cache;
 import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterChainManager;
 import org.midonet.cluster.ClusterConditionManager;
@@ -16,7 +14,6 @@ import org.midonet.cluster.ClusterLoadBalancerManager;
 import org.midonet.cluster.ClusterPoolHealthMonitorMapManager;
 import org.midonet.cluster.ClusterPoolManager;
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.guice.CacheModule;
 
 
 /**
@@ -31,9 +28,6 @@ public class DataClusterClientModule extends DataClientModule {
         super.configure();
 
         binder().requireExplicitBindings();
-
-        requireBinding(Key.get(Cache.class, CacheModule.TRACE_INDEX.class));
-        requireBinding(Key.get(Cache.class, CacheModule.TRACE_MESSAGES.class));
 
         bind(ClusterBgpManager.class)
                 .in(Singleton.class);
