@@ -1156,13 +1156,35 @@ public interface DataClient {
     /**
      * Tries to take ownership of the given VTEP.
      *
-     * @param mgmtIp the management IP of the VTEP
-     * @param nodeId the ID of the node trying to take ownership of the VTEP
-     * @return the ID of the node that owns the VTEP, never null
-     * @throws SerializationException
-     * @throws StateAccessException
+     * @param mgmtIp The management IP of the VTEP
+     * @param ownerId The ID of the node trying to take ownership of the VTEP
+     * @return The ID of the node that owns the VTEP, never null
      */
-    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
+        throws SerializationException, StateAccessException;
+
+    /**
+     * Tries to take ownership of the given VTEP.
+     *
+     * @param mgmtIp The management IP of the VTEP
+     * @param ownerId The ID of the node trying to take ownership of the VTEP
+     * @param watcher An watcher to install on the ownership node of the VTEP,
+     *                regardless of whether ownership is taken or not. The
+     *                watcher will notify of the changes to the ownership node.
+     * @return The ID of the node that owns the VTEP, never null.
+     */
+    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId, Watcher watcher)
+        throws SerializationException, StateAccessException;
+
+    /**
+     * Deletes the ownership for the given VTEP. The method deletes the
+     * ownership only if the specified identifier currently owns the VTEP.
+     *
+     * @param mgmtIp The management IP of the VTEP
+     * @param ownerId The ID of the node deleting the VTEP ownership.
+     * @return True if the ownership was deleted, false otherwise.
+     */
+    public boolean deleteVtepOwner(IPv4Addr mgmtIp, UUID ownerId)
         throws SerializationException, StateAccessException;
 
     /**

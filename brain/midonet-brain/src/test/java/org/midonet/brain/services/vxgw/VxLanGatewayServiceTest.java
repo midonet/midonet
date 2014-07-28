@@ -122,7 +122,6 @@ public class VxLanGatewayServiceTest {
         vtep.setMgmtPort(vtepMgmntPort);
         vtep.setTunnelZone(tzId);
         dataClient.vtepCreate(vtep);
-
     }
 
     /**
@@ -147,60 +146,8 @@ public class VxLanGatewayServiceTest {
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
             dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        gwsrv.startAndWait();
-        gwsrv.stopAndWait();
-    }
-
-    /**
-     * Check the life cycle for collaborating gateway services.
-     */
-    @Test
-    public void testDoubleService(@Mocked final VtepBroker vtepBroker)
-        throws Exception {
-
-        // vtep related operations must be done just once
-        new Expectations() {{
-            // Per vtep
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
-            VtepBroker vB = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mP = new MidoVxLanPeer(dataClient); times = 1;
-            vB.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(vtepMgmtIp, vtepMgmntPort); times = 1;
-
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
-            VtepBroker vBAlt = new VtepBroker(vtepClient); times = 1;
-            MidoVxLanPeer mPAlt = new MidoVxLanPeer(dataClient); times = 1;
-            vBAlt.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(vtepMgmtIp2, vtepMgmntPort2); times = 1;
-
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            // Shutdown (one round per vtep)
-            vtepClient.disconnect(); times = 1;
-            vtepClient.disconnect(); times = 1;
-        }};
-
-        VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        VxLanGatewayService gwsrv2 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        // the first service should get the initial vtep
-        gwsrv1.startAndWait();
-
-        // this might be caught by the first or second service
-        VTEP vtepAlt = new VTEP();
-        vtepAlt.setId(vtepMgmtIp2);
-        vtepAlt.setMgmtPort(vtepMgmntPort2);
-        vtepAlt.setTunnelZone(tzId);
-        dataClient.vtepCreate(vtepAlt);
-
-        gwsrv2.startAndWait();
-        gwsrv1.stopAndWait();
-        gwsrv2.stopAndWait();
+        gwsrv.startAsync().awaitRunning();
+        gwsrv.stopAsync().awaitTerminated();
     }
 
     /**
@@ -251,12 +198,12 @@ public class VxLanGatewayServiceTest {
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
             dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        gwsrv.startAndWait();
+        gwsrv.startAsync().awaitRunning();
 
         // add a new bridge with a binding
         makeBoundBridge("bridge1", "vtepPort", (short)666);
 
-        gwsrv.stopAndWait();
+        gwsrv.stopAsync().awaitTerminated();
     }
 
     /**
@@ -316,8 +263,8 @@ public class VxLanGatewayServiceTest {
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
             dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        gwsrv.startAndWait();
-        gwsrv.stopAndWait();
+        gwsrv.startAsync().awaitRunning();
+        gwsrv.stopAsync().awaitTerminated();
     }
 
     /**
@@ -362,7 +309,7 @@ public class VxLanGatewayServiceTest {
 
         VxLanGatewayService gwsrv = new VxLanGatewayService(
             dataClient, vtepDataClientProvider, zkConnWatcher, config);
-        gwsrv.startAndWait();
+        gwsrv.startAsync().awaitRunning();
 
         // add a new bridge without a binding
         UUID bridgeId = makeUnboundBridge("bridge1");
@@ -374,7 +321,7 @@ public class VxLanGatewayServiceTest {
         // remove binding from the bridge
         dataClient.bridgeDeleteVxLanPort(bridgeId);
 
-        gwsrv.stopAndWait();
+        gwsrv.stopAsync().awaitTerminated();
     }
 
     /**
@@ -412,7 +359,7 @@ public class VxLanGatewayServiceTest {
             new VxLanGatewayService(
                 dataClient, vtepDataClientProvider, zkConnWatcher, config);
         // the initial vtep should be detected
-        gwsrv1.startAndWait();
+        gwsrv1.startAsync().awaitRunning();
 
         // this should be also caught by the service
         VTEP vtepAlt = new VTEP();
@@ -421,7 +368,7 @@ public class VxLanGatewayServiceTest {
         vtepAlt.setTunnelZone(tzId);
         dataClient.vtepCreate(vtepAlt);
 
-        gwsrv1.stopAndWait();
+        gwsrv1.stopAsync().awaitTerminated();
     }
 
     /**
@@ -450,12 +397,12 @@ public class VxLanGatewayServiceTest {
             new VxLanGatewayService(
                 dataClient, vtepDataClientProvider, zkConnWatcher, config);
         // the initial vtep should be detected
-        gwsrv1.startAndWait();
+        gwsrv1.startAsync().awaitRunning();
 
         // the removal of the vtep should also be detected
         dataClient.vtepDelete(vtepMgmtIp);
 
-        gwsrv1.stopAndWait();
+        gwsrv1.stopAsync().awaitTerminated();
     }
 
 }

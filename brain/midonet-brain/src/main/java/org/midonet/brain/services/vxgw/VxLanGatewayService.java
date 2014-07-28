@@ -3,10 +3,12 @@
  */
 package org.midonet.brain.services.vxgw;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -27,7 +29,6 @@ import rx.functions.Func1;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
-import org.midonet.brain.services.vxgw.monitor.VtepMonitor;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
@@ -63,20 +64,15 @@ public class VxLanGatewayService extends AbstractService {
     // Index of VxlanGwBrokers for each VTEP
     private final Map<IPv4Addr, VxLanGwBroker> vxlanGwBrokers = new HashMap<>();
 
-    // Subscription to bridge update observables
-    private Subscription bridgeSubscription;
+    // Monitors
+    private BridgeMonitor bridgeMonitor = null;
+    private VxLanVtepMonitor vtepMonitor = null;
 
-    // Bridge monitor
-    private BridgeMonitor bridgeMon = null;
+    // Subscription observables
+    private List<Subscription> subscriptions = new ArrayList<>();
 
-    // Subscription to vtep update observables
-    private Subscription vtepSubscription;
-
-    // Vtep monitor
-    private VtepMonitor vtepMon = null;
-
-    // Service id for ownerships
-    private final UUID srvId;
+    // Service identifier.
+    private final UUID serviceId;
 
     public class VtepConfigurationException extends RuntimeException {
         private static final long serialVersionUID = -1;
@@ -96,10 +92,10 @@ public class VxLanGatewayService extends AbstractService {
         this.vtepDataClientProvider = vtepDataClientProvider;
 
         // Set the service identifier.
-        srvId = HostIdGenerator.readHostId(config);
-        log.info("The VXLAN gateway service identifier: {}", srvId);
+        serviceId = HostIdGenerator.readHostId(config);
+        log.info("The VXLAN gateway service identifier: {}", serviceId);
         try {
-            HostIdGenerator.writeHostId(srvId, config);
+            HostIdGenerator.writeHostId(serviceId, config);
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
             log.error("The VXLAN gateway service cannot write to the "
                       + "configuration file.", e);
@@ -110,12 +106,11 @@ public class VxLanGatewayService extends AbstractService {
     protected void doStart() {
         log.info("Starting up..");
 
-        // Set-up vxlan peer pairings
-        setVxLanPeers();
-
         try {
-            vtepMon = new VtepMonitor(this.midoClient, this.zkConnWatcher);
-            bridgeMon = new BridgeMonitor(this.midoClient, this.zkConnWatcher);
+            vtepMonitor = new VxLanVtepMonitor(
+                this.midoClient, this.zkConnWatcher, serviceId);
+            bridgeMonitor = new BridgeMonitor(
+                this.midoClient, this.zkConnWatcher);
         } catch (DeviceMonitor.DeviceMonitorException e) {
             log.warn("Service startup failed", e);
             shutdown();
@@ -123,27 +118,25 @@ public class VxLanGatewayService extends AbstractService {
             return;
         }
 
-        // Vtep subscription
-        vtepSubscription = vtepMon.getEntityIdSetObservable().subscribe(
-            new Action1<EntityIdSetEvent<IPv4Addr>>() {
+        // VTEP subscription
+        subscriptions.add(vtepMonitor.getAcquireObservable().subscribe(
+            new Action1<VxLanVtep>() {
                 @Override
-                public void call(EntityIdSetEvent<IPv4Addr> ev) {
-                    switch (ev.type) {
-                        case DELETE:
-                            releaseVtepPairing(ev.value);
-                            break;
-                        case CREATE:
-                        case STATE:
-                            acquireVtepPairing(ev.value);
-                            break;
-                    }
+                public void call(VxLanVtep vtep) {
+                    acquireVtepPairing(vtep.vtepIp);
                 }
-            }
-        );
+            }));
+        subscriptions.add(vtepMonitor.getReleaseObservable().subscribe(
+            new Action1<VxLanVtep>() {
+                @Override
+                public void call(VxLanVtep vtep) {
+                    releaseVtepPairing(vtep.vtepIp);
+                }
+            }));
 
         // Bridge creation stream
         Observable<UUID> creationStream =
-            bridgeMon.getEntityIdSetObservable().concatMap(
+            bridgeMonitor.getEntityIdSetObservable().concatMap(
                 new Func1<EntityIdSetEvent<UUID>, Observable<UUID>>() {
                     @Override
                     public Observable<UUID> call(EntityIdSetEvent<UUID> ev) {
@@ -158,7 +151,7 @@ public class VxLanGatewayService extends AbstractService {
 
         // Bridge updates stream
         Observable<UUID> updateStream =
-            bridgeMon.getEntityObservable().map(
+            bridgeMonitor.getEntityObservable().map(
                 new Func1<Bridge, UUID>() {
                     @Override
                     public UUID call(Bridge b) {
@@ -168,17 +161,17 @@ public class VxLanGatewayService extends AbstractService {
             );
 
         // Subscribe to combined bridge stream
-        bridgeSubscription = Observable.merge(creationStream, updateStream)
+        subscriptions.add(Observable.merge(creationStream, updateStream)
             .subscribe(new Action1<UUID>() {
                 @Override
                 public void call(UUID id) {
                     assignBridgeToPeer(id);
                 }
-            });
+            }));
 
         // Make sure we get all the initial state
-        vtepMon.notifyState();
-        bridgeMon.notifyState();
+        vtepMonitor.notifyState();
+        bridgeMonitor.notifyState();
 
         log.info("Service started");
         notifyStarted();
@@ -193,45 +186,28 @@ public class VxLanGatewayService extends AbstractService {
 
     /* Cleanup service state */
     private synchronized void shutdown() {
-        if (vtepSubscription != null) {
-            vtepSubscription.unsubscribe();
-            vtepSubscription = null;
+        // Dispose the monitor: must call before un-subscribing.
+        vtepMonitor.dispose();
+
+        // Unsubscribe.
+        for (Subscription subscription : subscriptions) {
+            subscription.unsubscribe();
         }
-        if (bridgeSubscription != null) {
-            bridgeSubscription.unsubscribe();
-            bridgeSubscription = null;
-        }
-        vtepMon = null;
-        bridgeMon = null;
-        for(Map.Entry<IPv4Addr, VxLanGwBroker> e : vxlanGwBrokers.entrySet()) {
-            log.info("Unsubscribing broker from VTEP: {}", e.getKey());
-            e.getValue().terminate();
-        }
-        vxlanGwBrokers.clear();
+
+        vtepMonitor = null;
+        bridgeMonitor = null;
+
+        // All gateway brokers should have been cleaned up when disposing the
+        // VTEP monitor.
+        assert(vxlanGwBrokers.isEmpty());
     }
 
     /**
-     * Initialises the processes to synchronize data accross VxGW peers.
-     */
-    private void setVxLanPeers() {
-        List<VTEP> vteps;
-        try {
-            vteps = midoClient.vtepsGetAll();
-        } catch (StateAccessException | SerializationException e) {
-            throw new VtepConfigurationException(e);
-        }
-
-        log.info("Configuring VxLan Peers");
-
-        for (VTEP vtep : vteps) {
-            setVtepPairing(vtep);
-        }
-    }
-
-    /**
-     * Release vtep pairing
+     * Release VTEP pairing
      */
     private void releaseVtepPairing(IPv4Addr vtepIp) {
+        log.info("Release VTEP {} by {}", vtepIp, serviceId);
+
         VxLanGwBroker broker = vxlanGwBrokers.remove(vtepIp);
         if (broker == null)
             return;
@@ -239,20 +215,12 @@ public class VxLanGatewayService extends AbstractService {
     }
 
     /**
-     * Prepare a vtep pairing with a midonet vxlan peer.
+     * Prepare a VTEP pairing with a MidoNet VXLAN peer.
      */
     private synchronized void setVtepPairingInternal(final VTEP vtep)
         throws StateAccessException, SerializationException {
         log.debug("Starting VxGW pairing for VTEP {}", vtep.getId());
         IPv4Addr mgmtIp = vtep.getId();
-
-        // Try to get ownership
-        UUID ownerId = midoClient.tryOwnVtep(mgmtIp, srvId);
-        if (!srvId.equals(ownerId)) {
-            log.debug("VxLanGatewayService {} ignoring VTEP {} owned by {}",
-                      new Object[]{srvId, vtep.getId(), ownerId});
-            return;
-        }
 
         // Sanity check
         if (vxlanGwBrokers.containsKey(mgmtIp)) {
@@ -285,7 +253,7 @@ public class VxLanGatewayService extends AbstractService {
                      vtep.getId(), e);
             zkConnWatcher.handleError(
                 String.format("VxLanGatewayService %s pairing vtep %s",
-                              srvId, vtep.getId()),
+                              serviceId, vtep.getId()),
                 new Runnable () {
                     @Override
                     public void run() {setVtepPairing(vtep);}
@@ -301,6 +269,8 @@ public class VxLanGatewayService extends AbstractService {
      * Acquire the VTEP associated to a given management IP
      */
     private void acquireVtepPairing(final IPv4Addr vtepIp) {
+        log.info("Acquire VTEP {} by {}", vtepIp, serviceId);
+
         try {
             VTEP vtep = midoClient.vtepGet(vtepIp);
             setVtepPairing(vtep);
@@ -311,7 +281,7 @@ public class VxLanGatewayService extends AbstractService {
                      vtepIp, e);
             zkConnWatcher.handleError(
                 String.format("VxLanGatewayService %s pairing vtep %s",
-                              srvId, vtepIp),
+                              serviceId, vtepIp),
                 new Runnable () {
                     @Override
                     public void run() {acquireVtepPairing(vtepIp);}
@@ -405,5 +375,13 @@ public class VxLanGatewayService extends AbstractService {
         } catch (SerializationException e) {
             log.warn("Failed to deserialize resource state {}", bridgeId, e);
         }
+    }
+
+    /**
+     * Gets the set of currently owned VTEPs (used for testing).
+     * @return The set of VTEP IP addresses.
+     */
+    protected Set<IPv4Addr> getOwnedVteps() {
+        return vxlanGwBrokers.keySet();
     }
 }
