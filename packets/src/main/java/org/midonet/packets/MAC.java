@@ -1,19 +1,17 @@
 /*
  * Copyright (c) 2011-2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.packets;
 
 import java.util.Random;
 
-import org.ietf.jgss.MessageProp;
-import org.midonet.util.collection.WeakObjectPool;
-
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
-/** Reprensentation of a mac address. Utility class for a Ethernet-type Media
- *  Access Controll address ("Hardware" or "data link" or "link layer" address).
+import org.midonet.util.collection.WeakObjectPool;
+
+/** Representation of a mac address. Utility class for a Ethernet-type Media
+ *  Access Control address ("Hardware" or "data link" or "link layer" address).
  *
  *  Conversion functions taking or returning long values assume the following
  *  encoding rules:

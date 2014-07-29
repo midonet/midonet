@@ -19,6 +19,7 @@ import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 /**
  * Represents a connection to a VTEP-enabled switch.
@@ -129,7 +130,7 @@ public interface VtepDataClient {
      * @return operation result status
      */
     public Status bindVlan(String lsName, String portName, int vlan,
-                           Integer vni, List<String> floodIps);
+                           Integer vni, List<IPv4Addr> floodIps);
 
     /**
      * Binds a list of (physical_port, vlan) to a given logical switch.
@@ -152,7 +153,7 @@ public interface VtepDataClient {
      *           mac should be tunnelled to
      * @return the result of the operation
      */
-    public Status addUcastMacRemote(String lsName, String mac, String ip);
+    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip);
 
     /**
      * Adds a new entry to the Mcast_Macs_Remote table.
@@ -164,19 +165,34 @@ public interface VtepDataClient {
      *           mac should be tunnelled to
      * @return the result of the operation
      */
-    public Status addMcastMacRemote(String lsName, String mac, String ip);
+    public Status addMcastMacRemote(String lsName, VtepMAC mac, IPv4Addr ip);
 
     /**
-     * Delete an entry in the Ucast_Mac_Remote table.
+     * Deletes all entries from the Ucast_Mac_Remote table that match the
+     * specified MAC address and logical switch name. The method returns a
+     * NotFound status when there is no logical switch, there is no unicast MAC
+     * table, or there are no entries to delete.
      *
-     * @param mac the MAC address
-     * @param lsName the logical switch name
-     * @return operation result status
+     * @param lsName The logical switch name
+     * @param mac The MAC address
+     * @return Operation result status
      */
-    public Status delUcastMacRemote(String mac, String lsName);
+    public Status delUcastMacRemote(String lsName, MAC mac);
 
     /**
-     * Provides an Observable producing a stream of updates from the Vtep.
+     * Deletes all entries from the Mcast_Mac_Remote table that match the
+     * specified MAC address and logical switch name. The method returns a
+     * NotFound status when there is no logical switch, there is no unicast
+     * MAC table, or there are no entries to delete.
+     *
+     * @param lsName The logical switch name
+     * @param mac The MAC address
+     * @return Operation result status
+     */
+    public Status delMcastMacRemote(String lsName, VtepMAC mac);
+
+    /**
+     * Provides an Observable producing a stream of updates from the VTEP.
      */
     public Observable<TableUpdates> observableUpdates();
 
@@ -198,13 +214,13 @@ public interface VtepDataClient {
     public Status deleteLogicalSwitch(String name);
 
     /**
-     * Returns the full list of port vlan pairs on the given logical switch.
+     * Returns the full list of port VLAN pairs on the given logical switch.
      *
-     * @param lsUuid the logical switch UUID
+     * @param lsId the logical switch UUID
      * @return the list of (port_uuid, vlan) representing bindings on this
      * logical switch
      */
-    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID logicalSwitchId);
+    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID lsId);
 
     /**
      * Clears all bindings of the given logical switch in a single transaction.

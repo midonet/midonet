@@ -30,7 +30,6 @@ import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
-import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -47,7 +46,6 @@ import static org.midonet.api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUN
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
-
 
 /**
  * Coordinates VtepDataClient and DataClient (Zookeeper) operations.
@@ -369,7 +367,7 @@ public class VtepClusterClient {
             Status status = vtepCli.bindVlan(lsName, binding.getPortName(),
                                              binding.getVlanId(),
                                              vxlanPort.getVni(),
-                                             new ArrayList<String>());
+                                             new ArrayList<IPv4Addr>());
             if (StatusCode.CONFLICT.equals(status.getCode())) {
                 log.warn("Binding was already present in VTEP");
             } else if (status.isSuccess()) {
@@ -574,39 +572,4 @@ public class VtepClusterClient {
                 throw new BadGatewayHttpException(status.getDescription());
         }
     }
-
-    /**
-     * Takes a bridge id, reads all its known macs, and writes the corresponding
-     * ucast_mac_remote entries to the vtep using the tunnel end point that
-     * appropriate to the host where each port is bound.
-     *
-     * TODO: optimize this. We could issue a single write to the VTEP instead of
-     * lots of individual calls.
-     *
-     * @param vtepClient a vtep client, initialized and ready to use
-     * @param bridgeId bridge id
-     * @param lsName logical switch name where mac entries are to be added
-     * @throws StateAccessException
-     * @throws SerializationException
-     */
-    private void feedUcastRemote(VtepDataClient vtepClient,
-                                 java.util.UUID bridgeId, String lsName)
-            throws StateAccessException, SerializationException {
-
-        Map<VlanMacPort, IPv4Addr> mappings =
-            dataClient.bridgeGetMacPortsWithVxTunnelEndpoint(bridgeId);
-
-        for (Map.Entry<VlanMacPort, IPv4Addr> e : mappings.entrySet()) {
-            VlanMacPort vmp = e.getKey();
-            IPv4Addr hostIp = e.getValue();
-            if (hostIp == null) {
-                log.warn("No VxLAN tunnel endpoint for port {}", vmp.portId);
-            } else {
-                log.debug("MAC {} is at host {}", vmp.macAddress, hostIp);
-                vtepClient.addUcastMacRemote(lsName, vmp.macAddress.toString(),
-                                             hostIp.toString());
-            }
-        }
-    }
-
 }
