@@ -18,5 +18,6 @@
     <modules>
         <module>keygen</module>
         <module>keylib</module>
+        <module>ovsdb-cli</module>
     </modules>
 </project>

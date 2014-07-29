@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ */
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet OVS-DB client tool',
+                   'Implementation-Version': version
+    }
+}
+
+
+dependencies {
+    compile project(':tools:ovsdb-org')
+
+    compile libraries.findbugs, project(':brain:odl-ovsdb:ovsdb')
+}
