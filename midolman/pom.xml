@@ -550,6 +550,7 @@
                                         </mapping>
                                         <mapping>
                                             <directory>/usr/lib/systemd/system</directory>
+                                            <directoryIncluded>false</directoryIncluded>
                                             <sources>
                                                 <source>
                                                     <location>src/rhel7/systemd/midolman.service</location>
