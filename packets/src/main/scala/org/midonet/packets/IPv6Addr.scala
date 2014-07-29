@@ -133,6 +133,32 @@ object IPv6Addr {
         }
     }
 
+    def illegalIPv6Bytes = new IllegalArgumentException(
+        "byte array representing an IPv6 address must have length 16 exactly")
+
+    def fromBytes(addr: Array[Byte]): IPv6Addr = {
+        if (addr == null || addr.length != 16)
+            throw illegalIPv6Bytes
+
+        val upper: Long = ((addr(0) & 0xff) << 56) |
+                          ((addr(1) & 0xff) << 48) |
+                          ((addr(2) & 0xff) << 40) |
+                          ((addr(3) & 0xff) << 32) |
+                          ((addr(4) & 0xff) << 24) |
+                          ((addr(5) & 0xff) << 16) |
+                          ((addr(6) & 0xff) << 8) |
+                           (addr(7) & 0xff)
+        val lower: Long = ((addr(8) & 0xff) << 56) |
+                          ((addr(9) & 0xff) << 48) |
+                          ((addr(10) & 0xff) << 40) |
+                          ((addr(11) & 0xff) << 32) |
+                          ((addr(12) & 0xff) << 24) |
+                          ((addr(13) & 0xff) << 16) |
+                          ((addr(14) & 0xff) << 8) |
+                           (addr(15) & 0xff)
+        apply(upper, lower)
+    }
+
     // TODO: Verify each piece is valid 1-4 digit hex.
     @JsonCreator
     def fromString(s: String): IPv6Addr = {

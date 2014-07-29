@@ -41,6 +41,9 @@ object IPAddr {
     def fromString(s: String): IPAddr =
         if (s.contains(":")) IPv6Addr.fromString(s) else IPv4Addr.fromString(s)
 
+    def fromBytes(addr: Array[Byte]) =
+        if (addr.length == 4) IPv4Addr.fromBytes(addr) else IPv6Addr.fromBytes(addr)
+
     def canonicalize(s: String): String = fromString(s).toString
 
     /** Helper function to create ranges of IPAddr as java Iterable. The range
