@@ -119,14 +119,3 @@ brctl addif brv0 trunk1
 ip link set dev trunk1.1 up netns ns009 name eth2
 
 brctl stp brv0 on
-
-# Internet gateway:
-# Adds a veth pair with one end in ns008 and the other end not in any network
-# namespaces, enabling a VM on ns008 to send packets to Internet via Midolman.
-ip link add dev veth100 type veth peer name veth100.1
-ip link set dev veth100 up
-ip link set dev veth100.1 up netns ns008 name eth3
-ip addr add 100.0.0.2/24 dev veth100
-ip route add 172.16.1.0/24 dev veth100 via 100.0.0.1
-
-iptables -t nat -A POSTROUTING -s 172.16.1.0/24 ! -d 172.16.1.0/24 -j MASQUERADE

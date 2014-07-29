@@ -13,12 +13,8 @@ physical_topology:
               id: 1
               ifname: null
               type: "netns"
-              ipv4_addr: [172.16.1.1/24]
-              ipv4_gw: 172.16.1.254
+              ipv4_addr: [10.0.2.88/24]
+              ipv4_gw: 10.0.2.1
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:01:01
               mtu: 1500
-          - interface:
-              id: 2
-              ifname: eth3
-              type: "provided"
