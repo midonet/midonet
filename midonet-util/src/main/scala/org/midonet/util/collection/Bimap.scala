@@ -7,6 +7,11 @@
 package org.midonet.util.collection;
 
 /** Immutable bijective map */
+object Bimap {
+
+    def apply[A,B](mappings: TraversableOnce[(A,B)]) = new Bimap[A,B]() ++ mappings
+}
+
 class Bimap[A,B](private val forward: Map[A,B] = Map[A,B](),
                  val inverse: Map[B,A] = Map[B,A]()) extends Iterable[(A,B)] {
 
