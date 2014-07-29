@@ -241,9 +241,11 @@ public class VtepDataClientImplTest {
             this.makeMockCache();
         successfulConnection(mockCache);
 
-        final List<String> floodIps = Arrays.asList("10.3.2.1");
+        final List<IPv4Addr> floodIps =
+            Arrays.asList(IPv4Addr.apply("10.3.2.1"));
         new Expectations() {{
-            cfgSrv.vtepBindVlan("ls", "port", 10, 100, floodIps);
+            cfgSrv.vtepBindVlan("ls", "port", 10, 100,
+                                Arrays.asList("10.3.2.1"));
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
@@ -251,53 +253,29 @@ public class VtepDataClientImplTest {
         assertEquals(StatusCode.SUCCESS, s.getCode());
     }
 
-    @Test(expected = MAC.InvalidMacException.class)
-    public void testAddMcastMacRemoteBadMac() {
-        vtepDataClient.addUcastMacRemote("ls", "badmac", "10.2.2.2");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddMcastMacRemoteBadIp() {
-        vtepDataClient.addUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff", "badip");
-    }
-
     @Test
     public void testAddMcastMacRemoteNormalMac() {
-        this.testAddMcastMacRemoteWithMac("aa:bb:cc:ee:ff:dd");
+        this.testAddMcastMacRemoteWithMac(
+            VtepMAC.fromString("ff:ff:ff:ff:ff:ff"));
     }
 
     @Test
     public void testAddMcastMacRemoteUnknownDst() {
-        this.testAddMcastMacRemoteWithMac(VtepConstants.UNKNOWN_DST);
+        this.testAddMcastMacRemoteWithMac(VtepMAC.UNKNOWN_DST);
     }
 
-    private void testAddMcastMacRemoteWithMac(final String mac) {
+    private void testAddMcastMacRemoteWithMac(final VtepMAC mac) {
         final Map<String, ConcurrentMap<String, Table<?>>> mockCache =
             this.makeMockCache();
         successfulConnection(mockCache);
         new Expectations() {{
-            cfgSrv.vtepAddMcastRemote("ls", mac, "10.2.1.3");
+            cfgSrv.vtepAddMcastMacRemote("ls", mac.toString(), "10.2.1.3");
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
         }};
-        Status st = vtepDataClient.addMcastMacRemote("ls", mac, "10.2.1.3");
+        Status st = vtepDataClient.addMcastMacRemote(
+            "ls", mac, IPv4Addr.apply("10.2.1.3"));
         assertEquals(StatusCode.SUCCESS, st.getCode());
-    }
-
-    @Test(expected = MAC.InvalidMacException.class)
-    public void testAddUcastMacRemoteBadMac() {
-        vtepDataClient.addUcastMacRemote("ls", "badmac", "10.2.2.2");
-    }
-
-    @Test(expected = MAC.InvalidMacException.class)
-    public void testAddUcastMacRemoteUnknownDst() {
-        vtepDataClient.addUcastMacRemote("ls", VtepConstants.UNKNOWN_DST,
-                                         "102.2.2.2");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testAddUcastMacRemoteBadIp() {
-        vtepDataClient.addUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff", "badip");
     }
 
     @Test
@@ -306,24 +284,15 @@ public class VtepDataClientImplTest {
             this.makeMockCache();
         successfulConnection(mockCache);
         new Expectations() {{
-            cfgSrv.vtepAddUcastRemote("ls", "aa:bb:cc:dd:ee:ff", "10.2.1.3",
-                                      null);
+            cfgSrv.vtepAddUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff", "10.2.1.3",
+                                         null);
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
         }};
-        Status st = vtepDataClient.addUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff",
-                                                     "10.2.1.3");
+        Status st = vtepDataClient.addUcastMacRemote(
+            "ls", MAC.fromString("aa:bb:cc:dd:ee:ff"),
+            IPv4Addr.apply("10.2.1.3"));
         assertEquals(StatusCode.SUCCESS, st.getCode());
-    }
-
-    @Test(expected = MAC.InvalidMacException.class)
-    public void testDelUcastMacRemoteBadMac() {
-        vtepDataClient.delUcastMacRemote("meh", "ls0");
-    }
-
-    @Test(expected = MAC.InvalidMacException.class)
-    public void testDelUcastMacRemoteUnknownDst() {
-        vtepDataClient.delUcastMacRemote(VtepConstants.UNKNOWN_DST, "ls0");
     }
 
     @Test
@@ -332,11 +301,12 @@ public class VtepDataClientImplTest {
             this.makeMockCache();
         successfulConnection(mockCache);
         new Expectations() {{
-            cfgSrv._vtepDelUcastMacRemote("aa:bb:cc:dd:ee:ff", "ls");
+            cfgSrv.vtepDelUcastMacRemote("aa:bb:cc:dd:ee:ff", "ls");
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
         }};
-        Status st = vtepDataClient.delUcastMacRemote("aa:bb:cc:dd:ee:ff", "ls");
+        Status st = vtepDataClient.delUcastMacRemote(
+            "ls", MAC.fromString("aa:bb:cc:dd:ee:ff"));
         assertEquals(StatusCode.SUCCESS, st.getCode());
     }
 

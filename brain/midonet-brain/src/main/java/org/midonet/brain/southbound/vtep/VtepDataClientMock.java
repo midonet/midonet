@@ -28,6 +28,7 @@ import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 public class VtepDataClientMock implements VtepDataClient {
 
@@ -174,7 +175,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public Status bindVlan(String lsName, String portName,
-                           int vlan, Integer vni, List<String> floodIps) {
+                           int vlan, Integer vni, List<IPv4Addr> floodIps) {
         assertConnected();
 
         PhysicalPort pp = physicalPorts.get(portName);
@@ -192,8 +193,8 @@ public class VtepDataClientMock implements VtepDataClient {
 
         pp.vlanBindings.put(vlan, logicalSwitchUuids.get(lsName));
 
-        for (String floodIp : floodIps)
-            addMcastMacRemote(lsName, VtepConstants.UNKNOWN_DST, floodIp);
+        for (IPv4Addr floodIp : floodIps)
+            addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST, floodIp);
 
         return new Status(StatusCode.SUCCESS);
     }
@@ -236,7 +237,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
 
     @Override
-    public Status addUcastMacRemote(String lsName, String mac, String ip) {
+    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -244,13 +245,14 @@ public class VtepDataClientMock implements VtepDataClient {
             return new Status(StatusCode.BADREQUEST,
                               "Logical switch not found.");
 
-        UcastMac ucastMac = new UcastMac(mac, lsUuid, getLocatorUuid(ip), ip);
-        ucastMacsRemote.put(mac, ucastMac);
+        UcastMac ucastMac = new UcastMac(
+            mac.toString(), lsUuid, getLocatorUuid(ip.toString()), null);
+        ucastMacsRemote.put(mac.toString(), ucastMac);
         return new Status(StatusCode.SUCCESS);
     }
 
     @Override
-    public Status addMcastMacRemote(String lsName, String mac, String ip) {
+    public Status addMcastMacRemote(String lsName, VtepMAC mac, IPv4Addr ip) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -262,16 +264,29 @@ public class VtepDataClientMock implements VtepDataClient {
         // uses it as a locator set UUID. If this mock ever actually needs
         // to distinguish between locators and locator sets, this will
         // need to change.
-        McastMac mcastMac = new McastMac(mac, lsUuid, getLocatorUuid(ip), ip);
-        mcastMacsRemote.put(mac, mcastMac);
+        McastMac mcastMac = new McastMac(
+            mac.toString(), lsUuid, getLocatorUuid(ip.toString()), null);
+        mcastMacsRemote.put(mac.toString(), mcastMac);
         return new Status(StatusCode.SUCCESS);
     }
 
     @Override
-    public Status delUcastMacRemote(String mac, String lsName) {
+    public Status delUcastMacRemote(String lsName, MAC mac) {
+        // TODO (alex): This method only deletes one entry.
         assertConnected();
 
-        if (this.ucastMacsRemote.remove(mac) == null) {
+        if (this.ucastMacsRemote.remove(mac.toString()) == null) {
+            return new Status(StatusCode.NOTFOUND);
+        }
+        return new Status(StatusCode.SUCCESS);
+    }
+
+    @Override
+    public Status delMcastMacRemote(String lsName, VtepMAC mac) {
+        // TODO (alex): This method only deletes one entry.
+        assertConnected();
+
+        if (this.mcastMacsRemote.remove(mac.toString()) == null) {
             return new Status(StatusCode.NOTFOUND);
         }
         return new Status(StatusCode.SUCCESS);
@@ -298,7 +313,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID logicalSwitchId) {
+    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID lsId) {
         throw new UnsupportedOperationException();
     }
 

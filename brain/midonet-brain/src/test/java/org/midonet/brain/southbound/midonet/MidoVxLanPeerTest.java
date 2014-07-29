@@ -19,6 +19,7 @@ import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.southbound.vtep.VtepConstants;
+import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Port;
@@ -47,9 +48,9 @@ public class MidoVxLanPeerTest {
 
     private DataClient dataClient = null;
 
-    private MAC mac1 = MAC.fromString("aa:bb:cc:dd:ee:01");
-    private MAC mac2 = MAC.fromString("aa:bb:cc:dd:ee:02");
-    private MAC mac3 = MAC.fromString("aa:bb:cc:dd:ee:03");
+    private VtepMAC mac1 = VtepMAC.fromString("aa:bb:cc:dd:ee:01");
+    private VtepMAC mac2 = VtepMAC.fromString("aa:bb:cc:dd:ee:02");
+    private VtepMAC mac3 = VtepMAC.fromString("aa:bb:cc:dd:ee:03");
 
     private final IPv4Addr tunnelZoneHostIP = IPv4Addr.apply("192.168.1.200");
     private final int bridgePortVNI = 42;
@@ -121,6 +122,14 @@ public class MidoVxLanPeerTest {
     /*
      * Creates a fake exterior port, bound to hostId and a random interface name
      */
+    private UUID addPort(UUID bridgeId, VtepMAC mac)
+        throws SerializationException, StateAccessException {
+        return addPort(bridgeId, mac.IEEE802());
+    }
+
+    /*
+     * Creates a fake exterior port, bound to hostId and a random interface name
+     */
     private UUID addPort(UUID bridgeId, MAC mac) throws SerializationException,
                                                         StateAccessException {
         Port<?, ?> port = new BridgePort();
@@ -164,16 +173,18 @@ public class MidoVxLanPeerTest {
         // MidoVtep has local copies of those bridges' Mac tables.
         Set<UUID> midoBridges = midoVxLanPeer.getMacTableOwnerIds();
         assertThat(midoBridges, containsInAnyOrder(bridgeId1, bridgeId2));
-        assertNull(midoVxLanPeer.getPort(bridgeId1, mac3));
+        assertNull(midoVxLanPeer.getPort(bridgeId1, mac3.IEEE802()));
 
         // The old Mac-port mapping is deleted and a new one is added.
         dataClient.bridgeDeleteMacPort(bridgeId1, Bridge.UNTAGGED_VLAN_ID,
-                                       mac1, bridgePort1);
+                                       mac1.IEEE802(), bridgePort1);
 
         UUID bridgePort3 = addPort(bridgeId1, mac3);
-        assertNull(midoVxLanPeer.getPort(bridgeId1, mac1));
-        assertEquals(bridgePort2, midoVxLanPeer.getPort(bridgeId2, mac2));
-        assertEquals(bridgePort3, midoVxLanPeer.getPort(bridgeId1, mac3));
+        assertNull(midoVxLanPeer.getPort(bridgeId1, mac1.IEEE802()));
+        assertEquals(bridgePort2,
+                     midoVxLanPeer.getPort(bridgeId2, mac2.IEEE802()));
+        assertEquals(bridgePort3,
+                     midoVxLanPeer.getPort(bridgeId1, mac3.IEEE802()));
     }
 
     @Test
@@ -220,10 +231,11 @@ public class MidoVxLanPeerTest {
         assertTrue("A new mac-port entry is added to the backend bridge.",
                    dataClient.bridgeHasMacPort(bridgeId,
                                                Bridge.UNTAGGED_VLAN_ID,
-                                               mac1, bridgePortId)
+                                               mac1.IEEE802(), bridgePortId)
         );
 
-        assertEquals(bridgePortId, midoVxLanPeer.getPort(bridgeId, mac1));
+        assertEquals(bridgePortId,
+                     midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
     }
 
     @Test
@@ -250,9 +262,9 @@ public class MidoVxLanPeerTest {
 
         // The old Mac-port mapping is deleted and a new one is added.
         dataClient.bridgeDeleteMacPort(bridgeId, Bridge.UNTAGGED_VLAN_ID,
-                                       mac1, bridgePortId);
+                                       mac1.IEEE802(), bridgePortId);
         dataClient.bridgeAddMacPort(bridgeId, Bridge.UNTAGGED_VLAN_ID,
-                                    mac3, bridgePortId);
+                                    mac3.IEEE802(), bridgePortId);
 
         testedObs.unsubscribe();
 
@@ -274,13 +286,13 @@ public class MidoVxLanPeerTest {
         ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly mapped", vxLanPortId,
-                     midoVxLanPeer.getPort(bridgeId, mac1));
+                     midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
         // remove the mapping
         ml = new MacLocation(mac1, lsName, null);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly unmapped", null,
-                     midoVxLanPeer.getPort(bridgeId, mac1));
+                     midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
     }
 
@@ -306,14 +318,14 @@ public class MidoVxLanPeerTest {
         ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly mapped", vxLanPortId,
-                     midoVxLanPeer.getPort(bridgeId, mac1));
+                     midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
         // remove the mapping
         // update from the vtep should not be forwarded via observable
         ml = new MacLocation(mac1, lsName, null);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly unmapped", null,
-                     midoVxLanPeer.getPort(bridgeId, mac1));
+                     midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
         // add a mapping not from the vtep
         addPort(bridgeId, mac2);
@@ -427,6 +439,7 @@ public class MidoVxLanPeerTest {
         testedObs.evaluate();
         testedObsAlt.evaluate();
     }
+
     @Test
     public void testUnsubscribe() throws Exception {
         UUID bridgeId = makeBridge("bridge");
