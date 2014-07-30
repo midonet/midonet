@@ -168,6 +168,16 @@ public class ZkManager {
         }
     }
 
+    public boolean exists(String path, Runnable watcher)
+            throws StateAccessException {
+        try {
+            return zk.exists(path, watcher);
+        } catch (Exception ex) {
+            throw processException(
+                    ex, "checking whether path " + path + " exists");
+        }
+    }
+
     public String addPersistent_safe(String path, byte[] data)
             throws StateAccessException {
         try {

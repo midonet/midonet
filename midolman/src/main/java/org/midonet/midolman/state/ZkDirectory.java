@@ -275,6 +275,12 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
+    public boolean exists(String path, Runnable watcher)
+            throws KeeperException, InterruptedException {
+        return exists(path, wrapCallback(watcher));
+    }
+
+    @Override
     public boolean has(String relativePath) throws KeeperException,
                                                    InterruptedException {
         String absPath = getAbsolutePath(relativePath);

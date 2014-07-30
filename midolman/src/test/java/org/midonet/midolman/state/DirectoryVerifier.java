@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
+import org.apache.zookeeper.Watcher;
 import org.junit.Assert;
 
 /**
@@ -42,7 +43,7 @@ public class DirectoryVerifier {
         Preconditions.checkNotNull(path);
 
         try {
-            Assert.assertTrue(this.directory.exists(path, null));
+            Assert.assertTrue(this.directory.exists(path, (Watcher)null));
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

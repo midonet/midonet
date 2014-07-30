@@ -69,6 +69,9 @@ public class DataClientModule extends PrivateModule {
         bind(ClusterPortsManager.class)
                 .in(Singleton.class);
 
+        bind(ClusterHostManager.class)
+                .in(Singleton.class);
+
         bind(PortConfigCache.class)
                 .toProvider(PortConfigCacheProvider.class)
                 .in(Singleton.class);

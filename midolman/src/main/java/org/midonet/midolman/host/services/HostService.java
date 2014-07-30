@@ -184,9 +184,8 @@ public class HostService extends AbstractService
             if (!metadata.isSameHost(zkManager.get(id))) {
                 if (zkManager.isAlive(id))
                     return false;
-                if (!metadata.equals(zkManager.get(id)))
-                    zkManager.updateMetadata(id, metadata);
             }
+            zkManager.updateMetadata(id, metadata);
         } else {
             zkManager.createHost(id, metadata);
         }
