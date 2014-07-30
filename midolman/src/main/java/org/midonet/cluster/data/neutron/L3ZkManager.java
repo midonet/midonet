@@ -272,7 +272,7 @@ public class L3ZkManager extends BaseZkManager {
     public void prepareRemoveMetadataServiceRoute(List<Op> ops, Port dhcpPort)
         throws StateAccessException, SerializationException {
         Subnet subnet = networkZkManager.getSubnet(dhcpPort.firstSubnetId());
-        if (subnet.gatewayIpAddr() != null) {
+        if (subnet != null && subnet.gatewayIpAddr() != null) {
             RouterPortConfig rpCfg =
                 portZkManager.findGatewayRouterPortFromBridge(
                     dhcpPort.networkId, subnet.gatewayIpAddr());
