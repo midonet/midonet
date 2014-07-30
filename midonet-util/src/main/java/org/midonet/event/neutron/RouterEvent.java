@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public class RouterEvent extends AbstractVirtualTopologyEvent {
     private static final String eventKey =
-            "org.midonet.event.neutron.NeutronRouter";
+            "org.midonet.event.neutron.Router";
 
     public RouterEvent() {
         super(eventKey);
