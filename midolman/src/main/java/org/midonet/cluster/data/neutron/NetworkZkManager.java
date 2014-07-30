@@ -332,6 +332,10 @@ public class NetworkZkManager extends BaseZkManager {
 
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
+            // The subnet could be null if it was deleted before the dhcp port
+            // is created. This is possible because the dhcp port is attached
+            // to the network, not the subnet.
+            if (subnet == null) continue;
             if (!subnet.isIpv4()) continue;
             prepareDhcpNeutronSubnetUpdate(ops, subnet, fixedIp.ipAddress);
         }
@@ -386,6 +390,10 @@ public class NetworkZkManager extends BaseZkManager {
 
         for (IPAllocation fixedIp : fixedIps) {
             Subnet subnet = getSubnet(fixedIp.subnetId);
+            // The subnet could be null if it was deleted before the dhcp port
+            // is deleted. This is possible because the dhcp port is attached
+            // to the network, not the subnet.
+            if (subnet == null) continue;
             if (!subnet.isIpv4()) continue;
             prepareDhcpNeutronSubnetRemoveAddr(ops, subnet, fixedIp.ipAddress);
         }
