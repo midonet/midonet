@@ -26,6 +26,7 @@ class HostManager(clusterClient: Client,
         var hostLocalPorts = mutable.Map[UUID, String]()
         var hostLocalDatapath: String = ""
         var hostTunnelZoneConfigs = mutable.Map[UUID, TunnelZone.HostConfig]()
+        var alive = false
 
         def setEpoch(epoch: Long): HostBuilder = {
             this.epoch = epoch
@@ -53,11 +54,16 @@ class HostManager(clusterClient: Client,
             this
         }
 
+        def setAlive(alive: Boolean) = {
+            this.alive = alive
+            this
+        }
+
         def start() = null
 
         def build() {
             actor !
-                new Host(host, epoch,
+                new Host(host, alive, epoch,
                     hostLocalDatapath, hostLocalPorts.toMap,
                     hostTunnelZoneConfigs.toMap)
         }

@@ -5,16 +5,11 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import scala.collection.JavaConversions._
 
 import akka.actor.{Actor, Props}
 import akka.actor.Actor.emptyBehavior
 import akka.testkit.TestActorRef
-import com.google.inject.Guice
-import com.google.inject.Injector
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone
@@ -50,7 +45,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
         scenario("Subscribes to a host.") {
             newHost("myself", hostId())
 
-            val host = Host(hostId(), 0L, "midonet", Map[UUID, String](),
+            val host = Host(hostId(), false, 0L, "midonet", Map[UUID, String](),
                             Map[UUID, TunnelZone.HostConfig]())
 
             val subscriber = subscribe(HostRequest(hostId()))

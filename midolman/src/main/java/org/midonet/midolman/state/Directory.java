@@ -60,6 +60,9 @@ public interface Directory {
     boolean exists(String path, Watcher watcher) throws KeeperException,
             InterruptedException;
 
+    boolean exists(String path, Runnable watcher)
+            throws KeeperException, InterruptedException;
+
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
 

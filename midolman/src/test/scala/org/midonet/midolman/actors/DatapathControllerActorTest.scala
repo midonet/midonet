@@ -67,7 +67,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val commonMessages = List[AnyRef](
         Initialize,
-        Host(UUID.randomUUID, 0L, "midonet", Map(), Map())
+        Host(UUID.randomUUID, true, 0L, "midonet", Map(), Map())
     )
 
     val initOnlyMessages = List[AnyRef](

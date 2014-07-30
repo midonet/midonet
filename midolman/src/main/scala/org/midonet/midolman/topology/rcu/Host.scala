@@ -8,6 +8,6 @@ import scala.collection.immutable
 
 import org.midonet.cluster.data.TunnelZone
 
-case class Host(id: UUID, epoch: Long, datapath: String,
+case class Host(id: UUID, alive: Boolean, epoch: Long, datapath: String,
                 ports: immutable.Map[UUID, String],
                 zones: immutable.Map[UUID, TunnelZone.HostConfig])
