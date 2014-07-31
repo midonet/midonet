@@ -222,7 +222,7 @@ trait FlowTranslator {
                              actions: ListBuffer[FlowAction]) {
             // add flow invalidation tag because if the packet
             // comes from a tunnel it won't be tagged
-            pktCtx.flowTags += FlowTagger.tagForBroadcast(br.id, br.id)
+            pktCtx.addFlowTag(FlowTagger.tagForBroadcast(br.id, br.id))
             outputActionsToPeers(br.tunnelKey, peerIds, actions, pktCtx.flowTags)
         }
 

@@ -6,7 +6,6 @@ package org.midonet.midolman
 import java.util.{List => JList}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
 import akka.actor._
@@ -17,13 +16,14 @@ import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, DhcpImpl}
+import org.midonet.midolman.state.FlowStateReplicator
 import org.midonet.midolman.topology.{VirtualTopologyActor, VirtualToPhysicalMapper, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
 import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.sdn.flows.FlowTagger.{FlowTag, tagForDpPort}
+import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 
 trait PacketHandler {
     def start(pktCtx: PacketContext): Urgent[PacketWorkflow.PipelinePath]
@@ -55,6 +55,7 @@ object PacketWorkflow {
     sealed trait PipelinePath
     case object WildcardTableHit extends PipelinePath
     case object PacketToPortSet extends PipelinePath
+    case object StateMessage extends PipelinePath
     case object Simulation extends PipelinePath
     case object Error extends PipelinePath
 }
@@ -63,7 +64,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
                      val dpConnPool: DatapathConnectionPool,
-                     val actionsCache: ActionsCache)
+                     val actionsCache: ActionsCache,
+                     val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
         extends FlowTranslator with PacketHandler {
 
@@ -132,12 +134,18 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     private def addTranslatedFlow(pktCtx: PacketContext,
                                   wildFlow: WildcardFlow): Unit = {
-        if (pktCtx.packet.getReason == Packet.Reason.FlowActionUserspace)
+        if (pktCtx.packet.getReason == Packet.Reason.FlowActionUserspace) {
             pktCtx.runFlowRemovedCallbacks()
-        else if (areTagsValid(pktCtx))
+        } else if (areTagsValid(pktCtx)) {
+            // ApplyState needs to happen before we add the wildcard flow
+            // because it adds callbacks to the PacketContext and it can also
+            // result in a NotYet exception being thrown.
+            applyState(pktCtx, wildFlow.getActions)
             handleValidFlow(pktCtx, wildFlow)
-        else
+        } else {
+            applyObsoleteState(pktCtx, wildFlow.getActions)
             handleObsoleteFlow(pktCtx, wildFlow)
+        }
 
         executePacket(pktCtx, wildFlow.getActions)
     }
@@ -205,6 +213,32 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
+    def applyState(pktCtx: PacketContext, actions: Seq[FlowAction]): Unit =
+        if (!actions.isEmpty) {
+            log.debug("{} Applying connection state", pktCtx.cookieStr)
+            val outPort = pktCtx.outPortId
+            replicator.accumulateNewKeys(pktCtx.state.conntrackTx,
+                                         pktCtx.state.natTx,
+                                         pktCtx.inputPort,
+                                         if (pktCtx.toPortSet) null else outPort,
+                                         if (pktCtx.toPortSet) outPort else null,
+                                         pktCtx.flowTags,
+                                         pktCtx.flowRemovedCallbacks)
+            replicator.pushState(datapathConn(pktCtx))
+            pktCtx.state.conntrackTx.commit()
+            pktCtx.state.natTx.commit()
+    }
+
+    def applyObsoleteState(pktCtx: PacketContext, actions: Seq[FlowAction]): Unit =
+        if (!actions.isEmpty) {
+            // We only add this state to the local tables, which will eventually
+            // idle out. This means we will keep the state a bit longer, allowing
+            // it to be refreshed.
+            log.debug("{} Applying obsolete connection state", pktCtx.cookieStr)
+            pktCtx.state.conntrackTx.commit()
+            pktCtx.state.natTx.commit()
+        }
+
     private def handlePacketWithCookie(pktCtx: PacketContext)
     : Urgent[PipelinePath] = {
         if (pktCtx.origMatch.getInputPortNumber eq null) {
@@ -255,7 +289,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
          *  vxlan encap for host2host tunnelling will break this assumption. */
         val wcMatch = pktCtx.origMatch
         if (wcMatch.isFromTunnel) {
-            if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
+            if (pktCtx.isStateMessage) {
+                handleStateMessage(pktCtx)
+            } else if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet(pktCtx)
             } else {
                 val portIdOpt = VxLanPortMapper uuidOf wcMatch.getTunnelID.toInt
@@ -348,21 +384,22 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 }
                 urgent
             case SendPacket(actions) =>
+                pktCtx.runFlowRemovedCallbacks()
                 sendPacket(pktCtx, actions)
             case NoOp =>
+                pktCtx.runFlowRemovedCallbacks()
                 addToActionsCacheAndInvalidate(pktCtx, Nil)
-                Ready(true)
+                Ready(null)
             case TemporaryDrop =>
+                pktCtx.clearFlowTags()
                 addTranslatedFlowForActions(pktCtx, Nil,
                                             TEMPORARY_DROP_MILLIS, 0)
-                Ready(true)
+                Ready(null)
             case Drop =>
                 addTranslatedFlowForActions(pktCtx, Nil,
                                             0, IDLE_EXPIRATION_MILLIS)
-                Ready(true)
-        } map {
-            _ => Simulation
-        }
+                Ready(null)
+        } map { _ => Simulation }
     }
 
     private def simulatePacketIn(pktCtx: PacketContext): Urgent[SimulationResult] =
@@ -386,6 +423,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
         translateVirtualWildcardFlow(pktCtx, flow) map {
             addTranslatedFlow(pktCtx, _)
         }
+    }
+
+    private def handleStateMessage(pktCtx: PacketContext): Urgent[PipelinePath] = {
+        log.debug("Accepting a state push message")
+        replicator.accept(pktCtx.ethernet)
+        Ready(StateMessage)
     }
 
     private def handleDHCP(pktCtx: PacketContext): Urgent[Boolean] = {

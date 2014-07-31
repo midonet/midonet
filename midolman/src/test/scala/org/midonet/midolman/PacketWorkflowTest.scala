@@ -52,9 +52,9 @@ object PacketWorkflowTest {
         val dpState = new DatapathStateManager(null)(null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
         val pktCtx = new PacketContext(Left(cookie), pkt,
-            Platform.currentTime + 10000, null,	null, null, None, wcMatch)
+            Platform.currentTime + 10000, null,	null, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
-                                    new ActionsCache(log = NoLogging)) {
+                                    new ActionsCache(log = NoLogging), null) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def executePacket(pktCtx: PacketContext,
@@ -75,6 +75,12 @@ object PacketWorkflowTest {
             }
             override def areTagsValid(pktCtx: PacketContext) =
                 tagsValid
+
+            override def applyState(pktCtx: PacketContext,
+                                    actions: Seq[FlowAction]): Unit = { }
+
+            override def applyObsoleteState(pktCtx: PacketContext,
+                                            actions: Seq[FlowAction]): Unit = { }
         }
         (pktCtx, wf)
     }

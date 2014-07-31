@@ -18,12 +18,7 @@ class ForwardNatRuleTest extends Suite with Matchers {
                                 new IPv4Addr(0x01020305))
     }
 
-    def testFloatingIpDetectionIPv6() {
-        testFloatingIpDetection(IPv6Addr.fromString("11:22:33:44:55:33:22:FF"),
-                                IPv6Addr.fromString("11:22:33:44:55:33:22:F0"))
-    }
-
-    def testFloatingIpDetection (a1: IPAddr, a2: IPAddr) {
+    def testFloatingIpDetection (a1: IPv4Addr, a2: IPv4Addr) {
         implicit def targetToRule(tgt: NatTarget): ForwardNatRule = {
             val targets = new JSet[NatTarget]()
             targets.add(tgt)

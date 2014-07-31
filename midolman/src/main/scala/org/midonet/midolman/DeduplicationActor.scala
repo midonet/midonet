@@ -23,6 +23,9 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator}
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
@@ -30,6 +33,7 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.concurrent.ExecutionContextOps
+import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
 
 object DeduplicationActor {
     // Messages
@@ -117,7 +121,8 @@ class DeduplicationActor(
             val cookieGen: CookieGenerator,
             val dpConnPool: DatapathConnectionPool,
             val clusterDataClient: DataClient,
-            val connectionCache: Cache,
+            val connTrackStateTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
+            val natStateTable: FlowStateLifecycle[NatKey, NatBinding],
             val traceMessageCache: Cache,
             val traceIndexCache: Cache,
             val metrics: PacketPipelineMetrics,
@@ -139,11 +144,11 @@ class DeduplicationActor(
     implicit val system = this.context.system
 
     // data structures to handle the duplicate packets.
-    protected val cookieToDpMatch = mutable.HashMap[Int, FlowMatch]()
-    protected val dpMatchToCookie = mutable.HashMap[FlowMatch, Int]()
-    protected val cookieToPendedPackets: mutable.MultiMap[Int, Packet] =
-                                new mutable.HashMap[Int, mutable.Set[Packet]]
-                                with mutable.MultiMap[Int, Packet]
+    protected val cookieToDpMatch = mutable.HashMap[Integer, FlowMatch]()
+    protected val dpMatchToCookie = mutable.HashMap[FlowMatch, Integer]()
+    protected val cookieToPendedPackets: mutable.MultiMap[Integer, Packet] =
+                                new mutable.HashMap[Integer, mutable.Set[Packet]]
+                                with mutable.MultiMap[Integer, Packet]
 
     protected val simulationExpireMillis = 5000L
 
@@ -152,6 +157,10 @@ class DeduplicationActor(
 
     protected val actionsCache = new ActionsCache(log = log)
 
+    protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
+    protected val natTx = new FlowStateTransaction(natStateTable)
+    protected var replicator: FlowStateReplicator = _
+
     protected var workflow: PacketHandler = _
 
     override def receive = LoggingReceive {
@@ -159,9 +168,13 @@ class DeduplicationActor(
         case DatapathReady(dp, state) if null == datapath =>
             datapath = dp
             dpState = state
+            replicator = new FlowStateReplicator(connTrackStateTable,
+                                                natStateTable,
+                                                dpState,
+                                                FlowController ! _,
+                                                datapath)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
-                                          dpConnPool, actionsCache)
-
+                                          dpConnPool, actionsCache, replicator)
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
 
@@ -170,6 +183,10 @@ class DeduplicationActor(
                 handlePacket(packets(i))
                 i += 1
             }
+
+            connTrackStateTable.expireIdleEntries(60, replicator, replicator.conntrackRemover)
+            natStateTable.expireIdleEntries(60, replicator, replicator.natRemover)
+            replicator.pushState(datapathConn(packets(0)))
 
         case RestartWorkflow(pktCtx) =>
             if (pktCtx.idle) {
@@ -220,8 +237,9 @@ class DeduplicationActor(
 
         val expiry = Platform.currentTime + simulationExpireMillis
         val pktCtx = new PacketContext(cookieOrEgressPort, packet, expiry,
-                                       connectionCache, traceMessageCache,
-                                       traceIndexCache, parentCookie, wcMatch)
+                                       traceMessageCache, traceIndexCache,
+                                       parentCookie, wcMatch)
+        pktCtx.state.initialize(connTrackTx, natTx)
 
         def matchTraceConditions(): Boolean = {
             val anyConditionMatching =
@@ -258,11 +276,13 @@ class DeduplicationActor(
         var i = 0
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
-            if (pktCtx.idle)
-                drop(pktCtx)
-            else
-                log.warning("Pending {} was scheduled for cleanup " +
-                            "but was not idle", pktCtx)
+            if (!pktCtx.isStateMessage) {
+                if (pktCtx.idle)
+                    drop(pktCtx)
+                else
+                    log.warning("Pending {} was scheduled for cleanup " +
+                                "but was not idle", pktCtx)
+            }
             i += 1
         }
     }
@@ -292,7 +312,6 @@ class DeduplicationActor(
         pktCtx.cookieOrEgressPort match {
             case Left(cookie) =>
                 applyFlow(cookie, pktCtx)
-
                 val latency = (Clock.defaultClock().tick() -
                                pktCtx.packet.startTimeNanos).toInt
                 metrics.packetsProcessed.mark()
@@ -326,7 +345,7 @@ class DeduplicationActor(
             }
         }
 
-        if (actions.isEmpty) {
+        if (!pktCtx.isStateMessage && actions.isEmpty) {
             system.eventStream.publish(DiscardPacket(cookie))
         }
     }
@@ -362,6 +381,8 @@ class DeduplicationActor(
         } catch {
             case NotYetException(f, _) => postponeOn(pktCtx, f)
             case ex: Exception => handleErrorOn(pktCtx, ex)
+        } finally {
+            flushTransactions()
         }
 
     private def handlePacket(packet: Packet): Unit = {
@@ -372,28 +393,35 @@ class DeduplicationActor(
             log.debug("Got actions from the cache: {}", actions)
             executePacket(packet, actions)
             packetOut(1)
-        } else {
-            dpMatchToCookie.get(flowMatch) match {
-                case None =>
-                    // If there is no entry for the flow match, create a new
-                    // cookie and a new PacketWorkflow to handle the packet
-                    val newCookie = cookieGen.next
-                    log.debug("new cookie #{} for new match {}",
-                              newCookie, flowMatch)
-                    dpMatchToCookie.put(flowMatch, newCookie)
-                    cookieToDpMatch.put(newCookie, flowMatch)
-                    cookieToPendedPackets.put(newCookie, mutable.Set.empty)
-                    startWorkflow(packet, Left(newCookie))
-
-                case Some(cookie) =>
-                    // Simulation in progress. Just pend the packet.
-                    log.debug("A matching packet with cookie {} is already " +
-                              "being handled", cookie)
-                    cookieToPendedPackets.addBinding(cookie, packet)
-                    packetOut(1)
-                    giveUpWorkflows(waitingRoom.doExpirations())
-            }
+        } else if (FlowStatePackets.isStateMessage(packet)) {
+            processPacket(packet)
+        } else dpMatchToCookie.get(flowMatch) match {
+            case None => processPacket(packet)
+            case Some(cookie) => makePending(packet, cookie)
         }
+    }
+
+    // No simulation is in progress for the flow match. Create a new
+    // cookie and start the packet workflow.
+    private def processPacket(packet: Packet): Unit = {
+        val newCookie = cookieGen.next
+        val flowMatch = packet.getMatch
+        log.debug("new cookie #{} for new match {}",
+            newCookie, flowMatch)
+        dpMatchToCookie.put(flowMatch, newCookie)
+        cookieToDpMatch.put(newCookie, flowMatch)
+        cookieToPendedPackets.put(newCookie, mutable.Set.empty)
+        startWorkflow(packet, Left(newCookie))
+    }
+
+    // There is a simulation in progress, so wait until it finishes and
+    // apply the resulting actions.
+    private def makePending(packet: Packet, cookie: Integer): Unit = {
+        log.debug("A matching packet with cookie {} is already " +
+                 "being handled", cookie)
+        cookieToPendedPackets.addBinding(cookie, packet)
+        packetOut(1)
+        giveUpWorkflows(waitingRoom.doExpirations())
     }
 
     private def executePacket(packet: Packet, actions: JList[FlowAction]) {
@@ -408,5 +436,10 @@ class DeduplicationActor(
                 log.info("Failed to execute packet: {}", e)
         }
         metrics.packetsProcessed.mark()
+    }
+
+    private def flushTransactions(): Unit = {
+        connTrackTx.flush()
+        natTx.flush()
     }
 }
