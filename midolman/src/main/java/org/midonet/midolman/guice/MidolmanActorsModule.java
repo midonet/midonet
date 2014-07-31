@@ -6,13 +6,15 @@ package org.midonet.midolman.guice;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import scala.concurrent.duration.Duration;
 
-import com.google.inject.BindingAnnotation;
-import com.google.inject.Exposed;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-
+import akka.actor.ActorInitializationException;
+import akka.actor.ActorKilledException;
+import akka.actor.OneForOneStrategy;
+import akka.actor.SupervisorStrategy;
+import akka.actor.SupervisorStrategy.Directive;
+import akka.japi.Function;
+import com.google.inject.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,24 +31,18 @@ import org.midonet.midolman.l4lb.HealthMonitor;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
+import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
-import akka.actor.ActorInitializationException;
-import akka.actor.ActorKilledException;
-import akka.actor.OneForOneStrategy;
-import akka.actor.SupervisorStrategy;
-import akka.actor.SupervisorStrategy.Directive;
 import static akka.actor.SupervisorStrategy.escalate;
 import static akka.actor.SupervisorStrategy.resume;
 import static akka.actor.SupervisorStrategy.stop;
-import akka.japi.Function;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import scala.concurrent.duration.Duration;
 
 /**
  * This Guice module will bind an instance of {@link MidolmanActorsService} so
@@ -77,6 +73,7 @@ public class MidolmanActorsModule extends PrivateModule {
         requireBinding(HostIdProviderService.class);
         requireBinding(HostConfig.class);
         requireBinding(UpcallDatapathConnectionManager.class);
+        requireBinding(FlowStateStorageFactory.class);
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);

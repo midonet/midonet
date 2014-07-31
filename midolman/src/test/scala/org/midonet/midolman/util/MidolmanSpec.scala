@@ -28,6 +28,7 @@ import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -89,6 +90,7 @@ trait MidolmanSpec extends FeatureSpecLike
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
+            new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {

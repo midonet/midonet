@@ -41,6 +41,7 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.host.config.HostConfig
 import org.midonet.midolman.host.guice.HostConfigProvider
@@ -213,6 +214,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
+            new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {

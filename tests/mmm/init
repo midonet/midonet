@@ -27,9 +27,8 @@ sudo apt-get install python-software-properties -y
 sudo add-apt-repository cloud-archive:grizzly -y
 
 # add apt source for cassandra
-echo -e 'deb http://www.apache.org/dist/cassandra/debian 11x main\ndeb-src http://www.apache.org/dist/cassandra/debian 11x main' | sudo tee /etc/apt/sources.list.d/cassandra.list
-curl -k http://suzuki:ironchef@apt.midokura.com/cassandra/F758CE318D77295D.key | sudo apt-key add -
-curl -k http://suzuki:ironchef@apt.midokura.com/cassandra/2B5C1B00.key | sudo apt-key add -
+echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 
 # update apt
 sudo apt-get update
@@ -50,7 +49,7 @@ sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /
 sudo service zookeeper start
 
 # Install cassandra
-sudo apt-get -y --force-yes install cassandra
+sudo apt-get -y --force-yes install dsc20
 sudo update-rc.d cassandra enable
 CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
 sudo sed -i -e "s/^cluster_name:.*$/cluster_name: \'midonet\'/g" $CASSANDRA_CONF_FILE

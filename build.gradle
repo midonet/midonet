@@ -37,7 +37,7 @@ project.ext {
         commons_conf: "commons-configuration:commons-configuration:1.8",
         commons_lang: "commons-lang:commons-lang:2.6",
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
-        commons_cli: "commons-org:commons-org:1.2",
+        commons_cli: "commons-cli:commons-cli:1.2",
         commons_io: "commons-io:commons-io:2.3",
         curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
         curator_test: "org.apache.curator:curator-test:2.6.0",
@@ -70,11 +70,12 @@ project.ext {
         hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
         hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
 
-        zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.5") {
+        zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.6") {
             exclude group: 'jline', module: 'jline'
             exclude group: 'javax.jms', module: 'javax.jms'
             exclude group: 'com.sun.jdmk', module: 'jmxtools'
             exclude group: 'com.sun.jmx', module: 'jmxri'
+            exclude group: 'io.netty', module: 'netty'
             exclude group: 'log4j', module: 'log4j'
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
 

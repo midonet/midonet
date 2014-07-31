@@ -28,6 +28,7 @@ import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.MockDatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.guice.state.MockFlowStateStorageModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
@@ -85,6 +86,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(configuration),
+            new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new HostModule(),

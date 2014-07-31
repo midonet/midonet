@@ -5,7 +5,7 @@
 package org.midonet.midolman.state
 
 import java.lang.{Long => JLong}
-import java.util.{UUID, List => JList, Set => JSet,
+import java.util.{UUID, List => JList, Set => JSet, Iterator => JIterator,
                   HashSet => JHashSet, ArrayList, HashMap => JMap}
 import java.util.concurrent.ConcurrentHashMap
 
@@ -15,6 +15,7 @@ import akka.actor.ActorSystem
 import com.google.protobuf.MessageLite
 
 import org.midonet.cluster.client.Port
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
@@ -92,9 +93,6 @@ class WeakRefLibrarian {
     val keyToIngressPort = new JMap[FlowStateTag, UUID]()
     val peerToIngressPorts = new ConcurrentHashMap[UUID, JSet[UUID]]()
     val ingressPortToPeer = new JMap[UUID, UUID]()
-
-    // used as template for set.toArray
-    private val EMPTY_UUID_ARRAY = new Array[UUID](0)
 
     def isRemotelyOwned(key: FlowStateTag) = keyToIngressPort.containsKey(key)
 
@@ -207,6 +205,7 @@ abstract class BaseFlowStateReplicator() {
 
     def conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue]
     def natTable: FlowStateLifecycle[NatKey, NatBinding]
+    def storage: FlowStateStorage
     def underlay: UnderlayResolver
     def datapath: Datapath
     protected def log: akka.event.LoggingAdapter
@@ -216,13 +215,13 @@ abstract class BaseFlowStateReplicator() {
     protected def getPortSet(id: UUID): PortSet
     protected def getPortGroup(id: UUID): PortGroup
 
-
     /* Used for message building */
     private[this] val txState = Proto.FlowState.newBuilder()
     private[this] val txNatEntry = Proto.NatEntry.newBuilder()
     private[this] val currentMessage = Proto.StateMessage.newBuilder()
     private[this] var txIngressPort: UUID = _
-    private[this] var txPeers: JSet[UUID] = _
+    private[this] val txPeers: JSet[UUID] = new JHashSet[UUID]()
+    private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
 
     private[this] val pendingMessages = new ArrayList[(JSet[UUID], MessageLite)]()
     private[this] val hostId = uuidToProto(underlay.host.id)
@@ -261,20 +260,24 @@ abstract class BaseFlowStateReplicator() {
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, StrongRefLibrarian] {
         override def apply(refs: StrongRefLibrarian, k: ConnTrackKey, v: ConnTrackValue) = {
-            if (refs.isLocallyOwned(k) || (conntrackTable.get(k) eq null)) {
+            val isNewKey = conntrackTable.get(k) eq null
+            if (refs.isLocallyOwned(k) || isNewKey) {
                 log.debug("push-add conntrack key: {}", k)
                 if (txPeers.size() > 0)
                     txState.setConntrackKey(connTrackKeyToProto(k))
                 refs.claimOwnership(txIngressPort, k)
                 refs.addPeersFor(k, txPeers)
             }
+            if (isNewKey)
+                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
             refs
         }
     }
 
     private val _natAdder = new Reducer[NatKey, NatBinding, StrongRefLibrarian] {
         override def apply(refs: StrongRefLibrarian, k: NatKey, v: NatBinding) = {
-            if (refs.isLocallyOwned(k) || (natTable.get(k) eq null)) {
+            val isNewKey = natTable.get(k) eq null
+            if (refs.isLocallyOwned(k) || isNewKey) {
                 log.debug("push-add nat key: {}", k)
                 if (txPeers.size() > 0) {
                     txNatEntry.clear()
@@ -284,6 +287,8 @@ abstract class BaseFlowStateReplicator() {
                 refs.claimOwnership(txIngressPort, k)
                 refs.addPeersFor(k, txPeers)
             }
+            if (isNewKey)
+                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
             refs
         }
     }
@@ -380,6 +385,29 @@ abstract class BaseFlowStateReplicator() {
             conntrackTable.setRefCount(k, 0)
     }
 
+    def importFromStorage(batch: FlowStateBatch) {
+        importConnTrack(batch.strongConnTrack.iterator(), ConnTrackState.FORWARD_FLOW)
+        importConnTrack(batch.weakConnTrack.iterator(), ConnTrackState.RETURN_FLOW)
+        importNat(batch.strongNat.entrySet().iterator())
+        importNat(batch.weakNat.entrySet().iterator())
+    }
+
+    private def importConnTrack(keys: JIterator[ConnTrackKey], v: ConnTrackState.ConnTrackValue) {
+        while (keys.hasNext) {
+            val k = keys.next()
+            conntrackTable.putAndRef(k, v)
+            conntrackTable.unref(k)
+        }
+    }
+
+    private def importNat(entries: JIterator[java.util.Map.Entry[NatKey, NatBinding]]) {
+        while (entries.hasNext) {
+            val e = entries.next()
+            natTable.putAndRef(e.getKey, e.getValue)
+            natTable.unref(e.getKey)
+        }
+    }
+
     /**
      * Ask this replicator to unref the keys owned by a given peer. This method
      * is thread-safe.
@@ -453,7 +481,7 @@ abstract class BaseFlowStateReplicator() {
         if (natTx.size() == 0 && conntrackTx.size() == 0)
             return
 
-        txPeers = resolvePeers(ingressPort, egressPort, egressPortSet, tags)
+        resolvePeers(ingressPort, egressPort, egressPortSet, txPeers, txPorts, tags)
         val hasPeers = !txPeers.isEmpty
 
         if (hasPeers) {
@@ -541,6 +569,8 @@ abstract class BaseFlowStateReplicator() {
             }
             i -= 1
         }
+
+        storage.submit()
     }
 
     private def acceptNewState(msg: Proto.StateMessage, fromThePast: Boolean) {
@@ -641,7 +671,7 @@ abstract class BaseFlowStateReplicator() {
 
     @throws(classOf[NotYetException])
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
-                                    tags: mutable.Set[FlowTag]) {
+                                    ports: JSet[UUID], tags: mutable.Set[FlowTag]) {
         def addPeerFor(port: Port) {
             if ((port.hostID ne null) && (port.hostID != underlay.host.id))
                 hosts.add(port.hostID)
@@ -660,8 +690,10 @@ abstract class BaseFlowStateReplicator() {
                 val members = group.members.iterator
                 while (members.hasNext) {
                     val id = members.next()
-                    if (id != portId)
+                    if (id != portId) {
+                        ports.add(id)
                         addPeerFor(getPort(id))
+                    }
                 }
             }
         }
@@ -682,22 +714,25 @@ abstract class BaseFlowStateReplicator() {
     protected def resolvePeers(ingressPort: UUID,
                                egressPort: UUID,
                                egressPortSet: UUID,
-                               tags: mutable.Set[FlowTag]): JSet[UUID] = {
-        val hosts = new java.util.HashSet[UUID]()
-        collectPeersForPort(ingressPort, hosts, tags)
-        if (egressPort != null)
-            collectPeersForPort(egressPort, hosts, tags)
-        else if (egressPortSet != null)
+                               hosts: JSet[UUID],
+                               ports: JSet[UUID],
+                               tags: mutable.Set[FlowTag]) {
+        hosts.clear()
+        ports.clear()
+        collectPeersForPort(ingressPort, hosts, ports, tags)
+        if (egressPort != null) {
+            ports.add(egressPort)
+            collectPeersForPort(egressPort, hosts, ports, tags)
+        } else if (egressPortSet != null) {
             collectPeersForPortSet(egressPortSet, hosts, tags)
-
-        hosts
+        }
     }
-
 }
 
 class FlowStateReplicator(
         override val conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
         override val natTable: FlowStateLifecycle[NatKey, NatBinding],
+        override val storage: FlowStateStorage,
         override val underlay: UnderlayResolver,
         override val invalidateFlowsFor: (FlowStateTag) => Unit,
         override val datapath: Datapath)(implicit as: ActorSystem)
@@ -706,7 +741,7 @@ class FlowStateReplicator(
     override val log = akka.event.Logging(as, this.getClass)
 
     @throws(classOf[NotYetException])
-    override def getHost(id: UUID) = VTPM.tryAsk(HostRequest(id))
+    override def getHost(id: UUID) = VTPM.tryAsk(HostRequest(id, false))
 
     @throws(classOf[NotYetException])
     override def getPort(id: UUID) = VTA.tryAsk[Port](id)

@@ -17,7 +17,7 @@ session_gracetime = 30000
 #
 # Refer to the docs/cassandra-cache.md documentation for more specific details
 #servers = 192.168.100.8:9160,192.168.100.9:9160,192.168.100.10:9160
-servers = 127.0.0.1:9160
+servers = 127.0.0.1:9042
 # DO CHANGE THIS, recommended value is 3
 replication_factor = 1
 cluster = midonet
