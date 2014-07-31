@@ -72,6 +72,11 @@ public class NeutronResource extends AbstractResource {
         return factory.getNeutronSecurityGroupRuleResource();
     }
 
+    @Path(LBUriBuilder.LB)
+    public LBResource getLoadBalancerResource() {
+        return factory.getLoadBalancerResource();
+    }
+
     /**
      * Handler to getting a neutron object.
      *
