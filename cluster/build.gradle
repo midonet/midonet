@@ -26,6 +26,7 @@ dependencies {
             libraries.curator_recipes, libraries.guava, libraries.guice,
             libraries.jackson_mapper, libraries.rx, libraries.scala
 
-    testCompile libraries.curator_test, libraries.hamcrest, libraries.scalatest,
+    testCompile libraries.curator_test, libraries.hamcrest,
+                libraries.logback, libraries.scalatest,
                 libraries.test_frameworks
 }
