@@ -17,6 +17,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
+import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
@@ -374,10 +375,15 @@ class Coordinator(pktCtx: PacketContext)
                 val dev = if (isPortSet) outputID else port.deviceID
                 pktCtx.state.trackConnection(dev)
 
+                val hardExp = if (! pktCtx.state.containsForwardStateKeys) 0
+                              else FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000 / 2
+                val idleExp = if (hardExp == 0) IDLE_EXPIRATION_MILLIS else 0
+
                 virtualWildcardFlowResult(WildcardFlow(
                     wcmatch = pktCtx.origMatch,
                     actions = actions.toList,
-                    idleExpirationMillis = IDLE_EXPIRATION_MILLIS))
+                    idleExpirationMillis = idleExp,
+                    hardExpirationMillis = hardExp))
             })
     }
 

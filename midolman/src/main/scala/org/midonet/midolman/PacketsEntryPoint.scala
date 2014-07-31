@@ -13,17 +13,18 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.util.StatisticalCounter
-import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTable}
-import org.midonet.midolman.state.FlowStateReplicator
+import org.midonet.sdn.state.ShardedFlowStateTable
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -78,6 +79,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var counter: StatisticalCounter = null
 
+    @Inject
+    var storageFactory: FlowStateStorageFactory = null
+
     var connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]
     var natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]
 
@@ -97,10 +101,11 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     protected def startWorker(index: Int): ActorRef = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         val props = Props(classOf[DeduplicationActor],
-                            cookieGen, dpConnPool, clusterDataClient,
-                            connTrackStateTable.addShard(),
-                            natStateTable.addShard(),
-                            metrics, counter.addAndGet(index, _: Int))
+                          cookieGen, dpConnPool, clusterDataClient,
+                          connTrackStateTable.addShard(),
+                          natStateTable.addShard(),
+                          storageFactory.create(), metrics,
+                          counter.addAndGet(index, _: Int))
                     .withDispatcher("actors.pinned-dispatcher")
 
         context.actorOf(props, s"PacketProcessor-$index")
@@ -120,6 +125,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         case m: TraceConditions => broadcast(m)
 
         case m: EmitGeneratedPacket => roundRobin(m)
+
+        case m: FlowStateBatch => broadcast(m)
 
         case GetWorkers => sender ! Workers(workers)
 

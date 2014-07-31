@@ -9,20 +9,20 @@ import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-import com.google.common.util.concurrent.Service;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.midonet.midolman.guice.*;
-import org.midonet.event.agent.ServiceEvent;
+import com.google.common.util.concurrent.Service;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.MidostoreSetupService;
-
+import org.midonet.event.agent.ServiceEvent;
+import org.midonet.midolman.guice.*;
+import org.midonet.midolman.guice.state.FlowStateStorageModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
@@ -111,6 +111,7 @@ public class Midolman {
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),
+            new FlowStateStorageModule(),
             new InterfaceScannerModule()
         );
 

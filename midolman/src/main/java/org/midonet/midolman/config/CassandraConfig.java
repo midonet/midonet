@@ -19,7 +19,7 @@ public interface CassandraConfig {
 
     public final static String GROUP_NAME = "cassandra";
 
-    @ConfigString(key = "servers", defaultValue = "127.0.0.1:9170")
+    @ConfigString(key = "servers", defaultValue = "127.0.0.1:9042")
     public String getCassandraServers();
 
     @ConfigString(key = "cluster", defaultValue = "midonet")

@@ -4,7 +4,7 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, UUID, List => JList, Set => JSet}
+import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -150,14 +150,14 @@ class FlowStateReplicatorTest extends FeatureSpec
             Given("A conntrack key in a transaction")
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
-            When("The transaction is added to the replicator and pushed")
+            When("The transaction is added to the replicator and pushed to peers")
             sendAndAcceptTransactions()
 
             Then("Its peer's stateful tables should contain the key")
             recipient.conntrackTable.get(connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
         }
 
-        scenario("Replicates nat keys") {
+        scenario("Replicates Nat keys") {
             Given("A set of nat keys in a transaction")
             for ((k, v) <- natMappings) {
                 natTx.putAndRef(k, v)
@@ -374,14 +374,14 @@ class FlowStateReplicatorTest extends FeatureSpec
         }
     }
 
-    feature("L4 flow state resolves hosts correctly") {
-        scenario("All relevant ingress and egress hosts get detected") {
+    feature("L4 flow state resolves hosts and ports correctly") {
+        scenario("All relevant ingress and egress hosts and ports get detected") {
             val tags = mutable.Set[FlowTag]()
 
             When("The flow replicator resolves peers for a flow's state")
-            val hosts = sender.resolvePeers(ingressPort.id, egressPort1.id, null, tags)
-
-            hosts should have size 3
+            val hosts = new JHashSet[UUID]()
+            val ports = new JHashSet[UUID]()
+            sender.resolvePeers(ingressPort.id, egressPort1.id, null, hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
@@ -391,6 +391,14 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             And("Hosts in the egress port's port group should be included")
             hosts should contain (egressHost2)
+
+            And("All ports should be reported")
+            ports should contain (ingressPortGroupMember.id)
+            ports should contain (egressPort1.id)
+            ports should contain (egressPort2.id)
+
+            hosts should have size 3
+            ports should have size 3
 
             And("The flow should be tagged with all of the ports and port group tags")
             tags should contain (ingressPortGroupMember.deviceTag)
@@ -462,6 +470,8 @@ class TestableFlowStateReplicator(
 
     override val log = SoloLogger(this.getClass)
 
+    override val storage = new MockStateStorage()
+
     val mockConntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
     override def conntrackTable = mockConntrackTable
 
@@ -484,8 +494,10 @@ class TestableFlowStateReplicator(
     override def resolvePeers(ingressPort: UUID,
                               egressPort: UUID,
                               egressPortSet: UUID,
-                              tags: mutable.Set[FlowTag]): JSet[UUID] = {
-        super.resolvePeers(ingressPort, egressPort, egressPortSet, tags)
+                              peers: JSet[UUID],
+                              ports: JSet[UUID],
+                              tags: mutable.Set[FlowTag]) {
+        super.resolvePeers(ingressPort, egressPort, egressPortSet, peers, ports, tags)
     }
 }
 

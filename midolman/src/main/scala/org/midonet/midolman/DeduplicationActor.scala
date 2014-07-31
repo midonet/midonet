@@ -17,6 +17,7 @@ import akka.event.{LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cluster.DataClient
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -24,7 +25,7 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator}
+import org.midonet.midolman.state.{FlowStateStorage, FlowStatePackets, FlowStateReplicator}
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
@@ -122,6 +123,7 @@ class DeduplicationActor(
             val clusterDataClient: DataClient,
             val connTrackStateTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateLifecycle[NatKey, NatBinding],
+            val storage: FlowStateStorage,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
@@ -160,18 +162,29 @@ class DeduplicationActor(
 
     protected var workflow: PacketHandler = _
 
+    private var pendingFlowStateBatches = List[FlowStateBatch]()
+
     override def receive = LoggingReceive {
 
         case DatapathReady(dp, state) if null == datapath =>
             datapath = dp
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
-                                                natStateTable,
-                                                dpState,
-                                                FlowController ! _,
-                                                datapath)
+                natStateTable,
+                storage,
+                dpState,
+                FlowController ! _,
+                datapath)
+            pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, actionsCache, replicator)
+
+        case m: FlowStateBatch =>
+            if (replicator ne null)
+                replicator.importFromStorage(m)
+            else
+                pendingFlowStateBatches ::= m
+
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
 
@@ -181,8 +194,12 @@ class DeduplicationActor(
                 i += 1
             }
 
-            connTrackStateTable.expireIdleEntries(60, replicator, replicator.conntrackRemover)
-            natStateTable.expireIdleEntries(60, replicator, replicator.natRemover)
+            connTrackStateTable.expireIdleEntries(
+                FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
+                replicator, replicator.conntrackRemover)
+            natStateTable.expireIdleEntries(
+                FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
+                replicator, replicator.natRemover)
             replicator.pushState(datapathConn(packets(0)))
 
         case RestartWorkflow(pktCtx) =>

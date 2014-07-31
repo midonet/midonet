@@ -20,10 +20,7 @@ import org.scalatest._
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.cassandraunit.AbstractCassandraUnit4CQLTestCase
-import org.cassandraunit.dataset.cql.FileCQLDataSet
 import org.midonet.cassandra.CassandraClient
-import org.midonet.util.eventloop.{TryCatchReactor, MockReactor}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -34,7 +31,7 @@ class FlowStateStorageTest extends FeatureSpec
                             with GivenWhenThen {
     implicit def stringToIp(str: String): IPAddr = IPv4Addr.fromString(str)
 
-    val actors = ActorSystem.create()
+    implicit val actors = ActorSystem.create()
     import actors.dispatcher
 
     val timeout: Duration = 3 seconds
@@ -52,33 +49,17 @@ class FlowStateStorageTest extends FeatureSpec
     val ingressPort = UUID.randomUUID()
     val egressPorts = List(UUID.randomUUID(), UUID.randomUUID())
 
-    class CUnit(val cql: String) extends AbstractCassandraUnit4CQLTestCase {
-        override def getDataSet() = new FileCQLDataSet(
-            this.getClass.getClassLoader.getResource(cql).toExternalForm.substring(5))
-
-        override def before() {
-            EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-            Thread.sleep(5000L)
-            super.before()
-        }
-    }
-
-    var cunit: CUnit = _
-
     var cass: CassandraClient = _
-
     var storage: FlowStateStorage = _
 
     before {
-        cunit = new CUnit("flowstate.cql")
-        cunit.before()
-        cass = new CassandraClient("127.0.0.1:9142", "TestCluster", "MidonetFlowState", null)
+        EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+        Thread.sleep(10000L)
+        cass = new CassandraClient("127.0.0.1:9142", "TestCluster",
+                                   "MidonetFlowState", 1,
+                                   FlowStateStorage.SCHEMA, null)
         cass.connect()
         storage = FlowStateStorage(cass)
-    }
-
-    after {
-        cunit.after()
     }
 
     feature("Stores and fetches state from cassandra") {

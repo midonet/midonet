@@ -18,10 +18,10 @@ import scala.util.Failure
 import akka.actor._
 import akka.util.Timeout
 import akka.pattern.pipe
+import com.google.inject.Inject
 import org.apache.zookeeper.KeeperException
 import org.apache.zookeeper.KeeperException.{NodeExistsException, NoNodeException}
 import org.slf4j.LoggerFactory
-import com.google.inject.Inject
 
 import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.cluster.data.TunnelZone
@@ -33,8 +33,8 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory,
+                                   ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
 import org.midonet.sdn.flows.FlowTagger
@@ -73,7 +73,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     case class PortSetForTunnelKeyRequest(tunnelKey: Long)
 
-    case class HostRequest(hostId: UUID) extends VTPMRequest[Host] {
+    case class HostRequest(hostId: UUID, update: Boolean = true) extends VTPMRequest[Host] {
         protected[topology] val tag = classTag[Host]
         override def getCached = DeviceCaches.host(hostId)
     }
@@ -534,8 +534,8 @@ abstract class VirtualToPhysicalMapperBase
             psetIdToHosts += portSet.id -> portSet.hosts
             portSetUpdate(portSet.id)
 
-        case HostRequest(hostId) =>
-            hostsMgr.addSubscriber(hostId, sender, updates = true)
+        case HostRequest(hostId, updates) =>
+            hostsMgr.addSubscriber(hostId, sender, updates)
 
         case host: Host =>
             hostsMgr.updateAndNotifySubscribers(host.id, host)

@@ -6,9 +6,13 @@ package org.midonet.midolman.state
 
 import java.lang.{Integer => JInt}
 import java.net.InetAddress
-import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap, HashSet => JHashSet}
+import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
+                  HashSet => JHashSet, Iterator => JIterator}
+import java.util.concurrent.{TimeoutException, TimeUnit}
 import scala.concurrent.{ExecutionContext, promise, Promise, Future}
+import scala.concurrent.duration.Duration
 
+import akka.actor.ActorSystem
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
 import org.slf4j.{Logger, LoggerFactory}
@@ -22,11 +26,55 @@ import org.midonet.util.collection.Bimap
 
 
 object FlowStateStorage {
+    val KEYSPACE_NAME = "MidonetFlowState"
+
     val CONNTRACK_BY_INGRESS_TABLE = "conntrack_by_ingress_port"
     val CONNTRACK_BY_EGRESS_TABLE = "conntrack_by_egress_port"
-
     val NAT_BY_INGRESS_TABLE = "nat_by_ingress_port"
     val NAT_BY_EGRESS_TABLE = "nat_by_egress_port"
+
+    object Schema {
+        def CONNTRACK(name: String) =
+            s"CREATE TABLE IF NOT EXISTS $name ( " +
+                "        port uuid, " +
+                "        proto int, " +
+                "        srcIp inet, " +
+                "        srcPort int, " +
+                "        dstIp inet, " +
+                "        dstPort int, " +
+                "        device uuid, " +
+                "PRIMARY KEY ((port, proto, srcIp, srcPort, dstIp, dstPort, device)));"
+
+        def CONNTRACK_IDX(table: String) =
+            s"CREATE INDEX IF NOT EXISTS ON $table (port);"
+
+        def NAT(name: String) =
+            s"CREATE TABLE IF NOT EXISTS $name ( " +
+                "        port uuid, " +
+                "        type text, " +
+                "        proto int, " +
+                "        srcIp inet, " +
+                "        srcPort int, " +
+                "        dstIp inet, " +
+                "        dstPort int, " +
+                "        device uuid, " +
+                "        translateIp inet, " +
+                "        translatePort int, " +
+                "PRIMARY KEY ((port, type, proto, srcIp, srcPort, dstIp, dstPort, device)));"
+
+        def NAT_IDX(table: String) =
+            s"CREATE INDEX IF NOT EXISTS ON $table (port);"
+    }
+
+    val SCHEMA = Array[String](
+            Schema.CONNTRACK(CONNTRACK_BY_INGRESS_TABLE),
+            Schema.CONNTRACK_IDX(CONNTRACK_BY_INGRESS_TABLE),
+            Schema.CONNTRACK(CONNTRACK_BY_EGRESS_TABLE),
+            Schema.CONNTRACK_IDX(CONNTRACK_BY_EGRESS_TABLE),
+            Schema.NAT(NAT_BY_INGRESS_TABLE),
+            Schema.NAT_IDX(NAT_BY_INGRESS_TABLE),
+            Schema.NAT(NAT_BY_EGRESS_TABLE),
+            Schema.NAT_IDX(NAT_BY_EGRESS_TABLE))
 
     val FLOW_STATE_TTL_SECONDS = 60
 
@@ -67,27 +115,48 @@ object FlowStateStorage {
             networkAddress = r.getInet("translateIp"),
             transportPort = r.getInt("translatePort"))
 
-    def apply(client: CassandraClient) = new FlowStateStorageImpl(client)
+    def apply(client: CassandraClient): FlowStateStorage = new FlowStateStorageImpl(client)
 }
 
 trait FlowStateStorage {
-    def fetchStrongConnTrackRefs(portId: UUID)(implicit ec: ExecutionContext): Future[JSet[ConnTrackKey]]
-    def fetchWeakConnTrackRefs(portId: UUID)(implicit ec: ExecutionContext): Future[JSet[ConnTrackKey]]
-    def fetchStrongNatRefs(portId: UUID)(implicit ec: ExecutionContext): Future[JMap[NatKey, NatBinding]]
-    def fetchWeakNatRefs(portId: UUID)(implicit ec: ExecutionContext): Future[JMap[NatKey, NatBinding]]
+    def fetchStrongConnTrackRefs(portId: UUID)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKey]]
 
-    def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID, weakRefs: Iterator[UUID])
-    def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID, weakRefs: Iterator[UUID])
+    def fetchWeakConnTrackRefs(portId: UUID)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JSet[ConnTrackKey]]
+
+    def fetchStrongNatRefs(portId: UUID)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKey, NatBinding]]
+
+    def fetchWeakNatRefs(portId: UUID)
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[JMap[NatKey, NatBinding]]
+
+    def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID, weakRefs: JIterator[UUID])
+    def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID, weakRefs: JIterator[UUID])
 
     def submit()
 }
 
+
+/**
+ * FlowStateStorage: store & fetch flow state keys from Cassandra.
+ *
+ * This class is *NOT* thread safe, each thread that needs to submit or fetch
+ * state keys from Cassandra should get its own instance. The only reason it
+ * is not thread safe is because write operations are batched, a batch is
+ * prepared by a series of touch*() method calls and it's then fired
+ * by invoking submit.
+ *
+ * All operations are asynchronous, submit is meant to be fire-and-forget with
+ * no error control and for this reason, returns Unit.
+ */
 class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage {
     private val log: Logger = LoggerFactory.getLogger(classOf[FlowStateStorage])
 
     import FlowStateStorage._
 
     var batch: BatchStatement = new BatchStatement()
+    val ASYNC_REQUEST_TIMEOUT = Duration.create(3, TimeUnit.SECONDS)
 
     class Prepared(query: String) {
         var _statement: PreparedStatement = null
@@ -127,13 +196,8 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     val fetchIngressNat = fetchByPortStatement(NAT_BY_INGRESS_TABLE)
     val fetchEgressNat = fetchByPortStatement(NAT_BY_EGRESS_TABLE)
 
-    final def withSession[U](body: (Session) => U): Option[U] = {
-        val s = client.session
-        if (s ne null)
-            Option(body(s))
-        else
-            None
-    }
+    final def withSession[U](body: (Session) => U): Option[U] =
+        Option(client.session) map body
 
     private def bind(st: PreparedStatement, port: UUID, k: ConnTrackKey) = {
         st.bind(port, k.networkProtocol.toInt.asInstanceOf[JInt],
@@ -151,8 +215,16 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                       ipAddrToInet(v.networkAddress), v.transportPort.asInstanceOf[JInt])
     }
 
+    /**
+     * Adds a connection tracking key to the next batch that will be sent
+     * to cassandra.
+     *
+     * @param k The key
+     * @param strongRef Ingress port.
+     * @param weakRefs Egress ports.
+     */
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
-            weakRefs: Iterator[UUID]): Unit = withSession {
+            weakRefs: JIterator[UUID]): Unit = withSession {
         s =>
             batch.add(bind(touchIngressConnTrack(s), strongRef, k))
             while (weakRefs.hasNext) {
@@ -160,8 +232,16 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             }
     }
 
+    /**
+     * Addss a NAT key to the next batch that will be sent to Cassandra.
+     *
+     * @param k The key
+     * @param v Its value
+     * @param strongRef Ingress port
+     * @param weakRefs Egress ports.
+     */
     override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
-            weakRefs: Iterator[UUID]): Unit = withSession {
+            weakRefs: JIterator[UUID]): Unit = withSession {
         s =>
             batch.add(bind(touchIngressNat(s), strongRef, k, v))
             while (weakRefs.hasNext) {
@@ -169,6 +249,10 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             }
     }
 
+    /**
+     * Sends all state accumulated through touchConnTrackKey() and touchNatKey()
+     * to Cassandra, asynchronously. Errors will be logged but ignored.
+     */
     override def submit(): Unit = withSession {
         s =>
             val result = s.executeAsync(batch)
@@ -176,16 +260,28 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             batch = new BatchStatement()
     }
 
-    override def fetchStrongConnTrackRefs(port: UUID)(implicit ec: ExecutionContext) =
+    /**
+     * Fetch all conntrack keys for which a give port is ingress.
+     */
+    override def fetchStrongConnTrackRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
         fetch(fetchIngressConnTrack, port, resultSetToConnTrackKeys)
 
-    override def fetchWeakConnTrackRefs(port: UUID)(implicit ec: ExecutionContext) =
+    /**
+     * Fetch all conntrack keys for which a give port is egress.
+     */
+    override def fetchWeakConnTrackRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
         fetch(fetchEgressConnTrack, port, resultSetToConnTrackKeys)
 
-    override def fetchStrongNatRefs(port: UUID)(implicit ec: ExecutionContext) =
+    /**
+     * Fetch all nat keys for which a give port is ingress.
+     */
+    override def fetchStrongNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
         fetch(fetchIngressNat, port, resultSetToNatBindings)
 
-    override def fetchWeakNatRefs(port: UUID)(implicit ec: ExecutionContext) =
+    /**
+     * Fetch all nat keys for which a give port is egress.
+     */
+    override def fetchWeakNatRefs(port: UUID)(implicit ec: ExecutionContext, as: ActorSystem) =
         fetch(fetchEgressNat, port, resultSetToNatBindings)
 
     private def resultSetToConnTrackKeys(rs: ResultSet): JSet[ConnTrackKey] = {
@@ -214,7 +310,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     }
 
     private def fetch[U](statement: Prepared, portId: UUID, transform: (ResultSet) => U)
-                (implicit ec: ExecutionContext): Future[U] = {
+                (implicit ec: ExecutionContext, as: ActorSystem): Future[U] = {
         peelResult (withSession { s =>
             toScalaFuture(s.executeAsync(statement(s).bind(portId))) map transform
         })
@@ -230,7 +326,10 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
         }
     }
 
-    private def toScalaFuture(f: ResultSetFuture): Future[ResultSet] = {
+    private def toScalaFuture(f: ResultSetFuture)
+            (implicit ec: ExecutionContext,
+                      as: ActorSystem): Future[ResultSet] = {
+
         val p: Promise[ResultSet] = promise[ResultSet]()
         Futures.addCallback(f, new FutureCallback[ResultSet](){
             override def onSuccess(result: ResultSet): Unit = {
@@ -241,6 +340,12 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                 p.failure(t)
             }
         })
+        val exp = as.scheduler.scheduleOnce(ASYNC_REQUEST_TIMEOUT) {
+            p tryFailure new TimeoutException()
+        }
+        p.future onComplete {
+            case _ => if (!exp.isCancelled) exp.cancel()
+        }
         p.future
     }
 }

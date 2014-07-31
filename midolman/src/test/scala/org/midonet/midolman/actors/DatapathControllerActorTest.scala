@@ -30,6 +30,13 @@ import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports._
+import org.midonet.midolman.state.{MockStateStorage, FlowStateStorageFactory}
+
+class TestableDpC extends DatapathController {
+    override def storageFactory = new FlowStateStorageFactory() {
+        override def create() = new MockStateStorage()
+    }
+}
 
 @RunWith(classOf[JUnitRunner])
 class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
@@ -42,7 +49,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     import VirtualToPhysicalMapper.ZoneChanged
     import VirtualToPhysicalMapper.ZoneMembers
 
-    val dpc = TestActorRef[DatapathController]("TestDPCActor")
+    val dpc = TestActorRef[TestableDpC]("TestDPCActor")
 
     val emptyJSet = new java.util.HashSet[InterfaceDescription]()
 
@@ -194,7 +201,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     object CompleteInit
 
-    class DatapathControllerInit(testKit: ActorRef) extends DatapathController {
+    class DatapathControllerInit(testKit: ActorRef) extends TestableDpC {
         override def completeInitialization() { testKit ! CompleteInit }
     }
 }

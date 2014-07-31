@@ -36,8 +36,9 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
-    ZoneMembers, HostRequest, TunnelZoneRequest}
+    ZoneMembers, TunnelZoneRequest}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.netlink.Callback
@@ -276,6 +277,14 @@ class DatapathController extends Actor with ActorLogging {
     @Inject
     var upcallConnManager: UpcallDatapathConnectionManager = null
 
+    @Inject
+    var _storageFactory: FlowStateStorageFactory = null
+
+    protected def storageFactory = _storageFactory
+
+    var storage: FlowStateStorage = _
+
+
     val dpState = new DatapathStateManager(
         new Controller {
             override def addToDatapath(itfName: String): Unit = {
@@ -318,6 +327,7 @@ class DatapathController extends Actor with ActorLogging {
 
     override def preStart() {
         super.preStart()
+        storage = storageFactory.create()
         context become (DatapathInitializationActor orElse {
             case m =>
                 log.info("Not handling {} (behaving as InitializationActor)", m)
@@ -326,11 +336,16 @@ class DatapathController extends Actor with ActorLogging {
 
     override def receive: Receive = null
 
+    private def subscribeToHost(id: UUID) {
+        val props = Props(classOf[HostRequestProxy], id, storage, self)
+        context.actorOf(props, s"HostRequestProxy-$id")
+    }
+
     val DatapathInitializationActor: Receive = LoggingReceive {
 
         case Initialize =>
             initializer = sender
-            VirtualToPhysicalMapper ! HostRequest(hostService.getHostId)
+            subscribeToHost(hostService.getHostId)
 
         case h: Host =>
             // If we already had the host info, process this after init.
@@ -1298,6 +1313,9 @@ class DatapathStateManager(val controller: VirtualPortManager.Controller)(
         val outputAction = t match {
             case TunnelType.gre => greOverlayTunnellingOutputAction
             case TunnelType.vxlan => vxlanOverlayTunnellingOutputAction
+            case TunnelType.vtep =>
+                // not reached. Required for match completeness.
+                vxlanOverlayTunnellingOutputAction
         }
 
         val newRoute = Route(srcIp, dstIp, outputAction)
