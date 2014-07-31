@@ -133,18 +133,6 @@ public class TestNatLeaseManager {
         testSnatPing(nats, nwDst, oldNwSrc);
     }
 
-    @Test
-    public void testSnatPingIPv6() {
-        List<NatTarget> nats = new ArrayList<NatTarget>();
-        IPAddr nwStart1 = IPv6Addr.fromString("ff:00:00:00:00:00:00:11");
-        IPAddr nwStart2 = IPv6Addr.fromString("ff:00:00:00:00:00:00:12");
-        nats.add(new NatTarget(nwStart1, nwStart1, (short) 100, (short) 100));
-        nats.add(new NatTarget(nwStart2, nwStart2, (short) 200, (short) 200));
-        IPv6Addr nwDst = IPv6Addr.fromString("ff:00:00:00:00:00:00:01");
-        IPv6Addr oldNwSrc = IPv6Addr.fromString("ff:00:00:00:00:00:00:01");
-        testSnatPing(nats, nwDst, oldNwSrc);
-    }
-
     private <T extends IPAddr> void testSnatPing(List<NatTarget> nats, T nwDst,
                                                  T oldNwSrc) {
         Set<NatTarget> natSet = new HashSet<NatTarget>();

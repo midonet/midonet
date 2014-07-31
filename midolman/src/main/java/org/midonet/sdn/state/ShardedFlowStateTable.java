@@ -95,9 +95,21 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
     }
 
     @Override
+    public int getRefCount(K key) {
+        int count = 0;
+        for (int i = 0; i < shards.size(); i++) {
+            V v = shards.get(i).shallowGet(key);
+            if (v != null)
+                count += shards.get(i).getRefCount(key);
+        }
+
+        return count;
+    }
+
+    @Override
     public void setRefCount(K key, int n) {
         for (int i = 0; i < shards.size(); i++) {
-            V v = shards.get(i).get(key);
+            V v = shards.get(i).shallowGet(key);
             if (v != null)
                 shards.get(i).setRefCount(key, n);
         }
@@ -106,18 +118,18 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
     @Override
     public void unref(K key) {
         for (int i = 0; i < shards.size(); i++) {
-            V v = shards.get(i).get(key);
+            V v = shards.get(i).shallowGet(key);
             if (v != null)
                 shards.get(i).unref(key);
         }
     }
 
     @Override
-    public <U> U fold(U seed, Reducer<K, V, U> func) {
+    public <U> U fold(U acc, Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < shards.size(); i++) {
-            seed = shards.get(i).fold(seed, func);
+            acc = shards.get(i).fold(acc, func);
         }
-        return seed;
+        return acc;
     }
 
     @Override
@@ -194,6 +206,12 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         }
 
         @Override
+        public int getRefCount(K key) {
+            Entry entry = data.get(key);
+            return entry != null ? entry.refCount.get() : 0;
+        }
+
+        @Override
         public void setRefCount(K key, int n) {
             Entry e = data.get(key);
             if (e != null) {
@@ -227,11 +245,11 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         }
 
         @Override
-        public <U> U fold(U seed, Reducer<K, V, U> func) {
+        public <U> U fold(U acc, Reducer<? super K, ? super V, U> func) {
             for (Entry e: data.values()) {
-                seed = func.apply(seed, e.k, e.v);
+                acc = func.apply(acc, e.k, e.v);
             }
-            return seed;
+            return acc;
         }
 
         @Override

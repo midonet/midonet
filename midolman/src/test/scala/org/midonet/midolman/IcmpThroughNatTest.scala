@@ -5,10 +5,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
-import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
@@ -18,12 +15,13 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
-import org.midonet.midolman.simulation.{Bridge, Router, CustomMatchers}
+import org.midonet.midolman.simulation.{Bridge, Router}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
-
+import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 
 @RunWith(classOf[JUnitRunner])
 class IcmpThroughNatTest extends MidolmanSpec {
@@ -113,8 +111,12 @@ class IcmpThroughNatTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
                                                   with MessageAccumulator))
 
+    implicit var natTx: FlowStateTransaction[NatKey, NatBinding] = _
+
     override def beforeTest() {
         buildTopology()
+        val natTable = new ShardedFlowStateTable[NatKey, NatBinding]().addShard()
+        natTx = new FlowStateTransaction(natTable)
     }
 
     def icmpEchoReqL2R = {

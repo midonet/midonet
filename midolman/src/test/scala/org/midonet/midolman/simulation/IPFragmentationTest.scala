@@ -14,7 +14,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Entity, Port}
 import org.midonet.midolman._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, SimulationResult}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
@@ -127,7 +127,7 @@ class IPFragmentationTest extends MidolmanSpec {
                 setupAcceptOrDropChain(policy, ANY)
 
                 When(s"A packet with fragment type $fragType is sent")
-                val simRes = sendPacket(fragType)
+                val simRes = send(fragType)
 
                 if (accepted) {
                     Then("A to port flow action is emitted.")
@@ -147,7 +147,7 @@ class IPFragmentationTest extends MidolmanSpec {
             setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
             When("A header fragment is sent")
-            val simRes = sendPacket(IPFragmentType.First)
+            val simRes = send(IPFragmentType.First)
 
             Then("A drop flow should be installed")
             assertDropFlowCreated(simRes, temporary = false)
@@ -162,7 +162,7 @@ class IPFragmentationTest extends MidolmanSpec {
             setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
             When("A header fragment is sent")
-            val simRes = sendPacket(IPFragmentType.First)
+            val simRes = send(IPFragmentType.First)
 
             Then("A temporary drop flow should be installed")
             assertDropFlowCreated(simRes, temporary = true)
@@ -177,7 +177,7 @@ class IPFragmentationTest extends MidolmanSpec {
             setupAcceptOrDropChain(UNFRAGMENTED, ANY)
 
             When("A nonheader fragment is sent")
-            val simRes = sendPacket(IPFragmentType.Later)
+            val simRes = send(IPFragmentType.Later)
 
             Then("A drop flow should be installed")
             assertDropFlowCreated(simRes, temporary = false)
@@ -197,8 +197,8 @@ class IPFragmentationTest extends MidolmanSpec {
         newFragmentRuleOnChain(chain, 2, dropPolicy, Action.DROP)
     }
 
-    private[this] def sendPacket(fragType: IPFragmentType,
-                                 etherType: Short = IPv4.ETHERTYPE)
+    private[this] def send(fragType: IPFragmentType,
+                           etherType: Short = IPv4.ETHERTYPE)
     : (SimulationResult, PacketContext) = {
         val pkt = makePacket(fragType, etherType)
         sendPacket(srcPort, pkt)

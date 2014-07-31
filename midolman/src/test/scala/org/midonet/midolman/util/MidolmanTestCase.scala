@@ -506,8 +506,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             override val log: LoggingAdapter = NoLogging
             override protected val dpState: DatapathState = self.dpState()
         }
-        val pktCtx = new PacketContext(Left(-1), null, 0L, null, null, null,
-            None, wcMatch)
+        val pktCtx = new PacketContext(Left(-1), null, 0L, null, null,
+                                       None, wcMatch)
         pktCtx.inputPort = wcMatch.getInputPortUUID
         dpState().getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)

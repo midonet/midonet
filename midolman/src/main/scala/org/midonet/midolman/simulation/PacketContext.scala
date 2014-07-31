@@ -16,13 +16,14 @@ import akka.actor.ActorSystem
 import org.midonet.cache.Cache
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.LoggerFactory
+import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.Packet
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.functors.Callback0
 
 /**
@@ -36,38 +37,21 @@ import org.midonet.util.functors.Callback0
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val expiry: Long,
-                    val connectionCache: Cache,
                     val traceMessageCache: Cache,
                     val traceIndexCache: Cache,
                     val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem) {
-    import PacketContext._
-
     private val log =
         LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
-    // ingressFE is used for connection tracking. conntrack keys use the
-    // forward flow's egress device id. For return packets, symmetrically,
-    // the ingress device is used to lookup the conntrack key that would have
-    // been written by the forward packet. PacketContext needs to now
-    // the ingress device to do this lookup in isForwardFlow()
-    private var ingressFE: UUID = null
 
+    val state = new StateContext(this, log)
     var portGroups: JSet[UUID] = null
-    private var forwardFlow = false
-    private var connectionTracked = false
-    def isConnTracked: Boolean = connectionTracked
 
     private var _inPortId: UUID = null
     def inPortId: UUID = _inPortId
-    def inPortId_=(port: Port) {
-        _inPortId = if (port == null) null else port.id
-        // ingressFE is set only once, so it always points to the
-        // first device that saw this packet, null for generated packets.
-        if (port != null && ingressFE == null && !isGenerated)
-            ingressFE = port.deviceID
-
-    }
+    def inPortId_=(port: Port): Unit =
+        _inPortId = port.id
 
     var lastInvalidation: Long = _
 
@@ -75,6 +59,8 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     var runs: Int = 0
 
     var outPortId: UUID = null
+    var toPortSet: Boolean = false
+
     val wcmatch = origMatch.clone()
 
     private var traceID: UUID = null
@@ -89,24 +75,26 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         }
     }
 
-    // This set stores the callback to call when this flow is removed.
+    // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
     def addFlowRemovedCallback(cb: Callback0): Unit = {
         flowRemovedCallbacks.add(cb)
     }
 
     def runFlowRemovedCallbacks(): Unit = {
-        var i = flowRemovedCallbacks.size() - 1
-        while (i >= 0) {
-            flowRemovedCallbacks.remove(i).call()
-            i -= 1
+        var i = 0
+        while (i < flowRemovedCallbacks.size()) {
+            flowRemovedCallbacks.get(i).call()
+            i += 1
         }
+        flowRemovedCallbacks.clear()
     }
 
     def ethernet = packet.getEthernet
 
     def isGenerated = cookieOrEgressPort.isRight
     def ingressed = cookieOrEgressPort.isLeft
+    def isStateMessage = origMatch.getTunnelID == FlowStatePackets.TUNNEL_KEY
 
     def flowCookie = cookieOrEgressPort.left.toOption
 
@@ -115,9 +103,13 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
-    val flowTags = mutable.Set[FlowTag]()
+    var flowTags = mutable.Set[FlowTag]()
+
     def addFlowTag(tag: FlowTag): Unit =
         flowTags.add(tag)
+
+    def clearFlowTags(): Unit =
+        flowTags = flowTags filter (_.isInstanceOf[FlowStateTag])
 
     def prepareForSimulation(lastInvalidationSeen: Long) {
         idle = false
@@ -129,13 +121,15 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         idle = false
         lastInvalidation = lastInvalidationSeen
         flowTags.clear()
+        state.clear()
         runFlowRemovedCallbacks()
     }
 
     def postpone() {
         idle = true
-        runFlowRemovedCallbacks()
         flowTags.clear()
+        state.clear()
+        runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
     }
 
@@ -160,83 +154,11 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                                        "(none)"
                                    else
                                        equipmentID.toString
-            val value: String = (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS "
-                                ).format(new Date)) + equipStr + " " + msg
+            val value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS ")
+                            .format(new Date) + equipStr + " " + msg
             traceMessageCache.set(key, value)
             traceIndexCache.set(traceID.toString, traceStep.toString)
         }
-    }
-
-    def isForwardFlow: Boolean = {
-
-        // Packets which aren't TCP-or-UDP over IPv4 aren't connection
-        // tracked, and always treated as forward flows.
-        if (!IPv4.ETHERTYPE.equals(origMatch.getEtherType) ||
-            (!TCP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol) &&
-             !UDP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol) &&
-             !ICMP.PROTOCOL_NUMBER.equals(origMatch.getNetworkProtocol)))
-            return true
-
-        // Generated packets have ingressFE == null. We will treat all generated
-        // tcp udp packets as return flows TODO(rossella) is that
-        // enough to determine that it's a return flow?
-        if (isGenerated) {
-            return false
-        } else if (ingressFE == null) {
-            throw new IllegalArgumentException(
-                    "isForwardFlow cannot be calculated because the ingress " +
-                    "device is not set")
-        }
-
-        // Connection tracking:  connectionTracked starts out as false.
-        // If isForwardFlow is called, connectionTracked becomes true and
-        // a lookup into Cassandra determines which direction this packet
-        // is considered to be going.
-        if (connectionTracked)
-            return forwardFlow
-
-        connectionTracked = true
-        val key = connectionKey(origMatch.getNetworkSourceIP,
-                                icmpIdOrTransportSrc(origMatch),
-                                origMatch.getNetworkDestinationIP,
-                                icmpIdOrTransportDst(origMatch),
-                                origMatch.getNetworkProtocol.toShort,
-                                ingressFE)
-        // TODO(jlm): Finish org.midonet.cassandra.AsyncCassandraCache
-        //            and use it instead.
-        val value = connectionCache.get(key)
-        forwardFlow = value != "r"
-        log.debug("isForwardFlow conntrack lookup - key:{},value:{}", key, value)
-        forwardFlow
-    }
-
-    def installConnectionCacheEntry(deviceId: UUID) {
-        val key = connectionKey(wcmatch.getNetworkDestinationIP,
-                                icmpIdOrTransportDst(wcmatch),
-                                wcmatch.getNetworkSourceIP,
-                                icmpIdOrTransportSrc(wcmatch),
-                                wcmatch.getNetworkProtocol.toShort,
-                                deviceId)
-        log.debug("Installing conntrack entry: key:{}", key)
-        connectionCache.set(key, "r")
-    }
-
-    private def icmpIdOrTransportSrc(wm: WildcardMatch): Int = {
-        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
-            val icmpId: java.lang.Short = wm.getIcmpIdentifier
-            if (icmpId ne null)
-                return icmpId.toInt
-        }
-        wm.getTransportSource
-    }
-
-    private def icmpIdOrTransportDst(wm: WildcardMatch): Int = {
-        if (ICMP.PROTOCOL_NUMBER.equals(wm.getNetworkProtocol)) {
-            val icmpId: java.lang.Short = wm.getIcmpIdentifier
-            if (icmpId ne null)
-                return icmpId.toInt
-        }
-        wm.getTransportDestination
     }
 
     def actionsFromMatchDiff(): ArrayBuffer[FlowAction] = {
@@ -358,14 +280,3 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     override def toString = s"PacketContext[$cookieStr]"
 }
-
-object PacketContext {
-    def connectionKey(ip1: IPAddr, port1: Int, ip2: IPAddr, port2: Int,
-                      proto: Short, deviceID: UUID): String = {
-        new StringBuilder(ip1.toString).append('|').append(port1).append('|')
-                .append(ip2.toString).append('|')
-                .append(port2).append('|').append(proto).append('|')
-                .append(deviceID.toString).toString()
-    }
-}
-

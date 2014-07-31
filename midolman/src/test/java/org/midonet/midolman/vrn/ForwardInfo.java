@@ -84,7 +84,7 @@ public class ForwardInfo extends PacketContext {
     public ForwardInfo(boolean internallyGenerated, WildcardMatch wcMatch,
                        Cache c, UUID ingressFE) {
         super(internallyGenerated ? new Right<>(UUID.randomUUID()) : new Left<Object, UUID>(1),
-              null, 0L, c, null, null, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
+              null, 0L, c, null, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
         flowMatch = wcMatch;
         connectionCache = c;
         this.ingressFE = ingressFE;
@@ -113,61 +113,6 @@ public class ForwardInfo extends PacketContext {
 
     public void setDepth(int depth) {
         this.depth = depth;
-    }
-
-    @Override
-    public boolean isConnTracked() {
-        return connectionTracked;
-    }
-
-    @Override
-    @SuppressWarnings("ConstantConditions")
-    public boolean isForwardFlow() {
-        // Connection tracking:  isConnTracked starts out as false.
-        // If isForwardFlow is called, isConnTracked becomes true and
-        // a lookup into Cassandra determines which direction this packet
-        // is considered to be going.
-        if (connectionTracked)
-            return forwardFlow;
-
-        // Generated packets are always return & not connection tracked.
-        if (internallyGenerated)
-            return false;
-
-        // TODO(jlm): Currently ICMP Unreachables from the external network
-        // won't get through a return-flow-only filter.  How should we
-        // handle these?  Manually simulate every external ICMP, and have
-        // ICMPs shunted to their own queue to mitigate ICMP floods?
-
-        // Non-IPv4 and and non-(TCP or UDP) packets aren't connection
-        // tracked, always treated as forward flows.
-        if (IPv4.ETHERTYPE != flowMatch.getEtherType() ||
-            (TCP.PROTOCOL_NUMBER != flowMatch.getNetworkProtocol() &&
-             UDP.PROTOCOL_NUMBER != flowMatch.getNetworkProtocol())) {
-            return true;
-        }
-
-        connectionTracked = true;
-        // Query connectionCache.
-        String key = connectionKey(flowMatch.getNetworkSourceIP(),
-                                   flowMatch.getTransportSource(),
-                                   flowMatch.getNetworkDestinationIP(),
-                                   flowMatch.getTransportDestination(),
-                                   flowMatch.getNetworkProtocol(),
-                                   ingressFE);
-        String value = connectionCache.get(key);
-        forwardFlow = !("r".equals(value));
-        return forwardFlow;
-    }
-
-    public static String connectionKey(IPAddr ip1, int port1, IPAddr ip2,
-                                       int port2, short proto, UUID fe) {
-        return new StringBuilder(ip1.toString())
-                   .append('|').append(port1)
-                   .append('|').append(ip2.toString())
-                   .append('|').append(port2)
-                   .append('|').append(proto)
-                   .append('|').append(fe.toString()).toString();
     }
 
     @Override

@@ -298,7 +298,7 @@ abstract class RouterBase[IP <: IPAddr]()
 
         action flatMap {
             case ToPortAction(outPortId) =>
-                getRouterPort(outPortId, context.expiry) flatMap {
+                 getRouterPort(outPortId, context.expiry) flatMap {
                     case outPort => postRouting(inPort, outPort, rt, context)
                 }
             case a => action

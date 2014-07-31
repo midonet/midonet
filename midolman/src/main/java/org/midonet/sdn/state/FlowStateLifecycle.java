@@ -14,6 +14,11 @@ public interface FlowStateLifecycle<K, V> extends FlowStateTable<K, V> {
     void unref(K key);
 
     /**
+     * Gets the refcount for a key
+     */
+    int getRefCount(K key);
+
+    /**
      * Sets the refcount for a key to the given value
      */
     void setRefCount(K key, int n);

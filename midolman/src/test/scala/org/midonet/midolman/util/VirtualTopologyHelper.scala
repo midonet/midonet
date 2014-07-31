@@ -15,18 +15,27 @@ import akka.util.Timeout.durationToTimeout
 
 import org.scalatest.Assertions
 
-import org.midonet.cache.MockCache
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
-import org.midonet.midolman.{NotYet, Ready}
+import org.midonet.midolman.{NotYetException, NotYet, Ready}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.odp.Packet
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
+import org.midonet.midolman.state.NatState.NatBinding
+import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
+import scala.util.{Failure, Success, Try}
 
 trait VirtualTopologyHelper {
 
@@ -34,7 +43,6 @@ trait VirtualTopologyHelper {
     implicit def executionContext: ExecutionContext
 
     private implicit val timeout: Timeout = 3 seconds
-    private val natCache = new MockCache()
 
     def fetchDevice[T](device: Entity.Base[_,_,_]) =
         Await.result(
@@ -49,11 +57,17 @@ trait VirtualTopologyHelper {
                                      { VirtualTopologyActor ? _ }),
                      timeout.duration)
 
-    def packetContextFor(frame: Ethernet, inPort: UUID): PacketContext = {
+    val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
+    val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
+
+    def packetContextFor(frame: Ethernet, inPort: UUID)
+                        (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
+                                  natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+    : PacketContext = {
         val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
-                                        Platform.currentTime + 3000, natCache,
-                                        null, null, None,
-                                        WildcardMatch.fromEthernetPacket(frame))
+                                        Platform.currentTime + 3000, null,
+                                        null, None, WildcardMatch.fromEthernetPacket(frame))
+        context.state.initialize(conntrackTx, natTx)
         context.prepareForSimulation(0)
         context.inputPort = inPort
         context.inPortId = Await.result(
@@ -62,8 +76,10 @@ trait VirtualTopologyHelper {
         context
     }
 
-    def simulateDevice(device: Device, frame: Ethernet, inPort: UUID):
-            (PacketContext, Action) = {
+    def simulateDevice(device: Device, frame: Ethernet, inPort: UUID)
+                      (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
+                                natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+    : (PacketContext, Action) = {
         var triesLeft = 64
         do {
             triesLeft -= 1
@@ -72,26 +88,63 @@ trait VirtualTopologyHelper {
                 case Ready(action) =>
                     return (ctx, action)
                 case NotYet(f) =>
+                    flushTransactions(conntrackTx, natTx)
+                    ctx.state.clear()
                     Await.result(f, 1 second)
             }
         } while (triesLeft > 0)
-
         Assertions.fail("Failed to complete simulation")
     }
 
-    def sendPacket(t: (Port[_,_], Ethernet)): (SimulationResult, PacketContext) =
-        sendPacket(t._1, t._2)
+    def sendPacket(t: (Port[_,_], Ethernet))
+                  (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
+                            natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+    : (SimulationResult, PacketContext) =
+        simulate(packetContextFor(t._2, t._1.getId))(conntrackTx, natTx)
 
-    def sendPacket(port: Port[_,_], pkt: Ethernet): (SimulationResult, PacketContext) =
-        simulate(packetContextFor(pkt, port.getId))
+    def sendPacket(port: Port[_,_], pkt: Ethernet)
+    : (SimulationResult, PacketContext) =
+        simulate(packetContextFor(pkt, port.getId))(NO_CONNTRACK, NO_NAT)
 
-    def simulate(pktCtx: PacketContext): (SimulationResult, PacketContext) =
-        new Coordinator(pktCtx) simulate() match {
-            case Ready(r) => (r, pktCtx)
-            case NotYet(f) =>
-                Await.result(f, 3 seconds)
-                simulate(pktCtx)
+    def simulate(pktCtx: PacketContext)
+                (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
+                          natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
+    : (SimulationResult, PacketContext) = {
+        pktCtx.state.initialize(conntrackTx, natTx)
+        def await(f: Future[_]) = {
+            Await.result(f, 3 seconds)
+            flushTransactions(conntrackTx, natTx)
+            pktCtx.state.clear()
+            simulate(pktCtx)
         }
+        Try(new Coordinator(pktCtx) simulate()) match {
+            case Success(Ready(r)) =>
+                commitTransactions(conntrackTx, natTx)
+                flushTransactions(conntrackTx, natTx)
+                pktCtx.state.clear()
+                (r, pktCtx)
+            case Success(NotYet(f)) =>
+                await(f)
+            case Failure(NotYetException(f, _)) =>
+                await(f)
+        }
+    }
+
+    def commitTransactions(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
+                           natTx: FlowStateTransaction[NatKey, NatBinding]): Unit = {
+        if (conntrackTx ne NO_CONNTRACK)
+            conntrackTx.commit()
+        if (natTx ne NO_NAT)
+            natTx.commit()
+    }
+
+    def flushTransactions(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
+                          natTx: FlowStateTransaction[NatKey, NatBinding]): Unit = {
+        if (conntrackTx ne NO_CONNTRACK)
+            conntrackTx.flush()
+        if (natTx ne NO_NAT)
+            natTx.flush()
+    }
 
     def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
         WildcardMatch.fromEthernetPacket(pkt)
