@@ -33,7 +33,7 @@ project.ext {
         commons_conf: "commons-configuration:commons-configuration:1.8",
         commons_lang: "commons-lang:commons-lang:2.6",
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
-        commons_cli: "commons-cli:commons-cli:1.2",
+        commons_cli: "commons-org:commons-org:1.2",
         commons_io: "commons-io:commons-io:2.3",
         curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
         curator_test: "org.apache.curator:curator-test:2.6.0",
