@@ -13,7 +13,7 @@ public class LBMediaType {
     public final static String POOL_JSON_V1 =
         "application/vnd.org.midonet.neutron.lb.Pool-v1+json";
     public final static String POOLS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.lb.Pool-v1+json";
+        "application/vnd.org.midonet.neutron.lb.Pools-v1+json";
 
     public final static String MEMBER_JSON_V1 =
         "application/vnd.org.midonet.neutron.lb.Member-v1+json";
