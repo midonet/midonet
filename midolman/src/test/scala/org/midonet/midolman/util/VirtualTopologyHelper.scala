@@ -65,8 +65,8 @@ trait VirtualTopologyHelper {
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
         val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
-                                        Platform.currentTime + 3000, null,
-                                        null, None, WildcardMatch.fromEthernetPacket(frame))
+                                        Platform.currentTime + 3000,
+                                        None, WildcardMatch.fromEthernetPacket(frame))
         context.state.initialize(conntrackTx, natTx)
         context.prepareForSimulation(0)
         context.inputPort = inPort

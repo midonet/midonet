@@ -12,6 +12,6 @@ dependencies {
             libraries.jackson_mapper, libraries.jackson_core,
             libraries.hamcrest_core, libraries.hamcrest_lib
 
-    testCompile libraries.hamcrest_integration, libraries.cassandra_unit,
+    testCompile libraries.hamcrest_integration,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly
 }

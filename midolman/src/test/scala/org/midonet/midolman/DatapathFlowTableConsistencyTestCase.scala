@@ -31,7 +31,6 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
 
     override def fillConfig(config: HierarchicalConfiguration) = {
         config.setProperty("bridge.mac_port_mapping_expire_millis", 60000)
-        config.setProperty("monitoring.enable_monitoring", "false")
         config.setProperty("midolman.idle_flow_tolerance_interval", 1)
         config
     }

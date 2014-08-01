@@ -55,7 +55,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config.setProperty("datapath.max_flow_count", 3)
         config.setProperty("midolman.check_flow_expiration_interval", 10)
-        config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("midolman.idle_flow_tolerance_interval", 1)
         config
     }

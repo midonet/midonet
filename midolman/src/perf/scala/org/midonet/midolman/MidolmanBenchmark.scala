@@ -1,27 +1,23 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman
 
 import java.util.UUID
-
 import scala.collection.JavaConversions._
 
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
-
 import com.google.inject.{Scopes, PrivateModule, AbstractModule, Guice, Injector}
-
-import org.apache.commons.configuration.HierarchicalConfiguration
-
 import com.yammer.metrics.core.MetricsRegistry
+import org.apache.commons.configuration.HierarchicalConfiguration
+import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.cluster.Client
 import org.midonet.config.ConfigProvider
-import org.midonet.midolman.services.{DatapathConnectionService, DashboardService, SelectLoopService, MidolmanActorsService, HostIdProviderService, MidolmanService}
+import org.midonet.midolman.services.{DatapathConnectionService, DashboardService,
+        SelectLoopService, MidolmanActorsService, HostIdProviderService, MidolmanService}
 import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.guice.{MidolmanModule, ResourceProtectionModule, MockCacheModule, MidolmanActorsModule}
+import org.midonet.midolman.guice.{MidolmanModule, ResourceProtectionModule, MidolmanActorsModule}
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
@@ -52,7 +48,6 @@ trait MidolmanBenchmark extends MockMidolmanActors {
     protected def fillConfig(config: HierarchicalConfiguration)
     : HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }
@@ -63,7 +58,6 @@ trait MidolmanBenchmark extends MockMidolmanActors {
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {

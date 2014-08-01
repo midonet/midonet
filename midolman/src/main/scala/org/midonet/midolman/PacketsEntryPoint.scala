@@ -9,15 +9,10 @@ import scala.collection.immutable
 import akka.actor._
 import akka.event.LoggingReceive
 import com.yammer.metrics.core.MetricsRegistry
-import javax.annotation.Nullable
 import com.google.inject.Inject
 
-import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.guice.CacheModule.NAT_CACHE
-import org.midonet.midolman.guice.CacheModule.TRACE_INDEX
-import org.midonet.midolman.guice.CacheModule.TRACE_MESSAGES
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -72,13 +67,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
 
-    @Inject @Nullable @NAT_CACHE
-    var connectionCache: Cache = null
-    @Inject @TRACE_MESSAGES
-    var traceMessageCache: Cache = null
-    @Inject @TRACE_INDEX
-    var traceIndexCache: Cache = null
-
     @Inject
     var metricsRegistry: MetricsRegistry = null
 
@@ -112,7 +100,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
                             cookieGen, dpConnPool, clusterDataClient,
                             connTrackStateTable.addShard(),
                             natStateTable.addShard(),
-                            traceMessageCache, traceIndexCache,
                             metrics, counter.addAndGet(index, _: Int))
                     .withDispatcher("actors.pinned-dispatcher")
 

@@ -9,7 +9,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
@@ -41,8 +40,7 @@ public class LiteralRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res,
-                      NatMapping natMapping) {
+    public void apply(PacketContext pktCtx, RuleResult res) {
         res.action = action;
         log.debug("Packet matched literal rule with action {}", action);
     }

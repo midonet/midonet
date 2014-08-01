@@ -108,7 +108,6 @@ public class Midolman {
             new DatapathModule(),
             new ClusterClientModule(),
             new SerializationModule(),
-            new CacheModule(),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),

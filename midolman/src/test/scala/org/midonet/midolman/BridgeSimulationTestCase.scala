@@ -15,16 +15,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.cache.Cache
-import org.midonet.cache.MockCache
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
-import org.midonet.midolman.guice.CacheModule.{TRACE_INDEX, TRACE_MESSAGES}
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.odp.flows.{FlowActionOutput, FlowKeyTunnel}
@@ -161,23 +157,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
     @Test
     def testPacketInBridgeSimulation() {
         val srcMac = MAC.fromString("02:11:22:33:44:10")
-        val condition = new Condition
-        condition.dlSrc = srcMac
-        val conditionList = TraceConditions(immutable.Seq(condition))
-        // FIXME(jlm): racy
-        deduplicationActor() ! conditionList
-
-        val msgCache = injector.getInstance(Key.get(classOf[Cache],
-                                                    classOf[TRACE_MESSAGES]))
-                            .asInstanceOf[MockCache]
-        val idxCache = injector.getInstance(Key.get(classOf[Cache],
-                                                    classOf[TRACE_INDEX]))
-                            .asInstanceOf[MockCache]
-        idxCache.clear()
-        msgCache.clear()
-        idxCache.map should have size 0
-        msgCache.map should have size 0
-
         val ethPkt = Packets.udp(
                 srcMac,
                 MAC.fromString("02:11:22:33:44:11"),
@@ -198,27 +177,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         tunnelKeys should have size(2)
         tunnelKeys.find(bridgeTunnelTo2) should not be None
         tunnelKeys.find(bridgeTunnelTo3) should not be None
-
-        idxCache.map should have size 1
-        msgCache.map should have size 2
-
-        val keySet = idxCache.map.keySet
-        keySet should have size 1
-
-        val uuidSet = keySet filter { _.length == 36 }
-        uuidSet should have size 1
-
-        val traceID = uuidSet.toArray.apply(0)
-        keySet.toArray.apply(0) should be (traceID)
-
-        idxCache.map.get(traceID).value should equal ("2")
-
-        val value1 = msgCache.map.get(traceID + ":1").value
-        val value2 = msgCache.map.get(traceID + ":2").value
-        value1.substring(23, value1.length) should equal (
-            " " + bridge.getId + " Entering device")
-        value2.substring(23, value2.length) should equal (
-            " " + bridge.getId + " Flooded to port set")
 
         verifyMacLearned("02:11:22:33:44:10", "port1")
     }

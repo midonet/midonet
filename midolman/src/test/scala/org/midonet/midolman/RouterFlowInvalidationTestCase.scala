@@ -73,7 +73,6 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         //config.setProperty("datapath.max_flow_count", 3)
         //config.setProperty("midolman.check_flow_expiration_interval", 10)
-        config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }

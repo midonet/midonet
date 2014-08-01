@@ -12,20 +12,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import akka.actor.ActorSystem$;
-import akka.event.LoggingAdapter;
-import akka.event.NoLogging;
-import akka.event.NoLogging$;
 import scala.Option;
 import scala.util.Left;
 import scala.util.Right;
 
-import org.midonet.cache.Cache;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.TCP;
-import org.midonet.packets.UDP;
 import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.functors.Callback0;
@@ -78,15 +70,12 @@ public class ForwardInfo extends PacketContext {
     // Used for connection tracking.
     private boolean connectionTracked = false;
     private boolean forwardFlow;
-    private Cache connectionCache;
     private UUID ingressFE;
 
-    public ForwardInfo(boolean internallyGenerated, WildcardMatch wcMatch,
-                       Cache c, UUID ingressFE) {
+    public ForwardInfo(boolean internallyGenerated, WildcardMatch wcMatch, UUID ingressFE) {
         super(internallyGenerated ? new Right<>(UUID.randomUUID()) : new Left<Object, UUID>(1),
-              null, 0L, c, null, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
+              null, 0L, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
         flowMatch = wcMatch;
-        connectionCache = c;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;
     }

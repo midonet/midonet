@@ -9,7 +9,6 @@ import java.lang.annotation.Target;
 
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Exposed;
-import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -17,7 +16,6 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cache.Cache;
 import org.midonet.midolman.DatapathController;
 import org.midonet.midolman.FlowController;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
@@ -48,7 +46,6 @@ import akka.japi.Function;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.midonet.midolman.guice.CacheModule.NAT_CACHE;
 import scala.concurrent.duration.Duration;
 
 /**
@@ -76,7 +73,6 @@ public class MidolmanActorsModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
-        requireBinding(Key.get(Cache.class, NAT_CACHE.class));
         requireBinding(DatapathConnectionPool.class);
         requireBinding(HostIdProviderService.class);
         requireBinding(HostConfig.class);

@@ -14,7 +14,6 @@ import org.apache.zookeeper.KeeperException;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.MockCacheModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -36,7 +35,6 @@ public class BrainTestUtils {
      */
     public static void fillTestConfig(HierarchicalConfiguration cfg) {
         cfg.setProperty("midolman.midolman_root_key", zkRoot);
-        cfg.setProperty("midolman.enable_monitoring", "false");
         cfg.setProperty("cassandra.servers", "localhost:9171");
         cfg.addNodes(
             ZookeeperConfig.GROUP_NAME,
@@ -76,7 +74,6 @@ public class BrainTestUtils {
         modules.add(new SerializationModule());  // For Serializer
         modules.add(new TypedConfigModule<>(MidolmanConfig.class));
         modules.add(new ConfigProviderModule(config)); // For ConfigProvider
-        modules.add(new MockCacheModule());
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());
         modules.add(new ClusterClientModule());

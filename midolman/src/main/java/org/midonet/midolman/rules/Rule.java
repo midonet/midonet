@@ -11,11 +11,8 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
-import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.packets.*;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -63,15 +60,13 @@ public abstract class Rule {
      * @param res          contains a match of the packet after all
      *                     transformations preceding this rule. This may be
      *                     modified.
-     * @param natMapping   NAT state of the element using this chain.
      * @param isPortFilter whether the rule is being processed in a port filter
      *                     context
      */
-    public void process(PacketContext pktCtx, RuleResult res,
-                        NatMapping natMapping, boolean isPortFilter) {
+    public void process(PacketContext pktCtx, RuleResult res, boolean isPortFilter) {
         if (condition.matches(pktCtx, res.pmatch, isPortFilter)) {
             log.debug("Condition matched");
-            apply(pktCtx, res, natMapping);
+            apply(pktCtx, res);
         }
     }
 
@@ -86,10 +81,8 @@ public abstract class Rule {
      * @param res        contains a match of the packet after all
      *                   transformations preceding this rule. This may be
      *                   modified.
-     * @param natMapping NAT state of the element using this chain.
      */
-    protected abstract void apply(PacketContext pktCtx,
-                                  RuleResult res, NatMapping natMapping);
+    protected abstract void apply(PacketContext pktCtx, RuleResult res);
 
     public Map<String, String> getProperties() {
         return properties;
