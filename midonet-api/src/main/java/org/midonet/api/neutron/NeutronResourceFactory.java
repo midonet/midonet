@@ -23,4 +23,6 @@ public interface NeutronResourceFactory {
     SecurityGroupResource getNeutronSecurityGroupResource();
 
     SecurityGroupRuleResource getNeutronSecurityGroupRuleResource();
+
+    LBResource getLoadBalancerResource();
 }
