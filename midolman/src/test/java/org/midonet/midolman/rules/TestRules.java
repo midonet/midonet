@@ -14,10 +14,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.midonet.cache.Cache;
-import org.midonet.cache.MockCache;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ConnTrackState;
@@ -57,7 +54,6 @@ public class TestRules {
     static String jumpChainName;
     static Condition cond;
     static Set<NatTarget> nats;
-    static NatMapping natMapping;
     RuleResult expRes, argRes;
     ForwardInfo fwdInfo;
     FlowStateTransaction<ConnTrackState.ConnTrackKey, Boolean> conntrackTx;
@@ -122,7 +118,6 @@ public class TestRules {
 
         @Override
         protected void configure() {
-            bind(Cache.class).toInstance(new MockCache());
             bind(Reactor.class).toInstance(new MockReactor());
             bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
         }
@@ -168,7 +163,7 @@ public class TestRules {
     public void setup() {
 
         expRes = new RuleResult(null, null, pktMatch.clone());
-        fwdInfo = new ForwardInfo(false, pktMatch, null, null);
+        fwdInfo = new ForwardInfo(false, pktMatch, null);
         argRes = new RuleResult(null, null, fwdInfo.wcmatch());
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
                 new ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean>().addShard();
@@ -183,10 +178,10 @@ public class TestRules {
     public void testLiteralRuleAccept() {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         expRes.action = Action.ACCEPT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -200,10 +195,10 @@ public class TestRules {
     public void testLiteralRuleDrop() {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         expRes.action = Action.DROP;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -217,10 +212,10 @@ public class TestRules {
     public void testLiteralRuleReject() {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         expRes.action = Action.REJECT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -229,10 +224,10 @@ public class TestRules {
     public void testLiteralRuleReturn() {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         expRes.action = Action.RETURN;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -241,10 +236,10 @@ public class TestRules {
     public void testJumpRule() {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, null, false);
+        rule.process(fwdInfo, argRes, false);
         expRes.action = Action.JUMP;
         expRes.jumpToChain = jumpChainId;
         Assert.assertTrue(expRes.equals(argRes));

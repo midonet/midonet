@@ -16,7 +16,6 @@ import akka.actor._
 import akka.event.{LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.Clock
 
-import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -123,8 +122,6 @@ class DeduplicationActor(
             val clusterDataClient: DataClient,
             val connTrackStateTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateLifecycle[NatKey, NatBinding],
-            val traceMessageCache: Cache,
-            val traceIndexCache: Cache,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
@@ -237,7 +234,6 @@ class DeduplicationActor(
 
         val expiry = Platform.currentTime + simulationExpireMillis
         val pktCtx = new PacketContext(cookieOrEgressPort, packet, expiry,
-                                       traceMessageCache, traceIndexCache,
                                        parentCookie, wcMatch)
         pktCtx.state.initialize(connTrackTx, natTx)
 

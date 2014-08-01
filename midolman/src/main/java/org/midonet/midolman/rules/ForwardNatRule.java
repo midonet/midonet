@@ -11,7 +11,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.layer4.NatMapping;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
@@ -54,8 +53,7 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res,
-                      NatMapping natMapping) {
+    public void apply(PacketContext pktCtx, RuleResult res) {
         boolean gotNat = dnat ? applyDnat(pktCtx)
                               : applySnat(pktCtx);
         if (gotNat)

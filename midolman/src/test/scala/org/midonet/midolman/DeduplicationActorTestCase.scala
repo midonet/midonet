@@ -15,7 +15,6 @@ import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cache.Cache
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
@@ -58,7 +57,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
-            dpConnPool, clusterDataClient(), null, null,
+            dpConnPool, clusterDataClient(),
             new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
@@ -284,16 +283,13 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     class TestableDDA(cookieGen: CookieGenerator,
                       dpConnPool: DatapathConnectionPool,
                       clusterDataClient: DataClient,
-                      tmCache: Cache,
-                      tiCache: Cache,
                       metrics: PacketPipelineMetrics,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
             extends DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
-                                       tmCache, tiCache, metrics,
-                                       packetOut)
+                                       metrics, packetOut)
             with MessageAccumulator {
 
         implicit override val dispatcher = this.context.dispatcher

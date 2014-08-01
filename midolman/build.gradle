@@ -32,14 +32,14 @@ dependencies {
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_conf,
             libraries.commons_cli, libraries.commons_io, libraries.guava,
-            libraries.guice, libraries.yammer, libraries.rx, libraries.cassandra,
-            libraries.hector, libraries.jetty, libraries.jackson_scala,
+            libraries.guice, libraries.yammer, libraries.rx,
+            libraries.jetty, libraries.jackson_scala, libraries.cassandra,
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath
 
-    testCompile libraries.akkatest, libraries.scalatest, libraries.cassandra_unit,
-                libraries.jsonpath_assert
+    testCompile libraries.akkatest, libraries.scalatest,
+                libraries.jsonpath_assert, libraries.cassandraunit
 }
 
 cobertura {

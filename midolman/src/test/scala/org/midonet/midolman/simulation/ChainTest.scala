@@ -13,7 +13,6 @@ import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 import akka.actor.ActorSystem
-import org.midonet.midolman.layer4.{MockNatMapping, NatMapping, NatMappingFactory}
 import scala.collection.mutable
 
 import scala.collection.JavaConverters._
@@ -42,23 +41,7 @@ class ChainTest extends Suite
         pktMatch.setEthernetDestination("01:02:03:04:05:06")
         pktMatch.setNetworkDestination(IPAddr.fromString("1.2.3.4"))
 
-        pktCtx = new PacketContext(Left(1), null, 0, null, null,
-                                   None, pktMatch)
-    }
-
-    override def beforeAll() {
-        Chain.natMappingFactory = new NatMappingFactory {
-
-            private val map = mutable.Map[UUID, NatMapping]()
-
-            def get(ownerID: UUID): NatMapping = {
-                map.getOrElse(ownerID, {
-                    val mapping = new MockNatMapping
-                    map.put(ownerID, mapping)
-                    mapping
-                })
-            }
-        }
+        pktCtx = new PacketContext(Left(1), null, 0, None, pktMatch)
     }
 
     def testNullChain() {

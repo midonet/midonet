@@ -29,7 +29,6 @@ import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.guice.CacheModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.cluster.DataClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
@@ -263,7 +262,6 @@ public class MmCtl {
                 bind(HostConfig.class)
                         .toProvider(HostConfigProvider.class)
                         .asEagerSingleton();
-                install(new CacheModule());
                 install(new ZookeeperConnectionModule());
                 install(new VersionModule());
                 install(new SerializationModule());

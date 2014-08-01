@@ -79,7 +79,6 @@ trait MidolmanSpec extends FeatureSpecLike
     protected def fillConfig(config: HierarchicalConfiguration)
             : HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
-        config.setProperty("midolman.enable_monitoring", "false")
         config.setProperty("cassandra.servers", "localhost:9171")
         config
     }
@@ -90,7 +89,6 @@ trait MidolmanSpec extends FeatureSpecLike
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
-            new MockCacheModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
