@@ -11,6 +11,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 public class LoadBalancer {
 
+    @JsonProperty("health_monitors")
     public URI healthMonitors;
 
     @JsonProperty("health_monitor_template")

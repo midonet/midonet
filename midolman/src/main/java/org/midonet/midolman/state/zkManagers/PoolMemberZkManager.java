@@ -3,20 +3,22 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.apache.zookeeper.Op;
-import org.midonet.midolman.state.l4lb.LBStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
-
-import java.util.List;
-import java.util.UUID;
+import org.midonet.midolman.state.l4lb.LBStatus;
 
 import static java.util.Arrays.asList;
 
@@ -54,6 +56,17 @@ public class PoolMemberZkManager extends
             this.weight = weight;
             this.adminStateUp = adminStateUp;
             this.status = status;
+        }
+
+        public PoolMemberConfig(Member member) {
+            this.poolId = member.poolId;
+            this.address = member.address;
+            this.protocolPort = member.protocolPort;
+            this.weight = member.weight;
+            this.adminStateUp = member.adminStateUp;
+            this.status =
+                Objects.equal(member.status, LBStatus.ACTIVE.toString())
+                ? LBStatus.ACTIVE : LBStatus.INACTIVE;
         }
 
         @Override

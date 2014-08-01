@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.apache.zookeeper.Op;
+
+import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.slf4j.Logger;
@@ -55,6 +57,15 @@ public class VipZkManager
             this.protocolPort = protocolPort;
             this.sessionPersistence = sessionPersistence;
             this.adminStateUp = adminStateUp;
+        }
+
+        public VipConfig(VIP vip, UUID loadBalancerId) {
+            this.loadBalancerId = loadBalancerId;
+            this.poolId = vip.poolId;
+            this.address = vip.address;
+            this.protocolPort = vip.protocolPort;
+            this.sessionPersistence = VipSessionPersistence.SOURCE_IP;
+            this.adminStateUp = vip.adminStateUp;
         }
 
         @Override
@@ -108,25 +119,5 @@ public class VipZkManager
 
     public List<Op> prepareDelete(UUID id) {
         return asList(Op.delete(paths.getVipPath(id), -1));
-    }
-
-    public List<Op> prepareSetPoolId(UUID id, UUID poolId)
-            throws SerializationException, StateAccessException {
-        VipConfig config = get(id);
-        if (config.poolId == poolId)
-                return new ArrayList<>(0);
-
-        config.poolId = poolId;
-        return prepareUpdate(id, config);
-    }
-
-    public List<Op> prepareSetLoadBalancerId(UUID id, UUID loadBalancerId)
-            throws SerializationException, StateAccessException {
-        VipConfig config = get(id);
-        if (config.loadBalancerId == loadBalancerId)
-            return new ArrayList<Op>(0);
-
-        config.loadBalancerId = loadBalancerId;
-        return prepareUpdate(id, config);
     }
 }

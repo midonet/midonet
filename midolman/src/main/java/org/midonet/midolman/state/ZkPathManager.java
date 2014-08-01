@@ -1908,6 +1908,79 @@ public class ZkPathManager {
         return buildNeutronSecurityGroupRulePath(id).toString();
     }
 
+    // Neutron Load Balancer Paths
+    private StringBuilder buildNeutronLoadBalancerPath() {
+        return buildNeutronPath().append("/loadbalancer");
+    }
+
+    public String getNeutronLoadBalancerPath() {
+        return buildNeutronLoadBalancerPath().toString();
+    }
+
+    private StringBuilder buildNeutronPoolsPath() {
+        return buildNeutronLoadBalancerPath().append("/pools");
+    }
+
+    public String getNeutronPoolsPath() {
+        return buildNeutronPoolsPath().toString();
+    }
+
+    private StringBuilder buildNeutronPoolPath(UUID id) {
+        return buildNeutronPoolsPath().append("/").append(id);
+    }
+
+    public String getNeutronPoolPath(UUID id) {
+        return buildNeutronPoolPath(id).toString();
+    }
+
+    private StringBuilder buildNeutronVipsPath() {
+        return buildNeutronLoadBalancerPath().append("/vips");
+    }
+
+    public String getNeutronVipsPath() {
+        return buildNeutronVipsPath().toString();
+    }
+
+    private StringBuilder buildNeutronVipPath(UUID id) {
+        return buildNeutronVipsPath().append("/").append(id);
+    }
+
+    public String getNeutronVipPath(UUID id) {
+        return buildNeutronVipPath(id).toString();
+    }
+
+    private StringBuilder buildNeutronMembersPath() {
+        return buildNeutronLoadBalancerPath().append("/members");
+    }
+
+    public String getNeutronMembersPath() {
+        return buildNeutronMembersPath().toString();
+    }
+
+    private StringBuilder buildNeutronMemberPath(UUID id) {
+        return buildNeutronMembersPath().append("/").append(id);
+    }
+
+    public String getNeutronMemberPath(UUID id) {
+        return buildNeutronMemberPath(id).toString();
+    }
+
+    private StringBuilder buildNeutronHealthMonitorsPath() {
+        return buildNeutronLoadBalancerPath().append("/health_monitors");
+    }
+
+    public String getNeutronHealthMonitorsPath() {
+        return buildNeutronHealthMonitorsPath().toString();
+    }
+
+    private StringBuilder buildNeutronHealthMonitorPath(UUID id) {
+        return buildNeutronHealthMonitorsPath().append("/").append(id);
+    }
+
+    public String getNeutronHealthMonitorPath(UUID id) {
+        return buildNeutronHealthMonitorPath(id).toString();
+    }
+
     /**
      * URL-encode a path segment that may contain forward slashes.
      */

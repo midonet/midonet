@@ -7,6 +7,8 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -57,6 +59,15 @@ public class HealthMonitorZkManager extends
             this.maxRetries = maxRetries;
             this.adminStateUp = adminStateUp;
             this.status = status;
+        }
+
+        public HealthMonitorConfig(HealthMonitor healthMonitor) {
+            this.type = HealthMonitorType.TCP;
+            this.delay = healthMonitor.delay;
+            this.timeout = healthMonitor.timeout;
+            this.maxRetries = healthMonitor.maxRetries;
+            this.adminStateUp = healthMonitor.adminStateUp;
+            this.status = LBStatus.ACTIVE;
         }
 
         @Override

@@ -3,13 +3,11 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -68,34 +66,14 @@ public class MemberResource extends AbstractResource {
         log.info("PoolMemberResource.create entered {}", member);
 
         try {
-            Member createdMember = api.createMember(member);
+            api.createMember(member);
             POOL_MEMBER_EVENT.create(member.id, member);
-            log.info("PoolMemberResource.create exiting {}", createdMember);
+            log.info("PoolMemberResource.create exiting {}", member);
             return Response.created(
-                LBUriBuilder.getMember(getBaseUri(), createdMember.id))
-                .entity(createdMember).build();
+                LBUriBuilder.getMember(getBaseUri(), member.id))
+                .entity(member).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
-    }
-
-    @POST
-    @Consumes(LBMediaType.MEMBERS_JSON_V1)
-    @Produces(LBMediaType.MEMBERS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<Member> members)
-        throws SerializationException, StateAccessException {
-        log.info("PoolMemberResource.createBulk entered");
-
-        try {
-            List<Member> createdMembers = api.createMemberBulk(members);
-            for (Member member : createdMembers) {
-                POOL_MEMBER_EVENT.create(member.id, member);
-            }
-            return Response.created(LBUriBuilder.getMembers(
-                getBaseUri())).entity(createdMembers).build();
-        } catch (StatePathExistsException e) {
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
@@ -110,33 +88,6 @@ public class MemberResource extends AbstractResource {
         POOL_MEMBER_EVENT.delete(id);
     }
 
-    @GET
-    @Path("{id}")
-    @Produces(LBMediaType.MEMBER_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public Member get(@PathParam("id") UUID id)
-        throws SerializationException, StateAccessException {
-        log.info("PoolMemberResource.get entered {}", id);
-
-        Member member = api.getMember(id);
-        if (member == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
-        }
-
-        log.info("MemberResource.get exiting {}", member);
-        return member;
-    }
-
-    @GET
-    @Produces(LBMediaType.MEMBERS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public List<Member> list()
-        throws SerializationException, StateAccessException {
-        log.info("PoolMemberResource.list entered");
-        List<Member> members = api.getMembers();
-        return members;
-    }
-
     @PUT
     @Path("{id}")
     @Consumes(LBMediaType.MEMBER_JSON_V1)
@@ -148,12 +99,12 @@ public class MemberResource extends AbstractResource {
         log.info("PoolMemberResource.update entered {}", member);
 
         try {
-            Member updatedMember = api.updateMember(id, member);
-            POOL_MEMBER_EVENT.update(id, updatedMember);
-            log.info("PoolMemberResource.update exiting {}", updatedMember);
+            api.updateMember(id, member);
+            POOL_MEMBER_EVENT.update(id, member);
+            log.info("PoolMemberResource.update exiting {}", member);
             return Response.ok(
-                LBUriBuilder.getMember(getBaseUri(), updatedMember.id))
-                .entity(updatedMember).build();
+                LBUriBuilder.getMember(getBaseUri(), member.id))
+                .entity(member).build();
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
             throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));

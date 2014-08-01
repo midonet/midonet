@@ -8,6 +8,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -72,6 +74,13 @@ public class PoolZkManager
             this.lbMethod = lbMethod;
             this.status = status;
             this.mappingStatus = mappingStatus;
+        }
+
+        // The load balancer ID is not part of a Neutron Pool because the
+        // the load balancer object only exists in our internal representation.
+        public PoolConfig(Pool pool, UUID loadBalancerId) {
+            this.loadBalancerId = loadBalancerId;
+            this.adminStateUp = pool.adminStateUp;
         }
 
         /**
@@ -254,6 +263,10 @@ public class PoolZkManager
 
     public List<UUID> getVipIds(UUID id) throws StateAccessException {
         return getUuidList(paths.getPoolVipsPath(id));
+    }
+
+    public List<UUID> getAll() throws StateAccessException {
+        return getUuidList(paths.getPoolsPath());
     }
 
     public List<Op> prepareAddVip(UUID id, UUID vipId) {

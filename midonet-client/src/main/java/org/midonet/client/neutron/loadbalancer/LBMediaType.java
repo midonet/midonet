@@ -16,9 +16,9 @@ public class LBMediaType {
         "application/vnd.org.midonet.neutron.lb.Pools-v1+json";
 
     public final static String MEMBER_JSON_V1 =
-        "application/vnd.org.midonet.neutron.lb.Member-v1+json";
+        "application/vnd.org.midonet.neutron.lb.PoolMember-v1+json";
     public final static String MEMBERS_JSON_V1 =
-        "application/vnd.org.midonet.neutron.lb.Members-v1+json";
+        "application/vnd.org.midonet.neutron.lb.PoolMembers-v1+json";
 
     public final static String HEALTH_MONITOR_JSON_V1 =
         "application/vnd.org.midonet.neutron.lb.HealthMonitor-v1+json";

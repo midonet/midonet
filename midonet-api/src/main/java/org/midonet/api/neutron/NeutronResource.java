@@ -11,10 +11,6 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.Neutron;
 import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.client.neutron.loadbalancer.LoadBalancer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;

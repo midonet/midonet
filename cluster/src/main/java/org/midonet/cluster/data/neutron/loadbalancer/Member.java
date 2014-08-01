@@ -3,31 +3,36 @@
  */
 package org.midonet.cluster.data.neutron.loadbalancer;
 
-import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.UUID;
+
+import com.google.common.base.Objects;
+
+import org.codehaus.jackson.annotate.JsonProperty;
 
 public class Member {
 
-    public UUID id;
-
-    @JsonProperty("tenant_id")
-    public String tenantId;
-
-    @JsonProperty("pool_id")
-    public String poolId;
-
     public String address;
-
-    public int port;
-
-    public int weight;
 
     @JsonProperty("admin_state_up")
     public boolean adminStateUp;
 
+    public UUID id;
+
+    @JsonProperty("pool_id")
+    public UUID poolId;
+
+    @JsonProperty("protocol_port")
+    public int protocolPort;
+
     public String status;
+
+    @JsonProperty("status_description")
+    public String statusDescription;
+
+    @JsonProperty("tenant_id")
+    public String tenantId;
+
+    public int weight;
 
     @Override
     public final boolean equals(Object obj) {
@@ -37,33 +42,35 @@ public class Member {
         if (!(obj instanceof Member)) return false;
         final Member other = (Member) obj;
 
-        return Objects.equal(id, other.id)
-                && Objects.equal(tenantId, other.tenantId)
-                && Objects.equal(poolId, other.poolId)
-                && Objects.equal(address, other.address)
-                && Objects.equal(port, other.port)
-                && Objects.equal(weight, other.weight)
-                && Objects.equal(adminStateUp, other.adminStateUp)
-                && Objects.equal(status, other.status);
+        return Objects.equal(address, other.address)
+               && Objects.equal(adminStateUp, other.adminStateUp)
+               && Objects.equal(id, other.id)
+               && Objects.equal(poolId, other.poolId)
+               && Objects.equal(protocolPort, other.protocolPort)
+               && Objects.equal(status, other.status)
+               && Objects.equal(statusDescription, other.statusDescription)
+               && Objects.equal(tenantId, other.tenantId)
+               && Objects.equal(weight, other.weight);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, tenantId, poolId, address,
-                port, weight, adminStateUp, status);
+        return Objects.hashCode(address, adminStateUp, id, poolId, protocolPort,
+                                status, statusDescription, tenantId, weight);
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", id)
-                .add("tenantId", tenantId)
-                .add("poolId", poolId)
-                .add("address", address)
-                .add("port", port)
-                .add("weight", weight)
-                .add("adminStateUp", adminStateUp)
-                .add("status", status)
-                .toString();
+            .add("address", address)
+            .add("adminStateUp", adminStateUp)
+            .add("id", id)
+            .add("poolId", poolId)
+            .add("protocolPort", protocolPort)
+            .add("status", status)
+            .add("statusDescription", statusDescription)
+            .add("tenantId", tenantId)
+            .add("weight", weight)
+            .toString();
     }
 }
