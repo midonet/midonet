@@ -12,6 +12,8 @@ import com.google.common.base.Objects;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -89,6 +91,19 @@ public class LoadBalancerZkManager extends
     @Override
     protected Class<LoadBalancerConfig> getConfigClass() {
         return LoadBalancerConfig.class;
+    }
+
+    public List<Op> prepareCreate(UUID id, LoadBalancerConfig config)
+        throws SerializationException {
+        UUID loadBalancerId = checkNotNull(id, "The load balancer ID is null");
+        LoadBalancerConfig loadBalancerConfig
+            = checkNotNull(config, "The load balancer ID is null");
+
+        return asList(simpleCreateOp(loadBalancerId, loadBalancerConfig),
+            zk.getPersistentCreateOp(
+                paths.getLoadBalancerPoolsPath(loadBalancerId), null),
+            zk.getPersistentCreateOp(
+                paths.getLoadBalancerVipsPath(loadBalancerId), null));
     }
 
     public void create(UUID id, LoadBalancerConfig config)

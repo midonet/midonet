@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -61,16 +60,14 @@ public class PoolHealthMonitorResource extends AbstractResource {
                  poolHealthMonitor);
 
         try {
-            PoolHealthMonitor
-                createdPoolHealthMonitor =
-                api.createPoolHealthMonitor(poolHealthMonitor);
-            POOL_HEALTH_MONITOR_EVENT.create(createdPoolHealthMonitor.poolId,
-                                             createdPoolHealthMonitor.healthMonitor.id);
+            api.createPoolHealthMonitor(poolHealthMonitor);
+            POOL_HEALTH_MONITOR_EVENT.create(poolHealthMonitor.poolId,
+                                             poolHealthMonitor.healthMonitor.id);
             LOG.info("PoolHealthMonitorResource.create exiting {}",
-                     createdPoolHealthMonitor);
+                     poolHealthMonitor);
             return Response.created(
                 LBUriBuilder.getPoolHealthMonitor(getBaseUri()))
-                .entity(createdPoolHealthMonitor).build();
+                .entity(poolHealthMonitor).build();
         } catch (StatePathExistsException e) {
             LOG.error("Duplicate resource error", e);
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));

@@ -3,27 +3,33 @@
  */
 package org.midonet.cluster.data.neutron.loadbalancer;
 
-import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonProperty;
-
+import java.util.List;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
+
+import org.codehaus.jackson.annotate.JsonProperty;
+
 public class HealthMonitor {
-
-    public UUID id;
-
-    public String type;
-
-    public int delay;
-
-    public int timeout;
-
-    public int attemptsBeforeDeactivation;
 
     @JsonProperty("admin_state_up")
     public boolean adminStateUp;
 
-    public String status;
+    public int delay;
+
+    public UUID id;
+
+    @JsonProperty("max_retries")
+    public int maxRetries;
+
+    public List<Pool> pools;
+
+    @JsonProperty("tenant_id")
+    public String tenantId;
+
+    public int timeout;
+
+    public String type;
 
     @Override
     public final boolean equals(Object obj) {
@@ -33,32 +39,33 @@ public class HealthMonitor {
         if (!(obj instanceof HealthMonitor)) return false;
         final HealthMonitor other = (HealthMonitor) obj;
 
-        return Objects.equal(id, other.id)
-                && Objects.equal(type, other.type)
-                && Objects.equal(delay, other.delay)
-                && Objects.equal(timeout, other.timeout)
-                && Objects.equal(attemptsBeforeDeactivation,
-                                 other.attemptsBeforeDeactivation)
-                && Objects.equal(adminStateUp, other.adminStateUp)
-                && Objects.equal(status, other.status);
+        return Objects.equal(adminStateUp, other.adminStateUp)
+               && Objects.equal(delay, other.delay)
+               && Objects.equal(id, other.id)
+               && Objects.equal(maxRetries, other.maxRetries)
+               && Objects.equal(pools, other.pools)
+               && Objects.equal(tenantId, other.tenantId)
+               && Objects.equal(timeout, other.timeout)
+               && Objects.equal(type, other.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, type, delay, timeout,
-                attemptsBeforeDeactivation, adminStateUp, status);
+        return Objects.hashCode(adminStateUp, delay, id, maxRetries, pools,
+                                tenantId, timeout, type);
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", id)
-                .add("type", type)
-                .add("delay", delay)
-                .add("timeout", timeout)
-                .add("attemptsBeforeDeactivation", attemptsBeforeDeactivation)
-                .add("adminStateUp", adminStateUp)
-                .add("status", status)
-                .toString();
+            .add("adminStateUp", adminStateUp)
+            .add("delay", delay)
+            .add("id", id)
+            .add("maxRetries", maxRetries)
+            .add("pools", pools)
+            .add("tenantId", tenantId)
+            .add("timeout", timeout)
+            .add("type", type)
+            .toString();
     }
 }

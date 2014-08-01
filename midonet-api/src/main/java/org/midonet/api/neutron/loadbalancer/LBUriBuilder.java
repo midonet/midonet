@@ -58,7 +58,7 @@ public final class LBUriBuilder {
         return ResourceUriBuilder.buildIdTemplateUri(getPools(baseUri));
     }
 
-    // Pools
+    // Pool Members
     public static URI getMembers(URI baseUri) {
         return UriBuilder.fromUri(getLoadBalancer(baseUri)).path(MEMBERS)
             .build();

@@ -109,6 +109,12 @@ public class Setup {
         paths.add(pathMgr.getNeutronFloatingIpsPath());
         paths.add(pathMgr.getNeutronSecurityGroupsPath());
         paths.add(pathMgr.getNeutronSecurityGroupRulesPath());
+        // Neutron LoadBalancer paths
+        paths.add(pathMgr.getNeutronLoadBalancerPath());
+        paths.add(pathMgr.getNeutronPoolsPath());
+        paths.add(pathMgr.getNeutronVipsPath());
+        paths.add(pathMgr.getNeutronMembersPath());
+        paths.add(pathMgr.getNeutronHealthMonitorsPath());
 
         return paths;
     }

@@ -3,13 +3,11 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -67,34 +65,14 @@ public class VipResource extends AbstractResource {
         log.info("VipResource.create entered {}", vip);
 
         try {
-            VIP createdVip = api.createVip(vip);
-            VIP_EVENT.create(createdVip.id, createdVip);
-            log.info("VipResource.create exiting {}", createdVip);
+            api.createVip(vip);
+            VIP_EVENT.create(vip.id, vip);
+            log.info("VipResource.create exiting {}", vip);
             return Response.created(
-                LBUriBuilder.getVip(getBaseUri(), createdVip.id))
-                .entity(createdVip).build();
+                LBUriBuilder.getVip(getBaseUri(), vip.id))
+                .entity(vip).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
-    }
-
-    @POST
-    @Consumes(LBMediaType.VIPS_JSON_V1)
-    @Produces(LBMediaType.VIPS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<VIP> vips)
-        throws SerializationException, StateAccessException {
-        log.info("VipResource.createBulk entered");
-
-        try {
-            List<VIP> createdVips = api.createVipBulk(vips);
-            for (VIP vip : createdVips) {
-                VIP_EVENT.create(vip.id, vip);
-            }
-            return Response.created(LBUriBuilder.getVips(
-                getBaseUri())).entity(vips).build();
-        } catch (StatePathExistsException e) {
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
@@ -109,33 +87,6 @@ public class VipResource extends AbstractResource {
         VIP_EVENT.delete(id);
     }
 
-    @GET
-    @Path("{id}")
-    @Produces(LBMediaType.VIP_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public VIP get(@PathParam("id") UUID id)
-        throws SerializationException, StateAccessException {
-        log.info("VipResource.get entered {}", id);
-
-        VIP vip = api.getVip(id);
-        if (vip == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
-        }
-
-        log.info("VipResource.get exiting {}", vip);
-        return vip;
-    }
-
-    @GET
-    @Produces(LBMediaType.VIPS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public List<VIP> list()
-        throws SerializationException, StateAccessException {
-        log.info("VipResource.list entered");
-        List<VIP> vips = api.getVips();
-        return vips;
-    }
-
     @PUT
     @Path("{id}")
     @Consumes(LBMediaType.VIP_JSON_V1)
@@ -147,12 +98,12 @@ public class VipResource extends AbstractResource {
         log.info("VipResource.update entered {}", vip);
 
         try {
-            VIP updatedVip = api.updateVip(id, vip);
-            VIP_EVENT.update(id, updatedVip);
-            log.info("VipResource.update exiting {}", updatedVip);
+            api.updateVip(id, vip);
+            VIP_EVENT.update(id, vip);
+            log.info("VipResource.update exiting {}", vip);
             return Response.ok(
-                LBUriBuilder.getVip(getBaseUri(), updatedVip.id))
-                .entity(updatedVip).build();
+                LBUriBuilder.getVip(getBaseUri(), vip.id))
+                .entity(vip).build();
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);
             throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));

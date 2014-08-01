@@ -3,13 +3,11 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -67,34 +65,14 @@ public class PoolResource extends AbstractResource {
         log.info("PoolResource.create entered {}", pool);
 
         try {
-            Pool newPool = api.createPool(pool);
-            POOL_EVENT.create(newPool.id, newPool);
-            log.info("PoolResource.create exiting {}", newPool);
+            api.createPool(pool);
+            POOL_EVENT.create(pool.id, pool);
+            log.info("PoolResource.create exiting {}", pool);
             return Response.created(
-                LBUriBuilder.getPool(getBaseUri(), newPool.id))
-                .entity(newPool).build();
+                LBUriBuilder.getPool(getBaseUri(), pool.id))
+                .entity(pool).build();
         } catch (StatePathExistsException e) {
             log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
-    }
-
-    @POST
-    @Consumes(LBMediaType.POOLS_JSON_V1)
-    @Produces(LBMediaType.POOLS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<Pool> pools)
-        throws SerializationException, StateAccessException {
-        log.info("PoolResource.createBulk entered");
-
-        try {
-            List<Pool> createdPools = api.createPoolBulk(pools);
-            for (Pool pool : createdPools) {
-                POOL_EVENT.create(pool.id, pool);
-            }
-            return Response.created(LBUriBuilder.getPools(
-                getBaseUri())).entity(createdPools).build();
-        } catch (StatePathExistsException e) {
             throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
         }
     }
@@ -109,33 +87,6 @@ public class PoolResource extends AbstractResource {
         POOL_EVENT.delete(id);
     }
 
-    @GET
-    @Path("{id}")
-    @Produces(LBMediaType.POOL_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public Pool get(@PathParam("id") UUID id)
-        throws SerializationException, StateAccessException {
-        log.info("PoolResource.get entered {}", id);
-
-        Pool pool = api.getPool(id);
-        if (pool == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
-        }
-
-        log.info("PoolResource.get exiting {}", pool);
-        return pool;
-    }
-
-    @GET
-    @Produces(LBMediaType.POOLS_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public List<Pool> list()
-        throws SerializationException, StateAccessException {
-        log.info("PoolResource.list entered");
-        List<Pool> pools = api.getPools();
-        return pools;
-    }
-
     @PUT
     @Path("{id}")
     @Consumes(LBMediaType.POOL_JSON_V1)
@@ -147,12 +98,11 @@ public class PoolResource extends AbstractResource {
         log.info("PoolResource.update entered {}", pool);
 
         try {
-            // TODO: implement api wrapper
-            Pool updatePool = api.updatePool(id, pool);
-            POOL_EVENT.update(id, updatePool);
-            log.info("PoolResource.update exiting {}", updatePool);
+            api.updatePool(id, pool);
+            POOL_EVENT.update(id, pool);
+            log.info("PoolResource.update exiting {}", pool);
             return Response.ok(
-                LBUriBuilder.getPool(getBaseUri(), updatePool.id))
+                LBUriBuilder.getPool(getBaseUri(), pool.id))
                 .entity(pool).build();
         } catch (NoStatePathException e) {
             log.error("Resource does not exist", e);

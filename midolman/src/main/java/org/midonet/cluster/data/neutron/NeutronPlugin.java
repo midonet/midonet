@@ -23,10 +23,18 @@ import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager;
 
 /**
  * MidoNet implementation of Neutron plugin interface.
@@ -49,6 +57,24 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     private L3ZkManager l3ZkManager;
     @Inject
     private SecurityGroupZkManager securityGroupZkManager;
+    @Inject
+    private LoadBalancerZkManager loadBalancerZkManager;
+    @Inject
+    private HealthMonitorZkManager healthMonitorZkManager;
+    @Inject
+    private PoolMemberZkManager poolMemberZkManager;
+    @Inject
+    private RouterZkManager routerZkManager;
+    @Inject
+    private PoolZkManager poolZkManager;
+    @Inject
+    private VipZkManager vipZkManager;
+    @Inject
+    private PathBuilder pathBuilder;
+    @Inject
+    private Serializer serializer;
+    @Inject
+    private LBZkManager lbZkManager;
 
     private static void printOps(List<Op> ops) {
 
@@ -652,166 +678,115 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // Pools
     @Override
-    public Pool createPool(Pool pool)
+    public void createPool(Pool pool)
         throws StateAccessException, SerializationException {
-        return new Pool();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareCreatePool(ops, pool);
+        commitOps(ops);
     }
 
     @Override
-    public List<Pool> createPoolBulk(List<Pool> pool)
+    public void updatePool(UUID id, Pool pool)
         throws StateAccessException, SerializationException {
-        return new ArrayList<>();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareUpdatePool(ops, id, pool);
+        commitOps(ops);
     }
 
     @Override
-    public Pool getPool(UUID id)
+    public void deletePool(UUID id)
         throws StateAccessException, SerializationException {
-        return new Pool();
-    }
-
-    @Override
-    public List<Pool> getPools()
-        throws StateAccessException, SerializationException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public Pool updatePool(UUID id, Pool pool)
-        throws StateAccessException, SerializationException {
-        return new Pool();
-    }
-
-    @Override
-    public Pool deletePool(UUID id)
-        throws StateAccessException, SerializationException {
-        return new Pool();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareDeletePool(ops, id);
+        commitOps(ops);
     }
 
     // Members
     @Override
-    public Member createMember(Member member)
+    public void createMember(Member member)
         throws StateAccessException, SerializationException {
-        return new Member();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareCreateMember(ops, member);
+        commitOps(ops);
     }
 
     @Override
-    public List<Member> createMemberBulk(List<Member> member)
+    public void updateMember(UUID id, Member member)
         throws StateAccessException, SerializationException {
-        return new ArrayList<>();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareUpdateMember(ops, id, member);
+        commitOps(ops);
     }
 
     @Override
-    public Member getMember(UUID id)
+    public void deleteMember(UUID id)
         throws StateAccessException, SerializationException {
-        return new Member();
-    }
-
-    @Override
-    public List<Member> getMembers()
-        throws StateAccessException, SerializationException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public Member updateMember(UUID id, Member member)
-        throws StateAccessException, SerializationException {
-        return new Member();
-    }
-
-    @Override
-    public Member deleteMember(UUID id)
-        throws StateAccessException, SerializationException {
-        return new Member();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareDeleteMember(ops, id);
+        commitOps(ops);
     }
 
     // Vips
     @Override
-    public VIP createVip(VIP vip)
+    public void createVip(VIP vip)
         throws StateAccessException, SerializationException {
-        return new VIP();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareCreateVip(ops, vip);
+        commitOps(ops);
     }
 
     @Override
-    public List<VIP> createVipBulk(List<VIP> vip)
+    public void updateVip(UUID id, VIP vip)
         throws StateAccessException, SerializationException {
-        return new ArrayList<>();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareUpdateVip(ops, id, vip);
+        commitOps(ops);
     }
 
     @Override
-    public VIP getVip(UUID id)
+    public void deleteVip(UUID id)
         throws StateAccessException, SerializationException {
-        return new VIP();
-    }
-
-    @Override
-    public List<VIP> getVips()
-        throws StateAccessException, SerializationException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public VIP updateVip(UUID id, VIP vip)
-        throws StateAccessException, SerializationException {
-        return new VIP();
-    }
-
-    @Override
-    public VIP deleteVip(UUID id)
-        throws StateAccessException, SerializationException {
-        return new VIP();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareDeleteVip(ops, id);
+        commitOps(ops);
     }
 
     // Health Monitors
     @Override
-    public HealthMonitor createHealthMonitor(HealthMonitor healthMonitor)
+    public void createHealthMonitor(HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
-        return new HealthMonitor();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareCreateHealthMonitor(ops, healthMonitor);
+        commitOps(ops);
     }
 
     @Override
-    public List<HealthMonitor> createHealthMonitorBulk(
-        List<HealthMonitor> healthMonitor)
-        throws StateAccessException, SerializationException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public HealthMonitor getHealthMonitor(UUID id)
-        throws StateAccessException, SerializationException {
-        return new HealthMonitor();
-    }
-
-    @Override
-    public List<HealthMonitor> getHealthMonitors()
-        throws StateAccessException, SerializationException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public HealthMonitor updateHealthMonitor(UUID id,
+    public void updateHealthMonitor(UUID id,
                                              HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
-        return new HealthMonitor();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareUpdateHealthMonitor(ops, id, healthMonitor);
+        commitOps(ops);
     }
 
     @Override
-    public HealthMonitor deleteHealthMonitor(UUID id)
+    public void deleteHealthMonitor(UUID id)
         throws StateAccessException, SerializationException {
-        return new HealthMonitor();
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.prepareDeleteHealthMonitor(ops, id);
+        commitOps(ops);
     }
 
     // Pool Health Monitors
     @Override
-    public PoolHealthMonitor createPoolHealthMonitor(
-        PoolHealthMonitor poolHealthMonitor)
+    public void createPoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
-        return poolHealthMonitor;
+        lbZkManager.createPoolHealthMonitor(poolHealthMonitor);
     }
 
     @Override
-    public PoolHealthMonitor deletePoolHealthMonitor(
-        PoolHealthMonitor poolHealthMonitor)
+    public void deletePoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
-        return poolHealthMonitor;
+        lbZkManager.deletePoolHealthMonitor(poolHealthMonitor);
     }
 }

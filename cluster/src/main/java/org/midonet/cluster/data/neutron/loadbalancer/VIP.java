@@ -3,47 +3,83 @@
  */
 package org.midonet.cluster.data.neutron.loadbalancer;
 
-import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.util.UUID;
+
+import com.google.common.base.Objects;
+
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonValue;
 
 public class VIP {
 
-    public UUID id;
+    public enum SPtype {
+        SOURCE_IP, HTTP_COOKIE, APP_COOKIE;
 
-    @JsonProperty("tenant_id")
-    public String tenantId;
+        @JsonValue
+        public String value() {
+            return this.name();
+        }
 
-    public String name;
+        @JsonCreator
+        public static SPtype forValue(String v) {
+            if (Objects.equal(v, SOURCE_IP)) {
+                return SOURCE_IP;
+            } else if (Objects.equal(v, HTTP_COOKIE)) {
+                return HTTP_COOKIE;
+            } else if (Objects.equal(v, APP_COOKIE)) {
+                return APP_COOKIE;
+            } else {
+                return null;
+            }
+        }
+    }
 
-    public String description;
+    public class SessionPersistence {
+        public SPtype type;
 
-    @JsonProperty("networkId")
-    public UUID networkId;
+        @JsonProperty("cookie_name")
+        public String cookieName;
+    }
 
     public String address;
 
-    public int port;
-
-    @JsonProperty("lb_method")
-    public String lbMethod;
-
-    public String protocol;
-
-    @JsonProperty("pool_id")
-    public UUID poolId;
-
-    @JsonProperty("session_persistence")
-    public UUID sessionPersistence;
+    @JsonProperty("admin_state_up")
+    public boolean adminStateUp;
 
     @JsonProperty("connection_limit")
     public int connectionLimit;
 
-    @JsonProperty("admin_state_up")
-    public String adminStateUp;
+    public String description;
+
+    public UUID id;
+
+    public String name;
+
+    @JsonProperty("pool_id")
+    public UUID poolId;
+
+    @JsonProperty("port_id")
+    public UUID portId;
+
+    public String protocol;
+
+    @JsonProperty("protocol_port")
+    public int protocolPort;
+
+    @JsonProperty("session_persistence")
+    public SessionPersistence sessionPersistence;
 
     public String status;
+
+    @JsonProperty("status_description")
+    public String statusDescription;
+
+    @JsonProperty("subnet_id")
+    public UUID subnetId;
+
+    @JsonProperty("tenant_id")
+    public String tenantId;
 
     @Override
     public final boolean equals(Object obj) {
@@ -53,46 +89,49 @@ public class VIP {
         if (!(obj instanceof VIP)) return false;
         final VIP other = (VIP) obj;
 
-        return Objects.equal(id, other.id)
-                && Objects.equal(tenantId, other.tenantId)
-                && Objects.equal(name, other.name)
-                && Objects.equal(description, other.description)
-                && Objects.equal(networkId, other.networkId)
-                && Objects.equal(address, other.address)
-                && Objects.equal(port, other.port)
-                && Objects.equal(lbMethod, other.lbMethod)
-                && Objects.equal(protocol, other.protocol)
-                && Objects.equal(poolId, other.poolId)
-                && Objects.equal(sessionPersistence, other.sessionPersistence)
-                && Objects.equal(connectionLimit, other.connectionLimit)
-                && Objects.equal(adminStateUp, other.adminStateUp)
-                && Objects.equal(status, other.status);
+        return Objects.equal(address, other.address)
+               && Objects.equal(adminStateUp, other.adminStateUp)
+               && Objects.equal(connectionLimit, other.connectionLimit)
+               && Objects.equal(description, other.description)
+               && Objects.equal(id, other.id)
+               && Objects.equal(name, other.name)
+               && Objects.equal(poolId, other.poolId)
+               && Objects.equal(portId, other.portId)
+               && Objects.equal(protocol, other.protocol)
+               && Objects.equal(protocolPort, other.protocolPort)
+               && Objects.equal(sessionPersistence, other.sessionPersistence)
+               && Objects.equal(status, other.status)
+               && Objects.equal(statusDescription, other.statusDescription)
+               && Objects.equal(subnetId, other.subnetId)
+               && Objects.equal(tenantId, other.tenantId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, tenantId, name, description, networkId,
-                address, port, lbMethod, protocol, poolId, sessionPersistence,
-                connectionLimit, adminStateUp, status);
+        return Objects.hashCode(address, adminStateUp, connectionLimit,
+                                description, id, name, poolId, portId, protocol,
+                                protocolPort, sessionPersistence, status,
+                                statusDescription, subnetId, tenantId);
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-                .add("id", id)
-                .add("tenantId", tenantId)
-                .add("name", name)
-                .add("description", description)
-                .add("networkId", networkId)
-                .add("address", address)
-                .add("port", port)
-                .add("lbMethod", lbMethod)
-                .add("protocol", protocol)
-                .add("poolId", poolId)
-                .add("sessionPersistence", sessionPersistence)
-                .add("connectionLimit", connectionLimit)
-                .add("admin_state_up", adminStateUp)
-                .add("status", status)
-                .toString();
+            .add("address", address)
+            .add("adminStateUp", adminStateUp)
+            .add("connectionLimit", connectionLimit)
+            .add("description", description)
+            .add("id", id)
+            .add("name", name)
+            .add("poolId", poolId)
+            .add("portId", portId)
+            .add("protocol", protocol)
+            .add("protocolPort", protocolPort)
+            .add("sessionPersistence", sessionPersistence)
+            .add("status", status)
+            .add("statusDescription", statusDescription)
+            .add("subnetId", subnetId)
+            .add("tenantId", tenantId)
+            .toString();
     }
 }
