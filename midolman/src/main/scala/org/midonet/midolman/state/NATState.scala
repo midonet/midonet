@@ -193,6 +193,8 @@ trait NatState extends FlowState {
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseDnatTransformation(natKey, binding)
+            else
+                pktCtx.addFlowTag(natKey)
         }
         false
     }
@@ -216,6 +218,8 @@ trait NatState extends FlowState {
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseSnatTransformation(natKey, binding)
+            else
+                pktCtx.addFlowTag(natKey)
         }
         false
     }
@@ -234,6 +238,7 @@ trait NatState extends FlowState {
     def applyIfExists(natKey: NatKey): Boolean = {
         val binding = natTx.get(natKey)
         if (binding eq null) {
+            pktCtx.addFlowTag(natKey)
             false
         } else natKey.keyType match {
             case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
