@@ -477,7 +477,7 @@ abstract class BaseFlowStateReplicator() {
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           ingressPort: UUID, egressPort: UUID,
                           egressPortSet: UUID, tags: mutable.Set[FlowTag],
-                          callbacks: ArrayList[Callback0]) {
+                          callbacks: ArrayList[Callback0]): Unit = {
         if (natTx.size() == 0 && conntrackTx.size() == 0)
             return
 
@@ -716,7 +716,7 @@ abstract class BaseFlowStateReplicator() {
                                egressPortSet: UUID,
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
-                               tags: mutable.Set[FlowTag]) {
+                               tags: mutable.Set[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
         collectPeersForPort(ingressPort, hosts, ports, tags)
@@ -726,6 +726,8 @@ abstract class BaseFlowStateReplicator() {
         } else if (egressPortSet != null) {
             collectPeersForPortSet(egressPortSet, hosts, tags)
         }
+
+        log.debug("Resolved peers {}", hosts)
     }
 }
 
