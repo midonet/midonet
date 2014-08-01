@@ -15,7 +15,6 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.loadbalancer.LoadBalancer;
 
-@Path(LBUriBuilder.LB)
 public class LBResource extends AbstractResource {
 
     private final LBResourceFactory factory;
