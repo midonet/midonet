@@ -39,8 +39,6 @@ project.ext {
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_io: "commons-io:commons-io:2.3",
-        curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
-        curator_test: "org.apache.curator:curator-test:2.6.0",
         guice: ["com.google.inject:guice:${versions.guice}",
                 "com.google.inject.extensions:guice-assistedinject:${versions.guice}"],
         guice_servlet: "com.google.inject.extensions:guice-servlet:${versions.guice}",
@@ -78,6 +76,8 @@ project.ext {
             exclude group: 'io.netty', module: 'netty'
             exclude group: 'log4j', module: 'log4j'
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+        curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
+        curator_test: "org.apache.curator:curator-test:2.6.0",
 
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
