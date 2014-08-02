@@ -380,20 +380,6 @@
             <version>1.7</version>
         </dependency>
 
-        <!-- curator -->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>2.6.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <version>2.6.0</version>
-            <scope>test</scope>
-        </dependency>
-
         <!-- jackson -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
@@ -550,6 +536,19 @@
                     <artifactId>netty</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- jna, used by the netlink layer -->
