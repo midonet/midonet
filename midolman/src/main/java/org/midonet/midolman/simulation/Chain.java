@@ -94,7 +94,7 @@ public class Chain {
         while (iter.hasNext() && res.action == Action.CONTINUE) {
 
             Rule r = iter.next();
-            r.process(pktCtx, res, isPortFilter);
+            r.process(pktCtx, res, ownerId, isPortFilter);
 
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);

@@ -53,32 +53,32 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
-        boolean gotNat = dnat ? applyDnat(pktCtx)
-                              : applySnat(pktCtx);
+    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+        boolean gotNat = dnat ? applyDnat(pktCtx, ownerId)
+                              : applySnat(pktCtx, ownerId);
         if (gotNat)
             res.action = action;
     }
 
-    protected boolean applyDnat(PacketContext pktCtx) {
+    protected boolean applyDnat(PacketContext pktCtx, UUID ownerId) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                       pktCtx.wcmatch().getNetworkDestinationIP(), floatingIpAddr);
             pktCtx.wcmatch().setNetworkDestination(floatingIpAddr);
             return true;
         } else {
-            return pktCtx.state().applyDnat(targets);
+            return pktCtx.state().applyDnat(ownerId, targets);
         }
     }
 
-    protected boolean applySnat(PacketContext pktCtx) {
+    protected boolean applySnat(PacketContext pktCtx, UUID ownerId) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
                     pktCtx.wcmatch().getNetworkSourceIP(), floatingIpAddr);
             pktCtx.wcmatch().setNetworkSource(floatingIpAddr);
             return true;
         } else {
-            return pktCtx.state().applySnat(targets);
+            return pktCtx.state().applySnat(ownerId, targets);
         }
     }
 

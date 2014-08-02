@@ -60,7 +60,8 @@ object FlowStateStorage {
             networkDst = r.getInet("dstIp"),
             transportSrc = r.getInt("srcPort"),
             transportDst = r.getInt("dstPort"),
-            networkProtocol = r.getInt("proto").toByte)
+            networkProtocol = r.getInt("proto").toByte,
+            deviceId = r.getUUID("device"))
 
     def rowToNatBinding(r: Row) = NatBinding(
             networkAddress = r.getInet("translateIp"),
@@ -85,9 +86,6 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     private val log: Logger = LoggerFactory.getLogger(classOf[FlowStateStorage])
 
     import FlowStateStorage._
-
-    // FIXME(guillermo) nat keys should have a device id
-    val DUMMY_UUID = UUID.fromString("4d6b7c7f-d8ec-42c0-a4bb-a1a0777605cc")
 
     var batch: BatchStatement = new BatchStatement()
 
@@ -149,7 +147,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                       k.networkProtocol.toInt.asInstanceOf[JInt],
                       ipAddrToInet(k.networkSrc), k.transportSrc.asInstanceOf[JInt],
                       ipAddrToInet(k.networkDst), k.transportDst.asInstanceOf[JInt],
-                      DUMMY_UUID,
+                      k.deviceId,
                       ipAddrToInet(v.networkAddress), v.transportPort.asInstanceOf[JInt])
     }
 

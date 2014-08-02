@@ -178,10 +178,10 @@ public class TestRules {
     public void testLiteralRuleAccept() {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         expRes.action = Action.ACCEPT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -195,10 +195,10 @@ public class TestRules {
     public void testLiteralRuleDrop() {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         expRes.action = Action.DROP;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -212,10 +212,10 @@ public class TestRules {
     public void testLiteralRuleReject() {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         expRes.action = Action.REJECT;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -224,10 +224,10 @@ public class TestRules {
     public void testLiteralRuleReturn() {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         expRes.action = Action.RETURN;
         Assert.assertTrue(expRes.equals(argRes));
     }
@@ -236,10 +236,10 @@ public class TestRules {
     public void testJumpRule() {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         Assert.assertTrue(expRes.equals(argRes));
         fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, false);
+        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
         expRes.action = Action.JUMP;
         expRes.jumpToChain = jumpChainId;
         Assert.assertTrue(expRes.equals(argRes));

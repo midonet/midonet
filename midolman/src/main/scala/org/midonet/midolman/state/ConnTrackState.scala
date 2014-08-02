@@ -31,12 +31,12 @@ object ConnTrackState {
                          deviceId)
     }
 
-    case class ConnTrackKey(networkSrc: IPAddr = null,
-                            icmpIdOrTransportSrc: Int = 0,
-                            networkDst: IPAddr = null,
-                            icmpIdOrTransportDst: Int = 0,
-                            networkProtocol: Byte = 0,
-                            deviceId: UUID = null) extends FlowStateTag {
+    case class ConnTrackKey(networkSrc: IPAddr,
+                            icmpIdOrTransportSrc: Int,
+                            networkDst: IPAddr,
+                            icmpIdOrTransportDst: Int,
+                            networkProtocol: Byte,
+                            deviceId: UUID) extends FlowStateTag {
         override def toString = s"conntrack:$networkSrc:$icmpIdOrTransportSrc:" +
                                 s"$networkDst:$icmpIdOrTransportDst:" +
                                 s"$networkProtocol:$deviceId"

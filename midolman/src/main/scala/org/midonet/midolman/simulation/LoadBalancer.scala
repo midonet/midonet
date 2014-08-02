@@ -61,7 +61,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     // active pool member is found
                     val pool = tryAsk[Pool](vip.poolId)
                     val action =
-                        if (pool.loadBalance(pktContext, vip.isStickySourceIP))
+                        if (pool.loadBalance(pktContext, id, vip.isStickySourceIP))
                             RuleResult.Action.ACCEPT
                         else
                             RuleResult.Action.DROP
@@ -91,8 +91,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // which should be unique for every new connection. If there isn't,
         // we then check for a sticky NAT where we don't care about the source
         // port, that is, if they are different connections.
-        if (!(hasNonStickyVips && packetContext.state.reverseDnat()) &&
-            !(hasStickyVips && packetContext.state.reverseStickyDnat())) {
+        if (!(hasNonStickyVips && packetContext.state.reverseDnat(id)) &&
+            !(hasStickyVips && packetContext.state.reverseStickyDnat(id))) {
             return simpleContinueRuleResult(pktContext)
         }
 

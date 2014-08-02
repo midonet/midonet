@@ -24,11 +24,12 @@ class PoolMember(val id: UUID, val address: IPv4Addr,
                                                  protocolPort, protocolPort))
 
     protected[simulation] def applyDnat(pktContext: PacketContext,
+                                        loadBalancer: UUID,
                                         stickySourceIP: Boolean): Unit =
         if (stickySourceIP)
-            pktContext.state.applyStickyDnat(natTargets)
+            pktContext.state.applyStickyDnat(loadBalancer, natTargets)
         else
-            pktContext.state.applyDnat(natTargets)
+            pktContext.state.applyDnat(loadBalancer, natTargets)
 
     override def toString = s"PoolMember[id=$id, address=$address, " +
                             s"protocolPort=$protocolPort, weight=$weight]"

@@ -36,6 +36,7 @@ message NatKey {
     required IpAddress dst_ip = 4;
     required uint32 src_port = 5;
     required uint32 dst_port = 6;
+    required UUID device = 7;
 }
 
 message NatValue {

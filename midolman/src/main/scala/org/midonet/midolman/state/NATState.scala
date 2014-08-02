@@ -5,7 +5,7 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.Random
+import java.util.{UUID, Random}
 
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP, IPAddr}
@@ -41,7 +41,7 @@ object NatState {
             def inverse = FWD_STICKY_DNAT
         }
 
-        def apply(wcMatch: WildcardMatch, keyType: Type): NatKey = {
+        def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: Type): NatKey = {
             val key = NatKey(keyType,
                              wcMatch.getNetworkSourceIP,
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
@@ -49,7 +49,8 @@ object NatState {
                              wcMatch.getNetworkDestinationIP,
                              if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
                              else wcMatch.getTransportDestination,
-                             wcMatch.getNetworkProtocol.byteValue())
+                             wcMatch.getNetworkProtocol.byteValue(),
+                             deviceId)
 
             if (wcMatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER)
                 processIcmp(key, wcMatch)
@@ -95,11 +96,12 @@ object NatState {
         }
 
     case class NatKey(var keyType: NatKey.Type,
-                      var networkSrc: IPAddr = null,
-                      var transportSrc: Int = 0,
-                      var networkDst: IPAddr = null,
-                      var transportDst: Int = 0,
-                      var networkProtocol: Byte = 0) extends FlowStateTag {
+                      var networkSrc: IPAddr,
+                      var transportSrc: Int,
+                      var networkDst: IPAddr,
+                      var transportDst: Int,
+                      var networkProtocol: Byte,
+                      var deviceId: UUID) extends FlowStateTag {
         override def toString = s"nat:$keyType:$networkSrc:$transportSrc:" +
                                 s"$networkDst:$transportDst:$networkProtocol"
 
@@ -110,14 +112,16 @@ object NatState {
                        transportDst,
                        binding.networkAddress,
                        binding.transportPort,
-                       networkProtocol)
+                       networkProtocol,
+                       deviceId)
             case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
                 NatKey(keyType.inverse,
                        binding.networkAddress,
                        binding.transportPort,
                        networkSrc,
                        transportSrc,
-                       networkProtocol)
+                       networkProtocol,
+                       deviceId)
             case _ => throw new UnsupportedOperationException
         }
 
@@ -142,16 +146,16 @@ trait NatState extends FlowState {
     var natTx: FlowStateTransaction[NatKey, NatBinding] = _
     private val rand = new Random
 
-    def applyDnat(natTargets: Array[NatTarget]): Boolean =
-        applyDnat(FWD_DNAT, natTargets)
+    def applyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
+        applyDnat(deviceId, FWD_DNAT, natTargets)
 
-    def applyStickyDnat(natTargets: Array[NatTarget]): Boolean =
-        applyDnat(FWD_STICKY_DNAT, natTargets)
+    def applyStickyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
+        applyDnat(deviceId, FWD_STICKY_DNAT, natTargets)
 
-    private def applyDnat(natType: NatKey.Type,
+    private def applyDnat(deviceId: UUID, natType: NatKey.Type,
                           natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, natType)
+            val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             dnatTransformation(natKey, binding)
             true
@@ -163,9 +167,9 @@ trait NatState extends FlowState {
             pktCtx.wcmatch.setTransportDestination(binding.transportPort)
     }
 
-    def applySnat(natTargets: Array[NatTarget]): Boolean =
+    def applySnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, FWD_SNAT)
+            val natKey = NatKey(pktCtx.wcmatch, deviceId, FWD_SNAT)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             snatTransformation(natKey, binding)
             true
@@ -177,13 +181,15 @@ trait NatState extends FlowState {
             pktCtx.wcmatch.setTransportSource(binding.transportPort)
     }
 
-    def reverseDnat(): Boolean = reverseDnat(REV_DNAT)
+    def reverseDnat(deviceId: UUID): Boolean =
+        reverseDnat(deviceId, REV_DNAT)
 
-    def reverseStickyDnat(): Boolean = reverseDnat(REV_STICKY_DNAT)
+    def reverseStickyDnat(deviceId: UUID): Boolean =
+        reverseDnat(deviceId, REV_STICKY_DNAT)
 
-    private def reverseDnat(natType: NatKey.Type): Boolean = {
+    private def reverseDnat(deviceId: UUID, natType: NatKey.Type): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, natType)
+            val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseDnatTransformation(natKey, binding)
@@ -204,9 +210,9 @@ trait NatState extends FlowState {
         }
     }
 
-    def reverseSnat(): Boolean = {
+    def reverseSnat(deviceId: UUID): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, REV_SNAT)
+            val natKey = NatKey(pktCtx.wcmatch, deviceId: UUID, REV_SNAT)
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseSnatTransformation(natKey, binding)
