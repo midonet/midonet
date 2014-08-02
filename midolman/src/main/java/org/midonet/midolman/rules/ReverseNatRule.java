@@ -26,20 +26,20 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
-        boolean reversed = dnat ? applyReverseDnat(pktCtx)
-                                : applyReverseSnat(pktCtx);
+    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+        boolean reversed = dnat ? applyReverseDnat(pktCtx, ownerId)
+                                : applyReverseSnat(pktCtx, ownerId);
 
         if (reversed)
             res.action = action;
     }
 
-    protected boolean applyReverseDnat(PacketContext pktCtx) {
-        return pktCtx.state().reverseDnat();
+    protected boolean applyReverseDnat(PacketContext pktCtx, UUID ownerId) {
+        return pktCtx.state().reverseDnat(ownerId);
     }
 
-    protected boolean applyReverseSnat(PacketContext pktCtx) {
-        return pktCtx.state().reverseSnat();
+    protected boolean applyReverseSnat(PacketContext pktCtx, UUID ownerId) {
+        return pktCtx.state().reverseSnat(ownerId);
     }
 
     @Override

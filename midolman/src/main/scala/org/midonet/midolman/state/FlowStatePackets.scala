@@ -136,12 +136,14 @@ object FlowStatePackets {
             setSrcPort(key.transportSrc).
             setDstIp(key.networkDst).
             setDstPort(key.transportDst).
+            setDevice(key.deviceId).
             setProtocol(key.networkProtocol).
             setType(key.keyType).build()
 
     def natKeyFromProto(proto: Proto.NatKey) =
         NatKey(proto.getType, proto.getSrcIp, proto.getSrcPort,
-               proto.getDstIp, proto.getDstPort, proto.getProtocol.toByte)
+               proto.getDstIp, proto.getDstPort, proto.getProtocol.toByte,
+               proto.getDevice)
 
     def natBindingToProto(key: NatBinding) =
         Proto.NatValue.newBuilder().

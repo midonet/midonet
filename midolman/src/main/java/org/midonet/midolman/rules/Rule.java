@@ -63,10 +63,11 @@ public abstract class Rule {
      * @param isPortFilter whether the rule is being processed in a port filter
      *                     context
      */
-    public void process(PacketContext pktCtx, RuleResult res, boolean isPortFilter) {
+    public void process(PacketContext pktCtx, RuleResult res, UUID ownerId,
+                        boolean isPortFilter) {
         if (condition.matches(pktCtx, res.pmatch, isPortFilter)) {
             log.debug("Condition matched");
-            apply(pktCtx, res);
+            apply(pktCtx, res, ownerId);
         }
     }
 
@@ -82,7 +83,8 @@ public abstract class Rule {
      *                   transformations preceding this rule. This may be
      *                   modified.
      */
-    protected abstract void apply(PacketContext pktCtx, RuleResult res);
+    protected abstract void apply(PacketContext pktCtx, RuleResult res,
+                                  UUID ownerId);
 
     public Map<String, String> getProperties() {
         return properties;

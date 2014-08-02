@@ -45,7 +45,7 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
+    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;
         log.debug("Rule evaluation jumping to chain {} with ID {}.",
