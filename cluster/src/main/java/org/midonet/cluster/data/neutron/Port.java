@@ -3,20 +3,40 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import com.google.common.base.Objects;
+
 import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 public class Port {
+
+    public Port() {}
+
+    public Port(UUID id, UUID netId, String tenantId, String name,
+                String macAddress, List<IPAllocation> fixedIps,
+                DeviceOwner deviceOwner, String deviceId,
+                List<UUID> sgIds) {
+        this.id = id;
+        this.networkId = netId;
+        this.tenantId = tenantId;
+        this.name = name;
+        this.macAddress = macAddress;
+        this.adminStateUp = true;
+        this.fixedIps = fixedIps;
+        this.deviceOwner = deviceOwner;
+        this.deviceId = deviceId;
+        this.securityGroups = sgIds;
+    }
 
     public UUID id;
 
