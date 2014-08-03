@@ -13,7 +13,6 @@ import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterLoadBalancerManager;
 import org.midonet.cluster.ClusterPoolHealthMonitorMapManager;
 import org.midonet.cluster.ClusterPoolManager;
-import org.midonet.cluster.services.MidostoreSetupService;
 
 
 /**
@@ -52,8 +51,5 @@ public class DataClusterClientModule extends DataClientModule {
 
         bind(ClusterHealthMonitorManager.class)
                 .in(Singleton.class);
-
-        bind(MidostoreSetupService.class).in(Singleton.class);
-        expose(MidostoreSetupService.class);
     }
 }
