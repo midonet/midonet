@@ -401,7 +401,7 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         // We're racing with DatapathController here. DC's job is to remove
         // the inputPortUUID field and set the corresponding inputPort (short).
-        val portUUID = pktInMsg.wMatch.getInputPortUUID
+        val portUUID = pktInMsg.inputPort
         if (portUUID != null)
             portUUID should be(getBridgePort(port).getId)
         else

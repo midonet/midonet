@@ -73,13 +73,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     private var traceStep = 0
     private var isTraced = false
 
-    def inputPort = origMatch.getInputPortUUID
-    def inputPort_=(inputPortUUID: UUID): Unit = {
-        if (inputPortUUID ne null) {
-            origMatch.setInputPortUUID(inputPortUUID)
-            wcmatch.setInputPortUUID(inputPortUUID)
-        }
-    }
+    var inputPort: UUID = _
 
     // Stores the callback to call when this flow is removed.
     val flowRemovedCallbacks = new ArrayList[Callback0]()
@@ -137,6 +131,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         state.clear()
         runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
+        inputPort = null
     }
 
     var traceConditions: TraceConditions = null

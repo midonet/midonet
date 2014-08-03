@@ -103,7 +103,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         dpConn().futures.flowsCreate(datapath, flow)
 
         val newMatch = wflow.getMatch
-        newMatch.unsetInputPortUUID()
         newMatch.unsetInputPortNumber()
         val newWildFlow = WildcardFlow(
                 newMatch,
@@ -178,7 +177,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
-        addedFlow.wcmatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
@@ -220,7 +218,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
-        addedFlow.getMatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 
@@ -258,7 +255,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
         dpConn().futures.flowsCreate(datapath, flow)
 
-        addedFlow.wcmatch.unsetInputPortUUID()
         val newWildFlow = WildcardFlow(addedFlow.wcmatch,
                 idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
 

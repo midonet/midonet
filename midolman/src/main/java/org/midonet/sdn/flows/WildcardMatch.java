@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Europe SARL
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.sdn.flows;
@@ -10,7 +10,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -20,7 +20,6 @@ import org.midonet.odp.FlowMatches;
 import org.midonet.odp.flows.*;
 import org.midonet.packets.*;
 
-
 public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
@@ -28,7 +27,6 @@ public class WildcardMatch implements Cloneable {
 
     public enum Field {
         InputPortNumber,
-        InputPortUUID,
         TunnelID,
         EthernetSource,
         EthernetDestination,
@@ -69,7 +67,6 @@ public class WildcardMatch implements Cloneable {
             case IcmpId:
                 return 4;
             case InputPortNumber:
-            case InputPortUUID:
             case TunnelID:
             default:
                 return 1;
@@ -108,7 +105,6 @@ public class WildcardMatch implements Cloneable {
     }
 
     private short inputPortNumber = 0;
-    private UUID inputPortUUID;
     private long tunnelID = 0L;
     private MAC ethernetSource;
     private MAC ethernetDestination;
@@ -195,7 +191,6 @@ public class WildcardMatch implements Cloneable {
      */
     public void reset(WildcardMatch that) {
         inputPortNumber = that.inputPortNumber;
-        inputPortUUID = that.inputPortUUID;
         tunnelID = that.tunnelID;
         ethernetSource = that.ethernetSource;
         ethernetDestination = that.ethernetDestination;
@@ -232,7 +227,6 @@ public class WildcardMatch implements Cloneable {
         this.networkDestination = null;
         this.ethernetSource = null;
         this.ethernetDestination = null;
-        this.inputPortUUID = null;
         this.vlanIds = null;
         this.trackSeenFields = true;
         this.seenFields.clear();
@@ -255,25 +249,6 @@ public class WildcardMatch implements Cloneable {
     @Nullable
     public Short getInputPortNumber() {
         return usedFields.contains(Field.InputPortNumber) ? inputPortNumber : null;
-    }
-
-    @Nonnull
-    public WildcardMatch setInputPortUUID(@Nonnull UUID inputPortID) {
-        usedFields.add(Field.InputPortUUID);
-        this.inputPortUUID = inputPortID;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetInputPortUUID() {
-        usedFields.remove(Field.InputPortUUID);
-        this.inputPortUUID = null;
-        return this;
-    }
-
-    @Nullable
-    public UUID getInputPortUUID() {
-        return inputPortUUID;
     }
 
     @Nonnull
@@ -654,11 +629,6 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
-                case InputPortUUID:
-                    if (!isEqual(field, that, inputPortUUID, that.inputPortUUID))
-                        return false;
-                    break;
-
                 case InputPortNumber:
                     if (!isEqual(field, that, inputPortNumber, that.inputPortNumber))
                         return false;
@@ -744,9 +714,6 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case TransportSource:
                     result = 31 * result + transportSource;
-                    break;
-                case InputPortUUID:
-                    result = 31 * result + inputPortUUID.hashCode();
                     break;
                 case InputPortNumber:
                     result = 31 * result + inputPortNumber;
@@ -845,11 +812,6 @@ public class WildcardMatch implements Cloneable {
                     str.append(transportSource);
                     break;
 
-                case InputPortUUID:
-                    str.append("inport_id=");
-                    str.append(inputPortUUID.toString());
-                    break;
-
                 case InputPortNumber:
                     str.append("inport=");
                     str.append(inputPortNumber);
@@ -941,10 +903,6 @@ public class WildcardMatch implements Cloneable {
 
                     case TransportSource:
                         newClone.transportSource = transportSource;
-                        break;
-
-                    case InputPortUUID:
-                        newClone.inputPortUUID = inputPortUUID;
                         break;
 
                     case InputPortNumber:

@@ -17,9 +17,6 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                                   @Nonnull WildcardMatch source) {
         for (Field field : fields) {
             switch (field) {
-                case InputPortUUID:
-                    setInputPortUUID(source.getInputPortUUID());
-                    break;
                 case InputPortNumber:
                     setInputPortNumber(source.getInputPortNumber());
                     break;

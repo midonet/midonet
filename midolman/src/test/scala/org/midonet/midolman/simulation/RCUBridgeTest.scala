@@ -135,11 +135,11 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val ingressMatch = new WildcardMatch()
                                .setEthernetSource(srcMac)
                                .setEthernetDestination(learnedMac)
-                               .setInputPortUUID(rtr2port)
         val origMatch = ingressMatch.clone
-        val context = new PacketContext(Right(origMatch.getInputPortUUID),
+        val context = new PacketContext(Right(rtr2port),
                                         Packet.fromEthernet(frame),
                                         None, ingressMatch)
+        context.inputPort = rtr2port
         context.prepareForSimulation(0)
         context.inPortId = new RouterPort().setID(rtr2port)
         val result = bridge.process(context)

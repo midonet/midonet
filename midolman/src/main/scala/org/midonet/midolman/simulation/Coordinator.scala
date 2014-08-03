@@ -241,8 +241,6 @@ class Coordinator(context: PacketContext)
                     } else {
                         val notIPv4Match =
                             new WildcardMatch()
-                                .setInputPortUUID(
-                                        context.origMatch.getInputPortUUID)
                                 .setEthernetSource(
                                         context.origMatch.getEthernetSource)
                                 .setEthernetDestination(

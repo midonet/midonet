@@ -3,7 +3,7 @@
  */
 package org.midonet.midolman
 
-import java.util.{List => JList}
+import java.util.{List => JList, UUID}
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
@@ -34,6 +34,7 @@ trait PacketHandler {
 
 object PacketWorkflow {
     case class PacketIn(wMatch: WildcardMatch,
+                        inputPort: UUID,
                         eth: Ethernet,
                         dpMatch: FlowMatch,
                         reason: Packet.Reason,
@@ -397,9 +398,10 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (context.inputPort ne null) {
             val packet = context.packet
             system.eventStream.publish(
-                PacketIn(context.origMatch.clone(), packet.getEthernet,
-                    packet.getMatch, packet.getReason,
-                    context.cookieOrEgressPort.left getOrElse 0))
+                PacketIn(context.origMatch.clone(), context.inputPort,
+                         packet.getEthernet,
+                         packet.getMatch, packet.getReason,
+                         context.cookieOrEgressPort.left getOrElse 0))
 
             if (handleDHCP(context)) {
                 NoOp

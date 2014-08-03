@@ -31,8 +31,7 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman._
-import org.midonet.midolman.DatapathController.{DatapathReady, DpPortCreate, Initialize}
-import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.DatapathController.{DpPortCreate, Initialize}
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.guice.config.ConfigProviderModule
@@ -510,14 +509,19 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     def expectPacketIn() = expect[PacketIn].on(packetInProbe)
 
+    def addVirtualWildcardFlow(inputPort: UUID,
+                               action: FlowAction): Unit =
+        addVirtualWildcardFlow(new WildcardMatch(), inputPort, action)
+
     def addVirtualWildcardFlow(wcMatch: WildcardMatch,
+                               inputPort: UUID,
                                action: FlowAction): Unit = {
         val flowTranslator = new FlowTranslator {
             override implicit protected def system: ActorSystem = actors
             override protected val dpState: DatapathState = self.dpState
         }
         val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
-        pktCtx.inputPort = wcMatch.getInputPortUUID
+        pktCtx.inputPort = inputPort
         dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)
         }
