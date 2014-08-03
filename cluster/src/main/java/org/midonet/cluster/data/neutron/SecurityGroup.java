@@ -15,6 +15,17 @@ import java.util.UUID;
 
 public class SecurityGroup {
 
+    public SecurityGroup() {}
+
+    public SecurityGroup(UUID id, String tenantId, String name, String desc,
+                         List<SecurityGroupRule> rules) {
+        this.id = id;
+        this.tenantId = tenantId;
+        this.name = name;
+        this.description = desc;
+        this.securityGroupRules = rules;
+    }
+
     public UUID id;
 
     public String name;

@@ -15,6 +15,17 @@ import java.util.UUID;
 
 public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
 
+    public SecurityGroupRule() {}
+
+    public SecurityGroupRule(UUID id, UUID sgId, RuleDirection direction,
+                             RuleEthertype ethertype, RuleProtocol protocol) {
+        this.id = id;
+        this.securityGroupId = sgId;
+        this.direction = direction;
+        this.ethertype = ethertype;
+        this.protocol = protocol;
+    }
+
     public UUID id;
 
     @JsonProperty("security_group_id")

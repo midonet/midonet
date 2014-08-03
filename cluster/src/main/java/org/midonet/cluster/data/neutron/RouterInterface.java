@@ -10,6 +10,16 @@ import java.util.UUID;
 
 public class RouterInterface {
 
+    public RouterInterface() {}
+
+    public RouterInterface(UUID id, String tenantId, UUID portId,
+                           UUID subnetId) {
+        this.id = id;
+        this.tenantId = tenantId;
+        this.portId = portId;
+        this.subnetId = subnetId;
+    }
+
     public UUID id;
 
     @JsonProperty("tenant_id")
