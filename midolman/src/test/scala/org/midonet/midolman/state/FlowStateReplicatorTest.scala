@@ -30,7 +30,7 @@ import org.midonet.util.functors.{Callback0, Callback2}
 @RunWith(classOf[JUnitRunner])
 class FlowStateReplicatorTest extends FeatureSpec
                             with BeforeAndAfter
-                            with ShouldMatchers
+                            with Matchers
                             with OneInstancePerTest
                             with GivenWhenThen {
     implicit def stringToIp(str: String): IPAddr = IPv4Addr.fromString(str)
@@ -50,13 +50,22 @@ class FlowStateReplicatorTest extends FeatureSpec
     val ingressGroupId = UUID.randomUUID()
     val egressGroupId = UUID.randomUUID()
 
-    def makePort(host: UUID, group: UUID): Port = {
+    def makePort(host: UUID): Port = {
         val p = new BridgePort()
         p.setID(UUID.randomUUID())
         p.hostID = host
+        p.portGroups = Set[UUID]()
+        p
+    }
+
+    def makePort(host: UUID, group: UUID): Port = {
+        val p = makePort(host)
         p.portGroups = Set[UUID](group)
         p
     }
+
+    val ingressPortNoGroup = makePort(ingressHostId)
+    val egressPortNoGroup = makePort(ingressHostId)
 
     val ingressPort = makePort(ingressHostId, ingressGroupId)
     val ingressPortGroupMember = makePort(ingressGroupMemberHostId, ingressGroupId)
@@ -103,6 +112,9 @@ class FlowStateReplicatorTest extends FeatureSpec
     val conntrackDevice = UUID.randomUUID()
 
     before {
+        ports += ingressPortNoGroup.id -> ingressPortNoGroup
+        ports += egressPortNoGroup.id -> egressPortNoGroup
+
         ports += ingressPort.id -> ingressPort
         ports += ingressPortGroupMember.id -> ingressPortGroupMember
         ports += egressPort1.id -> egressPort1
@@ -157,6 +169,32 @@ class FlowStateReplicatorTest extends FeatureSpec
             Then("Its peer's stateful tables should contain the keys")
             for ((k, v) <- natMappings) {
                 recipient.natTable.get(k) should equal (v)
+            }
+        }
+
+        scenario("Keys are owned even if there are no peers") {
+            Given("A set of nat keys in a transaction")
+            for ((k, v) <- natMappings) {
+                natTx.putAndRef(k, v)
+            }
+
+            When("The transaction is added to the replicator")
+            sender.accumulateNewKeys(connTrackTx, natTx, ingressPortNoGroup.id,
+                                     egressPortNoGroup.id, null,
+                                     new mutable.HashSet[FlowTag](),
+                                     new ArrayList[Callback0])
+            sender.pushState(dpConn)
+            natTx.commit()
+            connTrackTx.commit()
+            natTx.flush()
+            connTrackTx.flush()
+
+            Then("No packets should have been sent")
+            packetsSeen should be (empty)
+
+            And("The keys are kept in the replicator")
+            for ((k, v) <- natMappings) {
+                sender.natTable.get(k) should equal (v)
             }
         }
     }
@@ -472,7 +510,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
     override def isOverlayTunnellingPort(portNumber: Short): Boolean = false
 }
 
-class MockFlowStateTable[K,V]()(implicit ev: Null <:< V)
+class MockFlowStateTable[K,V <: AnyRef]()(implicit ev: Null <:< V)
         extends FlowStateLifecycle[K,V] {
 
     var entries: Map[K, V] = Map.empty
