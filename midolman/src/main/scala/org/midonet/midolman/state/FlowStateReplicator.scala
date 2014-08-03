@@ -263,7 +263,8 @@ abstract class BaseFlowStateReplicator() {
         override def apply(refs: StrongRefLibrarian, k: ConnTrackKey, v: ConnTrackValue) = {
             if (refs.isLocallyOwned(k) || (conntrackTable.get(k) eq null)) {
                 log.debug("push-add conntrack key: {}", k)
-                txState.setConntrackKey(connTrackKeyToProto(k))
+                if (txPeers.size() > 0)
+                    txState.setConntrackKey(connTrackKeyToProto(k))
                 refs.claimOwnership(txIngressPort, k)
                 refs.addPeersFor(k, txPeers)
             }
@@ -275,9 +276,11 @@ abstract class BaseFlowStateReplicator() {
         override def apply(refs: StrongRefLibrarian, k: NatKey, v: NatBinding) = {
             if (refs.isLocallyOwned(k) || (natTable.get(k) eq null)) {
                 log.debug("push-add nat key: {}", k)
-                txNatEntry.clear()
-                txNatEntry.setK(natKeyToProto(k)).setV(natBindingToProto(v))
-                txState.addNatEntries(txNatEntry.build())
+                if (txPeers.size() > 0) {
+                    txNatEntry.clear()
+                    txNatEntry.setK(natKeyToProto(k)).setV(natBindingToProto(v))
+                    txState.addNatEntries(txNatEntry.build())
+                }
                 refs.claimOwnership(txIngressPort, k)
                 refs.addPeersFor(k, txPeers)
             }
@@ -451,14 +454,19 @@ abstract class BaseFlowStateReplicator() {
             return
 
         txPeers = resolvePeers(ingressPort, egressPort, egressPortSet, tags)
-        if (!txPeers.isEmpty) {
+        val hasPeers = !txPeers.isEmpty
+
+        if (hasPeers) {
             txState.clear()
             resetCurrentMessage()
             txIngressPort = ingressPort
-            handleConntrack(conntrackTx)
-            handleNat(natTx)
-            buildMessage(ingressPort, egressPort, egressPortSet)
         }
+
+        handleConntrack(conntrackTx)
+        handleNat(natTx)
+
+        if (hasPeers)
+            buildMessage(ingressPort, egressPort, egressPortSet)
 
         conntrackTx.fold(callbacks, _conntrackCallbacks)
         conntrackTx.foldOverRefs(callbacks, _conntrackCallbacks)
