@@ -19,11 +19,6 @@ public interface FlowStateLifecycle<K, V> extends FlowStateTable<K, V> {
     int getRefCount(K key);
 
     /**
-     * Sets the refcount for a key to the given value
-     */
-    void setRefCount(K key, int n);
-
-    /**
      * Expires entries that became non-referenced longer than idleTimeMillis
      * milliseconds ago and folds over each of the expired entries.
      */

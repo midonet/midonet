@@ -12,6 +12,12 @@ package org.midonet.sdn.state;
  */
 public interface FlowStateTable<K, V> {
     /**
+     * Adds or updates an entry in this connection state table without
+     * affecting its refcount, but affecting its expiration time.
+     */
+    void touch(K key, V value);
+
+    /**
      * Adds an entry to this connection state table. Returns the previous value
      * for this key, null if it was unset. The reference count for the entry
      * starts at one.

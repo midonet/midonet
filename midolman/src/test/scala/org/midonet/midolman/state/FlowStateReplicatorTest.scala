@@ -227,7 +227,7 @@ class FlowStateReplicatorTest extends FeatureSpec
         }
 
         scenario("For nat keys") {
-            Given("A nat key and a nat ref in a transaction")
+            Given("A nat key and a nat ref() in a transaction")
             natTx.putAndRef(natMappings.head._1, natMappings.head._2)
             val secondNat = natMappings.drop(1).head
             sender.natTable.putAndRef(secondNat._1, secondNat._2)
@@ -302,78 +302,6 @@ class FlowStateReplicatorTest extends FeatureSpec
         }
     }
 
-    feature("L4 flow state expiration") {
-        scenario("Expires keys when requested by owner") {
-            Given("A set of keys received from a peer")
-            preSeedRecipient()
-
-            sender.conntrackTable.expireIdleEntries(0, sender, sender.conntrackRemover)
-            sender.natTable.expireIdleEntries(0, sender, sender.natRemover)
-
-            When("When deletion notifications are received from the peer")
-            sender.pushState(dpConn)
-            packetsSeen.size should equal (natMappings.size + connTrackKeys.size)
-            acceptPushedState()
-
-            Then("The keys should disappear from the stateful tables")
-            assertRecipientExpiredAllKeys()
-        }
-
-        scenario("Sender and recipient handle port migration") {
-            Given("A set of keys sent to a peer")
-            preSeedRecipient()
-
-            When("Their ingress port moves")
-            val newPort = makePort(UUID.randomUUID(), ingressGroupId)
-            newPort.setID(ingressPort.id)
-            ports -= ingressPort.id
-            ports += ingressPort.id -> newPort
-
-            And("The keys expire")
-            sender.conntrackTable.expireIdleEntries(0, sender, sender.conntrackRemover)
-            sender.natTable.expireIdleEntries(0, sender, sender.natRemover)
-            sender.pushState(dpConn)
-            acceptPushedState()
-
-            Then("The receiver should keep the keys in its table")
-            assertRecipientHasAllKeys()
-
-            When("The peer sees the port movement")
-            recipient.portChanged(ingressPort, newPort)
-
-            Then("It should unref the keys")
-            assertRecipientUnrefedAllKeys()
-        }
-
-        scenario("Unrefs keys when owner goes offline") {
-            Given("A set of keys received from a peer")
-            preSeedRecipient()
-
-            When("The peer goes offline")
-            recipient.forgetPeer(sender.underlay.host)
-
-            Then("The keys it sent should still be present in the stateful tables")
-            assertRecipientHasAllKeys()
-
-            And("have a ref count of zero")
-            assertRecipientUnrefedAllKeys()
-        }
-
-        scenario("Unrefs keys received from zombie peers") {
-            Given("A dead peer")
-            recipient.forgetPeer(sender.underlay.host)
-
-            When("A set of keys are received from it")
-            preSeedRecipient()
-
-            Then("The keys should appear in the local stateful tables")
-            assertRecipientHasAllKeys()
-
-            Then("with a ref count of zero")
-            assertRecipientUnrefedAllKeys()
-        }
-    }
-
     feature("L4 flow state resolves hosts and ports correctly") {
         scenario("All relevant ingress and egress hosts and ports get detected") {
             val tags = mutable.Set[FlowTag]()
@@ -410,21 +338,6 @@ class FlowStateReplicatorTest extends FeatureSpec
     }
 
     feature("Flow invalidations triggered by changes in peers' flow state tables") {
-
-        def pushDeletionsAndCheckForInvalidation(k: FlowStateTag) {
-            Given("A stateful key")
-            sender.conntrackTable.expireIdleEntries(0, sender, sender.conntrackRemover)
-            sender.natTable.expireIdleEntries(0, sender, sender.natRemover)
-
-            When("A host receives a deletion notification from a peer")
-            sender.pushState(dpConn)
-            acceptPushedState()
-
-            Then("Flows tagged with it should be invalidated")
-            recipient.invalidatedKeys should have length (1)
-            recipient.invalidatedKeys should contain (k)
-        }
-
         scenario("For conntrack keys") {
             Given("A conntrack key")
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
@@ -435,11 +348,6 @@ class FlowStateReplicatorTest extends FeatureSpec
             Then("Flows tagged with it should be invalidated")
             recipient.invalidatedKeys should have length (1)
             recipient.invalidatedKeys should contain (connTrackKeys.head)
-
-            recipient.invalidatedKeys.clear()
-            recipient.invalidatedKeys should be (empty)
-
-            pushDeletionsAndCheckForInvalidation(connTrackKeys.head)
         }
 
         scenario("For nat keys") {
@@ -453,10 +361,6 @@ class FlowStateReplicatorTest extends FeatureSpec
             Then("Flows tagged with it should be invalidated")
             recipient.invalidatedKeys should have length (1)
             recipient.invalidatedKeys should contain (k)
-            recipient.invalidatedKeys.clear()
-            recipient.invalidatedKeys should be (empty)
-
-            pushDeletionsAndCheckForInvalidation(k)
         }
     }
 }
@@ -481,9 +385,6 @@ class TestableFlowStateReplicator(
     override val datapath: Datapath = new Datapath(1, "midonet", null)
 
     override val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
-
-    override def getHost(id: UUID): Host =
-        new Host(id, true, 23L, "midonet", Map.empty, Map.empty)
 
     override def getPort(id: UUID): Port = ports(id)
 
@@ -542,11 +443,6 @@ class MockFlowStateTable[K,V <: AnyRef]()(implicit ev: Null <:< V)
 
     override def getRefCount(key: K) = if (unrefedKeys.contains(key)) 0 else 1
 
-    override def setRefCount(key: K, n: Int) {
-        if (n == 0)
-            unrefedKeys += key
-    }
-
     override def unref(key: K) {
         unrefedKeys += key
     }
@@ -568,4 +464,6 @@ class MockFlowStateTable[K,V <: AnyRef]()(implicit ev: Null <:< V)
         entries += key -> value
         value
     }
+
+    override def touch(key: K, value: V): Unit = putAndRef(key, value)
 }

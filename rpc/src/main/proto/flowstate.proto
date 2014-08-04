@@ -71,6 +71,4 @@ message StateMessage {
     required UUID sender = 2;
     required uint64 epoch = 3;
     repeated FlowState new_state = 4;
-    repeated NatKey delete_nat_keys = 5;
-    repeated ConntrackKey delete_conntrack_keys = 6;
 }

@@ -95,6 +95,13 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
     }
 
     @Override
+    public void touch(K key, V value) {
+        for (int i = 0; i < shards.size(); i++) {
+            shards.get(i).touch(key, value);
+        }
+    }
+
+    @Override
     public int getRefCount(K key) {
         int count = 0;
         for (int i = 0; i < shards.size(); i++) {
@@ -104,15 +111,6 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         }
 
         return count;
-    }
-
-    @Override
-    public void setRefCount(K key, int n) {
-        for (int i = 0; i < shards.size(); i++) {
-            V v = shards.get(i).shallowGet(key);
-            if (v != null)
-                shards.get(i).setRefCount(key, n);
-        }
     }
 
     @Override
@@ -212,21 +210,12 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         }
 
         @Override
-        public void setRefCount(K key, int n) {
-            Entry e = data.get(key);
-            if (e != null) {
-                if (n == 0) {
-                    synchronized (idleKeys) {
-                        e.refCount.set(n);
-                        if (e.idleSince != 0)
-                            idleKeys.remove(e);
-                        e.idleSince = clock.tick();
-                        idleKeys.add(e);
-                    }
-                } else {
-                    e.refCount.set(n);
-                }
-            }
+        public void touch(K key, V value) {
+            if (shallowGet(key) == null)
+                putAndRef(key, value);
+            else
+                ref(key);
+            unref(key);
         }
 
         @Override
