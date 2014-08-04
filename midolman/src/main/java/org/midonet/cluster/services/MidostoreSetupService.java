@@ -8,6 +8,8 @@ import com.google.common.util.concurrent.AbstractService;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
+
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.midonet.midolman.state.StateAccessException;
@@ -32,6 +34,9 @@ public class MidostoreSetupService extends AbstractService {
     @Inject
     SystemDataProvider systemDataProvider;
 
+    @Inject
+    CuratorFramework curatorFramework;
+
     @Override
     protected void doStart() {
         try {
@@ -42,6 +47,8 @@ public class MidostoreSetupService extends AbstractService {
             verifyVersion();
 
             verifySystemState();
+
+            curatorFramework.start();
 
             notifyStarted();
         } catch (Exception e) {
@@ -73,6 +80,7 @@ public class MidostoreSetupService extends AbstractService {
 
     @Override
     protected void doStop() {
+        curatorFramework.close();
         notifyStopped();
     }
 }
