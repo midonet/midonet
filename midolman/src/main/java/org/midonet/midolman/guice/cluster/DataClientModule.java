@@ -23,7 +23,6 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.midonet.cluster.*;
-import org.midonet.cluster.data.neutron.*;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -83,24 +82,6 @@ public class DataClientModule extends PrivateModule {
         bind(PortConfigCache.class)
                 .toProvider(PortConfigCacheProvider.class)
                 .in(Singleton.class);
-
-        bind(NetworkZkManager.class).in(Singleton.class);
-        expose(NetworkZkManager.class);
-
-        bind(L3ZkManager.class).in(Singleton.class);
-        expose(L3ZkManager.class);
-
-        bind(ProviderRouterZkManager.class).in(Singleton.class);
-        expose(ProviderRouterZkManager.class);
-
-        bind(ExternalNetZkManager.class).in(Singleton.class);
-        expose(ExternalNetZkManager.class);
-
-        bind(SecurityGroupZkManager.class).in(Singleton.class);
-        expose(SecurityGroupZkManager.class);
-
-        bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        expose(LoadBalancerApi.class);
 
         bind(PortGroupCache.class).toProvider(PortGroupCacheProvider.class)
                 .in(Singleton.class);

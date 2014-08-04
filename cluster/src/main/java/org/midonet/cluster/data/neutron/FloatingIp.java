@@ -13,6 +13,19 @@ import java.util.UUID;
 
 public class FloatingIp {
 
+    public FloatingIp() {}
+
+    public FloatingIp(UUID id, String tenantId, UUID routerId,
+                      String floatingIpAddress, UUID portId,
+                      String fixedIpAddress) {
+        this.id = id;
+        this.tenantId = tenantId;
+        this.routerId = routerId;
+        this.floatingIpAddress = floatingIpAddress;
+        this.portId = portId;
+        this.fixedIpAddress = fixedIpAddress;
+    }
+
     public UUID id;
 
     @JsonProperty("floating_ip_address")

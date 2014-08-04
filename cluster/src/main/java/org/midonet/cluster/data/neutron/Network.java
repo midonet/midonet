@@ -10,6 +10,17 @@ import java.util.UUID;
 
 public class Network {
 
+    public Network() {}
+
+    public Network(UUID id, String tenantId, String name, boolean external) {
+        this.id = id;
+        this.name = name;
+        this.tenantId = tenantId;
+        this.shared = false;
+        this.adminStateUp = true;
+        this.external = external;
+    }
+
     public UUID id;
     public String name;
     public String status;

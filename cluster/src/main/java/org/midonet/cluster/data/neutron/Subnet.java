@@ -21,6 +21,26 @@ import java.util.UUID;
 
 public class Subnet {
 
+    public Subnet() {}
+
+    public Subnet(UUID id, UUID netId, String tenantId, String name,
+                  String cidr, int ipVersion, String gatewayIp,
+                  List<IPAllocationPool> allocationPools,
+                  List<String> dnsServers, List<Route> routes,
+                  boolean enableDhcp) {
+        this.id = id;
+        this.networkId = netId;
+        this.tenantId = tenantId;
+        this.name = name;
+        this.cidr = cidr;
+        this.ipVersion = ipVersion;
+        this.gatewayIp = gatewayIp;
+        this.allocationPools = allocationPools;
+        this.dnsNameservers = dnsServers;
+        this.hostRoutes = routes;
+        this.enableDhcp = enableDhcp;
+    }
+
     public UUID id;
     public String name;
 

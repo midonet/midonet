@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 
@@ -38,7 +38,7 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
     Reactor reactorLoop;
 
     @Inject
-    MidolmanConfig config;
+    ZookeeperConfig config;
 
     @Override
     public ZkConnection getZkConnection() {
