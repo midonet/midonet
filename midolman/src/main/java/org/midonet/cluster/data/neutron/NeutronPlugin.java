@@ -23,18 +23,10 @@ import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
-import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager;
 
 /**
  * MidoNet implementation of Neutron plugin interface.
@@ -57,22 +49,6 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     private L3ZkManager l3ZkManager;
     @Inject
     private SecurityGroupZkManager securityGroupZkManager;
-    @Inject
-    private LoadBalancerZkManager loadBalancerZkManager;
-    @Inject
-    private HealthMonitorZkManager healthMonitorZkManager;
-    @Inject
-    private PoolMemberZkManager poolMemberZkManager;
-    @Inject
-    private RouterZkManager routerZkManager;
-    @Inject
-    private PoolZkManager poolZkManager;
-    @Inject
-    private VipZkManager vipZkManager;
-    @Inject
-    private PathBuilder pathBuilder;
-    @Inject
-    private Serializer serializer;
 
     private static void printOps(List<Op> ops) {
 
