@@ -35,6 +35,8 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     private ArrayList<K> keys = new ArrayList<>();
     private ArrayList<V> values = new ArrayList<>();
     private ArrayList<K> refs = new ArrayList<>();
+    private ArrayList<K> touchKeys = new ArrayList<>();
+    private ArrayList<V> touchVals = new ArrayList<>();
     private HashSet<K> deletes = new HashSet<>();
 
     public FlowStateTransaction(FlowStateTable<K, V> underlyingState) {
@@ -53,6 +55,8 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         values.clear();
         refs.clear();
         deletes.clear();
+        touchKeys.clear();
+        touchVals.clear();
     }
 
     /**
@@ -64,6 +68,9 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
 
         for (int i = 0; i < refs.size(); i++)
             parent.ref(refs.get(i));
+
+        for (int i = 0; i < touchKeys.size(); i++)
+            parent.touch(touchKeys.get(i), touchVals.get(i));
     }
 
     @Override
@@ -99,6 +106,14 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
     }
 
     @Override
+    public void touch(K key, V value) {
+        if (deletes.contains(key))
+            deletes.remove(key);
+        touchKeys.add(key);
+        touchVals.add(value);
+    }
+
+    @Override
     public V get(K key) {
         if (deletes.contains(key))
             return null;
@@ -121,6 +136,14 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
             if (keys.get(i).equals(key)) {
                 keys.remove(i);
                 values.remove(i);
+                break;
+            }
+        }
+
+        for (int i  = 0; i < touchKeys.size(); ++i) {
+            if (touchKeys.get(i).equals(key)) {
+                touchKeys.remove(i);
+                touchVals.remove(i);
                 break;
             }
         }

@@ -35,6 +35,8 @@ import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.concurrent.ExecutionContextOps
 import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
+import org.midonet.sdn.state.FlowStateTable.Reducer
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
 object DeduplicationActor {
     // Messages
@@ -165,6 +167,20 @@ class DeduplicationActor(
 
     private var pendingFlowStateBatches = List[FlowStateBatch]()
 
+    private val invalidateExpiredConnTrackKeys =
+        new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
+            override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) {
+                FlowController ! InvalidateFlowsByTag(k)
+            }
+        }
+
+    private val invalidateExpiredNatKeys =
+        new Reducer[NatKey, NatBinding, Unit]() {
+            override def apply(u: Unit, k: NatKey, v: NatBinding) {
+                FlowController ! InvalidateFlowsByTag(k)
+            }
+        }
+
     override def receive = LoggingReceive {
 
         case DatapathReady(dp, state) if null == datapath =>
@@ -197,11 +213,10 @@ class DeduplicationActor(
 
             connTrackStateTable.expireIdleEntries(
                 FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
-                replicator, replicator.conntrackRemover)
+                (), invalidateExpiredConnTrackKeys)
             natStateTable.expireIdleEntries(
                 FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
-                replicator, replicator.natRemover)
-            replicator.pushState(datapathConn(packets(0)))
+                (), invalidateExpiredNatKeys)
 
         case RestartWorkflow(pktCtx) =>
             if (pktCtx.idle) {
