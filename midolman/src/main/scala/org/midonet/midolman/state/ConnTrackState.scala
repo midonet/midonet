@@ -10,7 +10,7 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.packets.{ICMP, UDP, TCP, IPAddr}
+import org.midonet.packets.{IPv4, ICMP, UDP, TCP, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.sdn.state.FlowStateTransaction
@@ -52,17 +52,19 @@ object ConnTrackState {
 
     def supportsConnectionTracking(wcMatch: WildcardMatch): Boolean = {
         val proto = wcMatch.getNetworkProtocol
-        TCP.PROTOCOL_NUMBER == proto || UDP.PROTOCOL_NUMBER == proto ||
-        ICMP.PROTOCOL_NUMBER == proto
+        IPv4.ETHERTYPE == wcMatch.getEtherType &&
+                (TCP.PROTOCOL_NUMBER == proto ||
+                 UDP.PROTOCOL_NUMBER == proto ||
+                 ICMP.PROTOCOL_NUMBER == proto)
     }
 
-    private def icmpIdOr(wcMatch: WildcardMatch, or: Int): Int = {
+    private def icmpIdOr(wcMatch: WildcardMatch, or: Integer): Int = {
         if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProtocol) {
             val icmpId: java.lang.Short = wcMatch.getIcmpIdentifier
             if (icmpId ne null)
                 return icmpId.intValue()
         }
-        or
+        or.intValue()
     }
 }
 

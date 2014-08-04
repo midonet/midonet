@@ -262,29 +262,30 @@ trait NatState extends FlowState {
         }
     }
 
-    def isNatSupported: Boolean = {
-        val nwProto = pktCtx.wcmatch.getNetworkProtocol
-        if (nwProto == ICMP.PROTOCOL_NUMBER) {
-            val supported = pktCtx.wcmatch.getTransportSource.byteValue() match {
-                case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
-                    pktCtx.wcmatch.getIcmpIdentifier ne null
-                case ICMP.TYPE_PARAMETER_PROBLEM |
-                     ICMP.TYPE_TIME_EXCEEDED |
-                     ICMP.TYPE_UNREACH =>
-                    pktCtx.wcmatch.getIcmpData ne null
-                case _ =>
-                    false
-            }
+    def isNatSupported: Boolean =
+        if (IPv4.ETHERTYPE == pktCtx.wcmatch.getEtherType) {
+            val nwProto = pktCtx.wcmatch.getNetworkProtocol
+            if (nwProto == ICMP.PROTOCOL_NUMBER) {
+                val supported = pktCtx.wcmatch.getTransportSource.byteValue() match {
+                    case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
+                        pktCtx.wcmatch.getIcmpIdentifier ne null
+                    case ICMP.TYPE_PARAMETER_PROBLEM |
+                         ICMP.TYPE_TIME_EXCEEDED |
+                         ICMP.TYPE_UNREACH =>
+                        pktCtx.wcmatch.getIcmpData ne null
+                    case _ =>
+                        false
+                }
 
-            if (!supported) {
-                log.debug("ICMP message not supported in NAT rules {}",
-                          pktCtx.wcmatch)
+                if (!supported) {
+                    log.debug("ICMP message not supported in NAT rules {}",
+                              pktCtx.wcmatch)
+                }
+                supported
+            } else {
+                nwProto == UDP.PROTOCOL_NUMBER || nwProto == TCP.PROTOCOL_NUMBER
             }
-            supported
-        } else {
-            nwProto == UDP.PROTOCOL_NUMBER || nwProto == TCP.PROTOCOL_NUMBER
-        }
-    }
+        } else false
 
     private def reverseNatOnICMPData(binding: NatBinding, isSnat: Boolean): Boolean =
         pktCtx.wcmatch.getTransportSource.byteValue() match {
