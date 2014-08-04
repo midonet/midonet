@@ -7,7 +7,7 @@ package org.midonet.sdn.state;
 /**
  * A table with entry lifecycle management capabilities.
  */
-public interface FlowStateLifecycle<K, V> extends FlowStateTable<K, V> {
+public interface FlowStateLifecycle<K extends IdleExpiration, V> extends FlowStateTable<K, V> {
     /**
      * Releases a reference to a key.
      */
@@ -19,20 +19,19 @@ public interface FlowStateLifecycle<K, V> extends FlowStateTable<K, V> {
     int getRefCount(K key);
 
     /**
-     * Expires entries that became non-referenced longer than idleTimeMillis
-     * milliseconds ago and folds over each of the expired entries.
+     * Expires entries that became non-referenced longer than their
+     * allowed idle expiration.
      */
-    <U> U expireIdleEntries(int idleAgeMillis, U seed,
-                            FlowStateTable.Reducer<K, V, U> func);
+    void expireIdleEntries();
+
+    /**
+     * Expires entries that became non-referenced longer than their
+     * allowed idle expiration and folds over each of the expired entries.
+     */
+    <U> U expireIdleEntries(U seed, FlowStateTable.Reducer<K, V, U> func);
 
     /**
      * Removes a key, returns the previous value associated with it.
      */
     V remove(K key);
-
-    /**
-     * Expires entries that became non-reference longer than idleTimeMillis
-     * milliseconds ago.
-     */
-    void expireIdleEntries(int idleAgeMillis);
 }

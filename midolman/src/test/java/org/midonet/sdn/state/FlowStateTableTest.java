@@ -10,18 +10,53 @@ import java.util.concurrent.TimeUnit;
 import com.yammer.metrics.core.Clock;
 import org.junit.Before;
 import org.junit.Test;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 public class FlowStateTableTest {
+    static final Duration IDLE_EXPIRATION = new FiniteDuration(60, TimeUnit.SECONDS);
 
-    private ShardedFlowStateTable<String, Integer> global;
-    private ArrayList<FlowStateLifecycle<String, Integer>> shards = new ArrayList<>();
+    static class TestKey implements IdleExpiration  {
+        private final String key;
+
+        public TestKey(String key) {
+            this.key = key;
+        }
+
+        @Override
+        public Duration expiresAfter() {
+            return IDLE_EXPIRATION;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TestKey testKey = (TestKey) o;
+            return key.equals(testKey.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return key.hashCode();
+        }
+    }
+
+    private static TestKey key(String k) {
+        return new TestKey(k);
+    }
+
+    private ShardedFlowStateTable<TestKey, Integer> global;
+    private List<FlowStateLifecycle<TestKey, Integer>> shards = new ArrayList<>();
 
     private final int SHARDS = 4;
 
-    private final String[] keys =  {"A", "B", "C", "D", "E", "F"};
+    private final TestKey[] keys =  { key("A"), key("B"), key("C"),
+                                      key("D"), key("E"), key("F") };
     private final Integer[] vals = {100, 200, 300, 400, 500, 600};
     private final MockClock clock = new MockClock();
 
@@ -36,7 +71,7 @@ public class FlowStateTableTest {
 
     @Test
     public void testSetGetSingleShard() {
-        FlowStateTable<String, Integer> shard = shards.get(0);
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
         assertThat(shard, notNullValue());
 
         for (int i = 0; i < keys.length; i++) {
@@ -74,79 +109,79 @@ public class FlowStateTableTest {
 
     @Test
     public void testTransactionSetGet() {
-        FlowStateTable<String, Integer> shard = shards.get(0);
-        FlowStateTransaction<String, Integer> tx =
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
+        FlowStateTransaction<TestKey, Integer> tx =
             new FlowStateTransaction<>(shards.get(0));
 
-        tx.putAndRef("foo", 1);
-        assertThat(tx.get("foo"), equalTo(1));
-        assertThat(shard.get("foo"), nullValue());
+        tx.putAndRef(key("foo"), 1);
+        assertThat(tx.get(key("foo")), equalTo(1));
+        assertThat(shard.get(key("foo")), nullValue());
 
-        tx.putAndRef("foo", 2);
-        assertThat(tx.get("foo"), equalTo(2));
-        assertThat(shard.get("foo"), nullValue());
+        tx.putAndRef(key("foo"), 2);
+        assertThat(tx.get(key("foo")), equalTo(2));
+        assertThat(shard.get(key("foo")), nullValue());
 
-        tx.putAndRef("bar", 1);
-        assertThat(tx.get("bar"), equalTo(1));
-        assertThat(shard.get("bar"), nullValue());
+        tx.putAndRef(key("bar"), 1);
+        assertThat(tx.get(key("bar")), equalTo(1));
+        assertThat(shard.get(key("bar")), nullValue());
     }
 
     @Test
     public void testTransactionFlush() {
-        FlowStateTable<String, Integer> shard = shards.get(0);
-        FlowStateTransaction<String, Integer> tx =
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
+        FlowStateTransaction<TestKey, Integer> tx =
                 new FlowStateTransaction<>(shards.get(0));
 
-        tx.putAndRef("foo", 1);
-        tx.putAndRef("bar", 2);
+        tx.putAndRef(key("foo"), 1);
+        tx.putAndRef(key("bar"), 2);
 
         tx.flush();
 
-        assertThat(tx.get("foo"), nullValue());
-        assertThat(tx.get("bar"), nullValue());
-        assertThat(shard.get("foo"), nullValue());
-        assertThat(shard.get("bar"), nullValue());
+        assertThat(tx.get(key("foo")), nullValue());
+        assertThat(tx.get(key("bar")), nullValue());
+        assertThat(shard.get(key("foo")), nullValue());
+        assertThat(shard.get(key("bar")), nullValue());
     }
 
     @Test
     public void testTransactionCommit() {
-        FlowStateTable<String, Integer> shard = shards.get(0);
-        FlowStateTransaction<String, Integer> tx =
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
+        FlowStateTransaction<TestKey, Integer> tx =
                 new FlowStateTransaction<>(shards.get(0));
-        tx.putAndRef("foo", 1);
-        tx.putAndRef("bar", 2);
+        tx.putAndRef(key("foo"), 1);
+        tx.putAndRef(key("bar"), 2);
 
         tx.commit();
 
-        assertThat(shard.get("foo"), equalTo(1));
-        assertThat(shard.get("bar"), equalTo(2));
+        assertThat(shard.get(key("foo")), equalTo(1));
+        assertThat(shard.get(key("bar")), equalTo(2));
     }
 
     @Test
     public void testTxRefCount() {
-        FlowStateLifecycle<String, Integer> shard = shards.get(0);
-        FlowStateTransaction<String, Integer> tx =
+        FlowStateLifecycle<TestKey, Integer> shard = shards.get(0);
+        FlowStateTransaction<TestKey, Integer> tx =
                 new FlowStateTransaction<>(shards.get(0));
 
-        shard.putAndRef("foo", 1);
-        shard.putAndRef("bar", 1);
-        shard.unref("foo");
-        shard.unref("bar");
+        shard.putAndRef(key("foo"), 1);
+        shard.putAndRef(key("bar"), 1);
+        shard.unref(key("foo"));
+        shard.unref(key("bar"));
 
-        clock.time = TimeUnit.MILLISECONDS.toNanos(10);
+        clock.time = IDLE_EXPIRATION.toNanos() + 1;
 
-        tx.ref("foo");
+        tx.ref(key("foo"));
         tx.commit();
 
-        shard.expireIdleEntries(5);
+        shard.expireIdleEntries();
 
-        assertThat(shard.get("foo"), equalTo(1));
-        assertThat(shard.get("bar"), nullValue());
+        assertThat(shard.get(key("foo")), equalTo(1));
+        assertThat(shard.get(key("bar")), nullValue());
     }
 
-    private void foldTest(FlowStateTable<String, Integer> cs) {
-        Set<String> txKeys = cs.fold(new HashSet<String>(), new KeyReducer());
-        Set<String> expectedKeys = new HashSet<>();
+    private void foldTest(FlowStateTable<TestKey, Integer> cs) {
+        Set<TestKey> txKeys = cs.fold(new HashSet<TestKey>(), new KeyReducer());
+        Set<TestKey> expectedKeys = new HashSet<>();
         expectedKeys.addAll(Arrays.asList(keys));
         assertThat(txKeys, equalTo(expectedKeys));
 
@@ -158,7 +193,7 @@ public class FlowStateTableTest {
 
     @Test
     public void testTransactionFold() {
-        FlowStateTable<String, Integer> tx = new FlowStateTransaction<>(shards.get(0));
+        FlowStateTable<TestKey, Integer> tx = new FlowStateTransaction<>(shards.get(0));
         for (int i = 0; i < keys.length; i++)
             tx.putAndRef(keys[i], vals[i]);
         foldTest(tx);
@@ -179,17 +214,17 @@ public class FlowStateTableTest {
     }
 
 
-    class KeyReducer implements FlowStateTable.Reducer<String, Integer, Set<String>> {
+    class KeyReducer implements FlowStateTable.Reducer<TestKey, Integer, Set<TestKey>> {
         @Override
-        public Set<String> apply(Set<String> seed, String key, Integer value) {
+        public Set<TestKey> apply(Set<TestKey> seed, TestKey key, Integer value) {
             seed.add(key);
             return seed;
         }
     }
 
-    class ValueReducer implements FlowStateTable.Reducer<String, Integer, Set<Integer>> {
+    class ValueReducer implements FlowStateTable.Reducer<TestKey, Integer, Set<Integer>> {
         @Override
-        public Set<Integer> apply(Set<Integer> seed, String key, Integer value) {
+        public Set<Integer> apply(Set<Integer> seed, TestKey key, Integer value) {
             seed.add(value);
             return seed;
         }
@@ -220,35 +255,31 @@ public class FlowStateTableTest {
         refCountTest(global);
     }
 
-    private void refCountTest(FlowStateLifecycle<String, Integer> cs) {
-        for (int i = 0; i < keys.length; i++) {
-            cs.unref(keys[i]);
-            cs.ref(keys[i]);
+    private void refCountTest(FlowStateLifecycle<TestKey, Integer> cs) {
+        for (TestKey key : keys) {
+            cs.unref(key);
+            cs.ref(key);
         }
 
-        clock.time = TimeUnit.MILLISECONDS.toNanos(10);
-        cs.expireIdleEntries(5);
+        clock.time = IDLE_EXPIRATION.toNanos() * 2;
+        cs.expireIdleEntries();
 
         for (int i = 0; i < keys.length; i++)
             assertThat(cs.get(keys[i]), equalTo(vals[i]));
 
         long baseTime = clock.time;
-
-        for (int i = 0; i < keys.length; i++) {
-            clock.time += TimeUnit.MILLISECONDS.toNanos(5);
-            cs.unref(keys[i]);
-            cs.ref(keys[i]);
-            clock.time += TimeUnit.MILLISECONDS.toNanos(5);
-            cs.unref(keys[i]);
+        for (TestKey key : keys) {
+            clock.time += IDLE_EXPIRATION.toNanos();
+            cs.unref(key);
+            cs.ref(key);
+            clock.time += IDLE_EXPIRATION.toNanos();
+            cs.unref(key);
         }
 
-        clock.time += TimeUnit.MILLISECONDS.toNanos(10);
-
         for (int i = 0; i < keys.length; i++) {
-            long idleInstant = baseTime + TimeUnit.MILLISECONDS.toNanos((i+1) * 10);
-            int ageMillis = (int) TimeUnit.NANOSECONDS.toMillis(clock.time - idleInstant);
-
-            cs.expireIdleEntries(ageMillis - 1);
+            clock.time = baseTime + ((i+1) * IDLE_EXPIRATION.toNanos() * 2);
+            clock.time += IDLE_EXPIRATION.toNanos() + 1;
+            cs.expireIdleEntries();
 
             for (int j = 0; j < keys.length; j++) {
                 if (j <= i)
@@ -257,7 +288,8 @@ public class FlowStateTableTest {
                     assertThat(cs.get(keys[j]), equalTo(vals[j]));
             }
         }
-        for (int i = 0; i < keys.length; i++)
-            assertThat(cs.get(keys[i]), nullValue());
+
+        for (TestKey key : keys)
+            assertThat(cs.get(key), nullValue());
     }
 }

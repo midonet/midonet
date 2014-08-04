@@ -22,7 +22,7 @@ import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.midonet.sdn.state.{FlowStateTransaction, FlowStateLifecycle}
+import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateLifecycle}
 import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.functors.{Callback0, Callback2}
@@ -338,7 +338,7 @@ class FlowStateReplicatorTest extends FeatureSpec
     }
 
     feature("Flow invalidations triggered by changes in peers' flow state tables") {
-        scenario("For conntrack keys") {
+        scenario("For connection tracking keys") {
             Given("A conntrack key")
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
 
@@ -423,16 +423,16 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
     override def isOverlayTunnellingPort(portNumber: Short): Boolean = false
 }
 
-class MockFlowStateTable[K,V <: AnyRef]()(implicit ev: Null <:< V)
+class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)
         extends FlowStateLifecycle[K,V] {
 
     var entries: Map[K, V] = Map.empty
     var unrefedKeys: Set[K] = Set.empty
 
-    override def expireIdleEntries(idleAgeMillis: Int) {}
+    override def expireIdleEntries() {}
 
     override def expireIdleEntries[U](
-        idleAgeMillis: Int, seed: U, func: Reducer[K, V, U]): U = {
+        seed: U, func: Reducer[K, V, U]): U = {
         var s = seed
         for ((k, v) <- entries) {
             s = func(s, k, v)
