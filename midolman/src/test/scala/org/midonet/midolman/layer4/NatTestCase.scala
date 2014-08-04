@@ -9,6 +9,8 @@ import java.nio.ByteBuffer
 import java.util.UUID
 import java.{util => ju}
 
+import scala.concurrent.duration._
+
 import org.slf4j.LoggerFactory
 
 import org.junit.runner.RunWith
@@ -228,6 +230,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             def apply(acc: Set[NatKey], key: NatKey, value: NatBinding): Set[NatKey] =
                 key.keyType match {
                     case NatKey.FWD_SNAT | NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+                        key.expiresAfter = 0.seconds
                         acc + key
                     case _ =>
                         acc
@@ -338,7 +341,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount should be (0)
-        natTable.expireIdleEntries(0)
+        natTable.expireIdleEntries()
         fwdKeys().size should be (0)
     }
 
@@ -397,7 +400,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount should be (0)
-        natTable.expireIdleEntries(0)
+        natTable.expireIdleEntries()
         fwdKeys().size should be (0)
     }
 

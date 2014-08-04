@@ -17,6 +17,7 @@ import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
                                       VirtualToPhysicalMapper => VTPM}
@@ -32,7 +33,7 @@ import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
 import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.functors.Callback0
 
@@ -92,7 +93,7 @@ abstract class BaseFlowStateReplicator() {
     def underlay: UnderlayResolver
     def datapath: Datapath
     protected def log: akka.event.LoggingAdapter
-    protected def invalidateFlowsFor: (FlowStateTag) => Unit
+    protected def invalidateFlowsFor: (FlowStateKey) => Unit
     protected def getPort(id: UUID): Port
     protected def getPortSet(id: UUID): PortSet
     protected def getPortGroup(id: UUID): PortGroup
@@ -438,7 +439,7 @@ class FlowStateReplicator(
         override val natTable: FlowStateLifecycle[NatKey, NatBinding],
         override val storage: FlowStateStorage,
         override val underlay: UnderlayResolver,
-        override val invalidateFlowsFor: (FlowStateTag) => Unit,
+        override val invalidateFlowsFor: (FlowStateKey) => Unit,
         override val datapath: Datapath)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator {
 

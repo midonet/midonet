@@ -12,8 +12,8 @@ import org.midonet.cluster.client.Port
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.packets.{IPv4, ICMP, UDP, TCP, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.midolman.state.FlowState.FlowStateKey
 
 object ConnTrackState {
     type ConnTrackValue = java.lang.Boolean
@@ -36,7 +36,7 @@ object ConnTrackState {
                             networkDst: IPAddr,
                             icmpIdOrTransportDst: Int,
                             networkProtocol: Byte,
-                            deviceId: UUID) extends FlowStateTag {
+                            deviceId: UUID) extends FlowStateKey {
         override def toString = s"conntrack:$networkSrc:$icmpIdOrTransportSrc:" +
                                 s"$networkDst:$icmpIdOrTransportDst:" +
                                 s"$networkProtocol:$deviceId"

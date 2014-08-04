@@ -82,8 +82,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var storageFactory: FlowStateStorageFactory = null
 
-    var connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]
-    var natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]
+    val connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]
+    val natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]
 
     override def preStart() {
         super.preStart()
