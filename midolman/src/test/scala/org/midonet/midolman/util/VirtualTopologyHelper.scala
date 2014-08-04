@@ -89,9 +89,7 @@ trait VirtualTopologyHelper {
         context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
-        context.inPortId = Await.result(
-            ask(VirtualTopologyActor, PortRequest(inPort)).mapTo[SimPort],
-            timeout.duration)
+        context.inPortId = inPort
         context
     }
 

@@ -27,7 +27,6 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
@@ -66,18 +65,14 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     val state = new StateContext(this, log)
     var portGroups: JSet[UUID] = null
 
-    private var _inPortId: UUID = null
-    def inPortId: UUID = _inPortId
-    def inPortId_=(port: Port): Unit =
-        _inPortId = port.id
-
     var lastInvalidation: Long = _
 
     var idle: Boolean = true
     var runs: Int = 0
 
-    var outPortId: UUID = null
-    var toPortSet: Boolean = false
+    var inPortId: UUID = _
+    var outPortId: UUID = _
+    var toPortSet: Boolean = _
 
     val wcmatch = origMatch.clone()
 

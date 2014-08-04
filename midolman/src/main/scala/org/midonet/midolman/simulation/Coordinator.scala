@@ -286,7 +286,7 @@ class Coordinator(context: PacketContext)
                     if (getPortGroups && p.isExterior) {
                         context.portGroups = p.portGroups
                     }
-                    context.inPortId = p
+                    context.inPortId = portID
                     applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
             }
         }

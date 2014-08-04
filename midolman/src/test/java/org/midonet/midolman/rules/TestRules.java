@@ -21,22 +21,30 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.Option;
+import scala.util.Left;
+
+import akka.actor.ActorSystem$;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Injector;
 import com.google.inject.Guice;
+
 import org.apache.zookeeper.CreateMode;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.ConnTrackState;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.HappyGoLuckyLeaser$;
@@ -47,7 +55,7 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.midolman.vrn.ForwardInfo;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.sdn.flows.WildcardMatch;
@@ -69,8 +77,7 @@ public class TestRules {
     static String jumpChainName;
     static Condition cond;
     static Set<NatTarget> nats;
-    RuleResult expRes, argRes;
-    ForwardInfo fwdInfo;
+    PacketContext pktCtx;
     FlowStateTransaction<ConnTrackState.ConnTrackKey, Boolean> conntrackTx;
     FlowStateTransaction<NatState.NatKey, NatState.NatBinding> natTx;
 
@@ -80,6 +87,7 @@ public class TestRules {
         pktMatch.setInputPortNumber((short) 5);
         pktMatch.setEthSrc("02:11:33:00:11:01");
         pktMatch.setEthDst("02:11:aa:ee:22:05");
+        pktMatch.setEtherType(IPv4.ETHERTYPE);
         pktMatch.setNetworkSrc(IPv4Addr.fromInt(0x0a001406));
         pktMatch.setNetworkDst(IPv4Addr.fromInt(0x0a000b22));
         pktMatch.setNetworkProto((byte) 6); // TCP
@@ -90,6 +98,7 @@ public class TestRules {
         pktResponseMatch.setInputPortNumber((short) 5);
         pktResponseMatch.setEthDst("02:11:33:00:11:01");
         pktResponseMatch.setEthSrc("02:11:aa:ee:22:05");
+        pktResponseMatch.setEtherType(IPv4.ETHERTYPE);
         pktResponseMatch.setNetworkDst(IPv4Addr.fromInt(0x0a001406));
         pktResponseMatch.setNetworkSrc(IPv4Addr.fromInt(0x0a000b22));
         pktResponseMatch.setNetworkProto((byte) 6); // TCP
@@ -116,7 +125,7 @@ public class TestRules {
         nats.add(new NatTarget(0x0a090807, 0x0a090810, 21333,
                 32999));
 
-        Injector injector = Guice.createInjector(
+        Guice.createInjector(
             new TestModule("/midonet"),
             new VersionModule(),
             new SerializationModule()
@@ -176,13 +185,13 @@ public class TestRules {
 
     @Before
     public void setup() {
-
-        expRes = new RuleResult(null, null, pktMatch.clone());
-        fwdInfo = new ForwardInfo(false, pktMatch, null);
-        argRes = new RuleResult(null, null, fwdInfo.wcmatch());
+        pktCtx = new PacketContext(new Left<Object, UUID>(1),
+                                   null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
         @SuppressWarnings("unchecked")
         ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
+        pktCtx = new PacketContext(new Left<Object, UUID>(1),
+                null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
                 shardedConntrack.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
@@ -191,19 +200,19 @@ public class TestRules {
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        fwdInfo.state().initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
+        pktCtx.state().initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
     }
 
     @Test
     public void testLiteralRuleAccept() {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        Assert.assertTrue(expRes.equals(argRes));
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        expRes.action = Action.ACCEPT;
-        Assert.assertTrue(expRes.equals(argRes));
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.ACCEPT, res.action);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -215,12 +224,12 @@ public class TestRules {
     public void testLiteralRuleDrop() {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        Assert.assertTrue(expRes.equals(argRes));
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        expRes.action = Action.DROP;
-        Assert.assertTrue(expRes.equals(argRes));
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.DROP, res.action);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -232,37 +241,37 @@ public class TestRules {
     public void testLiteralRuleReject() {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        Assert.assertTrue(expRes.equals(argRes));
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        expRes.action = Action.REJECT;
-        Assert.assertTrue(expRes.equals(argRes));
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.REJECT, res.action);
     }
 
     @Test
     public void testLiteralRuleReturn() {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        Assert.assertTrue(expRes.equals(argRes));
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        expRes.action = Action.RETURN;
-        Assert.assertTrue(expRes.equals(argRes));
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.RETURN, res.action);
     }
 
     @Test
     public void testJumpRule() {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        Assert.assertTrue(expRes.equals(argRes));
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, UUID.randomUUID(), false);
-        expRes.action = Action.JUMP;
-        expRes.jumpToChain = jumpChainId;
-        Assert.assertTrue(expRes.equals(argRes));
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.JUMP, res.action);
+        Assert.assertEquals(jumpChainId, res.jumpToChain);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -280,57 +289,54 @@ public class TestRules {
         new ForwardNatRule(cond, Action.REJECT, null, 0, false, nats);
     }
 
-    // TODO: Remove the WildcardMatch from the RuleResult
-    // and fix this test
-
-    /*
     @Test
     public void testSnatAndReverseRules() {
-        Set<NatTarget> nats = new HashSet<NatTarget>();
+        Set<NatTarget> nats = new HashSet<>();
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, 3366, 3399));
         Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
                 nats);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, natMapping, false);
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
         natTx.commit();
-        Assert.assertTrue(expRes.equals(argRes));
+        Assert.assertEquals(null, res.action);
         // We let the reverse snat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.RETURN, false);
         // If the condition doesn't match the result is not modified.
-        revRule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertTrue(expRes.equals(argRes));
+        revRule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
         // Now get the Snat rule to match.
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertEquals(Action.ACCEPT, argRes.action);
-        IPv4Addr newNwSrc = (IPv4Addr)(argRes.pmatch.getNetworkSourceIP());
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.ACCEPT, res.action);
+        IPv4Addr newNwSrc = (IPv4Addr)(pktCtx.wcmatch().getNetworkSourceIP());
         Assert.assertTrue(0x0b000102 <= newNwSrc.toInt());
         Assert.assertTrue(newNwSrc.toInt() <= 0x0b00010a);
-        int newTpSrc = argRes.pmatch.getSrcPort();
+        int newTpSrc = pktCtx.wcmatch().getSrcPort();
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkSrc(newNwSrc);
-        expRes.pmatch.setSrcPort(newTpSrc);
-        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
+        WildcardMatch expected = pktCtx.origMatch().clone();
+        expected.setNetworkSrc(newNwSrc);
+        expected.setSrcPort(newTpSrc);
+        Assert.assertEquals(expected, pktCtx.wcmatch());
         // Verify we get the same mapping if we re-process the original match.
-        expRes = argRes;
-        argRes = new RuleResult(null, null, pktMatch.clone());
-        rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertEquals(expRes, argRes);
+        res = new RuleResult(null, null);
+        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(expected, pktCtx.wcmatch());
         // Now use the new ip/port in the return packet.
-        argRes.pmatch = pktResponseMatch.clone();
+        pktCtx.wcmatch().reset(pktResponseMatch);
         Assert.assertNotSame(pktResponseMatch.getNetworkDestinationIP(),
                              newNwSrc);
-        argRes.pmatch.setNetworkDst(newNwSrc);
-        Assert.assertNotSame(pktResponseMatch.getDstPort(),
-                             newTpSrc);
-        argRes.pmatch.setDstPort(newTpSrc);
-        argRes.action = null;
-        revRule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertEquals(Action.RETURN, argRes.action);
+        pktCtx.wcmatch().setNetworkDst(newNwSrc);
+        Assert.assertNotSame(pktResponseMatch.getDstPort(), newTpSrc);
+        pktCtx.wcmatch().setDstPort(newTpSrc);
+        res = new RuleResult(null, null);
+        revRule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.RETURN, res.action);
         // The generated response should be the mirror of the original.
-        Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
+        Assert.assertEquals(pktResponseMatch, pktCtx.wcmatch());
     }
 
     @Test
@@ -340,48 +346,52 @@ public class TestRules {
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
         // If the condition doesn't match the result is not modified.
-        rule.process(fwdInfo, argRes, natMapping, false);
-        //natTx.commit();
-        Assert.assertEquals(expRes, argRes);
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(res.action, null);
+        Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
         // If the condition doesn't match the result is not modified.
-        revRule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertTrue(expRes.equals(argRes));
+        Assert.assertEquals(res.action, null);
+        Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // Now get the Dnat rule to match.
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertEquals(Action.CONTINUE, argRes.action);
-        int newNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.CONTINUE, res.action);
+        int newNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
-        int newTpDst = argRes.pmatch.getDstPort();
+        int newTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkDst(IPv4Addr.fromInt(newNwDst));
-        expRes.pmatch.setDstPort(newTpDst);
-        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
+        WildcardMatch expected = pktCtx.origMatch().clone();
+        expected.setNetworkDst(IPv4Addr.fromInt(newNwDst));
+        expected.setDstPort(newTpDst);
+        Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Verify we get the same mapping if we re-process the original match.
-        expRes = argRes;
-        argRes = new RuleResult(null, null, pktMatch.clone());
-        rule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertTrue(expRes.equals(argRes));
+        res = new RuleResult(null, null);
+        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Now use the new ip/port in the return packet.
-        argRes.pmatch = pktResponseMatch.clone();
+        pktCtx.wcmatch().reset(pktResponseMatch.clone());
         Assert.assertTrue(IPv4Addr.fromInt(newNwDst).canEqual(
                           pktResponseMatch.getNetworkSourceIP()));
         Assert.assertFalse(IPv4Addr.fromInt(newNwDst).equals(
                            pktResponseMatch.getNetworkSourceIP()));
-        argRes.pmatch.setNetworkSrc(IPv4Addr.fromInt(newNwDst));
+
+        pktCtx.wcmatch().setNetworkSrc(IPv4Addr.fromInt(newNwDst));
         Assert.assertNotSame(pktResponseMatch.getSrcPort(), newTpDst);
-        argRes.pmatch.setSrcPort(newTpDst);
-        argRes.action = null;
-        fwdInfo.inPortId = null;
-        revRule.process(fwdInfo, argRes, natMapping, false);
-        Assert.assertEquals(Action.ACCEPT, argRes.action);
+        pktCtx.wcmatch().setSrcPort(newTpDst);
+        res.action = null;
+        pktCtx.inPortId_$eq(null);
+        revRule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.ACCEPT, res.action);
+
         // The generated response should be the mirror of the original.
-        Assert.assertTrue(pktResponseMatch.equals(argRes.pmatch));
+        Assert.assertEquals(pktResponseMatch, pktCtx.wcmatch());
     }
 
     @Test
@@ -390,53 +400,47 @@ public class TestRules {
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
                 nats);
-        Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
 
         // Now get the Dnat rule to match.
-        fwdInfo.inPortId = inPort;
-        rule.process(fwdInfo, argRes, natMapping, false);
-        natTx.commit();
-        Assert.assertEquals(Action.CONTINUE, argRes.action);
-        int firstNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
+        pktCtx.inPortId_$eq(inPort);
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(Action.CONTINUE, res.action);
+        int firstNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
         Assert.assertTrue(0x0c000102 <= firstNwDst);
         Assert.assertTrue(firstNwDst <= 0x0c00010a);
-        int firstTpDst = argRes.pmatch.getDstPort();
+        int firstTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertTrue(1030 <= firstTpDst);
         Assert.assertTrue(firstTpDst <= 1050);
 
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkDst(IPv4Addr.fromInt(firstNwDst));
-        expRes.pmatch.setDstPort(firstTpDst);
-        Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
+        WildcardMatch expected = pktCtx.origMatch().clone();
+        expected.setNetworkDst(IPv4Addr.fromInt(firstNwDst));
+        expected.setDstPort(firstTpDst);
+        Assert.assertEquals(pktCtx.wcmatch(), expected);
 
         // Verify we get the same mapping if we re-process the original match.
-        expRes = argRes;
-        argRes = new RuleResult(null, null, pktMatch.clone());
-        rule.process(fwdInfo, argRes, natMapping, false);
-        int secondNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
-        int secondTpDst = argRes.pmatch.getDstPort();
-        Assert.assertTrue(expRes.equals(argRes));
+        res = new RuleResult(null, null);
+        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        rule.process(pktCtx, res, ownerId, false);
+        int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int secondTpDst = pktCtx.wcmatch().getDstPort();
+        Assert.assertEquals(expected, pktCtx.wcmatch());
+        Assert.assertEquals(Action.CONTINUE, res.action);
         Assert.assertEquals(firstNwDst, secondNwDst);
         Assert.assertEquals(firstTpDst, secondTpDst);
 
         // Delete the DNAT entry
-        natMapping.deleteDnatEntry(pktMatch.getNetworkProto(),
-                                   pktMatch.getNetworkSourceIP(),
-                                   pktMatch.getSrcPort(),
-                                   pktMatch.getNetworkDestinationIP(),
-                                   pktMatch.getDstPort(),
-                                   new IPv4Addr(firstNwDst),
-                                   firstTpDst);
+        natTx.flush();
 
         // Verify we get a NEW mapping if we re-process the original match.
-        expRes = argRes;
-        argRes = new RuleResult(null, null, pktMatch.clone());
-        rule.process(fwdInfo, argRes, natMapping, false);
-        int thirdNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
-        int thirdTpDst = argRes.pmatch.getDstPort();
-        Assert.assertFalse(expRes.equals(argRes));
+        res = new RuleResult(null, null);
+        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        rule.process(pktCtx, res, ownerId, false);
+        int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int thirdTpDst = pktCtx.wcmatch().getDstPort();
+        Assert.assertNotEquals(expected, pktCtx.wcmatch());
         Assert.assertNotSame(firstNwDst, thirdNwDst);
         Assert.assertNotSame(firstTpDst, thirdTpDst);
     }
-                          */
 }

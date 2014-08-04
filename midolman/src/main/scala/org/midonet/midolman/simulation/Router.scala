@@ -288,8 +288,9 @@ class Router(override val id: UUID,
          * to a DNAT'd address in one of the router's port. See #547 for
          * further motivation.
          */
-        def _applyPostActions(eth: Ethernet, postRoutingResult: RuleResult) = {
-            val srcPort = postRoutingResult.pmatch.getSrcPort
+        def _applyPostActions(eth: Ethernet, postRoutingResult: RuleResult,
+                              pktCtx: PacketContext) = {
+            val srcPort = pktCtx.wcmatch.getSrcPort
             packet.getProtocol match {
                 case UDP.PROTOCOL_NUMBER =>
                     val l4 = packet.getPayload.asInstanceOf[UDP]
@@ -302,7 +303,7 @@ class Router(override val id: UUID,
                 case _ =>
             }
 
-            packet.setSourceAddress(postRoutingResult.pmatch
+            packet.setSourceAddress(pktCtx.wcmatch
                                     .getNetworkSourceIP.asInstanceOf[IPv4Addr])
             eth.setPayload(packet)
         }
@@ -340,7 +341,7 @@ class Router(override val id: UUID,
                     val postRoutingResult =
                         Chain.apply(outFilter, egrPktContext, id, false)
 
-                    _applyPostActions(eth, postRoutingResult)
+                    _applyPostActions(eth, postRoutingResult, egrPktContext)
                     postRoutingResult.action match {
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (context == null) None

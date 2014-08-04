@@ -24,14 +24,9 @@ import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.sdn.flows.FlowTagger
 
 object LoadBalancer {
-    def simpleAcceptRuleResult(context: PacketContext) =
-        simpleRuleResult(RuleResult.Action.ACCEPT, context)
-
-    def simpleContinueRuleResult(context: PacketContext) =
-        simpleRuleResult(RuleResult.Action.CONTINUE, context)
-
-    def simpleRuleResult(action: RuleResult.Action, context: PacketContext) =
-        new RuleResult(action, null, context.wcmatch)
+    val simpleAcceptRuleResult = new RuleResult(RuleResult.Action.ACCEPT, null)
+    val simpleContinueRuleResult = new RuleResult(RuleResult.Action.CONTINUE, null)
+    val simpleDropRuleResult = new RuleResult(RuleResult.Action.DROP, null)
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
@@ -55,7 +50,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
         if (adminStateUp) {
             findVip(context) match {
-                case null => simpleContinueRuleResult(context)
+                case null => simpleContinueRuleResult
                 case vip => // Packet destined to this VIP, get relevant pool
                     context.log.debug("Traffic matched VIP ID {} in load balancer {}",
                                       vip.id, id)
@@ -63,15 +58,13 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                     // Choose a pool member and apply DNAT if an
                     // active pool member is found
                     val pool = tryAsk[Pool](vip.poolId)
-                    val action =
-                        if (pool.loadBalance(context, id, vip.isStickySourceIP))
-                            RuleResult.Action.ACCEPT
-                        else
-                            RuleResult.Action.DROP
-                    simpleRuleResult(action, context)
+                    if (pool.loadBalance(context, id, vip.isStickySourceIP))
+                        simpleAcceptRuleResult
+                    else
+                        simpleDropRuleResult
             }
         } else {
-            simpleContinueRuleResult(context)
+            simpleContinueRuleResult
         }
     }
 
@@ -95,16 +88,16 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // port, that is, if they are different connections.
         if (!(hasNonStickyVips && packetContext.state.reverseDnat(id)) &&
             !(hasStickyVips && packetContext.state.reverseStickyDnat(id))) {
-            return simpleContinueRuleResult(context)
+            return simpleContinueRuleResult
         }
 
         if (!adminStateUp)
-            return simpleRuleResult(RuleResult.Action.DROP, packetContext)
+            return simpleDropRuleResult
 
         findVipReturn(context) match {
             case null =>
                 // The VIP is no longer.
-                simpleRuleResult(RuleResult.Action.DROP, packetContext)
+                simpleDropRuleResult
             case vip =>
                 context.log.debug("Traffic matched VIP ID {} in load balancer {}",
                                   vip.id, id)
@@ -117,9 +110,9 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                                                                backendPort,
                                                                vip.isStickySourceIP)
                 if (validMember)
-                    simpleRuleResult(RuleResult.Action.ACCEPT, context)
+                    simpleAcceptRuleResult
                 else
-                    simpleRuleResult(RuleResult.Action.DROP, packetContext)
+                    simpleDropRuleResult
         }
     }
 

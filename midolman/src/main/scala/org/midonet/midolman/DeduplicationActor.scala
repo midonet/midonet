@@ -284,12 +284,9 @@ class DeduplicationActor(
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
         pktCtx.log = PacketTracing.loggerFor(wcMatch)
 
-        def matchTraceConditions(): Boolean = {
-            traceConditions exists { _.matches(pktCtx, wcMatch, false) }
+        if (traceConditions ne null) {
+            pktCtx.setTraced(traceConditions exists { _.matches(pktCtx, false) })
         }
-
-        if (traceConditions ne null)
-            pktCtx.setTraced(matchTraceConditions())
         pktCtx
     }
 

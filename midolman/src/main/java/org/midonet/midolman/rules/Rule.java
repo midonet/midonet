@@ -77,7 +77,7 @@ public abstract class Rule {
      */
     public void process(PacketContext pktCtx, RuleResult res, UUID ownerId,
                         boolean isPortFilter) {
-        if (condition.matches(pktCtx, res.pmatch, isPortFilter)) {
+        if (condition.matches(pktCtx, isPortFilter)) {
             log.debug("Condition matched");
             apply(pktCtx, res, ownerId);
         }

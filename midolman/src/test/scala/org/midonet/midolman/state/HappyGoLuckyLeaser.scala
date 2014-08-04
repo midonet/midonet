@@ -16,10 +16,15 @@
 
 package org.midonet.midolman.state
 
+import java.util.UUID
+
 import com.typesafe.scalalogging.Logger
 import com.yammer.metrics.core.Clock
 import org.slf4j.helpers.NOPLogger
 
+import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.state.NatState.NatBinding
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.MockClock
 
 object HappyGoLuckyLeaser extends NatLeaser {
@@ -27,4 +32,10 @@ object HappyGoLuckyLeaser extends NatLeaser {
     override val log = Logger(NOPLogger.NOP_LOGGER)
     override val allocator: NatBlockAllocator = new MockNatBlockAllocator
     override val clock: Clock = new MockClock
+
+    override def allocateNatBinding(deviceId: UUID,
+                                    destinationIp: IPv4Addr,
+                                    destinationPort: Int,
+                                    natTargets: Array[NatTarget]): NatBinding =
+        NatBinding(natTargets(0).nwStart, natTargets(0).tpStart)
 }
