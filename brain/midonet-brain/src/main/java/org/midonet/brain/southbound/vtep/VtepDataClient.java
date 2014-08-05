@@ -147,25 +147,26 @@ public interface VtepDataClient {
      * Adds a new entry to the Ucast_Macs_Remote table.
      *
      * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address, must be a valid mac, or
-     *            VtepConstants.UNKNOWN-DST
-     * @param ip the ip of the vxlan tunnel peer where packets addressed to
-     *           mac should be tunnelled to
+     * @param mac the mac address
+     * @param ip the ip associated to the mac (for ARP) - can be null.
+     * @param tunnelEndPoint the ip of the vxlan tunnel peer where packets
+     *                       addressed to mac should be tunnelled to
      * @return the result of the operation
      */
-    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip);
+    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip,
+                                    IPv4Addr tunnelEndPoint );
 
     /**
      * Adds a new entry to the Mcast_Macs_Remote table.
      *
      * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address, must be a valid mac, or
-     *            VtepConstants.UNKNOWN-DST
-     * @param ip the ip of the vxlan tunnel peer where packets addressed to
-     *           mac should be tunnelled to
+     * @param mac the mac address
+     * @param tunnelEndpoint the ip of the vxlan tunnel peer where packets
+     *                       addressed to mac should be tunnelled to
      * @return the result of the operation
      */
-    public Status addMcastMacRemote(String lsName, VtepMAC mac, IPv4Addr ip);
+    public Status addMcastMacRemote(String lsName, VtepMAC mac,
+                                    IPv4Addr tunnelEndpoint);
 
     /**
      * Deletes all entries from the Ucast_Mac_Remote table that match the
@@ -175,21 +176,19 @@ public interface VtepDataClient {
      *
      * @param lsName The logical switch name
      * @param mac The MAC address
+     * @param macIp the IP in the entry to remove (nullable)
      * @return Operation result status
      */
-    public Status delUcastMacRemote(String lsName, MAC mac);
+    public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp);
 
     /**
-     * Deletes all entries from the Mcast_Mac_Remote table that match the
-     * specified MAC address and logical switch name. The method returns a
-     * NotFound status when there is no logical switch, there is no unicast
-     * MAC table, or there are no entries to delete.
+     * Delete entries with the same MAC in the Ucast_Mac_Remote table.
      *
-     * @param lsName The logical switch name
-     * @param mac The MAC address
-     * @return Operation result status
+     * @param mac the MAC address
+     * @param lsName the logical switch name
+     * @return operation result status
      */
-    public Status delMcastMacRemote(String lsName, VtepMAC mac);
+    public Status delUcastMacRemoteAllIps(String lsName, MAC mac);
 
     /**
      * Provides an Observable producing a stream of updates from the VTEP.

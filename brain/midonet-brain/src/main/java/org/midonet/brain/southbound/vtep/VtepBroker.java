@@ -99,9 +99,6 @@ public class VtepBroker implements VxLanPeer {
      * from the table, in order. If the vxlanTunnelEndpoint is not populated
      * yet, it'll just emit an empty observable since we can't figure out the
      * right vxlan tunnel IP.
-     *
-     * @return the stream of MacLocation objects resulting from translating
-     * the updates to the Ucast_Macs_Local table.
      */
     private final Func1<TableUpdates, Observable<? extends MacLocation>>
         translateTableUpdates = new Func1<TableUpdates,
@@ -221,6 +218,7 @@ public class VtepBroker implements VxLanPeer {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
         Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName,
                                                      ml.mac.IEEE802(),
+                                                     null,
                                                      ml.vxlanTunnelEndpoint);
         if (!st.isSuccess()) {
             if (st.getCode().equals(StatusCode.CONFLICT)) {
@@ -239,7 +237,7 @@ public class VtepBroker implements VxLanPeer {
     private void applyDelete(MacLocation ml) {
         log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
         Status st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
-                                                     ml.mac.IEEE802());
+                                                     ml.mac.IEEE802(), null);
         if (!st.isSuccess()) {
             if (st.getCode().equals(StatusCode.NOTFOUND)) {
                 log.debug("Trying to delete entry but not present {}", ml);
