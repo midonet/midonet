@@ -31,13 +31,14 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.ReplicatedMap;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
+import static org.midonet.midolman.state.ReplicatedMap.Watcher;
 
 /**
  * This class allows both watching for changes in mac-port of a set of bridges
@@ -57,12 +58,14 @@ public class MidoVxLanPeer implements VxLanPeer {
     private final Subject<MacLocation, MacLocation> allUpdates;
 
     /* The logical switch monitoring context: its distributed MacPortMap table,
-     * the vxlan port id and the vxlan port removal watch */
+     * the Ip2Mac table, the vxlan port id and the vxlan port removal watch */
     private static class LogicalSwitchContext {
         final UUID vxLanPortId;
         final MacPortMap macPortMap;
+        final Ip4ToMacReplicatedMap ipMacMap;
         final VxLanPortRemovalWatcher ripper;
-        final ReplicatedMap.Watcher<MAC, UUID> forwarder;
+        final Watcher<MAC, UUID> macPortForwarder;
+        final Watcher<IPv4Addr, MAC> ipMacForwarder;
 
         /**
          * Create the Logical switch context.
@@ -71,27 +74,42 @@ public class MidoVxLanPeer implements VxLanPeer {
          * @param macPortMap is the replicated map containing the bridge's
          *                   table between MAC addresses and the port where
          *                   they have been detected.
+         * @param ipMacMap is the replicated map containing the bridge's
+         *                 arp table (ip-mac mappings). This is mainly used
+         *                 to set watchers, as the table is manipulated via
+         *                 DataClient methods.
          * @param ripper is a zookeeper watcher responsible for removing the
          *               logical switch context and stopping any associated
          *               services when the vxlan port is removed.
-         * @param forwarder is a MacPortMap (ReplicatedMap) watcher responsible
-         *                  for detecting Mac-port updates and forwarding them
-         *                  to subscribers by emitting them via an observable.
+         * @param macPortForwarder is a MacPortMap (ReplicatedMap) watcher
+         *                         responsible for detecting Mac-port updates
+         *                         and forwarding them to subscribers by
+         *                         emitting them via an observable.
+         * @param ipMacForwarder is an Ip4ToMac (ReplicatedMap) watcher
+         *                       responsible for detecting ip-mac updates
+         *                       and forwarding them to subscribers by
+         *                       emitting them via an observable.
          */
         public LogicalSwitchContext(UUID vxLanPortId,
                                     MacPortMap macPortMap,
+                                    Ip4ToMacReplicatedMap ipMacMap,
                                     VxLanPortRemovalWatcher ripper,
-                                    ReplicatedMap.Watcher<MAC, UUID> forwarder)
+                                    Watcher<MAC, UUID>
+                                        macPortForwarder,
+                                    Watcher<IPv4Addr, MAC>
+                                        ipMacForwarder)
         {
             this.vxLanPortId = vxLanPortId;
             this.macPortMap = macPortMap;
+            this.ipMacMap = ipMacMap;
             this.ripper = ripper;
-            this.forwarder = forwarder;
+            this.macPortForwarder = macPortForwarder;
+            this.ipMacForwarder = ipMacForwarder;
         }
     }
 
-    /* The callback to execute when a bridge has its vxlan port removed */
-    /* TODO: there should probably be a generic, zookeeper-independent
+    /* The callback to execute when a bridge has its vxlan port removed.
+     * TODO: there should probably be a generic, zookeeper-independent
      * watcher interface, and maybe this could be extracted to another file.. */
     private static class VxLanPortRemovalWatcher
         extends Directory.DefaultTypedWatcher {
@@ -170,60 +188,93 @@ public class MidoVxLanPeer implements VxLanPeer {
     }
 
     /*
-     * For reference: macLocation is used to indicate changes to bindings
-     * between mac addresses and ports (new bindings, updates and removals).
-     * In case of removal, the vxlanTunnelEndpoint is null; for creations
-     * and updates, the vxlanTunnelEndpoint is the vtep management ip (if
-     * the macLocation comes from a vtep) or the tunnel ip of the host
-     * holding the port (if the macLocation corresponds to a virtual bridge).
-     * Updating the macPortMap replicated table causes notifications to be
-     * sent to all subscribers (and, in particular, to the per-bridge watcher)
+     * MacLocation events instruct us about a MAC-IP pair's pressence at a
+     * new VxLAN Tunnel Endpoint (that is, a VTEP), for a port-vlan binding
+     * that belongs to a given logical switch.
      */
     @Override
     public void apply(MacLocation macLocation) {
 
         if (macLocation == null) {
-            log.debug("Ignoring null MAC-port change");
             return;
         }
 
-        // TODO: Remove the following if after merging the flooding proxy patch
         if (!macLocation.mac.isIEEE802()) {
             log.debug("Ignoring UNKNOWN-DST mcast wildcard");
             return;
         }
 
-        MAC mac = macLocation.mac.IEEE802();
-
         UUID bridgeId = VtepConstants.logicalSwitchNameToBridgeId(
             macLocation.logicalSwitchName);
+
         LogicalSwitchContext ctx = lsContexts.get(bridgeId);
         if (ctx == null) {
-            log.warn("Ignoring update for unknown bridge {}", bridgeId);
-            return;
+            log.warn("Update for unknown network {}", macLocation);
+        } else if (macLocation.vxlanTunnelEndpoint == null) {
+            log.debug("Removal: {}", macLocation);
+            this.macRemoval(macLocation, ctx, bridgeId);
+        } else {
+            log.debug("Add/update: {}", macLocation);
+            this.macUpdate(macLocation, ctx, bridgeId);
         }
+    }
+
+    /**
+     * Removes a MAC address from the bridge attached to a logical switch.
+     */
+    private void macRemoval(MacLocation ml, LogicalSwitchContext ctx,
+                            UUID bridgeId) {
+        UUID portId = ctx.vxLanPortId;
+        MacPortMap macPortMap = ctx.macPortMap;
+        try {
+            MAC mac = ml.mac.IEEE802();
+            macPortMap.removeIfOwnerAndValue(mac, portId);
+            for (IPv4Addr ip: dataClient.bridgeGetIp4ByMac(bridgeId, mac)) {
+                dataClient.bridgeDeleteLearnedIp4Mac(bridgeId, ip, mac);
+            }
+        } catch (StateAccessException | InterruptedException |
+                 KeeperException e) {
+            throw new VxLanPeerSyncException("Removal fails", ml, e);
+        }
+    }
+
+    /**
+     * Sets a MAC address to the MAC-port table for a bridge attached to a
+     * logical switch, both for creations and updates.
+     */
+    private void macUpdate(MacLocation ml, LogicalSwitchContext ctx,
+                           UUID bridgeId) {
+        MAC mac = ml.mac.IEEE802();
         MacPortMap macPortMap = ctx.macPortMap;
         UUID portId = ctx.vxLanPortId;
-        if (macLocation.vxlanTunnelEndpoint == null) {
-            try {
-                log.debug("Remove mac: {}", mac);
-                macPortMap.removeIfOwnerAndValue(mac, portId);
-            } catch (InterruptedException| KeeperException e) {
-                log.warn("Error removing mac binding: {}",
-                         new Object[]{macLocation, e});
-                throw new VxLanPeerSyncException(
-                    String.format("Cannot apply mac %s removal from port %s",
-                                  mac, portId), macLocation, e
-                );
+
+        UUID currMacPort = macPortMap.get(mac);
+        if (currMacPort == null || !currMacPort.equals(portId)) {
+            if (currMacPort != null) {
+                // FIXME: workaround for flaky replicated map updates
+                // The following code may suffer from potential race
+                // conditions; see MN-2637
+                try {
+                    macPortMap.removeIfOwner(mac);
+                } catch (InterruptedException | KeeperException e) {
+                    log.warn("Error replacing mac binding: {}", ml, e);
+                    throw new VxLanPeerSyncException("Replacement", ml, e);
+                }
             }
+            log.debug("Apply mac-port mapping: {}", ml);
+            macPortMap.put(mac, portId);
         } else {
-            // The MAC binding is either created or updated
-            UUID existing = macPortMap.get(mac); // done on local cache
-            if (existing == null || !existing.equals(portId)) {
-                log.debug("Apply mac-port mapping: {}", macLocation);
-                macPortMap.put(mac, portId);
-            } else {
-                log.debug("Skip redundant apply for: {}", macLocation);
+            log.debug("MacLocation known, skipping {}", ml);
+        }
+
+        // Fill ARP-supression table: we learn new locations, but we do not
+        // remove old ones
+        if (ml.ipAddr != null) {
+            try {
+                dataClient.bridgeAddLearnedIp4Mac(bridgeId, ml.ipAddr, mac);
+            } catch (StateAccessException e) {
+                log.error("Cannot update ip-mac table for {} {}",
+                          new Object[]{ml.ipAddr, ml.mac, e});
             }
         }
     }
@@ -309,46 +360,55 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     private LogicalSwitchContext createContext(final UUID bridgeId) {
         MacPortMap macTable;
+        Ip4ToMacReplicatedMap arpTable;
         Bridge bridge;
         try {
             macTable = dataClient.bridgeGetMacTable(bridgeId,
                                                     Bridge.UNTAGGED_VLAN_ID,
                                                     false);
+            arpTable = dataClient.bridgeGetArpTable(bridgeId);
             bridge = dataClient.bridgesGet(bridgeId);
         } catch (SerializationException | StateAccessException e) {
             log.error("Error retrieving bridge " + bridgeId + " state" +
                       ", watcher won't be set up", e);
             return null;
         }
-        if (bridge == null) {
-            /* A bridge may have disappeared due to a race condition: skip it */
-            log.warn("No such bridge " + bridgeId);
+
+        if (bridge == null) { // Probably a race condition
             return null;
         }
+
         UUID vxLanPortId = bridge.getVxLanPortId();
-        if (vxLanPortId == null) {
-            /* A bridge may have its vxlan port removed; if so, skip it */
-            log.warn("Tried to watch bridge " + bridgeId +
-                     " without vxlan port, watcher won't be set up");
+        if (vxLanPortId == null) { // Probably race again with a port removal
+            log.warn("Network {} appears unbound to VTEP", bridgeId);
             return null;
         }
 
         /* Create and activate the mac tables watcher, which may start pushing
-         * values to the subject *after* the initial ones set just above
-         */
-        ReplicatedMap.Watcher<MAC, UUID> watcher =
-            makeWatcher(bridgeId, vxLanPortId);
-        macTable.addWatcher(watcher);
+         * values to the subject *after* the initial ones set just above */
+        Watcher<MAC, UUID> macPortWatcher = makeMacPortWatcher(bridgeId,
+                                                               vxLanPortId);
+        macTable.addWatcher(macPortWatcher);
+
+        /* Create and activate the arp table watcher, which may start
+         * pushing * values to the subject *after* the initial ones set just
+         * above */
+        Watcher<IPv4Addr, MAC> arpWatcher = makeArpTableWatcher(bridgeId,
+                                                                vxLanPortId,
+                                                                macTable);
+        arpTable.addWatcher(arpWatcher);
+
         macTable.start();
+        arpTable.start();
 
         /* Create the VXLAN port removal monitor.
          * To avoid race conditions, it must be activated once the context
-         * has been added to the macPortTables.
-         */
+         * has been added to the macPortTables. */
         VxLanPortRemovalWatcher ripper =
             new VxLanPortRemovalWatcher(this, bridgeId, vxLanPortId);
 
-        return new LogicalSwitchContext(vxLanPortId, macTable, ripper, watcher);
+        return new LogicalSwitchContext(vxLanPortId, macTable, arpTable,
+                                        ripper, macPortWatcher, arpWatcher);
     }
 
     /**
@@ -356,8 +416,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      * @param bridgeId is the bridge to be removed from the watch list.
      */
     private void forgetBridge(UUID bridgeId) {
-        log.debug("Removing bridge " + bridgeId + " from MidoVxLanPeer",
-                  bridgeId);
+        log.debug("Stop watching network {}", bridgeId);
 
         // If there is a flooding proxy, remove it for this logical switch.
         if (null != floodingProxy) {
@@ -366,16 +425,17 @@ public class MidoVxLanPeer implements VxLanPeer {
 
         LogicalSwitchContext ctx = lsContexts.remove(bridgeId);
         if (ctx == null) {
-            log.warn("Bridge " + bridgeId + " was not being monitored");
+            log.debug("Network {} was not being monitored", bridgeId);
             return;
         }
+
         /* NOTE: removing the vxlan port watchers requires triggering them and
          * not resetting them - which occurs naturally when the vxlan port
-         * disappears. This should have happened already (otherwise
-         * we should not be 'forgetting' the bridge.
+         * disappears. This should have happened already (otherwise we should
+         * not be 'forgetting' the bridge.
          */
-        /* NOTE: it is not necessary to remove entries from
-         * ctx.macPortMap: they will expire by themselves.
+        /* NOTE: it is not necessary to remove entries from ctx.macPortMap:
+         * they will expire by themselves.
          */
         /* TODO: the code apparently works if we do not remove the watch.
          * This is because the dataClient usually returns a new instance of
@@ -385,34 +445,54 @@ public class MidoVxLanPeer implements VxLanPeer {
          * new watchers would be active again, and we would be sending
          * notifications to both (old and new) vxlanpeer observables.
          */
-        ctx.macPortMap.removeWatcher(ctx.forwarder);
+        ctx.macPortMap.removeWatcher(ctx.macPortForwarder);
         ctx.macPortMap.stop();
+        ctx.ipMacMap.removeWatcher(ctx.ipMacForwarder);
+        ctx.ipMacMap.stop();
     }
 
     /**
      * Returns a watcher that connects the given subject to the ReplicatedMap
      * callback hook.
      */
-    private ReplicatedMap.Watcher<MAC, UUID> makeWatcher(
+    private Watcher<MAC, UUID> makeMacPortWatcher(
             final UUID bridgeId, final UUID vxLanPortId) {
-        return new ReplicatedMap.Watcher<MAC, UUID>() {
+        return new Watcher<MAC, UUID>() {
             /* If the change is from the bridge we care about, it converts the
              * change into a MacLocation, and publish. Otherwise, ignored */
             public void processChange(MAC mac, UUID oldPort, UUID newPort) {
-                log.debug("Change on bridge {}: MAC {} moves from {} to {}",
-                          new Object[]{bridgeId, mac, oldPort, newPort});
+                log.debug("Network {}: MAC {} moves from {} to {}",
+                          bridgeId, mac, oldPort, newPort);
                 UUID port = newPort == null? oldPort: newPort;
-                if (vxLanPortId.equals(port)) { // Change not from this bridge
+                if (vxLanPortId.equals(port)) { // Change from the same bridge
                     return;
                 }
                 String lsName = bridgeIdToLogicalSwitchName(bridgeId);
                 VtepMAC vMac = VtepMAC.fromMac(mac);
                 try {
-                    IPv4Addr vxTunnelIp = (newPort == null) ? null
-                                : dataClient.vxlanTunnelEndpointFor(newPort);
-                    MacLocation ml = new MacLocation(vMac, null, lsName,
-                                                     vxTunnelIp);
-                    allUpdates.onNext(ml);
+                    if (oldPort != null) {
+                        // Invalidate old entries in the VTEP for that MAC
+                        allUpdates.onNext(
+                            new MacLocation(vMac, null, lsName, null));
+                    }
+                    if (newPort != null) {
+                        IPv4Addr vxTunnelIp =
+                            dataClient.vxlanTunnelEndpointFor(newPort);
+
+                        // make sure there is at least one entry with no ip
+                        allUpdates.onNext(
+                            new MacLocation(vMac, null, lsName, vxTunnelIp));
+
+                        // set a mapping for each specific ip (usually only one)
+                        Set<IPv4Addr> ipSet =
+                            dataClient.bridgeGetIp4ByMac(bridgeId,
+                                                         vMac.IEEE802());
+                        for (IPv4Addr ip: ipSet) {
+                            MacLocation ml = new MacLocation(vMac, ip, lsName,
+                                                             vxTunnelIp);
+                            allUpdates.onNext(ml);
+                        }
+                    }
                 } catch (SerializationException | StateAccessException e) {
                     log.error("Failed to get vxlan tunnel endpoint for " +
                               "bridge port {}", new Object[]{newPort, e});
@@ -458,19 +538,63 @@ public class MidoVxLanPeer implements VxLanPeer {
 
         if (null != hostAddress) {
             log.info("Set the flooding proxy for logical switch {} to {}",
-                     new Object[]{lsName, hostAddress});
+                     lsName, hostAddress);
         } else {
-            log.info("Clear the flooding proxy on for logical switch {}",
-                     new Object[] { lsName });
+            log.info("Clear the flooding proxy for logical switch {}", lsName);
         }
 
         allUpdates.onNext(new MacLocation(
             VtepMAC.UNKNOWN_DST, hostAddress, lsName, null));
     }
 
+
+    /**
+     * Returns a watcher that connects the given subject to the ArpTable
+     * callback hook.
+     */
+    private Watcher<IPv4Addr, MAC> makeArpTableWatcher(final UUID bridgeId,
+                       final UUID vxLanPortId, final MacPortMap macPortMap) {
+        return new Watcher<IPv4Addr, MAC>() {
+            /* If the change is from the bridge we care about, it converts the
+             * change into a MacLocation, and publish. Otherwise, ignored */
+            public void processChange(IPv4Addr ip, MAC oldMac, MAC newMac) {
+                log.debug("Change on bridge {}: IP {} moves from {} to {}",
+                          bridgeId, ip, oldMac, newMac);
+
+                String lsName = bridgeIdToLogicalSwitchName(bridgeId);
+
+                // we should remove the old ip-mac && add the new entry
+                if (oldMac != null) {
+                    UUID portId = macPortMap.get(oldMac);
+                    if (portId != null && !vxLanPortId.equals(portId)) {
+                        allUpdates.onNext(
+                            new MacLocation(VtepMAC.fromMac(oldMac), ip, lsName,
+                                            null)
+                        );
+                    }
+                }
+                if (newMac != null) {
+                    UUID portId = macPortMap.get(newMac);
+                    if (portId != null && !vxLanPortId.equals(portId)) try {
+                        IPv4Addr vxTunnelIp =
+                            dataClient.vxlanTunnelEndpointFor(portId);
+                        allUpdates.onNext(
+                            new MacLocation(VtepMAC.fromMac(newMac), ip, lsName,
+                                            vxTunnelIp)
+                        );
+                    } catch (StateAccessException | SerializationException e) {
+                        log.error("Failed to get vxlan tunnel endpoint for " +
+                                  "bridge port {}", portId, e);
+                    }
+                }
+            }
+        };
+    }
+
     /**
      * Clean up the local mac table copies.
-     * NOTE: once the 'stop' method is called, the rx.Observable with mac-port
+     *
+     * NOTE: oonce the 'stop' method is called, the rx.Observable with mac-port
      * updates is 'Complete'; it is assumed that a 'stopped' MidoVxLanPeer
      * cannot be re-used.
      */
@@ -509,7 +633,7 @@ public class MidoVxLanPeer implements VxLanPeer {
     }
 
     /**
-     * Tells if the MidoVxLanPeer is already managing this bridge Id.
+     * Tells whether the MidoVxLanPeer is already managing this bridge Id.
      */
     public boolean knowsBridgeId(UUID bridgeId) {
         return this.lsContexts.containsKey(bridgeId);
@@ -520,7 +644,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      *
      * @param bridgeId A bridge ID.
      * @param mac A MAC address.
-     * @return True if the entry exists, and false otherwise.
+     * @return true if the entry exists, and false otherwise.
      */
     UUID getPort(UUID bridgeId, MAC mac) {
         LogicalSwitchContext logicalSwitchContext = lsContexts.get(bridgeId);

@@ -14,6 +14,7 @@ import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
+import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
 import org.opendaylight.ovsdb.lib.notation.UUID;
 import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
@@ -38,6 +39,7 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
+import static org.opendaylight.ovsdb.lib.message.TableUpdate.Row;
 
 /**
  * This class exposes a hardware VTEP as a vxlan gateway peer.
@@ -58,15 +60,18 @@ public class VtepBroker implements VxLanPeer {
         macLocationStream = PublishSubject.create();
 
     /**
-     * Converts a single TableUpdate.Row from a Ucast_Macs_Local into a
-     * MacLocation, using the vxlan tunnel endpoint IP extracted from the
-     * currently connected VTEP.
+     * Converts a single TableUpdate.Row from a Ucast_Macs_Local into an
+     * Observable that emits MacLocation instances that correspond to the
+     * updates to the row. The vxlan tunnel endpoint IP provided in the
+     * MacLoations are extracted from the currently connected VTEP.
      */
-    private final Func1<TableUpdate.Row<Ucast_Macs_Local>, MacLocation>
-        toMacLocation = new Func1<TableUpdate.Row<Ucast_Macs_Local>,
-                                  MacLocation>() {
+    private final Func1<Row<Ucast_Macs_Local>,
+                        Observable<MacLocation>>
+        toMacLocation = new Func1<Row<Ucast_Macs_Local>,
+                                  Observable<MacLocation>>() {
             @Override
-            public MacLocation call(TableUpdate.Row<Ucast_Macs_Local> row) {
+            public Observable<MacLocation>
+            call(Row<Ucast_Macs_Local> row) {
                 return toMacLocation(row);
             }
     };
@@ -108,14 +113,14 @@ public class VtepBroker implements VxLanPeer {
         public Observable<? extends MacLocation> call(TableUpdates ups) {
             if (vxlanTunnelEndPoint == null) {
                 log.warn("No vxlanTunnelEndpoint, can't process VTEP updates");
-                return Observable.empty();
+                return Observable.<MacLocation>empty();
             }
             TableUpdate<Ucast_Macs_Local> u = ups.getUcast_Macs_LocalUpdate();
             if (u == null) {
-                return Observable.empty();
+                return Observable.<MacLocation>empty();
             }
             return Observable.from(u.getRows())
-                             .map(toMacLocation) // may throw
+                             .concatMap(toMacLocation) // may throw
                              .filter(filterNulls)
                              .onErrorResumeNext(errorHandler);
         }
@@ -137,7 +142,7 @@ public class VtepBroker implements VxLanPeer {
                     return;
                 }
                 String mgmtIp = vtepDataClient.getManagementIp().toString();
-                for (TableUpdate.Row<Physical_Switch> row : up.getRows()) {
+                for (Row<Physical_Switch> row : up.getRows()) {
                     // Find our physical switch row, and fetch the tunnel IP
                     if (row.getNew().getManagement_ips().contains(mgmtIp)) {
                         vxlanTunnelEndPoint =
@@ -158,7 +163,7 @@ public class VtepBroker implements VxLanPeer {
         this.vtepDataClient
             .updatesObservable()
             .doOnNext(extractVxlanTunnelEndpoint) // extract VTEP's tunnel IP
-            .concatMap(translateTableUpdates)     // preserve order
+            .concatMap(translateTableUpdates)     // keeps order, filters nulls
             .subscribe(macLocationStream);        // dump into our Subject
     }
 
@@ -209,9 +214,10 @@ public class VtepBroker implements VxLanPeer {
             }
             try {
                 VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
-                macLocationStream.onNext(
-                    new MacLocation(mac, null, ls.name, vxlanTunnelEndPoint)
-                );
+                IPv4Addr ip = (ucastMac.ipAddr == null)
+                              ? null : IPv4Addr.apply(ucastMac.ipAddr);
+                macLocationStream.onNext(new MacLocation(mac, ip, ls.name,
+                                                         vxlanTunnelEndPoint));
             } catch (MAC.InvalidMacException e) {
                 log.warn("Invalid MAC found in VTEP: ", ucastMac.mac);
             }
@@ -226,16 +232,13 @@ public class VtepBroker implements VxLanPeer {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
         Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName,
                                                      ml.mac.IEEE802(),
-                                                     null,
+                                                     ml.ipAddr,
                                                      ml.vxlanTunnelEndpoint);
-        if (!st.isSuccess()) {
-            if (st.getCode().equals(StatusCode.CONFLICT)) {
-                log.info("Conflict writing {}, not expected", ml);
-            } else {
-                throw new VxLanPeerSyncException(
-                    String.format("VTEP replied: %s, %s",
-                                  st.getCode(), st.getDescription()), ml);
-            }
+
+        if (st.getCode().equals(StatusCode.CONFLICT)) {
+            log.info("Conflict writing {}, not expected", ml);
+        } else if (!st.isSuccess()) {
+            throw new VxLanPeerSyncException("VTEP replied: " + st, ml);
         }
     }
 
@@ -245,16 +248,21 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyUcastDelete(MacLocation ml) {
         log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
-        Status st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
-                                                     ml.mac.IEEE802(), null);
-        if (!st.isSuccess()) {
-            if (st.getCode().equals(StatusCode.NOTFOUND)) {
-                log.debug("Trying to delete entry but not present {}", ml);
-            } else {
-                throw new VxLanPeerSyncException(
-                    String.format("VTEP replied: %s, %s",
-                                  st.getCode(), st.getDescription()), ml);
-            }
+        Status st;
+        if (ml.ipAddr == null) {
+            // removal, no IP: remove all mappings for that mac
+            st = vtepDataClient.delUcastMacRemoteAllIps(ml.logicalSwitchName,
+                                                        ml.mac.IEEE802());
+
+        } else {
+            // removal, one IP: remove only the IP from the row
+            st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
+                                                  ml.mac.IEEE802(), ml.ipAddr);
+        }
+        if (st.getCode().equals(StatusCode.NOTFOUND)) {
+            log.debug("Trying to delete entry but not present {}", ml);
+        } else if (!st.isSuccess()) {
+            throw new VxLanPeerSyncException("OVSDB error: " + st, ml);
         }
     }
 
@@ -325,21 +333,16 @@ public class VtepBroker implements VxLanPeer {
             } else if (st.getCode().equals(StatusCode.CONFLICT)) {
                 ls = vtepDataClient.getLogicalSwitch(lsName);
                 if (ls != null && ls.tunnelKey.equals(vni)) {
-                    log.warn("Tried to create logical switch {} and got "
-                             + "unexpected conflict. State looks correct, but "
-                             + "the conflict was unexpected, are there several"
-                             + "writers to the VTEP?", lsName);
+                    log.warn("Logical switch {} creation conflict, but state " +
+                             "looks correct. Other VxGW nodes active?", lsName);
                 } else if (ls != null) {
                     throw new VxLanPeerConsolidationException(
-                        "Logical switch creation causes conflict, found row"
-                        + "with different VNI than expected. Does the VTEP"
-                        + "have several writers?", lsName
-                    );
+                        "Logical switch creation conflict: row exists with " +
+                        "different VNI. Other VxGW nodes active?", lsName);
                 } else {
                     throw new VxLanPeerConsolidationException(
-                        "Logical switch creation causes conflict, but I can't"
-                        + "find matching row. This is unexpected.", lsName
-                    );
+                        "Logical switch creation conflict, but no matching" +
+                        "row found. This is unexpected.", lsName);
                 }
                 lsUuid = st.getUuid();
             }
@@ -394,9 +397,10 @@ public class VtepBroker implements VxLanPeer {
     }
 
     /**
-     * Converts a Row update notification from the OVSDB client to a single
-     * MacLocation update that can be applied to a VxGW Peer. A change
+     * Converts a Row update notification from the OVSDB client to a stream of
+     * MacLocation updates that can be applied to a VxGW Peer. A change
      * in a given row is interpreted as follows:
+     *
      * - Addition: when r.getOld is null and r.getNew isn't. The MAC
      *   contained in r.getNew is now located at the ucast_local table
      *   of the monitored vtep. In this case, the resulting MacLocation
@@ -407,41 +411,87 @@ public class VtepBroker implements VxLanPeer {
      *   we're now monitoring, so the resulting MacLocation will contain
      *   the MAC and a null vxlan tunnel endpoint IP.
      * - Update: when both the r.getOld and r.getNew values are not
-     *   null. This would mean that the same row has mutated. This can
-     *   happen for several reasons:
-     *   - The mac changes: ignored, because MN doesn't update the mac
-     *   so this means an operator wrongly manipulated the VTEP's database.
-     *   - The ip changes: only relevant for ARP supression, which is
-     *   currently not implemented. When this feature is added, we'll
-     *   have to add the mac's ip to the MacLocation and will have to update
-     *   it accordingly.
+     *   null. In the new row, only fields that changed would be populated. An
+     *   update would happen for several reasons:
+     *   - The MAC changes: ignored, because MN doesn't update the mac
+     *     so this means an operator wrongly manipulated the VTEP's database.
+     *   - The IP changes: only relevant for ARP supression. In this case we
+     *     have to add the mac's ip to the MacLocation and will have to update
+     *     it accordingly.
      *   - The logical switch changes: again, MN will never trigger this
-     *   change so it will be ignored.
+     *     change so it will be ignored.
      *   - The locator changed: this refers to the local tunnel IP,
-     *   which being local should remain the same.
+     *     which being local should remain the same.
      *
-     *   @return the corresponding MacLocation instance, or null if the logical
-     *   switch doesn't exist (e.g. bc. it is deleted during the call)
+     *   @return a cold Observable containing the corresponding MacLocation
+     *           instances, empty if the logical switch doesn't exist (e.g.
+     *           because it is deleted during the call)
      */
-    private MacLocation toMacLocation(TableUpdate.Row<Ucast_Macs_Local> r) {
-        // The only thing we care about is the IP
-        Ucast_Macs_Local val = (r.getOld() == null) ? r.getNew() : r.getOld();
+    private Observable<MacLocation> toMacLocation(Row<Ucast_Macs_Local> r) {
 
-        // MAC doesn't change, pick it up from whatever has a val
-        String sMac = val.getMac();
+        VtepMAC vMac = VtepMAC.fromString(RowParser.mac(r));
+        UUID lsId = RowParser.logicalSwitch(r);
 
-        // Logical Switch id doesn't change, pick from wherever there is a val
-        UUID lsId = val.getLogical_switch().iterator().next();
+        LogicalSwitch ls = (lsId == null)
+                           ? null : vtepDataClient.getLogicalSwitch(lsId);
+
+        if (ls == null) {
+            log.warn("Skip MAC {}, logical switch {} not found ", vMac, lsId);
+            return Observable.empty();
+        }
 
         // the vxlan tunnel endpoint: null if deleted, or the vtep's tunnel ip
-        IPv4Addr ip = (r.getNew() == null) ? null : vxlanTunnelEndPoint;
+        IPv4Addr endpoint = r.getNew() == null ? null : vxlanTunnelEndPoint;
 
-        LogicalSwitch ls = vtepDataClient.getLogicalSwitch(lsId); // cached
-        if (ls == null) {
-            log.warn("Won't sync change for MAC {}, logical switch {} not " +
-                     "present", sMac, lsId);
-            return null;
+        IPv4Addr oldMacIp = RowParser.ip(r.getOld());
+        IPv4Addr newMacIp = RowParser.ip(r.getNew());
+        List<MacLocation> mlList= new ArrayList<>();
+        if (oldMacIp != null && newMacIp != null &&
+            !oldMacIp.equals(newMacIp)) {
+            // We're on an update. Lets remove the old entry and set the new
+            // one. This MacLocation indicates that the mac and ip have no
+            // endpoint. This will be intepreted on the other side a a removal
+            // of just the IP (if the mac had been deleted, the newRow would've
+            // bee null). A ML with null ip and null endpoint would be
+            // interpreted as a removal of the mac itself.
+            mlList.add(new MacLocation(vMac, oldMacIp, ls.name, null));
         }
-        return new MacLocation(VtepMAC.fromString(sMac), null, ls.name, ip);
+        // Below covers both deletions and additions of *_Mac_Local rows.
+        IPv4Addr newerIp = (newMacIp == null) ? oldMacIp : newMacIp;
+        mlList.add(new MacLocation(vMac, newerIp, ls.name, endpoint));
+        log.debug("Vtep update translates to: {}", mlList);
+        return Observable.from(mlList);
+    }
+
+    /**
+     * Some utility methods to parse OVSDB Row updates.
+     */
+    private static class RowParser {
+        // Methods below extract individual fields, watching for nulls.
+        public static UUID logicalSwitch(Ucast_Macs_Local row) {
+            if (row == null) {
+                return null;
+            }
+            OvsDBSet<UUID> ls = row.getLogical_switch();
+            return (ls == null || ls.isEmpty()) ? null : ls.iterator().next();
+        }
+        public static String mac(Ucast_Macs_Local row) {
+            return (row == null || row.getMac() == null) ? null : row.getMac();
+        }
+        public static IPv4Addr ip(Ucast_Macs_Local row) {
+            String sIp = (row == null) ? null : row.getIpaddr();
+            return (sIp == null || sIp.isEmpty()) ? null : IPv4Addr.apply(sIp);
+        }
+
+        // Methods below extract the best value for the field, we try on the old
+        // row (covering deletions and updates), then on the new (covering adds)
+        private static UUID logicalSwitch(Row<Ucast_Macs_Local> r) {
+            UUID curr = logicalSwitch(r.getOld());
+            return (curr == null) ? logicalSwitch(r.getNew()) : curr;
+        }
+        private static String mac(Row<Ucast_Macs_Local> r) {
+            String curr = mac(r.getOld());
+            return (curr == null) ? mac(r.getNew()) : curr;
+        }
     }
 }
