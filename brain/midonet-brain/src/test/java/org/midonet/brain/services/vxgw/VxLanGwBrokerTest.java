@@ -34,11 +34,6 @@ public class VxLanGwBrokerTest {
     private static IPv4Addr vtepMgmtIp = IPv4Addr.fromString("192.168.1.20");
     private static int vtepMgmtPort = 6632;
 
-    private VxLanGwBroker broker;
-
-    private List<MacLocation> emittedFrom1;
-    private List<MacLocation> emittedFrom2;
-
     @Mocked
     private VtepDataClientProvider vtepDataClientProvider;
 
@@ -54,7 +49,7 @@ public class VxLanGwBrokerTest {
     class MockVxLanPeer implements VxLanPeer {
 
         Subject<MacLocation, MacLocation> s = PublishSubject.create();
-        List<MacLocation> applied = new ArrayList<MacLocation>();
+        List<MacLocation> applied = new ArrayList<>();
 
         @Override
         public void apply(MacLocation macLocation) {
@@ -108,8 +103,8 @@ public class VxLanGwBrokerTest {
             times = 1;
         }};
 
-        broker = new VxLanGwBroker(midoClient, vtepDataClientProvider,
-                                   vtepMgmtIp, vtepMgmtPort);
+        new VxLanGwBroker(midoClient, vtepDataClientProvider,
+                          vtepMgmtIp, vtepMgmtPort);
     }
 
     /**
@@ -120,15 +115,15 @@ public class VxLanGwBrokerTest {
     public void testWiring() throws Exception {
 
         final MacLocation m1 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:01:01"),
+            VtepMAC.fromString("ff:ff:ff:ff:01:01"), null,
             "11111111", IPv4Addr.fromString("10.1.1.1")
         );
         final MacLocation m2 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:02:02"),
+            VtepMAC.fromString("ff:ff:ff:ff:02:02"), null,
             "22222222", IPv4Addr.fromString("10.2.2.2")
         );
         final MacLocation m3 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:03:03"),
+            VtepMAC.fromString("ff:ff:ff:ff:03:03"), null,
             "33333333", IPv4Addr.fromString("10.3.3.3")
         );
 
