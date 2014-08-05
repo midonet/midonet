@@ -30,7 +30,6 @@ import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
@@ -55,10 +54,10 @@ public class VtepBrokerTest {
 
     // MACs used in tests
     private String sMac1 = "aa:bb:cc:dd:ee:01";
-    private MAC mac1 = MAC.fromString(sMac1);
+    private VtepMAC mac1 = VtepMAC.fromString(sMac1);
 
     private String sMac2 = "aa:bb:cc:dd:ee:02";
-    private MAC mac2 = MAC.fromString(sMac2);
+    private VtepMAC mac2 = VtepMAC.fromString(sMac2);
 
     // A sample entry for the test VTEP
     private Physical_Switch physicalSwitch;
@@ -89,10 +88,10 @@ public class VtepBrokerTest {
     }
 
     @Test
-    public void testBrokerAppliesUpdate() {
+    public void testBrokerAppliesUpdate() throws Exception {
         new Expectations() {{
             vtepDataClient.addUcastMacRemote(
-                logicalSwitchName, mac1.toString(), midoVxTunIp.toString());
+                logicalSwitchName, mac1.IEEE802(), midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
@@ -101,10 +100,10 @@ public class VtepBrokerTest {
     }
 
     @Test(expected = VxLanPeerSyncException.class)
-    public void testBrokerThrowsOnFailedUpdate() {
+    public void testBrokerThrowsOnFailedUpdate() throws Exception {
         new Expectations() {{
             vtepDataClient.addUcastMacRemote(
-                logicalSwitchName, mac1.toString(), midoVxTunIp.toString());
+                logicalSwitchName, mac1.IEEE802(), midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.BADREQUEST);
         }};
@@ -113,9 +112,10 @@ public class VtepBrokerTest {
     }
 
     @Test
-    public void testBrokerDeletesUcastMacRemote() {
+    public void testBrokerDeletesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.delUcastMacRemote(mac1.toString(), logicalSwitchName);
+            vtepDataClient.delUcastMacRemote(logicalSwitchName,
+                                             mac1.IEEE802());
             result = new Status(StatusCode.SUCCESS);
             times = 1;
         }};
@@ -127,10 +127,11 @@ public class VtepBrokerTest {
      * it and verifying the calls, whatever they do.
      */
     @Test
-    public void testUpdateHandlerUpdatesUcastMacRemote() {
+    public void testUpdateHandlerUpdatesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.addUcastMacRemote(logicalSwitchName, mac1.toString(),
-                                             midoVxTunIp.toString());
+            vtepDataClient.addUcastMacRemote(logicalSwitchName,
+                                             mac1.IEEE802(),
+                                             midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
@@ -144,7 +145,7 @@ public class VtepBrokerTest {
      * at the VTEP's vxlan tunnel ip.
      */
     @Test
-    public void testObservableUpdatesMacAddition() {
+    public void testObservableUpdatesMacAddition() throws Exception {
 
         // Our logical switch
         final LogicalSwitch ls = new LogicalSwitch(new UUID("meh"), "dsc",
@@ -217,7 +218,7 @@ public class VtepBrokerTest {
      * located anymore at the VTEP's vxlan tunnel ip.
      */
     @Test
-    public void testObservableUpdatesMacRemoval() {
+    public void testObservableUpdatesMacRemoval() throws Exception {
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
@@ -291,7 +292,7 @@ public class VtepBrokerTest {
     }
 
     @Test
-    public void testAdvertiseMacs() {
+    public void testAdvertiseMacs() throws Exception {
 
         // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
         // is able to capture the IP and process MAC updates.
@@ -336,7 +337,8 @@ public class VtepBrokerTest {
      * want to die: the VtepBroker should just ignore the MacLocation.
      */
     @Test
-    public void testAdvertiseMacsResilientToLogicalSwitchDeletions() {
+    public void testAdvertiseMacsResilientToLogicalSwitchDeletions()
+        throws Exception {
 
         VtepBroker vb = new VtepBroker(vtepDataClient);
 
@@ -344,15 +346,14 @@ public class VtepBrokerTest {
         // is able to capture the IP and process MAC updates.
         vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
 
-        final UUID lsId1 = new UUID("blah1");
-        final UUID lsId2 = new UUID("blah2");
+        final UUID lsId = new UUID("blah2");
 
         new Expectations() {{
             vtepDataClient.listUcastMacsLocal();
             times = 1;
             result = Arrays.asList(
-                new UcastMac(sMac1, lsId1, new UUID("loc1"), null),
-                new UcastMac(sMac2, lsId2, new UUID("loc2"), null)
+                new UcastMac(sMac1, lsId, new UUID("loc1"), null),
+                new UcastMac(sMac2, lsId, new UUID("loc2"), null)
             );
         }};
 
@@ -360,7 +361,7 @@ public class VtepBrokerTest {
             vtepDataClient.getLogicalSwitch(withAny(new UUID("")));
             times = 2;
             result = new Object[] {
-                new LogicalSwitch(lsId2, "oo", "meh2", 2),
+                new LogicalSwitch(lsId, "oo", "meh2", 2),
                 null // the switch goes away on the second call
             };
         }};

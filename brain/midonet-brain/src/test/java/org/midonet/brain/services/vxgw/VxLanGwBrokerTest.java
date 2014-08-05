@@ -23,9 +23,9 @@ import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
 import static org.junit.Assert.assertEquals;
 
@@ -117,22 +117,19 @@ public class VxLanGwBrokerTest {
      * its updates to the other peer.
      */
     @Test
-    public void testWiring() {
+    public void testWiring() throws Exception {
 
         final MacLocation m1 = new MacLocation(
-            MAC.fromString("ff:ff:ff:ff:01:01"),
-            "11111111",
-            IPv4Addr.fromString("10.1.1.1")
+            VtepMAC.fromString("ff:ff:ff:ff:01:01"),
+            "11111111", IPv4Addr.fromString("10.1.1.1")
         );
         final MacLocation m2 = new MacLocation(
-            MAC.fromString("ff:ff:ff:ff:02:02"),
-            "22222222",
-            IPv4Addr.fromString("10.2.2.2")
+            VtepMAC.fromString("ff:ff:ff:ff:02:02"),
+            "22222222", IPv4Addr.fromString("10.2.2.2")
         );
         final MacLocation m3 = new MacLocation(
-            MAC.fromString("ff:ff:ff:ff:03:03"),
-            "33333333",
-            IPv4Addr.fromString("10.3.3.3")
+            VtepMAC.fromString("ff:ff:ff:ff:03:03"),
+            "33333333", IPv4Addr.fromString("10.3.3.3")
         );
 
         mockPeer2.s.onNext(m1);
