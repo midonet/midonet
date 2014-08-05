@@ -52,7 +52,6 @@ public class VtepDataClientImplTest {
     private VtepDataClientImpl vtepDataClient = null;
     private static final IPv4Addr ip = IPv4Addr.apply("192.158.0.1");
     private static final IPv4Addr tunIp = IPv4Addr.apply("10.1.1.1");
-    private static final int port = 6632;
 
     private Physical_Switch mockPhysicalSwitch = null;
 
@@ -79,6 +78,7 @@ public class VtepDataClientImplTest {
         // The format of the node name matters to cheat the ODL stuff inside
         final Map<ConnectionConstants, String> params = new HashMap<>();
         params.put(ConnectionConstants.ADDRESS, ip.toString());
+        int port = 6632;
         params.put(ConnectionConstants.PORT, Integer.toString(port));
 
         // Basic expectations in all connections
@@ -284,15 +284,33 @@ public class VtepDataClientImplTest {
             this.makeMockCache();
         successfulConnection(mockCache);
         final String sMac = "aa:bb:cc:dd:ee:ff";
-        final MAC mac = MAC.fromString(sMac);
-        final String sVtepIp = "10.2.1.3";
-        final IPv4Addr vtepIp = IPv4Addr.apply(sVtepIp);
+        final IPv4Addr vtepIp = IPv4Addr.apply("10.0.2.1");
+        final IPv4Addr macIp = IPv4Addr.apply("10.0.3.3");
         new Expectations() {{
-            cfgSrv.vtepAddUcastMacRemote("ls", sMac, sVtepIp, null);
+            cfgSrv.vtepAddUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff",
+                                         vtepIp.toString(), macIp.toString());
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
         }};
-        Status st = vtepDataClient.addUcastMacRemote("ls", mac, null, vtepIp);
+        Status st = vtepDataClient.addUcastMacRemote(
+            "ls", MAC.fromString("aa:bb:cc:dd:ee:ff"), macIp, vtepIp);
+        assertEquals(StatusCode.SUCCESS, st.getCode());
+    }
+
+    @Test
+    public void testAddMcastUcastRemoteNullIp() {
+        final Map<String, ConcurrentMap<String, Table<?>>> mockCache =
+            this.makeMockCache();
+        successfulConnection(mockCache);
+        new Expectations() {{
+            cfgSrv.vtepAddUcastMacRemote("ls", "aa:bb:cc:dd:ee:ff", "10.2.1.3",
+                                      null);
+            times = 1;
+            result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
+        }};
+        Status st = vtepDataClient.addUcastMacRemote(
+            "ls", MAC.fromString("aa:bb:cc:dd:ee:ff"), null,
+            IPv4Addr.apply("10.2.1.3"));
         assertEquals(StatusCode.SUCCESS, st.getCode());
     }
 
@@ -303,7 +321,7 @@ public class VtepDataClientImplTest {
         successfulConnection(mockCache);
         final String mac = "aa:bb:cc:dd:ee:ff";
         new Expectations() {{
-            cfgSrv.vtepDelUcastMacRemote("ls", mac);
+        cfgSrv.vtepDelUcastMacRemote("ls", mac, null);
             times = 1;
             result = new StatusWithUuid(StatusCode.SUCCESS, new UUID("hello"));
         }};

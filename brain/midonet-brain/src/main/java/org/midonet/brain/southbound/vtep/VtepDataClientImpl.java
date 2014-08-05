@@ -371,7 +371,7 @@ public class VtepDataClientImpl implements VtepDataClient {
                            Integer vni, List<IPv4Addr> floodIps) {
         log.debug("Bind VLAN {} on physical port {} to logical switch {}, "
                   + "VNI {}, and adding flooding IPs: {}",
-                  new Object[]{lsName, portName, vlan, vni, floodIps});
+                  lsName, portName, vlan, vni, floodIps);
         List<String> ips = new ArrayList<>(floodIps.size());
         for (IPv4Addr ip : floodIps) {
             ips.add(ip.toString());
@@ -399,7 +399,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
                                     IPv4Addr tunnelIp) {
         log.debug("Adding Ucast MAC Remote: {} {} {} on VXLAN endpoint {}",
-                  new Object[]{lsName, mac, macIp, tunnelIp});
+                  lsName, mac, macIp, tunnelIp);
         assert(lsName != null);
         assert(mac != null);
         assert(mac.unicast());
@@ -417,7 +417,7 @@ public class VtepDataClientImpl implements VtepDataClient {
     public Status addMcastMacRemote(String lsName, VtepMAC vMac,
                                     IPv4Addr tunnelIp) {
         log.debug("Adding Mcast MAC Remote: {} {} on VXLAN endpoint {}",
-                  new Object[]{lsName, vMac, tunnelIp});
+                  lsName, vMac, tunnelIp);
         assert(lsName != null);
         assert(vMac != null);
         assert(vMac.isMcast());
@@ -437,7 +437,8 @@ public class VtepDataClientImpl implements VtepDataClient {
         assert(lsName != null);
         assert(mac != null);
         assert(mac.unicast());
-        Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString());
+        String sIp = (macIp == null) ? null : macIp.toString();
+        Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString(), sIp);
         if (!st.isSuccess()) {
             log.error("Could not delete Ucast Mac Remote: {}", st);
         }

@@ -52,12 +52,13 @@ public class VtepBrokerTest {
     // This is the mock vtep's tunnel endpoint
     final IPv4Addr vxTunEndpoint = IPv4Addr.fromString("192.168.0.1");
 
-    // MACs used in tests
     private String sMac1 = "aa:bb:cc:dd:ee:01";
     private VtepMAC mac1 = VtepMAC.fromString(sMac1);
+    private IPv4Addr macIp1 = IPv4Addr.fromString("10.0.3.1");
 
     private String sMac2 = "aa:bb:cc:dd:ee:02";
     private VtepMAC mac2 = VtepMAC.fromString(sMac2);
+    private IPv4Addr macIp2 = IPv4Addr.fromString("10.0.3.2");
 
     // A sample entry for the test VTEP
     private Physical_Switch physicalSwitch;
@@ -90,32 +91,44 @@ public class VtepBrokerTest {
     @Test
     public void testBrokerAppliesUpdate() throws Exception {
         new Expectations() {{
-            vtepDataClient.addUcastMacRemote(
-                lsName, mac1.IEEE802(), null, midoVxTunIp);
+            vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
+                                             macIp1, midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
 
-        vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
+        vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
+    }
+
+    @Test
+    public void testBrokerAppliesUpdateNullIp() {
+        new Expectations() {{
+            vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(), null,
+                                             midoVxTunIp);
+            times = 1;
+            result = new Status(StatusCode.SUCCESS);
+        }};
+
+        vtepBroker.apply(new MacLocation(mac1, null, lsName,
+                                         midoVxTunIp));
     }
 
     @Test(expected = VxLanPeerSyncException.class)
     public void testBrokerThrowsOnFailedUpdate() throws Exception {
         new Expectations() {{
-            vtepDataClient.addUcastMacRemote(
-                lsName, mac1.IEEE802(), null, midoVxTunIp);
+            vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
+                                             macIp1, midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.BADREQUEST);
         }};
 
-        vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
+        vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
     }
 
     @Test
     public void testBrokerDeletesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.delUcastMacRemote(lsName, mac1.IEEE802(),
-                                             null);
+            vtepDataClient.delUcastMacRemoteAllIps(lsName, mac1.IEEE802());
             result = new Status(StatusCode.SUCCESS);
             times = 1;
         }};
@@ -129,12 +142,12 @@ public class VtepBrokerTest {
     @Test
     public void testUpdateHandlerUpdatesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(),
-                                             null, midoVxTunIp);
+            vtepDataClient.addUcastMacRemote(lsName, mac1.IEEE802(), macIp1,
+                                             midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
-        vtepBroker.apply(new MacLocation(mac1, null, lsName, midoVxTunIp));
+        vtepBroker.apply(new MacLocation(mac1, macIp1, lsName, midoVxTunIp));
     }
 
     /**
@@ -152,7 +165,7 @@ public class VtepBrokerTest {
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
-            null, makeUcastLocal(mac1.toString(), vxTunEndpoint.toString())
+            null, makeUcastLocal(mac1.toString(), macIp1.toString())
         );
         feedPhysicalSwitchUpdate(ups);
 
@@ -168,9 +181,8 @@ public class VtepBrokerTest {
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(
-                           new MacLocation(mac1, null, ls.name, vxTunEndpoint)
-                       )
+                       .expect(new MacLocation(mac1, macIp1, ls.name,
+                                               vxTunEndpoint))
                        .noErrors()
                        .notCompleted()
                        .subscribe();
@@ -224,7 +236,7 @@ public class VtepBrokerTest {
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
-            makeUcastLocal(mac1.toString(), vxTunEndpoint.toString()), null
+            makeUcastLocal(mac1.toString(), macIp1.toString()), null
         );
         feedPhysicalSwitchUpdate(ups);
 
@@ -242,7 +254,7 @@ public class VtepBrokerTest {
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates())
-                       .expect(new MacLocation(mac1, null, ls.name, null))
+                       .expect(new MacLocation(mac1, macIp1, ls.name, null))
                        .noErrors()
                        .notCompleted()
                        .subscribe();
@@ -307,8 +319,8 @@ public class VtepBrokerTest {
             vtepDataClient.listUcastMacsLocal();
             times = 1;
             result = Arrays.asList(
-                new UcastMac(sMac1, lsId1, new UUID("loc1"), null),
-                new UcastMac(sMac2, lsId2, new UUID("loc2"), null)
+                new UcastMac(sMac1, lsId1, new UUID("loc1"), macIp1.toString()),
+                new UcastMac(sMac2, lsId2, new UUID("loc2"), macIp2.toString())
             );
         }};
 
@@ -323,8 +335,8 @@ public class VtepBrokerTest {
 
         RxTestUtils.TestedObservable obs =
             RxTestUtils.test(vtepBroker.observableUpdates());
-        obs.expect(new MacLocation(mac1, null, "meh1", vxTunEndpoint),
-                   new MacLocation(mac2, null, "meh2", vxTunEndpoint))
+        obs.expect(new MacLocation(mac1, macIp1, "meh1", vxTunEndpoint),
+                   new MacLocation(mac2, macIp2, "meh2", vxTunEndpoint))
            .noErrors()
            .notCompleted()
            .subscribe();

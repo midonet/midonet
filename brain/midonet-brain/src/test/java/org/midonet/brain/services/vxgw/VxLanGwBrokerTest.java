@@ -145,16 +145,19 @@ public class VxLanGwBrokerTest {
     public void testWiring() throws Exception {
 
         final MacLocation m1 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:01:01"), null,
-            "11111111", IPv4Addr.fromString("10.1.1.1")
+            VtepMAC.fromString("ff:ff:ff:ff:01:01"),
+            IPv4Addr.fromString("10.0.1.1"), "11111111",
+            IPv4Addr.fromString("10.1.1.1")
         );
         final MacLocation m2 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:02:02"), null,
-            "22222222", IPv4Addr.fromString("10.2.2.2")
+            VtepMAC.fromString("ff:ff:ff:ff:02:02"),
+            IPv4Addr.fromString("10.0.2.2"), "22222222",
+            IPv4Addr.fromString("10.2.2.2")
         );
         final MacLocation m3 = new MacLocation(
-            VtepMAC.fromString("ff:ff:ff:ff:03:03"), null,
-            "33333333", IPv4Addr.fromString("10.3.3.3")
+            VtepMAC.fromString("ff:ff:ff:ff:03:03"),
+            IPv4Addr.fromString("10.0.3.3"), "33333333",
+            IPv4Addr.fromString("10.3.3.3")
         );
 
         mockPeer2.s.onNext(m1);
