@@ -22,15 +22,14 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
-import org.midonet.cluster.*;
-import org.midonet.cluster.data.neutron.ExternalNetZkManager;
-import org.midonet.cluster.data.neutron.L3ZkManager;
-import org.midonet.cluster.data.neutron.LBZkManager;
-import org.midonet.cluster.data.neutron.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.NetworkZkManager;
-import org.midonet.cluster.data.neutron.NeutronPlugin;
-import org.midonet.cluster.data.neutron.ProviderRouterZkManager;
-import org.midonet.cluster.data.neutron.SecurityGroupZkManager;
+import org.midonet.cluster.ClusterBridgeManager;
+import org.midonet.cluster.ClusterHostManager;
+import org.midonet.cluster.ClusterPortGroupManager;
+import org.midonet.cluster.ClusterPortsManager;
+import org.midonet.cluster.ClusterRouterManager;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.LocalDataClientImpl;
+import org.midonet.cluster.ZookeeperLockFactory;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -43,7 +42,30 @@ import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortGroupCache;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.zkManagers.*;
+import org.midonet.midolman.state.zkManagers.AdRouteZkManager;
+import org.midonet.midolman.state.zkManagers.BgpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpV6ZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
+import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+import org.midonet.midolman.state.zkManagers.ChainZkManager;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
+import org.midonet.midolman.state.zkManagers.LicenseZkManager;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
+import org.midonet.midolman.state.zkManagers.PortSetZkManager;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.RuleZkManager;
+import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
+import org.midonet.midolman.state.zkManagers.TenantZkManager;
+import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
+import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
 /**
@@ -91,27 +113,6 @@ public class DataClientModule extends PrivateModule {
                 .toProvider(PortConfigCacheProvider.class)
                 .in(Singleton.class);
 
-        bind(LBZkManager.class).in(Singleton.class);
-        expose(LBZkManager.class);
-
-        bind(NetworkZkManager.class).in(Singleton.class);
-        expose(NetworkZkManager.class);
-
-        bind(L3ZkManager.class).in(Singleton.class);
-        expose(L3ZkManager.class);
-
-        bind(ProviderRouterZkManager.class).in(Singleton.class);
-        expose(ProviderRouterZkManager.class);
-
-        bind(ExternalNetZkManager.class).in(Singleton.class);
-        expose(ExternalNetZkManager.class);
-
-        bind(SecurityGroupZkManager.class).in(Singleton.class);
-        expose(SecurityGroupZkManager.class);
-
-        bind(LoadBalancerApi.class).to(NeutronPlugin.class).asEagerSingleton();
-        expose(LoadBalancerApi.class);
-
         bind(PortGroupCache.class).toProvider(PortGroupCacheProvider.class)
                 .in(Singleton.class);
 
@@ -120,15 +121,29 @@ public class DataClientModule extends PrivateModule {
 
         bind(MidostoreSetupService.class).in(Singleton.class);
         expose(MidostoreSetupService.class);
+
+        bindZookeeperLockFactory();
+        expose(ZookeeperLockFactory.class);
     }
 
-    @Provides @Exposed @Inject @Singleton
+    @Provides
+    @Exposed
+    @Inject @Singleton
     private CuratorFramework provideCuratorFramework(ZookeeperConfig config) {
         // Hard coding the the retry policy value for now.
         // Consider making this configurable in the future if necessary.
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         return CuratorFrameworkFactory.newClient(config.getZooKeeperHosts(),
                                                  retryPolicy);
+    }
+
+    /**
+     * Bind a Zookeeper lock factory class.
+     *
+     * Override this method if you want to mock the factory class.
+     */
+    protected void bindZookeeperLockFactory() {
+        bind(ZookeeperLockFactory.class).asEagerSingleton();
     }
 
     private static class PathBuilderProvider implements Provider<PathBuilder> {

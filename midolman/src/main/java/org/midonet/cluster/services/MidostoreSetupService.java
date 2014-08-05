@@ -14,6 +14,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.state.ZkDirectory;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,12 @@ public class MidostoreSetupService extends AbstractService {
 
             verifySystemState();
 
-            curatorFramework.start();
+            // A hack to avoid having this client start in unit tests. Only
+            // start if the configuration indicates that an actual zookeeper
+            // server is running (not MockDirectory, for example)
+            if (directory instanceof ZkDirectory) {
+                curatorFramework.start();
+            }
 
             notifyStarted();
         } catch (Exception e) {
@@ -80,6 +86,7 @@ public class MidostoreSetupService extends AbstractService {
 
     @Override
     protected void doStop() {
+        // The following call works even if it has not been started
         curatorFramework.close();
         notifyStopped();
     }

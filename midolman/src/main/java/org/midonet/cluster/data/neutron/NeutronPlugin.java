@@ -11,30 +11,24 @@ import javax.annotation.Nonnull;
 
 import com.google.inject.Inject;
 
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.ZookeeperLockFactory;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
-import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
+import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
-import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.state.zkManagers.VipZkManager;
 
 /**
  * MidoNet implementation of Neutron plugin interface.
@@ -45,6 +39,9 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     private static final Logger LOGGER =
         LoggerFactory.getLogger(NeutronPlugin.class);
+
+    public static final String LOCK_NAME = "neutron";
+
     @Inject
     private ZkManager zkManager;
     @Inject
@@ -58,23 +55,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Inject
     private SecurityGroupZkManager securityGroupZkManager;
     @Inject
-    private LoadBalancerZkManager loadBalancerZkManager;
-    @Inject
-    private HealthMonitorZkManager healthMonitorZkManager;
-    @Inject
-    private PoolMemberZkManager poolMemberZkManager;
-    @Inject
-    private RouterZkManager routerZkManager;
-    @Inject
-    private PoolZkManager poolZkManager;
-    @Inject
-    private VipZkManager vipZkManager;
-    @Inject
-    private PathBuilder pathBuilder;
-    @Inject
-    private Serializer serializer;
-    @Inject
     private LBZkManager lbZkManager;
+
+    @Inject
+    private ZookeeperLockFactory lockFactory;
 
     private static void printOps(List<Op> ops) {
 
@@ -95,6 +79,26 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         if (ops.size() > 0) {
             printOps(ops);
             zkManager.multi(ops);
+        }
+    }
+
+    // The following wrapper functions for locking are defined so that
+    // these lock methods throw a RuntimeException instead of checked Exception
+    private void acquireLock(InterProcessSemaphoreMutex lock) {
+
+        try {
+            lock.acquire();
+        } catch (Exception ex){
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private void releaseLock(InterProcessSemaphoreMutex lock) {
+
+        try {
+            lock.release();
+        } catch (Exception ex){
+            throw new RuntimeException(ex);
         }
     }
 
@@ -298,8 +302,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        createPortOps(ops, port);
-        commitOps(ops);
+
+        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
+        acquireLock(lock);
+        try {
+            createPortOps(ops, port);
+            commitOps(ops);
+        } finally {
+            releaseLock(lock);
+        }
 
         return getPort(port.id);
     }
@@ -310,10 +321,16 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        for (Port port : ports) {
-            createPortOps(ops, port);
+        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
+        acquireLock(lock);
+        try {
+            for (Port port : ports) {
+                createPortOps(ops, port);
+            }
+            commitOps(ops);
+        } finally {
+            releaseLock(lock);
         }
-        commitOps(ops);
 
         List<Port> outPorts = new ArrayList<>(ports.size());
         for (Port port : ports) {
@@ -333,32 +350,38 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
 
         List<Op> ops = new ArrayList<>();
+        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
+        acquireLock(lock);
+        try {
+            if (port.isVif()) {
 
-        if (port.isVif()) {
+                // Remove routes on the provider router if external network
+                Network net = getNetwork(port.networkId);
+                if (net.external) {
+                    externalNetZkManager.prepareDeleteExtNetRoute(ops, port);
+                }
 
-            // Remove routes on the provider router if external network
-            Network net = getNetwork(port.networkId);
-            if (net.external) {
-                externalNetZkManager.prepareDeleteExtNetRoute(ops, port);
+                l3ZkManager.prepareDisassociateFloatingIp(ops, port);
+                securityGroupZkManager
+                    .prepareDeletePortSecurityGroup(ops, port);
+                networkZkManager.prepareDeleteVifPort(ops, port);
+
+            } else if (port.isDhcp()) {
+
+                networkZkManager.prepareDeleteDhcpPort(ops, port);
+                l3ZkManager.prepareRemoveMetadataServiceRoute(ops, port);
+
+            } else if (port.isRouterInterface()) {
+
+                networkZkManager.prepareDeletePortConfig(ops, port.id);
+
+            } else if (port.isRouterGateway()) {
+
+                l3ZkManager.prepareDeleteGatewayPort(ops, port);
+
             }
-
-            l3ZkManager.prepareDisassociateFloatingIp(ops, port);
-            securityGroupZkManager.prepareDeletePortSecurityGroup(ops, port);
-            networkZkManager.prepareDeleteVifPort(ops, port);
-
-        } else if (port.isDhcp()) {
-
-            networkZkManager.prepareDeleteDhcpPort(ops, port);
-            l3ZkManager.prepareRemoveMetadataServiceRoute(ops, port);
-
-        } else if (port.isRouterInterface()) {
-
-            networkZkManager.prepareDeletePortConfig(ops, port.id);
-
-        } else if (port.isRouterGateway()) {
-
-            l3ZkManager.prepareDeleteGatewayPort(ops, port);
-
+        } finally {
+            releaseLock(lock);
         }
 
         networkZkManager.prepareDeleteNeutronPort(ops, port);
@@ -384,24 +407,29 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Fixed IP and security groups can be updated
         List<Op> ops = new ArrayList<>();
+        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
+        acquireLock(lock);
+        try {
+            if (port.isVif()) {
 
-        if (port.isVif()) {
+                securityGroupZkManager.prepareUpdatePortSecurityGroupBindings(
+                    ops, port);
+                networkZkManager.prepareUpdateVifPort(ops, port);
 
-            securityGroupZkManager.prepareUpdatePortSecurityGroupBindings(
-                ops, port);
-            networkZkManager.prepareUpdateVifPort(ops, port);
+            } else if (port.isDhcp()) {
 
-        } else if (port.isDhcp()) {
+                networkZkManager.prepareUpdateDhcpPort(ops, port);
 
-            networkZkManager.prepareUpdateDhcpPort(ops, port);
+            }
 
+            // Update the neutron port config
+            networkZkManager.prepareUpdateNeutronPort(ops, port);
+
+            // This should throw NoStatePathException if it doesn't exist.
+            commitOps(ops);
+        } finally {
+            releaseLock(lock);
         }
-
-        // Update the neutron port config
-        networkZkManager.prepareUpdateNeutronPort(ops, port);
-
-        // This should throw NoStatePathException if it doesn't exist.
-        commitOps(ops);
 
         return getPort(id);
     }

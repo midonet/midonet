@@ -3,15 +3,14 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import com.google.inject.PrivateModule;
 import com.google.inject.Singleton;
-import org.midonet.midolman.guice.cluster.DataClientModule;
 
-public class NeutronClusterModule extends DataClientModule {
+public class NeutronClusterModule extends PrivateModule {
 
     @Override
     protected void configure() {
 
-        super.configure();
         binder().requireExplicitBindings();
 
         // Bind ZK Managers
@@ -20,12 +19,14 @@ public class NeutronClusterModule extends DataClientModule {
         bind(ProviderRouterZkManager.class).asEagerSingleton();
         bind(ExternalNetZkManager.class).asEagerSingleton();
         bind(SecurityGroupZkManager.class).asEagerSingleton();
+        bind(LBZkManager.class).in(Singleton.class);
 
         expose(NetworkZkManager.class);
         expose(L3ZkManager.class);
         expose(ProviderRouterZkManager.class);
         expose(ExternalNetZkManager.class);
         expose(SecurityGroupZkManager.class);
+        expose(LBZkManager.class);
 
         // Bind Neutron Plugin API
         bind(NetworkApi.class).to(NeutronPlugin.class).asEagerSingleton();
