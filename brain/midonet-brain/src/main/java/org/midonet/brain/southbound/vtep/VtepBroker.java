@@ -35,7 +35,6 @@ import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
@@ -72,6 +71,30 @@ public class VtepBroker implements VxLanPeer {
     };
 
     /**
+     * Filters out the null MacLocation elements for an observable.
+     */
+    private static final Func1<MacLocation, Boolean> filterNulls =
+        new Func1<MacLocation, Boolean>() {
+            @Override
+            public Boolean call(MacLocation macLocation) {
+                return macLocation != null;
+            }
+        };
+
+    /**
+     * Handles error translating to MacLocations
+     */
+    private static final Func1<Throwable, Observable<? extends MacLocation>>
+        errorHandler = new Func1<Throwable,
+                                 Observable<? extends MacLocation>>() {
+        @Override
+        public Observable<? extends MacLocation> call(Throwable e) {
+            log.warn("Error translating MacLocation", e);
+            return Observable.empty();
+        }
+    };
+
+    /**
      * Converts a group of table updates to an Observable emitting each update
      * from the table, in order. If the vxlanTunnelEndpoint is not populated
      * yet, it'll just emit an empty observable since we can't figure out the
@@ -94,7 +117,9 @@ public class VtepBroker implements VxLanPeer {
                 return Observable.empty();
             }
             return Observable.from(u.getRows())
-                             .map(toMacLocation);
+                             .map(toMacLocation) // may throw
+                             .filter(filterNulls)
+                             .onErrorResumeNext(errorHandler);
         }
     };
 
@@ -143,7 +168,15 @@ public class VtepBroker implements VxLanPeer {
     public void apply(MacLocation ml) {
         if (ml == null) {
             log.warn("Ignoring null MAC-port update");
-        } else if (ml.vxlanTunnelEndpoint == null) {
+            return;
+        }
+
+        if (!ml.mac.isIEEE802()) {
+            log.warn("Ignoring unknown-dst update {}", ml);
+            return;
+        }
+
+        if (ml.vxlanTunnelEndpoint == null) {
             this.applyDelete(ml);
         } else {
             this.applyAddition(ml);
@@ -172,9 +205,10 @@ public class VtepBroker implements VxLanPeer {
                 log.warn("Unknown logical switch {}", ucastMac.logicalSwitch);
                 continue;
             }
-            MAC mac = MAC.fromString(ucastMac.mac);
+            VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
             macLocationStream.onNext(
-                new MacLocation(mac, ls.name, vxlanTunnelEndPoint));
+                new MacLocation(mac, ls.name, vxlanTunnelEndPoint)
+            );
         }
     }
 
@@ -185,10 +219,9 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyAddition(MacLocation ml) {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
-        Status st = vtepDataClient.addUcastMacRemote(
-            ml.logicalSwitchName,
-            ml.mac.toString(),
-            ml.vxlanTunnelEndpoint.toString());
+        Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName,
+                                                     ml.mac.IEEE802(),
+                                                     ml.vxlanTunnelEndpoint);
         if (!st.isSuccess()) {
             if (st.getCode().equals(StatusCode.CONFLICT)) {
                 log.info("Conflict writing {}, not expected", ml);
@@ -205,9 +238,8 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyDelete(MacLocation ml) {
         log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
-        Status st = vtepDataClient.delUcastMacRemote(
-            ml.mac.toString(),
-            ml.logicalSwitchName);
+        Status st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
+                                                     ml.mac.IEEE802());
         if (!st.isSuccess()) {
             if (st.getCode().equals(StatusCode.NOTFOUND)) {
                 log.debug("Trying to delete entry but not present {}", ml);
@@ -370,9 +402,8 @@ public class VtepBroker implements VxLanPeer {
             log.warn("Won't sync change for MAC {}, logical switch {} not " +
                      "present", sMac, lsId);
             return null;
-        } else {
-            return new MacLocation(MAC.fromString(sMac), ls.name, ip);
         }
+        return new MacLocation(VtepMAC.fromString(sMac), ls.name, ip);
     }
 
 }

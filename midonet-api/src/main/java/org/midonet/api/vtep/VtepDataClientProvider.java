@@ -19,7 +19,6 @@ import org.midonet.api.zookeeper.ExtendedZookeeperConfig;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientImpl;
 import org.midonet.brain.southbound.vtep.VtepDataClientMock;
-import org.midonet.packets.IPv4Addr;
 
 /**
  * Cannot be made a MockProvider in the tests packages because the modules deps
@@ -71,7 +70,7 @@ public class VtepDataClientProvider {
                                  MOCK_VTEP_MGMT_PORT);
             mockInstance.addLogicalSwitch("NonMidonetLS", 123456);
             mockInstance.bindVlan("NonMidonetLS", "eth2", 4000,
-                                  123456, new ArrayList<String>());
+                                  123456, new ArrayList<IPv4Addr>());
         }
         return mockInstance;
     }

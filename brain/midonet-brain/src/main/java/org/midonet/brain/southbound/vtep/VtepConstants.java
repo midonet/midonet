@@ -12,13 +12,6 @@ import java.util.UUID;
 public class VtepConstants {
 
     /**
-     * This constant is defined in the OVSDB spec for the VTEP schema, it is
-     * used to designate a "unknown-dst" mac in mcast_remote tables. Refer to
-     * http://openvswitch.org/docs/vtep.5.pdf for further details.
-     */
-    public static final String UNKNOWN_DST = "unknown-dst";
-
-    /**
      * This is the prefix prepended to the bridge uuid when composing a logical
      * switch name.
      */
@@ -52,4 +45,5 @@ public class VtepConstants {
     public static String bridgeIdToLogicalSwitchName(UUID uuid) {
         return LOGICAL_SWITCH_PREFIX + uuid;
     }
+
 }

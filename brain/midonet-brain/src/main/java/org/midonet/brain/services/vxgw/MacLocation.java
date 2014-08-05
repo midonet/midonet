@@ -1,30 +1,33 @@
-package org.midonet.brain.services.vxgw;
 /*
  * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
  */
+package org.midonet.brain.services.vxgw;
 
 import java.util.Objects;
 
+import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
 
 /**
  * Represents the association of a MAC in the given logical switch to one
  * VxLAN Tunnel Endpoint with the given IP.
  */
-public final class MacLocation {
+public class MacLocation {
 
     public final String logicalSwitchName;
-    public final MAC mac;
+    public final VtepMAC mac;
     public final IPv4Addr vxlanTunnelEndpoint;
 
-    public MacLocation(final MAC mac,
-                       final String logicalSwitchName,
-                       final IPv4Addr vxlanTunnelEndpoint) {
-        if (mac == null)
-            throw new IllegalArgumentException("MAC cannot be null");
-        if (logicalSwitchName == null)
-            throw new IllegalArgumentException("Log. Switch name can't be null");
+    /**
+     * @param mac the MAC address whose location is represented here
+     * @param logicalSwitchName the logical switch referenced by this location
+     * @param vxlanTunnelEndpoint the address of the endpoint that has this
+     *                            MAC for the given logical switch
+     */
+    public MacLocation(VtepMAC mac, String logicalSwitchName,
+                       IPv4Addr vxlanTunnelEndpoint) {
+        assert(mac != null);
+        assert(logicalSwitchName != null);
         this.mac = mac;
         this.logicalSwitchName = logicalSwitchName;
         this.vxlanTunnelEndpoint = vxlanTunnelEndpoint;
