@@ -71,6 +71,11 @@ public class EntityIdSetMonitor<KEY> {
         }
 
         @Override
+        public void pathDeleted(String path) {
+            log.debug("Path deleted {}, stop watching", path);
+        }
+
+        @Override
         public void run() {
             mon.getAndWatch(this);
         }
@@ -119,7 +124,7 @@ public class EntityIdSetMonitor<KEY> {
         Directory.TypedWatcher watcher) {
         Set<KEY> oldList = knownKeyList;
         List<KEY> keyList = getAndWatch(watcher);
-        log.info("NOTIFYING: {}", keyList);
+        log.debug("Notifying keys: {}", keyList);
         if (keyList == null) {
             log.warn("Null children list returned");
             return;
