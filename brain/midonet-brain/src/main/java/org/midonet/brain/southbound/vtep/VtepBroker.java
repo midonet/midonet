@@ -35,6 +35,7 @@ import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
@@ -202,10 +203,14 @@ public class VtepBroker implements VxLanPeer {
                 log.warn("Unknown logical switch {}", ucastMac.logicalSwitch);
                 continue;
             }
-            VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
-            macLocationStream.onNext(
-                new MacLocation(mac, ls.name, vxlanTunnelEndPoint)
-            );
+            try {
+                VtepMAC mac = VtepMAC.fromString(ucastMac.mac);
+                macLocationStream.onNext(
+                    new MacLocation(mac, null, ls.name, vxlanTunnelEndPoint)
+                );
+            } catch (MAC.InvalidMacException e) {
+                log.warn("Invalid MAC found in VTEP: ", ucastMac.mac);
+            }
         }
     }
 
@@ -401,7 +406,7 @@ public class VtepBroker implements VxLanPeer {
                      "present", sMac, lsId);
             return null;
         }
-        return new MacLocation(VtepMAC.fromString(sMac), ls.name, ip);
+        return new MacLocation(VtepMAC.fromString(sMac), null, ls.name, ip);
     }
 
 }
