@@ -6,6 +6,7 @@ package org.midonet.brain.southbound.vtep;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,11 @@ public class VtepDataClientMock implements VtepDataClient {
     protected final Map<String, McastMac> mcastMacsLocal = new HashMap<>();
     protected final Map<String, McastMac> mcastMacsRemote = new HashMap<>();
     protected final Map<String, UcastMac> ucastMacsLocal = new HashMap<>();
-    protected final Map<String, UcastMac> ucastMacsRemote = new HashMap<>();
+    // FIXME: The *Macs* maps above shouls probably be multimaps, also.
+    // Changing them may not be important for the current tests, but we may
+    // need it in the future.
+    protected final Map<String, Set<UcastMac>> ucastMacsRemote =
+        new HashMap<>();
 
     public VtepDataClientMock(String mgmtIp, int mgmtPort,
                               String name, String desc,
@@ -136,7 +141,11 @@ public class VtepDataClientMock implements VtepDataClient {
     @Override
     public List<UcastMac> listUcastMacsRemote() {
         assertConnected();
-        return new ArrayList<>(ucastMacsRemote.values());
+        List<UcastMac> entryList = new ArrayList<>();
+        for (String m: ucastMacsRemote.keySet()) {
+            entryList.addAll(ucastMacsRemote.get(m));
+        }
+        return entryList;
     }
 
     @Override
@@ -237,7 +246,8 @@ public class VtepDataClientMock implements VtepDataClient {
 
 
     @Override
-    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip) {
+    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
+                                    IPv4Addr tunnelEndPoint) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -246,8 +256,13 @@ public class VtepDataClientMock implements VtepDataClient {
                               "Logical switch not found.");
 
         UcastMac ucastMac = new UcastMac(
-            mac.toString(), lsUuid, getLocatorUuid(ip.toString()), null);
-        ucastMacsRemote.put(mac.toString(), ucastMac);
+            mac, lsUuid, getLocatorUuid(tunnelEndPoint.toString()), macIp);
+        Set<UcastMac> set = ucastMacsRemote.get(mac.toString());
+        if (set == null) {
+            set = new HashSet<>();
+            ucastMacsRemote.put(mac.toString(), set);
+        }
+        set.add(ucastMac);
         return new Status(StatusCode.SUCCESS);
     }
 
@@ -271,25 +286,56 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Status delUcastMacRemote(String lsName, MAC mac) {
-        // TODO (alex): This method only deletes one entry.
+    public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp) {
         assertConnected();
 
-        if (this.ucastMacsRemote.remove(mac.toString()) == null) {
-            return new Status(StatusCode.NOTFOUND);
+        UUID lsUuid = logicalSwitchUuids.get(lsName);
+        if (lsUuid == null)
+            return new Status(StatusCode.BADREQUEST,
+                              "Logical switch not found.");
+        Status st = new Status(StatusCode.NOTFOUND);
+        Set<UcastMac> set = this.ucastMacsRemote.get(mac.toString());
+        if (set == null) {
+            return st;
         }
-        return new Status(StatusCode.SUCCESS);
+        for (UcastMac umr: set) {
+            if (umr.mac.equals(mac.toString()) &&
+                umr.logicalSwitch.equals(lsUuid) &&
+                (macIp == null || macIp.toString().equals(umr.ipAddr))) {
+                set.remove(umr);
+                if (set.isEmpty()) {
+                    this.ucastMacsRemote.remove(mac.toString());
+                }
+                st = new Status(StatusCode.SUCCESS);
+            }
+        }
+        return st;
     }
 
     @Override
-    public Status delMcastMacRemote(String lsName, VtepMAC mac) {
-        // TODO (alex): This method only deletes one entry.
+    public Status delUcastMacRemoteAllIps(String lsName, MAC mac) {
         assertConnected();
 
-        if (this.mcastMacsRemote.remove(mac.toString()) == null) {
-            return new Status(StatusCode.NOTFOUND);
+        UUID lsUuid = logicalSwitchUuids.get(lsName);
+        if (lsUuid == null)
+            return new Status(StatusCode.BADREQUEST,
+                              "Logical switch not found.");
+        Status st = new Status(StatusCode.NOTFOUND);
+        Set<UcastMac> set = this.ucastMacsRemote.get(mac.toString());
+        if (set == null) {
+            return st;
         }
-        return new Status(StatusCode.SUCCESS);
+        for (UcastMac umr: set) {
+            if (umr.mac.equals(mac.toString()) &&
+                umr.logicalSwitch.equals(lsUuid)) {
+                set.remove(umr);
+                if (set.isEmpty()) {
+                    this.ucastMacsRemote.remove(mac.toString());
+                }
+                st = new Status(StatusCode.SUCCESS);
+            }
+        }
+        return st;
     }
 
     @Override
