@@ -91,7 +91,7 @@ public class VtepBrokerTest {
     public void testBrokerAppliesUpdate() throws Exception {
         new Expectations() {{
             vtepDataClient.addUcastMacRemote(
-                logicalSwitchName, mac1.IEEE802(), midoVxTunIp);
+                logicalSwitchName, mac1.IEEE802(), null, midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
@@ -103,7 +103,7 @@ public class VtepBrokerTest {
     public void testBrokerThrowsOnFailedUpdate() throws Exception {
         new Expectations() {{
             vtepDataClient.addUcastMacRemote(
-                logicalSwitchName, mac1.IEEE802(), midoVxTunIp);
+                logicalSwitchName, mac1.IEEE802(), null, midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.BADREQUEST);
         }};
@@ -114,8 +114,8 @@ public class VtepBrokerTest {
     @Test
     public void testBrokerDeletesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.delUcastMacRemote(logicalSwitchName,
-                                             mac1.IEEE802());
+            vtepDataClient.delUcastMacRemote(logicalSwitchName, mac1.IEEE802(),
+                                             null);
             result = new Status(StatusCode.SUCCESS);
             times = 1;
         }};
@@ -129,9 +129,8 @@ public class VtepBrokerTest {
     @Test
     public void testUpdateHandlerUpdatesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.addUcastMacRemote(logicalSwitchName,
-                                             mac1.IEEE802(),
-                                             midoVxTunIp);
+            vtepDataClient.addUcastMacRemote(logicalSwitchName, mac1.IEEE802(),
+                                             null, midoVxTunIp);
             times = 1;
             result = new Status(StatusCode.SUCCESS);
         }};
