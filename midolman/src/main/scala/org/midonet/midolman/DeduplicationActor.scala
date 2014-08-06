@@ -12,6 +12,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+import org.apache.commons.lang.exception.ExceptionUtils
 import akka.actor._
 import akka.event.{LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.Clock
@@ -276,10 +277,11 @@ class DeduplicationActor(
         pktCtx.postpone()
         f.onComplete {
             case Success(_) =>
-                log.info("Issuing restart for simulation {}", pktCtx.cookieStr)
+                log.debug("Issuing restart for simulation {}", pktCtx.cookieStr)
                 self ! RestartWorkflow(pktCtx)
             case Failure(ex) =>
-                log.error(ex, "Failure on waiting workflow's future")
+                log.info("Failure on waiting suspended packet's future, {}\n{}",
+                         ex, ExceptionUtils.getFullStackTrace(ex) )
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
