@@ -3,8 +3,6 @@
  */
 package org.midonet.cluster;
 
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +108,7 @@ public class EntityMonitor<KEY, FROM, TO> {
                          key);
             return item;
         } catch (NoStatePathException e) {
-            log.warn("Entity {} doesn't exist in storage", key, e);
+            log.warn("Entity {} doesn't exist in storage", key);
         } catch (StateAccessException e) {
             log.warn("Cannot retrieve entity {} from storage", key);
             zkConnWatcher.handleError("EntityMonitor " + key, watcher, e);
