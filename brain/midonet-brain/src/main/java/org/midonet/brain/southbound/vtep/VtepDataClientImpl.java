@@ -45,8 +45,6 @@ import org.midonet.brain.southbound.vtep.model.VtepModelTranslator;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
-import static org.midonet.packets.MAC.InvalidMacException;
-
 public class VtepDataClientImpl implements VtepDataClient {
 
     private static final Logger log =
@@ -396,12 +394,15 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip) {
-        log.debug("Adding ucast MAC remote: {} {} {}",
-                  new Object[]{lsName, mac, ip});
-
-        StatusWithUuid st = cfgSrv.vtepAddUcastMacRemote(
-            lsName, mac.toString(), ip.toString(), null);
+        public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
+                                        IPv4Addr tunnelIp) {
+        log.debug("Adding Ucast Mac Remote: {} {} {} on vxlan endpoint {}",
+                  new Object[]{lsName, mac, macIp, tunnelIp});
+        assert(tunnelIp != null);
+        assert(mac != null);
+        String sIp = macIp == null ? null : macIp.toString();
+        StatusWithUuid st = cfgSrv.vtepAddUcastMacRemote(lsName, mac.toString(),
+                                 tunnelIp.toString(), sIp);
         if (!st.isSuccess()) {
             log.error("Could not add ucast MAC remote: {}", st);
         }
@@ -409,48 +410,40 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public Status addMcastMacRemote(String lsName, VtepMAC vMac, IPv4Addr ip) {
-        log.debug("Adding mcast MAC remote: {} {} {}",
-                  new Object[]{lsName, vMac, ip});
-
-        if (!vMac.isMcast())
-            throw new InvalidMacException("MAC must be multicast: " + vMac);
-
+    public Status addMcastMacRemote(String lsName, VtepMAC vMac,
+                                    IPv4Addr tunnelEndpoint) {
+        log.debug("Adding Mcast Mac Remote: {} {} on vxlan endpoint {}",
+                  new Object[]{lsName, vMac, tunnelEndpoint});
         StatusWithUuid st = cfgSrv.vtepAddMcastMacRemote(lsName,
                                                          vMac.toString(),
-                                                         ip.toString());
+                                                         tunnelEndpoint
+                                                             .toString());
         if (!st.isSuccess()) {
-            log.error("Could not add mcast MAC remote: {} - {}",
-                      st.getCode(), st.getDescription());
+            log.error("Could not add mcast MAC remote: {}", st);
         }
         return st;
     }
 
     @Override
-    public Status delUcastMacRemote(String lsName, MAC mac) {
-        log.debug("Deleting all ucast MACs {} from logical switch {}",
-                  mac, lsName);
-
-        Status st = cfgSrv.vtepDelUcastMacRemote(mac.toString(), lsName);
+    public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp) {
+        log.debug("Deleting mac {} from logical switch {}", mac, lsName);
+        assert(mac != null);
+        assert(lsName != null);
+        Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString());
         if (!st.isSuccess()) {
-            log.error("Could not delete all ucast MAC remote: {} - {}",
-                      st.getCode(), st.getDescription());
+            log.error("Could not remove Ucast Mac Remote: {}", st);
         }
         return st;
     }
 
     @Override
-    public Status delMcastMacRemote(String lsName, VtepMAC vMac) {
-        log.debug("Deleting all ucast MACs {} from logical switch {}",
-                  vMac, lsName);
-
-        if (!vMac.isMcast())
-            throw new InvalidMacException("MAC must be multicast: " + vMac);
-
-        Status st = cfgSrv.vtepDelMcastMacRemote(vMac.toString(), lsName);
+    public Status delUcastMacRemoteAllIps(String lsName, MAC mac) {
+        log.debug("Deleting mac {} from logical switch {}", mac, lsName);
+        assert(mac != null);
+        assert(lsName != null);
+        Status st = cfgSrv.vtepDelUcastMacRemote(lsName, mac.toString());
         if (!st.isSuccess()) {
-            log.error("Could not delete all ucast MAC remote: {} - {}",
-                      st.getCode(), st.getDescription());
+            log.error("Could not delete all ucast MAC remote: {}", st);
         }
         return st;
     }

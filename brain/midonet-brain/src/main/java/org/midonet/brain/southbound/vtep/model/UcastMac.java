@@ -8,6 +8,9 @@ import java.util.Objects;
 
 import org.opendaylight.ovsdb.lib.notation.UUID;
 
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
+
 /**
  * Represents an entry in any of the Ucast_Mac tables.
  */
@@ -17,6 +20,11 @@ public class UcastMac {
     public final UUID logicalSwitch;
     public final UUID locator;
     public final String ipAddr;
+
+    public UcastMac(MAC mac, UUID logicalSwitch, UUID locator,
+                    IPv4Addr ipAddr) {
+        this(mac.toString(), logicalSwitch, locator, ipAddr.toString());
+    }
 
     public UcastMac(String mac, UUID logicalSwitch, UUID locator,
                     String ipAddr) {
