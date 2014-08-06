@@ -133,6 +133,7 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
+import scala.collection.JavaConversions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
@@ -444,6 +445,13 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public Ip4ToMacReplicatedMap bridgeGetArpTable(@Nonnull UUID bridgeId)
+        throws StateAccessException {
+        return new Ip4ToMacReplicatedMap(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId));
+    }
+
+    @Override
     public Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException {
         return Ip4ToMacReplicatedMap.getAsMap(
@@ -454,16 +462,71 @@ public class LocalDataClientImpl implements DataClient {
     public void bridgeAddIp4Mac(
             @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
             throws StateAccessException {
+        // TODO: potential race conditions
+        // The following code fixes the unobvious behavior of
+        // replicated maps, but is still subject to potential race conditions
+        // See MN-2637
+        Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
+        if (Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip4, mac)) {
+            return;
+        }
+        MAC oldMac = Ip4ToMacReplicatedMap.getEntry(dir, ip4);
+        if (oldMac != null) {
+            Ip4ToMacReplicatedMap.deleteEntry(dir, ip4, oldMac);
+        }
         Ip4ToMacReplicatedMap.addPersistentEntry(
                 bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+    }
+
+    @Override
+    public void bridgeAddLearnedIp4Mac(
+        @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
+        throws StateAccessException {
+        // TODO: potential race conditions (see MN-2637)
+        Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
+        MAC oldMac = Ip4ToMacReplicatedMap.getEntry(dir, ip4);
+        if (oldMac != null) {
+            if (mac.equals(oldMac) ||
+                Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip4, oldMac)) {
+                return;
+            }
+            Ip4ToMacReplicatedMap.deleteEntry(dir, ip4, oldMac);
+        }
+        Ip4ToMacReplicatedMap.addLearnedEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
     }
 
     @Override
     public boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
                                        @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException {
+        Directory dir = bridgeZkManager.getIP4MacMapDirectory(bridgeId);
+        return Ip4ToMacReplicatedMap.hasPersistentEntry(dir, ip, mac) ||
+               Ip4ToMacReplicatedMap.hasLearnedEntry(dir, ip, mac);
+    }
+
+    @Override
+    public boolean bridgeCheckPersistentIP4MacPair(@Nonnull UUID bridgeId,
+                                                   @Nonnull IPv4Addr ip,
+                                                   @Nonnull MAC mac)
+        throws StateAccessException {
         return Ip4ToMacReplicatedMap.hasPersistentEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip, mac);
+    }
+
+    @Override
+    public boolean bridgeCheckLearnedIP4MacPair(@Nonnull UUID bridgeId,
+                                       @Nonnull IPv4Addr ip, @Nonnull MAC mac)
+        throws StateAccessException {
+        return Ip4ToMacReplicatedMap.hasLearnedEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip, mac);
+    }
+
+    @Override
+    public MAC bridgeGetIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip)
+        throws StateAccessException {
+        return Ip4ToMacReplicatedMap.getEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip);
     }
 
     @Override
@@ -472,6 +535,22 @@ public class LocalDataClientImpl implements DataClient {
             throws StateAccessException {
         Ip4ToMacReplicatedMap.deleteEntry(
             bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+    }
+
+    @Override
+    public void bridgeDeleteLearnedIp4Mac(
+        @Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4, @Nonnull MAC mac)
+        throws StateAccessException {
+        Ip4ToMacReplicatedMap.deleteLearnedEntry(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+    }
+
+    @Override
+    public Set<IPv4Addr> bridgeGetIp4ByMac(
+        @Nonnull UUID bridgeId, @Nonnull MAC mac)
+        throws StateAccessException {
+        return Ip4ToMacReplicatedMap.getByMacValue(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), mac);
     }
 
     @Override

@@ -52,6 +52,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
 import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
@@ -195,19 +196,88 @@ public interface DataClient {
                              @Nonnull MAC mac, @Nonnull UUID portId)
         throws StateAccessException;
 
+    /**
+     * Creates or replaces an Ip->Mac mapping.
+     * It sets a regular entry (if a learned one existed, it is replaced)
+     */
     void bridgeAddIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
                          @Nonnull MAC mac)
         throws StateAccessException;
 
+    /**
+     * Sets or replaces a learned Ip->Mac mapping, unless a persistent pair
+     * for the same IP already existed..
+     */
+    void bridgeAddLearnedIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
+                                @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Checks if a persistent or learned IP->MAC mapping exists.
+     */
     boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
                                 @Nonnull IPv4Addr ip, @Nonnull MAC mac)
         throws StateAccessException;
 
+    /**
+     * Checks if a learned IP->MAC mapping exists.
+     */
+    boolean bridgeCheckLearnedIP4MacPair(@Nonnull UUID bridgeId,
+                                         @Nonnull IPv4Addr ip,
+                                         @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Checks if a persistent IP->MAC mapping exists.
+     */
+    boolean bridgeCheckPersistentIP4MacPair(@Nonnull UUID bridgeId,
+                                            @Nonnull IPv4Addr ip,
+                                            @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Returns the mac associated to the given ip, or null, if not pairing
+     * for that ip is known.
+     */
+    MAC bridgeGetIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip)
+        throws StateAccessException;
+
+    /**
+     * Gets all IP->MAC mappings ('hints' and regular mappings).
+     */
     Map<IPv4Addr, MAC> bridgeGetIP4MacPairs(@Nonnull UUID bridgeId)
         throws StateAccessException;
 
+    /**
+     * Deletes an IP->MAC mapping (either learned or persistent).
+     */
     void bridgeDeleteIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip4,
                             @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Deletes a learned IP->MAC mapping.
+     * It silently does nothing if the entry is persistent or does not exist.
+     */
+    void bridgeDeleteLearnedIp4Mac(@Nonnull UUID bridgeId,
+                                   @Nonnull IPv4Addr ip4,
+                                   @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Get the set of IP addresses associated to a given MAC in the
+     * bridge's ARP table.
+     * The resulting set can be empty.
+     */
+    Set<IPv4Addr> bridgeGetIp4ByMac(@Nonnull UUID bridgeId, @Nonnull MAC mac)
+        throws StateAccessException;
+
+    /**
+     * Get a replicated map representing the ARP table for a given bridge.
+     * This is mainly used to set watchers; manipulation of the table
+     * should be done via the bridge*Ip4Mac* methods.
+     */
+    Ip4ToMacReplicatedMap bridgeGetArpTable(@Nonnull java.util.UUID bridgeId)
         throws StateAccessException;
 
     /* Chains related methods */
