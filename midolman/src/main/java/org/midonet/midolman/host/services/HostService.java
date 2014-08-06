@@ -13,33 +13,30 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.Subscription;
-import org.midonet.midolman.host.updater.InterfaceDataUpdater;
-import org.midonet.netlink.Callback;
-import org.midonet.netlink.exceptions.NetlinkException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 
-import org.midonet.midolman.host.HostIdGenerator;
-import org.midonet.midolman.host.HostIdGenerator.PropertiesFileNotWritableException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.Subscription;
+import org.midonet.config.HostIdGenerator;
 import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.netlink.Callback;
+import org.midonet.netlink.exceptions.NetlinkException;
 
 /**
  * Host internal service.
- * <p/>
  * It starts and stops the host service.
  * TODO: need to try to reattach the zk session so we can recover the host state.
  */
@@ -123,16 +120,15 @@ public class HostService extends AbstractService
     /**
      * Scans the host and identifies the host ID.
      *
-     * @return ID identified
-     * @throws StateAccessException
-     *              If there was a problem reading data from ZK.
-     * @throws PropertiesFileNotWritableException
-     *                                     If the properties file cannot
-     *                                     be written
+     * @throws StateAccessException when problems reading data from ZK
+     * @throws
+     *    org.midonet.config.HostIdGenerator.PropertiesFileNotWritableException
+     *    if the properties file can't be written
      * @throws InterruptedException
      */
     private void identifyHostId()
-            throws StateAccessException, PropertiesFileNotWritableException,
+            throws StateAccessException,
+                   HostIdGenerator.PropertiesFileNotWritableException,
                    InterruptedException, SerializationException,
                    HostIdAlreadyInUseException {
 

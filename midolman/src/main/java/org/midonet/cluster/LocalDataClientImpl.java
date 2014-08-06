@@ -3812,7 +3812,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID nodeId)
-    throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException {
         return this.vtepZkManager.tryOwnVtep(mgmtIp, nodeId);
     }
 

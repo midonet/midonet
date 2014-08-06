@@ -24,6 +24,7 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func1;
 
+import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.services.vxgw.monitor.VtepMonitor;
@@ -35,6 +36,7 @@ import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.config.HostIdGenerator;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -74,7 +76,7 @@ public class VxLanGatewayService extends AbstractService {
     private VtepMonitor vtepMon = null;
 
     // Service id for ownerships
-    private final UUID srvId = UUID.randomUUID();
+    private final UUID srvId;
 
     public class VtepConfigurationException extends RuntimeException {
         private static final long serialVersionUID = -1;
@@ -87,10 +89,21 @@ public class VxLanGatewayService extends AbstractService {
     @Inject
     public VxLanGatewayService(DataClient midoClient,
                                VtepDataClientProvider vtepDataClientProvider,
-                               ZookeeperConnectionWatcher zkConnWatcher) {
+                               ZookeeperConnectionWatcher zkConnWatcher,
+                               MidoBrainConfig config) {
         this.midoClient = midoClient;
         this.zkConnWatcher = zkConnWatcher;
         this.vtepDataClientProvider = vtepDataClientProvider;
+
+        // Set the service identifier.
+        srvId = HostIdGenerator.readHostId(config);
+        log.info("The VXLAN gateway service identifier: {}", srvId);
+        try {
+            HostIdGenerator.writeHostId(srvId, config);
+        } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
+            log.error("The VXLAN gateway service cannot write to the "
+                      + "configuration file.", e);
+        }
     }
 
     @Override
