@@ -361,7 +361,8 @@ public class MidoVxLanPeer implements VxLanPeer {
                 try {
                     IPv4Addr vxTunnelIp = (newPort == null) ? null
                                 : dataClient.vxlanTunnelEndpointFor(newPort);
-                    MacLocation ml = new MacLocation(vMac, lsName, vxTunnelIp);
+                    MacLocation ml = new MacLocation(vMac, null, lsName,
+                                                     vxTunnelIp);
                     allUpdates.onNext(ml);
                 } catch (SerializationException | StateAccessException e) {
                     log.error("Failed to get vxlan tunnel endpoint for " +

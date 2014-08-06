@@ -246,10 +246,10 @@ public class MidoVxLanPeerTest {
 
         RxTestUtils.TestedObservable<MacLocation> testedObs =
             RxTestUtils.test(midoVxLanPeer.observableUpdates());
-        testedObs.expect(
-                    new MacLocation(mac1, lsName, tunnelZoneHostIP), // preseed
-                    new MacLocation(mac1, lsName, null),             // deletion
-                    new MacLocation(mac3, lsName, tunnelZoneHostIP)) // read
+        testedObs.expect( // preseed, delete, read
+                    new MacLocation(mac1, null, lsName, tunnelZoneHostIP),
+                    new MacLocation(mac1, null, lsName, null),
+                    new MacLocation(mac3, null, lsName, tunnelZoneHostIP))
                  .noErrors()
                  .notCompleted()
                  .subscribe();
@@ -283,13 +283,13 @@ public class MidoVxLanPeerTest {
         MacLocation ml;
 
         // add a mapping
-        ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
+        ml = new MacLocation(mac1, null, lsName, tunnelZoneVtepIP);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly mapped", vxLanPortId,
                      midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
         // remove the mapping
-        ml = new MacLocation(mac1, lsName, null);
+        ml = new MacLocation(mac1, null, lsName, null);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly unmapped", null,
                      midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
@@ -306,7 +306,7 @@ public class MidoVxLanPeerTest {
         // extract the observable and test it
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
-        testedObs.expect(new MacLocation(mac2, lsName, tunnelZoneHostIP))
+        testedObs.expect(new MacLocation(mac2, null, lsName, tunnelZoneHostIP))
                  .noErrors()
                  .completes()
                  .subscribe();
@@ -315,14 +315,14 @@ public class MidoVxLanPeerTest {
 
         // add a mapping
         // update from the vtep should not be forwarded via observable
-        ml = new MacLocation(mac1, lsName, tunnelZoneVtepIP);
+        ml = new MacLocation(mac1, null, lsName, tunnelZoneVtepIP);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly mapped", vxLanPortId,
                      midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
 
         // remove the mapping
         // update from the vtep should not be forwarded via observable
-        ml = new MacLocation(mac1, lsName, null);
+        ml = new MacLocation(mac1, null, lsName, null);
         midoVxLanPeer.apply(ml);
         assertEquals("Port is correctly unmapped", null,
                      midoVxLanPeer.getPort(bridgeId, mac1.IEEE802()));
@@ -367,7 +367,7 @@ public class MidoVxLanPeerTest {
         // extract the observable
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
-        testedObs.expect(new MacLocation(mac1, lsName, tunnelZoneHostIP))
+        testedObs.expect(new MacLocation(mac1, null, lsName, tunnelZoneHostIP))
                  .noErrors()
                  .completes()
                  .subscribe();
@@ -396,7 +396,7 @@ public class MidoVxLanPeerTest {
         // extract the observable
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
-        testedObs.expect(new MacLocation(mac1, lsName, tunnelZoneHostIP))
+        testedObs.expect(new MacLocation(mac1, null, lsName, tunnelZoneHostIP))
                  .noErrors()
                  .completes()
                  .subscribe();
@@ -425,7 +425,8 @@ public class MidoVxLanPeerTest {
         // extract the observable
         Observable<MacLocation> obsAlt = altPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObsAlt = RxTestUtils.test(obsAlt);
-        testedObsAlt.expect(new MacLocation(mac2, lsName, tunnelZoneHostIP))
+        testedObsAlt.expect(new MacLocation(mac2, null, lsName,
+                                            tunnelZoneHostIP))
                  .noErrors()
                  .completes()
                  .subscribe();
@@ -449,7 +450,7 @@ public class MidoVxLanPeerTest {
 
         Observable<MacLocation> obs = midoVxLanPeer.observableUpdates();
         RxTestUtils.TestedObservable testedObs = RxTestUtils.test(obs);
-        testedObs.expect(new MacLocation(mac1, lsName, tunnelZoneHostIP))
+        testedObs.expect(new MacLocation(mac1, null, lsName, tunnelZoneHostIP))
                  .noErrors()
                  .notCompleted()
                  .subscribe();
