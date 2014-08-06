@@ -318,7 +318,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
 
     private val touchCallback = new FutureCallback[ResultSet] {
         override def onSuccess(result: ResultSet): Unit = {
-            log.info("key touch success: {}", result)
+            log.debug("key touch success: {}", result)
         }
 
         override def onFailure(t: Throwable): Unit = {
