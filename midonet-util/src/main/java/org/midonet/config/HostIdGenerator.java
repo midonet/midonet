@@ -1,10 +1,7 @@
-/**
- * Copyright 2012 Midokura Europe SARL
- * User: Rossella Sblendido <rossella@midokura.com>
- * Date: 2/6/12
- *****************************************************
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.midolman.host;
+package org.midonet.config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,11 +13,9 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.host.config.HostConfig;
-
 /**
- * HostIdGenerator will be used to generate unique ID for the controllers. These ids
- * will be used by the interface management.
+ * HostIdGenerator will be used to generate unique ID for the controllers. These
+ * identifiers will be used by the interface management.
  * The class will try to retrieve this id (ordered according to priority):
  * <ol>
  * <li>from the conf file</li>
@@ -28,8 +23,7 @@ import org.midonet.midolman.host.config.HostConfig;
  * <li>the class will generate a random id</li>
  * </ol>
  */
-public class HostIdGenerator {
-
+public final class HostIdGenerator {
     private final static Logger log =
         LoggerFactory.getLogger(HostIdGenerator.class);
     static private String uuidPropertyName = "host_uuid";
@@ -68,29 +62,71 @@ public class HostIdGenerator {
      *                                     If the properties file cannot
      *                                     be written
      */
-    public static UUID getHostId(HostConfig config)
-            throws PropertiesFileNotWritableException {
+    public static UUID getHostId(HostIdConfig config)
+        throws PropertiesFileNotWritableException {
 
-        UUID myUUID = getIdFromConfigFile(config);
-        if (null != myUUID) {
-            log.info("Found ID in the configuration file: {}", myUUID);
-            return myUUID;
+        UUID id = getIdFromConfigFile(config);
+        if (null != id) {
+            log.info("Found ID in the configuration file: {}", id);
+            return id;
         }
 
         log.debug("No previous ID found in the local config");
 
-        String localPropertiesFilePath = config.getHostPropertiesFilePath();
-        myUUID = getIdFromPropertiesFile(localPropertiesFilePath);
-        if (null != myUUID) {
-            log.debug("Found ID in the local properties file: {}", myUUID);
-            return myUUID;
+        id = getIdFromPropertiesFile(config.getHostPropertiesFilePath());
+        if (null != id) {
+            log.debug("Found ID in the local properties file: {}", id);
+            return id;
         }
 
-        myUUID = UUID.randomUUID();
-        log.debug("Generated new id {}", myUUID);
-        writeId(myUUID, localPropertiesFilePath);
+        id = UUID.randomUUID();
+        log.debug("Generated new id {}", id);
+        writeId(id, config.getHostPropertiesFilePath());
 
-        return myUUID;
+        return id;
+    }
+
+    /**
+     * Reads a host identifier from the configuration file, the properties file.
+     * If no identifier is found, the method generates a new identifier.
+     *
+     * The configuration file takes precedence over the properties file.
+     *
+     * @param config The host agent configuration instance to use for
+     *               parameters.
+     *
+     * @return The read or generated identifier.
+     */
+    public static UUID readHostId(HostIdConfig config) {
+        UUID id = getIdFromConfigFile(config);
+        if (null != id) {
+            log.info("Found ID in the configuration file: {}", id);
+            return id;
+        }
+
+        log.debug("No previous ID found in the local config");
+
+        id = getIdFromPropertiesFile(config.getHostPropertiesFilePath());
+        if (null != id) {
+            log.debug("Found ID in the local properties file: {}", id);
+            return id;
+        }
+
+        id = UUID.randomUUID();
+        log.debug("Generated new id {}", id);
+
+        return id;
+    }
+
+    /**
+     * Writes a host identifier to the properties file.
+     * @param id The host identifier.
+     * @param config The host agent configuration instance to use for
+     *               parameters.
+     */
+    public static void writeHostId(UUID id, HostIdConfig config)
+        throws PropertiesFileNotWritableException {
+        writeId(id, config.getHostPropertiesFilePath());
     }
 
     /**
@@ -99,7 +135,7 @@ public class HostIdGenerator {
      * @param config
      * @return
      */
-    private static UUID getIdFromConfigFile(HostConfig config) {
+    private static UUID getIdFromConfigFile(HostIdConfig config) {
         return tryParse(config.getHostId());
     }
 
@@ -111,6 +147,8 @@ public class HostIdGenerator {
      * @return
      */
     public static UUID getIdFromPropertiesFile(String localPropertiesFilePath) {
+        if (null == localPropertiesFilePath)
+            return null;
         Properties properties = new Properties();
         try {
             properties.load(new FileInputStream(localPropertiesFilePath));
@@ -128,6 +166,8 @@ public class HostIdGenerator {
      */
     private static void writeId(UUID id, String localPropertiesFilePath)
         throws PropertiesFileNotWritableException {
+        if (null == localPropertiesFilePath)
+            return;
         Properties properties = new Properties();
         properties.setProperty(uuidPropertyName, id.toString());
         File localPropertiesFile = new File(localPropertiesFilePath);
@@ -140,7 +180,7 @@ public class HostIdGenerator {
                              null);
         } catch (IOException e) {
             throw new PropertiesFileNotWritableException(
-                    "Properties file: " + localPropertiesFile.getAbsolutePath());
+                "Properties file: " + localPropertiesFile.getAbsolutePath());
         }
     }
 

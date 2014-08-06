@@ -4,12 +4,15 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.Watcher;
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.VtepBinding;
@@ -77,8 +80,8 @@ public class VtepZkManager
                                          short vlanId, UUID networkId)
             throws StateAccessException {
         return asList(zk.getPersistentCreateOp(
-                paths.getVtepBindingPath(ipAddr, portName, vlanId, networkId),
-                null));
+            paths.getVtepBindingPath(ipAddr, portName, vlanId, networkId),
+            null));
     }
 
     public List<Op> prepareDeleteBinding(IPv4Addr ipAddr, String portName,
@@ -145,50 +148,85 @@ public class VtepZkManager
     }
 
     /**
-     * Tries to take ownership of a VTEP for the given Node id.
+     * Tries to take ownership of a VTEP for the given node identifier.
      *
-     * @param ip the management IP of the VTEP
-     * @param nodeId the unique id of the node
-     * @return UUID of the current owner, never null
-     *
-     * @throws StateAccessException
-     * @throws SerializationException
+     * @param ip The management IP of the VTEP
+     * @param ownerId The owner identifier.
+     * @return The identifier of the current owner, never null.
      */
-    public UUID tryOwnVtep(IPv4Addr ip, UUID nodeId)
+    public UUID tryOwnVtep(IPv4Addr ip, UUID ownerId)
         throws StateAccessException, SerializationException {
-        assert(nodeId != null);
-        byte[] data = null;
+        return tryOwnVtep(ip, ownerId, null);
+    }
+
+    /**
+     * Tries to take ownership of a VTEP for the given owner identifier. If the
+     * watcher is not null, the method installs an exists watch on the ownership
+     * node, before modifying the current owner.
+     *
+     * @param ip The management IP of the VTEP
+     * @param ownerId The owner identifier.
+     * @param watcher The watcher, can be null.
+     * @return The identifier of the current owner, never null.
+     */
+    public UUID tryOwnVtep(IPv4Addr ip, UUID ownerId, Watcher watcher)
+        throws StateAccessException, SerializationException {
+
+        Integer version = -1;
+        byte[] writeData = serializer.serialize(ownerId.toString());
         UUID owner = null;
+
+        // Compute the owner node path.
+        String path = paths.getVtepOwnerPath(ip);
+
         do {
-            log.debug("Node {} wants to own VTEP {}", nodeId, ip);
-            String path = paths.getVtepOwnerPath(ip);
+            log.debug("Owner {} trying to own VTEP {}", ownerId, ip);
+
+            // Try get the current owner.
             try {
-                data = zk.get(path);
+                Map.Entry<byte[], Integer> result =
+                    zk.getWithVersion(path, null);
+
+                owner = UUID.fromString(
+                    serializer.deserialize(result.getKey(), String.class));
+                version = result.getValue();
+                log.debug("Current owner for VTEP {} is {}", ip, owner);
             } catch (NoStatePathException e) {
-                // ok, no owner - we must do a get because we want to compare
-                // the id if there is an owner.
+                log.debug("No owner for VTEP {}, taking ownership.", ip);
+            } catch (IllegalArgumentException e) {
+                throw new SerializationException(
+                    "Corrupt owner identifier for VTEP", e);
             }
 
-            if (data == null) { // looks like nobody owns the VTEP
-                try {
-                    zk.addEphemeral(path,
-                                    serializer.serialize(nodeId.toString()));
-                    log.info("Node {} is now owner of VTEP {}", nodeId, ip);
-                    owner = nodeId;
-                } catch (StatePathExistsException e) {
-                    log.info("Node {} lost race to own VTEP {}, retry",
-                             nodeId, ip);
-                }
+            if (null == owner) try {
+                // No owner: try take ownership and set owner to current.
+                zk.addEphemeral(path, writeData);
+                owner = ownerId;
+            } catch (StatePathExistsException e) {
+                // If a different owner took ownership, retry.
+                log.debug("Unexpected different owner for VTEP {} (retrying)",
+                          ip);
+            } else if (owner.equals(ownerId)) try {
+                // The current node is the owner: delete and recreate node.
+                zk.multi(Arrays.asList(
+                    Op.delete(path, version),
+                    zk.getEphemeralCreateOp(path, writeData)
+                ));
+            } catch (NoStatePathException | StatePathExistsException |
+                StateVersionException e) {
+                log.debug("Failed creating the ownership node for VTEP {} "
+                          + "(retrying)", ip);
+                owner = null;
             } else {
-                try {
-                    owner = UUID.fromString(serializer
-                                            .deserialize(data, String.class));
-                } catch (IllegalArgumentException e) {
-                    throw new SerializationException(
-                        "VTEP owner id seems corrupt (not a UUID?)", e);
-                }
+                log.debug("Previous owner for VTEP {} with identifier {}",
+                          ip, owner);
             }
-        } while (owner == null);
+        } while (null == owner);
+
+        // Install an exists watch on the owner path.
+        if (null != watcher) {
+            zk.exists(path, watcher);
+        }
 
         return owner;
     }
