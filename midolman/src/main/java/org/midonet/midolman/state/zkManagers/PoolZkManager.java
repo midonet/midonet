@@ -30,6 +30,7 @@ import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -81,6 +82,11 @@ public class PoolZkManager
         public PoolConfig(Pool pool, UUID loadBalancerId) {
             this.loadBalancerId = loadBalancerId;
             this.adminStateUp = pool.adminStateUp;
+            if (pool.healthMonitors != null && pool.healthMonitors.size() > 0) {
+                this.healthMonitorId = pool.healthMonitors.get(0);
+                this.mappingStatus
+                    = PoolHealthMonitorMappingStatus.PENDING_CREATE;
+            }
         }
 
         /**
@@ -126,99 +132,6 @@ public class PoolZkManager
         public int hashCode() {
             return Objects.hashCode(loadBalancerId, healthMonitorId, protocol,
                     lbMethod, adminStateUp, status, mappingStatus);
-        }
-    }
-
-    public static class PoolHealthMonitorMappingConfig {
-
-        public static class LoadBalancerConfigWithId {
-            public UUID persistedId;
-            public LoadBalancerConfig config;
-
-            public LoadBalancerConfigWithId() {} // Needed for serialization.
-
-            public LoadBalancerConfigWithId(LoadBalancerConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
-        }
-
-        public static class VipConfigWithId {
-            public UUID persistedId;
-            public VipConfig config;
-
-            public VipConfigWithId() {} // Needed for serialization.
-
-            public VipConfigWithId(VipConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
-        }
-
-        public static class PoolMemberConfigWithId {
-            public UUID persistedId;
-            public PoolMemberConfig config;
-
-            public PoolMemberConfigWithId() {} // Needed for serialization.
-
-            public PoolMemberConfigWithId(PoolMemberConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
-        }
-
-        public static class HealthMonitorConfigWithId {
-            public UUID persistedId;
-            public HealthMonitorConfig config;
-
-            public HealthMonitorConfigWithId() {} // Needed for serialization.
-
-            public HealthMonitorConfigWithId(HealthMonitorConfig config) {
-                this.config = config;
-                this.persistedId = config.id;
-            }
-        }
-
-        public LoadBalancerConfigWithId loadBalancerConfig;
-        public List<VipConfigWithId> vipConfigs;
-        public List<PoolMemberConfigWithId> poolMemberConfigs;
-        public HealthMonitorConfigWithId healthMonitorConfig;
-
-        public PoolHealthMonitorMappingConfig() {} // Needed for serialization.
-
-        public PoolHealthMonitorMappingConfig(
-                LoadBalancerConfigWithId loadBalancerConfig,
-                List<VipConfigWithId> vipConfigs,
-                List<PoolMemberConfigWithId> poolMemberConfigs,
-                HealthMonitorConfigWithId healthMonitorConfig) {
-            this.loadBalancerConfig = loadBalancerConfig;
-            this.vipConfigs = vipConfigs;
-            this.poolMemberConfigs = poolMemberConfigs;
-            this.healthMonitorConfig = healthMonitorConfig;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || !getClass().equals(o.getClass()))
-                return false;
-
-            PoolHealthMonitorMappingConfig that =
-                    (PoolHealthMonitorMappingConfig) o;
-
-            return Objects.equal(loadBalancerConfig,
-                            that.loadBalancerConfig) &&
-                    Objects.equal(vipConfigs, that.vipConfigs) &&
-                    Objects.equal(poolMemberConfigs, that.poolMemberConfigs) &&
-                    Objects.equal(healthMonitorConfig,
-                            that.healthMonitorConfig);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(loadBalancerConfig, vipConfigs,
-                    poolMemberConfigs, healthMonitorConfig);
         }
     }
 
@@ -295,49 +208,5 @@ public class PoolZkManager
                                   Directory.TypedWatcher watcher) {
         getUUIDSetAsync(paths.getPoolMembersPath(poolId),
                         poolMemberContentsCallback, watcher);
-    }
-
-    public boolean existsPoolHealthMonitorMapping(UUID poolId,
-                                                  UUID healthMonitorId)
-        throws StateAccessException, SerializationException {
-        String mappingPath = paths.getPoolHealthMonitorMappingsPath(
-                poolId, healthMonitorId);
-        return zk.exists(mappingPath);
-    }
-
-    public PoolHealthMonitorMappingConfig
-        getPoolHealthMonitorMapping(UUID poolId, UUID healthMonitorId,
-                                    Runnable watcher)
-            throws StateAccessException, SerializationException {
-        String mappingPath = paths.getPoolHealthMonitorMappingsPath(
-                poolId, healthMonitorId);
-        byte[] data = zk.get(mappingPath, watcher);
-        return serializer.deserialize(
-                data, PoolHealthMonitorMappingConfig.class);
-
-    }
-
-    public PoolHealthMonitorMappingConfig
-        getPoolHealthMonitorMapping(UUID poolId, UUID healthMonitorId)
-            throws StateAccessException, SerializationException {
-        return getPoolHealthMonitorMapping(poolId, healthMonitorId, null);
-    }
-
-    public void getPoolHealthMonitorMappingsAsync(
-            final DirectoryCallback<Map<UUID, UUID>> cb,
-            Directory.TypedWatcher watcher) {
-                String path = paths.getPoolHealthMonitorMappingsPath();
-                zk.asyncGetChildren(path,
-                    DirectoryCallbackFactory.transform(cb,
-                            splitStrSetToUuidUuidMap),
-                        watcher);
-    }
-
-    public void getPoolHealthMonitorConfDataAsync(
-            UUID poolId, final UUID hmId,
-            final DirectoryCallback<PoolHealthMonitorMappingConfig> cb,
-            Directory.TypedWatcher watcher) {
-        getAsync(paths.getPoolHealthMonitorMappingsPath(poolId, hmId),
-                PoolHealthMonitorMappingConfig.class, cb, watcher);
     }
 }

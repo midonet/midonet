@@ -64,9 +64,9 @@ public class PoolMemberZkManager extends
             this.protocolPort = member.protocolPort;
             this.weight = member.weight;
             this.adminStateUp = member.adminStateUp;
-            this.status =
-                Objects.equal(member.status, LBStatus.ACTIVE.toString())
-                ? LBStatus.ACTIVE : LBStatus.INACTIVE;
+            // The default status is active. Only the health monitor can
+            // change this to INACTIVE.
+            this.status = LBStatus.ACTIVE;
         }
 
         @Override

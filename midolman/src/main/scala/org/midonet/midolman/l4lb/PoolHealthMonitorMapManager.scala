@@ -9,11 +9,11 @@ import org.midonet.cluster.Client
 import java.util.UUID
 import org.midonet.midolman.topology.VirtualTopologyActor
 import scala.collection.immutable.Map
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
 
 object PoolHealthMonitorMapManager {
-    case class TriggerUpdate(mappings: Map[UUID, PoolHealthMonitorMappingConfig])
-    case class PoolHealthMonitorMap(mappings: Map[UUID, PoolHealthMonitorMappingConfig])
+    case class TriggerUpdate(mappings: Map[UUID, PoolHealthMonitorConfig])
+    case class PoolHealthMonitorMap(mappings: Map[UUID, PoolHealthMonitorConfig])
 }
 
 class PoolHealthMonitorMapManager(val client: Client)

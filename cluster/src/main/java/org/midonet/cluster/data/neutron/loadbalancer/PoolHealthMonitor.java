@@ -9,9 +9,7 @@ import com.google.common.base.Objects;
 
 public class PoolHealthMonitor {
 
-    public UUID poolId;
-
-    public HealthMonitor healthMonitor;
+    public UUID id;
 
     @Override
     public final boolean equals(Object obj) {
@@ -25,19 +23,18 @@ public class PoolHealthMonitor {
         }
         final PoolHealthMonitor other = (PoolHealthMonitor) obj;
 
-        return Objects.equal(poolId, other.poolId)
-               && Objects.equal(healthMonitor, other.healthMonitor);
+        return Objects.equal(id, other.id);
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hashCode(poolId, healthMonitor);
+        return Objects.hashCode(id);
     }
 
     @Override
     public final String toString() {
         return Objects.toStringHelper(this)
-            .add("poolId", poolId)
+            .add("id", id)
             .toString();
     }
 }
