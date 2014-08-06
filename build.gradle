@@ -27,7 +27,7 @@ project.ext {
 
         netty: "io.netty:netty:3.7.0.Final",
         guava: "com.google.guava:guava:15.0",
-        slf4j: "org.slf4j:slf4j-api:1.6.4",
+        slf4j: "org.slf4j:slf4j-api:1.7.7",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.0.1",
         jna: "net.java.dev.jna:jna:3.3.0",
