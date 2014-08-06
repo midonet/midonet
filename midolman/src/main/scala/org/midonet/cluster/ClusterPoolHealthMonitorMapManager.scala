@@ -13,8 +13,8 @@ import org.slf4j.{LoggerFactory, Logger}
 
 import org.midonet.cluster.client.PoolHealthMonitorMapBuilder
 import org.midonet.cluster.data.l4lb.Pool
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager
 
 class ClusterPoolHealthMonitorMapManager
         extends ClusterManager[PoolHealthMonitorMapBuilder]{
@@ -23,10 +23,11 @@ class ClusterPoolHealthMonitorMapManager
         LoggerFactory.getLogger(classOf[ClusterPoolHealthMonitorMapManager])
 
     @Inject
-    private[this] val poolZkManager: PoolZkManager = null
+    private[this] val poolHealthMonitorZkManager: PoolHealthMonitorZkManager
+        = null
     private val watchedPoolIdToHmId = new MMap[UUID, UUID]()
     private val poolIdToMapConfig =
-        new MMap[UUID, PoolHealthMonitorMappingConfig]()
+        new MMap[UUID, PoolHealthMonitorConfig]()
 
     /*
      * Callback to retrieve the mapping of health monitors to pools.
@@ -41,7 +42,8 @@ class ClusterPoolHealthMonitorMapManager
             new Runnable {
                 def run(): Unit = {
                     log.debug("Retrying to get pool health monitor mappings")
-                    poolZkManager.getPoolHealthMonitorMappingsAsync(
+                    poolHealthMonitorZkManager
+                        .getPoolHealthMonitorMappingsAsync(
                            MappingCallBack.this, MappingCallBack.this)
                 }
             }
@@ -88,13 +90,14 @@ class ClusterPoolHealthMonitorMapManager
         }
 
         override def pathChildrenUpdated(path: String) {
-            poolZkManager.getPoolHealthMonitorMappingsAsync(this, this)
+            poolHealthMonitorZkManager
+                .getPoolHealthMonitorMappingsAsync(this, this)
         }
     }
 
     private def requestData(poolId: UUID, hmId: UUID) {
         val cb = new GetConfDataCallBack(poolId, hmId)
-        poolZkManager.getPoolHealthMonitorConfDataAsync(
+        poolHealthMonitorZkManager.getPoolHealthMonitorConfDataAsync(
             poolId, hmId, cb, cb)
     }
 
@@ -103,20 +106,20 @@ class ClusterPoolHealthMonitorMapManager
      * in the Pool -- HealthMonitor mapping.
      */
     private class GetConfDataCallBack(val poolId: UUID, val hmId: UUID)
-            extends CallbackWithWatcher[PoolHealthMonitorMappingConfig] {
+            extends CallbackWithWatcher[PoolHealthMonitorConfig] {
         override protected def describe(): String = "Pool Health Monitor Mappings"
 
         override protected def makeRetry: Runnable = {
             new Runnable {
                 def run() {
-                    poolZkManager.getPoolHealthMonitorConfDataAsync(
-                        poolId, hmId, GetConfDataCallBack.this,
-                        GetConfDataCallBack.this)
+                    poolHealthMonitorZkManager
+                        .getPoolHealthMonitorConfDataAsync(poolId, hmId,
+                            GetConfDataCallBack.this, GetConfDataCallBack.this)
                 }
             }
         }
 
-        def onSuccess(cfg: PoolHealthMonitorMappingConfig): Unit = {
+        def onSuccess(cfg: PoolHealthMonitorConfig): Unit = {
              if (!watchedPoolIdToHmId.contains(poolId)) {
                  // This is just a late change notification. We stopped
                  // watching this already.
@@ -133,7 +136,7 @@ class ClusterPoolHealthMonitorMapManager
         }
 
         override def pathDataChanged(path: String) {
-            poolZkManager.getPoolHealthMonitorConfDataAsync(
+            poolHealthMonitorZkManager.getPoolHealthMonitorConfDataAsync(
                 poolId, hmId, this, this)
         }
 
@@ -148,7 +151,8 @@ class ClusterPoolHealthMonitorMapManager
         getBuilder(id) match {
             case builder: PoolHealthMonitorMapBuilder =>
                 val cb = new MappingCallBack(builder)
-                poolZkManager.getPoolHealthMonitorMappingsAsync(cb, cb)
+                poolHealthMonitorZkManager
+                    .getPoolHealthMonitorMappingsAsync(cb, cb)
             case _ =>
                 log.error("Builder not found for health monitor pool " +
                           "map {}.", id)

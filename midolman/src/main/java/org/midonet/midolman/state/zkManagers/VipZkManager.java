@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.data.neutron.loadbalancer.SessionPersistenceType;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
@@ -64,7 +65,13 @@ public class VipZkManager
             this.poolId = vip.poolId;
             this.address = vip.address;
             this.protocolPort = vip.protocolPort;
-            this.sessionPersistence = VipSessionPersistence.SOURCE_IP;
+            if (vip.sessionPersistence != null &&
+                Objects.equal(vip.sessionPersistence.type,
+                              SessionPersistenceType.SOURCE_IP)) {
+                this.sessionPersistence = VipSessionPersistence.SOURCE_IP;
+            } else {
+                this.sessionPersistence = null;
+            }
             this.adminStateUp = vip.adminStateUp;
         }
 

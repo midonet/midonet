@@ -30,7 +30,9 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.loadbalancer.LBMediaType;
 import org.midonet.cluster.data.neutron.LoadBalancerApi;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
+import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.event.neutron.PoolEvent;
+import org.midonet.event.neutron.PoolHealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -46,6 +48,8 @@ public class PoolResource extends AbstractResource {
     private final static Logger log = LoggerFactory.getLogger(
         PoolResource.class);
     private final static PoolEvent POOL_EVENT = new PoolEvent();
+    private static final PoolHealthMonitorEvent POOL_HEALTH_MONITOR_EVENT
+        = new PoolHealthMonitorEvent();
 
     private final LoadBalancerApi api;
 
@@ -108,5 +112,42 @@ public class PoolResource extends AbstractResource {
             log.error("Resource does not exist", e);
             throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
         }
+    }
+
+    @POST
+    @Path("/{id}/health_monitors")
+    @Consumes(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
+    @Produces(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public final Response create(@PathParam("id") UUID poolId,
+                                 PoolHealthMonitor poolHealthMonitor)
+        throws SerializationException, StateAccessException {
+        log.info("PoolHealthMonitorResource.create entered {}",
+                 poolHealthMonitor);
+
+        try {
+            api.createPoolHealthMonitor(poolId, poolHealthMonitor);
+            POOL_HEALTH_MONITOR_EVENT.create(poolId, poolHealthMonitor.id);
+            log.info("PoolHealthMonitorResource.create exiting {} {}", poolId,
+                     poolHealthMonitor);
+            return Response.created(
+                LBUriBuilder.getPoolHealthMonitor(getBaseUri()))
+                .entity(poolHealthMonitor).build();
+        } catch (StatePathExistsException e) {
+            log.error("Duplicate resource error", e);
+            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
+        }
+    }
+
+    @DELETE
+    @Path("{id}/health_monitors/{hmId}")
+    @RolesAllowed(AuthRole.ADMIN)
+    public final void delete(@PathParam("id") UUID poolId,
+                             @PathParam("hmId") UUID hmId)
+        throws SerializationException, StateAccessException {
+        log.info("PoolHealthMonitorResource.delete entered {} {}",
+                 poolId, hmId);
+        api.deletePoolHealthMonitor(poolId, hmId);
+        POOL_HEALTH_MONITOR_EVENT.delete(poolId, hmId);
     }
 }

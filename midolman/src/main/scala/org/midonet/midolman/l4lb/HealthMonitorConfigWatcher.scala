@@ -9,8 +9,8 @@ import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMa
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation.LoadBalancer
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{PoolMemberConfigWithId => ZkMemberConf, VipConfigWithId => ZkVipConf}
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.{PoolMemberConfigWithId => ZkMemberConf, VipConfigWithId => ZkVipConf}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
 import scala.collection.immutable.{Map => IMap}
@@ -33,12 +33,12 @@ object HealthMonitorConfigWatcher {
     }
 
     def convertDataMapToConfigMap(
-            map: IMap[UUID, PoolHealthMonitorMappingConfig],
+            map: IMap[UUID, PoolHealthMonitorConfig],
             fileLocs: String, suffix: String):
                 IMap[UUID, PoolConfig] = {
         val newMap = HashMap[UUID, PoolConfig]()
 
-        map foreach {case (id: UUID, phm: PoolHealthMonitorMappingConfig) =>
+        map foreach {case (id: UUID, phm: PoolHealthMonitorConfig) =>
                          newMap.put(id, convertDataToPoolConfig(id, fileLocs,
                              suffix, phm))}
 
@@ -51,7 +51,7 @@ object HealthMonitorConfigWatcher {
         lbIdToRouterIdMap get loadBalancerId getOrElse null
 
     def convertDataToPoolConfig(poolId: UUID, fileLocs: String, suffix: String,
-            data: PoolHealthMonitorMappingConfig): PoolConfig = {
+            data: PoolHealthMonitorConfig): PoolConfig = {
         if (data == null) {
             null
         } else if (data.loadBalancerConfig == null ||
@@ -116,7 +116,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleAddedMapping(poolId: UUID,
-                                   data: PoolHealthMonitorMappingConfig) {
+                                   data: PoolHealthMonitorConfig) {
         log.debug("handleAddedMapping added {}", poolId)
         val poolConfig = convertDataToPoolConfig(poolId, fileLocs, suffix,
                                                  data)
@@ -133,7 +133,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     }
 
     private def handleMappingChange(
-                mappings: IMap[UUID, PoolHealthMonitorMappingConfig]) {
+                mappings: IMap[UUID, PoolHealthMonitorConfig]) {
 
         val convertedMap = convertDataMapToConfigMap(mappings, fileLocs, suffix)
         convertedMap.values filter (conf =>

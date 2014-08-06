@@ -4,6 +4,7 @@
 package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -12,7 +13,6 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
-import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
@@ -25,11 +25,23 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
+import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
+import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 public class LBZkManager extends BaseZkManager {
 
@@ -39,6 +51,7 @@ public class LBZkManager extends BaseZkManager {
     private final VipZkManager vipZkManager;
     private final PoolMemberZkManager poolMemberZkManager;
     private final RouterZkManager routerZkManager;
+    private final PoolHealthMonitorZkManager poolHealthMonitorZkManager;
 
     @Inject
     public LBZkManager(ZkManager zk,
@@ -49,6 +62,7 @@ public class LBZkManager extends BaseZkManager {
                        PoolZkManager poolZkManager,
                        PoolMemberZkManager poolMemberZkManager,
                        RouterZkManager routerZkManager,
+                       PoolHealthMonitorZkManager poolHealthMonitorZkManager,
                        VipZkManager vipZkManager) {
         super(zk, paths, serializer);
         this.healthMonitorZkManager = healthMonitorZkManager;
@@ -57,28 +71,35 @@ public class LBZkManager extends BaseZkManager {
         this.poolMemberZkManager = poolMemberZkManager;
         this.routerZkManager = routerZkManager;
         this.vipZkManager = vipZkManager;
+        this.poolHealthMonitorZkManager = poolHealthMonitorZkManager;
     }
 
-    private UUID ensureLoadBalancerExists(List<Op> ops, UUID routerId)
+    private LoadBalancerConfig ensureLoadBalancerExists(List<Op> ops,
+                                                        UUID routerId)
         throws StateAccessException, SerializationException {
-        RouterZkManager.RouterConfig routerConfig
-            = routerZkManager.get(routerId);
+
+        RouterConfig routerConfig = routerZkManager.get(routerId);
+        checkState(routerConfig != null,
+                   "The router must exist for creating pools");
         if (routerConfig.loadBalancer != null) {
-            return routerConfig.loadBalancer;
+            return loadBalancerZkManager.get(routerConfig.loadBalancer);
         }
 
-        LoadBalancerZkManager.LoadBalancerConfig lbConf
-            = new LoadBalancerZkManager.LoadBalancerConfig(routerId, true);
-
-        ops.addAll(
-            loadBalancerZkManager.prepareCreate(UUID.randomUUID(), lbConf));
-        return lbConf.id;
+        LoadBalancerConfig lbConf = new LoadBalancerConfig(routerId, true);
+        lbConf.id = UUID.randomUUID();
+        routerConfig.loadBalancer = lbConf.id;
+        ops.addAll(loadBalancerZkManager.prepareCreate(lbConf.id, lbConf));
+        routerZkManager.prepareUpdateLoadBalancer(ops, routerId, lbConf.id);
+        return lbConf;
     }
 
     private void cleanupLoadBalancer(List<Op> ops, UUID loadBalancerId,
                                      UUID poolId)
         throws StateAccessException, SerializationException {
         List<UUID> pools = poolZkManager.getAll();
+
+        checkState(pools.size() > 0, "There should be at least one pool " +
+                                     "associated with this load balancer");
         for (UUID pool : pools) {
             PoolZkManager.PoolConfig poolConfig = poolZkManager.get(pool);
             if (Objects.equals(loadBalancerId, poolConfig.loadBalancerId) &&
@@ -101,11 +122,177 @@ public class LBZkManager extends BaseZkManager {
 
     public void prepareCreatePool(List<Op> ops, Pool pool)
     throws StateAccessException, SerializationException {
-        UUID loadBalancerId = ensureLoadBalancerExists(ops, pool.routerId);
+
+        checkNotNull(pool, "A pool object is required for creation");
+        UUID routerId = checkNotNull(pool.routerId,
+                                     "the Pool must have a router ID set");
+        checkNotNull(pool.id, "The neutron pool must have an id");
+
+        LoadBalancerConfig loadBalancer
+            = ensureLoadBalancerExists(ops, routerId);
+
+        checkState(loadBalancer.id != null,
+            "In creating a Pool, the load balancer ID was NULL");
+        // Create the Neutron data regardless of whatever else we do.
         prepareCreateNeutronPool(ops, pool);
-        PoolZkManager.PoolConfig poolConfig
-            = new PoolZkManager.PoolConfig(pool, loadBalancerId);
+
+        PoolConfig poolConfig = new PoolConfig(pool, loadBalancer.id);
+
+        // Create the pool itself.
+        ops.addAll(loadBalancerZkManager.prepareAddPool(loadBalancer.id,
+                                                        pool.id));
         ops.addAll(poolZkManager.prepareCreate(pool.id, poolConfig));
+
+        if (pool.hasHealthMonitorAssociated()) {
+
+            UUID healthMonitorId = pool.getHealthMonitor();
+            HealthMonitorConfig healthMonitorConfig =
+                healthMonitorZkManager.get(healthMonitorId);
+
+            HealthMonitor healthMonitor = getNeutronHealthMonitor(pool.id);
+            healthMonitor.addPool(pool.id);
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+
+            // vips and members can not be set to the pool at creation time.
+            prepareAssociatePoolHealthMonitor(ops, loadBalancer, poolConfig,
+                                              healthMonitorConfig);
+        }
+    }
+
+    private PoolHealthMonitorConfig gatherLatestMapInfo(UUID poolId)
+        throws StateAccessException, SerializationException {
+
+        PoolConfig poolConfig = poolZkManager.get(poolId);
+        LoadBalancerConfig loadBalancerConfig =
+            loadBalancerZkManager.get(poolConfig.loadBalancerId);
+        List<PoolMemberConfig> members = getMembers(poolId);
+
+        List<VipConfig> vips = getVips(poolId);
+        HealthMonitorConfig hmConfig =
+            healthMonitorZkManager.get(poolConfig.healthMonitorId);
+
+        return new PoolHealthMonitorConfig(loadBalancerConfig, vips, members,
+                                           hmConfig);
+    }
+
+    private void preparePoolHealthMonitorAddMember(
+        List<Op> ops, PoolMemberConfig poolMemberConfig)
+        throws StateAccessException, SerializationException {
+
+        PoolHealthMonitorConfig phmConfig
+            = gatherLatestMapInfo(poolMemberConfig.poolId);
+        phmConfig.addMember(poolMemberConfig);
+
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(
+            ops, poolMemberConfig.poolId, phmConfig);
+    }
+
+    private void preparePoolHealthMonitorRemoveMember(
+        List<Op> ops, PoolMemberConfig poolMemberConfig)
+        throws StateAccessException, SerializationException {
+
+        PoolHealthMonitorConfig phmConfig = gatherLatestMapInfo(
+            poolMemberConfig.poolId);
+        phmConfig.removeMember(poolMemberConfig.id);
+
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(
+            ops, poolMemberConfig.poolId, phmConfig);
+    }
+
+    private void preparePoolHealthMonitorModifyMember(
+        List<Op> ops, PoolMemberConfig pmConfig)
+        throws StateAccessException, SerializationException {
+
+        PoolHealthMonitorConfig phmConfig
+            = gatherLatestMapInfo(pmConfig.poolId);
+        phmConfig.updateMember(pmConfig);
+
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(
+            ops, pmConfig.poolId, phmConfig);
+    }
+
+    private void preparePoolHealthMonitorModifyHealthMonitor(
+        List<Op> ops, UUID poolId, HealthMonitor healthMonitor)
+        throws StateAccessException, SerializationException {
+        PoolHealthMonitorConfig phmConfig = gatherLatestMapInfo(poolId);
+        phmConfig.updateHealthMonitor(new HealthMonitorConfig(healthMonitor));
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(
+            ops, poolId, phmConfig);
+    }
+
+    private void preparePoolHealthMonitorAddVip(
+        List<Op> ops, UUID poolId, VIP vip)
+        throws StateAccessException, SerializationException {
+
+        PoolHealthMonitorConfig phmConfig = gatherLatestMapInfo(poolId);
+
+        UUID lbId = phmConfig.loadBalancerConfig.persistedId;
+        checkState(lbId != null, "The load balancer requires an ID");
+        phmConfig.updateVip(new VipConfig(vip, lbId));
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(
+            ops, poolId, phmConfig);
+    }
+
+    private void preparePoolHealthMonitorModifyVip(
+        List<Op> ops, UUID poolId, VIP vip)
+        throws StateAccessException, SerializationException {
+        preparePoolHealthMonitorAddVip(ops, poolId, vip);
+    }
+
+    private void preparePoolHealthMonitorRemoveVip(
+        List<Op> ops, UUID poolId, VIP vip)
+        throws StateAccessException, SerializationException {
+        PoolHealthMonitorConfig phmConfig = gatherLatestMapInfo(poolId);
+
+        UUID lbId = checkNotNull(phmConfig.loadBalancerConfig.persistedId,
+                                 "The load balancer requires an ID");
+
+        phmConfig.removeVip(new VipConfig(vip, lbId));
+        poolHealthMonitorZkManager.preparePoolHealthMonitorUpdate(ops, poolId,
+                                                                  phmConfig);
+    }
+
+    private void prepareAssociatePoolHealthMonitor(List<Op> ops,
+        LoadBalancerConfig lbConf, PoolConfig poolConf,
+        HealthMonitorConfig hmConf)
+        throws StateAccessException, SerializationException {
+
+        checkNotNull(poolConf.id, "The pool must have an id to create " +
+                                  "pool-healthmonitor association");
+
+        checkNotNull(hmConf.id, "The health monitor must have an id to " +
+                                "create pool-healthmonitor association");
+
+        // Add a pool ref to the health monitor. This is so we can easily
+        // find all the pools associated with a given health monitor.
+        ops.addAll(healthMonitorZkManager.prepareAddPool(hmConf.id,
+                                                         poolConf.id));
+
+        List<VipConfig> vipConfs = getVips(poolConf.id);
+        List<PoolMemberConfig> memberConfigs = getMembers(poolConf.id);
+        // vips and members can not be set to the pool at creation time.
+        poolHealthMonitorZkManager.preparePoolHealthMonitorCreate(
+            ops, lbConf, vipConfs, memberConfigs, hmConf, poolConf);
+    }
+
+    private void prepareDisassociatePoolHealthMonitor(List<Op> ops,
+            UUID healthMonitorId, UUID poolId)
+        throws StateAccessException, SerializationException {
+
+        checkNotNull(healthMonitorId, "The pool must have an id to create " +
+                                      "pool-healthmonitor association");
+
+        checkNotNull(poolId, "The health monitor must have an id to create " +
+                             "pool-healthmonitor association");
+
+        // Remove a pool ref to the health monitor. This is so we can easily
+        // find all the pools associated with a given health monitor.
+        ops.addAll(healthMonitorZkManager.prepareRemovePool(
+            healthMonitorId, poolId));
+
+        // vips and members can not be set to the pool at creation time.
+        poolHealthMonitorZkManager.preparePoolHealthMonitorDelete(
+            ops, poolId, healthMonitorId);
     }
 
     private void prepareUpdateNeutronPool(List<Op> ops, Pool pool)
@@ -114,26 +301,106 @@ public class LBZkManager extends BaseZkManager {
         ops.add(zk.getSetDataOp(path, serializer.serialize(pool)));
     }
 
+    private List<VipConfig> getVips(UUID poolId)
+        throws StateAccessException, SerializationException {
+        List<VipConfig> vips = new ArrayList<>();
+        for (UUID vipId: poolZkManager.getVipIds(poolId)) {
+            vips.add(vipZkManager.get(vipId));
+        }
+        return vips;
+    }
+
+    private List<PoolMemberZkManager.PoolMemberConfig> getMembers(UUID poolId)
+        throws StateAccessException, SerializationException {
+        List<PoolMemberConfig> members = new ArrayList<>();
+        for (UUID memberId: poolZkManager.getMemberIds(poolId)) {
+            members.add(poolMemberZkManager.get(memberId));
+        }
+        return members;
+    }
+
     public void prepareUpdatePool(List<Op> ops, UUID id, Pool pool)
         throws StateAccessException, SerializationException {
+
+        checkNotNull(pool.id, "The neutron pool must have an id to update");
+        Pool oldPool = getNeutronPool(id);
+        checkNotNull(oldPool.id, "The neutron pool must have an id to update");
+        checkNotNull(oldPool.routerId,
+            "The pool must have a router associated with it");
+        RouterConfig routerConfig = routerZkManager.get(oldPool.routerId);
+        UUID lbID = checkNotNull(routerConfig.loadBalancer,
+            "The router must have a load balancer associated with it");
+
+        // Updates don't give us the routerId. So we have to "repair" it.
+        pool.routerId = oldPool.routerId;
         prepareUpdateNeutronPool(ops, pool);
-        Pool neutronPool = getNeutronPool(id);
-        RouterZkManager.RouterConfig routerConfig
-            = routerZkManager.get(neutronPool.routerId);
-        PoolZkManager.PoolConfig poolConfig
-            = new PoolZkManager.PoolConfig(pool, routerConfig.loadBalancer);
+
+        // There are 4 cases we have to worry about:
+        // 1) A health monitor is added to the pool
+        // 2) A health monitor is removed from the pool
+        // 3) The health monitor associated with the pool changes
+        // 4) no change
+
+        UUID oldHmId = oldPool.getHealthMonitor();
+        UUID newHmId = pool.getHealthMonitor();
+
+
+
+        if (oldHmId == null && newHmId != null) {
+            // case 1: a health monitor is added.
+            PoolConfig poolConfig = new PoolConfig(pool, lbID);
+            HealthMonitor healthMonitor = getNeutronHealthMonitor(pool.id);
+            healthMonitor.addPool(pool.id);
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);;
+            prepareAssociatePoolHealthMonitor(ops,
+                loadBalancerZkManager.get(lbID), poolConfig,
+                healthMonitorZkManager.get(newHmId));
+        } else if (oldHmId != null && newHmId == null) {
+            // case 2: a health monitor is removed from the pool
+            HealthMonitor healthMonitor = getNeutronHealthMonitor(oldHmId);
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+
+            healthMonitor.removePool(pool.id);
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+
+            prepareDisassociatePoolHealthMonitor(ops, oldHmId, pool.id);
+        } else if (!Objects.equals(oldHmId, newHmId)) {
+            // case 3: the health monitor was exchanged
+            // NOT SUPPORTED
+            throw new IllegalStateException("The pool already has a health " +
+                                            "monitor associated with it");
+        } else {
+            // case 4: no change == NOTHING TO DO
+        }
+
+        PoolConfig poolConfig = new PoolConfig(pool, lbID);
         ops.addAll(poolZkManager.prepareUpdate(id, poolConfig));
     }
 
     private void prepareDeleteNeutronPool(List<Op> ops, UUID id) {
+        checkNotNull(id, "The pool id must not be null in a neutron pool " +
+                         "delete");
+
         String path = paths.getNeutronPoolPath(id);
         ops.add(zk.getDeleteOp(path));
     }
 
     public void prepareDeletePool(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
+        Pool pool = getNeutronPool(id);
         prepareDeleteNeutronPool(ops, id);
-        PoolZkManager.PoolConfig poolConfig = poolZkManager.get(id);
+        PoolConfig poolConfig = poolZkManager.get(id);
+
+        if (pool.hasHealthMonitorAssociated()) {
+            ops.addAll(healthMonitorZkManager.prepareRemovePool(
+                poolConfig.healthMonitorId, id));
+        }
+
+        UUID lbId = getLoadBalancerIdFromPool(pool);
+
+        checkState(lbId != null, "The pool must have a load balancer " +
+            "associated with it for deletion");
+        ops.addAll(loadBalancerZkManager.prepareRemovePool(lbId, id));
         cleanupLoadBalancer(ops, poolConfig.loadBalancerId, id);
         ops.addAll(poolZkManager.prepareDelete(id));
     }
@@ -141,62 +408,153 @@ public class LBZkManager extends BaseZkManager {
     // Members
     private void prepareCreateNeutronMember(List<Op> ops, Member member)
         throws SerializationException {
+        checkNotNull(member.id, "Creating a neutron pool member " +
+                                "requires an id");
+
         String path = paths.getNeutronMemberPath(member.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(member)));
     }
 
     private void prepareUpdateNeutronMember(List<Op> ops, Member member)
         throws SerializationException {
+        checkNotNull(member.id, "updating a neutron pool member requires " +
+                                "an id");
+
         String path = paths.getNeutronMemberPath(member.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(member)));
     }
 
     private void prepareDeleteNeutronMember(List<Op> ops, UUID id) {
+        checkNotNull(id, "deleting a neutron pool member requires an id");
+
         String path = paths.getNeutronMemberPath(id);
         ops.add(zk.getDeleteOp(path));
     }
 
     public void prepareCreateMember(List<Op> ops, Member member)
         throws SerializationException, StateAccessException {
+
         prepareCreateNeutronMember(ops, member);
-        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
-            = new PoolMemberZkManager.PoolMemberConfig(member);
+        PoolMemberConfig poolMemberConfig = new PoolMemberConfig(member);
         ops.addAll(
             poolMemberZkManager.prepareCreate(member.id, poolMemberConfig));
+        if (poolMemberConfig.poolId != null) {
+            ops.addAll(
+                poolZkManager.prepareAddMember(member.poolId, member.id));
+        }
+        PoolConfig poolConfig = poolZkManager.get(member.poolId);
+        if (poolConfig.healthMonitorId != null) {
+            // If a mapping exists for this pool, we have to update that as well.
+            preparePoolHealthMonitorAddMember(ops, poolMemberConfig);
+        }
     }
 
     public void prepareUpdateMember(List<Op> ops, UUID id, Member member)
         throws StateAccessException, SerializationException {
+
+        Member oldMember = getNeutronMember(id);
+        PoolMemberConfig pmConfig = new PoolMemberConfig(member);
+        PoolMemberConfig oldPmConfig = new PoolMemberConfig(oldMember);
+        if (!Objects.equals(oldMember.poolId, member.poolId)) {
+            // The Pool has changed
+            if (oldMember.poolId != null) {
+                PoolConfig poolConfig = poolZkManager.get(oldMember.poolId);
+                ops.addAll(poolZkManager.prepareRemoveMember(
+                    oldMember.poolId, member.id));
+                if (poolConfig.healthMonitorId != null) {
+                    // A mapping exists, so remove the member from it
+                    preparePoolHealthMonitorRemoveMember(ops, oldPmConfig);
+                }
+            }
+
+            if (member.poolId != null) {
+                PoolConfig poolConfig = poolZkManager.get(member.poolId);
+                ops.addAll(poolZkManager.prepareAddMember(
+                    member.poolId, member.id));
+                if (poolConfig.healthMonitorId != null) {
+                    preparePoolHealthMonitorAddMember(ops, pmConfig);
+                }
+            }
+        } else if (member.poolId != null) {
+            // The pool has NOT changed. Just update the mapping if it exists
+            PoolConfig poolConfig = poolZkManager.get(member.poolId);
+            if (poolConfig.healthMonitorId != null) {
+                preparePoolHealthMonitorModifyMember(ops, pmConfig);
+            }
+        }
+
         prepareUpdateNeutronMember(ops, member);
-        PoolMemberZkManager.PoolMemberConfig poolMemberConfig
-            = new PoolMemberZkManager.PoolMemberConfig(member);
-        ops.addAll(poolMemberZkManager.prepareUpdate(id,poolMemberConfig));
+        ops.addAll(poolMemberZkManager.prepareUpdate(id, pmConfig));
     }
 
     public void prepareDeleteMember(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
+
+        Member member = getNeutronMember(id);
         prepareDeleteNeutronMember(ops, id);
+        if (member.poolId != null) {
+            ops.addAll(poolZkManager.prepareRemoveMember(
+                member.poolId, member.id));
+            PoolConfig poolConfig = poolZkManager.get(member.poolId);
+            if (poolConfig.healthMonitorId != null) {
+                PoolMemberConfig pmConf = new PoolMemberConfig(member);
+                preparePoolHealthMonitorRemoveMember(ops, pmConf);
+            }
+        }
         ops.addAll(poolMemberZkManager.prepareDelete(id));
     }
 
     // Vips
     private void prepareCreateNeutronVip(List<Op> ops, VIP vip)
-        throws SerializationException {
+        throws SerializationException, StateAccessException {
+        if (vip.poolId != null) {
+            Pool pool = getNeutronPool(vip.poolId);
+            checkNotNull(pool.id, "The neutron pool must have an id to update");
+            checkState(pool.vipId == null, "can not create-associate vip " +
+                "with a pool already assigned to a vip ");
+
+            pool.vipId = vip.id;
+            prepareUpdateNeutronPool(ops, pool);
+        }
         String path = paths.getNeutronVipPath(vip.id);
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(vip)));
     }
 
     private Pool getNeutronPool(UUID id)
         throws StateAccessException, SerializationException {
+        checkNotNull(id, "Can not retrieve neutron pool associated " +
+                         "with NULL id");
         String path = paths.getNeutronPoolPath(id);
         return serializer.deserialize(zk.get(path), Pool.class);
     }
 
+    private Member getNeutronMember(UUID id)
+        throws StateAccessException, SerializationException {
+        checkNotNull(id, "Can not retrieve neutron member associated " +
+                         "with NULL id");
+        String path = paths.getNeutronMemberPath(id);
+        return serializer.deserialize(zk.get(path), Member.class);
+    }
+
+    private HealthMonitor getNeutronHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException {
+        checkNotNull(id, "Can not retrieve neutron health monitor associated " +
+                         "with NULL id");
+        String path = paths.getNeutronHealthMonitorPath(id);
+        return serializer.deserialize(zk.get(path), HealthMonitor.class);
+    }
+
+    private VIP getNeutronVip(UUID id)
+        throws StateAccessException, SerializationException {
+        checkNotNull(id, "Can not retrieve neutron vip associated " +
+                         "with NULL id");
+        String path = paths.getNeutronVipPath(id);
+        return serializer.deserialize(zk.get(path), VIP.class);
+    }
+
     private UUID getLoadBalancerIdFromPool(Pool pool)
         throws StateAccessException, SerializationException {
-        RouterZkManager.RouterConfig
-            routerConfig =
-            routerZkManager.get(pool.routerId);
+        RouterConfig routerConfig = routerZkManager.get(pool.routerId);
         return routerConfig.loadBalancer;
     }
 
@@ -208,35 +566,116 @@ public class LBZkManager extends BaseZkManager {
 
     public void prepareCreateVip(List<Op> ops, VIP vip)
         throws SerializationException, StateAccessException {
-        UUID loadBalancerId = getLoadBalancerIdFromVip(vip);
+        UUID loadBalancerId = null;
+        if (vip.poolId != null) {
+            loadBalancerId = getLoadBalancerIdFromVip(vip);
+            ops.addAll(poolZkManager.prepareAddVip(vip.poolId, vip.id));
+            ops.addAll(
+                loadBalancerZkManager.prepareAddVip(loadBalancerId, vip.id));
+            Pool pool = getNeutronPool(vip.poolId);
+            if (pool.hasHealthMonitorAssociated()) {
+                preparePoolHealthMonitorAddVip(ops, pool.id, vip);
+            }
+        }
+
         prepareCreateNeutronVip(ops, vip);
-        VipZkManager.VipConfig vipConfig
-            = new VipZkManager.VipConfig(vip, loadBalancerId);
+        VipConfig vipConfig = new VipConfig(vip, loadBalancerId);
         ops.addAll(vipZkManager.prepareCreate(vip.id, vipConfig));
     }
 
     private void prepareUpdateNeutronVip(List<Op> ops, VIP vip)
-        throws SerializationException {
+        throws SerializationException, StateAccessException {
+        VIP oldVip = getNeutronVip(vip.id);
+        if (!Objects.equals(oldVip.poolId, vip.poolId)) {
+            if (oldVip.poolId != null) {
+                Pool oldPool = getNeutronPool(oldVip.poolId);
+                checkNotNull(oldPool.id,
+                             "The neutron pool must have an id to update");
+                oldPool.vipId = null;
+                prepareUpdateNeutronPool(ops, oldPool);
+            }
+
+            if (vip.poolId != null) {
+                Pool pool = getNeutronPool(vip.poolId);
+                checkNotNull(pool.id,
+                             "The neutron pool must have an id to update");
+                pool.vipId = vip.id;
+                prepareUpdateNeutronPool(ops, pool);
+            }
+        }
         String path = paths.getNeutronVipPath(vip.id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(vip)));
     }
 
     public void prepareUpdateVip(List<Op> ops, UUID id, VIP vip)
         throws StateAccessException, SerializationException {
+        VIP oldVip = getNeutronVip(vip.id);
         prepareUpdateNeutronVip(ops, vip);
+
+        if (!Objects.equals(oldVip.poolId, vip.poolId)) {
+            if (vip.poolId != null) {
+                UUID loadBalancerId = getLoadBalancerIdFromVip(vip);
+                ops.addAll(poolZkManager.prepareAddVip(vip.poolId, vip.id));
+                ops.addAll(
+                    loadBalancerZkManager.prepareAddVip(
+                        loadBalancerId, vip.id));
+                Pool pool = getNeutronPool(vip.poolId);
+                if (pool.hasHealthMonitorAssociated()) {
+                    preparePoolHealthMonitorAddVip(ops, pool.id, vip);
+                }
+            }
+
+            if (oldVip.poolId != null) {
+                UUID loadBalancerId = getLoadBalancerIdFromVip(oldVip);
+                ops.addAll(poolZkManager.prepareRemoveVip(oldVip.poolId,
+                                                          oldVip.id));
+                ops.addAll(loadBalancerZkManager.prepareRemoveVip(
+                    loadBalancerId, oldVip.id));
+                Pool pool = getNeutronPool(vip.poolId);
+                if (pool.hasHealthMonitorAssociated()) {
+                    preparePoolHealthMonitorRemoveVip(ops, pool.id, vip);
+                }
+            }
+        } else if (vip.poolId != null) {
+            Pool pool = getNeutronPool(vip.poolId);
+            if (pool.hasHealthMonitorAssociated()) {
+                preparePoolHealthMonitorModifyVip(ops, pool.id, vip);
+            }
+        }
+
         UUID loadBalancerId = getLoadBalancerIdFromVip(vip);
-        VipZkManager.VipConfig vipConfig
-            = new VipZkManager.VipConfig(vip, loadBalancerId);
+        VipConfig vipConfig = new VipConfig(vip, loadBalancerId);
         ops.addAll(vipZkManager.prepareUpdate(id, vipConfig));
     }
 
-    private void prepareDeleteNeutronVip(List<Op> ops, UUID id) {
+    private void prepareDeleteNeutronVip(List<Op> ops, UUID id)
+        throws StateAccessException, SerializationException {
+        VIP vip = getNeutronVip(id);
+
+        if (vip.poolId != null) {
+            Pool pool = getNeutronPool(vip.poolId);
+            checkNotNull(pool.id, "The neutron pool must have an id to update");
+            pool.vipId = null;
+            prepareUpdateNeutronPool(ops, pool);
+        }
+
         String path = paths.getNeutronVipPath(id);
         ops.add(zk.getDeleteOp(path));
     }
 
     public void prepareDeleteVip(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
+        VIP vip = getNeutronVip(id);
+        if (vip.poolId != null) {
+            UUID loadBalancerId = getLoadBalancerIdFromVip(vip);
+            ops.addAll(poolZkManager.prepareRemoveVip(vip.poolId, vip.id));
+            ops.addAll(
+                loadBalancerZkManager.prepareRemoveVip(loadBalancerId, vip.id));
+            Pool pool = getNeutronPool(vip.poolId);
+            if (pool.hasHealthMonitorAssociated()) {
+                preparePoolHealthMonitorRemoveVip(ops, pool.id, vip);
+            }
+        }
         prepareDeleteNeutronVip(ops, id);
         ops.addAll(vipZkManager.prepareDelete(id));
     }
@@ -266,9 +705,15 @@ public class LBZkManager extends BaseZkManager {
     public void prepareCreateHealthMonitor(List<Op> ops,
                                            HealthMonitor healthMonitor)
         throws SerializationException, StateAccessException {
+        // Creating health monitors is the easiest case because:
+        // 1) You can not create a health monitor with a pool id, and
+        //    so you dont have to worry about the mapping.
+        // 2) no other members besides the pool have dependencies on the
+        //    health monitor, so you don't have to worry about refs.
+        checkArgument(!healthMonitor.hasPoolAssociated(),
+                      "Health Monitors can not be created with pool id set.");
         prepareCreateNeutronHealthMonitor(ops, healthMonitor);
-        HealthMonitorZkManager.HealthMonitorConfig config
-            = new HealthMonitorZkManager.HealthMonitorConfig(healthMonitor);
+        HealthMonitorConfig config = new HealthMonitorConfig(healthMonitor);
         ops.addAll(healthMonitorZkManager.prepareCreate(healthMonitor.id,
                                                         config));
     }
@@ -276,28 +721,75 @@ public class LBZkManager extends BaseZkManager {
     public void prepareUpdateHealthMonitor(List<Op> ops, UUID id,
                                            HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
+        if (healthMonitor.hasPoolAssociated()) {
+            UUID poolId = healthMonitor.getPoolId();
+            preparePoolHealthMonitorModifyHealthMonitor(ops, poolId,
+                                                        healthMonitor);
+        }
+
         prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
-        HealthMonitorZkManager.HealthMonitorConfig config
-            = new HealthMonitorZkManager.HealthMonitorConfig(healthMonitor);
+        HealthMonitorConfig config = new HealthMonitorConfig(healthMonitor);
         ops.addAll(healthMonitorZkManager.prepareUpdate(id, config));
     }
 
     public void prepareDeleteHealthMonitor(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
+        HealthMonitor oldHmConfig = getNeutronHealthMonitor(id);
+        checkState(!oldHmConfig.hasPoolAssociated(), "Health monitors must" +
+                   " have no pools using them in order to delete");
         prepareDeleteNeutronHealthMonitor(ops, id);
         ops.addAll(healthMonitorZkManager.prepareDelete(id));
     }
 
     // Pool Health Monitors
-    public PoolHealthMonitor createPoolHealthMonitor(
-        PoolHealthMonitor poolHealthMonitor)
+    public void createPoolHealthMonitor(List<Op> ops, UUID poolId,
+                                        PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
-        return poolHealthMonitor;
+        Pool pool = getNeutronPool(poolId);
+        checkNotNull(pool.id, "The neutron pool must have an id to update");
+        pool.healthMonitors = Arrays.asList(poolHealthMonitor.id);
+        prepareUpdateNeutronPool(ops, pool);
+
+        HealthMonitor healthMonitor = getNeutronHealthMonitor(
+            poolHealthMonitor.id);
+        healthMonitor.addPool(poolId);
+        prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+
+        PoolConfig pConfig = poolZkManager.get(poolId);
+
+        checkState(pConfig.healthMonitorId == null, "The pool config did " +
+            "already has a health monitor associated with it");
+
+        HealthMonitorConfig hmConfig
+            = healthMonitorZkManager.get(poolHealthMonitor.id);
+        LoadBalancerConfig lbConf
+            = loadBalancerZkManager.get(pConfig.loadBalancerId);
+        PoolConfig poolConfig = poolZkManager.get(poolId);
+        poolConfig.healthMonitorId = poolHealthMonitor.id;
+        ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
+
+        prepareAssociatePoolHealthMonitor(ops, lbConf, pConfig, hmConfig);
     }
 
-    public PoolHealthMonitor deletePoolHealthMonitor(
-        PoolHealthMonitor poolHealthMonitor)
+    public void deletePoolHealthMonitor(List<Op> ops, UUID poolId, UUID hmId)
         throws StateAccessException, SerializationException {
-        return poolHealthMonitor;
+        Pool pool = getNeutronPool(poolId);
+        checkNotNull(pool.id, "The neutron pool must have an id to update");
+        pool.healthMonitors = null;
+        prepareUpdateNeutronPool(ops, pool);
+
+        HealthMonitor healthMonitor = getNeutronHealthMonitor(hmId);
+        healthMonitor.removePool(poolId);
+        prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+
+        PoolConfig poolConfig = poolZkManager.get(poolId);
+
+        checkState(poolConfig.healthMonitorId != null, "The pool config did " +
+            "not already have a health monitor associated with it");
+
+        poolConfig.healthMonitorId = null;
+        ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
+
+        prepareDisassociatePoolHealthMonitor(ops, hmId, poolId);
     }
 }

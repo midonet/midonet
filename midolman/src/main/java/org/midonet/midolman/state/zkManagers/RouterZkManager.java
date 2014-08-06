@@ -18,6 +18,8 @@ import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkState;
+
 
 /**
  * Class to manage the router ZooKeeper data.
@@ -180,6 +182,19 @@ public class RouterZkManager
         config.loadBalancer = null;
         return Collections.singletonList(Op.setData(paths.getRouterPath(id),
                         serializer.serialize(config), -1));
+    }
+
+    public void prepareUpdateLoadBalancer(List<Op> ops, UUID routerId, UUID loadBalancerId)
+        throws StateAccessException, SerializationException {
+        RouterConfig oldConf = get(routerId);
+        // This is meant to be called to simply update the load balancer id.
+        // It does not go through any of the back ref or association updating.
+        String msg = "The router load balancer must not already be set in" +
+                     " a simple update";
+        checkState(oldConf.loadBalancer == null, msg);
+        oldConf.loadBalancer = loadBalancerId;
+        ops.add(Op.setData(paths.getRouterPath(routerId),
+                           serializer.serialize(oldConf), -1));
     }
 
     @Override

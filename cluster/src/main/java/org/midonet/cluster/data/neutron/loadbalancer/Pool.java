@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.google.common.base.Objects;
 
 import org.apache.commons.collections4.ListUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.util.collection.ListUtil;
@@ -51,7 +52,7 @@ public class Pool {
     public String tenantId;
 
     @JsonProperty("vip_id")
-    public String vipId;
+    public UUID vipId;
 
 
     @Override
@@ -105,5 +106,15 @@ public class Pool {
             .add("tenantId", tenantId)
             .add("vipId", vipId)
             .toString();
+    }
+
+    @JsonIgnore
+    public boolean hasHealthMonitorAssociated() {
+        return healthMonitors != null && healthMonitors.size() > 0;
+    }
+
+    @JsonIgnore
+    public UUID getHealthMonitor() {
+        return hasHealthMonitorAssociated() ? healthMonitors.get(0) : null;
     }
 }

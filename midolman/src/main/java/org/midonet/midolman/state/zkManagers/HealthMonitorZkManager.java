@@ -68,6 +68,7 @@ public class HealthMonitorZkManager extends
             this.maxRetries = healthMonitor.maxRetries;
             this.adminStateUp = healthMonitor.adminStateUp;
             this.status = LBStatus.ACTIVE;
+            this.id = healthMonitor.id;
         }
 
         @Override
