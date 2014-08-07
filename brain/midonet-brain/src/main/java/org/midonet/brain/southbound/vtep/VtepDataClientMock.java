@@ -19,9 +19,12 @@ import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.Connection;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
+import rx.subjects.PublishSubject;
+import rx.subjects.Subject;
 
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
@@ -33,10 +36,13 @@ import org.midonet.packets.MAC;
 
 public class VtepDataClientMock implements VtepDataClient {
 
+    private static final String VTEP_NODE_NAME= "vtep";
+
     protected String mgmtIp;
     protected int mgmtPort;
     protected Set<String> tunnelIps;
     protected boolean connected = false;
+    protected Connection connection = null;
 
     protected final Map<String, PhysicalSwitch> physicalSwitches =
             new HashMap<>();
@@ -53,6 +59,11 @@ public class VtepDataClientMock implements VtepDataClient {
     // need it in the future.
     protected final Map<String, Set<UcastMac>> ucastMacsRemote =
         new HashMap<>();
+
+    private final Subject<Connection, Connection> connectSubject =
+        PublishSubject.create();
+    private final Subject<Connection, Connection> disconnectSubject =
+        PublishSubject.create();
 
     public VtepDataClientMock(String mgmtIp, int mgmtPort,
                               String name, String desc,
@@ -93,13 +104,17 @@ public class VtepDataClientMock implements VtepDataClient {
             throw new IllegalStateException("VTEP client already connected.");
         if (!this.mgmtIp.equals(mgmtIp.toString()) || this.mgmtPort != port)
             throw new IllegalStateException("Could not complete connection.");
-        this.connected = true;
+        connected = true;
+        connectSubject.onNext(connection =
+                                  new Connection(VTEP_NODE_NAME, null));
     }
 
     @Override
     public void disconnect() {
         assertConnected();
-        this.connected = false;
+        connected = false;
+        disconnectSubject.onNext(connection);
+        connection = null;
     }
 
     @Override
@@ -339,7 +354,17 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Observable<TableUpdates> observableUpdates() {
+    public Observable<Connection> connectObservable() {
+        return connectSubject.asObservable();
+    }
+
+    @Override
+    public Observable<Connection> disconnectObservable() {
+        return disconnectSubject.asObservable();
+    }
+
+    @Override
+    public Observable<TableUpdates> updatesObservable() {
         assertConnected();
         return Observable.never(); // No tests use this for now.
     }

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
+import org.opendaylight.ovsdb.plugin.Connection;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
@@ -191,9 +192,21 @@ public interface VtepDataClient {
     public Status delUcastMacRemoteAllIps(String lsName, MAC mac);
 
     /**
-     * Provides an Observable producing a stream of updates from the VTEP.
+     * Provides an observable notifying when a connection is established to a
+     * VTEP.
      */
-    public Observable<TableUpdates> observableUpdates();
+    public Observable<Connection> connectObservable();
+
+    /**
+     * Provides an observable notifying when a connection is disconnected from
+     * a VTEP.
+     */
+    public Observable<Connection> disconnectObservable();
+
+    /**
+     * Provides an observable producing a stream of updates from the VTEP.
+     */
+    public Observable<TableUpdates> updatesObservable();
 
     /**
      * Deletes a binding between the given port and vlan.
