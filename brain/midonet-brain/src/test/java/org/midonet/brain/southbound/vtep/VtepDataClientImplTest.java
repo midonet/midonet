@@ -50,9 +50,9 @@ public class VtepDataClientImplTest {
     private static final UUID PHYS_SWITCH_UUID = new UUID("vtep");
 
     private VtepDataClientImpl vtepDataClient = null;
-    private IPv4Addr ip = IPv4Addr.apply("192.158.0.1");
-    private IPv4Addr tunIp = IPv4Addr.apply("10.1.1.1");
-    private int port = 6632;
+    private static final IPv4Addr ip = IPv4Addr.apply("192.158.0.1");
+    private static final IPv4Addr tunIp = IPv4Addr.apply("10.1.1.1");
+    private static final int port = 6632;
 
     private Physical_Switch mockPhysicalSwitch = null;
 
@@ -359,5 +359,4 @@ public class VtepDataClientImplTest {
         Status st = vtepDataClient.deleteBinding(PHYS_PORT_1, 10);
         assertEquals(StatusCode.SUCCESS, st.getCode());
     }
-
 }
