@@ -1,9 +1,6 @@
 [submodule "python-midonetclient"]
 	path = python-midonetclient
 	url = https://github.com/midokura/python-midonetclient.git
-[submodule "midonet-docs"]
-	path = midonet-docs
-	url = git@github.com:midokura/midonet-docs.git
 [submodule "odl-ovsdb"]
 	path = brain/odl-ovsdb
-	url = git@github.com:midokura/odp-ovsdb.git
+	url = https://github.com/midokura/odp-ovsdb.git
