@@ -25,8 +25,7 @@ sourceSets {
 
 dependencies {
     compile project(':midolman'), project(':brain:odl-ovsdb:ovsdb'),
-            libraries.scala,
-            "com.netflix.rxjava:rxjava-core:0.17.6",
+            "com.netflix.rxjava:rxjava-core:0.19.6",
             "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
             "com.fasterxml.jackson.core:jackson-core:2.3.0",
             "com.fasterxml.jackson.core:jackson-databind:2.3.0",

@@ -1,7 +1,10 @@
-/**
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.services.vxgw;
+
+import java.util.Collection;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,12 +15,15 @@ import rx.functions.Action1;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepException;
+import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
+import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPv4Addr;
+import org.midonet.util.functors.Callback;
 
 /**
  * This class orchestrates synchronisation across logical switch
@@ -28,6 +34,12 @@ public class VxLanGwBroker {
     private final static Logger log =
             LoggerFactory .getLogger(VxLanGwBroker.class);
 
+    // The connection UUID
+    private final java.util.UUID connectionId;
+
+    // Vtep configuration store client provider
+    private final VtepDataClientFactory vtepDataClientFactory;
+
     // VTEP Configuration store client
     private final VtepDataClient vtepClient;
 
@@ -37,11 +49,9 @@ public class VxLanGwBroker {
     // Midonet peer
     public final MidoVxLanPeer midoPeer;
 
-    // VTEP management IP address
-    public final IPv4Addr vtepMgmtIp;
-
-    private Subscription midoSubscription;
-    private Subscription vtepSubscription;
+    private final Subscription midoSubscription;
+    private final Subscription vtepSubscription;
+    private final Subscription connectSubscription;
 
     /**
      * Error handler for each rx.Observable.
@@ -67,22 +77,55 @@ public class VxLanGwBroker {
      * Creates a new Broker between a VTEP and the corresponding MidoNet peers,
      * once ready, it will immediately connect the VTEP client.
      */
-    public VxLanGwBroker(DataClient midoClient,
-                         VtepDataClientProvider vtepDataClientProvider,
-                         VTEP vtep,
-                         TunnelZoneState tunnelZone) {
-        log.info("Wiring broker for VTEP: {}", vtep.getId());
-        this.vtepClient = vtepDataClientProvider.get();
+    public VxLanGwBroker(final DataClient midoClient,
+                         VtepDataClientFactory vtepDataClientFactory,
+                         final VTEP vtep,
+                         TunnelZoneState tunnelZone,
+                         UUID connectionId) throws VtepStateException {
+        log.info("Setup VXGW broker for VTEP {}", vtep.getId());
+        this.vtepDataClientFactory = vtepDataClientFactory;
+        this.connectionId = connectionId;
+
+        vtepClient = this.vtepDataClientFactory
+            .connect(vtep.getId(), vtep.getMgmtPort(), connectionId);
+
         this.vtepPeer = new VtepBroker(this.vtepClient);
         this.midoPeer = new MidoVxLanPeer(midoClient);
-        this.vtepMgmtIp = vtep.getId();
+
+        // Set a callback method for when the VTEP becomes connected.
+        connectSubscription = vtepClient.onConnected(
+            new Callback<VtepDataClient, VtepException>() {
+                @Override
+                public void onSuccess(VtepDataClient client) {
+                    // Remove the logical switches that do not have a network
+                    // bound to them.
+                    log.info("VXGW broker connected to VTEP {}", vtepClient);
+                    try {
+                        Collection<UUID> boundNetworks =
+                            midoClient.bridgesBoundToVtep(vtep.getId());
+                        vtepPeer.pruneUnwantedLogicalSwitches(boundNetworks);
+                    } catch (StateAccessException | SerializationException e) {
+                        log.error("Cannot clear logical switches for VTEP {}: "
+                                  + "retrieving state failed.", client, e);
+                    } catch (VtepNotConnectedException e) {
+                        log.warn("Cannot clear logical switches for VTEP {}: "
+                                 + "connectoin failed (retrying)", client);
+                        client.onConnected(this);
+                    }
+                }
+
+                @Override
+                public void onTimeout() {}
+
+                @Override
+                public void onError(VtepException e) {
+                    log.error("Connection to VTEP {} was disposed.", e.vtep);
+                }
+            });
 
         // Wire peers
-        this.midoSubscription = wirePeers(midoPeer, vtepPeer);
-        this.vtepSubscription = wirePeers(vtepPeer, midoPeer);
-
-        // Connect to VTEP
-        vtepClient.connect(vtep.getId(), vtep.getMgmtPort());
+        midoSubscription = wirePeers(midoPeer, vtepPeer);
+        vtepSubscription = wirePeers(vtepPeer, midoPeer);
 
         // Subscribe to the tunnel zone flooding proxy.
         midoPeer.subscribeToFloodingProxy(
@@ -100,18 +143,19 @@ public class VxLanGwBroker {
     }
 
     /**
-     * Clean up state
+     * Clean up state.
      */
-    public void terminate() {
-        log.info("Terminating broker for {}", vtepMgmtIp);
+    public void terminate() throws VtepStateException {
+        log.info("Terminating VXGW broker for VTEP {}", vtepClient);
         midoSubscription.unsubscribe();
         vtepSubscription.unsubscribe();
-        vtepClient.disconnect();
+        connectSubscription.unsubscribe();
+        vtepClient.disconnect(connectionId, true);
         midoPeer.stop();
     }
 
     /**
-     * Makes `dst` react upon updates from `src`.
+     * Makes <code>dst</code> react upon updates from <code>src</code>.
      */
     private Subscription wirePeers(final VxLanPeer src, final VxLanPeer dst) {
         return src.observableUpdates()

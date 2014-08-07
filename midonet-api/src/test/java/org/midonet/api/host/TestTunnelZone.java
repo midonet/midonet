@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.vtep.VtepDataClientProvider;
+import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
@@ -209,8 +209,8 @@ public class TestTunnelZone {
                       VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
                       DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
-            vtep.setManagementIp(VtepDataClientProvider.MOCK_VTEP_MGMT_IP);
-            vtep.setManagementPort(VtepDataClientProvider.MOCK_VTEP_MGMT_PORT);
+            vtep.setManagementIp(VtepMockableDataClientFactory.MOCK_VTEP_MGMT_IP);
+            vtep.setManagementPort(VtepMockableDataClientFactory.MOCK_VTEP_MGMT_PORT);
             vtep.setTunnelZoneId(tunnelZone.getId());
             DtoVtep vtepDto = dtoResource.postAndVerifyCreated(
                 app.getVteps(), VendorMediaType.APPLICATION_VTEP_JSON, vtep,

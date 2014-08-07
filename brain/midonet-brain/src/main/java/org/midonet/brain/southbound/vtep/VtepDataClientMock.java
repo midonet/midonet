@@ -11,6 +11,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -21,10 +25,10 @@ import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.plugin.Connection;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
+import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
@@ -35,16 +39,14 @@ import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.functors.Callback;
 
 public class VtepDataClientMock implements VtepDataClient {
-
-    private static final String VTEP_NODE_NAME= "vtep";
 
     protected String mgmtIp;
     protected int mgmtPort;
     protected Set<String> tunnelIps;
     protected boolean connected = false;
-    protected Connection connection = null;
 
     protected final Map<String, PhysicalSwitch> physicalSwitches =
             new HashMap<>();
@@ -63,10 +65,7 @@ public class VtepDataClientMock implements VtepDataClient {
     protected final Map<String, Set<UcastMac>> ucastMacsRemote =
         new HashMap<>();
 
-    private final Subject<Connection, Connection> connectSubject =
-        PublishSubject.create();
-    private final Subject<Connection, Connection> disconnectSubject =
-        PublishSubject.create();
+    private final Subject<State, State> stateSubject = PublishSubject.create();
 
     public VtepDataClientMock(String mgmtIp, int mgmtPort,
                               String name, String desc,
@@ -88,76 +87,158 @@ public class VtepDataClientMock implements VtepDataClient {
 
     @Override
     public IPv4Addr getManagementIp() {
-        return IPv4Addr.fromString(this.mgmtIp);
+        return IPv4Addr.fromString(mgmtIp);
     }
 
     @Override
     public IPv4Addr getTunnelIp() {
-        return IPv4Addr.fromString(this.tunnelIps.iterator().next());
+        return tunnelIps.isEmpty() ? null :
+               IPv4Addr.fromString(tunnelIps.iterator().next());
     }
 
     @Override
     public int getManagementPort() {
-        return this.mgmtPort;
+        return mgmtPort;
     }
 
-    @Override
-    public void connect(IPv4Addr mgmtIp, int port) {
-        if (connected)
-            throw new IllegalStateException("VTEP client already connected.");
+    public VtepDataClient connect(IPv4Addr mgmtIp, int port)
+        throws VtepStateException {
         if (!this.mgmtIp.equals(mgmtIp.toString()) || this.mgmtPort != port)
-            throw new IllegalStateException("Could not complete connection.");
-        connected = true;
-        connectSubject.onNext(connection =
-                                  new Connection(VTEP_NODE_NAME, null));
+            throw new VtepStateException(new VtepEndPoint(mgmtIp, port),
+                                         "Could not complete connection.");
+
+        if (!connected) {
+
+            connected = true;
+            stateSubject.onNext(State.CONNECTED);
+        }
+
+        return this;
     }
 
     @Override
-    public void disconnect() {
+    public void disconnect(java.util.UUID user, boolean lazyDisconnect) {
         assertConnected();
         connected = false;
-        disconnectSubject.onNext(connection);
-        connection = null;
+        stateSubject.onNext(State.DISCONNECTED);
     }
 
     @Override
-    public List<PhysicalSwitch> listPhysicalSwitches() {
+    public VtepDataClient awaitConnected() {
+        if (!connected)
+            throw new UnsupportedOperationException(
+                "Cannot await asynchronously on a mock client.");
+        return this;
+    }
+
+    @Override
+    public VtepDataClient awaitConnected(long time, TimeUnit unit) {
+        if (!connected)
+            throw new UnsupportedOperationException(
+                "Cannot await asynchronously on a mock client.");
+        return this;
+    }
+
+    @Override
+    public VtepDataClient awaitDisconnected() {
+        if (connected)
+            throw new UnsupportedOperationException(
+                "Cannot await asynchronously on a mock client.");
+        return this;
+    }
+
+    @Override
+    public VtepDataClient awaitDisconnected(long time, TimeUnit unit) {
+        if (connected)
+            throw new UnsupportedOperationException(
+                "Cannot await asynchronously on a mock client.");
+        return this;
+    }
+
+    @Override
+    public VtepDataClient awaitState(State state) {
+        throw new UnsupportedOperationException(
+            "Cannot await asynchronously on a mock client.");
+    }
+
+    @Override
+    public VtepDataClient awaitState(State state, long timeout, TimeUnit unit) {
+        throw new UnsupportedOperationException(
+            "Cannot await asynchronously on a mock client.");
+    }
+
+    /**
+     * Specifies a callback method to execute when the VTEP becomes connected.
+     *
+     * @param callback A callback instance.
+     */
+    @Override
+    public Subscription onConnected(
+        @Nonnull Callback<VtepDataClient, VtepException> callback) {
+        if (connected) {
+            callback.onSuccess(this);
+        } else {
+            callback.onError(new VtepStateException(
+                new VtepEndPoint(IPv4Addr.fromString(mgmtIp), mgmtPort),
+                "VTEP not connected."));
+        }
+        return Observable.never().subscribe();
+    }
+
+    @Override
+    public State getState() {
+        return connected ? State.CONNECTED : State.DISCONNECTED;
+    }
+
+    @Override
+    public Observable<State> stateObservable() {
+        return stateSubject.asObservable();
+    }
+
+    @Override
+    public Observable<TableUpdates> updatesObservable() {
+        assertConnected();
+        return Observable.never(); // No tests use this for now.
+    }
+
+    @Override
+    public @Nonnull List<PhysicalSwitch> listPhysicalSwitches() {
         assertConnected();
         return new ArrayList<>(physicalSwitches.values());
     }
 
     @Override
-    public List<LogicalSwitch> listLogicalSwitches() {
+    public @Nonnull List<LogicalSwitch> listLogicalSwitches() {
         assertConnected();
         return new ArrayList<>(logicalSwitches.values());
     }
 
     @Override
-    public List<PhysicalPort> listPhysicalPorts(UUID psUuid) {
+    public @Nonnull List<PhysicalPort> listPhysicalPorts(UUID psUuid) {
         assertConnected();
         return new ArrayList<>(physicalPorts.values());
     }
 
     @Override
-    public List<McastMac> listMcastMacsLocal() {
+    public @Nonnull List<McastMac> listMcastMacsLocal() {
         assertConnected();
         return new ArrayList<>(mcastMacsLocal.values());
     }
 
     @Override
-    public List<McastMac> listMcastMacsRemote() {
+    public @Nonnull List<McastMac> listMcastMacsRemote() {
         assertConnected();
         return new ArrayList<>(mcastMacsRemote.values());
     }
 
     @Override
-    public List<UcastMac> listUcastMacsLocal() {
+    public @Nonnull List<UcastMac> listUcastMacsLocal() {
         assertConnected();
         return new ArrayList<>(ucastMacsLocal.values());
     }
 
     @Override
-    public List<UcastMac> listUcastMacsRemote() {
+    public @Nonnull List<UcastMac> listUcastMacsRemote() {
         assertConnected();
         List<UcastMac> entryList = new ArrayList<>();
         for (String m: ucastMacsRemote.keySet()) {
@@ -167,10 +248,10 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public LogicalSwitch getLogicalSwitch(UUID id) {
+    public LogicalSwitch getLogicalSwitch(@Nonnull UUID lsId) {
         assertConnected();
         for (LogicalSwitch ls : this.logicalSwitches.values()) {
-            if (ls.uuid.equals(id)) {
+            if (ls.uuid.equals(lsId)) {
                 return ls;
             }
         }
@@ -178,31 +259,32 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public LogicalSwitch getLogicalSwitch(String name) {
+    public LogicalSwitch getLogicalSwitch(@Nonnull String lsName) {
         assertConnected();
-        return this.logicalSwitches.get(name);
+        return this.logicalSwitches.get(lsName);
     }
 
     @Override
-    public StatusWithUuid addLogicalSwitch(String name, int vni) {
+    public StatusWithUuid addLogicalSwitch(@Nonnull String lsName, int vni) {
         assertConnected();
 
-        LogicalSwitch ls = logicalSwitches.get(name);
+        LogicalSwitch ls = logicalSwitches.get(lsName);
         if (ls != null) {
             return new StatusWithUuid(StatusCode.CONFLICT,
-                    "A logical switch named " + name + " already exists.");
+                    "A logical switch named " + lsName + " already exists.");
         }
 
         UUID uuid = new UUID(java.util.UUID.randomUUID().toString());
-        ls = new LogicalSwitch(uuid, name + "-desc", name, vni);
-        logicalSwitches.put(name, ls);
-        logicalSwitchUuids.put(name, uuid);
+        ls = new LogicalSwitch(uuid, lsName + "-desc", lsName, vni);
+        logicalSwitches.put(lsName, ls);
+        logicalSwitchUuids.put(lsName, uuid);
         return new StatusWithUuid(StatusCode.SUCCESS, uuid);
     }
 
     @Override
-    public Status bindVlan(String lsName, String portName,
-                           int vlan, Integer vni, List<IPv4Addr> floodIps) {
+    public Status bindVlan(@Nonnull String lsName, @Nonnull String portName,
+                           short vlan, int vni,
+                           @Nullable Collection<IPv4Addr> floodIps) {
         assertConnected();
 
         PhysicalPort pp = physicalPorts.get(portName);
@@ -211,29 +293,28 @@ public class VtepDataClientMock implements VtepDataClient {
                     "Physical port " + portName + " not found");
 
         LogicalSwitch ls = logicalSwitches.get(lsName);
-        if (ls == null && vni != null) {
+        if (ls == null) {
             this.addLogicalSwitch(lsName, vni);
-        } else if (vni == null) {
-            return new Status(StatusCode.BADREQUEST,
-                              "Logical switch " + lsName + " not found");
         }
 
         pp.vlanBindings.put(vlan, logicalSwitchUuids.get(lsName));
 
-        for (IPv4Addr floodIp : floodIps)
-            addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST, floodIp);
+        if (null != floodIps) {
+            for (IPv4Addr floodIp : floodIps)
+                addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST, floodIp);
+        }
 
         return new Status(StatusCode.SUCCESS);
     }
 
     @Override
-    public Status addBindings(UUID lsUuid,
-                              List<Pair<String, Integer>> portVlanPairs) {
+    public Status addBindings(
+        @Nonnull UUID lsId, @Nonnull Collection<Pair<String, Short>> bindings) {
         return null;
     }
 
     @Override
-    public Status deleteLogicalSwitch(String name) {
+    public Status deleteLogicalSwitch(@Nonnull String name) {
         assertConnected();
 
         LogicalSwitch ls = logicalSwitches.remove(name);
@@ -251,7 +332,7 @@ public class VtepDataClientMock implements VtepDataClient {
 
         // Remove all bindings to the given logical switch
         for (Map.Entry<String, PhysicalPort> pport : physicalPorts.entrySet()) {
-            Iterator<Map.Entry<Integer, UUID>> it =
+            Iterator<Map.Entry<Short, UUID>> it =
                 pport.getValue().vlanBindings.entrySet().iterator();
             while (it.hasNext()) {
                 if (lsId.equals(it.next().getValue()))
@@ -262,10 +343,10 @@ public class VtepDataClientMock implements VtepDataClient {
         return new Status(StatusCode.SUCCESS);
     }
 
-
     @Override
-    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp,
-                                    IPv4Addr tunnelEndPoint) {
+    public Status addUcastMacRemote(@Nonnull String lsName, @Nonnull MAC mac,
+                                    @Nullable IPv4Addr macIp,
+                                    @Nonnull IPv4Addr tunnelEndPoint) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -285,7 +366,9 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Status addMcastMacRemote(String lsName, VtepMAC mac, IPv4Addr ip) {
+    public Status addMcastMacRemote(@Nonnull String lsName,
+                                    @Nonnull VtepMAC mac,
+                                    @Nonnull IPv4Addr ip) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -304,7 +387,8 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp) {
+    public Status deleteUcastMacRemote(@Nonnull String lsName, @Nonnull MAC mac,
+                                       @Nonnull IPv4Addr macIp) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -319,7 +403,7 @@ public class VtepDataClientMock implements VtepDataClient {
         for (UcastMac umr: set) {
             if (umr.mac.equals(mac.toString()) &&
                 umr.logicalSwitch.equals(lsUuid) &&
-                (macIp == null || macIp.toString().equals(umr.ipAddr))) {
+                macIp.toString().equals(umr.ipAddr)) {
                 set.remove(umr);
                 if (set.isEmpty()) {
                     this.ucastMacsRemote.remove(mac.toString());
@@ -331,7 +415,8 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Status delUcastMacRemoteAllIps(String lsName, MAC mac) {
+    public Status deleteAllUcastMacRemote(@Nonnull String lsName,
+                                          @Nonnull MAC mac) {
         assertConnected();
 
         UUID lsUuid = logicalSwitchUuids.get(lsName);
@@ -357,38 +442,26 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public Status delMcastMacRemoteAllIps(String lsName, VtepMAC vMac) {
+    public Status deleteAllMcastMacRemote(@Nonnull String lsName,
+                                          @Nonnull VtepMAC mac) {
         assertConnected();
 
-        if (this.mcastMacsRemote.removeAll(vMac.toString()).isEmpty()) {
+        if (this.mcastMacsRemote.removeAll(mac.toString()).isEmpty()) {
             return new Status(StatusCode.NOTFOUND);
         }
         return new Status(StatusCode.SUCCESS);
     }
 
-    public Observable<Connection> connectObservable() {
-        return connectSubject.asObservable();
-    }
 
     @Override
-    public Observable<Connection> disconnectObservable() {
-        return disconnectSubject.asObservable();
-    }
-
-    @Override
-    public Observable<TableUpdates> updatesObservable() {
-        assertConnected();
-        return Observable.never(); // No tests use this for now.
-    }
-
-    public Status deleteBinding(String portName, int vlanId) {
+    public Status deleteBinding(@Nonnull String portName, short vlan) {
         assertConnected();
 
         PhysicalPort pport = physicalPorts.get(portName);
         if (pport == null) {
             return new Status(StatusCode.NOTFOUND, "Port not found");
         }
-        if (pport.vlanBindings.remove(vlanId) == null) {
+        if (pport.vlanBindings.remove(vlan) == null) {
             return new Status(StatusCode.NOTFOUND);
         } else {
             return new Status(StatusCode.SUCCESS);
@@ -396,7 +469,7 @@ public class VtepDataClientMock implements VtepDataClient {
     }
 
     @Override
-    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID lsId) {
+    public List<Pair<UUID, Short>> listPortVlanBindings(UUID lsId) {
         throw new UnsupportedOperationException();
     }
 
