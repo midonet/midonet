@@ -3,21 +3,35 @@
  */
 package org.midonet.brain.services.vxgw;
 
+import org.opendaylight.controller.sal.utils.Status;
+
 /**
  * An update to a VxLanPeer could not be applied.
  */
-public class VxLanPeerConsolidationException extends RuntimeException {
-    private static final long serialVersionUID = -1;
-    private final String lsName;
+public class VxLanPeerConsolidationException extends Exception {
 
-    public VxLanPeerConsolidationException(String msg, String lsName) {
-        super(msg);
+    private static final long serialVersionUID = 7453713126850041078L;
+
+    public final String lsName;
+    public final Status status;
+
+    public VxLanPeerConsolidationException(String message, String lsName) {
+        super(message);
         this.lsName = lsName;
+        this.status = null;
+    }
+
+    public VxLanPeerConsolidationException(String message, String lsName,
+                                           Status status) {
+        super(message);
+        this.lsName = lsName;
+        this.status = status;
     }
 
     @Override
     public String toString() {
-        return String.format("Failed to consolidate %s, %s",
-                             lsName, getMessage());
+        return String.format("Failed to consolidate logical-switch %s with "
+                             + "status code %s (%s)",
+                             lsName, status, getMessage());
     }
 }
