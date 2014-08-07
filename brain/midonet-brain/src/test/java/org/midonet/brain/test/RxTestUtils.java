@@ -1,7 +1,7 @@
-package org.midonet.brain.org.midonet.brain.test;
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
+package org.midonet.brain.test;
 
 import java.util.ArrayList;
 import java.util.Arrays;

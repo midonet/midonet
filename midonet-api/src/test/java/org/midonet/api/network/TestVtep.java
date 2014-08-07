@@ -75,12 +75,12 @@ import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_DESC;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_MGMT_IP;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_MGMT_PORT;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_NAME;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_PORT_NAMES;
-import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_TUNNEL_IPS;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_DESC;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_MGMT_IP;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_MGMT_PORT;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_NAME;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_PORT_NAMES;
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.MOCK_VTEP_TUNNEL_IPS;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class TestVtep extends RestApiTestBase {
@@ -156,7 +156,7 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testCreateWithNullIPAddr() {
         DtoError error = postVtepWithError(null, MOCK_VTEP_MGMT_PORT,
-                Status.BAD_REQUEST);
+                                           Status.BAD_REQUEST);
         assertErrorMatchesPropMsg(error, "managementIp", NON_NULL);
     }
 

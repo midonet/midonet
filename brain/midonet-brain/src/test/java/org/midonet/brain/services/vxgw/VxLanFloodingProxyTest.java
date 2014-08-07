@@ -6,7 +6,6 @@ package org.midonet.brain.services.vxgw;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Random;
 import java.util.UUID;
 
@@ -18,13 +17,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import rx.Observable;
+import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepException;
 import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
@@ -38,6 +39,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.functors.Callback;
 
 import mockit.Expectations;
 import mockit.Mocked;
@@ -61,10 +63,13 @@ public class VxLanFloodingProxyTest {
         }
     }
 
+    private static final Subscription emptySubscription =
+        Observable.empty().subscribe();
+
     @Mocked
     private VtepDataClient vtepClient;
     @Mocked
-    private VtepDataClientProvider vtepDataClientProvider;
+    private VtepDataClientFactory vtepDataClientFactory;
     @Mocked
     private MidoBrainConfig brainConfig;
 
@@ -85,7 +90,7 @@ public class VxLanFloodingProxyTest {
         hostZkManager = injector.getInstance(HostZkManager.class);
 
         vxgwService = new VxLanGatewayService(
-            midoClient, vtepDataClientProvider, zkConnWatcher, brainConfig,
+            midoClient, vtepDataClientFactory, zkConnWatcher, brainConfig,
             new MockRandom());
     }
 
@@ -102,12 +107,19 @@ public class VxLanFloodingProxyTest {
         throws Exception {
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
         }};
 
         createHost(1);
@@ -138,12 +150,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -151,6 +168,9 @@ public class VxLanFloodingProxyTest {
                              (Collection<VtepBinding>)any); times = 1;
 
             vB.advertiseMacs(); times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
         }};
 
         vxgwService.startAsync().awaitRunning();
@@ -178,12 +198,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -191,6 +216,9 @@ public class VxLanFloodingProxyTest {
                              (Collection<VtepBinding>)any); times = 1;
 
             vB.advertiseMacs(); times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
         }};
 
         vxgwService.startAsync().awaitRunning();
@@ -219,12 +247,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -238,6 +271,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -267,12 +303,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -280,6 +321,9 @@ public class VxLanFloodingProxyTest {
                              (Collection<VtepBinding>)any); times = 1;
 
             vB.advertiseMacs(); times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
         }};
 
         vxgwService.startAsync().awaitRunning();
@@ -310,12 +354,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -329,6 +378,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -361,12 +413,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -391,6 +448,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -428,12 +488,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -441,7 +506,6 @@ public class VxLanFloodingProxyTest {
                              (Collection<VtepBinding>)any); times = 1;
 
             vB.advertiseMacs(); times = 1;
-
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
@@ -453,6 +517,9 @@ public class VxLanFloodingProxyTest {
             vB.apply(new MacLocation(
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -489,12 +556,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId2);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -514,6 +586,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(2).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -555,12 +630,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId2);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -586,6 +666,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -619,12 +702,17 @@ public class VxLanFloodingProxyTest {
         final UUID bridgeId = createBridge(1, vtepId, getVtepAddress(1), tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -643,6 +731,9 @@ public class VxLanFloodingProxyTest {
             vB.apply(new MacLocation(
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -685,12 +776,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(anyString, anyInt); times = 1;
             vB.renewBindings((org.opendaylight.ovsdb.lib.notation.UUID)any,
                              (Collection<VtepBinding>)any); times = 1;
@@ -707,6 +803,9 @@ public class VxLanFloodingProxyTest {
             vB.apply(new MacLocation(
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -745,12 +844,17 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId, hostId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -769,6 +873,9 @@ public class VxLanFloodingProxyTest {
             vB.apply(new MacLocation(
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -806,12 +913,17 @@ public class VxLanFloodingProxyTest {
         hostZkManager.makeAlive(hostId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -830,6 +942,9 @@ public class VxLanFloodingProxyTest {
             vB.apply(new MacLocation(
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -880,17 +995,27 @@ public class VxLanFloodingProxyTest {
         addTunnelZoneMember(tzId2, hostId2);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vB1.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.getTunnelIp(); times = 1;
 
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vB2.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.getTunnelIp(); times = 1;
 
             vB1.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
@@ -931,6 +1056,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
             times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
+            times = 2;
         }};
 
 
@@ -984,12 +1112,17 @@ public class VxLanFloodingProxyTest {
         midoClient.hostsSetFloodingProxyWeight(hostId4, 40);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -1027,6 +1160,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(3).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 
@@ -1080,12 +1216,17 @@ public class VxLanFloodingProxyTest {
         midoClient.hostsSetFloodingProxyWeight(hostId4, 40);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB.observableUpdates(); result = Observable.empty(); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
 
-            vB.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
             vB.ensureLogicalSwitchExists(
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), anyInt);
             times = 1;
@@ -1123,6 +1264,9 @@ public class VxLanFloodingProxyTest {
                 VtepMAC.UNKNOWN_DST, null,
                 VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
                 IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
+            times = 1;
+
+            vtepClient.disconnect((UUID)any, true);
             times = 1;
         }};
 

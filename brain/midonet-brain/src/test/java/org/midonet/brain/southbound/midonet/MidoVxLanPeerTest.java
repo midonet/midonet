@@ -16,7 +16,7 @@ import org.junit.Test;
 import rx.Observable;
 
 import org.midonet.brain.BrainTestUtils;
-import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
+import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepMAC;

@@ -3,16 +3,23 @@
  */
 package org.midonet.brain.southbound.vtep;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.plugin.Connection;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
 import rx.Observable;
+import rx.Subscription;
 
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
 import org.midonet.brain.southbound.vtep.model.McastMac;
@@ -21,237 +28,345 @@ import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.brain.southbound.vtep.model.UcastMac;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.functors.Callback;
 
 /**
- * Represents a connection to a VTEP-enabled switch.
+ * A client class for the connection to a VTEP-enabled switch. A client
+ * instance allows multiple users to share the same connection to a VTEP,
+ * while monitoring the connection for possible failure and including a
+ * recovery mechanism.
  */
 public interface VtepDataClient {
 
+    @Immutable
+    public enum State {
+        CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED, BROKEN, DISPOSED
+    }
+
     /**
-     * @return the management ip that this client connects to.
+     * @return The VTEP management IP for the current client.
      */
     public IPv4Addr getManagementIp();
 
     /**
-     * @return the tunnel ip of this VTEP
+     * @return The VTEP tunnel IP.
      */
     public IPv4Addr getTunnelIp();
 
     /**
-     * @return the management UDP port where this client connects to.
+     * @return The VTEP management UDP port for the current client.
      */
     public int getManagementPort();
 
     /**
      * Lists all physical switches configured in the VTEP.
-     *
-     * @return the physical switches.
      */
-    public List<PhysicalSwitch> listPhysicalSwitches();
+    public @Nonnull List<PhysicalSwitch> listPhysicalSwitches()
+        throws VtepNotConnectedException;
 
     /**
      * Lists all logical switches configured in the VTEP.
-     *
-     * @return the logical switches.
      */
-    public List<LogicalSwitch> listLogicalSwitches();
+    public @Nonnull List<LogicalSwitch> listLogicalSwitches()
+        throws VtepNotConnectedException;
 
     /**
      * Lists all the physical ports in a given physical switch.
      *
-     * @param psUuid uuid of the physical switch
-     * @return the list of physical ports
+     * @param psId The physical switch identifier.
+     * @return The list of physical ports.
      */
-    public List<PhysicalPort> listPhysicalPorts(
-        org.opendaylight.ovsdb.lib.notation.UUID psUuid);
+    public @Nonnull List<PhysicalPort> listPhysicalPorts(
+        org.opendaylight.ovsdb.lib.notation.UUID psId)
+        throws VtepNotConnectedException;
 
     /**
-     * Lists all the multicast macs local to the VTEP.
+     * Lists all the multicast local MACs.
      */
-    public List<McastMac> listMcastMacsLocal();
+    @SuppressWarnings("unused")
+    public @Nonnull List<McastMac> listMcastMacsLocal()
+        throws VtepNotConnectedException;
 
     /**
-     * Lists all the multicast macs remote to the VTEP.
+     * Lists all the multicast remote MACs.
      */
-    public List<McastMac> listMcastMacsRemote();
+    @SuppressWarnings("unused")
+    public @Nonnull List<McastMac> listMcastMacsRemote()
+        throws VtepNotConnectedException;
 
     /**
-     * Lists all the unicast macs local to the VTEP.
+     * Lists all the unicast local MACs.
      */
-    public List<UcastMac> listUcastMacsLocal();
+    @SuppressWarnings("unused")
+    public @Nonnull List<UcastMac> listUcastMacsLocal()
+        throws VtepNotConnectedException;
 
     /**
-     * Lists all the unicast macs remote to the VTEP.
+     * Lists all the unicast remote MACs.
      */
-    public List<UcastMac> listUcastMacsRemote();
+    @SuppressWarnings("unused")
+    public @Nonnull List<UcastMac> listUcastMacsRemote()
+        throws VtepNotConnectedException;
 
     /**
-     * Retrieve a LogicalSwitch by UUID.
+     * Gets a logical switch by identifier.
      */
-    public LogicalSwitch getLogicalSwitch(UUID id);
+    public @Nullable LogicalSwitch getLogicalSwitch(@Nonnull UUID lsId)
+        throws VtepNotConnectedException;
 
     /**
-     * Retrieve a LogicalSwitch by name.
+     * Gets a logical switch by name.
      */
-    public LogicalSwitch getLogicalSwitch(String name);
+    public @Nullable LogicalSwitch getLogicalSwitch(@Nonnull String lsName)
+        throws VtepNotConnectedException;
 
     /**
-     * Connect to the VTEP database instance:
+     * Adds a new logical switch using the given VNI as tunnel key.
      *
-     * @param mgmtIp the management ip of the VTEP
-     * @param port the management port of the VTEP
+     * @param lsName The logical switch name.
+     * @param vni The VNI.
+     * @return The operation result status.
      */
-    public void connect(IPv4Addr mgmtIp, int port);
+    public StatusWithUuid addLogicalSwitch(@Nonnull String lsName, int vni);
 
     /**
-     * Disconnect from the VTEP database instance:
+     * Binds a physical port and VLAN to a given logical switch. If the logical
+     * switch does not exist, the method creates a new logical switch with the
+     * specified VNI.
+     *
+     * @param lsName The logical switch name.
+     * @param portName The name of the physical port.
+     * @param vlan The VLAN.
+     * @param vni The VNI to use if the logical switch does not exist.
+     * @param floodIps The list of IP addresses for the VTEP peers that will be
+     *                 added as entries to the remote unicast and multicast
+     *                 tables as unknown-dst.
+     *
+     * @return The operation result status.
      */
-    public void disconnect();
+    public Status bindVlan(@Nonnull String lsName, @Nonnull String portName,
+                           short vlan, int vni,
+                           @Nullable Collection<IPv4Addr> floodIps);
 
     /**
-     * Adds a new logical switch to the remote VTEP instance, using the
-     * given VNI as tunnel key.
+     * Binds a list of port-VLAN pairs to a given logical switch.
      *
-     * @param name the name of the new logical switch
-     * @param vni the VNI associated to the new logical switch
-     * @return operation result status
+     * @param lsId The logical switch identifier.
+     * @param bindings An array of physical port and VLAN bindings .
+     *
+     * @return The operation result status.
      */
-    public StatusWithUuid addLogicalSwitch(String name, int vni);
-
-    /**
-     * Binds a physical port and vlan to the given logical switch.
-     *
-     * @param lsName of the logical switch
-     * @param portName the physical port in the physical switch
-     * @param vlan vlan tag to match for traffic on the given phys. port
-     * @param vni vni to use if the logical switch does not exist
-     * @param floodIps ips of the vtep peers that will get a remote Mcast and
-     *                 Ucast entry for unknown-dst.
-     *
-     * @return operation result status
-     */
-    public Status bindVlan(String lsName, String portName, int vlan,
-                           Integer vni, List<IPv4Addr> floodIps);
-
-    /**
-     * Binds a list of (physical_port, vlan) to a given logical switch.
-     *
-     * @param lsUuid id of the logical switch, it must exist
-     * @param portVlanPairs the pairs of physical port and vlans to bind
-     *
-     * @return operation result status
-     */
-    public Status addBindings(UUID lsUuid,
-                              List<Pair<String, Integer>> portVlanPairs);
+    public Status addBindings(
+        @Nonnull UUID lsId, @Nonnull Collection<Pair<String, Short>> bindings);
 
     /**
      * Adds a new entry to the Ucast_Macs_Remote table.
      *
-     * @param lsName of the logical switch where mac is to be added
-     * @param mac the mac address
-     * @param ip the ip associated to the mac (for ARP) - can be null.
-     * @param tunnelEndPoint the ip of the vxlan tunnel peer where packets
-     *                       addressed to mac should be tunnelled to
-     * @return the result of the operation
+     * @param lsName The logical switch name.
+     * @param mac The MAC address.
+     * @param macIp The IP associated to the MAC address using ARP.
+     * @param tunnelIp The IP of the VXLAN tunnel peer to where packets
+     *                 addressed to MAC should be tunnelled.
+     * @return The operation result status.
      */
-    public Status addUcastMacRemote(String lsName, MAC mac, IPv4Addr ip,
-                                    IPv4Addr tunnelEndPoint );
+    public Status addUcastMacRemote(@Nonnull String lsName, @Nonnull MAC mac,
+                                    @Nullable IPv4Addr macIp,
+                                    @Nonnull IPv4Addr tunnelIp);
 
     /**
      * Adds a new entry to the Mcast_Macs_Remote table.
      *
-     * @param lsName of the logical switch where mac is to be added
-     * @param vMac the mac address
-     * @param tunnelEndpoint the ip of the vxlan tunnel peer where packets
-     *                       addressed to mac should be tunnelled to
-     * @return the result of the operation
+     * @param lsName The logical switch name.
+     * @param mac The MAC address.
+     * @param tunnelIp The IP of the VXLAN tunnel peer to where packets
+     *                 addressed to MAC should be tunnelled.
+     * @return The operation result status.
      */
-    public Status addMcastMacRemote(String lsName, VtepMAC vMac,
-                                    IPv4Addr tunnelEndpoint);
+    public Status addMcastMacRemote(@Nonnull String lsName,
+                                    @Nonnull VtepMAC mac,
+                                    @Nonnull IPv4Addr tunnelIp);
 
     /**
-     * Deletes all entries from the Ucast_Mac_Remote table that matches the
-     * specified MAC address, logical switch name and IP address. The method
-     * returns a NotFound status when there is no matching entry.
+     * Deletes an entry with the specified MAC and MAC IP address from the
+     * Ucast_Mac_Remote table.
      *
-     * @param lsName The logical switch name
-     * @param mac The MAC address
-     * @param macIp the IP in the entry to remove (nullable)
-     * @return Operation result status
+     * @param lsName The logical switch name.
+     * @param mac The MAC address.
+     * @param macIp The IP address.
+     * @return The operation result status.
      */
-    public Status delUcastMacRemote(String lsName, MAC mac, IPv4Addr macIp);
+    public Status deleteUcastMacRemote(@Nonnull String lsName, @Nonnull MAC mac,
+                                       @Nonnull IPv4Addr macIp);
 
     /**
-     * Deletes all entries from the Ucast_Mac_Remote table that match the
-     * specified MAC address and logical switch name. The method returns
-     * a NotFound status when there is no matching entry.
+     * Deletes all entries with the specified MAC from the Ucast_Mac_Remote
+     * table.
      *
-     * @param lsName The logical switch name
-     * @param mac The MAC address
-     * @return Operation result status
+     * @param lsName The logical switch name.
+     * @param mac The MAC address.
+     * @return The operation result status.
      */
-    public Status delUcastMacRemoteAllIps(String lsName, MAC mac);
+    public Status deleteAllUcastMacRemote(@Nonnull String lsName,
+                                          @Nonnull MAC mac);
 
     /**
-     * Deletes all entries from the Mcast_Mac_Remote table that match the
-     * specified MAC address and logical switch name. The method returns a
-     * NotFound status when there is no matching entry.
+     * Deletes all entries with the specified MAC from the Mcast_Mac_Remote
+     * table.
      *
-     * @param lsName The logical switch name
-     * @param vMac The MAC address
-     * @return Operation result status
+     * @param lsName The logical switch name.
+     * @param mac The MAC address.
+     * @return The operation result status.
      */
-    public Status delMcastMacRemoteAllIps(String lsName, VtepMAC vMac);
+    public Status deleteAllMcastMacRemote(@Nonnull String lsName,
+                                          @Nonnull VtepMAC mac);
 
     /**
-     * Provides an observable notifying when a connection is established to a
-     * VTEP.
+     * Deletes a port-VLAN binding for the current physical switch.
+     *
+     * @param portName The name of the physical port.
+     * @param vlan The VLAN.
+     * @return The operation result status.
      */
-    public Observable<Connection> connectObservable();
+    public Status deleteBinding(@Nonnull String portName, short vlan);
 
     /**
-     * Provides an observable notifying when a connection is disconnected from
-     * a VTEP.
+     * Deletes a logical switch, with all the unicast and multicast MAC
+     * addresses.
+     *
+     * @param lsName The logical switch name.
+     * @return The operation result status.
      */
-    public Observable<Connection> disconnectObservable();
+    public Status deleteLogicalSwitch(@Nonnull String lsName);
+
+    /**
+     * Gets the list of port-VLAN bindings for a logical switch.
+     *
+     * @param lsId The logical switch identifier.
+     * @return The list of port-VLAN bindings.
+     * @throws VtepNotConnectedException Exception thrown if the VTEP is not
+     * connected.
+     */
+    @SuppressWarnings("unused")
+    public List<Pair<UUID, Short>> listPortVlanBindings(UUID lsId)
+        throws VtepNotConnectedException;
+
+    /**
+     * Clears all the bindings for a logical switch.
+     *
+     * @param lsId The logical switch identifier.
+     * @return The operation result status.
+     */
+    public Status clearBindings(UUID lsId);
+
+    /**
+     * Disconnects from the VTEP. If the VTEP is already disconnecting or
+     * disconnected, the method does nothing. If the connection state is
+     * connecting, the method throws an exception.
+     *
+     * The method does not disconnect if the specified user did not previously
+     * call the connect method, or if there are other users still using
+     * the connection.
+     *
+     * @param user The user for this connection.
+     * @param lazyDisconnect If true, the methods does dispose the VTEP
+     *                       client immediately, event if there are no more
+     *                       users for this connection.
+     * @throws VtepStateException The client could not disconnect because of
+     * an invalid service state after a number of retries.
+     */
+    @SuppressWarnings("unused")
+    public void disconnect(java.util.UUID user, boolean lazyDisconnect) throws
+        VtepStateException;
+
+    /**
+     * Waits for the VTEP data client to be connected to the VTEP.
+     *
+     * @throws VtepStateException The client reached a state from which it
+     * can no longer become connected.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitConnected() throws VtepStateException;
+
+    /**
+     * Waits for the VTEP data client to be connected to the VTEP for the
+     * specified timeout interval.
+     *
+     * @param timeout The timeout interval.
+     * @param unit The interval unit.
+     * @throws VtepStateException The client reached a state from which it
+     * can no longer become connected.
+     * @throws TimeoutException The timeout interval expired.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitConnected(long timeout, TimeUnit unit)
+        throws VtepStateException, TimeoutException;
+
+    /**
+     * Waits for the VTEP data client to be disconnected from the VTEP.
+     *
+     * @throws VtepStateException The client reached a state from which it
+     * can no longer become discconnected.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitDisconnected() throws VtepStateException;
+
+    /**
+     * Waits for the VTEP data client to be disconnected from the VTEP for the
+     * specified timeout interval.
+     *
+     * @param timeout The timeout interval.
+     * @param unit The interval unit.
+     * @throws VtepStateException The client reached a state from which it
+     * can no longer become discconnected.
+     * @throws TimeoutException The timeout interval expired.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitDisconnected(long timeout, TimeUnit unit)
+        throws VtepStateException, TimeoutException;
+
+    /**
+     * Waits for the VTEP data client to reach the specified state. The method
+     * throws an exception if the specified state can no longer be reached.
+     * @param state The state.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitState(State state) throws VtepStateException;
+
+    /**
+     * Waits for the VTEP data client to reach the specified state an amount of
+     * time.
+     * @param state The state.
+     * @param timeout The timeout interval.
+     * @param unit The interval unit.
+     */
+    @SuppressWarnings("unused")
+    public VtepDataClient awaitState(State state, long timeout, TimeUnit unit)
+        throws TimeoutException;
+
+
+    /**
+     * Gets the current client state.
+     */
+    public State getState();
+
+    /**
+     * Specifies a callback method to execute when the VTEP becomes connected.
+     *
+     * @param callback A callback instance.
+     */
+    @SuppressWarnings("unused")
+    public Subscription onConnected(
+        @Nonnull Callback<VtepDataClient, VtepException> callback);
+
+    /**
+     * Provides an observable notifying of the changes to the connection state.
+     */
+    @SuppressWarnings("unused")
+    public Observable<State> stateObservable();
 
     /**
      * Provides an observable producing a stream of updates from the VTEP.
      */
     public Observable<TableUpdates> updatesObservable();
-
-    /**
-     * Deletes a binding between the given port and vlan.
-     *
-     * @param portName of the physical port
-     * @param vlanId the vlan id
-     * @return the result of the operation
-     */
-    public Status deleteBinding(String portName, int vlanId);
-
-    /**
-     * Deletes the logical switch, with all its bindings and associated
-     * ucast / mcast remote macs.
-     * @param name of the logical switch
-     * @return the result of the operation
-     */
-    public Status deleteLogicalSwitch(String name);
-
-    /**
-     * Returns the full list of port VLAN pairs on the given logical switch.
-     *
-     * @param lsId the logical switch UUID
-     * @return the list of (port_uuid, vlan) representing bindings on this
-     * logical switch
-     */
-    public List<Pair<UUID, Integer>> listPortVlanBindings(UUID lsId);
-
-    /**
-     * Clears all bindings of the given logical switch in a single transaction.
-     *
-     * @param lsUuid the logical switch UUID
-     * @return the result of the operation
-     */
-    public Status clearBindings(UUID lsUuid);
 
 }

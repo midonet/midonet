@@ -6,14 +6,9 @@ package org.midonet.api.network.rest_api;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -40,6 +35,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
@@ -50,8 +46,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
@@ -99,7 +93,7 @@ public class VtepResource extends AbstractVtepResource {
             addIpsToList(vtepIps, ps.mgmtIps);
             addIpsToList(vtepIps, ps.tunnelIps);
 
-        } catch(GatewayTimeoutHttpException e) {
+        } catch(GatewayTimeoutHttpException | VtepNotConnectedException e) {
             log.warn("Cannot verify conflicts between hosts and VTEP IPs "
                      + " because VTEP {}:{} is not accessible",
                      vtep.getManagementIp(), vtep.getManagementPort());

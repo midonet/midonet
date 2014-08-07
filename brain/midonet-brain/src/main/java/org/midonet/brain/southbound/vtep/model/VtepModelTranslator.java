@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.brain.southbound.vtep.model;
 
 import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -62,8 +60,8 @@ public class VtepModelTranslator {
         return new PhysicalPort(
             ovsdbPort.getDescription(),
             ovsdbPort.getName(),
-            bigIntToInteger(ovsdbPort.getVlan_bindings()),
-            bigIntToInteger(ovsdbPort.getVlan_stats()),
+            bigIntToShort(ovsdbPort.getVlan_bindings()),
+            bigIntToShort(ovsdbPort.getVlan_stats()),
             ovsdbPort.getPort_fault_status()
         );
     }
@@ -112,13 +110,13 @@ public class VtepModelTranslator {
         );
     }
 
-    private static <T> OvsDBMap<Integer, T>
-        bigIntToInteger(OvsDBMap<BigInteger, T> map) {
-        OvsDBMap<Integer, T> intMap = new OvsDBMap<>();
+    private static <T> OvsDBMap<Short, T>
+        bigIntToShort(OvsDBMap<BigInteger, T> map) {
+        OvsDBMap<Short, T> shortMap = new OvsDBMap<>();
         for(Map.Entry<BigInteger, T> e : map.entrySet()) {
-            intMap.put(e.getKey().intValue(), e.getValue());
+            shortMap.put(e.getKey().shortValue(), e.getValue());
         }
-        return intMap;
+        return shortMap;
     }
 
 }
