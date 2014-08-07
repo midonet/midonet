@@ -30,7 +30,7 @@ import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -87,8 +87,8 @@ import org.midonet.util.functors.Callback0
 abstract class BaseFlowStateReplicator() {
     import FlowStatePackets._
 
-    def conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue]
-    def natTable: FlowStateLifecycle[NatKey, NatBinding]
+    def conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue]
+    def natTable: FlowStateTable[NatKey, NatBinding]
     def storage: FlowStateStorage
     def underlay: UnderlayResolver
     def datapath: Datapath
@@ -435,8 +435,8 @@ abstract class BaseFlowStateReplicator() {
 }
 
 class FlowStateReplicator(
-        override val conntrackTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
-        override val natTable: FlowStateLifecycle[NatKey, NatBinding],
+        override val conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+        override val natTable: FlowStateTable[NatKey, NatBinding],
         override val storage: FlowStateStorage,
         override val underlay: UnderlayResolver,
         override val invalidateFlowsFor: (FlowStateKey) => Unit,

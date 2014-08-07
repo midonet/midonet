@@ -51,7 +51,7 @@ public class FlowStateTableTest {
     }
 
     private ShardedFlowStateTable<TestKey, Integer> global;
-    private List<FlowStateLifecycle<TestKey, Integer>> shards = new ArrayList<>();
+    private List<FlowStateTable<TestKey, Integer>> shards = new ArrayList<>();
 
     private final int SHARDS = 4;
 
@@ -66,7 +66,7 @@ public class FlowStateTableTest {
     public void before() {
         global = new ShardedFlowStateTable<>(clock);
         for (int i = 0; i < SHARDS; i++)
-            shards.add((FlowStateLifecycle) global.addShard());
+            shards.add((FlowStateTable) global.addShard());
     }
 
     @Test
@@ -159,7 +159,7 @@ public class FlowStateTableTest {
 
     @Test
     public void testTxRefCount() {
-        FlowStateLifecycle<TestKey, Integer> shard = shards.get(0);
+        FlowStateTable<TestKey, Integer> shard = shards.get(0);
         FlowStateTransaction<TestKey, Integer> tx =
                 new FlowStateTransaction<>(shards.get(0));
 
@@ -191,12 +191,48 @@ public class FlowStateTableTest {
         assertThat(txVals, equalTo(expectedVals));
     }
 
+    private void txFoldTest(FlowStateTransaction<TestKey, Integer> tx) {
+        Set<TestKey> txKeys = tx.fold(new HashSet<TestKey>(), new KeyReducer());
+        Set<TestKey> expectedKeys = new HashSet<>();
+        expectedKeys.addAll(Arrays.asList(keys));
+        assertThat(txKeys, equalTo(expectedKeys));
+
+        Set<Integer> txVals = tx.fold(new HashSet<Integer>(), new ValueReducer());
+        Set<Integer> expectedVals = new HashSet<>();
+        expectedVals.addAll(Arrays.asList(vals));
+        assertThat(txVals, equalTo(expectedVals));
+    }
+
     @Test
     public void testTransactionFold() {
-        FlowStateTable<TestKey, Integer> tx = new FlowStateTransaction<>(shards.get(0));
+        FlowStateTransaction<TestKey, Integer> tx =
+            new FlowStateTransaction<>(shards.get(0));
         for (int i = 0; i < keys.length; i++)
             tx.putAndRef(keys[i], vals[i]);
-        foldTest(tx);
+        txFoldTest(tx);
+    }
+
+    @Test
+    public void testTouch() {
+        for (int i = 0; i < keys.length; i++) {
+            shards.get(0).touch(keys[i], vals[i]);
+            assertThat(shards.get(0).get(keys[i]), equalTo(vals[i]));
+            assertThat(shards.get(0).getRefCount(keys[i]), equalTo(0));
+        }
+    }
+
+    @Test
+    public void testTxTouch() {
+        FlowStateTransaction<TestKey, Integer> tx =
+                new FlowStateTransaction<>(shards.get(0));
+        shards.get(0).putAndRef(keys[0], vals[0]);
+        tx.touch(keys[0], vals[0]);
+        tx.touch(keys[1], vals[1]);
+        tx.commit();
+        assertThat(shards.get(0).get(keys[0]), equalTo(vals[0]));
+        assertThat(shards.get(0).get(keys[1]), equalTo(vals[1]));
+        assertThat(shards.get(0).getRefCount(keys[0]), equalTo(1));
+        assertThat(shards.get(0).getRefCount(keys[1]), equalTo(0));
     }
 
     @Test
@@ -255,7 +291,25 @@ public class FlowStateTableTest {
         refCountTest(global);
     }
 
-    private void refCountTest(FlowStateLifecycle<TestKey, Integer> cs) {
+    @Test
+    public void testTouchExpirationReset() {
+        FlowStateTable<TestKey, Integer> table = shards.get(0);
+
+        clock.time = 1;
+        table.touch(keys[1], vals[1]);
+        table.touch(keys[0], vals[0]);
+        clock.time += IDLE_EXPIRATION.toNanos() / 2;
+        table.touch(keys[1], vals[1]);
+        clock.time += IDLE_EXPIRATION.toNanos() / 2 + 1;
+        table.expireIdleEntries();
+        assertThat(table.get(keys[1]), equalTo(vals[1]));
+        assertThat(table.get(keys[0]), nullValue());
+        clock.time += IDLE_EXPIRATION.toNanos() / 2;
+        table.expireIdleEntries();
+        assertThat(table.get(keys[1]), nullValue());
+    }
+
+    private void refCountTest(FlowStateTable<TestKey, Integer> cs) {
         for (TestKey key : keys) {
             cs.unref(key);
             cs.ref(key);

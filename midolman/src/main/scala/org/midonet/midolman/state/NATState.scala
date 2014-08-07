@@ -268,9 +268,9 @@ trait NatState extends FlowState {
         val binding = natTx.get(natKey)
         if (binding ne null) {
             pktCtx.addFlowTag(natKey)
-            natTx.delete(natKey)
+            natTx.remove(natKey)
             val returnKey = natKey.returnKey(binding)
-            natTx.delete(returnKey)
+            natTx.remove(returnKey)
             pktCtx.addFlowTag(returnKey)
         }
     }

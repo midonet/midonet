@@ -34,7 +34,7 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.concurrent.ExecutionContextOps
-import org.midonet.sdn.state.{FlowStateLifecycle, FlowStateTransaction}
+import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 
@@ -124,8 +124,8 @@ class DeduplicationActor(
             val cookieGen: CookieGenerator,
             val dpConnPool: DatapathConnectionPool,
             val clusterDataClient: DataClient,
-            val connTrackStateTable: FlowStateLifecycle[ConnTrackKey, ConnTrackValue],
-            val natStateTable: FlowStateLifecycle[NatKey, NatBinding],
+            val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+            val natStateTable: FlowStateTable[NatKey, NatBinding],
             val storage: FlowStateStorage,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
