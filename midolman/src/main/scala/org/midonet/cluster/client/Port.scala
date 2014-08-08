@@ -18,7 +18,7 @@ sealed trait Port {
     var outboundFilter: UUID = _
     var properties: Map[String, String] = _//move (What's this mean?)
     var tunnelKey: Long = _
-    var portGroups: Set[UUID] = _
+    var portGroups: Set[UUID] = Set.empty
     var hostID: UUID = _
     var interfaceName: String = _
     var peerID: UUID = _
