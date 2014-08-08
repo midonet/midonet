@@ -63,6 +63,7 @@
                                     <arg value="--java_out=../../../target/generated-sources"/>
                                     <arg value="commons.proto"/>
                                     <arg value="devices.proto"/>
+                                    <arg value="test.proto"/>
                                 </exec>
                                 <delete dir="build/tmp/proto"/>
                             </tasks>
