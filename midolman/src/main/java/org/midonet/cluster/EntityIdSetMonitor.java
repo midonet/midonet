@@ -44,7 +44,7 @@ public class EntityIdSetMonitor<KEY> {
     private Set<KEY> knownKeyList = new HashSet<>();
 
     /* Zk Manager to access the children */
-    private final WatchableZkManager zkManager;
+    private final WatchableZkManager<KEY, ?> zkManager;
 
     /* Zk Connection watcher */
     private final ZkConnectionAwareWatcher zkConnWatcher;
@@ -87,7 +87,7 @@ public class EntityIdSetMonitor<KEY> {
      * @throws StateAccessException
      */
     @Inject
-    public EntityIdSetMonitor(WatchableZkManager zkManager,
+    public EntityIdSetMonitor(WatchableZkManager<KEY, ?> zkManager,
                               ZookeeperConnectionWatcher zkConnWatcher)
         throws StateAccessException {
         this.zkManager = zkManager;
