@@ -238,9 +238,9 @@ abstract class BaseFlowStateReplicator() {
         if (hasPeers) {
             txState.clear()
             resetCurrentMessage()
-            txIngressPort = ingressPort
         }
 
+        txIngressPort = ingressPort
         handleConntrack(conntrackTx)
         handleNat(natTx)
 
