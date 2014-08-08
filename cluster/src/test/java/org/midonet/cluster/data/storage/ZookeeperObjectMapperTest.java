@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import com.google.protobuf.Message;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -19,6 +20,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Devices;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -27,12 +30,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.data.storage.FieldBinding.DeleteAction.CLEAR;
 
 public class ZookeeperObjectMapperTest {
 
-    private static class Bridge {
+    protected static class Bridge {
         public UUID id;
         public String name;
         public UUID inChainId;
@@ -49,7 +52,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static class Router {
+    protected static class Router {
         public UUID id;
         public String name;
         public UUID inChainId;
@@ -66,7 +69,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static class Port {
+    protected static class Port {
         public UUID id;
         public String name;
         public UUID peerId;
@@ -94,7 +97,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static class Chain {
+    protected static class Chain {
         public UUID id;
         public String name;
         public List<UUID> ruleIds;
@@ -110,7 +113,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static class Rule {
+    protected static class Rule {
         public UUID id;
         public UUID chainId;
         public String name;
@@ -127,7 +130,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static class NoIdField {
+    protected static class NoIdField {
         public UUID notId;
         public List<UUID> refIds;
     }
@@ -138,6 +141,16 @@ public class ZookeeperObjectMapperTest {
     private static final int zkPort = 12181; // Avoid conflicting with real ZK.
     private static final String zkConnectionString = "127.0.0.1:" + zkPort;
     private static final String zkRootDir = "/zkomtest";
+
+    private static final Commons.UUID bridgeUuid = createRandomUuidproto();
+    private static final Commons.UUID chainUuid = createRandomUuidproto();
+
+    private static Commons.UUID createRandomUuidproto() {
+        UUID uuid = UUID.randomUUID();
+        return Commons.UUID.newBuilder().setMsb(uuid.getMostSignificantBits())
+                                        .setLsb(uuid.getLeastSignificantBits())
+                                        .build();
+    }
 
     @BeforeClass
     public static void classSetup() throws Exception {
@@ -157,32 +170,7 @@ public class ZookeeperObjectMapperTest {
 
         orm = new ZookeeperObjectMapper(zkRootDir, client);
 
-        orm.declareBinding(Bridge.class, "inChainId", DeleteAction.CLEAR,
-                           Chain.class, "bridgeIds", DeleteAction.CLEAR);
-        orm.declareBinding(Bridge.class, "outChainId", DeleteAction.CLEAR,
-                           Chain.class, "bridgeIds", DeleteAction.CLEAR);
-
-        orm.declareBinding(Router.class, "inChainId", DeleteAction.CLEAR,
-                           Chain.class, "routerIds", DeleteAction.CLEAR);
-        orm.declareBinding(Router.class, "outChainId", DeleteAction.CLEAR,
-                           Chain.class, "routerIds", DeleteAction.CLEAR);
-
-        orm.declareBinding(Port.class, "bridgeId", DeleteAction.CLEAR,
-                           Bridge.class, "portIds", DeleteAction.ERROR);
-        orm.declareBinding(Port.class, "routerId", DeleteAction.CLEAR,
-                           Router.class, "portIds", DeleteAction.ERROR);
-        orm.declareBinding(Port.class, "inChainId", DeleteAction.CLEAR,
-                           Chain.class, "portIds", DeleteAction.CLEAR);
-        orm.declareBinding(Port.class, "outChainId", DeleteAction.CLEAR,
-                           Chain.class, "portIds", DeleteAction.CLEAR);
-        orm.declareBinding(Port.class, "peerId", DeleteAction.CLEAR,
-                           Port.class, "peerId", DeleteAction.CLEAR);
-
-        orm.declareBinding(Chain.class, "ruleIds", DeleteAction.CASCADE,
-                           Rule.class, "chainId", DeleteAction.CLEAR);
-
-        orm.declareBinding(Rule.class, "portIds", DeleteAction.CLEAR,
-                           Port.class, "ruleIds", DeleteAction.CLEAR);
+        this.initBindings();
 
         try {
             client.delete().deletingChildrenIfNeeded().forPath(zkRootDir);
@@ -194,6 +182,126 @@ public class ZookeeperObjectMapperTest {
         for (String s : new String[]{
                 "Bridge", "Router", "Port", "Chain", "Rule"})
             client.create().forPath(zkRootDir + "/" + s);
+    }
+
+    /* Initializes Bindings for ZOM. */
+    private void initBindings() {
+        // Bindings for POJOs.
+        addPojoBinding(Bridge.class, "inChainId", DeleteAction.CLEAR,
+                       Chain.class, "bridgeIds", DeleteAction.CLEAR);
+        addPojoBinding(Bridge.class, "outChainId", DeleteAction.CLEAR,
+                       Chain.class, "bridgeIds", DeleteAction.CLEAR);
+
+        addPojoBinding(Router.class, "inChainId", DeleteAction.CLEAR,
+                       Chain.class, "routerIds", DeleteAction.CLEAR);
+        addPojoBinding(Router.class, "outChainId", DeleteAction.CLEAR,
+                       Chain.class, "routerIds", DeleteAction.CLEAR);
+
+        addPojoBinding(Port.class, "bridgeId", DeleteAction.CLEAR,
+                       Bridge.class, "portIds", DeleteAction.ERROR);
+        addPojoBinding(Port.class, "routerId", DeleteAction.CLEAR,
+                       Router.class, "portIds", DeleteAction.ERROR);
+        addPojoBinding(Port.class, "inChainId", DeleteAction.CLEAR,
+                       Chain.class, "portIds", DeleteAction.CLEAR);
+        addPojoBinding(Port.class, "outChainId", DeleteAction.CLEAR,
+                       Chain.class, "portIds", DeleteAction.CLEAR);
+        addPojoBinding(Port.class, "peerId", DeleteAction.CLEAR,
+                       Port.class, "peerId", DeleteAction.CLEAR);
+
+        addPojoBinding(Chain.class, "ruleIds", DeleteAction.CASCADE,
+                       Rule.class, "chainId", DeleteAction.CLEAR);
+
+        addPojoBinding(Rule.class, "portIds", DeleteAction.CLEAR,
+                       Port.class, "ruleIds", DeleteAction.CLEAR);
+
+        // Bindings for proto-backed objects.
+        addProtoBinding(Devices.Bridge.getDefaultInstance(),
+                        "inbound_filter_id",
+                        DeleteAction.CLEAR,
+                        Devices.Chain.getDefaultInstance(),
+                        "bridge_ids",
+                        DeleteAction.CLEAR);
+        addProtoBinding(Devices.Bridge.getDefaultInstance(),
+                        "outbound_filter_id",
+                        DeleteAction.CLEAR,
+                        Devices.Chain.getDefaultInstance(),
+                        "bridge_ids",
+                        DeleteAction.CLEAR);
+    }
+
+    private void addPojoBinding(
+            Class<?> leftClass, String leftFld, DeleteAction leftAction,
+            Class<?> rightClass, String rightFld, DeleteAction rightAction) {
+        orm.addBindings(PojoFieldBinding.createBindings(
+                leftClass, leftFld, leftAction,
+                rightClass, rightFld, rightAction));
+    }
+
+    private void addProtoBinding(
+            Message leftMsg, String leftFld, DeleteAction leftAction,
+            Message rightMsg, String rightFld, DeleteAction rightAction) {
+        orm.addBindings(ProtoFieldBinding.createBindings(
+                leftMsg, leftFld, leftAction,
+                rightMsg, rightFld, rightAction));
+    }
+
+    /* A helper method for creating a proto Bridge. */
+    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
+                                             String name,
+                                             boolean adminStateUp,
+                                             long tunnelKey,
+                                             Commons.UUID inFilterId,
+                                             Commons.UUID outFilterId,
+                                             Commons.UUID vxLanPortId) {
+        Devices.Bridge.Builder bridgeBuilder = Devices.Bridge.newBuilder();
+        bridgeBuilder.setId(bridgeId);
+        bridgeBuilder.setName(name);
+        bridgeBuilder.setAdminStateUp(adminStateUp);
+        bridgeBuilder.setTunnelKey(tunnelKey);
+        if (inFilterId != null)
+            bridgeBuilder.setInboundFilterId(inFilterId);
+        if (outFilterId != null)
+            bridgeBuilder.setOutboundFilterId(outFilterId);
+        if (vxLanPortId != null)
+            bridgeBuilder.setVxLanPortId(vxLanPortId);
+
+        return bridgeBuilder.build();
+    }
+
+    /* A helper method for creating a proto Bridge. */
+    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
+                                             String name,
+                                             boolean adminStateUp,
+                                             long tunnelKey) {
+        return this.createProtoBridge(bridgeId,
+                                      name,
+                                      adminStateUp,
+                                      tunnelKey,
+                                      null,
+                                      null,
+                                      null);
+    }
+
+    /* A helper method for creating a proto Bridge. */
+    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
+                                             String name,
+                                             Commons.UUID inFilterId,
+                                             Commons.UUID outFilterId) {
+        return this.createProtoBridge(bridgeId,
+                                      name,
+                                      true,  // Admin state default true
+                                      -1,    // fake tunnel key
+                                      inFilterId,
+                                      outFilterId,
+                                      null);  // A fake VxLanPort ID.
+    }
+
+    /* A helper method for creating a proto Chain. */
+    private Devices.Chain createProtoChain(Commons.UUID chainId, String name) {
+        Devices.Chain.Builder chainBuilder = Devices.Chain.newBuilder();
+        chainBuilder.setId(chainId);
+        chainBuilder.setName(name);
+        return chainBuilder.build();
     }
 
     @Test
@@ -327,10 +435,10 @@ public class ZookeeperObjectMapperTest {
     @Test(expected = ObjectReferencedException.class)
     public void testCascadeToDeleteError() throws Exception {
         orm.clearBindings();
-        orm.declareBinding(Bridge.class, "inChainId", DeleteAction.CASCADE,
-                           Chain.class, "bridgeIds", DeleteAction.CLEAR);
-        orm.declareBinding(Chain.class, "ruleIds", DeleteAction.ERROR,
-                           Rule.class, "chainId", DeleteAction.CLEAR);
+        addPojoBinding(Bridge.class, "inChainId", DeleteAction.CASCADE,
+                       Chain.class, "bridgeIds", DeleteAction.CLEAR);
+        addPojoBinding(Chain.class, "ruleIds", DeleteAction.ERROR,
+                       Rule.class, "chainId", DeleteAction.CLEAR);
 
         Chain chain = new Chain("chain");
         Rule rule = new Rule("rule", chain.id);
@@ -338,42 +446,6 @@ public class ZookeeperObjectMapperTest {
         createObjects(chain, rule, bridge);
 
         orm.delete(Bridge.class, bridge.id);
-    }
-
-    @Test
-    public void testCreateBindingForClassWithNoId() throws Exception {
-        try {
-            orm.declareBinding(NoIdField.class, "notId", CLEAR,
-                Bridge.class, "portIds", CLEAR);
-            fail("Should not allow binding of class with no id field.");
-        } catch (IllegalArgumentException ex) {
-            assertEquals("id", ex.getCause().getMessage());
-        }
-    }
-
-    @Test
-    public void testCreateBindingWithUnrecognizedFieldName() throws Exception {
-        try {
-            orm.declareBinding(Bridge.class, "noSuchField", CLEAR,
-                    Port.class, "bridgeId", CLEAR);
-            fail("Should not allow binding with unrecognized field name.");
-        } catch (IllegalArgumentException ex) {
-            assertEquals("noSuchField", ex.getCause().getMessage());
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateBindingWithWrongScalarRefType() throws Exception {
-        orm.declareBinding(Bridge.class, "name", CLEAR,
-                Port.class, "bridgeId", CLEAR);
-        fail("Should not allow ref from String to UUID.");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateBindingWithWrongListRefType() throws Exception {
-        orm.declareBinding(Chain.class, "ruleIds", CLEAR,
-                Rule.class, "strings", CLEAR);
-        fail("Should not allow ref from List<String> to UUID.");
     }
 
     @Test
@@ -414,6 +486,97 @@ public class ZookeeperObjectMapperTest {
     }
 
     @Test
+    public void testCreateProtoBridge() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        orm.create(bridge);
+
+        Devices.Bridge bridgeOut = orm.get(Devices.Bridge.class, bridgeUuid);
+        assertEquals("The retrieved proto object is equal to the original.",
+                     bridge, bridgeOut);
+    }
+
+    @Test
+    public void testCreateProtoBridgeWithExistingId() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        orm.create(bridge);
+        try {
+            orm.create(bridge);
+            fail("Should not be able to create object with in-use ID.");
+        } catch (ObjectExistsException ex) {
+            assertEquals(Devices.Bridge.class, ex.getClazz());
+            assertEquals(bridgeUuid, ex.getId());
+        }
+    }
+
+    @Test
+    public void testCreateProtoBridgeWithInChains()
+            throws Exception {
+
+        Devices.Chain inChain =
+                this.createProtoChain(chainUuid, "in_chain");
+        orm.create(inChain);
+
+        // Add bridge referencing an in-bound chain.
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "bridge", chainUuid, null);
+        orm.create(bridge);
+
+        Devices.Bridge bridgeOut = orm.get(Devices.Bridge.class, bridgeUuid);
+        assertEquals("The retrieved proto object is equal to the original.",
+                     bridge, bridgeOut);
+
+        // Chains should have backrefs to the bridge.
+        Devices.Chain in = orm.get(Devices.Chain.class, chainUuid);
+        assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
+    }
+
+    @Test
+    public void testUpdateProtoBridge() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        orm.create(bridge);
+
+        // Changes the tunnel key value.
+        Devices.Bridge.Builder updateBldr = Devices.Bridge.newBuilder(bridge);
+        updateBldr.setTunnelKey(20);
+        Devices.Bridge updatedBridge = updateBldr.build();
+
+        // Update the bridge data in ZooKeeper.
+        orm.update(updatedBridge);
+
+        Devices.Bridge retrieved = orm.get(Devices.Bridge.class, bridgeUuid);
+        assertEquals("The retrieved proto object is equal to the updated "
+                     + "bridge.",
+                     updatedBridge, retrieved);
+    }
+
+    @Test
+    public void testUpdateProtoBridgeWithInChain() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        orm.create(bridge);
+
+        Devices.Chain inChain =
+                this.createProtoChain(chainUuid, "in_chain");
+        orm.create(inChain);
+
+        // Update the bridge with an in-bound chain.
+        Devices.Bridge updatedBridge =
+                bridge.toBuilder().setInboundFilterId(chainUuid).build();
+        orm.update(updatedBridge);
+
+        Devices.Bridge bridgeOut = orm.get(Devices.Bridge.class, bridgeUuid);
+        assertEquals("The retrieved bridge is updated with the chain.",
+                     chainUuid, bridgeOut.getInboundFilterId());
+
+        // Chains should have back refs to the bridge.
+        Devices.Chain in = orm.get(Devices.Chain.class, chainUuid);
+        assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
+    }
+
+    @Test
     public void testUpdateWithNonExistingId() throws Exception {
         Chain chain = new Chain("chain");
         try {
@@ -422,6 +585,19 @@ public class ZookeeperObjectMapperTest {
         } catch (NotFoundException ex) {
             assertEquals(Chain.class, ex.getClazz());
             assertEquals(chain.id, ex.getId());
+        }
+    }
+
+    @Test
+    public void testUpdateProtoBridgeWithNonExistingId() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        try {
+            orm.update(bridge);
+            fail("Should not be able to update nonexisting item.");
+        } catch (NotFoundException ex) {
+            assertEquals(Devices.Bridge.class, ex.getClazz());
+            assertEquals(bridgeUuid, ex.getId());
         }
     }
 
@@ -458,10 +634,54 @@ public class ZookeeperObjectMapperTest {
             fail("Should not be able to steal rule from another chain.");
         } catch (ReferenceConflictException ex) {
             assertThat(ex.getReferencingObj(), instanceOf(Rule.class));
-            assertEquals("chainId", ex.getReferencingField().getName());
-            assertEquals(Chain.class, ex.getReferencedClass());
-            assertEquals(chain1.id, ex.getReferencedId());
+            assertEquals("chainId", ex.getReferencingFieldName());
+            assertEquals(Chain.class.getSimpleName(), ex.getReferencedClass());
+            assertEquals(chain1.id.toString(), ex.getReferencedId());
         }
+    }
+
+    @Test
+    public void testDeleteProtoBridge() throws Exception {
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+        // Persists a bridge in ZooKeeper
+        orm.create(bridge);
+
+        // Delete the bridge data in ZooKeeper.
+        orm.delete(Devices.Bridge.class, bridgeUuid);
+
+        // Get on the bridge should throw a NotFoundException.
+        try {
+            orm.get(Devices.Bridge.class, bridgeUuid);
+            fail("The deleted bridge is returned.");
+        } catch (NotFoundException nfe) {
+            // The bridge has been properly deleted.
+        }
+    }
+
+    @Test
+    public void testDeleteProtoBridgeWithInChain() throws Exception {
+        Devices.Chain inChain =
+                this.createProtoChain(chainUuid, "in_chain");
+        orm.create(inChain);
+
+        // Add bridge referencing an in-bound chain.
+        Devices.Bridge bridge =
+                this.createProtoBridge(bridgeUuid, "bridge", chainUuid, null);
+        orm.create(bridge);
+
+        orm.delete(Devices.Bridge.class, bridgeUuid);
+        // Get on the bridge should throw a NotFoundException.
+        try {
+            orm.get(Devices.Bridge.class, bridgeUuid);
+            fail("The deleted bridge is returned.");
+        } catch (NotFoundException nfe) {
+            // The bridge has been properly deleted.
+        }
+
+        // Chains should not have the backrefs to the bridge.
+        Devices.Chain in = orm.get(Devices.Chain.class, chainUuid);
+        assertTrue(in.getBridgeIdsList().isEmpty());
     }
 
     @Test
