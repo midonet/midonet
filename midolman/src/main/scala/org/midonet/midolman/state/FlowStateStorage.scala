@@ -226,7 +226,8 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
             weakRefs: JIterator[UUID]): Unit = withSession {
         s =>
-            batch.add(bind(touchIngressConnTrack(s), strongRef, k))
+            if (strongRef ne null)
+                batch.add(bind(touchIngressConnTrack(s), strongRef, k))
             while (weakRefs.hasNext) {
                 batch.add(bind(touchEgressConnTrack(s), weakRefs.next(), k))
             }
@@ -243,7 +244,8 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
             weakRefs: JIterator[UUID]): Unit = withSession {
         s =>
-            batch.add(bind(touchIngressNat(s), strongRef, k, v))
+            if (strongRef ne null)
+                batch.add(bind(touchIngressNat(s), strongRef, k, v))
             while (weakRefs.hasNext) {
                 batch.add(bind(touchEgressNat(s), weakRefs.next(), k, v))
             }
