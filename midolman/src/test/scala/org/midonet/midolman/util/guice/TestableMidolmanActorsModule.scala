@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
 package org.midonet.midolman.util.guice
 
 import java.util.concurrent.LinkedBlockingDeque
@@ -18,16 +19,18 @@ import akka.testkit.TestActorRef
 import akka.testkit.TestKit
 import akka.util.Timeout
 
-import org.midonet.midolman.DatapathController
+import com.yammer.metrics.core.Clock
+
 import org.midonet.midolman.DeduplicationActor.HandlePackets
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.NetlinkCallbackDispatcher
 import org.midonet.midolman._
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.sdn.state.ShardedFlowStateTable
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
@@ -37,7 +40,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor
  * @see [[org.midonet.midolman.MidolmanTestCase]] for an usage example.
  */
 class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
-                                   actors: mutable.Map[String, TestActorRef[Actor]])
+                                   actors: mutable.Map[String, TestActorRef[Actor]],
+                                   clock: Clock)
     extends MidolmanActorsModule {
 
     protected override def bindMidolmanActorsService() {
@@ -45,6 +49,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
         expose(classOf[TestablePacketsEntryPoint])
         bind(classOf[MidolmanActorsService])
             .toInstance(new TestableMidolmanActorsService())
+        bind(classOf[Clock]).toInstance(clock)
     }
 
     class TestableMidolmanActorsService extends MidolmanActorsService {

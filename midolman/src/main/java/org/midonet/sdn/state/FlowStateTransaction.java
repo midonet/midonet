@@ -3,6 +3,8 @@ package org.midonet.sdn.state;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.midonet.util.collection.Reducer;
+
 /**
  * Represents an open transaction on a per-flow stateful data table.
  *
@@ -73,14 +75,9 @@ public class FlowStateTransaction<K, V> {
             parent.touch(touchKeys.get(i), touchVals.get(i));
     }
 
-    public <U> U fold(U seed, FlowStateTable.Reducer<? super K, ? super V, U> func) {
-        for (int i = 0; i < keys.size(); i++) {
+    public <U> U fold(U seed, Reducer<K, V, U> func) {
+        for (int i = 0; i < keys.size(); i++)
             seed = func.apply(seed, keys.get(i), values.get(i));
-        }
-        return seed;
-    }
-
-    public <U> U foldOverRefs(U seed, FlowStateTable.Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < refs.size(); i++)
             seed = func.apply(seed, refs.get(i), parent.get(refs.get(i)));
         return seed;
