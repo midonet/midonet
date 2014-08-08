@@ -385,7 +385,7 @@ class DeduplicationActor(
      */
     private def handleErrorOn(pktCtx: PacketContext, ex: Exception): Unit = {
         log.warning("Exception while processing packet {} - {}, {}",
-                    pktCtx.cookieStr, ex.getMessage, ex.getStackTraceString)
+                    pktCtx.cookieStr, ex, ex.getStackTraceString)
         drop(pktCtx)
     }
 
