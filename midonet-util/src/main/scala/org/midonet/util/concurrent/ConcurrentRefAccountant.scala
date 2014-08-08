@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
+
 package org.midonet.util.concurrent
 
 import java.util.concurrent.{ConcurrentLinkedQueue, ConcurrentHashMap}
@@ -8,7 +9,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.tailrec
 
 import akka.event.LoggingAdapter
-
 
 /**
  * A generic concurrent registry of reference counts. Keeps track of refCounts
@@ -65,18 +65,16 @@ import akka.event.LoggingAdapter
  *            incRefCount retry will succeed, guaranteeing a happens-before
  *            relationship.
  */
-abstract class ConcurrentRefAccountant() {
-    type Entry
+abstract class ConcurrentRefAccountant[K, V]() {
 
     protected def log: LoggingAdapter
-    protected def expirationMillis: Long
-    protected def newRefCb(e: Entry)
-    protected def deletedRefCb(e: Entry)
-
+    protected def newRefCb(k: K, v: V)
+    protected def deletedRefCb(k: K)
+    protected def expirationMillis(k: K): Long
 
     case class Metadata(refCount: AtomicInteger, var expiration: Long)
 
-    private val refCountMap = new ConcurrentHashMap[Entry, Metadata]()
+    private val refCountMap = new ConcurrentHashMap[K, Metadata]()
 
     /*
      * Track entries that need to be deleted and the time at which they
@@ -91,7 +89,7 @@ abstract class ConcurrentRefAccountant() {
      * An entry will only be present this queue if it is also present
      * in the refCountMap.
      */
-    private val expiring = new ConcurrentLinkedQueue[(Entry, Long)]
+    private val expiring = new ConcurrentLinkedQueue[(K, Long)]
 
     private def incrementIfGreaterThanAndGet(atomic: AtomicInteger, value: Int): Int = {
         while (true) {
@@ -105,14 +103,14 @@ abstract class ConcurrentRefAccountant() {
     }
 
     @tailrec
-    final def incRefCount(key: Entry): Unit =
+    final def incRefCount(key: K, v: V): Unit =
         refCountMap.get(key) match {
             case m@Metadata(count, _) if count != null =>
                 val newValue = incrementIfGreaterThanAndGet(count, -1)
 
                 if (newValue == -1) {
                     /* Retry, a deletion raced with us and won */
-                    incRefCount(key)
+                    incRefCount(key, v)
                 } else {
                     log.debug("Incrementing ref count of {} to {}", key, newValue)
                     m.expiration = Long.MaxValue
@@ -124,15 +122,21 @@ abstract class ConcurrentRefAccountant() {
                 val count = new AtomicInteger(1)
                 val was = refCountMap.putIfAbsent(key, Metadata(count, Long.MaxValue))
                 if (was ne null) {
-                    incRefCount(key)
+                    incRefCount(key, v)
                 } else {
                     log.debug("Incrementing reference count of {} to 1", key)
-                    newRefCb(key)
+                    newRefCb(key, v)
                 }
         }
 
+    def getRefCount(key: K) = {
+        refCountMap.get(key) match {
+            case metadata if metadata eq null => 0
+            case metadata => metadata.refCount.get()
+        }
+    }
 
-    def decRefCount(key: Entry, currentTime: Long): Unit =
+    def decRefCount(key: K, currentTime: Long): Unit =
         refCountMap.get(key) match {
             case metadata if metadata eq null =>
                 log.error("Decrement ref count for unlearned entry: {}", key)
@@ -146,8 +150,8 @@ abstract class ConcurrentRefAccountant() {
 
                 if (newVal == 0) {
                     log.debug("Scheduling removal of {} ", key)
-                    m.expiration = currentTime + expirationMillis
-                    expiring.offer((key, currentTime + expirationMillis))
+                    m.expiration = currentTime + expirationMillis(key)
+                    expiring.offer((key, currentTime + expirationMillis(key)))
                 } else if (newVal < 0) {
                     log.error("Decrement a ref count past {} for {}", count.get, key)
                     count.incrementAndGet()
@@ -161,22 +165,26 @@ abstract class ConcurrentRefAccountant() {
      *
      * WARNING: This method is not reentrant.
      */
-    def doDeletions(currentTime: Long): Unit = {
+    def doDeletions(currentTime: Long) = doDeletionsAndFold(currentTime, (), (acc: Unit, k: K) => ())
+
+    def doDeletionsAndFold[U](currentTime: Long, seed: U, func: (U, K) => U): U = {
         log.debug("Found expiring={}, currentTime={}",
             expiring, currentTime)
 
+        var acc = seed
         while (true) {
             val pair = expiring.peek()
             if ((pair eq null) || (pair._2 > currentTime))
-                return
+                return acc
 
             val metadata = refCountMap.get(pair._1)
 
             if (metadata != null &&
-                    metadata.expiration <= currentTime &&
-                    metadata.refCount.compareAndSet(0, -1)) {
+                metadata.expiration <= currentTime &&
+                metadata.refCount.compareAndSet(0, -1)) {
 
                 log.debug("Forgetting entry {} ", pair._1)
+                acc = func(acc, pair._1)
                 deletedRefCb(pair._1)
                 /* removal from refCountMap must happen after
                  * the removal callback, so that a thread doing ref()
@@ -186,5 +194,6 @@ abstract class ConcurrentRefAccountant() {
             }
             expiring.poll()
         }
+        acc
     }
 }

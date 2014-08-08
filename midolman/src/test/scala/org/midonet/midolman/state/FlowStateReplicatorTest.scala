@@ -23,8 +23,8 @@ import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
-import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
+import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.{Callback0, Callback2}
 
 @RunWith(classOf[JUnitRunner])
@@ -447,14 +447,7 @@ class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)
         unrefedKeys += key
     }
 
-    override def remove(key: K) = {
-        val e = entries
-        val oldV = get(key)
-        entries -= key
-        oldV
-    }
-
-    override def fold[U](seed: U, func: Reducer[_ >: K, _ >: V, U]): U = seed
+    override def fold[U](seed: U, func: Reducer[K, V, U]): U = seed
 
     override def ref(key: K): V = get(key)
 

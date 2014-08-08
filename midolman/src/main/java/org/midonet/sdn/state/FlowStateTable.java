@@ -1,5 +1,7 @@
 package org.midonet.sdn.state;
 
+import org.midonet.util.collection.Reducer;
+
 /**
  * A table of per-flow stateful data.
  *
@@ -56,19 +58,10 @@ public interface FlowStateTable<K, V> {
      * Expires entries that became non-referenced longer than their
      * allowed idle expiration and folds over each of the expired entries.
      */
-    <U> U expireIdleEntries(U seed, FlowStateTable.Reducer<K, V, U> func);
-
-    /**
-     * Removes a key, returns the previous value associated with it.
-     */
-    V remove(K key);
+    <U> U expireIdleEntries(U seed, Reducer<K, V, U> func);
 
     /**
      * Folds the entries of this transaction using the specified Reducer.
      */
-    <U> U fold(U seed, Reducer<? super K, ? super V, U> func);
-
-    public interface Reducer<K, V, U> {
-        U apply(U acc, K key, V value);
-    }
+    <U> U fold(U seed, Reducer<K, V, U> func);
 }

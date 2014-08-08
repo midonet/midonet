@@ -8,7 +8,7 @@ import scala.collection.immutable
 
 import akka.actor._
 import akka.event.LoggingReceive
-import com.yammer.metrics.core.MetricsRegistry
+import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
@@ -23,8 +23,8 @@ import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
-import org.midonet.util.StatisticalCounter
 import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.util.StatisticalCounter
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -82,8 +82,11 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var storageFactory: FlowStateStorageFactory = null
 
-    val connTrackStateTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]
-    val natStateTable = new ShardedFlowStateTable[NatKey, NatBinding]
+    @Inject
+    var clock: Clock = null
+
+    var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
+    var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
 
     override def preStart() {
         super.preStart()
@@ -93,20 +96,25 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         // will have an actor (ie, self) in 'sender' to send replies to.
         self ! _GetConditionListFromVta
 
+        connTrackStateTable = new ShardedFlowStateTable(clock)
+        natStateTable = new ShardedFlowStateTable(clock)
+
         for (i <- 0 until NUM_WORKERS) {
             workers :+= startWorker(i)
         }
     }
 
+    private def shardLogger(t: AnyRef) = akka.event.Logging(as, t.getClass)
+
     protected def startWorker(index: Int): ActorRef = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
-        val props = Props(classOf[DeduplicationActor],
-                          cookieGen, dpConnPool, clusterDataClient,
-                          connTrackStateTable.addShard(),
-                          natStateTable.addShard(),
-                          storageFactory.create(), metrics,
-                          counter.addAndGet(index, _: Int))
-                    .withDispatcher("actors.pinned-dispatcher")
+        val props = Props(
+            classOf[DeduplicationActor],
+            cookieGen, dpConnPool, clusterDataClient,
+            connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
+            natStateTable.addShard(log = shardLogger(natStateTable)),
+            storageFactory.create(), metrics,
+            counter.addAndGet(index, _: Int)).withDispatcher("actors.pinned-dispatcher")
 
         context.actorOf(props, s"PacketProcessor-$index")
     }
