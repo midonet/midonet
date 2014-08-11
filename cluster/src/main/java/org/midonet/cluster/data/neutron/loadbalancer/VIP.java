@@ -7,40 +7,9 @@ import java.util.UUID;
 
 import com.google.common.base.Objects;
 
-import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonValue;
 
 public class VIP {
-
-    public enum SPtype {
-        SOURCE_IP, HTTP_COOKIE, APP_COOKIE;
-
-        @JsonValue
-        public String value() {
-            return this.name();
-        }
-
-        @JsonCreator
-        public static SPtype forValue(String v) {
-            if (Objects.equal(v, SOURCE_IP)) {
-                return SOURCE_IP;
-            } else if (Objects.equal(v, HTTP_COOKIE)) {
-                return HTTP_COOKIE;
-            } else if (Objects.equal(v, APP_COOKIE)) {
-                return APP_COOKIE;
-            } else {
-                return null;
-            }
-        }
-    }
-
-    public class SessionPersistence {
-        public SPtype type;
-
-        @JsonProperty("cookie_name")
-        public String cookieName;
-    }
 
     public String address;
 

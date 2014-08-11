@@ -7,9 +7,7 @@ package org.midonet.cluster.data.neutron;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,10 +30,9 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.midolman.guice.cluster.TestDataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.config.TypedConfigModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.rules.Condition;
@@ -43,6 +40,8 @@ import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.CheckpointedDirectory;
+import org.midonet.midolman.state.CheckpointedMockDirectory;
+import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -410,6 +409,18 @@ public class DataCheckPointTest {
             isDropAllExceptArpRule(inboundRules.get(inboundRules.size() - 1)));
     }
 
+    private class CheckpointMockZookeeperConnectionModule
+        extends MockZookeeperConnectionModule {
+
+        @Override
+        protected void bindDirectory() {
+            CheckpointedDirectory dir = new CheckpointedMockDirectory();
+            bind(Directory.class).toInstance(dir);
+            bind(CheckpointedDirectory.class).toInstance(dir);
+            expose(CheckpointedDirectory.class);
+        }
+    }
+
     @Before
     public void initialize() throws InterruptedException, KeeperException {
         HierarchicalConfiguration
@@ -419,16 +430,15 @@ public class DataCheckPointTest {
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
-            new MockZookeeperConnectionModule(),
-            new TypedConfigModule<>(MidolmanConfig.class),
+            new CheckpointMockZookeeperConnectionModule(),
+            new TestDataClientModule(),
             new NeutronClusterModule(),
             new AbstractModule() {
                 @Override
                 protected void configure() {
-                    bind(NeutronPlugin.class);
+                        bind(NeutronPlugin.class);
                 }
             }
-
         );
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);

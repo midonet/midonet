@@ -30,8 +30,8 @@ public final class ZookeeperDataTest extends NeutronPluginTest {
 
         String rulesPath = pathBuilder.getRulesPath();
 
-        String floatingIpAddr = FLOATING_IP.floatingIpAddress;
-        String fixedIpAddr = FLOATING_IP.fixedIpAddress;
+        String floatingIpAddr = floatingIp.floatingIpAddress;
+        String fixedIpAddr = floatingIp.fixedIpAddress;
 
         Map<String, Object> matches = new HashMap<>();
         matches.put("type", "ForwardNat");
