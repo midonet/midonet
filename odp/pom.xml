@@ -81,6 +81,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
             <scope>test</scope>
@@ -126,6 +131,7 @@
             <version>1.4.11</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
 </project>
