@@ -84,13 +84,17 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // The following wrapper functions for locking are defined so that
     // these lock methods throw a RuntimeException instead of checked Exception
-    private void acquireLock(InterProcessSemaphoreMutex lock) {
+    private InterProcessSemaphoreMutex acquireLock() {
+
+        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
 
         try {
             lock.acquire();
         } catch (Exception ex){
             throw new RuntimeException(ex);
         }
+
+        return lock;
     }
 
     private void releaseLock(InterProcessSemaphoreMutex lock) {
@@ -303,8 +307,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         List<Op> ops = new ArrayList<>();
 
-        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
-        acquireLock(lock);
+        InterProcessSemaphoreMutex lock = acquireLock();
         try {
             createPortOps(ops, port);
             commitOps(ops);
@@ -321,8 +324,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
-        acquireLock(lock);
+        InterProcessSemaphoreMutex lock = acquireLock();
         try {
             for (Port port : ports) {
                 createPortOps(ops, port);
@@ -350,8 +352,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
-        acquireLock(lock);
+        InterProcessSemaphoreMutex lock = acquireLock();
         try {
             if (port.isVif()) {
 
@@ -407,8 +408,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Fixed IP and security groups can be updated
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
-        acquireLock(lock);
+        InterProcessSemaphoreMutex lock = acquireLock();
         try {
             if (port.isVif()) {
 

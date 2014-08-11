@@ -34,7 +34,7 @@ public class DataLockingTest extends NeutronPluginTest {
         private final Port port;
         private final int count;
 
-        public PortDeleteCreate(NeutronPlugin plugin, Port port, int count) {
+        public PortDeleteCreate(Port port, int count) {
             this.port = port;
             this.count = count;
         }
@@ -72,8 +72,8 @@ public class DataLockingTest extends NeutronPluginTest {
 
         latch = new CountDownLatch(2);
 
-        Thread dp = new Thread(new PortDeleteCreate(plugin, dhcpPort, 10));
-        Thread rp = new Thread(new PortDeleteCreate(plugin, routerPort, 10));
+        Thread dp = new Thread(new PortDeleteCreate(dhcpPort, 10));
+        Thread rp = new Thread(new PortDeleteCreate(routerPort, 10));
 
         dp.start();
         rp.start();
