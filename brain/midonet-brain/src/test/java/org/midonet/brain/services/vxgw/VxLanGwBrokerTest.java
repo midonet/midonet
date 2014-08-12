@@ -32,9 +32,10 @@ import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.brain.southbound.vtep.VtepMAC;
-import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.VTEP;
 import org.midonet.packets.IPv4Addr;
 
 import static org.junit.Assert.assertEquals;
@@ -128,12 +129,14 @@ public class VxLanGwBrokerTest {
         new Expectations () {{
             vtepDataClientProvider.get();
             result = vtepClient; times = 1;
-            vtepClient.connect(vtepMgmtIp, vtepMgmtPort);
-            times = 1;
+            vtepClient.connect(vtepMgmtIp, vtepMgmtPort); times = 1;
+            vtepClient.getTunnelIp(); times = 1;
         }};
 
-        new VxLanGwBroker(midoClient, vtepDataClientProvider,
-                          vtepMgmtIp, vtepMgmtPort,
+        VTEP vtep = new VTEP();
+        vtep.setId(vtepMgmtIp);
+        vtep.setMgmtPort(vtepMgmtPort);
+        new VxLanGwBroker(midoClient, vtepDataClientProvider, vtep,
                           new MockTunnelZoneState());
     }
 
