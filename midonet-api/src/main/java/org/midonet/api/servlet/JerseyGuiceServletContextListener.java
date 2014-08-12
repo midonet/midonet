@@ -30,10 +30,6 @@ public class JerseyGuiceServletContextListener extends
     protected ServletContext servletContext;
     protected Injector injector;
 
-    private RestApiService restApiService = null;
-    private VxLanGatewayService vxLanGatewayService = null;
-    private LicenseService licenseService = null;
-
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         log.debug("contextInitialized: entered");
@@ -59,16 +55,16 @@ public class JerseyGuiceServletContextListener extends
 
         // TODO: Once the cluster work is completed, RestApiService may not be
         // needed since currently it only initializes the ZK root directories.
-        restApiService = injector.getInstance(RestApiService.class);
-        restApiService.startAsync().awaitRunning();
 
-        licenseService = injector.getInstance(LicenseService.class);
-        licenseService.startAsync().awaitRunning();
+        injector.getInstance(RestApiService.class).startAsync().awaitRunning();
+
+        injector.getInstance(LicenseService.class).startAsync().awaitRunning();
 
         if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
             log.info("initializeApplication: starting VxLAN gateway");
-            vxLanGatewayService = injector.getInstance(VxLanGatewayService.class);
-            vxLanGatewayService.startAsync().awaitRunning();
+            injector.getInstance(VxLanGatewayService.class)
+                .startAsync()
+                .awaitRunning();
         } else {
             log.info("initializeApplication: skipping VxLAN gateway");
         }
@@ -80,15 +76,15 @@ public class JerseyGuiceServletContextListener extends
         log.debug("destroyApplication: entered");
 
         // TODO: Check if we need to do this after the cluster is completed.
-        if (null != vxLanGatewayService) {
-            vxLanGatewayService.stopAsync().awaitTerminated();
-        }
-        if (null != licenseService) {
-            licenseService.stopAsync().awaitTerminated();
-        }
-        if (null != restApiService) {
-            restApiService.stopAsync().awaitTerminated();
-        }
+        injector.getInstance(VxLanGatewayService.class)
+            .stopAsync()
+            .awaitTerminated();
+        injector.getInstance(LicenseService.class)
+            .stopAsync()
+            .awaitTerminated();
+        injector.getInstance(RestApiService.class)
+            .stopAsync()
+            .awaitTerminated();
 
         log.debug("destroyApplication: exiting");
     }
