@@ -3554,6 +3554,13 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
+    public void vtepUpdate(VTEP vtep)
+        throws StateAccessException, SerializationException {
+        VtepZkManager.VtepConfig config = Converter.toVtepConfig(vtep);
+        zkManager.multi(vtepZkManager.prepareUpdate(vtep.getId(), config));
+    }
+
+    @Override
     public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
                                @Nonnull String portName, short vlanId,
                                @Nonnull UUID networkId)
