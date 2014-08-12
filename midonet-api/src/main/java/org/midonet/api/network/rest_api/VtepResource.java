@@ -3,8 +3,17 @@
  */
 package org.midonet.api.network.rest_api;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nullable;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -26,12 +35,14 @@ import org.midonet.api.network.VTEP;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.host.Host;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.NodeNotEmptyStateException;
@@ -39,14 +50,22 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
+import static org.midonet.api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
 import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 public class VtepResource extends AbstractVtepResource {
+    private final static Logger log =
+        LoggerFactory.getLogger(VtepResource.class);
 
     @Inject
     public VtepResource(RestApiConfig config, UriInfo uriInfo,
@@ -66,13 +85,44 @@ public class VtepResource extends AbstractVtepResource {
 
         validate(vtep);
 
+        org.midonet.cluster.data.VTEP dataVtep = vtep.toData();
+        List<InetAddress> vtepIps = new ArrayList<>();
+
+        // Verify there is no conflict between hosts and the VTEP IPs.
         try {
-            org.midonet.cluster.data.VTEP dataVtep = vtep.toData();
+            PhysicalSwitch ps = vtepClient.getPhysicalSwitch(
+                IPv4Addr.apply(vtep.getManagementIp()),
+                vtep.getManagementPort());
+
+            // Check all management and tunnel IPs configured for the physical
+            // switch.
+            addIpsToList(vtepIps, ps.mgmtIps);
+            addIpsToList(vtepIps, ps.tunnelIps);
+
+        } catch(GatewayTimeoutHttpException e) {
+            log.warn("Cannot verify conflicts between hosts and VTEP IPs "
+                     + " because VTEP {}:{} is not accessible",
+                     vtep.getManagementIp(), vtep.getManagementPort());
+        }
+
+        addIpToList(vtepIps, vtep.getManagementIp());
+
+        for (Host host : dataClient.hostsGetAll()) {
+            for (InetAddress ip : host.getAddresses()) {
+                if (vtepIps.contains(ip)) {
+                    throw new ConflictHttpException(
+                        getMessage(VTEP_HOST_IP_CONFLICT, ip));
+                }
+            }
+        }
+
+        try {
             dataClient.vtepCreate(dataVtep);
             return Response.created(ResourceUriBuilder.getVtep(
                     getBaseUri(), dataVtep.getId().toString())).build();
         } catch(StatePathExistsException ex) {
-            throw new ConflictHttpException(ex, getMessage(VTEP_EXISTS, vtep.getManagementIp()));
+            throw new ConflictHttpException(
+                ex, getMessage(VTEP_EXISTS, vtep.getManagementIp()));
         }
     }
 
@@ -148,5 +198,20 @@ public class VtepResource extends AbstractVtepResource {
         VTEP apiVtep = new VTEP(dataVtep, ps);
         apiVtep.setBaseUri(getBaseUri());
         return apiVtep;
+    }
+
+    private static void addIpToList(List<InetAddress> list, String ip) {
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            list.add(address);
+        } catch (UnknownHostException e) {
+        }
+    }
+
+    private static void addIpsToList(List<InetAddress> list,
+                                  Collection<String> ips) {
+        for (String ip : ips) {
+            addIpToList(list, ip);
+        }
     }
 }

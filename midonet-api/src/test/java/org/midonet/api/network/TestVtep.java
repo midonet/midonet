@@ -3,10 +3,17 @@
  */
 package org.midonet.api.network;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,17 +22,29 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.api.rest_api.Topology;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
+import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.VtepConnectionState;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.version.guice.VersionModule;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -65,6 +84,37 @@ import static org.midonet.api.vtep.VtepDataClientProvider.MOCK_VTEP_TUNNEL_IPS;
 import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 
 public class TestVtep extends RestApiTestBase {
+
+    public class TestModule extends AbstractModule {
+
+        private final String basePath;
+
+        public TestModule(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        public void configure() {
+            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
+        }
+
+        @Provides @Singleton
+        public Directory provideDirectory() {
+            return StaticMockDirectory.getDirectoryInstance();
+        }
+
+        @Provides @Singleton
+        public ZkManager provideZkManager(Directory directory) {
+            return new ZkManager(directory, basePath);
+        }
+
+        @Provides @Singleton
+        public HostZkManager provideHostZkManager(ZkManager zkManager,
+                                                  PathBuilder pathBuilder,
+                                                  Serializer serializer) {
+            return new HostZkManager(zkManager, pathBuilder, serializer);
+        }
+    }
 
     public TestVtep() {
         super(FuncTest.appDesc);
@@ -164,6 +214,27 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(10001, vtep.getManagementPort());
         assertNull(vtep.getName());
         assertNull(vtep.getTunnelIpAddrs());
+    }
+
+    @Test
+    public void testCreateWithHostConflict() throws Exception {
+        String ip = "10.255.255.1";
+
+        // Add the host to ZooKeeper.
+        Injector injector = Guice.createInjector(
+            new VersionModule(),
+            new SerializationModule(),
+            new TestModule(FuncTest.ZK_ROOT_MIDOLMAN));
+        HostZkManager hostZkManager = injector.getInstance(HostZkManager.class);
+
+        Host host = new Host();
+        host.setId(UUID.randomUUID());
+        host.setAddresses(new InetAddress[] {
+            InetAddress.getByName(ip) });
+        hostZkManager.createHost(host.getId(), Converter.toHostConfig(host));
+
+        // Try add the VTEP with the same IP address.
+        postVtepWithError(ip, MOCK_VTEP_MGMT_PORT, Status.CONFLICT);
     }
 
     @Test

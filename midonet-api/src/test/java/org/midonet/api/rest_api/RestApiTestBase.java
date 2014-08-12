@@ -40,7 +40,7 @@ public abstract class RestApiTestBase extends JerseyTest {
         super(desc);
     }
 
-    @Before
+    @Before @Override
     public void setUp() throws Exception {
         super.setUp();
         dtoResource = new DtoWebResource(resource());

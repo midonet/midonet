@@ -597,7 +597,7 @@ public interface DataClient {
     boolean hostsHasPortBindings(UUID hostId) throws StateAccessException;
 
     List<Host> hostsGetAll()
-            throws StateAccessException, SerializationException;
+            throws StateAccessException;
 
     /**
      * Get an entity monitor for individual hosts

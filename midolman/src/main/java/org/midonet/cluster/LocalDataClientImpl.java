@@ -3,6 +3,8 @@
  */
 package org.midonet.cluster;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1381,7 +1383,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public List<Host> hostsGetAll()
-            throws StateAccessException, SerializationException {
+            throws StateAccessException {
         Collection<UUID> ids = hostZkManager.getHostIds();
 
         List<Host> hosts = new ArrayList<>();
@@ -1392,10 +1394,8 @@ public class LocalDataClientImpl implements DataClient {
                 if (host != null) {
                     hosts.add(host);
                 }
-            } catch (StateAccessException e) {
-                log.warn(
-                        "Tried to read the information of a host that vanished "
-                                + "or become corrupted: {}", id, e);
+            } catch (StateAccessException | SerializationException e) {
+                log.warn("Cannot get host {} while enumerating hosts", id);
             }
         }
 
