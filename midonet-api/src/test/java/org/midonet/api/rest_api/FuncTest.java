@@ -25,6 +25,8 @@ import java.util.UUID;
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
 
+    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
+
     public final static String BASE_URI_CONFIG = "rest_api-base_uri";
     public final static String CONTEXT_PATH = "/test";
     public final static String OVERRIDE_BASE_URI =
@@ -75,7 +77,7 @@ public class FuncTest {
                                 ExtendedZookeeperConfig.USE_MOCK_KEY), "true")
                 .contextParam(
                         getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
-                                "midolman_root_key"), "/test/midolman")
+                                "midolman_root_key"), ZK_ROOT_MIDOLMAN)
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 

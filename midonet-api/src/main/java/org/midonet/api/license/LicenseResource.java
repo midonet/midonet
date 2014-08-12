@@ -39,8 +39,6 @@ import org.slf4j.LoggerFactory;
  */
 @RequestScoped
 public class LicenseResource extends AbstractResource {
-    private final static Logger log = LoggerFactory
-            .getLogger(LicenseResource.class);
     private final LicenseManager manager;
 
     @Inject
