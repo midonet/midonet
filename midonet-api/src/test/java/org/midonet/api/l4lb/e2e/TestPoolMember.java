@@ -3,22 +3,23 @@
  */
 package org.midonet.api.l4lb.e2e;
 
-import junit.framework.Assert;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.l4lb.LBStatus;
-
-import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;

@@ -60,15 +60,15 @@ public class JerseyGuiceServletContextListener extends
         // TODO: Once the cluster work is completed, RestApiService may not be
         // needed since currently it only initializes the ZK root directories.
         restApiService = injector.getInstance(RestApiService.class);
-        restApiService.startAndWait();
+        restApiService.startAsync().awaitRunning();
 
         licenseService = injector.getInstance(LicenseService.class);
-        licenseService.startAndWait();
+        licenseService.startAsync().awaitRunning();
 
         if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
             log.info("initializeApplication: starting VxLAN gateway");
             vxLanGatewayService = injector.getInstance(VxLanGatewayService.class);
-            vxLanGatewayService.startAndWait();
+            vxLanGatewayService.startAsync().awaitRunning();
         } else {
             log.info("initializeApplication: skipping VxLAN gateway");
         }
@@ -81,13 +81,13 @@ public class JerseyGuiceServletContextListener extends
 
         // TODO: Check if we need to do this after the cluster is completed.
         if (null != vxLanGatewayService) {
-            vxLanGatewayService.stopAndWait();
+            vxLanGatewayService.stopAsync().awaitTerminated();
         }
         if (null != licenseService) {
-            licenseService.stopAndWait();
+            licenseService.stopAsync().awaitTerminated();
         }
         if (null != restApiService) {
-            restApiService.stopAndWait();
+            restApiService.stopAsync().awaitTerminated();
         }
 
         log.debug("destroyApplication: exiting");

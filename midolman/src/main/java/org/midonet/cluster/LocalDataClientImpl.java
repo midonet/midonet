@@ -133,7 +133,6 @@ import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
-import scala.collection.JavaConversions;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;

@@ -46,9 +46,9 @@ class PortSetManagementTestCase extends MidolmanTestCase with Matchers {
 
         // make two probes and make them listen DatapathController events
         val portChangedProbe = newProbe()
-        actors().eventStream.subscribe(portChangedProbe.ref, classOf[DpPortCreate])
+        actors.eventStream.subscribe(portChangedProbe.ref, classOf[DpPortCreate])
         val portActiveProbe = newProbe()
-        actors().eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
+        actors.eventStream.subscribe(portActiveProbe.ref, classOf[LocalPortActive])
 
         // make the bridge port to a local interface
         materializePort(inputPort, myHost, "port1")
@@ -59,13 +59,13 @@ class PortSetManagementTestCase extends MidolmanTestCase with Matchers {
 
         var set = clusterDataClient().portSetsGet(bridge.getId).toSet
         set should contain (hostId())
-        set should have size (1)
+        set should have size 1
 
         clusterDataClient().hostsDelVrnPortMapping(hostId(), inputPort.getId)
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 
         set = clusterDataClient().portSetsGet(bridge.getId).toSet
-        set should have size (0)
+        set should have size 0
     }
 
     private def fetchRcuPortSet(id: UUID) : PortSet = {
@@ -96,7 +96,7 @@ class PortSetManagementTestCase extends MidolmanTestCase with Matchers {
 
         // make a probe to listen to events
         val eventProbe = newProbe()
-        actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
+        actors.eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
 
         // make the bridge port to a local interface (this should cause the local host to register as a member of the bridge port set).
         materializePort(inputPort1, myHost, "port1")

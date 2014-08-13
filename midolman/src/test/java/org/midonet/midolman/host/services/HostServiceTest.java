@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
@@ -188,12 +187,12 @@ public class HostServiceTest {
     private void startAndStop() throws Throwable {
         HostService hostService = makeHostService();
         try {
-            hostService.startAndWait();
+            hostService.startAsync().awaitRunning();
         } catch (RuntimeException e) {
             throw e.getCause();
         }
 
-        hostService.stopAndWait();
+        hostService.stopAsync().awaitTerminated();
     }
 
     private void updateMetadata() throws Exception {

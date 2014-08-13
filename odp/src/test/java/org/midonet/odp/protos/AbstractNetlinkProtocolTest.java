@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.google.common.util.concurrent.SettableFuture;
+
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -24,7 +25,7 @@ import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.util.Bucket;
 
-import static junit.framework.Assert.fail;
+import static org.junit.Assert.fail;
 
 public abstract class AbstractNetlinkProtocolTest {
 

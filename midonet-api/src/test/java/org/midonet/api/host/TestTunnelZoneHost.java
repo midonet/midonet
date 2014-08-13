@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.inject.AbstractModule;
@@ -19,15 +20,17 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import junit.framework.Assert;
+
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
@@ -54,6 +57,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
