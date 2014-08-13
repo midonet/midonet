@@ -10,6 +10,56 @@ JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 \
                  /usr/lib/jvm/java-7-openjdk \
                  /usr/lib/jvm/java-7-sun"
 
+
+##############################################################
+
+SKIP_THROUGHPUT=0
+SKIP_IO=0
+MIDO_JAR=
+
+usage() {
+    cat <<EOF
+
+mm-tests
+
+Basic:
+  --skip-throughput  do not run throughput tests
+  --skip-io          do not run IO tests
+  --mido-jar         set the mido*.jar file
+
+Troubleshooting:
+  --verbose | -v             run in verbose mode
+EOF
+}
+
+while [ $# -gt 0 ] ; do
+    case "$1" in
+        --mido-jar)
+          MIDO_JAR=$1
+          shift
+          ;;
+        --skip-throughput)
+          SKIP_THROUGHPUT=1
+          ;;
+        --skip-io)
+          SKIP_IO=1
+          ;;
+        --verbose|-v)
+          VERBOSE=1
+          ;;
+        --help|-h)
+          usage
+          exit 0
+          ;;
+        *)
+          log "Unknown argument $1"
+          usage
+          exit 1
+          ;;
+    esac
+    shift
+done
+
 #####################################################################
 
 abort() { echo "ABORTING... $1" 1>&2 ; exit 1 ; }
@@ -67,10 +117,12 @@ fi
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
-MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
-if [ ! -e "$MIDO_JAR" ]; then
-   echo "ERROR: $MIDO_JAR does not exist"
-   exit 1
+if [ -z "$MIDO_JAR" ] ; then
+    MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
+    if [ ! -e "$MIDO_JAR" ]; then
+       echo "ERROR: $MIDO_JAR does not exist"
+       exit 1
+    fi
 fi
 
 CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
@@ -208,12 +260,15 @@ ovs_throughput() {
 }
 
 ovs_integration "org.midonet.odp.test.OvsIntegrationTest"
-ovs_integration "org.midonet.midolman.io.OneSelectorConnectionTest"
-ovs_integration "org.midonet.midolman.io.TwoSelectorsConnectionTest"
-ovs_integration "org.midonet.midolman.io.PoolOfOneConnectionTest"
-ovs_integration "org.midonet.midolman.io.PoolOfTenConnectionTest"
-#ovs_integration "org.midonet.midolman.io.BlockingTransactorTest"
 
-ovs_throughput
-mm_io_upcall_manager_test
+if [ $SKIP_IO -eq 0 ] ; then
+    ovs_integration "org.midonet.midolman.io.OneSelectorConnectionTest"
+    ovs_integration "org.midonet.midolman.io.TwoSelectorsConnectionTest"
+    ovs_integration "org.midonet.midolman.io.PoolOfOneConnectionTest"
+    ovs_integration "org.midonet.midolman.io.PoolOfTenConnectionTest"
+    #ovs_integration "org.midonet.midolman.io.BlockingTransactorTest"
+    mm_io_upcall_manager_test
+fi
+
+[ $SKIP_THROUGHPUT -eq 0 ] && ovs_throughput
 

@@ -107,8 +107,8 @@ abstract class WildcardFlow {
 }
 
 /**
-* WildcardFlow factory for Java classes.
-*/
+ * WildcardFlow factory for Java classes.
+ */
 object WildcardFlowFactory {
     def create(wcmatch: WildcardMatch): WildcardFlow =
         WildcardFlow(wcmatch)
@@ -139,6 +139,12 @@ object ManagedWildcardFlow {
     def create(wildFlow: WildcardFlow) = new ManagedWildcardFlow(null).reset(wildFlow)
 }
 
+/**
+ * A WildcardFlow that, for performance reasons, is stored in a pool.
+ * Once the instance is no longer used, the pool entry can be reused.
+ *
+ * Users should refrain from changing attributes after resetting.
+ */
 class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
         extends WildcardFlow with PooledObject {
 

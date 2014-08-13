@@ -57,6 +57,10 @@ public class Flow implements AttributeHandler {
         return match;
     }
 
+    public boolean hasEmptyMatch() {
+        return (match == null || match.getKeys().isEmpty());
+    }
+
     @Nonnull
     public List<FlowAction> getActions() {
         return actions;
@@ -155,14 +159,6 @@ public class Flow implements AttributeHandler {
             '}';
     }
 
-    private String formatTCPFlags() {
-        StringBuilder buf = new StringBuilder();
-        for (TCP.Flag f : TCP.Flag.allOf(tcpFlags.intValue())) {
-            buf.append(f).append(" | ");
-        }
-        return buf.substring(0, buf.length() - 3);
-    }
-
     public List<String> toPrettyStrings() {
         List<String> desc = new ArrayList<>();
         List<FlowKey> matchKeys = match.getKeys();
@@ -181,7 +177,7 @@ public class Flow implements AttributeHandler {
         if (stats != null)
             desc.add("stats: " + stats);
         if (tcpFlags != null)
-            desc.add("tcpFlags: " + formatTCPFlags());
+            desc.add("tcpFlags: " + TCP.Flag.allOfToString(tcpFlags.intValue()));
         if (lastUsedTime != null)
             desc.add("lastUsedTime: " + lastUsedTime);
         return  desc;
@@ -202,31 +198,62 @@ public class Flow implements AttributeHandler {
     public static ByteBuffer selectOneRequest(ByteBuffer buf, int datapathId,
                                               Iterable<FlowKey> keys) {
         buf.putInt(datapathId);
-        addKeys(buf,keys);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
         buf.flip();
         return buf;
     }
 
-    /** Prepares an ovs request to describe a single flow (flow match and flow
-     *  actions). Used with flow set and flow create generic netlink commands
-     *  of the flow family. */
+    /**
+     * Prepares an ovs request to describe a single flow (flow match and flow
+     * actions). Used with flow set and flow create generic netlink commands
+     * of the flow family.
+     */
+    public ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId) {
+        buf.putInt(datapathId);
+
+        // add the keys
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, match.getKeys(), FlowKeys.writer);
+
+        // add the actions
+        // the actions list is allowed to be empty (drop flow). Nevertheless the
+        // actions nested attribute header needs to be written otherwise the
+        // datapath will answer back with EINVAL
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, getActions(), FlowActions.writer);
+
+        buf.flip();
+        return buf;
+    }
+
+    /**
+     * Prepares an ovs request to describe a single flow (flow match and flow
+     * actions). Used with flow set and flow create generic netlink commands
+     * of the flow family.
+     */
     public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
                                                 Iterable<FlowKey> keys,
                                                 Iterable<FlowAction> actions) {
         buf.putInt(datapathId);
-        addKeys(buf,keys);
-
-        // the actions list is allowed to be empty (drop flow). Nevertheless the
-        // actions nested attribute header needs to be written otherwise the
-        // datapath will answer back with EINVAL
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions,
-                                    FlowActions.writer);
-
+        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
         buf.flip();
         return buf;
     }
 
-    public static void addKeys(ByteBuffer buf, Iterable<FlowKey> keys) {
+    /**
+     * Prepares an ovs request to describe a single flow with a mask
+     */
+    public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
+                                                Iterable<FlowKey> keys,
+                                                Iterable<FlowKey> maskKeys,
+                                                Iterable<FlowAction> actions) {
+        buf.putInt(datapathId);
+
+        // add the keys, the actions and the mask
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
+        NetlinkMessage.writeAttrSeq(buf, Attr.Mask, maskKeys, FlowKeys.writer);
+
+        buf.flip();
+        return buf;
     }
 }

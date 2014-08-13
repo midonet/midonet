@@ -198,6 +198,7 @@ case class TcpBuilder(packet: TCP = new TCP()) extends PacketBuilder[TCP] {
     def ports(ports: PortPair): TcpBuilder = { src(ports.src) ; dst(ports.dst) }
     def src(port: Short): TcpBuilder = { packet.setSourcePort(port) ; this }
     def dst(port: Short): TcpBuilder = { packet.setDestinationPort(port) ; this }
+    def flags(flags: Short): TcpBuilder = { packet.setFlags(flags) ; this }
 }
 
 case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {

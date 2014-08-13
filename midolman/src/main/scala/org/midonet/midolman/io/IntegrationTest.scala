@@ -34,6 +34,7 @@ object ConnectionFactory {
         }
     }
 
+
     def fromOneToOnePool(nConns: Int = 1) = {
         val pool = new OneToOneConnectionPool("pool", nConns, conf)
         pool.start()
