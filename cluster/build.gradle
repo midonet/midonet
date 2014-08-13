@@ -12,8 +12,9 @@ dependencies {
     compile project(':packets'), project(':midonet-util')
 
     compile libraries.collections4, libraries.commons_lang3,
-            libraries.curator_recipes, libraries.curator_test,
-            libraries.guava, libraries.jackson_mapper
+            libraries.curator_recipes, libraries.guava,
+            libraries.jackson_mapper
 
-    testCompile libraries.hamcrest, libraries.test_frameworks
+    testCompile libraries.hamcrest, libraries.test_frameworks,
+                libraries.curator_test
 }

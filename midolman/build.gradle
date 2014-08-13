@@ -39,7 +39,8 @@ dependencies {
             libraries.jsonpath
 
     testCompile libraries.akkatest, libraries.scalatest,
-                libraries.jsonpath_assert, libraries.cassandraunit
+                libraries.jsonpath_assert, libraries.cassandraunit,
+                libraries.curator_test
 }
 
 cobertura {
