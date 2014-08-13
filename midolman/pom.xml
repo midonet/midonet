@@ -407,18 +407,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- curator -->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.netflix.rxjava</groupId>
             <artifactId>rxjava-core</artifactId>
@@ -478,6 +466,16 @@
             <artifactId>zookeeper</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+        </dependency>
+
         <dependency> <!-- needed at compile time via netlink dependency -->
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
@@ -529,7 +527,6 @@
             <artifactId>cassandra-unit</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <profiles>

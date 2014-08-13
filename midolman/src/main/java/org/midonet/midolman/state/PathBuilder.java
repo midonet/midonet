@@ -5,9 +5,11 @@
 package org.midonet.midolman.state;
 
 import java.util.UUID;
+
 import com.google.inject.Inject;
-import java.util.UUID;
+
 import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.packets.IPv4Addr;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -240,5 +242,70 @@ public class PathBuilder extends ZkPathManager {
 
     private StringBuilder buildLicensePath(UUID id) {
         return buildLicensesPath().append("/").append(id.toString());
+    }
+
+    /**
+     * Get NAT blocks path.
+     *
+     * @return /nat
+     */
+    public String getNatPath() {
+        return buildNatPath().toString();
+    }
+
+    private StringBuilder buildNatPath() {
+        return new StringBuilder(basePath).append("/nat");
+    }
+
+    /**
+     * Get NAT blocks device path.
+     *
+     * @return /nat/{deviceId}
+     */
+    public String getNatDevicePath(UUID deviceId) {
+        return buildNatDevicePath(deviceId).toString();
+    }
+
+    private StringBuilder buildNatDevicePath(UUID deviceId) {
+        return buildNatPath().append("/").append(deviceId);
+    }
+
+    /**
+     * Get NAT blocks device path.
+     *
+     * @return /nat/{deviceId}/{ip}
+     */
+    public String getNatIpPath(UUID deviceId, IPv4Addr ip) {
+        return buildNatIpPath(deviceId, ip).toString();
+    }
+
+    private StringBuilder buildNatIpPath(UUID deviceId, IPv4Addr ip) {
+        return buildNatDevicePath(deviceId).append("/").append(ip);
+    }
+
+    /**
+     * Get NAT blocks individual block path.
+     *
+     * @return /nat/{deviceId}/{ip}/{blockIdx}
+     */
+    public String getNatBlockPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+        return buildNatBlockPath(deviceId, ip, blockIdx).toString();
+    }
+
+    private StringBuilder buildNatBlockPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+        return buildNatIpPath(deviceId, ip).append("/").append(blockIdx);
+    }
+
+    /**
+     * Get a NAT block ownership path.
+     *
+     * @return /nat/{deviceId}/{ip}/{blockIdx}/taken
+     */
+    public String getNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+        return buildNatBlockOwnershipPath(deviceId, ip, blockIdx).toString();
+    }
+
+    private StringBuilder buildNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+        return buildNatBlockPath(deviceId, ip, blockIdx).append("/taken");
     }
 }

@@ -99,6 +99,7 @@ public class Setup {
         paths.add(pathMgr.getVxLanPortIdsPath());
         paths.add(pathMgr.getLocksPath());
         paths.add(pathMgr.getLicensesPath());
+        paths.add(pathMgr.getNatPath());
 
         // Neutron paths
         paths.add(pathMgr.getNeutronPath());
