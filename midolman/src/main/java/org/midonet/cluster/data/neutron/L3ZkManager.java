@@ -458,7 +458,6 @@ public class L3ZkManager extends BaseZkManager {
         if (floatingIp.isAssociated()) {
             prepareAssociateFloatingIp(ops, floatingIp);
         }
-        ops.add(zk.getSetDataOp(path, serializer.serialize(floatingIp)));
     }
 
     public FloatingIp getFloatingIp(UUID floatingIpId)
@@ -522,6 +521,29 @@ public class L3ZkManager extends BaseZkManager {
             gwPort.id, fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
     }
 
+    private void prepareDisassociateFloatingIp(List<Op> ops, FloatingIp fip)
+        throws SerializationException, StateAccessException {
+
+        UUID prId = providerRouterZkManager.getId();
+
+        // Remove all routes to this floating IP on provider router
+        routeZkManager.prepareRoutesDelete(ops, prId, fip.floatingIpv4Subnet());
+
+        // Go through router chains and remove all the NAT rules
+        RouterConfig rCfg = routerZkManager.get(fip.routerId);
+        ruleZkManager.prepareDeleteDnatRules(ops, rCfg.inboundFilter,
+                                             fip.fixedIpv4Addr());
+        ruleZkManager.prepareDeleteSnatRules(ops, rCfg.outboundFilter,
+                                             fip.floatingIpv4Addr());
+
+    }
+
+    private void prepareUpdateNeutronFloatingIp(List<Op> ops, FloatingIp fip)
+        throws SerializationException {
+        String path = paths.getNeutronFloatingIpPath(fip.id);
+        ops.add(zk.getSetDataOp(path, serializer.serialize(fip)));
+    }
+
     public void prepareDisassociateFloatingIp(List<Op> ops, Port port)
             throws SerializationException, StateAccessException {
 
@@ -532,21 +554,9 @@ public class L3ZkManager extends BaseZkManager {
             return;
         }
 
+        prepareDisassociateFloatingIp(ops, fip);
         fip.portId = null;
-        String path = paths.getNeutronFloatingIpPath(fip.id);
-        ops.add(zk.getSetDataOp(path, serializer.serialize(fip)));
-
-        UUID prId = providerRouterZkManager.getId();
-
-        // Remove all routes to this floating IP on provider router
-        routeZkManager.prepareRoutesDelete(ops, prId, fip.floatingIpv4Subnet());
-
-        // Go through router chains and remove all the NAT rules
-        RouterConfig rCfg = routerZkManager.get(fip.routerId);
-        ruleZkManager.prepareDeleteDnatRules(ops, rCfg.inboundFilter,
-            fip.fixedIpv4Addr());
-        ruleZkManager.prepareDeleteSnatRules(ops, rCfg.outboundFilter,
-            fip.floatingIpv4Addr());
+        prepareUpdateNeutronFloatingIp(ops, fip);
     }
 
     public void prepareUpdateFloatingIp(List<Op> ops, FloatingIp fip)
@@ -558,12 +568,11 @@ public class L3ZkManager extends BaseZkManager {
 
         // Disassociate if it's not associated with any fixed IP
         if (oldFip.isAssociated() && !fip.isAssociated()) {
-            Port oldPort = networkZkManager.getPort(oldFip.portId);
-            prepareDisassociateFloatingIp(ops, oldPort);
+            prepareDisassociateFloatingIp(ops, oldFip);
         } else if (!oldFip.isAssociated() && fip.isAssociated()) {
             // Associate fip to fixed
             prepareAssociateFloatingIp(ops, fip);
-        } else if (oldFip.isAssociated() && fip.isAssociated()) {
+        } else if (oldFip.isAssociated()) {
             // Association modified.  No need to change the provider router
             // route, but need to update the static NAT rules.
             RouterConfig rCfg = routerZkManager.get(fip.routerId);
@@ -575,12 +584,8 @@ public class L3ZkManager extends BaseZkManager {
             ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
                 gwPort.id, fip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
                 fip.fixedIpv4Addr());
-        } else {
-            // the else case is a no-op because its an update of something
-            // other than the fixed/floating ip fields.
         }
 
-        String path = paths.getNeutronFloatingIpPath(fip.id);
-        ops.add(zk.getSetDataOp(path, serializer.serialize(fip)));
+        prepareUpdateNeutronFloatingIp(ops, fip);
     }
 }
