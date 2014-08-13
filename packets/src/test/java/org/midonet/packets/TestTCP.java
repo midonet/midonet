@@ -1,8 +1,10 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import org.junit.Assert;
@@ -199,6 +201,35 @@ public class TestTCP {
             if (packet.getPayload() != null) {
                 Assert.assertEquals(packet, packet.getPayload().getParent());
             }
+        }
+
+        @Test
+        public void TestTCPFlags() throws Exception {
+            TCP packet = new TCP();
+
+            List<TCP.Flag> flags = new ArrayList<TCP.Flag>();
+            flags.add(TCP.Flag.Ack);
+            flags.add(TCP.Flag.Syn);
+
+            // set the Ack and Syn flags
+            packet.setFlags(flags);
+            Assert.assertTrue(packet.getFlag(TCP.Flag.Ack));
+            Assert.assertTrue(packet.getFlag(TCP.Flag.Syn));
+            Assert.assertTrue(packet.getFlags() == TCP.Flag.allOf(flags));
+
+            // remove the Ack flag
+            packet.setFlag(TCP.Flag.Ack, false);
+            Assert.assertFalse(packet.getFlag(TCP.Flag.Ack));
+            Assert.assertTrue(packet.getFlag(TCP.Flag.Syn));
+            Assert.assertFalse(packet.getFlags() == TCP.Flag.allOf(flags));
+
+            // remove the Syn flag
+            packet.setFlags((short) (packet.getFlags() & ~TCP.Flag.Syn.bit));
+            Assert.assertFalse(packet.getFlag(TCP.Flag.Ack));
+            Assert.assertFalse(packet.getFlag(TCP.Flag.Syn));
+            Assert.assertFalse(packet.getFlags() == TCP.Flag.allOf(flags));
+
+            Assert.assertTrue(packet.getFlags() == 0);
         }
     }
 

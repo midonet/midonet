@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Random;
 
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 import org.midonet.netlink.NetlinkMessage;
@@ -76,6 +77,9 @@ public class Datapath {
         }
     };
 
+    /**
+     * General datapath statistics
+     */
     public static class Stats {
 
         private final long hits;
@@ -90,18 +94,22 @@ public class Datapath {
             this.flows = flows;
         }
 
+        /** Get the number of flow table matches. */
         public long getHits() {
             return hits;
         }
 
+        /** Get the number of flow table misses. */
         public long getMisses() {
             return misses;
         }
 
+        /** Get the number of misses not sent to userspace. */
         public long getLost() {
             return lost;
         }
 
+        /** Get the number of flows present */
         public long getFlows() {
             return flows;
         }

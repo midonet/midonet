@@ -554,7 +554,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * Callback based api for deleting a flow.
      *
      * @param datapath the name of the datapath
-     * @param flow     the flow that we want to install
+     * @param keys     the flow keys that we want to install
      * @param callback a callback which will receive the installed flow
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
@@ -567,7 +567,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * Callback based api for deleting a flow.
      *
      * @param datapath      the name of the datapath
-     * @param flow          the flow that we want to install
+     * @param keys          the flow keys that we want to install
      * @param callback      the callback which will receive the installed flow
      * @param timeoutMillis the amount of time we should wait for the response
      */

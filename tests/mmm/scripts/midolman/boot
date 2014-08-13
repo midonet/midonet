@@ -12,3 +12,5 @@ elif grep "Ubuntu" /etc/issue >/dev/null; then
     fi
     modprobe openvswitch
 fi
+
+OVS_VERSION=`modinfo openvswitch | grep ^version\: | awk '{ print $2 }'`

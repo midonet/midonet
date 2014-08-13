@@ -10,6 +10,7 @@ import java.util.List;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeyICMP;
+import org.midonet.odp.flows.FlowKeyTCPFlags;
 import org.midonet.odp.flows.IPFragmentType;
 import org.midonet.odp.flows.IpProtocol;
 import org.midonet.packets.ARP;
@@ -33,6 +34,7 @@ import static org.midonet.odp.flows.FlowKeys.icmpError;
 import static org.midonet.odp.flows.FlowKeys.ipv4;
 import static org.midonet.odp.flows.FlowKeys.ipv6;
 import static org.midonet.odp.flows.FlowKeys.tcp;
+import static org.midonet.odp.flows.FlowKeys.tcpFlags;
 import static org.midonet.odp.flows.FlowKeys.udp;
 import static org.midonet.odp.flows.FlowKeys.vlan;
 
@@ -40,7 +42,8 @@ public class FlowMatches {
 
     public static FlowMatch tcpFlow(String macSrc, String macDst,
                                     String ipSrc, String ipDst,
-                                    int portSrc, int portDst) {
+                                    int portSrc, int portDst,
+                                    int flags) {
         return
             new FlowMatch()
                 .addKey(
@@ -53,7 +56,8 @@ public class FlowMatches {
                         IPv4Addr.fromString(ipSrc),
                         IPv4Addr.fromString(ipDst),
                         IpProtocol.TCP))
-                .addKey(tcp(portSrc, portDst));
+                .addKey(tcp(portSrc, portDst))
+                .addKey(tcpFlags((short) flags));
     }
 
     public static FlowMatch fromEthernetPacket(Ethernet ethPkt) {
@@ -169,6 +173,9 @@ public class FlowMatches {
                     TCP tcpPkt = TCP.class.cast(payload);
                     keys.add(tcp(tcpPkt.getSourcePort(),
                                  tcpPkt.getDestinationPort()));
+
+                    // add the keys for the TCP flags
+                    keys.add(tcpFlags(tcpPkt.getFlags()));
                 }
                 break;
             case UDP.PROTOCOL_NUMBER:
@@ -205,6 +212,9 @@ public class FlowMatches {
                     TCP tcpPkt = TCP.class.cast(payload);
                     match.addKey(tcp(tcpPkt.getSourcePort(),
                                      tcpPkt.getDestinationPort()));
+
+                    // add some matches for some important flags
+                    match.addKey(tcpFlags(TCP.Flag.allOf(tcpPkt.getFlags())));
                 }
                 break;
             case UDP.PROTOCOL_NUMBER:

@@ -34,6 +34,7 @@ public class TCP extends BasePacket implements Transport {
 
         @Override public String toString() { return this.name; }
 
+        /** builds a list of flags from the bits set in @param b */
         public static List<Flag> allOf(int b) {
             List<Flag> flags = new ArrayList<>();
             for (Flag f : Flag.values()) {
@@ -42,6 +43,25 @@ public class TCP extends BasePacket implements Transport {
             return flags;
         }
 
+        /** builds a list of flags from the bits set in @param b */
+        public static short allOf(List<Flag> flagsLst) {
+            short res = 0;
+            for (Flag f : flagsLst)
+                res |= f.bit;
+            return res;
+        }
+
+        /** build a string representation for a flags set */
+        public static String allOfToString(int b) {
+            StringBuilder buf = new StringBuilder();
+            if (b != 0) {
+                for (TCP.Flag f : TCP.Flag.allOf(b)) {
+                    buf.append(f).append("|");
+                }
+                buf.deleteCharAt(buf.length() - 1);
+            }
+            return buf.toString();
+        }
     }
 
     public static final byte PROTOCOL_NUMBER = 6;
@@ -67,6 +87,7 @@ public class TCP extends BasePacket implements Transport {
         sb.append(", seqNo=").append(seqNo);
         sb.append(", ackNo=").append(ackNo);
         sb.append(", cksum=").append(checksum);
+        sb.append(", flags=b").append(Integer.toBinaryString(flags));
         sb.append("]");
         return sb.toString();
     }
@@ -203,6 +224,19 @@ public class TCP extends BasePacket implements Transport {
         this.flags = flags;
     }
 
+    public void setFlags(List<TCP.Flag> flags) {
+        setFlags(TCP.Flag.allOf(flags));
+    }
+
+    public boolean getFlag(Flag f) { return (flags & f.bit) != 0; }
+
+    public void setFlag(Flag f, boolean v) {
+        if (v)
+            flags |= f.bit;
+        else
+            flags &= ~f.bit;
+    }
+
     public short getWindowSize() {
         return windowSize;
     }
@@ -285,5 +319,4 @@ public class TCP extends BasePacket implements Transport {
     public static boolean isPortInRange(int port) {
         return Transport.MIN_PORT_NO <= port && port <= Transport.MAX_PORT_NO;
     }
-
 }
