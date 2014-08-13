@@ -7,9 +7,10 @@ package org.midonet.packets;
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
+
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 // TODO (galo) find out more cases to add
 public class TestBPDU {

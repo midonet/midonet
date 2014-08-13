@@ -25,7 +25,6 @@ import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostAgentModule;
 import org.midonet.midolman.host.services.HostAgentService;
 
-
 /**
  * Main entry point for the Host Agent implementation. This class can start a
  * host agent in a standalone mode by providing a config file with connection
@@ -76,7 +75,9 @@ public class HostAgent {
                 new HostAgentModule(),
                 new ClusterClientModule());
 
-        injector.getInstance(HostAgentService.class).startAndWait();
+        injector.getInstance(HostAgentService.class)
+            .startAsync()
+            .awaitRunning();
 
         log.info("{} has started", HostAgentService.class);
     }
@@ -89,7 +90,7 @@ public class HostAgent {
             return;
 
         try {
-            instance.stopAndWait();
+            instance.stopAsync().awaitTerminated();
         } catch (Exception e) {
             log.error("Exception ", e);
         } finally {

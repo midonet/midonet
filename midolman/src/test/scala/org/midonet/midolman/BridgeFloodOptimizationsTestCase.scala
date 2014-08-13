@@ -61,12 +61,12 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         flowEventsProbe = newProbe()
         packetEventsProbe = newProbe()
         val portEventsProbe = newProbe()
-        actors().eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
-        actors().eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
-        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
+        actors.eventStream.subscribe(flowEventsProbe.ref, classOf[WildcardFlowAdded])
+        actors.eventStream.subscribe(portEventsProbe.ref, classOf[LocalPortActive])
+        actors.eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
 
-        initializeDatapath() should not be (null)
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        initializeDatapath() should not be null
+        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be null
 
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -95,9 +95,9 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
 
     def testNoFlood() {
         val dpFlowProbe = newProbe()
-        actors().eventStream.subscribe(dpFlowProbe.ref,
+        actors.eventStream.subscribe(dpFlowProbe.ref,
             classOf[FlowAdded])
-        actors().eventStream.subscribe(dpFlowProbe.ref,
+        actors.eventStream.subscribe(dpFlowProbe.ref,
             classOf[FlowRemoved])
 
         // Make an ARP request
@@ -112,8 +112,8 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
             mac1, mac2, IPv4Addr.intToBytes(ip1.addr),
             IPv4Addr.intToBytes(ip2.addr)).serialize())
         var outports = actionsToOutputPorts(pktOut.actions)
-        outports should have size (1)
-        outports should (contain (portId2))
+        outports should have size 1
+        outports should contain (portId2)
         // one packet should have been forwarded; no flows installed
         mockDpConn().flowsTable.size() should be(0)
         mockDpConn().packetsSent.size() should be (1)
@@ -125,14 +125,14 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         // expect one wild flow to be added
         var wflow = flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
         outports = actionsToOutputPorts(wflow.actions)
-        outports should have size (1)
-        outports should (contain (portId1))
+        outports should have size 1
+        outports should contain (portId1)
         // one dp flow should also have been added and one packet forwarded
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         mockDpConn().flowsTable.size() should be(1)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
-        (pktOut.actions.toArray) should be (wflow.getActions.toArray)
+        pktOut.actions.toArray should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
         mockDpConn().packetsSent.size() should be (2)
         mockDpConn().packetsSent.get(1) should be (pktOut.packet)
@@ -145,7 +145,7 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         // expect one wild flow to be added
         wflow = flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
         outports = actionsToOutputPorts(wflow.getActions)
-        outports should have size (2)
+        outports should have size 2
         outports should (contain (portId1) and contain (portId3))
 
         // one dp flow should also have been added and one packet forwarded

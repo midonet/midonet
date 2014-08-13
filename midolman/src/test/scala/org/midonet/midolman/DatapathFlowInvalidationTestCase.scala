@@ -88,7 +88,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
 
@@ -215,8 +215,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
 
-        val output = dpState().asInstanceOf[DatapathStateManager]
-                              .greOverlayTunnellingOutputAction
+        val output = dpState.asInstanceOf[DatapathStateManager]
+                            .greOverlayTunnellingOutputAction
         val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
         val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)
 
@@ -231,7 +231,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         fishForReplyOfType[ZoneChanged](vtpProbe())
 
         // assert that the tunnel route was added
-        (dpState() peerTunnelInfo host2.getId) shouldBe Some(route1)
+        (dpState peerTunnelInfo host2.getId) shouldBe Some(route1)
 
         // assert that a invalidateFlowByTag where tag is the route info is sent
         flowProbe().fishForMessage(3 seconds,"Tag")(matchATagInvalidation(tag1))
@@ -259,7 +259,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         flowProbe().expectMsg(new InvalidateFlowsByTag(tag2))
 
         // at that point, the tunnel route should be in place, assert it
-        (dpState() peerTunnelInfo host2.getId) shouldBe Some(route2)
+        (dpState peerTunnelInfo host2.getId) shouldBe Some(route2)
     }
 
     def matchATagInvalidation(tagToTest: Any): PartialFunction[Any, Boolean] = {

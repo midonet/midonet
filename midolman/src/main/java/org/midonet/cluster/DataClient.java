@@ -139,7 +139,7 @@ public interface DataClient {
     /**
      * Get an entity monitor for the set of bridges
      */
-    EntityIdSetMonitor bridgesGetUuidSetMonitor(
+    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<UUID> bridgesGetAllIds() throws StateAccessException,

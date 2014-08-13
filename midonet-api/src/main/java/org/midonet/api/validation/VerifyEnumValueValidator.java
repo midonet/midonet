@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.api.validation;
 
 import java.lang.reflect.InvocationTargetException;
@@ -60,7 +59,8 @@ public class VerifyEnumValueValidator
             constraintValidatorContext.disableDefaultConstraintViolation();
             constraintValidatorContext.buildConstraintViolationWithTemplate(
                     MessageProperty.getMessage(
-                            MessageProperty.VALUE_IS_NOT_IN_ENUMS, enumValues)
+                            MessageProperty.VALUE_IS_NOT_IN_ENUMS,
+                            (Object)enumValues)
             ).addConstraintViolation();
         }
         return false;

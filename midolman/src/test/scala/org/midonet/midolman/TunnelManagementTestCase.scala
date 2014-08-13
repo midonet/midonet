@@ -19,7 +19,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
 import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.odp.ports.{NetDevPort, GreTunnelPort}
+import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -69,11 +69,11 @@ class TunnelManagementTestCase extends MidolmanTestCase
         portActiveProbe = newProbe()
 
         // listen to the DatapathController.DpPortCreate
-        actors().eventStream
-                .subscribe(portActiveProbe.ref, classOf[LocalPortActive])
+        actors.eventStream
+              .subscribe(portActiveProbe.ref, classOf[LocalPortActive])
 
         // start initialization
-        initializeDatapath() should not be (null)
+        initializeDatapath() should not be null
     }
 
     /**
@@ -83,8 +83,8 @@ class TunnelManagementTestCase extends MidolmanTestCase
     def testTunnelZoneCreationDeletion() {
         // The zone is created by now, and there is 1 member
         clusterDataClient().tunnelZonesDelete(greZone.getId)
-        clusterDataClient().hostsGet(host1.getId).getTunnelZones should have size (0)
-        clusterDataClient().tunnelZonesGetMemberships(greZone.getId) should have size (0)
+        clusterDataClient().hostsGet(host1.getId).getTunnelZones should have size 0
+        clusterDataClient().tunnelZonesGetMemberships(greZone.getId) should have size 0
     }
 
     def testTunnelZone() {
@@ -96,7 +96,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 
         // check that no route exists yet
-        dpState().peerTunnelInfo(host2.getId) shouldBe None
+        dpState.peerTunnelInfo(host2.getId) shouldBe None
 
         // Now add myself to the tunnel zone.
         clusterDataClient().tunnelZonesAddMembership(greZone.getId, myGreConfig)
@@ -113,7 +113,7 @@ class TunnelManagementTestCase extends MidolmanTestCase
         fishForReplyOfType[ZoneChanged](vtpProbe())
 
         // check that the route was correctly indexed by the DPC
-        val route = dpState() peerTunnelInfo host2.getId
+        val route = dpState peerTunnelInfo host2.getId
 
         // and that the ips match
         route.get.srcIp shouldBe myIp.toInt
@@ -127,23 +127,23 @@ class TunnelManagementTestCase extends MidolmanTestCase
         Thread.sleep(500) // guard against spurious failures
 
         // assert new route with updated dst ip
-        val route2 = dpState() peerTunnelInfo host2.getId
+        val route2 = dpState peerTunnelInfo host2.getId
 
         route2.get.srcIp shouldBe myIp.toInt
-        route2.get.dstIp should not be (herIp.toInt)
+        route2.get.dstIp should not be herIp.toInt
         route2.get.dstIp shouldBe herIp2.toInt
 
         // assert datapath state
         val dp = dpConn().futures.datapathsGet("midonet").get()
-        dp should not be (null)
+        dp should not be null
 
         val ports = datapathPorts(dp)
         ports should have size 5
-        ports should contain key ("midonet")
-        ports should contain key ("port1")
-        ports should contain key ("tngre-overlay")
-        ports should contain key ("tnvxlan-overlay")
-        ports should contain key ("tnvxlan-vtep")
+        ports should contain key "midonet"
+        ports should contain key "port1"
+        ports should contain key "tngre-overlay"
+        ports should contain key "tnvxlan-overlay"
+        ports should contain key "tnvxlan-vtep"
 
         // delete this host from the tunnel zone
         clusterDataClient().tunnelZonesDeleteMembership(greZone.getId, host1.getId)
@@ -152,6 +152,6 @@ class TunnelManagementTestCase extends MidolmanTestCase
         Thread.sleep(500) // guard against spurious failures
 
         // assert no route left
-        dpState().peerTunnelInfo(host2.getId) shouldBe None
+        dpState.peerTunnelInfo(host2.getId) shouldBe None
     }
 }
