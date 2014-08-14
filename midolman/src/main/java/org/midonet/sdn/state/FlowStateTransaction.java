@@ -29,7 +29,7 @@ import java.util.HashSet;
  * hash table look-ups. When this object gets reused for the next flow, arrays
  * are simply zeroed.
  */
-public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
+public class FlowStateTransaction<K, V> {
     private FlowStateTable<K, V> parent;
 
     private ArrayList<K> keys = new ArrayList<>();
@@ -73,21 +73,19 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
             parent.touch(touchKeys.get(i), touchVals.get(i));
     }
 
-    @Override
-    public <U> U fold(U seed, Reducer<? super K, ? super V, U> func) {
+    public <U> U fold(U seed, FlowStateTable.Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < keys.size(); i++) {
             seed = func.apply(seed, keys.get(i), values.get(i));
         }
         return seed;
     }
 
-    public <U> U foldOverRefs(U seed, Reducer<? super K, ? super V, U> func) {
+    public <U> U foldOverRefs(U seed, FlowStateTable.Reducer<? super K, ? super V, U> func) {
         for (int i = 0; i < refs.size(); i++)
             seed = func.apply(seed, refs.get(i), parent.get(refs.get(i)));
         return seed;
     }
 
-    @Override
     public V putAndRef(K key, V value) {
         if (deletes.contains(key)) {
             deletes.remove(key);
@@ -105,7 +103,6 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         return parent.get(key);
     }
 
-    @Override
     public void touch(K key, V value) {
         if (deletes.contains(key))
             deletes.remove(key);
@@ -113,7 +110,6 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         touchVals.add(value);
     }
 
-    @Override
     public V get(K key) {
         if (deletes.contains(key))
             return null;
@@ -125,13 +121,12 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         return parent.get(key);
     }
 
-    @Override
     public V ref(K key) {
         refs.add(key);
         return get(key);
     }
 
-    public void delete(K key) {
+    public V remove(K key) {
         for (int i  = 0; i < keys.size(); ++i) {
             if (keys.get(i).equals(key)) {
                 keys.remove(i);
@@ -156,5 +151,6 @@ public class FlowStateTransaction<K, V> implements FlowStateTable<K, V> {
         }
 
         deletes.add(key);
+        return null;
     }
 }

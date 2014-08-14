@@ -22,7 +22,7 @@ import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateLifecycle}
+import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.functors.{Callback0, Callback2}
@@ -424,7 +424,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
 }
 
 class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)
-        extends FlowStateLifecycle[K,V] {
+        extends FlowStateTable[K,V] {
 
     var entries: Map[K, V] = Map.empty
     var unrefedKeys: Set[K] = Set.empty

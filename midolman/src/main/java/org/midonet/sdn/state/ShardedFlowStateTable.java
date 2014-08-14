@@ -28,7 +28,7 @@ import com.yammer.metrics.core.Clock;
  * unref() calls may require coordination, but they are meant to happen in an
  * external thread or pool, not a shard-owning thread.
  */
-public class ShardedFlowStateTable<K extends IdleExpiration, V> implements FlowStateLifecycle<K, V> {
+public class ShardedFlowStateTable<K extends IdleExpiration, V> implements FlowStateTable<K, V> {
     private ArrayList<FlowStateShard> shards = new ArrayList<>();
 
     private final int SHARD_NONE = -1;
@@ -150,7 +150,7 @@ public class ShardedFlowStateTable<K extends IdleExpiration, V> implements FlowS
      * It stores entries locally but forwards queries to the parent table for
      * aggregation. Reference counting is also delegated on the parent.
      */
-    class FlowStateShard implements FlowStateLifecycle<K, V> {
+    class FlowStateShard implements FlowStateTable<K, V> {
         public static final int IDLE_QUEUE_SIZE = 10000;
 
         private final int workerId;
