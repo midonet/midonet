@@ -15,6 +15,8 @@ import java.util.Objects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
+import static org.midonet.Util.uncheckedCast;
+
 /**
  * Represents a binding between a field in some POJO and a field in another /
  * the same POJO. For each PojoFieldBinding, there must be a referencing POJO,
@@ -53,7 +55,7 @@ class PojoFieldBinding extends FieldBinding {
     public final Class<?> thatClass;
     public final Field thatField;
 
-    public PojoFieldBinding(Field thisField,
+    private PojoFieldBinding(Field thisField,
                         Class<?> thatClass, Field thatField,
                         DeleteAction onDeleteThis) {
         super(onDeleteThis);
@@ -116,11 +118,11 @@ class PojoFieldBinding extends FieldBinding {
         return bindings;
     }
 
-    static private String getQualifiedName(Field f) {
+    private static String getQualifiedName(Field f) {
         return f.getDeclaringClass().getSimpleName() + '.' + f.getName();
     }
 
-    static private boolean isList(Field f) {
+    private static boolean isList(Field f) {
         return List.class.isAssignableFrom(f.getType());
     }
 
@@ -182,13 +184,14 @@ class PojoFieldBinding extends FieldBinding {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Object> getFwdReferenceAsList(Object referring) {
         Object val = getValue(referring, this.thisField);
         if (val == null)
             return Collections.emptyList();
-
-        return (val instanceof List) ? (List<Object>) val : Arrays.asList(val);
+        else if (val instanceof List)
+            return uncheckedCast(val);
+        else
+            return Arrays.asList(val);
     }
 
     @Override
@@ -226,8 +229,7 @@ class PojoFieldBinding extends FieldBinding {
      */
     private static void addToList(Object o, Field f, Object val) {
 
-        @SuppressWarnings("unchecked")
-        List<Object> list = (List<Object>)getValue(o, f);
+        List<Object> list = uncheckedCast(getValue(o, f));
         if (list == null) {
             list = new ArrayList<>();
             setValue(o, f, list);

@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.storage;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -15,6 +16,8 @@ import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 
 import org.midonet.cluster.models.Commons.UUID;
+
+import static org.midonet.Util.uncheckedCast;
 
 /**
  * Represents a binding between a field of a protocol buffer message to another
@@ -55,10 +58,10 @@ class ProtoFieldBinding extends FieldBinding {
     public final Message thatMessage;
     public final FieldDescriptor thatField;
 
-    public ProtoFieldBinding(FieldDescriptor thisField,
-                             Message thatMessage,
-                             FieldDescriptor thatField,
-                             DeleteAction onDeleteThis) {
+    private ProtoFieldBinding(FieldDescriptor thisField,
+                              Message thatMessage,
+                              FieldDescriptor thatField,
+                              DeleteAction onDeleteThis) {
         super(onDeleteThis);
         this.thatMessage = thatMessage;
         this.thisField = thisField;
@@ -74,27 +77,30 @@ class ProtoFieldBinding extends FieldBinding {
      * type provided that the referencing field in the other message is of
      * the same type.
      *
-     * @param leftMessage The first message to bind.
-     * @param leftFieldName The name of the field on leftMessage which
-     *     references the ID of an instance of rightMessage. Must be the same
-     *     type as rightMessage's id field, or a List of that type.
+     * @param leftClass The first class to bind.
+     * @param leftFieldName The name of the field on leftClass which
+     *     references the ID of an instance of rightClass. Must be the same
+     *     type as rightClass's id field, or a List of that type.
      * @param onDeleteLeft Indicates what should be done on an attempt to delete
-     *     an instance of leftMessage.
-     * @param rightMessage See leftMessage.
+     *     an instance of leftClass.
+     * @param rightClass See leftClass.
      * @param rightFieldName See leftFieldName.
      * @param onDeleteRight See onDeleteLeft.
      */
     public static ListMultimap<Class<?>, FieldBinding> createBindings(
-             Message leftMessage,
+             Class<?> leftClass,
              String leftFieldName,
              DeleteAction onDeleteLeft,
-             Message rightMessage,
+             Class<?> rightClass,
              String rightFieldName,
              DeleteAction onDeleteRight) {
+        Message leftMessage = getDefaultMessage(leftClass);
+        Message rightMessage = getDefaultMessage(rightClass);
+
         FieldDescriptor rightField = checkTypeCompatibilityForBinding(
                 leftMessage, rightMessage, rightFieldName);
         FieldDescriptor leftField = checkTypeCompatibilityForBinding(
-                rightMessage, leftMessage, leftFieldName);
+            rightMessage, leftMessage, leftFieldName);
 
         ListMultimap<Class<?>, FieldBinding> bindings =
                 ArrayListMultimap.create();
@@ -143,6 +149,22 @@ class ProtoFieldBinding extends FieldBinding {
         return referenceField;
     }
 
+    private static Message getDefaultMessage(Class<?> clazz) {
+        assert(Message.class.isAssignableFrom(clazz));
+        try {
+            Method m = clazz.getMethod("getDefaultInstance");
+            return uncheckedCast(m.invoke(null));
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(
+                "Could not statically invoke getDefaultInstanceForType() " +
+                "for class " + clazz.getName() + ".");
+        }
+    }
+
+    static FieldDescriptor getMessageField(Class<?> clazz, String fieldName) {
+        return getMessageField(getDefaultMessage(clazz), fieldName);
+    }
+
     /* Looks up a FieldDescriptor of the given message with a specified field
      * name. If one doesn't exist, throws an IllegalArgumentException.
      */
@@ -158,27 +180,12 @@ class ProtoFieldBinding extends FieldBinding {
         return field;
     }
 
-    /* Looks up a value of the specified field of the given message. If the
-     * field doesn't exist, throws an IllegalArgumentException.
-     */
-    private static Object getFieldValue(Message message, String fieldName) {
-        FieldDescriptor field = getMessageField(message, fieldName);
-        return message.getField(field);
-    }
-
-    /**
-     * Returns the ID of the given message.
-     */
-    public static Object getMessageId(Message message) {
-        return getFieldValue(message, ID_FIELD);
-    }
-
     /**
      * Converts an Protocol Buffer message ID value into a human readable string
      * representation.
      */
     public static String getIdString(Object id) {
-        String idStr = null;
+        String idStr;
         if (id instanceof UUID) {
             UUID uuid = (UUID) id;
             idStr = new java.util.UUID(uuid.getMsb(), uuid.getLsb()).toString();
@@ -209,10 +216,10 @@ class ProtoFieldBinding extends FieldBinding {
     @Override
     public String toString() {
         return String.format("%s -> %s.%s (%s)",
-                thisField,
-                thatMessage.getDescriptorForType().getFullName(),
-                thatField,
-                onDeleteThis);
+                             thisField,
+                             thatMessage.getDescriptorForType().getFullName(),
+                             thatField,
+                             onDeleteThis);
     }
 
     @SuppressWarnings("unchecked")

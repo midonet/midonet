@@ -6,7 +6,6 @@ package org.midonet.cluster.data.storage;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -15,9 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import com.google.protobuf.TextFormat;
 
@@ -25,6 +27,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+import org.apache.curator.utils.EnsurePath;
 import org.apache.zookeeper.KeeperException.BadVersionException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
@@ -36,7 +39,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
+import rx.subjects.Subject;
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
+
+import static org.midonet.cluster.data.storage.FieldBinding.ID_FIELD;
+import static org.midonet.Util.uncheckedCast;
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -100,6 +109,23 @@ public class ZookeeperObjectMapper {
     private final JsonFactory jsonFactory;
 
     private final CuratorFramework client;
+
+    // Cache of subjects that publish Observables for each instance of
+    // their respective classes.
+    private final ConcurrentMap<Class<?>,
+            Subject<? extends Observable<?>, ? extends Observable<?>>>
+        classSubjects = new ConcurrentHashMap<>();
+
+    // Cache of subjects that publish updates to individual object instances.
+    // The per-class concurrent maps are created during class registration,
+    // and then populated on demand as subscription requests come in.
+    private final Map<Class<?>, ConcurrentMap<String, ? extends Subject<?, ?>>>
+        instanceSubjects = new HashMap<>();
+
+    private final Map<String, Class<?>> simpleNameToClass = new HashMap<>();
+    private final Map<Class<?>, Field> classToIdField = new HashMap<>();
+    private final Map<Class<?>, FieldDescriptor> msgClassToIdFieldDesc =
+        new HashMap<>();
 
     public ZookeeperObjectMapper(String basePath,
                                  CuratorFramework client) {
@@ -291,22 +317,29 @@ public class ZookeeperObjectMapper {
         }
     }
 
-    /**
-     * Add a new FieldBinding to class in ZooKeeperObjectMapper.
-     * @param clazz A Class object for which to add a binding.
-     * @param binding A FieldBinding.
-     */
-    public void addBinding(Class<?> clazz,  FieldBinding binding) {
-         this.allBindings.put(clazz, binding);
-    }
+    public void declareBinding(Class<?> leftClass, String leftFieldName,
+                               DeleteAction onDeleteLeft,
+                               Class<?> rightClass, String rightFieldName,
+                               DeleteAction onDeleteRight) {
+        assert(isRegistered(leftClass));
+        assert(isRegistered(rightClass));
 
-    /**
-     * Add a set of new FieldBindings to ZooKeeperObjectMapper.
-     * @param bindings A multi-map from a class to a set of FieldBindings for
-     * the class.
-     */
-    public void addBindings(ListMultimap<Class<?>, FieldBinding> bindings) {
-         this.allBindings.putAll(bindings);
+        boolean leftIsMessage = Message.class.isAssignableFrom(leftClass);
+        boolean rightIsMessage = Message.class.isAssignableFrom(rightClass);
+        if (leftIsMessage != rightIsMessage) {
+            throw new IllegalArgumentException(
+                "Cannot bind a protobuf Message class to a POJO class");
+        }
+
+        if (leftIsMessage) {
+            this.allBindings.putAll(ProtoFieldBinding.createBindings(
+                leftClass, leftFieldName, onDeleteLeft,
+                rightClass, rightFieldName, onDeleteRight));
+        } else {
+            this.allBindings.putAll(PojoFieldBinding.createBindings(
+                leftClass, leftFieldName, onDeleteLeft,
+                rightClass, rightFieldName, onDeleteRight));
+        }
     }
 
     /**
@@ -317,6 +350,62 @@ public class ZookeeperObjectMapper {
     }
 
     /**
+     * Registers the class for use. This method is not thread-safe, and
+     * initializes a variety of structures which could not easily be
+     * initialized dynamically in a thread-safe manner.
+     *
+     * Most operations require prior registration, including declareBinding.
+     * Ideally this method should be called at startup for all classes
+     * intended to be stored in this instance of ZookeeperObjectManager.
+     */
+    void registerClass(Class<?> clazz) {
+        String name = clazz.getSimpleName();
+        if (simpleNameToClass.containsKey(name)) {
+            throw new IllegalStateException(
+                "A class with the simple name "+name+" is already registered." +
+                "Registering multiple classes with the same simple name is " +
+                "not supported.");
+        }
+
+        simpleNameToClass.put(clazz.getSimpleName(), clazz);
+
+        // Cache the ID field.
+        try {
+            if (Message.class.isAssignableFrom(clazz)) {
+                msgClassToIdFieldDesc.put(
+                    clazz, ProtoFieldBinding.getMessageField(clazz, ID_FIELD));
+            } else {
+                classToIdField.put(clazz, clazz.getField(ID_FIELD));
+            }
+        } catch (NoSuchFieldException ex) {
+            throw new IllegalArgumentException(
+                "Cannot register class "+clazz.getName()+" because it has " +
+                "no field named 'id'.");
+        }
+
+        // Create the class path in Zookeeper if needed.
+        EnsurePath ensurePath = new EnsurePath(getPath(clazz));
+        try {
+            ensurePath.ensure(client.getZookeeperClient());
+        } catch (Exception ex) {
+            throw new InternalObjectMapperException(ex);
+        }
+
+        // Create the map for instance subscriptions. Do this last, since
+        // we use it to check whether a class is registered.
+        instanceSubjects.put(
+            clazz, new ConcurrentHashMap<String, Subject<?, ?>>());
+    }
+
+    /**
+     * Returns true if the class has been registered with this instance
+     * of ZookeeperObjectMapper by calling registerClass().
+     */
+    private boolean isRegistered(Class<?> clazz) {
+        return instanceSubjects.containsKey(clazz);
+    }
+
+    /**
      * Persists the specified object to Zookeeper. The object must have a field
      * named "id", and an appropriate unique ID must already be assigned to the
      * object before the call.
@@ -324,7 +413,9 @@ public class ZookeeperObjectMapper {
     public void create(Object o) throws NotFoundException,
             ObjectExistsException, ReferenceConflictException {
         Class<?> thisClass = o.getClass();
-        Object thisId = getObjectId(thisClass, o);
+        assert(isRegistered(thisClass));
+
+        Object thisId = getObjectId(o);
 
         TransactionManager transactionManager =
             transactionManagerForCreate(o, thisId);
@@ -368,7 +459,9 @@ public class ZookeeperObjectMapper {
             throws NotFoundException, ReferenceConflictException {
 
         Class<?> thisClass = newThisObj.getClass();
-        Object thisId = getObjectId(thisClass, newThisObj);
+        assert(isRegistered(thisClass));
+
+        Object thisId = getObjectId(newThisObj);
 
         Entry<?, Integer> e = getWithVersion(thisClass, thisId);
         Object oldThisObj = e.getKey();
@@ -420,6 +513,7 @@ public class ZookeeperObjectMapper {
      */
     public void delete(Class<?> clazz, Object id)
             throws NotFoundException, ObjectReferencedException {
+        assert(isRegistered(clazz));
 
         TransactionManager transactionManager =
             new TransactionManager((CuratorTransactionFinal)client.inTransaction());
@@ -457,6 +551,7 @@ public class ZookeeperObjectMapper {
      * Gets the specified instance of the specified class.
      */
     public <T> T get(Class<T> clazz, Object id) throws NotFoundException {
+        assert(isRegistered(clazz));
         byte[] data;
         try {
             data = client.getData().forPath(getPath(clazz, id));
@@ -473,11 +568,12 @@ public class ZookeeperObjectMapper {
      * Gets all instances of the specified class in Zookeeper.
      */
     public <T> List<T> getAll(Class<T> clazz) {
+        assert(isRegistered(clazz));
         List<String> ids;
         try {
             ids = client.getChildren().forPath(getPath(clazz));
         } catch (Exception ex) {
-            // We should make sure top-level class nodes exist during startup.
+            // We should create top-level class nodes during registration.
             throw new InternalObjectMapperException(
                     "Node "+getPath(clazz)+" does not exist in Zookeeper.", ex);
         }
@@ -529,59 +625,54 @@ public class ZookeeperObjectMapper {
         return writer.toString().trim().getBytes();
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T deserialize(byte[] json, Class<T> clazz) {
         try {
-            T deserialized = null;
-            if (Message.class.isAssignableFrom(clazz)) {
-                Message.Builder builder = (Message.Builder)
-                        clazz.getMethod("newBuilder").invoke(null);
-                TextFormat.merge(new String(json), builder);
-                deserialized = (T) builder.build();
-            } else {
-                JsonParser parser = jsonFactory.createJsonParser(json);
-                deserialized = parser.readValueAs(clazz);
-                parser.close();
-            }
-            return deserialized;
-        } catch (NoSuchMethodException nsme) {
-            throw new InternalObjectMapperException(
-                "Cannot create a message builder.", nsme);
-        } catch (IllegalAccessException iae) {
-            throw new InternalObjectMapperException(
-                "Cannot invoke a message builder factory.", iae);
-        } catch (InvocationTargetException ite) {
-            // This basically never happens.
-            throw new InternalObjectMapperException(
-                "The factory method is called on a wrong object.", ite);
+            return Message.class.isAssignableFrom(clazz) ?
+                   deserializeMessage(json, clazz) :
+                   deserializePojo(json, clazz);
         } catch (IOException ex) {
+            // ParseException from deserializeMessage extends IOException.
             throw new InternalObjectMapperException(
                 "Could not parse JSON: " + new String(json), ex);
         }
+    }
+
+    private <T> T deserializeMessage(byte[] json, Class<T> clazz)
+            throws TextFormat.ParseException {
+        Message.Builder builder;
+        try {
+            builder =
+                (Message.Builder)clazz.getMethod("newBuilder").invoke(null);
+        } catch (Exception ex) {
+            throw new InternalObjectMapperException(
+                "Could not create message builder for class "+clazz+".", ex);
+        }
+
+        TextFormat.merge(new String(json), builder);
+        return uncheckedCast(builder.build());
+    }
+
+    private <T> T deserializePojo(byte[] json, Class<T> clazz)
+            throws IOException {
+        JsonParser parser = jsonFactory.createJsonParser(json);
+        T deserialized = uncheckedCast(parser.readValueAs(clazz));
+        parser.close();
+        return deserialized;
     }
 
     /* Looks up the ID value of the given object by calling its getter. The
      * protocol buffer doesn't create a member field as the same name as defined
      * in its definition, therefore instead we call its getter.
      */
-    private Object getObjectId(Class<?> clazz, Object o) {
-        Object id = null;
+    private Object getObjectId(Object o) {
+        Class<?> clazz = o.getClass();
         try {
-            if (Message.class.isAssignableFrom(clazz)) {
-                id = ProtoFieldBinding.getMessageId((Message) o);
-            } else {
-                Field f = clazz.getDeclaredField("id");
-                f.setAccessible(true);
-                id = f.get(o);
-            }
-        } catch (NoSuchFieldException nsfe) {
-            // The ID field does not exist.
-            log.error("No object ID field.", nsfe);
-        } catch (IllegalAccessException iae) {
-            // Has no access to the ID getter.
-            log.error("Cannot access the object ID", iae);
+            return (o instanceof Message) ?
+                   ((Message)o).getField(msgClassToIdFieldDesc.get(clazz)) :
+                   classToIdField.get(clazz).get(o);
+        } catch (Exception ex) {
+            throw new InternalObjectMapperException(
+                "Couldn't get ID from object " + o, ex);
         }
-
-        return id;
     }
 }
