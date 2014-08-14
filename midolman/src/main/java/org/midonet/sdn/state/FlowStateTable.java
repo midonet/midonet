@@ -37,6 +37,33 @@ public interface FlowStateTable<K, V> {
     V ref(K key);
 
     /**
+     * Releases a reference to a key.
+     */
+    void unref(K key);
+
+    /**
+     * Gets the refcount for a key
+     */
+    int getRefCount(K key);
+
+    /**
+     * Expires entries that became non-referenced longer than their
+     * allowed idle expiration.
+     */
+    void expireIdleEntries();
+
+    /**
+     * Expires entries that became non-referenced longer than their
+     * allowed idle expiration and folds over each of the expired entries.
+     */
+    <U> U expireIdleEntries(U seed, FlowStateTable.Reducer<K, V, U> func);
+
+    /**
+     * Removes a key, returns the previous value associated with it.
+     */
+    V remove(K key);
+
+    /**
      * Folds the entries of this transaction using the specified Reducer.
      */
     <U> U fold(U seed, Reducer<? super K, ? super V, U> func);
