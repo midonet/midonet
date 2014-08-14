@@ -29,18 +29,16 @@ import static org.midonet.cluster.models.Devices.Chain;
  * Tests ProtoFieldBindngTest class.
  */
 public class ProtoFieldBindingTest {
-    private static final ProtoFieldBinding bridgeToChainBinding =
-            new ProtoFieldBinding(
-                    Bridge.getDescriptor().findFieldByName("inbound_filter_id"),
-                    Chain.getDefaultInstance(),
-                    Chain.getDescriptor().findFieldByName("bridge_ids"),
-                    DeleteAction.CLEAR);
-    private static final ProtoFieldBinding chainToBridgeBinding =
-            new ProtoFieldBinding(
-                    Chain.getDescriptor().findFieldByName("bridge_ids"),
-                    Bridge.getDefaultInstance(),
-                    Bridge.getDescriptor().findFieldByName("inbound_filter_id"),
-                    DeleteAction.CLEAR);
+    private static final FieldBinding bridgeToChainBinding;
+    private static final FieldBinding chainToBridgeBinding;
+    static {
+        ListMultimap<Class<?>, FieldBinding> bindings =
+            ProtoFieldBinding.createBindings(
+            Bridge.class, "inbound_filter_id", DeleteAction.CLEAR,
+            Chain.class, "bridge_ids", DeleteAction.CLEAR);
+        bridgeToChainBinding = bindings.get(Bridge.class).get(0);
+        chainToBridgeBinding = bindings.get(Chain.class).get(0);
+    }
 
     private static final Commons.UUID uuid = createRandomUuidproto();
     private static final Commons.UUID conflictingUuid =
@@ -59,10 +57,10 @@ public class ProtoFieldBindingTest {
     @Test
     public void testProtoBindingWithScalarRefType() {
         ListMultimap<Class<?>, FieldBinding> bindings =
-                ProtoFieldBinding.createBindings(Bridge.getDefaultInstance(),
+                ProtoFieldBinding.createBindings(Bridge.class,
                                                  "inbound_filter_id",
                                                  DeleteAction.CLEAR,
-                                                 Chain.getDefaultInstance(),
+                                                 Chain.class,
                                                  "bridge_ids",
                                                  DeleteAction.CASCADE);
         Collection<FieldBinding> bridgeBindings = bindings.get(Bridge.class);
@@ -78,20 +76,20 @@ public class ProtoFieldBindingTest {
 
     @Test
     public void testCreateBindingWithNoBackRef() {
-        ProtoFieldBinding.createBindings(Bridge.getDefaultInstance(),
+        ProtoFieldBinding.createBindings(Bridge.class,
                                          "inbound_filter_id",
                                          DeleteAction.CLEAR,
-                                         Chain.getDefaultInstance(),
+                                         Chain.class,
                                          null,    // No back-ref.
                                          DeleteAction.CLEAR);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingForClassWithNoId() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.getDefaultInstance(),
+        ProtoFieldBinding.createBindings(Bridge.class,
                                          null,
                                          DeleteAction.CASCADE,
-                                         Devices.VtepBinding.getDefaultInstance(),
+                                         Devices.VtepBinding.class,
                                          "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding of class with no id field.");
@@ -99,10 +97,10 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithUnrecognizedFieldName() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.getDefaultInstance(),
+        ProtoFieldBinding.createBindings(Bridge.class,
                                          "no_such_field",
                                          DeleteAction.CLEAR,
-                                         Devices.Port.getDefaultInstance(),
+                                         Devices.Port.class,
                                          "bridge_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding with unrecognized field name.");
@@ -110,10 +108,10 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithWrongScalarRefType() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.getDefaultInstance(),
+        ProtoFieldBinding.createBindings(Bridge.class,
                                          "name",
                                          DeleteAction.CLEAR,
-                                         Devices.Port.getDefaultInstance(),
+                                         Devices.Port.class,
                                          "bridge_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow ref from String to UUID.");
@@ -121,10 +119,10 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithWrongListRefType() throws Exception {
-        ProtoFieldBinding.createBindings(Devices.Port.getDefaultInstance(),
+        ProtoFieldBinding.createBindings(Devices.Port.class,
                                          null,
                                          DeleteAction.CLEAR,
-                                         TestModels.FakeDevice.getDefaultInstance(),
+                                         TestModels.FakeDevice.class,
                                          "port_ids",
                                          DeleteAction.CLEAR);
         fail("Should not allow ref from String to UUID.");

@@ -37,4 +37,20 @@ public final class Util {
     public static Unsafe getUnsafe() {
         return THE_UNSAFE;
     }
+
+    /**
+     * Performs an unchecked cast and suppresses the warning. Don't use this
+     * unless you have to and you're sure there's no typesafe alternative.
+     *
+     * Due to type inference, it is often not necessary to specify the target
+     * type explicitly. For example, both casts below are valid.
+     *
+     * Object o = Arrays.asList("a", "b", "c");
+     * List<Object> listRef1 = uncheckedCast(o);
+     * List<Object> listRef2 = Util.<List<Object>>uncheckedCast(o);
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T uncheckedCast(Object o) {
+        return (T)o;
+    }
 }

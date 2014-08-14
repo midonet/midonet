@@ -13,7 +13,7 @@ dependencies {
 
     compile libraries.collections4, libraries.commons_lang3,
             libraries.curator_recipes, libraries.guava,
-            libraries.jackson_mapper
+            libraries.jackson_mapper, libraries.rx
 
     testCompile libraries.hamcrest, libraries.test_frameworks,
                 libraries.curator_test
