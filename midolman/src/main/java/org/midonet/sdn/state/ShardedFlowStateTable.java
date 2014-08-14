@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.yammer.metrics.core.Clock;
@@ -29,11 +28,11 @@ import com.yammer.metrics.core.Clock;
  * unref() calls may require coordination, but they are meant to happen in an
  * external thread or pool, not a shard-owning thread.
  */
-public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
+public class ShardedFlowStateTable<K extends IdleExpiration, V> implements FlowStateLifecycle<K, V> {
     private ArrayList<FlowStateShard> shards = new ArrayList<>();
 
     private final int SHARD_NONE = -1;
-    Clock clock;
+    private final Clock clock;
 
     public ShardedFlowStateTable() {
         this.clock = Clock.defaultClock();
@@ -131,17 +130,17 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
     }
 
     @Override
-    public <U> U expireIdleEntries(int idleAgeMillis, U seed, Reducer<K, V, U> func) {
+    public <U> U expireIdleEntries(U seed, Reducer<K, V, U> func) {
         for (int i = 0; i < shards.size(); i++) {
-            seed = shards.get(i).expireIdleEntries(idleAgeMillis, seed, func);
+            seed = shards.get(i).expireIdleEntries(seed, func);
         }
         return seed;
     }
 
     @Override
-    public void expireIdleEntries(int idleAgeMillis) {
+    public void expireIdleEntries() {
         for (int i = 0; i < shards.size(); i++) {
-            shards.get(i).expireIdleEntries(idleAgeMillis);
+            shards.get(i).expireIdleEntries();
         }
     }
 
@@ -242,16 +241,15 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         }
 
         @Override
-        public void expireIdleEntries(int idleAgeMillis) {
-            expireIdleEntries(idleAgeMillis, null, null);
+        public void expireIdleEntries() {
+            expireIdleEntries(null, null);
         }
 
         @Override
-        public <U> U expireIdleEntries(int idleAgeMillis, U seed, Reducer<K, V, U> func) {
-            long epoch = clock.tick() -
-                            TimeUnit.MILLISECONDS.toNanos(idleAgeMillis);
-            while (!idleKeys.isEmpty() && idleKeys.peek().idleSince <= epoch) {
-                synchronized (idleKeys) {
+        public <U> U expireIdleEntries(U seed, Reducer<K, V, U> func) {
+            long now = clock.tick();
+            synchronized (idleKeys) {
+                while (!idleKeys.isEmpty() && expired(idleKeys.peek(), now)) {
                     Entry e = idleKeys.remove();
                     if (e.refCount.get() == 0 && data.remove(e.k) != null) {
                         if (func != null)
@@ -260,6 +258,12 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
                 }
             }
             return seed;
+        }
+
+        private boolean expired(Entry entry, long now) {
+            long elapsed = now - entry.idleSince;
+            long expiration = entry.k.expiresAfter().toNanos();
+            return elapsed > expiration;
         }
 
         class Entry {
@@ -284,7 +288,7 @@ public class ShardedFlowStateTable<K, V> implements FlowStateLifecycle<K, V> {
         class EntryComparator implements Comparator<Entry> {
             @Override
             public int compare(Entry a, Entry b) {
-                return (int) (a.idleSince - b.idleSince);
+                return Long.compare(a.idleSince, b.idleSince);
             }
         }
     }

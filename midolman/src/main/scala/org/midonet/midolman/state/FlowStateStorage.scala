@@ -76,8 +76,6 @@ object FlowStateStorage {
             Schema.NAT(NAT_BY_EGRESS_TABLE),
             Schema.NAT_IDX(NAT_BY_EGRESS_TABLE))
 
-    val FLOW_STATE_TTL_SECONDS = 60
-
     val NAT_KEY_TYPES = Bimap[NatKey.Type, String](List(
         NatKey.FWD_DNAT -> "fwd_dnat",
         NatKey.FWD_SNAT -> "fwd_snat",
@@ -176,14 +174,14 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             s"INSERT INTO $table " +
                 "  (port, proto, srcIp, srcPort, dstIp, dstPort, device) " +
                 " VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                s" USING TTL $FLOW_STATE_TTL_SECONDS;")
+                " USING TTL ?;")
 
     def touchNatStatement(table: String) =
         new Prepared(
             s"INSERT INTO $table " +
                 "  (port, type, proto, srcIp, srcPort, dstIp, dstPort, device, translateIp, translatePort) " +
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                s" USING TTL $FLOW_STATE_TTL_SECONDS;")
+                " USING TTL ?;")
 
     val touchIngressConnTrack = touchConnTrackStatement(CONNTRACK_BY_INGRESS_TABLE)
     val touchEgressConnTrack = touchConnTrackStatement(CONNTRACK_BY_EGRESS_TABLE)
@@ -203,7 +201,8 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
         st.bind(port, k.networkProtocol.toInt.asInstanceOf[JInt],
                       ipAddrToInet(k.networkSrc), k.icmpIdOrTransportSrc.asInstanceOf[JInt],
                       ipAddrToInet(k.networkDst), k.icmpIdOrTransportDst.asInstanceOf[JInt],
-                      k.deviceId)
+                      k.deviceId,
+                      k.expiresAfter.toMillis.toInt: java.lang.Integer)
     }
 
     private def bind(st: PreparedStatement, port: UUID, k: NatKey, v: NatBinding) = {
@@ -212,7 +211,8 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                       ipAddrToInet(k.networkSrc), k.transportSrc.asInstanceOf[JInt],
                       ipAddrToInet(k.networkDst), k.transportDst.asInstanceOf[JInt],
                       k.deviceId,
-                      ipAddrToInet(v.networkAddress), v.transportPort.asInstanceOf[JInt])
+                      ipAddrToInet(v.networkAddress), v.transportPort.asInstanceOf[JInt],
+                      k.expiresAfter.toMillis.toInt: java.lang.Integer)
     }
 
     /**
