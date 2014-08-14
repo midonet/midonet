@@ -77,7 +77,7 @@ class FlowStateStorageTest extends FeatureSpec
                 val future = storage.fetchStrongConnTrackRefs(ingressPort)
                 strongConn = Await.result(future, timeout)
                 strongConn should not be null
-                strongConn should not be empty
+                strongConn should have size connTrackKeys.size
             }
 
             for (k <- connTrackKeys) {
