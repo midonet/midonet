@@ -309,6 +309,8 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
                 "com.fasterxml.jackson.core:jackson-core:2.3.2",
                 "com.fasterxml.jackson.core:jackson-annotations:2.3.2",
                 "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521"
+
+        testCompile "junit:junit:4.11"
     }
 
     repositories {
