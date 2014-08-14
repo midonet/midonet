@@ -16,7 +16,10 @@ import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class TopologyPrefetcherTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
                                                   with MessageAccumulator))
@@ -26,13 +29,16 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
     class MyTopologyPrefetcher extends TopologyPrefetcher {
         val requested = mutable.Set[UUID]()
-        var topology: Map[UUID, AnyRef] = _
+        var topology = Map[UUID, AnyRef]()
 
         def topologyReady() {
-            topology = (requested map { id => id -> device(id) }).toMap
+            topology = (requested filter { device(_) != null }  map { id =>
+                id -> device(id)
+            }).toMap
         }
 
-        def get[D](id: UUID) = topology.get(id).asInstanceOf[D]
+        def get[D](id: UUID): Option[D] =
+            topology.get(id).asInstanceOf[Option[D]]
 
         override def receive = super.receive orElse {
             case reqs: List[_] =>
@@ -40,8 +46,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
                 devReqs foreach { requested += _.id }
                 prefetchTopology(devReqs: _*)
             case req: DeviceRequest =>
-                prefetchTopology(req)
                 requested += req.id
+                prefetchTopology(req)
         }
     }
 
@@ -132,7 +138,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             Given("A topology with a bridge")
             val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
             topologyActor ! bridgeReq
-            topologyActor.underlyingActor.get[SimBridge](bridge.getId)
+            topologyActor.underlyingActor.get[SimBridge](bridge.getId).get
                                          .adminStateUp should be (true)
 
             When("Updating the bridge")
@@ -142,7 +148,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
                 null, null, null, null, null, null, null, null, null, null)
 
             Then("The hook method is called with the updated bridge")
-            topologyActor.underlyingActor.get[SimBridge](bridge.getId)
+            topologyActor.underlyingActor.get[SimBridge](bridge.getId).get
                                          .adminStateUp should be (false)
         }
     }
