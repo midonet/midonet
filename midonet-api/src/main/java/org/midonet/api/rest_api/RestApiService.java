@@ -5,9 +5,11 @@ package org.midonet.api.rest_api;
 
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import org.midonet.cluster.services.MidostoreSetupService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.services.MidostoreSetupService;
 
 /**
  * Manages all the services for Midolman REST API.
@@ -29,7 +31,7 @@ public class RestApiService  extends AbstractService {
         log.info("doStart: entered");
 
         try {
-            midoStoreSetupService.startAndWait();
+            midoStoreSetupService.startAsync().awaitRunning();
             notifyStarted();
         } catch (Exception e) {
             log.error("Exception while starting service", e);
@@ -44,7 +46,7 @@ public class RestApiService  extends AbstractService {
         log.info("doStop: entered");
 
         try {
-            midoStoreSetupService.stopAndWait();
+            midoStoreSetupService.stopAsync().awaitTerminated();
             notifyStopped();
         } catch (Exception e) {
             log.error("Exception while stopping service", e);

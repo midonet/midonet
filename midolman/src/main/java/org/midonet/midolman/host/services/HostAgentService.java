@@ -57,7 +57,7 @@ public class HostAgentService extends AbstractService {
 
         try {
             log.info("Service: {}.", service);
-            service.stopAndWait();
+            service.stopAsync().awaitTerminated();
         } catch (Exception e) {
             log.error("Exception while stopping the service \"{}\"",
                     service, e);
@@ -72,7 +72,7 @@ public class HostAgentService extends AbstractService {
 
         log.info("Service {}", service);
         try {
-            service.startAndWait();
+            service.startAsync().awaitRunning();
         } catch (Exception e) {
             log.error("Exception while starting service {}", service, e);
         } finally {

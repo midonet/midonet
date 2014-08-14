@@ -31,7 +31,7 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
 
     override def beforeTest() {
         packetEventsProbe = newProbe()
-        actors().eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
+        actors.eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
 
         host = newHost("myself", hostId())
         host should not be null

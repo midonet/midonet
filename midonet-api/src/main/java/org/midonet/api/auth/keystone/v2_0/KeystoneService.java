@@ -83,7 +83,7 @@ public class KeystoneService implements AuthService {
         userIdentity.setToken(access.getToken().getId());
         userIdentity.setUserId(access.getUser().getId());
 
-        String r = null;
+        String r;
         for(KeystoneAccess.Access.User.Role role : access.getUser().getRoles()){
             r = convertToAuthRole(role.getName());
             if (r != null) {

@@ -5,6 +5,7 @@ package org.midonet.api.host;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.inject.AbstractModule;
@@ -14,13 +15,15 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import junit.framework.Assert;
+
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;

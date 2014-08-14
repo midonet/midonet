@@ -3,20 +3,18 @@
  */
 package org.midonet.api.l4lb.e2e;
 
-import junit.framework.Assert;
-import org.junit.After;
-import org.junit.Before;
+import java.util.UUID;
+
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.l4lb.LBStatus;
-
-import java.util.UUID;
 
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;

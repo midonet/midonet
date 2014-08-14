@@ -1,25 +1,22 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-
 package org.midonet.api.l4lb.e2e;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.Status;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoVip;
 
-import static javax.ws.rs.core.Response.Status.*;
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 @RunWith(Enclosed.class)
 public class TestLoadBalancer {

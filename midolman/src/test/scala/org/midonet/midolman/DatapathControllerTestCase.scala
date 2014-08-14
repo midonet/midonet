@@ -34,7 +34,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
     private var portEventsProbe: TestProbe = null
     override def beforeTest() {
         portEventsProbe = newProbe()
-        actors().eventStream.subscribe(portEventsProbe.ref,
+        actors.eventStream.subscribe(portEventsProbe.ref,
             classOf[LocalPortActive])
     }
 

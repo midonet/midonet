@@ -3,16 +3,22 @@
  */
 package org.midonet.api.l4lb.e2e;
 
+import java.net.URI;
+import java.util.UUID;
+
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+
 import com.sun.jersey.api.client.ClientResponse;
-import junit.framework.Assert;
-import org.junit.After;
+
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -21,11 +27,6 @@ import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-
-import java.net.URI;
-import java.util.UUID;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;

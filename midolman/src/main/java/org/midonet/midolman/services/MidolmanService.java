@@ -51,8 +51,7 @@ public class MidolmanService extends AbstractService {
         for (AbstractService service : services()) {
             log.info("Starting service: {}", service);
             try {
-                if (service.startAndWait() != State.RUNNING)
-                    throw new Exception("Failed to start service " + service);
+                service.startAsync().awaitRunning();
                 log.info("Service started: {}", service);
             } catch (Exception e) {
                 log.error("Exception while starting service " + service, e);
@@ -77,7 +76,7 @@ public class MidolmanService extends AbstractService {
             try {
                 if (running) {
                     log.info("Stopping service: {}", service);
-                    service.stopAndWait();
+                    service.stopAsync().awaitTerminated();
                 }
             } catch (Exception e) {
                 log.error("Exception while stopping the service {}", service, e);
