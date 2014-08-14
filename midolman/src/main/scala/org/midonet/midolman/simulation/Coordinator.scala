@@ -17,7 +17,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
-import org.midonet.midolman.state.FlowStateStorage
+import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
@@ -226,7 +226,7 @@ class Coordinator(pktCtx: PacketContext)
 
             case ToPortSetAction(portSetID) =>
                 pktCtx.traceMessage(portSetID, "Flooded to port set")
-                emit(portSetID, isPortSet = true, null)
+                Ready(emit(portSetID, isPortSet = true, null))
 
             case ToPortAction(outPortID) =>
                 pktCtx.traceMessage(outPortID, "Forwarded to port")
@@ -335,7 +335,7 @@ class Coordinator(pktCtx: PacketContext)
                     pktCtx.outPortId = p.id
                     applyPortFilter(p, p.outboundFilter, {
                         case p: Port if p.isExterior =>
-                            emit(p.id, isPortSet = false, p)
+                            Ready(emit(p.id, isPortSet = false, p))
                         case p: Port if p.isInterior =>
                             packetIngressesPort(p.peerID, getPortGroups = false)
                         case _ =>
@@ -349,11 +349,12 @@ class Coordinator(pktCtx: PacketContext)
      * Complete the simulation by emitting the packet from the specified
      * virtual port or PortSet.  If the packet was internally generated
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
+     * @param outputID The id of the output Port or PortSet.
      * @param isPortSet Whether the packet is output to a port set.
-     * @param port The port output to; unused if outputting to a port set.
+     * @param port The port to output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean, port: Port)
-    : Urgent[SimulationResult] = {
+    private def emit(outputID: UUID, isPortSet: Boolean,
+                     port: Port) : SimulationResult = {
         val actions = pktCtx.actionsFromMatchDiff()
         isPortSet match {
             case false =>
@@ -365,26 +366,28 @@ class Coordinator(pktCtx: PacketContext)
                 pktCtx.toPortSet = true
         }
 
-        Ready(
-            if (pktCtx.isGenerated) {
-                log.debug("SendPacket with actions {}", actions)
-                SendPacket(actions.toList)
-            } else {
-                log.debug("Add a flow with actions {}", actions)
-                // TODO(guillermo,pino) don't assume that portset id == bridge id
-                val dev = if (isPortSet) outputID else port.deviceID
-                pktCtx.state.trackConnection(dev)
+        if (pktCtx.isGenerated) {
+            log.debug("SendPacket with actions {}", actions)
+            SendPacket(actions.toList)
+        } else {
+            log.debug("Add a flow with actions {}", actions)
+            // TODO(guillermo,pino) don't assume that portset id == bridge id
+            val dev = if (isPortSet) outputID else port.deviceID
+            pktCtx.state.trackConnection(dev)
 
-                val hardExp = if (! pktCtx.state.containsForwardStateKeys) 0
-                              else FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000 / 2
-                val idleExp = if (hardExp == 0) IDLE_EXPIRATION_MILLIS else 0
+            var hardExp = 0
+            var idleExp = 0
+            if (pktCtx.state.containsForwardStateKeys)
+                hardExp = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
+            else
+                idleExp = IDLE_EXPIRATION_MILLIS
 
-                virtualWildcardFlowResult(WildcardFlow(
-                    wcmatch = pktCtx.origMatch,
-                    actions = actions.toList,
-                    idleExpirationMillis = idleExp,
-                    hardExpirationMillis = hardExp))
-            })
+            virtualWildcardFlowResult(WildcardFlow(
+                wcmatch = pktCtx.origMatch,
+                actions = actions.toList,
+                idleExpirationMillis = idleExp,
+                hardExpirationMillis = hardExp))
+        }
     }
 
     private[this] def processAdminStateDown(port: Port, isIngress: Boolean)

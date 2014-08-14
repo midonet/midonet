@@ -211,12 +211,8 @@ class DeduplicationActor(
                 i += 1
             }
 
-            connTrackStateTable.expireIdleEntries(
-                FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
-                (), invalidateExpiredConnTrackKeys)
-            natStateTable.expireIdleEntries(
-                FlowStateStorage.FLOW_STATE_TTL_SECONDS * 1000,
-                (), invalidateExpiredNatKeys)
+            connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
+            natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
 
         case RestartWorkflow(pktCtx) =>
             if (pktCtx.idle) {

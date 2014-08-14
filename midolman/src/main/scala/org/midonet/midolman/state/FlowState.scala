@@ -4,10 +4,21 @@
 
 package org.midonet.midolman.state
 
+import scala.concurrent.duration._
+
 import akka.event.LoggingAdapter
 
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.sdn.flows.FlowTagger.FlowStateTag
+import org.midonet.sdn.state.IdleExpiration
 
+object FlowState {
+    val DEFAULT_EXPIRATION = 60 seconds
+
+    trait FlowStateKey extends FlowStateTag with IdleExpiration {
+        var expiresAfter: Duration = DEFAULT_EXPIRATION
+    }
+}
 /**
  * Base trait for flow state management during a simulation. Implementers of
  * this trait must ensure it is stackable with other state traits.

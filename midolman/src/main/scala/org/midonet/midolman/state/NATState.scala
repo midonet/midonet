@@ -7,11 +7,14 @@ package org.midonet.midolman.state
 import java.nio.ByteBuffer
 import java.util.{UUID, Random}
 
+import scala.concurrent.duration._
+
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP, IPAddr}
-import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.midolman.state.NatState.NatKey.{REV_STICKY_DNAT, FWD_STICKY_DNAT}
 
 object NatState {
     private val WILDCARD_PORT = 0
@@ -101,9 +104,14 @@ object NatState {
                       var networkDst: IPAddr,
                       var transportDst: Int,
                       var networkProtocol: Byte,
-                      var deviceId: UUID) extends FlowStateTag {
+                      var deviceId: UUID) extends FlowStateKey {
         override def toString = s"nat:$keyType:$networkSrc:$transportSrc:" +
                                 s"$networkDst:$transportDst:$networkProtocol"
+
+        expiresAfter = keyType match {
+            case FWD_STICKY_DNAT | REV_STICKY_DNAT => 1 day
+            case _ => FlowState.DEFAULT_EXPIRATION
+        }
 
         def returnKey(binding: NatBinding): NatKey = keyType match {
             case NatKey.FWD_SNAT =>
