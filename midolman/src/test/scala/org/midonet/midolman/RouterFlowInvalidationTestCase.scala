@@ -88,8 +88,8 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         clusterRouter = newRouter("router")
         clusterRouter should not be null
 
-        actors().eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
-        actors().eventStream.subscribe(tagEventProbe.ref, classOf[RouterInvTrieTagCountModified])
+        actors.eventStream.subscribe(eventProbe.ref, classOf[LocalPortActive])
+        actors.eventStream.subscribe(tagEventProbe.ref, classOf[RouterInvTrieTagCountModified])
         initializeDatapath() should not be null
 
         flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be null
@@ -132,8 +132,8 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
     def testFlowInFlightInvalidation() {
         val datapath = flowController().underlyingActor.datapath
         val dpFlowProbe = newProbe()
-        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
-        actors().eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
+        actors.eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
+        actors.eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
 
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelID(7001))
         val dpflow = new Flow(

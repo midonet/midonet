@@ -181,7 +181,7 @@ public abstract class NeutronPluginTest {
         String zkRoot = "/test_" + UUID.randomUUID();
         initializeDeps(zkRoot);
 
-        getMidostoreService().startAndWait();
+        getMidostoreService().startAsync().awaitRunning();
         plugin = injector.getInstance(NeutronPlugin.class);
 
         // Set up a basic scenario for all the tests for now
@@ -190,7 +190,7 @@ public abstract class NeutronPluginTest {
 
     @After
     public void tearDown() throws Exception {
-        getMidostoreService().stopAndWait();
+        getMidostoreService().stopAsync().awaitTerminated();
     }
 
     public void setUpBasicScenario()

@@ -14,8 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.core.UriBuilder;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
+
 import org.codehaus.jackson.type.JavaType;
 import org.junit.After;
 import org.junit.Before;
@@ -42,17 +45,25 @@ import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
 
-import javax.ws.rs.core.UriBuilder;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.midonet.client.VendorMediaType.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 @RunWith(Enclosed.class)

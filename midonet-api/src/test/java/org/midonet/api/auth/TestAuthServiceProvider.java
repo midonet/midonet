@@ -10,10 +10,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.util.Modules;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.MockitoAnnotations.Mock;
 
 import org.midonet.api.auth.cloudstack.CloudStackAuthService;
 import org.midonet.api.auth.cloudstack.CloudStackConfig;

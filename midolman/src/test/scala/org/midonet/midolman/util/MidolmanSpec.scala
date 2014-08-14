@@ -62,8 +62,12 @@ trait MidolmanSpec extends FeatureSpecLike
             val config = fillConfig(new HierarchicalConfiguration)
             injector = Guice.createInjector(getModules(config))
 
-            injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
-            injector.getInstance(classOf[MidolmanService]).startAndWait()
+            injector.getInstance(classOf[MidostoreSetupService])
+                .startAsync()
+                .awaitRunning()
+            injector.getInstance(classOf[MidolmanService])
+                .startAsync()
+                .awaitRunning()
 
             beforeTest()
         } catch {
@@ -73,8 +77,12 @@ trait MidolmanSpec extends FeatureSpecLike
 
     after {
         afterTest()
-        injector.getInstance(classOf[MidolmanService]).stopAndWait()
-        injector.getInstance(classOf[MidostoreSetupService]).stopAndWait()
+        injector.getInstance(classOf[MidolmanService])
+            .stopAsync()
+            .awaitTerminated()
+        injector.getInstance(classOf[MidostoreSetupService])
+            .stopAsync()
+            .awaitTerminated()
     }
 
     protected def fillConfig(config: HierarchicalConfiguration)

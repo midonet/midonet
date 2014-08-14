@@ -51,8 +51,12 @@ public class MidoBrain {
             new SerializationModule()
         );
 
-        injector.getInstance(MidostoreSetupService.class).startAndWait();
-        injector.getInstance(VxLanGatewayService.class).startAndWait();
+        injector.getInstance(MidostoreSetupService.class)
+            .startAsync()
+            .awaitRunning();
+        injector.getInstance(VxLanGatewayService.class)
+            .startAsync()
+            .awaitRunning();
 
         log.info("Midonet Brain initialized");
 

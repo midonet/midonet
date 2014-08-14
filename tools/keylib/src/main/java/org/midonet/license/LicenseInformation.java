@@ -10,7 +10,7 @@ import java.util.UUID;
 import net.java.truelicense.core.License;
 
 public class LicenseInformation implements Serializable {
-    static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private final License license;
     private UUID licenseId;
@@ -64,6 +64,7 @@ public class LicenseInformation implements Serializable {
         return agentQuota;
     }
 
+    @SuppressWarnings("unchecked")
     public static LicenseInformation parse(License license) {
         try {
             LinkedHashMap<String, Object> args =

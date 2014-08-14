@@ -9,24 +9,28 @@ import java.io.PrintStream;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import com.google.common.util.concurrent.Service;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import com.google.common.util.concurrent.Service;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.event.agent.ServiceEvent;
-import org.midonet.midolman.guice.*;
-import org.midonet.midolman.guice.state.FlowStateStorageModule;
+import org.midonet.midolman.guice.InterfaceScannerModule;
+import org.midonet.midolman.guice.MidolmanActorsModule;
+import org.midonet.midolman.guice.MidolmanModule;
+import org.midonet.midolman.guice.ResourceProtectionModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
+import org.midonet.midolman.guice.state.FlowStateStorageModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -116,8 +120,12 @@ public class Midolman {
         );
 
         // start the services
-        injector.getInstance(MidostoreSetupService.class).startAndWait();
-        injector.getInstance(MidolmanService.class).startAndWait();
+        injector.getInstance(MidostoreSetupService.class)
+            .startAsync()
+            .awaitRunning();
+        injector.getInstance(MidolmanService.class)
+            .startAsync()
+            .awaitRunning();
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
@@ -141,7 +149,7 @@ public class Midolman {
             return;
 
         try {
-            instance.stopAndWait();
+            instance.stopAsync().awaitTerminated();
         } catch (Exception e) {
             log.error("Exception ", e);
         } finally {

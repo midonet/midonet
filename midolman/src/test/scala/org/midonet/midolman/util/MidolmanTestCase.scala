@@ -110,14 +110,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         config
     }
 
-    protected def actors(): ActorSystem =
+    protected def actors: ActorSystem =
         injector.getInstance(classOf[MidolmanActorsService]).system
 
-    implicit protected def system: ActorSystem = actors()
-    implicit protected def executor: ExecutionContext = actors().dispatcher
+    implicit protected def system: ActorSystem = actors
+    implicit protected def executor: ExecutionContext = actors.dispatcher
 
     protected def newProbe(): TestProbe = {
-        new TestProbe(actors())
+        new TestProbe(actors)
     }
 
     private def registerProbe[T](p: TestProbe, k: Class[T], s: EventStream) =
@@ -125,14 +125,14 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     protected def makeEventProbe[T](klass: Class[T]): TestProbe = {
         val probe = new TestProbe(actors)
-        registerProbe(probe, klass, actors().eventStream)
+        registerProbe(probe, klass, actors.eventStream)
         probe
     }
 
     private def prepareAllProbes() {
         sProbe = new TestProbe(actors)
         for (klass <- List(classOf[PacketIn], classOf[EmitGeneratedPacket])) {
-            registerProbe(sProbe, klass, actors().eventStream)
+            registerProbe(sProbe, klass, actors.eventStream)
         }
         datapathEventsProbe = makeEventProbe(classOf[DpPortCreate])
         packetInProbe = makeEventProbe(classOf[PacketIn])
@@ -150,14 +150,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             val config = fillConfig(new HierarchicalConfiguration())
             injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
-            injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
-            injector.getInstance(classOf[MidolmanService]).startAndWait()
+            injector.getInstance(classOf[MidostoreSetupService])
+                .startAsync()
+                .awaitRunning()
+            injector.getInstance(classOf[MidolmanService])
+                .startAsync()
+                .awaitRunning()
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
             val cb = new Callback2[Packet, JList[FlowAction]] {
                 override def call(pkt: Packet, actions: JList[FlowAction]) {
-                    actors().eventStream.publish(PacketsExecute(pkt, actions))
+                    actors.eventStream.publish(PacketsExecute(pkt, actions))
                 }
             }
             mockDpConn().packetsExecuteSubscribe(cb)
@@ -165,18 +169,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             mockDpConn().flowsSubscribe(
                 new FlowListener {
                     def flowCreated(flow: Flow) {
-                        actors().eventStream.publish(FlowAdded(flow))
+                        actors.eventStream.publish(FlowAdded(flow))
                     }
 
                     def flowDeleted(flow: Flow) {
-                        actors().eventStream.publish(FlowRemoved(flow))
+                        actors.eventStream.publish(FlowRemoved(flow))
                     }
                 })
 
             // Make sure that each test method runs alone
             MidolmanTestCaseLock.sequential.lock()
             log.info("Acquired test lock")
-            actors().settings.DebugEventStream
+            actors.settings.DebugEventStream
 
             prepareAllProbes()
 
@@ -187,7 +191,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     }
 
     after {
-        injector.getInstance(classOf[MidolmanService]).stopAndWait()
+        injector.getInstance(classOf[MidolmanService])
+            .stopAsync()
+            .awaitTerminated()
         MidolmanTestCaseLock.sequential.unlock()
         log.info("Released lock")
         afterTest()
@@ -261,7 +267,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             itf.setUp(true)
             interfaceScanner.addInterface(itf)
         }
-        return updatedPort;
+        updatedPort
     }
 
     def datapathPorts(datapath: Datapath): mutable.Map[String, DpPort] = {
@@ -323,10 +329,10 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         actorByName(DatapathController.Name)
     }
 
-    def dpState(): DatapathState = dpController().underlyingActor.dpState
+    def dpState: DatapathState = dpController().underlyingActor.dpState
 
     def getPort(portName: String) =
-        dpState.getDpPortForInterface(portName).getOrElse(null)
+        dpState.getDpPortForInterface(portName).orNull
 
     def getPortNumber(portName: String): Int = getPort(portName).getPortNo
 
@@ -376,7 +382,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
         val clazz = m.runtimeClass.asInstanceOf[Class[T]]
         val msg = testKit.fishForMessage(_timeout) {
-            case o if (o.getClass == clazz) => true
+            case o if o.getClass == clazz => true
             case _ => false
         }
         assert(clazz.isInstance(msg),
@@ -478,9 +484,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     def tunnelIsLike(srcIp: Int, dstIp: Int, key: Long):
         FlowKeyTunnel => Boolean = { tunnelInfo =>
-            tunnelInfo.getIpv4SrcAddr() == srcIp &&
-            tunnelInfo.getIpv4DstAddr() == dstIp &&
-            tunnelInfo.getTunnelID() == key
+            tunnelInfo.getIpv4SrcAddr == srcIp &&
+            tunnelInfo.getIpv4DstAddr == dstIp &&
+            tunnelInfo.getTunnelID == key
         }
 
     def ackWCAdded(until: Duration = timeout) =
@@ -497,13 +503,13 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def addVirtualWildcardFlow(wcMatch: WildcardMatch,
                                action: FlowAction): Unit = {
         val flowTranslator = new FlowTranslator {
-            override implicit protected def system: ActorSystem = actors()
+            override implicit protected def system: ActorSystem = actors
             override val log: LoggingAdapter = NoLogging
-            override protected val dpState: DatapathState = self.dpState()
+            override protected val dpState: DatapathState = self.dpState
         }
         val pktCtx = new PacketContext(Left(-1), null, 0L, None, wcMatch)
         pktCtx.inputPort = wcMatch.getInputPortUUID
-        dpState().getDpPortNumberForVport(pktCtx.inputPort) map { port =>
+        dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)
         }
 

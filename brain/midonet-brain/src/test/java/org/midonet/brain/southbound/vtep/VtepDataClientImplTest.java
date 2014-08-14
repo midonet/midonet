@@ -11,10 +11,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.NonStrictExpectations;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
@@ -32,13 +28,17 @@ import org.opendaylight.ovsdb.plugin.ConnectionService;
 import org.opendaylight.ovsdb.plugin.InventoryService;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.NonStrictExpectations;
+
 import org.midonet.brain.southbound.vtep.model.PhysicalPort;
 import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
-import static junit.framework.Assert.assertEquals;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class VtepDataClientImplTest {
