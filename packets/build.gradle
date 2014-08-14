@@ -23,3 +23,8 @@ dependencies {
     compile libraries.scala, libraries.jackson_core
     testCompile libraries.scalatest
 }
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}

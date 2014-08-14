@@ -172,31 +172,28 @@ object DatapathController extends Referenceable {
     case class DpPortDeleteNetdev(port: NetDevPort, tag: Option[AnyRef])
             extends DpPortDelete
 
-    object Internal {
+    /**
+     * This message is sent when the separate thread has successfully
+     * retrieved all information about the interfaces.
+     */
+    case class InterfacesUpdate_(interfaces: JSet[InterfaceDescription])
 
-        /**
-         * This message is sent when the separate thread has successfully
-         * retrieved all information about the interfaces.
-         */
-        case class InterfacesUpdate(interfaces: JSet[InterfaceDescription])
+    case class ExistingDatapathPorts_(datapath: Datapath, ports: Set[DpPort])
 
-        case class ExistingDatapathPorts(datapath: Datapath, ports: Set[DpPort])
+    /** Signals that the ports in the datapath were cleared */
+    case object DatapathClear_
 
-        /** Signals that the ports in the datapath were cleared */
-        case object DatapathClear
+    /** Signals that the gre port for overlay traffic tunnelling has been
+     *  created. */
+    case class GrePortReady_(gre: GreTunnelPort)
 
-        /** Signals that the gre port for overlay traffic tunnelling has been
-         *  created. */
-        case class GrePortReady(gre: GreTunnelPort)
+    /** Signals that the vxlan port for overlay traffic tunnelling has been
+     *  created. */
+    case class VxLanPortReady_(vxlan: VxLanTunnelPort)
 
-        /** Signals that the vxlan port for overlay traffic tunnelling has been
-         *  created. */
-        case class VxLanPortReady(vxlan: VxLanTunnelPort)
-
-        /** Signals that the vxlan port for vtep traffic tunnelling has been
-         *  created. */
-        case class VtepPortReady(vtep: VxLanTunnelPort)
-    }
+    /** Signals that the vxlan port for vtep traffic tunnelling has been
+     *  created. */
+    case class VtepPortReady_(vtep: VxLanTunnelPort)
 
     private var cachedMinMtu: Short = DEFAULT_MTU
 
@@ -249,7 +246,6 @@ object DatapathController extends Referenceable {
 class DatapathController extends Actor with ActorLogging {
 
     import DatapathController._
-    import DatapathController.Internal._
     import FlowController.AddWildcardFlow
     import VirtualPortManager.Controller
     import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
@@ -361,32 +357,32 @@ class DatapathController extends Actor with ActorLogging {
                     this.nextHost = h
             }
 
-        case ExistingDatapathPorts(datapathObj, ports) =>
+        case ExistingDatapathPorts_(datapathObj, ports) =>
             this.datapath = datapathObj
             val conn = new OvsConnectionOps(datapathConnection)
             Future.traverse(ports) { deleteExistingPort(_, conn) }
-                  .map { _ => DatapathClear } pipeTo self
+                  .map { _ => DatapathClear_ } pipeTo self
 
-        case DatapathClear =>
+        case DatapathClear_ =>
             makeTunnelPort(OverlayTunnel) {() =>
                 GreTunnelPort make "tngre-overlay"
-            } map { GrePortReady(_) } pipeTo self
+            } map { GrePortReady_(_) } pipeTo self
 
-        case GrePortReady(gre) =>
+        case GrePortReady_(gre) =>
             dpState setTunnelOverlayGre gre
             makeTunnelPort(OverlayTunnel) { () =>
                 val overlayUdpPort = midolmanConfig.getVxLanOverlayUdpPort
                 VxLanTunnelPort make ("tnvxlan-overlay", overlayUdpPort)
-            } map { VxLanPortReady(_) } pipeTo self
+            } map { VxLanPortReady_(_) } pipeTo self
 
-        case VxLanPortReady(vxlan) =>
+        case VxLanPortReady_(vxlan) =>
             dpState setTunnelOverlayVxLan vxlan
             makeTunnelPort(VtepTunnel) { () =>
                 val vtepUdpPort = midolmanConfig.getVxLanVtepUdpPort
                 VxLanTunnelPort make ("tnvxlan-vtep", vtepUdpPort)
-            } map { VtepPortReady(_) } pipeTo self
+            } map { VtepPortReady_(_) } pipeTo self
 
-        case VtepPortReady(vtep) =>
+        case VtepPortReady_(vtep) =>
             dpState setTunnelVtepVxLan vtep
             completeInitialization()
     }
@@ -444,7 +440,7 @@ class DatapathController extends Actor with ActorLogging {
             portWatcher = interfaceScanner.register(
                 new Callback[JSet[InterfaceDescription]] {
                     def onSuccess(data: JSet[InterfaceDescription]) {
-                      self ! InterfacesUpdate(data)
+                      self ! InterfacesUpdate_(data)
                     }
                     def onError(e: NetlinkException) { /* not called */ }
             })
@@ -530,7 +526,7 @@ class DatapathController extends Actor with ActorLogging {
             if(pendingUpdateCount == 0)
                 processNextHost()
 
-        case InterfacesUpdate(interfaces) =>
+        case InterfacesUpdate_(interfaces) =>
             dpState.updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
     }
@@ -787,7 +783,7 @@ class DatapathController extends Actor with ActorLogging {
         datapathConnection.portsEnumerate(datapath,
             new Callback[JSet[DpPort]] {
                 def onSuccess(ports: JSet[DpPort]) {
-                    self ! ExistingDatapathPorts(datapath, ports.asScala.toSet)
+                    self ! ExistingDatapathPorts_(datapath, ports.asScala.toSet)
                 }
                 // WARN: this is ugly. Normally we should configure
                 // the message error handling inside the router
