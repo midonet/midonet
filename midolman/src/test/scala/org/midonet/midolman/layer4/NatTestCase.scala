@@ -27,6 +27,7 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.state.FlowState
+import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
@@ -231,7 +232,8 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         val reducer =  new Reducer[NatKey, NatBinding, Set[NatKey]] {
             def apply(acc: Set[NatKey], key: NatKey, value: NatBinding): Set[NatKey] =
                 key.keyType match {
-                    case NatKey.FWD_SNAT | NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+                    case NatState.FWD_SNAT | NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
+                        key.expiresAfter = 0.seconds
                         acc + key
                     case _ =>
                         acc

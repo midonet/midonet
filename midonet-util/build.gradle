@@ -17,3 +17,7 @@ jar {
     }
 }
 
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}

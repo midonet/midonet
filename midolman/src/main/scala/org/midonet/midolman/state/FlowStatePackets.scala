@@ -98,22 +98,22 @@ object FlowStatePackets {
             Proto.UUID.newBuilder().setMsb(uuid.getMostSignificantBits).
                 setLsb(uuid.getLeastSignificantBits).build()
 
-    implicit def natKeyTypeFromProto(t: Proto.NatKey.Type): NatKey.Type = t match {
-        case Proto.NatKey.Type.FWD_SNAT => NatKey.FWD_SNAT
-        case Proto.NatKey.Type.FWD_DNAT => NatKey.FWD_DNAT
-        case Proto.NatKey.Type.FWD_STICKY_DNAT => NatKey.FWD_STICKY_DNAT
-        case Proto.NatKey.Type.REV_SNAT => NatKey.REV_SNAT
-        case Proto.NatKey.Type.REV_DNAT => NatKey.REV_DNAT
-        case Proto.NatKey.Type.REV_STICKY_DNAT => NatKey.REV_STICKY_DNAT
+    implicit def natKeyTypeFromProto(t: Proto.NatKey.Type): KeyType = t match {
+        case Proto.NatKey.Type.FWD_SNAT => NatState.FWD_SNAT
+        case Proto.NatKey.Type.FWD_DNAT => NatState.FWD_DNAT
+        case Proto.NatKey.Type.FWD_STICKY_DNAT => NatState.FWD_STICKY_DNAT
+        case Proto.NatKey.Type.REV_SNAT => NatState.REV_SNAT
+        case Proto.NatKey.Type.REV_DNAT => NatState.REV_DNAT
+        case Proto.NatKey.Type.REV_STICKY_DNAT => NatState.REV_STICKY_DNAT
     }
 
-    implicit def natKeyTypeToProto(t: NatKey.Type): Proto.NatKey.Type = t match {
-        case NatKey.FWD_SNAT => Proto.NatKey.Type.FWD_SNAT
-        case NatKey.FWD_DNAT => Proto.NatKey.Type.FWD_DNAT
-        case NatKey.FWD_STICKY_DNAT => Proto.NatKey.Type.FWD_STICKY_DNAT
-        case NatKey.REV_SNAT => Proto.NatKey.Type.REV_SNAT
-        case NatKey.REV_DNAT => Proto.NatKey.Type.REV_DNAT
-        case NatKey.REV_STICKY_DNAT => Proto.NatKey.Type.REV_STICKY_DNAT
+    implicit def natKeyTypeToProto(t: KeyType): Proto.NatKey.Type = t match {
+        case NatState.FWD_SNAT => Proto.NatKey.Type.FWD_SNAT
+        case NatState.FWD_DNAT => Proto.NatKey.Type.FWD_DNAT
+        case NatState.FWD_STICKY_DNAT => Proto.NatKey.Type.FWD_STICKY_DNAT
+        case NatState.REV_SNAT => Proto.NatKey.Type.REV_SNAT
+        case NatState.REV_DNAT => Proto.NatKey.Type.REV_DNAT
+        case NatState.REV_STICKY_DNAT => Proto.NatKey.Type.REV_STICKY_DNAT
     }
 
     def connTrackKeyFromProto(proto: Proto.ConntrackKey) =
