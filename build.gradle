@@ -163,6 +163,13 @@ allprojects {
     }
     idea.module.iml.withXml { p -> reorderIdeaJdkBootstrapDependency(p) }
     idea.module.iml.generateTo = file("${rootDir}/idea")
+
+    idea.module {
+        excludeDirs += file("${projectDir}/target")
+        excludeDirs -= buildDir
+        buildDir.listFiles().findAll{it.name != 'generated'}.each{excludeDirs += it}
+        sourceDirs += file("${buildDir}/generated/java")
+    }
 }
 
 idea.project {
