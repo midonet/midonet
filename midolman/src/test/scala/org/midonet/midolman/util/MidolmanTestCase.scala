@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
 package org.midonet.midolman.util
 
 import java.util.{List => JList, ArrayList, UUID}
@@ -65,8 +66,9 @@ import org.midonet.odp.flows.{FlowActionOutput, FlowActionSetKey, FlowKeyTunnel}
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
-import org.midonet.util.functors.{Callback0, Callback2}
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.util.MockClock
+import org.midonet.util.functors.{Callback0, Callback2}
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -99,6 +101,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     var portsProbe: TestProbe = null
     var discardPacketProbe: TestProbe = null
     var flowUpdateProbe: TestProbe = null
+
+    val clock = new MockClock
 
     implicit val askTimeout = Timeout(3 seconds)
     val timeout: FiniteDuration = askTimeout.duration
@@ -232,7 +236,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ClusterClientModule(),
-            new TestableMidolmanActorsModule(probesByName, actorsByName),
+            new TestableMidolmanActorsModule(probesByName, actorsByName, clock),
             new ResourceProtectionModule(),
             new MidolmanModule(),
             new PrivateModule {

@@ -7,11 +7,14 @@ package org.midonet.sdn.state;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import com.yammer.metrics.core.Clock;
-import org.junit.Before;
-import org.junit.Test;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import org.midonet.util.MockClock;
+import org.midonet.util.collection.Reducer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -66,7 +69,7 @@ public class FlowStateTableTest {
     public void before() {
         global = new ShardedFlowStateTable<>(clock);
         for (int i = 0; i < SHARDS; i++)
-            shards.add((FlowStateTable) global.addShard());
+            shards.add((FlowStateTable) global.addShard(akka.event.NoLogging.getInstance()));
     }
 
     @Test
@@ -250,7 +253,7 @@ public class FlowStateTableTest {
     }
 
 
-    class KeyReducer implements FlowStateTable.Reducer<TestKey, Integer, Set<TestKey>> {
+    class KeyReducer extends Reducer<TestKey, Integer, Set<TestKey>> {
         @Override
         public Set<TestKey> apply(Set<TestKey> seed, TestKey key, Integer value) {
             seed.add(key);
@@ -258,20 +261,11 @@ public class FlowStateTableTest {
         }
     }
 
-    class ValueReducer implements FlowStateTable.Reducer<TestKey, Integer, Set<Integer>> {
+    class ValueReducer extends Reducer<TestKey, Integer, Set<Integer>> {
         @Override
         public Set<Integer> apply(Set<Integer> seed, TestKey key, Integer value) {
             seed.add(value);
             return seed;
-        }
-    }
-
-    class MockClock extends Clock {
-        long time = 0;
-
-        @Override
-        public long tick() {
-            return time;
         }
     }
 

@@ -18,6 +18,7 @@ import akka.event.{LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cluster.DataClient
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -33,10 +34,9 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.util.concurrent.ExecutionContextOps
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.sdn.state.FlowStateTable.Reducer
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.ExecutionContextOps
 
 object DeduplicationActor {
     // Messages

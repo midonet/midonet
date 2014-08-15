@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.yammer.metrics.core.Clock;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
@@ -93,7 +94,8 @@ public class DefaultInterfaceDataUpdaterTest {
             new ClusterClientModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
-                JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>())),
+                JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>()),
+                Clock.defaultClock()),
             new ResourceProtectionModule(),
             new MidolmanModule(),
             new InterfaceScannerModule());

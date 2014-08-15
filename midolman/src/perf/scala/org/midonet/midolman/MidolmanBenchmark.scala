@@ -7,7 +7,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject.{Scopes, PrivateModule, AbstractModule, Guice, Injector}
-import com.yammer.metrics.core.MetricsRegistry
+import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
@@ -27,9 +27,11 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.util.mock.{MockMidolmanActors, MockInterfaceScanner}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.util.MockClock
 
 trait MidolmanBenchmark extends MockMidolmanActors {
     var injector: Injector = null
+    var clock = new MockClock
 
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
@@ -74,6 +76,7 @@ trait MidolmanBenchmark extends MockMidolmanActors {
                     bind(classOf[MidolmanActorsService])
                             .toInstance(actorsService)
                     expose(classOf[MidolmanActorsService])
+                    bind(classOf[Clock]).toInstance(clock)
                 }
             },
             new ResourceProtectionModule(),

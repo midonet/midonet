@@ -21,8 +21,8 @@ import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
                                       VirtualToPhysicalMapper => VTPM}
-import org.midonet.midolman.topology.rcu.{PortSet, Host}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, PortSetRequest}
+import org.midonet.midolman.topology.rcu.PortSet
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
@@ -31,12 +31,11 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.sdn.state.FlowStateTable.Reducer
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.FixedArrayOutputStream
+import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
-
 
 /**
  * A class to replicate per-flow connection state between interested hosts.
@@ -119,19 +118,26 @@ abstract class BaseFlowStateReplicator() {
         new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
     }
 
-    private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, Unit] {
-        override def apply(u: Unit, k: ConnTrackKey, v: ConnTrackValue) = {
+    private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
+        override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
+                           v: ConnTrackValue): ArrayList[Callback0] = {
             if (txPeers.size() > 0) {
                 log.debug("push conntrack key: {}", k)
                 txState.setConntrackKey(connTrackKeyToProto(k))
             }
             log.debug("touch conntrack key: {}", k)
             storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
+
+            callbacks.add(new Callback0 {
+                override def call(): Unit = conntrackTable.unref(k)
+            })
+            callbacks
         }
     }
 
-    private val _natAdder = new Reducer[NatKey, NatBinding, Unit] {
-        override def apply(u: Unit, k: NatKey, v: NatBinding) = {
+    private val _natAdder = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
+        override def apply(callbacks: ArrayList[Callback0], k: NatKey,
+                           v: NatBinding): ArrayList[Callback0] = {
             if (txPeers.size() > 0) {
                 log.debug("push nat key: {}", k)
                 txNatEntry.clear()
@@ -140,26 +146,9 @@ abstract class BaseFlowStateReplicator() {
             }
             log.debug("touch nat key: {}", k)
             storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
-        }
-    }
 
-    private val _conntrackCallbacks = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0],
-                           key: ConnTrackKey,
-                           value: ConnTrackValue): ArrayList[Callback0] = {
             callbacks.add(new Callback0 {
-                override def call(): Unit = conntrackTable.unref(key)
-            })
-            callbacks
-        }
-    }
-
-    private val _natCallbacks = new Reducer[NatKey, NatBinding, ArrayList[Callback0]] {
-        override def apply(callbacks: ArrayList[Callback0],
-                           key: NatKey,
-                           value: NatBinding): ArrayList[Callback0] = {
-            callbacks.add(new Callback0 {
-                override def call(): Unit = natTable.unref(key)
+                override def call(): Unit = natTable.unref(k)
             })
             callbacks
         }
@@ -242,29 +231,12 @@ abstract class BaseFlowStateReplicator() {
         }
 
         txIngressPort = ingressPort
-        handleConntrack(conntrackTx)
-        handleNat(natTx)
+        conntrackTx.fold(callbacks, _conntrackAdder)
+        natTx.fold(callbacks, _natAdder)
 
         if (hasPeers)
             buildMessage(ingressPort, egressPort, egressPortSet)
-
-        conntrackTx.fold(callbacks, _conntrackCallbacks)
-        conntrackTx.foldOverRefs(callbacks, _conntrackCallbacks)
-        natTx.fold(callbacks, _natCallbacks)
-        natTx.foldOverRefs(callbacks, _natCallbacks)
     }
-
-    private def handleConntrack(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue]): Unit =
-        if (conntrackTx.size() > 0) {
-            conntrackTx.fold((), _conntrackAdder)
-            conntrackTx.foldOverRefs((), _conntrackAdder)
-         }
-
-    private def handleNat(natTx: FlowStateTransaction[NatKey, NatBinding]): Unit =
-        if (natTx.size() > 0) {
-            natTx.fold((), _natAdder)
-            natTx.foldOverRefs((), _natAdder)
-        }
 
     def buildMessage(ingressPort: UUID, egressPort: UUID, egressPortSet: UUID): Unit =
         if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
@@ -327,7 +299,6 @@ abstract class BaseFlowStateReplicator() {
 
     private def acceptNewState(msg: Proto.StateMessage) {
         val newStates = msg.getNewStateList.iterator
-        val sender: UUID = msg.getSender
         while (newStates.hasNext) {
             val state = newStates.next()
             if (state.hasConntrackKey) {

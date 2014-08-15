@@ -1,6 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ */
+
 package org.midonet.midolman.layer4
 
 import scala.collection.JavaConversions._
@@ -25,6 +26,7 @@ import org.midonet.midolman.VMsBehindRouterFixture
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
+import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
@@ -32,7 +34,7 @@ import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.ShardedFlowStateTable
-import org.midonet.sdn.state.FlowStateTable.Reducer
+import org.midonet.util.collection.Reducer
 
 @RunWith(classOf[JUnitRunner])
 class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
@@ -230,7 +232,6 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
             def apply(acc: Set[NatKey], key: NatKey, value: NatBinding): Set[NatKey] =
                 key.keyType match {
                     case NatKey.FWD_SNAT | NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
-                        key.expiresAfter = 0.seconds
                         acc + key
                     case _ =>
                         acc
@@ -341,6 +342,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount should be (0)
+        clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
         fwdKeys().size should be (0)
     }
@@ -400,6 +402,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
 
         mapping.flowCount should be (0)
+        clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
         natTable.expireIdleEntries()
         fwdKeys().size should be (0)
     }

@@ -23,7 +23,10 @@ project.ext {
 
         cassandra: "com.datastax.cassandra:cassandra-driver-core:2.0.1",
         cassandraunit: dependencies.create("org.cassandraunit:cassandra-unit:2.0.2.1") {
-            exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+            exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+            exclude group: 'org.hamcrest', module: 'hamcrest-core'
+            exclude group: 'org.hamcrest', module: 'hamcrest-all'
+            exclude group: 'org.hamcrest', module: 'hamcrest-integration'},
 
         netty: "io.netty:netty:3.7.0.Final",
         guava: "com.google.guava:guava:15.0",
