@@ -67,11 +67,12 @@ object BridgeManager {
  * the required happens-before relationship because all zookeeper requests
  * are served by a single threaded reactor.
  */
-class MacLearningManager(override val log: LoggingAdapter,
-        override val expirationMillis: Long) extends ConcurrentRefAccountant {
+class MacLearningManager(override val log: LoggingAdapter, val ttlMillis: Long)
+        extends ConcurrentRefAccountant[BridgeManager.MacPortMapping, Unit] {
+
     @volatile var vlanMacTableMap: ROMap[JShort, MacLearningTable] = null
 
-    override type Entry = BridgeManager.MacPortMapping
+    override def expirationMillis(e: BridgeManager.MacPortMapping): Long = ttlMillis
 
     private def vlanMacTableOperation(vlanId: JShort, fun: MacLearningTable => Unit) {
         vlanMacTableMap.get(vlanId) match {
@@ -80,13 +81,15 @@ class MacLearningManager(override val log: LoggingAdapter,
         }
     }
 
-    override def newRefCb(e: Entry) {
+    override def newRefCb(e: BridgeManager.MacPortMapping, userData: Unit) {
         vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.add(e.mac, e.port))
     }
 
-    override def deletedRefCb(e: Entry) {
+    override def deletedRefCb(e: BridgeManager.MacPortMapping) {
         vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.remove(e.mac, e.port))
     }
+
+    def incRefCount(key: BridgeManager.MacPortMapping): Unit = incRefCount(key, ())
 }
 
 class BridgeManager(id: UUID, val clusterClient: Client,
@@ -167,7 +170,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private class MacFlowCountImpl extends MacFlowCount {
         override def increment(mac: MAC, vlanId: JShort, port: UUID) {
-            learningMgr.incRefCount(MacPortMapping(mac, vlanId, port))
+            learningMgr.incRefCount(MacPortMapping(mac, vlanId, port), ())
         }
 
         override def decrement(mac: MAC, vlanId: JShort, port: UUID) {

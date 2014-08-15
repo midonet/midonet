@@ -16,6 +16,8 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
+import com.yammer.metrics.core.Clock
+
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
@@ -29,6 +31,7 @@ import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
+import org.midonet.util.MockClock
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -44,7 +47,9 @@ trait MidolmanSpec extends FeatureSpecLike
         with MidolmanServices
         with VirtualTopologyHelper
         with OneInstancePerTest {
+
     var injector: Injector = null
+    var clock = new MockClock
 
     /**
      * Override this function to perform a custom set-up needed for the test.
@@ -115,6 +120,7 @@ trait MidolmanSpec extends FeatureSpecLike
                     bind(classOf[MidolmanActorsService])
                             .toInstance(actorsService)
                     expose(classOf[MidolmanActorsService])
+                    bind(classOf[Clock]).toInstance(clock)
                 }
             },
             new ResourceProtectionModule(),

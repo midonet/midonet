@@ -165,10 +165,15 @@ public class TestRules {
         expRes = new RuleResult(null, null, pktMatch.clone());
         fwdInfo = new ForwardInfo(false, pktMatch, null);
         argRes = new RuleResult(null, null, fwdInfo.wcmatch());
+        @SuppressWarnings("unchecked")
+        ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
+                ShardedFlowStateTable.create();
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
-                new ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean>().addShard();
+                shardedConntrack.addShard(akka.event.NoLogging.getInstance());
+        ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
+                ShardedFlowStateTable.create();
         FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
-                new ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding>().addShard();
+                shardedNat.addShard(akka.event.NoLogging.getInstance());
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
         fwdInfo.state().initialize(conntrackTx, natTx);
