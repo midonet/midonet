@@ -2,9 +2,29 @@
 
 # Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
 
+# some modules required in the kernel
+REQUIRED_MODS="openvswitch gre"
+
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 \
+                 /usr/lib/jvm/java-7-openjdk \
                  /usr/lib/jvm/java-7-sun"
+
+#####################################################################
+
+abort() { echo "ABORTING... $1" 1>&2 ; exit 1 ; }
+
+# check this script has enough privileges
+[ $EUID -eq 0 ] || abort "this script must be run as root"
+
+# check the openvswitch module is loaded in kernel
+for MOD in $REQUIRED_MODS ; do
+    lsmod | grep -q $MOD
+    if [ $? -ne 0 ] ; then
+        echo "INFO: no $MOD module loaded... trying to load"
+        modprobe -q $MOD 2>/dev/null
+    fi
+done
 
 # If JAVA_HOME has not been set, try to determine it.
 if [ -z "$JAVA_HOME" ]; then
@@ -58,44 +78,57 @@ CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
 run_test() {
     MAIN=$1
     shift
+    echo "Running $MAIN"
     $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml\
         $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR\
         -cp $CLASSPATH $MAIN $*
-}
-
-ns_prepare() {
-    echo "preparing namespace $1"
-    ip netns add $1
-    ip netns exec $1 ifconfig lo up
+    [ $? -eq 0 ] || abort "error when running $MAIN"
 }
 
 ns_clean() {
-    echo "cleaning namespace $1"
-    ip netns exec $1 ip link set lo down
-    ip netns delete $1
+    ip netns list | grep -q "$1" 2>/dev/null
+    if [ $? -eq 0 ] ; then
+        echo "cleaning namespace $1"
+        ip netns exec $1 ip link set lo down
+        ip netns delete $1
+    fi
+}
+
+ns_prepare() {
+    ns_clean $@
+
+    echo "preparing namespace $1"
+    ip netns add $1 || abort "Could not add namespace $1"
+    ip netns exec $1 ifconfig lo up || abort "Could not bring up $1"
+}
+
+if_clean() {
+    ns=$1
+    dpif=$2
+    nsif=$3
+
+    ip link list | grep -q "$dpif" 2>/dev/null
+    if [ $? -eq 0 ] ; then
+        echo "cleaning interface $2"
+        ip netns exec $ns ip link set $nsif
+        ip link delete $dpif
+    fi
 }
 
 if_prepare() {
+    if_clean $@
+
     echo "preparing interface $2"
     ns=$1
     dpif=$2
     nsif=$3
     ipaddr=$4
 
-    ip link add name $dpif type veth peer name $nsif
+    ip link add name $dpif type veth peer name $nsif || abort "Could not add interface $dpif"
     ip link set $dpif up
     ip link set $nsif netns $ns
-    ip netns exec $ns ip link set $nsif up
-    ip netns exec $ns ip address add $ipaddr dev $nsif
-}
-
-if_clean() {
-    echo "cleaning interface $2"
-    ns=$1
-    dpif=$2
-    nsif=$3
-    ip netns exec $ns ip link set $nsif
-    ip link delete $dpif
+    ip netns exec $ns ip link set $nsif up || abort
+    ip netns exec $ns ip address add $ipaddr dev $nsif || abort
 }
 
 ovs_integration() {
@@ -180,5 +213,7 @@ ovs_integration "org.midonet.midolman.io.TwoSelectorsConnectionTest"
 ovs_integration "org.midonet.midolman.io.PoolOfOneConnectionTest"
 ovs_integration "org.midonet.midolman.io.PoolOfTenConnectionTest"
 #ovs_integration "org.midonet.midolman.io.BlockingTransactorTest"
+
 ovs_throughput
 mm_io_upcall_manager_test
+
