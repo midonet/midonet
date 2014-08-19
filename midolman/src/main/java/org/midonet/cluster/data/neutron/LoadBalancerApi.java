@@ -3,7 +3,6 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
@@ -56,9 +55,10 @@ public interface LoadBalancerApi {
         throws StateAccessException, SerializationException;
 
     // Pool Health Monitors
-    void createPoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
+    void createPoolHealthMonitor(UUID poolId,
+                                 PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException;
 
-    void deletePoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
+    void deletePoolHealthMonitor(UUID poolId, UUID hmId)
         throws StateAccessException, SerializationException;
 }

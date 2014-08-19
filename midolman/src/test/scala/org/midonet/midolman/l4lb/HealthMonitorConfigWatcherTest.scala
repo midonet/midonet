@@ -10,8 +10,8 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig.{PoolMemberConfigWithId,
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.{PoolMemberConfigWithId,
                                                                                            VipConfigWithId,
                                                                                            HealthMonitorConfigWithId,
                                                                                            LoadBalancerConfigWithId}
@@ -54,8 +54,8 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
         actorSystem.stop(watcher)
     }
 
-    def generateFakeData: PoolHealthMonitorMappingConfig = {
-        val data = new PoolHealthMonitorMappingConfig()
+    def generateFakeData: PoolHealthMonitorConfig = {
+        val data = new PoolHealthMonitorConfig()
         data.loadBalancerConfig = new LoadBalancerConfigWithId()
         data.loadBalancerConfig.persistedId = UUID.randomUUID()
         data.loadBalancerConfig.config = new LoadBalancerConfig()
@@ -80,8 +80,8 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
         data
     }
 
-    def generateFakeMap(): MMap[UUID, PoolHealthMonitorMappingConfig] = {
-        val map = new MMap[UUID, PoolHealthMonitorMappingConfig]()
+    def generateFakeMap(): MMap[UUID, PoolHealthMonitorConfig] = {
+        val map = new MMap[UUID, PoolHealthMonitorConfig]()
         map.put(uuidOne, generateFakeData)
         map.put(uuidTwo, generateFakeData)
         map.put(uuidThree, generateFakeData)
@@ -101,7 +101,7 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             Then("We should expect nothing in return")
             expectNoMsg(50 milliseconds)
             watcher ! PoolHealthMonitorMap(
-                          new IMap[UUID, PoolHealthMonitorMappingConfig]())
+                          new IMap[UUID, PoolHealthMonitorConfig]())
             expectNoMsg(50 milliseconds)
             watcher ! PoolHealthMonitorMap(map)
             expectNoMsg(50 milliseconds)
@@ -120,7 +120,7 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
             watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
             expectNoMsg(50 milliseconds)
             watcher ! PoolHealthMonitorMap(
-                new IMap[UUID, PoolHealthMonitorMappingConfig]())
+                new IMap[UUID, PoolHealthMonitorConfig]())
             expectNoMsg(50 milliseconds)
             watcher ! PoolHealthMonitorMap(IMap(map.toSeq:_*))
             expectNoMsg(50 milliseconds)

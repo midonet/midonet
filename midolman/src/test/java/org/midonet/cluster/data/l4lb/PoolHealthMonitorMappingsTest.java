@@ -36,9 +36,11 @@ import org.midonet.midolman.state.l4lb.PoolProtocol;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig;
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.version.guice.VersionModule;
 
@@ -53,6 +55,7 @@ import static org.junit.Assert.assertTrue;
 
 public class PoolHealthMonitorMappingsTest {
 
+    private PoolHealthMonitorZkManager poolHealthMonitorZkManager;
     private PoolZkManager poolZkManager;
     private UUID loadBalancerId;
     private HealthMonitor healthMonitor;
@@ -94,6 +97,10 @@ public class PoolHealthMonitorMappingsTest {
 
     protected PoolZkManager getPoolZkManager() {
         return injector.getInstance(PoolZkManager.class);
+    }
+
+    protected PoolHealthMonitorZkManager getPoolHealthMonitorZkManager() {
+        return injector.getInstance(PoolHealthMonitorZkManager.class);
     }
 
     protected UUID createStockPool(UUID loadBalancerId)
@@ -161,6 +168,7 @@ public class PoolHealthMonitorMappingsTest {
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
         poolZkManager = getPoolZkManager();
+        poolHealthMonitorZkManager = getPoolHealthMonitorZkManager();
         loadBalancerId = createStockLoadBalancer();
         // Add a health monitor
         healthMonitor = getStockHealthMonitor();
@@ -177,7 +185,7 @@ public class PoolHealthMonitorMappingsTest {
         // Delete the pool
         pool = emulateHealthMonitorActivation(pool);
         dataClient.poolDelete(poolId);
-        assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
+        assertFalse(poolHealthMonitorZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
     }
 
@@ -211,7 +219,7 @@ public class PoolHealthMonitorMappingsTest {
         // Associate the pool with the health monitor
         pool.setHealthMonitorId(healthMonitorId);
         dataClient.poolUpdate(pool);
-        assertTrue(poolZkManager.existsPoolHealthMonitorMapping(
+        assertTrue(poolHealthMonitorZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
 
         pool = dataClient.poolGet(pool.getId());
@@ -247,8 +255,8 @@ public class PoolHealthMonitorMappingsTest {
             StateAccessException {
         associatePoolHealthMonitor(pool);
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         HealthMonitor healthMonitor = dataClient.healthMonitorGet(healthMonitorId);
@@ -323,8 +331,8 @@ public class PoolHealthMonitorMappingsTest {
             StateAccessException {
         associatePoolHealthMonitor(pool);
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         // Delete is done in `tearDown` method.
@@ -337,14 +345,14 @@ public class PoolHealthMonitorMappingsTest {
             StateAccessException {
         associatePoolHealthMonitor(pool);
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
 
         // Delete the health monitor.
         dataClient.healthMonitorDelete(healthMonitorId);
-        assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
+        assertFalse(poolHealthMonitorZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
         pool = dataClient.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
@@ -358,14 +366,14 @@ public class PoolHealthMonitorMappingsTest {
             StateAccessException {
         associatePoolHealthMonitor(pool);
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
 
         // Add a pool member
         UUID poolMemberId = createStockPoolMember(poolId);
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(1));
@@ -382,7 +390,7 @@ public class PoolHealthMonitorMappingsTest {
 
         // Delete the pool member
         dataClient.poolMemberDelete(poolMemberId);
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(0));
@@ -400,14 +408,14 @@ public class PoolHealthMonitorMappingsTest {
             StateAccessException {
         associatePoolHealthMonitor(pool);
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
 
         // Add a VIP
         UUID vipId = createStockVip(poolId);
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(1));
@@ -422,7 +430,7 @@ public class PoolHealthMonitorMappingsTest {
 
         // Delete the VIP
         dataClient.vipDelete(vipId);
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(0));
@@ -442,7 +450,7 @@ public class PoolHealthMonitorMappingsTest {
         UUID anotherHealthMonitorId = dataClient.healthMonitorCreate(
                 new HealthMonitor().setDelay(200)
                         .setMaxRetries(200).setTimeout(2000));
-        assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
+        assertFalse(poolHealthMonitorZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
 
         associatePoolHealthMonitor(pool);
@@ -455,14 +463,14 @@ public class PoolHealthMonitorMappingsTest {
         // Update the pool with another health monitor
         pool.setHealthMonitorId(anotherHealthMonitorId);
         dataClient.poolUpdate(pool);
-        assertFalse(poolZkManager.existsPoolHealthMonitorMapping(
+        assertFalse(poolHealthMonitorZkManager.existsPoolHealthMonitorMapping(
                 poolId, healthMonitorId));
         pool = dataClient.poolGet(poolId);
         assertThat(pool.getMappingStatus(),
                 equalTo(PoolHealthMonitorMappingStatus.PENDING_CREATE));
 
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, anotherHealthMonitorId);
         assertThat(config, notNullValue());
 
@@ -496,8 +504,8 @@ public class PoolHealthMonitorMappingsTest {
         // Create a VIP with the pool ID
         VIP vip = getStockVip(poolId);
         UUID vipId = dataClient.vipCreate(vip);
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(1));
@@ -519,14 +527,14 @@ public class PoolHealthMonitorMappingsTest {
         vip.setPoolId(anotherPoolId);
         dataClient.vipUpdate(vip);
         // Check if the updated vip is removed from the old mapping
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(0));
 
         // Check if the update vip is added to another mapping
-        PoolHealthMonitorMappingConfig anotherConfig =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig anotherConfig =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         anotherPoolId, healthMonitorId);
         assertThat(anotherConfig, notNullValue());
         assertThat(anotherConfig.vipConfigs.size(), equalTo(1));
@@ -557,8 +565,8 @@ public class PoolHealthMonitorMappingsTest {
         // Create a VIP with the pool ID
         VIP vip = getStockVip(poolId);
         UUID vipId = dataClient.vipCreate(vip);
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.vipConfigs.size(), equalTo(1));
@@ -586,8 +594,8 @@ public class PoolHealthMonitorMappingsTest {
         // Create a pool member with the pool ID
         PoolMember poolMember = getStockPoolMember(poolId);
         UUID poolMemberId = dataClient.poolMemberCreate(poolMember);
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(1));
@@ -611,14 +619,14 @@ public class PoolHealthMonitorMappingsTest {
         poolMember.setPoolId(anotherPoolId);
         dataClient.poolMemberUpdate(poolMember);
         // Check if the updated pool member is removed from the old mapping
-        config = poolZkManager.getPoolHealthMonitorMapping(
+        config = poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                 poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(0));
 
         // Check if the update pool member is added to the new mapping
-        PoolHealthMonitorMappingConfig anotherConfig =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig anotherConfig =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         anotherPoolId, healthMonitorId);
         assertThat(anotherConfig, notNullValue());
         assertThat(anotherConfig.poolMemberConfigs.size(), equalTo(1));
@@ -651,8 +659,8 @@ public class PoolHealthMonitorMappingsTest {
         // Create a VIP with the pool ID
         PoolMember poolMember = getStockPoolMember(poolId);
         UUID poolMemberId = dataClient.poolMemberCreate(poolMember);
-        PoolHealthMonitorMappingConfig config =
-                poolZkManager.getPoolHealthMonitorMapping(
+        PoolHealthMonitorConfig config =
+            poolHealthMonitorZkManager.getPoolHealthMonitorMapping(
                         poolId, healthMonitorId);
         assertThat(config, notNullValue());
         assertThat(config.poolMemberConfigs.size(), equalTo(1));
