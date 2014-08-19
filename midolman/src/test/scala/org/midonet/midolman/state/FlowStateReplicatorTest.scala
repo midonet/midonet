@@ -97,9 +97,9 @@ class FlowStateReplicatorTest extends FeatureSpec
             ConnTrackKey("10.0.0.9", 4578, "10.0.0.12", 80, 2, UUID.randomUUID()))
 
     val natMappings = Map(
-        NatKey(NatKey.FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
+        NatKey(NatState.FWD_SNAT, "192.168.10.1", 10001, "17.16.15.1", 80, 1, UUID.randomUUID()) ->
                NatBinding("1.2.3.4", 54321),
-        NatKey(NatKey.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
+        NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
                NatBinding("4.3.2.1", 12345))
 
     dpConn.packetsExecuteSubscribe(new Callback2[Packet, JList[FlowAction]]() {

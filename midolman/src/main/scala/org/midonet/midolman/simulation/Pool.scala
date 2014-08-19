@@ -10,6 +10,7 @@ import akka.event.LoggingBus
 
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.l4lb.PoolLBMethod
+import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.packets.{IPAddr, ICMP}
 import org.midonet.sdn.flows.FlowTagger
@@ -127,8 +128,8 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
         val vipPort = pktContext.wcmatch.getTransportDestination
         val natKey = NatKey(pktContext.wcmatch,
                             loadBalancer,
-                            if (stickySourceIP) NatKey.FWD_STICKY_DNAT
-                            else NatKey.FWD_DNAT)
+                            if (stickySourceIP) NatState.FWD_STICKY_DNAT
+                            else NatState.FWD_DNAT)
         if (pktContext.state.applyIfExists(natKey)) {
             val validBackend = isValidBackend(pktContext, stickySourceIP)
             log.debug("{} - Found existing {}; backend is valid = {}",
@@ -178,8 +179,8 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                                stickySourceIP: Boolean): Unit = {
         val natKey = NatKey(pktContext.wcmatch,
                             loadBalancer,
-                            if (stickySourceIP) NatKey.FWD_STICKY_DNAT
-                            else NatKey.FWD_DNAT)
+                            if (stickySourceIP) NatState.FWD_STICKY_DNAT
+                            else NatState.FWD_DNAT)
         pktContext.state.deleteNatBinding(natKey)
     }
 }

@@ -36,7 +36,7 @@ public class VtepZkManager
         implements WatchableZkManager<IPv4Addr, VtepZkManager.VtepConfig> {
 
     public static final int MIN_VNI = 10000;
-    public static final int MAX_VNI = 0xff_ffff;
+    public static final int MAX_VNI = 0xffffff;
 
     public static class VtepConfig {
         public int mgmtPort;

@@ -14,37 +14,38 @@ import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP, IPAddr}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.midolman.state.FlowState.FlowStateKey
-import org.midonet.midolman.state.NatState.NatKey.{REV_STICKY_DNAT, FWD_STICKY_DNAT}
+import org.midonet.midolman.state.NatState.{REV_STICKY_DNAT, FWD_STICKY_DNAT}
 
 object NatState {
     private val WILDCARD_PORT = 0
 
+    sealed abstract class KeyType {
+        def inverse: KeyType
+    }
+
+    case object FWD_SNAT extends KeyType {
+        def inverse = REV_SNAT
+    }
+    case object FWD_DNAT extends KeyType {
+        def inverse = REV_DNAT
+    }
+    case object FWD_STICKY_DNAT extends KeyType {
+        def inverse = REV_STICKY_DNAT
+    }
+    case object REV_SNAT extends KeyType {
+        def inverse = FWD_SNAT
+    }
+    case object REV_DNAT extends KeyType {
+        def inverse = FWD_DNAT
+    }
+    case object REV_STICKY_DNAT extends KeyType {
+        def inverse = FWD_STICKY_DNAT
+    }
+
     object NatKey {
         final val USHORT = 0xffff // Constant used to prevent sign extension
 
-        sealed abstract class Type {
-            def inverse: Type
-        }
-        case object FWD_SNAT extends Type {
-            def inverse = REV_SNAT
-        }
-        case object FWD_DNAT extends Type {
-            def inverse = REV_DNAT
-        }
-        case object FWD_STICKY_DNAT extends Type {
-            def inverse = REV_STICKY_DNAT
-        }
-        case object REV_SNAT extends Type {
-            def inverse = FWD_SNAT
-        }
-        case object REV_DNAT extends Type {
-            def inverse = FWD_DNAT
-        }
-        case object REV_STICKY_DNAT extends Type {
-            def inverse = FWD_STICKY_DNAT
-        }
-
-        def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: Type): NatKey = {
+        def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: KeyType): NatKey = {
             val key = NatKey(keyType,
                              wcMatch.getNetworkSourceIP,
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
@@ -98,7 +99,7 @@ object NatState {
             }
         }
 
-    case class NatKey(var keyType: NatKey.Type,
+    case class NatKey(var keyType: KeyType,
                       var networkSrc: IPAddr,
                       var transportSrc: Int,
                       var networkDst: IPAddr,
@@ -114,7 +115,7 @@ object NatState {
         }
 
         def returnKey(binding: NatBinding): NatKey = keyType match {
-            case NatKey.FWD_SNAT =>
+            case NatState.FWD_SNAT =>
                 NatKey(keyType.inverse,
                        networkDst,
                        transportDst,
@@ -122,7 +123,7 @@ object NatState {
                        binding.transportPort,
                        networkProtocol,
                        deviceId)
-            case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
                 NatKey(keyType.inverse,
                        binding.networkAddress,
                        binding.transportPort,
@@ -134,9 +135,9 @@ object NatState {
         }
 
         def returnBinding: NatBinding = keyType match {
-            case NatKey.FWD_SNAT =>
+            case NatState.FWD_SNAT =>
                 NatBinding(networkSrc, transportSrc)
-            case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
                 NatBinding(networkDst, transportDst)
             case _ => throw new UnsupportedOperationException
         }
@@ -160,7 +161,7 @@ trait NatState extends FlowState {
     def applyStickyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
         applyDnat(deviceId, FWD_STICKY_DNAT, natTargets)
 
-    private def applyDnat(deviceId: UUID, natType: NatKey.Type,
+    private def applyDnat(deviceId: UUID, natType: KeyType,
                           natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
@@ -195,7 +196,7 @@ trait NatState extends FlowState {
     def reverseStickyDnat(deviceId: UUID): Boolean =
         reverseDnat(deviceId, REV_STICKY_DNAT)
 
-    private def reverseDnat(deviceId: UUID, natType: NatKey.Type): Boolean = {
+    private def reverseDnat(deviceId: UUID, natType: KeyType): Boolean = {
         if (isNatSupported) {
             val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
             val binding = natTx.get(natKey)
@@ -249,17 +250,17 @@ trait NatState extends FlowState {
             pktCtx.addFlowTag(natKey)
             false
         } else natKey.keyType match {
-            case NatKey.FWD_DNAT | NatKey.FWD_STICKY_DNAT =>
+            case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
                 dnatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatKey.REV_DNAT | NatKey.REV_STICKY_DNAT =>
+            case NatState.REV_DNAT | NatState.REV_STICKY_DNAT =>
                 reverseDnatTransformation(natKey, binding)
-            case NatKey.FWD_SNAT =>
+            case NatState.FWD_SNAT =>
                 snatTransformation(natKey, binding)
                 refKey(natKey, binding)
                 true
-            case NatKey.REV_SNAT =>
+            case NatState.REV_SNAT =>
                 reverseSnatTransformation(natKey, binding)
         }
     }

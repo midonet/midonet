@@ -316,3 +316,5 @@ object FlowTagger {
         tag
     }
 }
+
+class FlowTagger {}
