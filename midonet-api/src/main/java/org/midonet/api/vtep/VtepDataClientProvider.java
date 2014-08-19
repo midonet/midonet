@@ -55,26 +55,6 @@ public class VtepDataClientProvider {
         clientMap = new HashMap<>();
     }
 
-    private VtepDataClientMock getMockInstance() {
-        if (mockInstance == null) {
-            mockInstance = new VtepDataClientMock(
-                    MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT,
-                    MOCK_VTEP_NAME, MOCK_VTEP_DESC,
-                    MOCK_VTEP_TUNNEL_IPS,
-                    Arrays.asList(MOCK_VTEP_PORT_NAMES));
-
-            // Add a non-Midonet switch and binding to test that the
-            // Midonet API properly ignores these. Need to call connect()
-            // so the mock doesn't throw not-connected errors.
-            mockInstance.connect(IPv4Addr.fromString(MOCK_VTEP_MGMT_IP),
-                                 MOCK_VTEP_MGMT_PORT);
-            mockInstance.addLogicalSwitch("NonMidonetLS", 123456);
-            mockInstance.bindVlan("NonMidonetLS", "eth2", 4000,
-                                  123456, new ArrayList<IPv4Addr>());
-        }
-        return mockInstance;
-    }
-
     public synchronized VtepDataClient getClient(IPv4Addr mgmtIp,
                                                  int mgmtPort) {
         if (useMock) {
@@ -96,5 +76,25 @@ public class VtepDataClientProvider {
         client.connect(mgmtIp, mgmtPort);
         clientMap.put(mgmtIp, client);
         return client;
+    }
+
+    private VtepDataClientMock getMockInstance() {
+        if (mockInstance == null) {
+            mockInstance = new VtepDataClientMock(
+                MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT,
+                MOCK_VTEP_NAME, MOCK_VTEP_DESC,
+                MOCK_VTEP_TUNNEL_IPS,
+                Arrays.asList(MOCK_VTEP_PORT_NAMES));
+
+            // Add a non-Midonet switch and binding to test that the
+            // Midonet API properly ignores these. Need to call connect()
+            // so the mock doesn't throw not-connected errors.
+            mockInstance.connect(IPv4Addr.fromString(MOCK_VTEP_MGMT_IP),
+                                 MOCK_VTEP_MGMT_PORT);
+            mockInstance.addLogicalSwitch("NonMidonetLS", 123456);
+            mockInstance.bindVlan("NonMidonetLS", "eth2", 4000,
+                                  123456, new ArrayList<IPv4Addr>());
+        }
+        return mockInstance;
     }
 }

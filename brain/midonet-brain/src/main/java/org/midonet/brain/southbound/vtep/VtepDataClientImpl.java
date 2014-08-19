@@ -27,6 +27,7 @@ import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Remote;
 import org.opendaylight.ovsdb.plugin.ConfigurationService;
+import org.opendaylight.ovsdb.plugin.Connection;
 import org.opendaylight.ovsdb.plugin.ConnectionService;
 import org.opendaylight.ovsdb.plugin.InventoryService;
 import org.opendaylight.ovsdb.plugin.InventoryServiceInternal;
@@ -59,7 +60,7 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     private IPv4Addr mgmtIp  = null;
     private int mgmtPort;
-    private PhysicalSwitch myPhysicalSwitch = null;
+    private PhysicalSwitch physicalSwitch = null;
 
     private boolean started = false;
 
@@ -81,11 +82,11 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     @Override
     public IPv4Addr getTunnelIp() {
-        if (myPhysicalSwitch == null || myPhysicalSwitch.tunnelIps == null ||
-            myPhysicalSwitch.tunnelIps.isEmpty()) {
+        if (physicalSwitch == null || physicalSwitch.tunnelIps == null ||
+            physicalSwitch.tunnelIps.isEmpty()) {
             return null;
         }
-        return IPv4Addr.apply(myPhysicalSwitch.tunnelIps.iterator().next());
+        return IPv4Addr.apply(physicalSwitch.tunnelIps.iterator().next());
     }
 
     @Override
@@ -118,10 +119,10 @@ public class VtepDataClientImpl implements VtepDataClient {
         cfgSrv.setDefaultNode(node);
 
         log.debug("Connecting to VTEP on {}:{}, node {}",
-                  new Object[]{mgmtIp, port, node.getID()});
+                  mgmtIp, port, node.getID());
 
         long timeoutAt = System.currentTimeMillis() + CNXN_TIMEOUT_MILLIS;
-        while (!this.isReady() && System.currentTimeMillis() < timeoutAt) {
+        while (!isReady() && System.currentTimeMillis() < timeoutAt) {
             log.debug("Waiting for inventory service initialization");
             try {
                 Thread.sleep(CNXN_TIMEOUT_MILLIS / 10);
@@ -131,20 +132,20 @@ public class VtepDataClientImpl implements VtepDataClient {
             }
         }
 
-        if (this.isReady()) {
-            this.myPhysicalSwitch = this.loadVtepDetails();
+        if (isReady()) {
+            physicalSwitch = this.loadVtepDetails();
         }
 
-        if (this.myPhysicalSwitch == null) {
+        if (physicalSwitch == null) {
             throw new IllegalStateException("Could not complete connection");
         }
 
-        this.started = true;
+        started = true;
     }
 
     public boolean isReady() {
         Map<String, ConcurrentMap<String, Table<?>>> cache =
-            this.cnxnSrv.getInventoryServiceInternal().getCache(node);
+            cnxnSrv.getInventoryServiceInternal().getCache(node);
         if (cache == null) {
             return false;
         }
@@ -159,7 +160,7 @@ public class VtepDataClientImpl implements VtepDataClient {
 
     private PhysicalSwitch loadVtepDetails() {
         List<PhysicalSwitch> pss = this.listPhysicalSwitches();
-        String sMgmtIp = this.mgmtIp.toString();
+        String sMgmtIp = mgmtIp.toString();
         log.debug("Loading VTEP details, known VTEPs: {}", pss);
         for (PhysicalSwitch ps : pss) {
             if (ps.mgmtIps.contains(sMgmtIp)) {
@@ -174,10 +175,11 @@ public class VtepDataClientImpl implements VtepDataClient {
     public synchronized void disconnect() {
         if (!started) {
             log.warn("Trying to disconnect client, but not connected");
+            return;
         }
         log.info("Disconnecting..");
         cnxnSrv.disconnect(node);
-        this.started = false;
+        started = false;
     }
 
     /**
@@ -449,8 +451,18 @@ public class VtepDataClientImpl implements VtepDataClient {
     }
 
     @Override
-    public Observable<TableUpdates> observableUpdates() {
-       return this.cnxnSrv.observableUpdates();
+    public Observable<Connection> connectObservable() {
+        return cnxnSrv.connectedObservable();
+    }
+
+    @Override
+    public Observable<Connection> disconnectObservable() {
+        return cnxnSrv.disconnectedObservable();
+    }
+
+    @Override
+    public Observable<TableUpdates> updatesObservable() {
+        return cnxnSrv.updatesObservable();
     }
 
     // TODO: this assumes that we have a single VTEP in the Physical_Switch
@@ -500,5 +512,4 @@ public class VtepDataClientImpl implements VtepDataClient {
     public Status clearBindings(UUID lsUuid) {
         return cfgSrv.vtepClearBindings(lsUuid);
     }
-
 }
