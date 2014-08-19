@@ -199,18 +199,18 @@ public class MidoVxLanPeer implements VxLanPeer {
             return;
         }
 
-        if (!macLocation.mac.isIEEE802()) {
+        if (!macLocation.mac().isIEEE802()) {
             log.debug("Ignoring UNKNOWN-DST mcast wildcard");
             return;
         }
 
         UUID bridgeId = VtepConstants.logicalSwitchNameToBridgeId(
-            macLocation.logicalSwitchName);
+            macLocation.logicalSwitchName());
 
         LogicalSwitchContext ctx = lsContexts.get(bridgeId);
         if (ctx == null) {
             log.warn("Update for unknown network {}", macLocation);
-        } else if (macLocation.vxlanTunnelEndpoint == null) {
+        } else if (macLocation.vxlanTunnelEndpoint() == null) {
             log.debug("Removal: {}", macLocation);
             this.macRemoval(macLocation, ctx, bridgeId);
         } else {
@@ -227,7 +227,7 @@ public class MidoVxLanPeer implements VxLanPeer {
         UUID portId = ctx.vxLanPortId;
         MacPortMap macPortMap = ctx.macPortMap;
         try {
-            MAC mac = ml.mac.IEEE802();
+            MAC mac = ml.mac().IEEE802();
             macPortMap.removeIfOwnerAndValue(mac, portId);
             for (IPv4Addr ip: dataClient.bridgeGetIp4ByMac(bridgeId, mac)) {
                 dataClient.bridgeDeleteLearnedIp4Mac(bridgeId, ip, mac);
@@ -244,7 +244,7 @@ public class MidoVxLanPeer implements VxLanPeer {
      */
     private void macUpdate(MacLocation ml, LogicalSwitchContext ctx,
                            UUID bridgeId) {
-        MAC mac = ml.mac.IEEE802();
+        MAC mac = ml.mac().IEEE802();
         MacPortMap macPortMap = ctx.macPortMap;
         UUID portId = ctx.vxLanPortId;
 
@@ -269,12 +269,12 @@ public class MidoVxLanPeer implements VxLanPeer {
 
         // Fill ARP-supression table: we learn new locations, but we do not
         // remove old ones
-        if (ml.ipAddr != null) {
+        if (ml.ipAddr() != null) {
             try {
-                dataClient.bridgeAddLearnedIp4Mac(bridgeId, ml.ipAddr, mac);
+                dataClient.bridgeAddLearnedIp4Mac(bridgeId, ml.ipAddr(), mac);
             } catch (StateAccessException e) {
                 log.error("Cannot update ip-mac table for {} {}",
-                          new Object[]{ml.ipAddr, ml.mac, e});
+                          ml.ipAddr(), ml.mac(), e);
             }
         }
     }
