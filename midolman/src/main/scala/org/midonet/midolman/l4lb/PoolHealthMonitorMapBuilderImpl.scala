@@ -8,7 +8,7 @@ import java.util.UUID
 import org.slf4j.{LoggerFactory, Logger}
 import akka.actor.ActorRef
 import scala.collection.immutable.Map
-import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolHealthMonitorMappingConfig
+import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
 
 
 class PoolHealthMonitorMapBuilderImpl(val poolHealthMonitorMapManager: ActorRef)
@@ -18,7 +18,7 @@ class PoolHealthMonitorMapBuilderImpl(val poolHealthMonitorMapManager: ActorRef)
         LoggerFactory.getLogger(classOf[PoolHealthMonitorMapBuilderImpl])
 
     private var poolIdToMappingConfig
-        = Map[UUID, PoolHealthMonitorMappingConfig]()
+        = Map[UUID, PoolHealthMonitorConfig]()
 
     def build(): Unit = {
         poolHealthMonitorMapManager !
@@ -30,13 +30,13 @@ class PoolHealthMonitorMapBuilderImpl(val poolHealthMonitorMapManager: ActorRef)
     *
     * @param mappings Map of pool and health monitor mappings
     */
-    override def set(mappings: Map[UUID, PoolHealthMonitorMappingConfig]) {
+    override def set(mappings: Map[UUID, PoolHealthMonitorConfig]) {
         log.debug("PoolHealthMonitorMapBuilderImpl.set")
 
         mappings match {
             case null =>
                 this.poolIdToMappingConfig
-                    = Map[UUID, PoolHealthMonitorMappingConfig]()
+                    = Map[UUID, PoolHealthMonitorConfig]()
             case _ =>
                 this.poolIdToMappingConfig = mappings
         }

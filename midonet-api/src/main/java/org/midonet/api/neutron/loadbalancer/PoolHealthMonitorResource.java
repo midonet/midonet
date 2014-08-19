@@ -3,11 +3,14 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -48,41 +51,5 @@ public class PoolHealthMonitorResource extends AbstractResource {
                                      LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
-    }
-
-    @POST
-    @Consumes(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
-    @Produces(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
-    @RolesAllowed(AuthRole.ADMIN)
-    public final Response create(PoolHealthMonitor poolHealthMonitor)
-        throws SerializationException, StateAccessException {
-        LOG.info("PoolHealthMonitorResource.create entered {}",
-                 poolHealthMonitor);
-
-        try {
-            api.createPoolHealthMonitor(poolHealthMonitor);
-            POOL_HEALTH_MONITOR_EVENT.create(poolHealthMonitor.poolId,
-                                             poolHealthMonitor.healthMonitor.id);
-            LOG.info("PoolHealthMonitorResource.create exiting {}",
-                     poolHealthMonitor);
-            return Response.created(
-                LBUriBuilder.getPoolHealthMonitor(getBaseUri()))
-                .entity(poolHealthMonitor).build();
-        } catch (StatePathExistsException e) {
-            LOG.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
-    }
-
-    @DELETE
-    @Path("{id}")
-    @RolesAllowed(AuthRole.ADMIN)
-    public final void delete(PoolHealthMonitor poolHealthMonitor)
-        throws SerializationException, StateAccessException {
-        LOG.info("PoolHealthMonitorResource.delete entered {}",
-                 poolHealthMonitor);
-        api.deletePoolHealthMonitor(poolHealthMonitor);
-        POOL_HEALTH_MONITOR_EVENT.delete(poolHealthMonitor.poolId,
-                                         poolHealthMonitor.healthMonitor.id);
     }
 }

@@ -807,14 +807,19 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // Pool Health Monitors
     @Override
-    public void createPoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
+    public void createPoolHealthMonitor(UUID poolId,
+                                        PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
-        lbZkManager.createPoolHealthMonitor(poolHealthMonitor);
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.createPoolHealthMonitor(ops, poolId, poolHealthMonitor);
+        commitOps(ops);
     }
 
     @Override
-    public void deletePoolHealthMonitor(PoolHealthMonitor poolHealthMonitor)
+    public void deletePoolHealthMonitor(UUID poolId, UUID hmId)
         throws StateAccessException, SerializationException {
-        lbZkManager.deletePoolHealthMonitor(poolHealthMonitor);
+        List<Op> ops = new ArrayList<>();
+        lbZkManager.deletePoolHealthMonitor(ops, poolId, hmId);
+        commitOps(ops);
     }
 }
