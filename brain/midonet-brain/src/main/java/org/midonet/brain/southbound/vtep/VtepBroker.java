@@ -156,7 +156,7 @@ public class VtepBroker implements VxLanPeer {
     public VtepBroker(final VtepDataClient client) {
         this.vtepDataClient = client;
         this.vtepDataClient
-            .observableUpdates()
+            .updatesObservable()
             .doOnNext(extractVxlanTunnelEndpoint) // extract VTEP's tunnel IP
             .concatMap(translateTableUpdates)     // preserve order
             .subscribe(macLocationStream);        // dump into our Subject

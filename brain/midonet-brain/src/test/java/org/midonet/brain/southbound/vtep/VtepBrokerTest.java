@@ -70,7 +70,7 @@ public class VtepBrokerTest {
         new NonStrictExpectations() {{
             vtepDataClient.getManagementIp(); result = mgmtIp;
             vtepDataClient.getManagementPort(); result = mgmtPort;
-            vtepDataClient.observableUpdates();
+            vtepDataClient.updatesObservable();
             result = vtepUpdStream.asObservable();
         }};
         vtepBroker = new VtepBroker(this.vtepDataClient);
