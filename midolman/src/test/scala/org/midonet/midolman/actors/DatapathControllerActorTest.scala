@@ -44,7 +44,6 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
                                   with FeatureSpecLike with Matchers {
 
     import DatapathController._
-    import DatapathController.Internal._
     import PacketWorkflow.AddVirtualWildcardFlow
     import VirtualToPhysicalMapper.ZoneChanged
     import VirtualToPhysicalMapper.ZoneMembers
@@ -67,7 +66,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
             portRequests.map{ DpPortError(_, null) }
 
     val miscMessages = List[AnyRef](
-        InterfacesUpdate(emptyJSet),
+        InterfacesUpdate_(emptyJSet),
         ZoneChanged(UUID.randomUUID, TunnelZone.Type.gre, null, HostConfigOperation.Added),
         ZoneMembers(UUID.randomUUID, TunnelZone.Type.gre, Set())
     )
@@ -78,11 +77,11 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     )
 
     val initOnlyMessages = List[AnyRef](
-        ExistingDatapathPorts(null, Set(dpPortGre,dpPortInt)),
-        DatapathClear,
-        GrePortReady(null),
-        VxLanPortReady(null),
-        VtepPortReady(null)
+        ExistingDatapathPorts_(null, Set(dpPortGre,dpPortInt)),
+        DatapathClear_,
+        GrePortReady_(null),
+        VxLanPortReady_(null),
+        VtepPortReady_(null)
     )
 
     val allMessages = commonMessages ++ portRequests ++ portReplies ++ miscMessages
@@ -148,7 +147,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         scenario("sends tunnel creation requests after a clear msg") {
             val (dpcInit, instance) = prepareDPC()
             instance.upcallConnManager = new MockManager(self)
-            dpcInit ! DatapathClear
+            dpcInit ! DatapathClear_
             ackTunnelPorts()
             expectMsg(CompleteInit)
             expectNoMsg(Duration fromNanos 10000)
@@ -160,7 +159,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
         scenario("The DPC retries when the port creation fails") {
             val (dpcInit, instance) = prepareDPC(conf2)
             instance.upcallConnManager = new FailOnceManager(self)
-            dpcInit ! DatapathClear
+            dpcInit ! DatapathClear_
             Thread sleep 1000
             ackTunnelPorts()
             expectMsg(CompleteInit)

@@ -19,8 +19,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
-import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.state.NatState.NatBinding
+import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
 import org.midonet.packets.IPAddr
 import org.midonet.util.collection.Bimap
 
@@ -76,17 +75,17 @@ object FlowStateStorage {
             Schema.NAT(NAT_BY_EGRESS_TABLE),
             Schema.NAT_IDX(NAT_BY_EGRESS_TABLE))
 
-    val NAT_KEY_TYPES = Bimap[NatKey.Type, String](List(
-        NatKey.FWD_DNAT -> "fwd_dnat",
-        NatKey.FWD_SNAT -> "fwd_snat",
-        NatKey.FWD_STICKY_DNAT -> "fwd_sticky_dnat",
-        NatKey.REV_DNAT -> "rev_dnat",
-        NatKey.REV_SNAT -> "rev_snat",
-        NatKey.REV_STICKY_DNAT -> "rev_sticky_dnat"))
+    val NAT_KEY_TYPES = Bimap[NatState.KeyType, String](List(
+        NatState.FWD_DNAT -> "fwd_dnat",
+        NatState.FWD_SNAT -> "fwd_snat",
+        NatState.FWD_STICKY_DNAT -> "fwd_sticky_dnat",
+        NatState.REV_DNAT -> "rev_dnat",
+        NatState.REV_SNAT -> "rev_snat",
+        NatState.REV_STICKY_DNAT -> "rev_sticky_dnat"))
 
-    def natKeyTypeFromString(str: String): Option[NatKey.Type] = NAT_KEY_TYPES.inverse.get(str)
+    def natKeyTypeFromString(str: String): Option[KeyType] = NAT_KEY_TYPES.inverse.get(str)
 
-    def natKeyTypeToString(k: NatKey.Type): Option[String] = NAT_KEY_TYPES.get(k)
+    def natKeyTypeToString(k: KeyType): Option[String] = NAT_KEY_TYPES.get(k)
 
     implicit def inetToIPAddr(inet: InetAddress) = IPAddr.fromBytes(inet.getAddress)
 

@@ -108,17 +108,13 @@ object FlowController extends Referenceable {
 
     case class FlowUpdateCompleted(flow: Flow) // used in test only
 
-    object Internal {
+    case object CheckFlowExpiration_
 
-        case object CheckFlowExpiration
+    case class FlowMissing_(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
 
-        case class FlowMissing(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
+    case class GetFlowSucceeded_(flow: Flow, flowCallback: Callback1[Flow])
 
-        case class GetFlowSucceeded(flow: Flow, flowCallback: Callback1[Flow])
-
-        case class GetFlowFailed(flowCallback: Callback1[Flow])
-
-    }
+    case class GetFlowFailed_(flowCallback: Callback1[Flow])
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
 
@@ -206,7 +202,6 @@ object FlowController extends Referenceable {
 class FlowController extends Actor with ActorLogWithoutPath {
 
     import FlowController._
-    import FlowController.Internal._
     import DatapathController.DatapathReady
 
     implicit val system = this.context.system
@@ -273,7 +268,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 context.system.scheduler.schedule(20 millis,
                     flowExpirationCheckInterval,
                     self,
-                    CheckFlowExpiration)
+                    CheckFlowExpiration_)
             }
 
         case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
@@ -348,18 +343,18 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case CheckFlowExpiration =>
+        case CheckFlowExpiration_ =>
             flowManager.checkFlowsExpiration()
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case GetFlowSucceeded(flow, callback) =>
+        case GetFlowSucceeded_(flow, callback) =>
             log.debug("DP confirmed that flow was updated: {}", flow)
             context.system.eventStream.publish(FlowUpdateCompleted(flow))
             callback.call(flow)
 
-        case GetFlowFailed(callback) => callback.call(null)
+        case GetFlowFailed_(callback) => callback.call(null)
 
-        case FlowMissing(flowMatch, callback) =>
+        case FlowMissing_(flowMatch, callback) =>
             callback.call(null)
             if (flowManager.getActionsForDpFlow(flowMatch) != null) {
                 log.warning("DP flow was lost, forgetting: {}", flowMatch)
@@ -506,20 +501,20 @@ class FlowController extends Actor with ActorLogWithoutPath {
                 def onError(ex: NetlinkException) {
                     ex.getErrorCodeEnum match {
                         case ErrorCode.ENOENT =>
-                            self ! FlowMissing(flowMatch, flowCallback)
+                            self ! FlowMissing_(flowMatch, flowCallback)
                         case other =>
                             log.error(ex, "Got exception {} when trying to " +
                                           "flowsGet() for {}", flowMatch)
-                            self ! GetFlowFailed(flowCallback)
+                            self ! GetFlowFailed_(flowCallback)
                     }
                 }
                 def onSuccess(data: Flow) {
                     val msg = if (data != null) {
-                        GetFlowSucceeded(data, flowCallback)
+                        GetFlowSucceeded_(data, flowCallback)
                     } else {
                         log.warning("Unexpected getFlow() result: " +
                                     "success, but a null flow")
-                        FlowMissing(flowMatch, flowCallback)
+                        FlowMissing_(flowMatch, flowCallback)
                     }
                     self ! msg
                 }

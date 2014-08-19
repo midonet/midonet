@@ -252,14 +252,14 @@ class FlowControllerTestCase extends MidolmanSpec {
             expireFlowIdle(mwcFlow)
 
             And("The flow controller checks the flow expiration.")
-            FlowController ! FlowController.Internal.CheckFlowExpiration
+            FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                FlowController.Internal.CheckFlowExpiration.getClass(),
-                classOf[FlowController.Internal.FlowMissing]))
+                FlowController.CheckFlowExpiration_.getClass(),
+                classOf[FlowController.FlowMissing_]))
         }
 
         scenario("Check hard expired flows are removed from the flow" +
@@ -284,13 +284,13 @@ class FlowControllerTestCase extends MidolmanSpec {
             expireFlowHard(mwcFlow)
 
             And("The flow controller checks the flow expiration.")
-            FlowController ! FlowController.Internal.CheckFlowExpiration
+            FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                FlowController.Internal.CheckFlowExpiration.getClass()))
+                FlowController.CheckFlowExpiration_.getClass()))
         }
 
         scenario("Check non-expired flows are not removed from the flow" +
@@ -312,13 +312,13 @@ class FlowControllerTestCase extends MidolmanSpec {
             val mwcFlow = testFlowAdded(flow, state)
 
             When("The flow controller checks the flow expiration.")
-            FlowController ! FlowController.Internal.CheckFlowExpiration
+            FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowExists(flow, mwcFlow, state)
 
             testMessages(Seq(
                 classOf[FlowController.AddWildcardFlow],
-                FlowController.Internal.CheckFlowExpiration.getClass()))
+                FlowController.CheckFlowExpiration_.getClass()))
         }
 
         scenario("Check a datapath flow is removed via the flow manager helper.") {
