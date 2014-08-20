@@ -22,6 +22,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.PortDirectory.RouterPortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
@@ -34,10 +35,13 @@ import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
+import org.midonet.packets.IPv4Subnet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -52,6 +56,10 @@ public class LBZkManager extends BaseZkManager {
     private final PoolMemberZkManager poolMemberZkManager;
     private final RouterZkManager routerZkManager;
     private final PoolHealthMonitorZkManager poolHealthMonitorZkManager;
+    private final NetworkZkManager networkZkManager;
+    private final PortZkManager portZkManager;
+    private final ProviderRouterZkManager providerRouterZkManager;
+    private final RouteZkManager routeZkManager;
 
     @Inject
     public LBZkManager(ZkManager zk,
@@ -63,7 +71,11 @@ public class LBZkManager extends BaseZkManager {
                        PoolMemberZkManager poolMemberZkManager,
                        RouterZkManager routerZkManager,
                        PoolHealthMonitorZkManager poolHealthMonitorZkManager,
-                       VipZkManager vipZkManager) {
+                       VipZkManager vipZkManager,
+                       NetworkZkManager networkZkManager,
+                       PortZkManager portZkManager,
+                       ProviderRouterZkManager providerRouterZkManager,
+                       RouteZkManager routeZkManager) {
         super(zk, paths, serializer);
         this.healthMonitorZkManager = healthMonitorZkManager;
         this.loadBalancerZkManager = loadBalancerZkManager;
@@ -72,6 +84,10 @@ public class LBZkManager extends BaseZkManager {
         this.routerZkManager = routerZkManager;
         this.vipZkManager = vipZkManager;
         this.poolHealthMonitorZkManager = poolHealthMonitorZkManager;
+        this.networkZkManager = networkZkManager;
+        this.portZkManager = portZkManager;
+        this.providerRouterZkManager = providerRouterZkManager;
+        this.routeZkManager = routeZkManager;
     }
 
     private LoadBalancerConfig ensureLoadBalancerExists(List<Op> ops,
@@ -110,6 +126,11 @@ public class LBZkManager extends BaseZkManager {
                 return;
             }
         }
+
+        Pool pool = getNeutronPool(poolId);
+        checkNotNull(pool.routerId, "No router associated with pool");
+        ops.addAll(routerZkManager.prepareClearRefsToLoadBalancer(
+                       pool.routerId, loadBalancerId));
         ops.addAll(loadBalancerZkManager.prepareDelete(loadBalancerId));
     }
 
@@ -436,6 +457,7 @@ public class LBZkManager extends BaseZkManager {
 
         prepareCreateNeutronMember(ops, member);
         PoolMemberConfig poolMemberConfig = new PoolMemberConfig(member);
+        poolMemberConfig.id = member.id;
         ops.addAll(
             poolMemberZkManager.prepareCreate(member.id, poolMemberConfig));
         if (poolMemberConfig.poolId != null) {
@@ -564,6 +586,44 @@ public class LBZkManager extends BaseZkManager {
         return getLoadBalancerIdFromPool(neutronPool);
     }
 
+    private void prepareVipRouteCreation(List<Op> ops, VIP vip)
+        throws StateAccessException, SerializationException {
+        Subnet subnet = networkZkManager.getSubnet(vip.subnetId);
+        Network network = networkZkManager.getNetwork(subnet.networkId);
+        if (network.external) {
+            UUID prId = providerRouterZkManager.getId();
+            // Delete the route that already exists on the provider router
+            // for this vip port. This route was created by the "create port"
+            // operation because the port was created on an external network.
+            routeZkManager.prepareRoutesDelete(ops, prId,
+                                               new IPv4Subnet(vip.address, 32));
+
+            Pool neutronPool = getNeutronPool(vip.poolId);
+
+            UUID routerId = neutronPool.routerId;
+            // Find the GW port
+            RouterPortConfig gwPort =
+                portZkManager.findFirstRouterPortByPeer(routerId, prId);
+            // Add a route to this gateway port on the provider router
+            RouterPortConfig prPortCfg =
+                (RouterPortConfig) portZkManager.get(gwPort.peerId);
+            routeZkManager.preparePersistPortRouteCreate(
+                ops, prId, new IPv4Subnet(0, 0),
+                new IPv4Subnet(vip.address, 32), prPortCfg, null);
+        }
+    }
+
+    private void prepareVipRouteDeletion(List<Op> ops, VIP vip)
+        throws StateAccessException, SerializationException {
+        Subnet subnet = networkZkManager.getSubnet(vip.subnetId);
+        Network network = networkZkManager.getNetwork(subnet.networkId);
+        if (network.external) {
+            UUID prId = providerRouterZkManager.getId();
+            routeZkManager.prepareRoutesDelete(ops, prId,
+                                               new IPv4Subnet(vip.address, 32));
+        }
+    }
+
     public void prepareCreateVip(List<Op> ops, VIP vip)
         throws SerializationException, StateAccessException {
         UUID loadBalancerId = null;
@@ -577,6 +637,8 @@ public class LBZkManager extends BaseZkManager {
                 preparePoolHealthMonitorAddVip(ops, pool.id, vip);
             }
         }
+
+        prepareVipRouteCreation(ops, vip);
 
         prepareCreateNeutronVip(ops, vip);
         VipConfig vipConfig = new VipConfig(vip, loadBalancerId);
@@ -676,6 +738,7 @@ public class LBZkManager extends BaseZkManager {
                 preparePoolHealthMonitorRemoveVip(ops, pool.id, vip);
             }
         }
+        prepareVipRouteDeletion(ops, vip);
         prepareDeleteNeutronVip(ops, id);
         ops.addAll(vipZkManager.prepareDelete(id));
     }
@@ -757,8 +820,9 @@ public class LBZkManager extends BaseZkManager {
 
         PoolConfig pConfig = poolZkManager.get(poolId);
 
-        checkState(pConfig.healthMonitorId == null, "The pool config did " +
+        checkState(pConfig.healthMonitorId == null, "The pool config " +
             "already has a health monitor associated with it");
+        pConfig.healthMonitorId = poolHealthMonitor.id;
 
         HealthMonitorConfig hmConfig
             = healthMonitorZkManager.get(poolHealthMonitor.id);
