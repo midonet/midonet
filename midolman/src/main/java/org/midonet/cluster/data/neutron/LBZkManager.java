@@ -413,8 +413,26 @@ public class LBZkManager extends BaseZkManager {
         PoolConfig poolConfig = poolZkManager.get(id);
 
         if (pool.hasHealthMonitorAssociated()) {
-            ops.addAll(healthMonitorZkManager.prepareRemovePool(
-                poolConfig.healthMonitorId, id));
+            UUID healthMonitorId = pool.getHealthMonitor();
+
+            poolHealthMonitorZkManager.preparePoolHealthMonitorDelete(
+                ops, pool.id, healthMonitorId);
+            HealthMonitor healthMonitor =
+                getNeutronHealthMonitor(pool.getHealthMonitor());
+            healthMonitor.removePool(pool.id);
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
+        }
+
+        // Each member of this pool needs to be updated.
+        for (UUID memberId : pool.members) {
+            ops.addAll(poolZkManager.prepareRemoveMember(pool.id, memberId));
+            Member member = getNeutronMember(memberId);
+            member.poolId = null;
+            prepareUpdateNeutronMember(ops, member);
+
+            PoolMemberConfig pmConfig = poolMemberZkManager.get(memberId);
+            pmConfig.poolId = null;
+            ops.addAll(poolMemberZkManager.prepareUpdate(memberId, pmConfig));
         }
 
         UUID lbId = getLoadBalancerIdFromPool(pool);
@@ -461,6 +479,9 @@ public class LBZkManager extends BaseZkManager {
         ops.addAll(
             poolMemberZkManager.prepareCreate(member.id, poolMemberConfig));
         if (poolMemberConfig.poolId != null) {
+            Pool pool = getNeutronPool(member.poolId);
+            pool.addMember(member.id);
+            prepareUpdateNeutronPool(ops, pool);
             ops.addAll(
                 poolZkManager.prepareAddMember(member.poolId, member.id));
         }
@@ -481,6 +502,9 @@ public class LBZkManager extends BaseZkManager {
             // The Pool has changed
             if (oldMember.poolId != null) {
                 PoolConfig poolConfig = poolZkManager.get(oldMember.poolId);
+                Pool pool = getNeutronPool(oldMember.poolId);
+                pool.removeMember(oldMember.id);
+                prepareUpdateNeutronPool(ops, pool);
                 ops.addAll(poolZkManager.prepareRemoveMember(
                     oldMember.poolId, member.id));
                 if (poolConfig.healthMonitorId != null) {
@@ -491,6 +515,9 @@ public class LBZkManager extends BaseZkManager {
 
             if (member.poolId != null) {
                 PoolConfig poolConfig = poolZkManager.get(member.poolId);
+                Pool pool = getNeutronPool(member.poolId);
+                pool.addMember(member.id);
+                prepareUpdateNeutronPool(ops, pool);
                 ops.addAll(poolZkManager.prepareAddMember(
                     member.poolId, member.id));
                 if (poolConfig.healthMonitorId != null) {
@@ -515,6 +542,9 @@ public class LBZkManager extends BaseZkManager {
         Member member = getNeutronMember(id);
         prepareDeleteNeutronMember(ops, id);
         if (member.poolId != null) {
+            Pool pool = getNeutronPool(member.poolId);
+            pool.removeMember(member.id);
+            prepareUpdateNeutronPool(ops, pool);
             ops.addAll(poolZkManager.prepareRemoveMember(
                 member.poolId, member.id));
             PoolConfig poolConfig = poolZkManager.get(member.poolId);

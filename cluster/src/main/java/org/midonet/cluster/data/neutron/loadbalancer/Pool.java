@@ -3,6 +3,8 @@
  */
 package org.midonet.cluster.data.neutron.loadbalancer;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,6 +79,24 @@ public class Pool {
                && Objects.equal(subnetId, other.subnetId)
                && Objects.equal(tenantId, other.tenantId)
                && Objects.equal(vipId, other.vipId);
+    }
+
+    @JsonIgnore
+    public void addMember(UUID memberId) {
+        if (members == null) {
+            members = new ArrayList<>();
+        }
+        members.add(memberId);
+    }
+
+    @JsonIgnore
+    public void removeMember(UUID memberId) {
+        for (Iterator<UUID> it = members.iterator(); it.hasNext();) {
+            if (Objects.equal(it.next(), memberId)) {
+                it.remove();
+                return;
+            }
+        }
     }
 
     @Override
