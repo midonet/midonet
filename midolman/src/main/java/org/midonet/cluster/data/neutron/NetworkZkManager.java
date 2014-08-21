@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -68,13 +69,8 @@ public class NetworkZkManager extends BaseZkManager {
         ops.addAll(bridgeZkManager.prepareBridgeCreate(network.id, config));
     }
 
-    public Network prepareDeleteNetwork(List<Op> ops, UUID id)
+    public void prepareDeleteNetwork(List<Op> ops, UUID id)
         throws SerializationException, StateAccessException {
-
-        Network network = getNetwork(id);
-        if (network == null) {
-            return null;
-        }
 
         ops.addAll(bridgeZkManager.prepareBridgeDelete(id));
 
@@ -88,8 +84,6 @@ public class NetworkZkManager extends BaseZkManager {
 
         String path = paths.getNeutronNetworkPath(id);
         ops.add(zk.getDeleteOp(path));
-
-        return network;
     }
 
     public void prepareUpdateNetwork(List<Op> ops, Network network)
@@ -156,14 +150,9 @@ public class NetworkZkManager extends BaseZkManager {
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(subnet)));
     }
 
-    public Subnet prepareDeleteSubnet(List<Op> ops, UUID id)
+    public void prepareDeleteSubnet(List<Op> ops, Subnet subnet)
         throws StateAccessException, SerializationException {
-
-        Subnet subnet = getSubnet(id);
-        if (subnet == null) {
-            return null;
-        }
-
+        Preconditions.checkNotNull(subnet);
         if (subnet.isIpv4()) {
             dhcpZkManager.prepareDeleteSubnet(ops, subnet.networkId,
                                               subnet.ipv4Subnet());
@@ -177,7 +166,15 @@ public class NetworkZkManager extends BaseZkManager {
         }
 
         ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
-        return subnet;
+    }
+
+     public void prepareDeleteSubnet(List<Op> ops, UUID id)
+        throws StateAccessException, SerializationException {
+
+        Subnet subnet = getSubnet(id);
+        if (subnet != null) {
+            prepareDeleteSubnet(ops, subnet);
+        }
     }
 
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
