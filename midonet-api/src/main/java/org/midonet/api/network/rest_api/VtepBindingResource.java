@@ -53,7 +53,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
-                  VendorMediaType.APPLICATION_JSON})
+               VendorMediaType.APPLICATION_JSON})
     public Response create(VtepBinding binding)
         throws StateAccessException, SerializationException {
         validate(binding);
@@ -84,7 +84,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
-                  MediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     public List<VtepBinding> list() throws StateAccessException,
                                            SerializationException {
         return listVtepBindings(this.ipAddrStr, null);

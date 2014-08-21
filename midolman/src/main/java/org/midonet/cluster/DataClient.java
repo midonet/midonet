@@ -1090,6 +1090,9 @@ public interface DataClient {
     public void vtepDelete(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException;
 
+    public void vtepUpdate(VTEP vtep)
+            throws StateAccessException, SerializationException;
+
     public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
                                @Nonnull String portName, short vlanId,
                                @Nonnull UUID networkId)

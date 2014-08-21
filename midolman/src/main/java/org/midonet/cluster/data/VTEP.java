@@ -37,9 +37,19 @@ public class VTEP extends Entity.Base<IPv4Addr, VTEP.Data, VTEP> {
         return self();
     }
 
+    public IPv4Addr getTunnelIp() {
+        return getData().tunnelIp;
+    }
+
+    public VTEP setTunnelIp(IPv4Addr tunnelIp) {
+        getData().tunnelIp = tunnelIp;
+        return self();
+    }
+
     public static class Data {
         public int mgmtPort;
         public UUID tunnelZoneId;
+        public IPv4Addr tunnelIp;
 
         @Override
         public boolean equals(Object o) {
@@ -48,17 +58,19 @@ public class VTEP extends Entity.Base<IPv4Addr, VTEP.Data, VTEP> {
 
             Data data = (Data) o;
             return Objects.equals(mgmtPort, data.mgmtPort) &&
-                   Objects.equals(tunnelZoneId, data.tunnelZoneId);
+                   Objects.equals(tunnelZoneId, data.tunnelZoneId) &&
+                   Objects.equals(tunnelIp, data.tunnelIp);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(mgmtPort, tunnelZoneId);
+            return Objects.hash(mgmtPort, tunnelZoneId, tunnelIp);
         }
 
         public String toString() {
             return "VTEP.Data{mgmtPort=" + mgmtPort +
-                   ", tunnelZoneId=" + tunnelZoneId + "}";
+                   ", tunnelZoneId=" + tunnelZoneId +
+                   ", tunnelIp=" + tunnelIp + "}";
         }
     }
 }

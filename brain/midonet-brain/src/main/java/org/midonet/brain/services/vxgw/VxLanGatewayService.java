@@ -270,9 +270,9 @@ public class VxLanGatewayService extends AbstractService {
         }
 
         // Initialize the VTEP and wire peers.
-        VxLanGwBroker vxGwBroker = new VxLanGwBroker(
-            midoClient, vtepDataClientProvider, mgmtIp, vtep.getMgmtPort(),
-            tunnelZone);
+        VxLanGwBroker vxGwBroker = new VxLanGwBroker(midoClient,
+                                                     vtepDataClientProvider,
+                                                     vtep, tunnelZone);
         vxlanGwBrokers.put(mgmtIp, vxGwBroker);
 
         // Remove Logical Switches that don't have a network bound to them
