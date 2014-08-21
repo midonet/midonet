@@ -1,3 +1,5 @@
+apply plugin: 'scala'
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Midonet Brain',
@@ -10,8 +12,20 @@ repositories {
     maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
 }
 
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
 dependencies {
     compile project(':midolman'), project(':brain:odl-ovsdb:ovsdb'),
+            libraries.scala,
             "com.netflix.rxjava:rxjava-core:0.17.6",
             "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
             "com.fasterxml.jackson.core:jackson-core:2.3.0",
@@ -26,4 +40,6 @@ dependencies {
             "org.apache.zookeeper:zookeeper:3.4.5",
             "com.googlecode.jmockit:jmockit:1.7",
             "com.google.guava:guava:14.0.1"
+
+    testCompile libraries.scalatest
 }
