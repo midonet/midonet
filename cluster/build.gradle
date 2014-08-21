@@ -1,5 +1,5 @@
 apply plugin: 'protobuf'
-apply plugin: 'java'
+apply plugin: 'scala'
 
 jar {
     manifest {
@@ -8,13 +8,24 @@ jar {
     }
 }
 
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
 dependencies {
     compile project(':packets'), project(':midonet-util')
 
     compile libraries.collections4, libraries.commons_lang3,
-            libraries.curator_recipes, libraries.guava,
-            libraries.jackson_mapper, libraries.rx
+            libraries.curator_recipes, libraries.guava, libraries.guice,
+            libraries.jackson_mapper, libraries.rx, libraries.scala
 
-    testCompile libraries.hamcrest, libraries.test_frameworks,
-                libraries.curator_test
+    testCompile libraries.curator_test, libraries.hamcrest, libraries.scalatest,
+                libraries.test_frameworks
 }
