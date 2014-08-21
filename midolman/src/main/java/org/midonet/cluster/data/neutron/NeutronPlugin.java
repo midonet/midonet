@@ -13,7 +13,6 @@ import com.google.inject.Inject;
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +27,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
+import org.midonet.midolman.state.ZkOpList;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
 /**
@@ -60,26 +60,10 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Inject
     private ZookeeperLockFactory lockFactory;
 
-    private static void printOps(List<Op> ops) {
-
-        if (!LOGGER.isDebugEnabled()) {
-            return;
-        }
-
-        LOGGER.debug("******** BEGIN PRINTING ZK OPs *********");
-
-        for (Op op : ops) {
-            LOGGER.info(ZooDefs.opNames[op.getType()] + " " + op.getPath());
-        }
-
-        LOGGER.debug("******** END PRINTING ZK OPs *********");
-    }
-
     private void commitOps(List<Op> ops) throws StateAccessException {
-        if (ops.size() > 0) {
-            printOps(ops);
-            zkManager.multi(ops);
-        }
+        ZkOpList opList = new ZkOpList(zkManager);
+        opList.addAll(ops);
+        opList.commit();
     }
 
     // The following wrapper functions for locking are defined so that
