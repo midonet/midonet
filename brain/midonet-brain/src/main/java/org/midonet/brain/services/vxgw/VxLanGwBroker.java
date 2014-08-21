@@ -14,6 +14,9 @@ import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.VTEP;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
 /**
@@ -61,30 +64,39 @@ public class VxLanGwBroker {
     };
 
     /**
-     * Creates a new Broker between a vtep and the corresponding midonet peers,
-     * once ready, it'll immediately connect the Vtep client.
+     * Creates a new Broker between a VTEP and the corresponding MidoNet peers,
+     * once ready, it will immediately connect the VTEP client.
      */
     public VxLanGwBroker(DataClient midoClient,
                          VtepDataClientProvider vtepDataClientProvider,
-                         IPv4Addr vtepMgmtIp,
-                         int vtepMgmtPort,
+                         VTEP vtep,
                          TunnelZoneState tunnelZone) {
-        log.info("Wiring broker for {}", vtepMgmtIp);
+        log.info("Wiring broker for VTEP: {}", vtep.getId());
         this.vtepClient = vtepDataClientProvider.get();
         this.vtepPeer = new VtepBroker(this.vtepClient);
         this.midoPeer = new MidoVxLanPeer(midoClient);
-        this.vtepMgmtIp = vtepMgmtIp;
+        this.vtepMgmtIp = vtep.getId();
 
         // Wire peers
         this.midoSubscription = wirePeers(midoPeer, vtepPeer);
         this.vtepSubscription = wirePeers(vtepPeer, midoPeer);
 
         // Connect to VTEP
-        vtepClient.connect(vtepMgmtIp, vtepMgmtPort);
+        vtepClient.connect(vtep.getId(), vtep.getMgmtPort());
 
         // Subscribe to the tunnel zone flooding proxy.
         midoPeer.subscribeToFloodingProxy(
             tunnelZone.getFloodingProxyObservable());
+
+        // Try and update the VTEP data.
+        try {
+            if (null == vtep.getTunnelIp()) {
+                vtep.setTunnelIp(vtepClient.getTunnelIp());
+                midoClient.vtepUpdate(vtep);
+            }
+        } catch (StateAccessException | SerializationException e) {
+            log.warn("Failed to update VTEP configuration: {}", e.getMessage());
+        }
     }
 
     /**

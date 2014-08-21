@@ -77,6 +77,11 @@ public class VtepZkManager
                       Op.delete(paths.getVtepPath(ipAddr), -1));
     }
 
+    public List<Op> prepareUpdate(IPv4Addr ipAddr, VtepConfig vtepConfig)
+        throws SerializationException {
+        return asList(simpleUpdateOp(ipAddr, vtepConfig));
+    }
+
     public List<Op> prepareCreateBinding(IPv4Addr ipAddr, String portName,
                                          short vlanId, UUID networkId)
             throws StateAccessException {
