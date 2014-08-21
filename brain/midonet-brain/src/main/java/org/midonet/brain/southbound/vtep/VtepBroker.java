@@ -175,14 +175,14 @@ public class VtepBroker implements VxLanPeer {
             return;
         }
 
-        if (ml.mac.isUcast()) {
-            if (ml.vxlanTunnelEndpoint != null) {
+        if (ml.mac().isUcast()) {
+            if (ml.vxlanTunnelEndpoint() != null) {
                 this.applyUcastAddition(ml);
             } else {
                 this.applyUcastDelete(ml);
             }
         } else {
-            if (ml.vxlanTunnelEndpoint != null) {
+            if (ml.vxlanTunnelEndpoint() != null) {
                 this.applyMcastAddition(ml);
             } else {
                 this.applyMcastDelete(ml);
@@ -230,10 +230,10 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyUcastAddition(MacLocation ml) {
         log.debug("Adding UCAST remote MAC to the VTEP: " + ml);
-        Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName,
-                                                     ml.mac.IEEE802(),
-                                                     ml.ipAddr,
-                                                     ml.vxlanTunnelEndpoint);
+        Status st = vtepDataClient.addUcastMacRemote(ml.logicalSwitchName(),
+                                                     ml.mac().IEEE802(),
+                                                     ml.ipAddr(),
+                                                     ml.vxlanTunnelEndpoint());
 
         if (st.getCode().equals(StatusCode.CONFLICT)) {
             log.info("Conflict writing {}, not expected", ml);
@@ -249,15 +249,16 @@ public class VtepBroker implements VxLanPeer {
     private void applyUcastDelete(MacLocation ml) {
         log.debug("Removing UCAST remote MAC from the VTEP: " + ml);
         Status st;
-        if (ml.ipAddr == null) {
+        if (ml.ipAddr() == null) {
             // removal, no IP: remove all mappings for that mac
-            st = vtepDataClient.delUcastMacRemoteAllIps(ml.logicalSwitchName,
-                                                        ml.mac.IEEE802());
+            st = vtepDataClient.delUcastMacRemoteAllIps(ml.logicalSwitchName(),
+                                                        ml.mac().IEEE802());
 
         } else {
             // removal, one IP: remove only the IP from the row
-            st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName,
-                                                  ml.mac.IEEE802(), ml.ipAddr);
+            st = vtepDataClient.delUcastMacRemote(ml.logicalSwitchName(),
+                                                  ml.mac().IEEE802(),
+                                                  ml.ipAddr());
         }
         if (st.getCode().equals(StatusCode.NOTFOUND)) {
             log.debug("Trying to delete entry but not present {}", ml);
@@ -271,9 +272,9 @@ public class VtepBroker implements VxLanPeer {
      */
     private void applyMcastAddition(MacLocation ml) {
         log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
-        Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName,
-                                                     ml.mac,
-                                                     ml.vxlanTunnelEndpoint);
+        Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
+                                                     ml.mac(),
+                                                     ml.vxlanTunnelEndpoint());
         if (!st.isSuccess() ) {
             if (st.getCode().equals(StatusCode.CONFLICT)) {
                 log.info("Conflict writing {}, not expected", ml);
@@ -291,7 +292,7 @@ public class VtepBroker implements VxLanPeer {
     private void applyMcastDelete(MacLocation ml) {
         log.debug("Removing MCAST remote MAC from the VTEP: " + ml);
         Status st = vtepDataClient.delMcastMacRemoteAllIps(
-            ml.logicalSwitchName, ml.mac);
+            ml.logicalSwitchName(), ml.mac());
         if (!st.isSuccess() && !st.getCode().equals(StatusCode.NOTFOUND)) {
             throw new VxLanPeerSyncException(
                 String.format("VTEP replied: %s, %s",
