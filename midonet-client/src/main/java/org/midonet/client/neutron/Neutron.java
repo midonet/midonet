@@ -10,6 +10,7 @@ import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.client.neutron.loadbalancer.LoadBalancer;
+import org.midonet.util.version.Since;
 
 public class Neutron {
 
@@ -59,6 +60,7 @@ public class Neutron {
     @JsonProperty("security_group_rule_template")
     public String securityGroupRuleTemplate;
 
+    @Since("2")
     @JsonProperty("load_balancer")
     public LoadBalancer loadBalancer;
 

@@ -7,6 +7,9 @@ public class NeutronMediaType {
 
     public final static String NEUTRON_JSON_V1 =
         "application/vnd.org.midonet.neutron.Neutron-v1+json";
+    public final static String NEUTRON_JSON_V2 =
+        "application/vnd.org.midonet.neutron.Neutron-v2+json";
+
     public final static String NETWORK_JSON_V1 =
         "application/vnd.org.midonet.neutron.Network-v1+json";
     public final static String NETWORKS_JSON_V1 =
