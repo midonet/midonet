@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
@@ -16,6 +17,11 @@ import org.midonet.midolman.state.StateAccessException;
 public interface LoadBalancerApi {
 
     // Pools
+    Pool getPool(UUID id)
+        throws StateAccessException, SerializationException;
+
+    List<Pool> getPools() throws StateAccessException, SerializationException;
+
     void createPool(Pool pool)
         throws StateAccessException, SerializationException;
 
@@ -26,6 +32,12 @@ public interface LoadBalancerApi {
         throws StateAccessException, SerializationException;
 
     // Members
+    Member getMember(UUID id)
+        throws StateAccessException, SerializationException;
+
+    List<Member> getMembers()
+        throws StateAccessException, SerializationException;
+
     void createMember(Member member)
         throws StateAccessException, SerializationException;
 
@@ -36,6 +48,11 @@ public interface LoadBalancerApi {
         throws StateAccessException, SerializationException;
 
     // Vips
+    VIP getVip(UUID id)
+        throws StateAccessException, SerializationException;
+
+    List<VIP> getVips() throws StateAccessException, SerializationException;
+
     void createVip(VIP vip)
         throws StateAccessException, SerializationException;
 
@@ -45,6 +62,12 @@ public interface LoadBalancerApi {
     void deleteVip(UUID id) throws StateAccessException, SerializationException;
 
     // Health Monitors
+    HealthMonitor getHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException;
+
+    List<HealthMonitor> getHealthMonitors()
+        throws StateAccessException, SerializationException;
+
     void createHealthMonitor(HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException;
 

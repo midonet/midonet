@@ -835,6 +835,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // Pools
     @Override
+    public Pool getPool(UUID id)
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronPool(id);
+    }
+
+    @Override
+    public List<Pool> getPools()
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronPools();
+    }
+
+    @Override
     public void createPool(Pool pool)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
@@ -875,6 +887,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // Members
     @Override
+    public Member getMember(UUID id)
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronMember(id);
+    }
+
+    @Override
+    public List<Member> getMembers()
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronMembers();
+    }
+
+    @Override
     public void createMember(Member member)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
@@ -913,7 +937,19 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
     }
 
-    // Vips
+    // Vips    public Member getMember(UUID id)
+    @Override
+    public VIP getVip(UUID id)
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronVip(id);
+    }
+
+    @Override
+    public List<VIP> getVips()
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronVips();
+    }
+
     @Override
     public void createVip(VIP vip)
         throws StateAccessException, SerializationException {
@@ -954,6 +990,18 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     // Health Monitors
+    @Override
+    public HealthMonitor getHealthMonitor(UUID id)
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronHealthMonitor(id);
+    }
+
+    @Override
+    public List<HealthMonitor> getHealthMonitors()
+        throws StateAccessException, SerializationException {
+        return lbZkManager.getNeutronHealthMonitors();
+    }
+
     @Override
     public void createHealthMonitor(HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
