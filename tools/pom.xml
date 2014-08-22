@@ -5,14 +5,14 @@
     <parent>
         <artifactId>midonet</artifactId>
         <groupId>org.midonet</groupId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>1.5-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools</artifactId>
     <name>tools</name>
     <description>MidoNet tools module.</description>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
