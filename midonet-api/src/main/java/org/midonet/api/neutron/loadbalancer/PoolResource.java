@@ -3,11 +3,13 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -58,6 +60,32 @@ public class PoolResource extends AbstractResource {
                         SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(LBMediaType.POOL_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public Pool get(@PathParam("id") UUID id)
+        throws SerializationException, StateAccessException {
+        log.info("PoolResource.get entered {}", id);
+
+        Pool pool = api.getPool(id);
+        if (pool == null) {
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+        }
+
+        log.info("PoolResource.get exiting {}", pool);
+        return pool;
+    }
+
+    @GET
+    @Produces(LBMediaType.POOLS_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public List<Pool> list()
+        throws SerializationException, StateAccessException {
+        log.info("PoolResource.list entered");
+        return api.getPools();
     }
 
     @POST

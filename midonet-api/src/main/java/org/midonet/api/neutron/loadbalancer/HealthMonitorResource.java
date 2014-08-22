@@ -3,11 +3,13 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -56,6 +58,32 @@ public class HealthMonitorResource extends AbstractResource {
                                  SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public HealthMonitor get(@PathParam("id") UUID id)
+        throws SerializationException, StateAccessException {
+        LOG.info("HealthMonitorResource.get entered {}", id);
+
+        HealthMonitor healthMonitor = api.getHealthMonitor(id);
+        if (healthMonitor == null) {
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+        }
+
+        LOG.info("HealthMonitorResource.get exiting {}", healthMonitor);
+        return healthMonitor;
+    }
+
+    @GET
+    @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public List<HealthMonitor> list()
+        throws SerializationException, StateAccessException {
+        LOG.info("HealthMonitorResource.list entered");
+        return api.getHealthMonitors();
     }
 
     @POST

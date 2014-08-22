@@ -3,11 +3,13 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -55,6 +57,32 @@ public class MemberResource extends AbstractResource {
                           SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(LBMediaType.MEMBER_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public Member get(@PathParam("id") UUID id)
+        throws SerializationException, StateAccessException {
+        log.info("MemberResource.get entered {}", id);
+
+        Member member = api.getMember(id);
+        if (member == null) {
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+        }
+
+        log.info("MemberResource.get exiting {}", member);
+        return member;
+    }
+
+    @GET
+    @Produces(LBMediaType.MEMBERS_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public List<Member> list()
+        throws SerializationException, StateAccessException {
+        log.info("MemberResource.list entered");
+        return api.getMembers();
     }
 
     @POST
