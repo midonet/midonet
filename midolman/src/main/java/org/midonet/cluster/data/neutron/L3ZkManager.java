@@ -5,6 +5,7 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
 import org.midonet.cluster.data.Rule;
@@ -485,16 +486,23 @@ public class L3ZkManager extends BaseZkManager {
         return floatingIps;
     }
 
-    public void prepareDeleteFloatingIp(List<Op> ops, UUID floatingIpId)
-            throws StateAccessException, SerializationException {
-
-        FloatingIp fip = getFloatingIp(floatingIpId);
+    public void prepareDeleteFloatingIp(List<Op> ops, FloatingIp fip)
+        throws StateAccessException, SerializationException {
+        Preconditions.checkNotNull(fip);
         Port port = networkZkManager.getPort(fip.portId);
         if (port != null) {
             prepareDisassociateFloatingIp(ops, port);
         }
-        String path = paths.getNeutronFloatingIpPath(floatingIpId);
+        String path = paths.getNeutronFloatingIpPath(fip.id);
         ops.add(zk.getDeleteOp(path));
+    }
+
+    public void prepareDeleteFloatingIp(List<Op> ops, UUID floatingIpId)
+        throws StateAccessException, SerializationException {
+        FloatingIp fip = getFloatingIp(floatingIpId);
+        if (fip != null) {
+            prepareDeleteFloatingIp(ops, fip);
+        }
     }
 
     private void prepareAssociateFloatingIp(List<Op> ops, FloatingIp fip)

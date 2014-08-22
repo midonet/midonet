@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -257,11 +258,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
     public void prepareDeleteSecurityGroup(List<Op> ops, UUID sgId)
         throws SerializationException, StateAccessException {
-
-        SecurityGroup sg = getSecurityGroup(sgId);
-        if (sg == null) {
-            return;
-        }
+        Preconditions.checkNotNull(sgId);
 
         IpAddrGroupConfig group = ipAddrGroupZkManager.get(sgId);
 
@@ -418,11 +415,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
 
     public void prepareDeleteSecurityGroupRule(List<Op> ops, UUID ruleId)
         throws StateAccessException, SerializationException {
-
-        SecurityGroupRule rule = getSecurityGroupRule(ruleId);
-        if (rule == null) {
-            return;
-        }
+        Preconditions.checkNotNull(ruleId);
 
         ops.addAll(ruleZkManager.prepareDelete(ruleId));
         String path = paths.getNeutronSecurityGroupRulePath(ruleId);
