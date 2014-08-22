@@ -89,11 +89,11 @@ easy way to export them to an external system.
 
 To support this we decided to separate the metric definition and aquisition from
 the metrics aggregation and export. To achieve this we settled on using the
-[Yammer Metrics](https://github.com/codahale/metrics) library to define and export
-the metrics we care about.
+[DropWizard Metrics](https://github.com/dropwizard/metrics) library to define
+and export the metrics we care about.
 
-We are using various Metric abstractions (com.yammer.metrics.core.Metrics) inside
-our code to define how the metric data is actually gathered (and from where).
+We are using various Metric abstractions from the Metrics library inside our
+code to define how the metric data is actually gathered (and from where).
 
 These Metric objects are registered into a local Metric Registry (inside the VM)
  that can be extremely easy interrogated (periodically) by reporter.

@@ -28,7 +28,7 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
-import com.yammer.metrics.core.Clock
+import com.codahale.metrics.Clock
 
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.guice.config.ConfigProviderModule

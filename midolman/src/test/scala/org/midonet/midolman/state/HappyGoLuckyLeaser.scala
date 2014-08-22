@@ -18,14 +18,13 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
+import com.codahale.metrics.Clock
 import com.typesafe.scalalogging.Logger
-import com.yammer.metrics.core.Clock
-import org.slf4j.helpers.NOPLogger
-
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MockClock
+import org.slf4j.helpers.NOPLogger
 
 object HappyGoLuckyLeaser extends NatLeaser {
 

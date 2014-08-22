@@ -31,7 +31,7 @@ import akka.testkit.TestKit;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.yammer.metrics.core.Clock;
+import com.codahale.metrics.Clock;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;

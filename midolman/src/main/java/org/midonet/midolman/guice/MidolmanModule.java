@@ -15,16 +15,15 @@
  */
 package org.midonet.midolman.guice;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
-import com.yammer.metrics.core.MetricsRegistry;
 
 import org.midonet.cluster.Client;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.management.PacketTracing;
 import org.midonet.midolman.services.DashboardService;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -56,8 +55,8 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
         expose(MidolmanConfig.class);
 
-        bind(MetricsRegistry.class).toInstance(new MetricsRegistry());
-        expose(MetricsRegistry.class);
+        bind(MetricRegistry.class).toInstance(new MetricRegistry());
+        expose(MetricRegistry.class);
 
         bind(SelectLoopService.class)
             .asEagerSingleton();

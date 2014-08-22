@@ -16,19 +16,12 @@
 
 package org.midonet.midolman
 
-import java.util.UUID
-import java.util.{HashMap => JHashMap, List => JList}
-import scala.collection.mutable
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import java.util.{UUID, HashMap => JHashMap, List => JList}
 
 import akka.actor._
 import akka.event.LoggingReceive
+import com.codahale.metrics.Clock
 import com.typesafe.scalalogging.Logger
-import com.yammer.metrics.core.Clock
-import org.slf4j.MDC
-
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -38,9 +31,9 @@ import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.{NatLeaser, FlowStateStorage, FlowStatePackets, FlowStateReplicator}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
@@ -50,6 +43,12 @@ import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.ExecutionContextOps
+import org.slf4j.MDC
+
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object DeduplicationActor {
     // Messages
@@ -145,9 +144,9 @@ class DeduplicationActor(
             val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
 
-    import DatapathController.DatapathReady
-    import DeduplicationActor._
-    import PacketWorkflow._
+    import org.midonet.midolman.DatapathController.DatapathReady
+    import org.midonet.midolman.DeduplicationActor._
+    import org.midonet.midolman.PacketWorkflow._
 
     override def logSource = "org.midonet.packet-worker"
 
@@ -346,7 +345,7 @@ class DeduplicationActor(
         pktCtx.cookieOrEgressPort match {
             case Left(cookie) =>
                 applyFlow(cookie, pktCtx)
-                val latency = (Clock.defaultClock().tick() -
+                val latency = (Clock.defaultClock().getTick -
                                pktCtx.packet.startTimeNanos).toInt
                 metrics.packetsProcessed.mark()
                 path match {

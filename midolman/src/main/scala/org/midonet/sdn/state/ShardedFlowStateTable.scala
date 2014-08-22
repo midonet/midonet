@@ -17,12 +17,12 @@
 package org.midonet.sdn.state
 
 import java.util.ArrayList
+import java.util.concurrent.TimeUnit
 
+import com.codahale.metrics.Clock
 import com.typesafe.scalalogging.Logger
-import com.yammer.metrics.core.Clock
-
-import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.TimedExpirationMap
 import org.slf4j.LoggerFactory
 
 object ShardedFlowStateTable {
@@ -193,7 +193,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
             unref(key)
         }
 
-        private def tickMillis = clock.tick / 1000000
+        private def tickMillis = TimeUnit.NANOSECONDS.toMillis(clock.getTick)
 
         override def unref(key: K) =
             map.unref(key, tickMillis)

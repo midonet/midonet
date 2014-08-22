@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
-import com.yammer.metrics.core.MetricsRegistry;
-import com.yammer.metrics.reporting.JmxReporter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,13 +50,15 @@ public class MidolmanService extends AbstractService {
     SelectLoopService selectLoopService;
 
     @Inject
-    MetricsRegistry metrics;
+    MetricRegistry metrics;
 
     @Inject
     DashboardService dashboardService;
 
     @Inject(optional = true)
     HostService hostService;
+
+    private JmxReporter jmxReporter = null;
 
     @Override
     protected void doStart() {
@@ -73,16 +75,33 @@ public class MidolmanService extends AbstractService {
             }
         }
 
-        JmxReporter.startDefault(metrics);
+        try {
+            jmxReporter = JmxReporter.forRegistry(metrics).build();
+            jmxReporter.start();
+        } catch (Exception e) {
+            log.error("Cannot start metrics reporter");
+            notifyFailed(e);
+            doStop();
+        }
+
         notifyStarted();
     }
 
     @Override
     protected void doStop() {
+
+        try {
+            if (jmxReporter != null) {
+                jmxReporter.stop();
+            }
+        } catch (Exception e) {
+            log.error("Could not stop jmx reporter", e);
+            notifyFailed(e);
+        }
+
         List<AbstractService> services = services();
         Collections.reverse(services);
         log.info("Stopping services");
-        metrics.shutdown();
         for (AbstractService service : services) {
             boolean running = service.state() == State.RUNNING;
             try {

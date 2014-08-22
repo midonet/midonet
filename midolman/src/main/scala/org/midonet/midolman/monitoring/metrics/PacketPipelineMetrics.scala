@@ -16,73 +16,59 @@
 
 package org.midonet.midolman.monitoring.metrics
 
-import java.util.concurrent.TimeUnit
+import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.MetricRegistry.name
 
-import com.yammer.metrics.core.MetricsRegistry
-import com.yammer.metrics.core.Gauge
+class PacketPipelineMetrics(val registry: MetricRegistry) {
 
-class PacketPipelineMetrics(val registry: MetricsRegistry) {
+    val pendedPackets = registry.counter(name(
+        classOf[PacketPipelineGauge], "currentPendedPackets"))
 
-    val pendedPackets = registry.newCounter(
-        classOf[PacketPipelineGauge], "currentPendedPackets")
+    val packetsOnHold = registry.counter(name(
+        classOf[PacketPipelineMeter], "packetsOnHold"))
 
-    val packetsOnHold = registry.newCounter(
-        classOf[PacketPipelineMeter], "packetsOnHold")
+    val wildcardTableHits = registry.meter(name(
+        classOf[PacketPipelineMeter], "wildcardTableHits", "packets"))
 
-    val wildcardTableHits = registry.newMeter(
-        classOf[PacketPipelineMeter],
-        "wildcardTableHits", "packets",
-        TimeUnit.SECONDS)
+    val packetsToPortSet = registry.meter(name(
+        classOf[PacketPipelineMeter], "packetsToPortSet", "packets"))
 
-    val packetsToPortSet = registry.newMeter(
-        classOf[PacketPipelineMeter],
-        "packetsToPortSet", "packets",
-        TimeUnit.SECONDS)
+    val packetsSimulated = registry.meter(name(
+        classOf[PacketPipelineMeter], "packetsSimulated", "packets"))
 
-    val packetsSimulated = registry.newMeter(
-        classOf[PacketPipelineMeter],
-        "packetsSimulated", "packets",
-        TimeUnit.SECONDS)
+    val packetsPostponed = registry.meter(name(
+        classOf[PacketPipelineMeter], "packetsPostponed", "packets"))
 
-    val packetsPostponed = registry.newMeter(
-        classOf[PacketPipelineMeter],
-        "packetsPostponed", "packets",
-        TimeUnit.SECONDS)
+    val packetsProcessed = registry.meter(name(
+        classOf[PacketPipelineMeter], "packetsProcessed", "packets"))
 
-    val packetsProcessed = registry.newMeter(
-        classOf[PacketPipelineMeter],
-        "packetsProcessed", "packets",
-        TimeUnit.SECONDS)
+    val packetsDropped = registry.meter(name(
+        classOf[PacketPipelineCounter], "packetsDropped", "packets"))
 
-    val packetsDropped = registry.newMeter(
-        classOf[PacketPipelineCounter],
-        "packetsDropped", "packets",
-        TimeUnit.SECONDS)
+    val liveSimulations = registry.register(name(
+        classOf[PacketPipelineGauge], "liveSimulations"),
+        new Gauge[Long]{ override def getValue = 0 })
 
-    val liveSimulations = registry.newGauge(
-        classOf[PacketPipelineGauge],
-        "liveSimulations",
-        new Gauge[Long]{
-            override def value = 0
-        })
+    val wildcardTableHitLatency = registry.histogram(name(
+        classOf[PacketPipelineHistogram], "wildcardTableHitLatency"))
 
-    val wildcardTableHitLatency = registry.newHistogram(
-        classOf[PacketPipelineHistogram], "wildcardTableHitLatency")
+    val packetToPortSetLatency = registry.histogram(name(
+        classOf[PacketPipelineHistogram], "packetToPortSetLatency"))
 
-    val packetToPortSetLatency = registry.newHistogram(
-        classOf[PacketPipelineHistogram], "packetToPortSetLatency")
+    val simulationLatency = registry.histogram(name(
+        classOf[PacketPipelineHistogram], "simulationLatency"))
 
-    val simulationLatency = registry.newHistogram(
-        classOf[PacketPipelineHistogram], "simulationLatency")
+    val wildcardTableHitAccumulatedTime = registry.counter(name(
+        classOf[PacketPipelineAccumulatedTime],
+        "wildcardTableHitAccumulatedTime"))
 
-    val wildcardTableHitAccumulatedTime = registry.newCounter(
-        classOf[PacketPipelineAccumulatedTime], "wildcardTableHitAccumulatedTime")
+    val packetToPortSetAccumulatedTime = registry.counter(name(
+        classOf[PacketPipelineAccumulatedTime],
+        "packetToPortSetAccumulatedTime"))
 
-    val packetToPortSetAccumulatedTime = registry.newCounter(
-        classOf[PacketPipelineAccumulatedTime], "packetToPortSetAccumulatedTime")
-
-    val simulationAccumulatedTime = registry.newCounter(
-        classOf[PacketPipelineAccumulatedTime], "simulationAccumulatedTime")
+    val simulationAccumulatedTime = registry.counter(name(
+        classOf[PacketPipelineAccumulatedTime],
+        "simulationAccumulatedTime"))
 
     def wildcardTableHit(latency: Int) {
         wildcardTableHits.mark()

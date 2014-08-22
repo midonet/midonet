@@ -16,29 +16,27 @@
 
 package org.midonet.midolman
 
-import scala.collection.immutable
-
 import akka.actor._
 import akka.event.LoggingReceive
-import org.slf4j.LoggerFactory
-import com.yammer.metrics.core.{Clock, MetricsRegistry}
+import com.codahale.metrics.{Clock, MetricRegistry}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.state.{NatLeaser, NatBlockAllocator, FlowStateStorageFactory}
-import org.midonet.midolman.topology.TraceConditionsManager
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
+import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
+import org.slf4j.LoggerFactory
+
+import scala.collection.immutable
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -52,10 +50,10 @@ object PacketsEntryPoint extends Referenceable {
 
 class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
-    import DatapathController.DatapathReady
-    import DeduplicationActor._
-    import PacketsEntryPoint._
-    import VirtualTopologyActor.ConditionListRequest
+    import org.midonet.midolman.DatapathController.DatapathReady
+    import org.midonet.midolman.DeduplicationActor._
+    import org.midonet.midolman.PacketsEntryPoint._
+    import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
 
     private var _NUM_WORKERS = 1
     def NUM_WORKERS = _NUM_WORKERS
@@ -83,7 +81,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
-    var metricsRegistry: MetricsRegistry = null
+    var metricsRegistry: MetricRegistry = null
 
     private var metrics: PacketPipelineMetrics = null
 

@@ -18,23 +18,21 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
-import scala.collection.mutable
-import scala.concurrent.duration._
-
-import akka.event.{NoLogging, LoggingAdapter}
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest._
-import com.yammer.metrics.core.Clock
+import com.codahale.metrics.Clock
 import com.typesafe.scalalogging.Logger
-import org.slf4j.helpers.NOPLogger
-
+import org.junit.runner.RunWith
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatLeaser.{NoNatBindingException, blockOf}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MockClock
 import org.midonet.util.functors.Callback
+import org.scalatest._
+import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
+
+import scala.collection.mutable
+import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class NatLeaserTest extends FeatureSpec
