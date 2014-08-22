@@ -3,11 +3,13 @@
  */
 package org.midonet.api.neutron.loadbalancer;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -54,6 +56,32 @@ public class VipResource extends AbstractResource {
                        SecurityContext context, LoadBalancerApi api) {
         super(config, uriInfo, context, null);
         this.api = api;
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(LBMediaType.VIP_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public VIP get(@PathParam("id") UUID id)
+        throws SerializationException, StateAccessException {
+        log.info("VipResource.get entered {}", id);
+
+        VIP vip = api.getVip(id);
+        if (vip == null) {
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+        }
+
+        log.info("VipResource.get exiting {}", vip);
+        return vip;
+    }
+
+    @GET
+    @Produces(LBMediaType.VIPS_JSON_V1)
+    @RolesAllowed(AuthRole.ADMIN)
+    public List<VIP> list()
+        throws SerializationException, StateAccessException {
+        log.info("VipResource.list entered");
+        return api.getVips();
     }
 
     @POST

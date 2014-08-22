@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.Inject;
@@ -572,7 +573,7 @@ public class LBZkManager extends BaseZkManager {
         ops.add(zk.getPersistentCreateOp(path, serializer.serialize(vip)));
     }
 
-    private Pool getNeutronPool(UUID id)
+    public Pool getNeutronPool(UUID id)
         throws StateAccessException, SerializationException {
         checkNotNull(id, "Can not retrieve neutron pool associated " +
                          "with NULL id");
@@ -580,7 +581,18 @@ public class LBZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Pool.class);
     }
 
-    private Member getNeutronMember(UUID id)
+    public List<Pool> getNeutronPools()
+        throws StateAccessException, SerializationException {
+        String path = paths.getNeutronPoolsPath();
+        Set<UUID> poolIds = getUuidSet(path);
+        List<Pool> pools = new ArrayList<>();
+        for (UUID poolId : poolIds) {
+            pools.add(getNeutronPool(poolId));
+        }
+        return pools;
+    }
+
+    public Member getNeutronMember(UUID id)
         throws StateAccessException, SerializationException {
         checkNotNull(id, "Can not retrieve neutron member associated " +
                          "with NULL id");
@@ -588,7 +600,18 @@ public class LBZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), Member.class);
     }
 
-    private HealthMonitor getNeutronHealthMonitor(UUID id)
+    public List<Member> getNeutronMembers()
+        throws StateAccessException, SerializationException {
+        String path = paths.getNeutronMembersPath();
+        Set<UUID> memberIds = getUuidSet(path);
+        List<Member> members = new ArrayList<>();
+        for (UUID memberId : memberIds) {
+            members.add(getNeutronMember(memberId));
+        }
+        return members;
+    }
+
+    public HealthMonitor getNeutronHealthMonitor(UUID id)
         throws StateAccessException, SerializationException {
         checkNotNull(id, "Can not retrieve neutron health monitor associated " +
                          "with NULL id");
@@ -596,12 +619,34 @@ public class LBZkManager extends BaseZkManager {
         return serializer.deserialize(zk.get(path), HealthMonitor.class);
     }
 
-    private VIP getNeutronVip(UUID id)
+    public List<HealthMonitor> getNeutronHealthMonitors()
+        throws StateAccessException, SerializationException {
+        String path = paths.getNeutronHealthMonitorsPath();
+        Set<UUID> healthMonitorIds = getUuidSet(path);
+        List<HealthMonitor> healthMonitors = new ArrayList<>();
+        for (UUID hmId : healthMonitorIds) {
+            healthMonitors.add(getNeutronHealthMonitor(hmId));
+        }
+        return healthMonitors;
+    }
+
+    public VIP getNeutronVip(UUID id)
         throws StateAccessException, SerializationException {
         checkNotNull(id, "Can not retrieve neutron vip associated " +
                          "with NULL id");
         String path = paths.getNeutronVipPath(id);
         return serializer.deserialize(zk.get(path), VIP.class);
+    }
+
+    public List<VIP> getNeutronVips()
+        throws StateAccessException, SerializationException {
+        String path = paths.getNeutronVipsPath();
+        Set<UUID> vipIds = getUuidSet(path);
+        List<VIP> vips = new ArrayList<>();
+        for (UUID vipId : vipIds) {
+            vips.add(getNeutronVip(vipId));
+        }
+        return vips;
     }
 
     private UUID getLoadBalancerIdFromPool(Pool pool)
