@@ -16,7 +16,7 @@ project.ext {
         sun_tools: project.files("${System.properties['java.home']}/../lib/tools.jar"),
 
         scala: "org.scala-lang:scala-library:2.10.3",
-        scalatest: "org.scalatest:scalatest_2.10:2.0",
+        scalatest: "org.scalatest:scalatest_2.10:2.2.1",
         akka: ["com.typesafe.akka:akka-slf4j_2.10:${versions.akka}",
                "com.typesafe.akka:akka-actor_2.10:${versions.akka}"],
         akkatest: "com.typesafe.akka:akka-testkit_2.10:${versions.akka}",
