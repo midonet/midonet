@@ -90,10 +90,10 @@ class ProtoFieldBinding extends FieldBinding {
     public static ListMultimap<Class<?>, FieldBinding> createBindings(
              Class<?> leftClass,
              String leftFieldName,
-             DeleteAction onDeleteLeft,
+             FieldBinding.DeleteAction onDeleteLeft,
              Class<?> rightClass,
              String rightFieldName,
-             DeleteAction onDeleteRight) {
+             FieldBinding.DeleteAction onDeleteRight) {
         Message leftMessage = getDefaultMessage(leftClass);
         Message rightMessage = getDefaultMessage(rightClass);
 
