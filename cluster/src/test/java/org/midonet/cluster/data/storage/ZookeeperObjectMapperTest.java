@@ -458,8 +458,8 @@ public class ZookeeperObjectMapperTest {
             zom.get(PojoBridge.class, id);
             fail("Should not be able to get non-existing object.");
         } catch (NotFoundException ex) {
-            assertEquals(PojoBridge.class, ex.getClazz());
-            assertEquals(id, ex.getId());
+            assertEquals(PojoBridge.class, ex.clazz());
+            assertEquals(id, ex.id());
         }
     }
 
@@ -476,8 +476,8 @@ public class ZookeeperObjectMapperTest {
             zom.create(chain);
             fail("Should not be able to create object with in-use ID.");
         } catch (ObjectExistsException ex) {
-            assertEquals(PojoChain.class, ex.getClazz());
-            assertEquals(chain.id, ex.getId());
+            assertEquals(PojoChain.class, ex.clazz());
+            assertEquals(chain.id, ex.id());
         }
     }
 
@@ -488,8 +488,8 @@ public class ZookeeperObjectMapperTest {
             zom.create(rule);
             fail("Should not be able to create object with reference missing.");
         } catch (NotFoundException ex) {
-            assertEquals(PojoChain.class, ex.getClazz());
-            assertEquals(rule.chainId, ex.getId());
+            assertEquals(PojoChain.class, ex.clazz());
+            assertEquals(rule.chainId, ex.id());
         }
     }
 
@@ -513,8 +513,8 @@ public class ZookeeperObjectMapperTest {
             zom.create(bridge);
             fail("Should not be able to create object with in-use ID.");
         } catch (ObjectExistsException ex) {
-            assertEquals(Devices.Bridge.class, ex.getClazz());
-            assertEquals(bridgeUuid, ex.getId());
+            assertEquals(Devices.Bridge.class, ex.clazz());
+            assertEquals(bridgeUuid, ex.id());
         }
     }
 
@@ -596,8 +596,8 @@ public class ZookeeperObjectMapperTest {
             zom.update(chain);
             fail("Should not be able to update nonexisting item.");
         } catch (NotFoundException ex) {
-            assertEquals(PojoChain.class, ex.getClazz());
-            assertEquals(chain.id, ex.getId());
+            assertEquals(PojoChain.class, ex.clazz());
+            assertEquals(chain.id, ex.id());
         }
     }
 
@@ -609,8 +609,8 @@ public class ZookeeperObjectMapperTest {
             zom.update(bridge);
             fail("Should not be able to update nonexisting item.");
         } catch (NotFoundException ex) {
-            assertEquals(Devices.Bridge.class, ex.getClazz());
-            assertEquals(bridgeUuid, ex.getId());
+            assertEquals(Devices.Bridge.class, ex.clazz());
+            assertEquals(bridgeUuid, ex.id());
         }
     }
 
@@ -624,8 +624,8 @@ public class ZookeeperObjectMapperTest {
             zom.update(rule);
             fail("Should not be able to update with missing reference.");
         } catch (NotFoundException ex) {
-            assertEquals(PojoChain.class, ex.getClazz());
-            assertEquals(rule.chainId, ex.getId());
+            assertEquals(PojoChain.class, ex.clazz());
+            assertEquals(rule.chainId, ex.id());
         }
     }
 
@@ -646,10 +646,10 @@ public class ZookeeperObjectMapperTest {
             zom.update(chain2);
             fail("Should not be able to steal rule from another chain.");
         } catch (ReferenceConflictException ex) {
-            assertThat(ex.getReferencingObj(), instanceOf(PojoRule.class));
-            assertEquals("chainId", ex.getReferencingFieldName());
-            assertEquals(PojoChain.class.getSimpleName(), ex.getReferencedClass());
-            assertEquals(chain1.id.toString(), ex.getReferencedId());
+            assertThat(ex.referencingObj(), instanceOf(PojoRule.class));
+            assertEquals("chainId", ex.referencingFieldName());
+            assertEquals(PojoChain.class.getSimpleName(), ex.referencedClass());
+            assertEquals(chain1.id.toString(), ex.referencedId());
         }
     }
 
@@ -708,8 +708,8 @@ public class ZookeeperObjectMapperTest {
         try {
             zom.delete(PojoBridge.class, id);
         } catch (NotFoundException ex) {
-            assertEquals(PojoBridge.class, ex.getClazz());
-            assertEquals(id, ex.getId());
+            assertEquals(PojoBridge.class, ex.clazz());
+            assertEquals(id, ex.id());
         }
     }
 
