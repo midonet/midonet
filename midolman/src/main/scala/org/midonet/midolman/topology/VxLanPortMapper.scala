@@ -4,25 +4,21 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID
-import java.util.{Set => JSet}
-import scala.collection.JavaConversions.asScalaSet
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import java.util.{UUID, Set => JSet}
 
-import akka.actor.Actor
-import akka.actor.ActorLogging
-import akka.actor.ActorRef
-import akka.actor.Props
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.event.LoggingReceive
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
-
 import org.midonet.cluster.client.VxLanPort
-import org.midonet.midolman.state.Directory.DefaultTypedWatcher
-import org.midonet.midolman.state.Directory.TypedWatcher
+import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
 import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.topology.VxLanPortMapper.{VxLanPorts, VxLanMapping, PortsIDRequest}
+
+import scala.collection.JavaConversions.asScalaSet
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /** Adapter trait around the DataClient interface which exposes the unique
  *  setter method needed by the VxLanMapper. */
@@ -36,6 +32,7 @@ object VxLanPortMapper {
     var vniUUIDMap: Map[Int,UUID] = Map.empty
 
     /** Synchronous query method to retrieve the uuid of an external vxlan port
+      * b
      *  associated to the given vni key. The vni key is 24bits and its highest
      *  byte is ignored. */
     def uuidOf(vni: Int): Option[UUID] = vniUUIDMap get (vni & (1 << 24) - 1)
@@ -44,11 +41,9 @@ object VxLanPortMapper {
     def props(vta: ActorRef, provider: VxLanIdsProvider) =
         Props(classOf[VxLanPortMapper], vta, provider, 2.seconds)
 
-    object Internal {
-        case object PortsIDRequest
-        case class VxLanPorts(vxlanPorts: Seq[UUID])
-        case class VxLanMapping(map: Map[Int,UUID])
-    }
+    case object PortsIDRequest
+    case class VxLanPorts(vxlanPorts: Seq[UUID])
+    case class VxLanMapping(map: Map[Int,UUID])
 }
 
 /*
@@ -71,8 +66,7 @@ class VxLanPortMapper(val vta: ActorRef,
                                                        with ActorLogging {
 
     import context._
-    import VirtualTopologyActor.PortRequest
-    import VxLanPortMapper.Internal._
+    import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 
     override def preStart() {
         VxLanPortMapper.vniUUIDMap = Map.empty
@@ -86,8 +80,8 @@ class VxLanPortMapper(val vta: ActorRef,
         case VxLanPorts(portIds) =>
             implicit val askTimeout = Timeout(3.seconds)
             Future.traverse(portIds) { vta ? PortRequest(_) }
-                  .map { assembleMap(_) }
-                  .map { VxLanMapping(_) } pipeTo self
+                  .map { assembleMap }
+                  .map { VxLanMapping } pipeTo self
 
         case VxLanMapping(mapping) =>
             VxLanPortMapper.vniUUIDMap = mapping
@@ -104,7 +98,7 @@ class VxLanPortMapper(val vta: ActorRef,
             retry("timeout")
         }
         override def onError(e: KeeperException) {
-            retry("Zk exception " + e.getClass.getSimpleName())
+            retry("Zk exception " + e.getClass.getSimpleName)
         }
         def retry(reason: String) {
             log warning ("{} while getting vxlan port uuids, retrying", reason)
