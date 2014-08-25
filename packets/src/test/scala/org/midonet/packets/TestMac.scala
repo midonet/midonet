@@ -10,33 +10,36 @@ import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.prop.Checkers
 
+object TestMac {
+    val NumOctetsInMac: Int = 6
+    val NumBitsInOctet: Int = 8
+}
+
 @RunWith(classOf[JUnitRunner])
 class TestMac extends Suite with Checkers with Matchers {
-    val macpool = List.tabulate(1000) { _ => MAC.random }
+    import TestMac._
+
     // Random MAC address generator for ScalaCheck.
     val randomMacGen: Gen[MAC] = Gen.wrap(MAC.random)
 
-    def testConversions {
-        val mask = 0xffffffffffffL
-        for (m <- macpool; s = m.toString; ary = m.getAddress) {
-
-            (s matches MAC.regex) shouldBe true
-
+    def testConversions = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
+        val macStr: String = mac.toString
+        val longFromString = MAC.stringToLong(macStr)
+        val macByteArray: Array[Byte] = mac.getAddress
+        val longFromBytes = MAC.bytesToLong(macByteArray)
+        (macStr matches MAC.regex) &&
             // long <-> string
-            val longFromString = MAC.stringToLong(s)
-            (longFromString | mask) should be (mask)
-            s should be (MAC.longToString(longFromString))
-
+            (longFromString | MAC.MAC_MASK) == MAC.MAC_MASK &&
+            macStr == MAC.longToString(longFromString) &&
             // long <-> byte[]
-            val longFromBytes = MAC.bytesToLong(ary)
-            (longFromBytes | mask) should be (mask)
-            ary should be (MAC.longToBytes(longFromBytes))
-
+            (longFromBytes | MAC.MAC_MASK) == MAC.MAC_MASK &&
+            // Deep equality check. Refer to the following link:
+            //   http://stackoverflow.com/questions/5393243/
+            macByteArray.deep == MAC.longToBytes(longFromBytes).deep &&
             // byte[] <-> string
-            s should be (MAC.bytesToString(ary))
-            ary should be (MAC.stringToBytes(s))
-        }
-    }
+            macStr == MAC.bytesToString(macByteArray) &&
+            macByteArray.deep == MAC.stringToBytes(macStr).deep
+    })
 
     def testConversionsException {
         //byte[] -> long / string
@@ -75,85 +78,79 @@ class TestMac extends Suite with Checkers with Matchers {
         }
     }
 
+    def testGetSetAddressIsSame =
+        check(Prop.forAll(randomMacGen) { (mac: MAC) =>
+            mac == MAC.fromAddress(mac.getAddress)
+        })
 
-    def testGetSetAddressIsSame {
-        for (m <- macpool) { m should be (MAC fromAddress m.getAddress) }
-    }
+    def testGetSetStringIsSame = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
+        mac == MAC.fromString(mac.toString)
+    })
 
-    def testGetSetStringIsSame {
-        for (m <- macpool) { m should be (MAC fromString m.toString) }
-    }
-
-    def testEqualOther {
+    def testEqualOther = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
         val args = List[Any]("foo", 4, Set(), Nil, List(1,2))
-        for (m <- macpool; x <- args) { m should not be (x) }
-    }
+        !args.contains(mac)
+    })
 
-    def testUnitcast {
+    def testUnitcast = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
         val mask: Byte = (~0x1).toByte
-        for (m <- macpool) {
-            val bytes = m.getAddress
-            val firstByte = bytes(0)
-            bytes(0) = (firstByte & mask).toByte
-            (MAC.fromAddress(bytes).unicast) should be (true)
-        }
+        val bytes = mac.getAddress
+        val firstByte = bytes.head
+        bytes(0) = (firstByte & mask).toByte
+        MAC.fromAddress(bytes).unicast
+    })
 
-    }
+    def testZeroMask = check(Prop.forAll(Gen.zip(randomMacGen, randomMacGen)) {
+        case (randomMacA: MAC, randomMacB: MAC) =>
+            randomMacA.equalsWithMask(randomMacB, 0L)
+    })
 
-    def testZeroMask {
-        for (i <- 0 until 50) {
-            // With the mask ignoring all bits, any two MAC addresses
-            // should be equal.
-            macpool(i).equalsWithMask(macpool(i + 50), 0L) shouldBe true
-        }
-    }
-
-    def testFullMask {
+    def testFullMask = check(Prop.forAll(randomMacGen) { (mac: MAC) =>
         // With no bits ignored, flipping any one bit in a MAC should
         // result in them being considered not equal.
-        for (i <- 0 until 48) {
-            // Sanity check: MAC should always equal itself.
-            val mac = macpool(i)
-            mac.equalsWithMask(mac, MAC.MAC_MASK) shouldBe true
-
+        val checkList = for {
+            i <- 0 until (NumBitsInOctet * NumOctetsInMac)
             // MAC with the i-th bit flipped not equal to the original.
-            val alteredBits = MAC.bytesToLong(mac.getAddress) ^ (1L << i)
-            val alteredMac = new MAC(MAC.longToBytes(alteredBits))
-            macpool(i).equalsWithMask(alteredMac, MAC.MAC_MASK) shouldBe false
+            alteredBits = MAC.bytesToLong(mac.getAddress) ^ (1L << i)
+            alteredMac = new MAC(MAC.longToBytes(alteredBits))
         }
-    }
+        // Sanity check: MAC should always equal itself.
+        yield mac.equalsWithMask(mac, MAC.MAC_MASK) &&
+                !mac.equalsWithMask(alteredMac, MAC.MAC_MASK)
+        checkList.forall(_ == true)
+    })
 
-    def testMaskedComparisonConsidersUnmaskedBits() {
-        val mac = MAC.random()
-        for (i <- 0 until 6) {
-            // Create a mask with only the bits in the (5 - i)th byte set.
-            val mask = 0xffL << ((5 - i) * 8);
-
-            // Use this mask to compare the original MAC to a MAC with
-            // the bits in the same byte flipped. Should not be equal.
-            val bytes = mac.getAddress
-            bytes(i) = (bytes(i) ^ 0xff).toByte
-            mac.equalsWithMask(new MAC(bytes), mask) shouldBe false
-
+    def testMaskedComparisonConsidersUnmaskedBits =
+        check(Prop.forAll(randomMacGen) { (mac: MAC) =>
+            val checkList = for {
+                i <- 0 until NumOctetsInMac
+                // Create a mask with only the bits in the (5 - i)th byte set.
+                mask = 0xffL << ((5 - i) * NumBitsInOctet)
+                // Use this mask to compare the original MAC to a MAC with
+                // the bits in the same byte flipped. Should not be equal.
+                bytes: Array[Byte] = mac.getAddress
+                alteredBytes = bytes.updated(i, (bytes(i) ^ 0xff).toByte)
+            }
             // Sanity check: Flip the bits back and verify equality.
-            bytes(i) = (bytes(i) ^ 0xff).toByte
-            mac.equalsWithMask(new MAC(bytes), mask) shouldBe true
-        }
-    }
+            yield mac.equalsWithMask(new MAC(bytes), mask) &&
+                    !mac.equalsWithMask(new MAC(alteredBytes), mask)
+            checkList.forall(_ == true)
+        })
 
-    def testMaskedComparisonIgnoresMaskedBits() {
-        val mac = MAC.random()
-        for (i <- 0 until 6) {
-            // Create a mask with the (5 - i)th byte zeroed out.
-            val partialMask = ~(0xffL << ((5 - i) * 8))
-            // Create a MAC with the bits in the same byte flipped.
-            val bytes = mac.getAddress
-            bytes(i) = (bytes(i) ^ 0xff).toByte
-            val alteredMac = new MAC(bytes)
-            mac.equalsWithMask(alteredMac, partialMask) shouldBe true
-            mac.equalsWithMask(alteredMac, MAC.MAC_MASK) shouldBe false
-        }
-    }
+    def testMaskedComparisonIgnoresMaskedBits =
+        check(Prop.forAll(randomMacGen) { (mac: MAC) =>
+            val checkList = for {
+                i <- 0 until NumOctetsInMac
+                // Create a mask with the (5 - i)th byte zeroed out.
+                partialMask = ~(0xffL << ((5 - i) * NumBitsInOctet))
+                // Create a MAC with the bits in the same byte flipped.
+                bytes = mac.getAddress
+                alteredBytes = bytes.updated(i, (bytes(i) ^ 0xff).toByte)
+                alteredMac = new MAC(alteredBytes)
+            } yield mac.equalsWithMask(alteredMac, partialMask) &&
+                    !mac.equalsWithMask(alteredMac, MAC.MAC_MASK)
+            checkList.forall(_ == true)
+        })
 
     def testMidokuraOuiIsSet =
         check(Prop.forAll(randomMacGen) { (randomMac: MAC) =>
