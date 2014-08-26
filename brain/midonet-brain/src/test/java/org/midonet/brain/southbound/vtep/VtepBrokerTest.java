@@ -175,8 +175,10 @@ public class VtepBrokerTest {
         // - Process the Ucast_Macs_Local update, use the tunnel IP in the
         //   resulting MacLocation emitted from the observable.
         new Expectations() {{
+            vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
             vtepDataClient.getLogicalSwitch(new UUID("meh"));
             times = 1; result = ls;
+            vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
         }};
 
         RxTestUtils.TestedObservable obs =
@@ -209,6 +211,7 @@ public class VtepBrokerTest {
 
         // Don't find the logical switch
         new Expectations() {{
+            vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
             vtepDataClient.getLogicalSwitch(new UUID("meh"));
             times = 1; result = null;
         }};
@@ -248,6 +251,7 @@ public class VtepBrokerTest {
         // to which the update belongs to, since it's necessary to construct
         // the MacLocation
         new Expectations() {{
+            vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
             vtepDataClient.getLogicalSwitch(new UUID("meh"));
             times = 1;
             result = ls;
@@ -310,6 +314,10 @@ public class VtepBrokerTest {
     @Test
     public void testAdvertiseMacs() throws Exception {
 
+        new Expectations() {{
+            vtepDataClient.getTunnelIp(); times = 2; result = vxTunEndpoint;
+        }};
+
         // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
         // is able to capture the IP and process MAC updates.
         vtepUpdStream.onNext(tableUpdatesWithTunnelIp());
@@ -357,6 +365,10 @@ public class VtepBrokerTest {
         throws Exception {
 
         VtepBroker vb = new VtepBroker(vtepDataClient);
+
+        new Expectations() {{
+            vtepDataClient.getTunnelIp(); times = 3; result = vxTunEndpoint;
+        }};
 
         // Make sure to feed the update with a vxlan tunnel ip so the VtepBroker
         // is able to capture the IP and process MAC updates.

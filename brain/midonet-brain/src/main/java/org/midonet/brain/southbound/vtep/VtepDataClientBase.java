@@ -26,6 +26,8 @@ import com.google.common.util.concurrent.Monitor;
 
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
+import org.opendaylight.ovsdb.lib.message.NodeUpdateNotification;
+import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.table.internal.Table;
 import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
@@ -82,6 +84,23 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             return !subscribed;
         }
     }
+
+    private final Func1<NodeUpdateNotification, Boolean> updatesFilter =
+        new Func1<NodeUpdateNotification, Boolean>() {
+            @Override
+            @GuardedBy("monitor")
+            public Boolean call(NodeUpdateNotification notification) {
+                Node node = VtepDataClientBase.this.node;
+                return node != null && node.equals(notification.node);
+            }
+        };
+    private final Func1<NodeUpdateNotification, TableUpdates> updatesMap =
+        new Func1<NodeUpdateNotification, TableUpdates>() {
+            @Override
+            public TableUpdates call(NodeUpdateNotification notification) {
+                return notification.tableUpdates;
+            }
+        };
 
     // State and synchronization
 
@@ -192,6 +211,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
     volatile Node node = null;
     @GuardedBy("monitor")
     volatile PhysicalSwitch physicalSwitch = null;
+    volatile IPv4Addr physicalSwitchTunnelIp = null;
 
     private final List<Subscription> subscriptions = new ArrayList<>();
 
@@ -237,6 +257,13 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                 onDisconnected(connection);
             }
         };
+        Action1<NodeUpdateNotification> updates =
+            new Action1<NodeUpdateNotification>() {
+                @Override
+                public void call(NodeUpdateNotification notification) {
+                    onTableUpdates(notification);
+                }
+            };
         Func1<Connection, Boolean> connectionFilter =
             new Func1<Connection, Boolean>() {
                 @Override
@@ -254,6 +281,10 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                               .disconnectedObservable()
                               .filter(connectionFilter)
                               .subscribe(disconnected));
+        subscriptions.add(connectionService
+                              .updatesObservable()
+                              .filter(updatesFilter)
+                              .subscribe(updates));
 
         VtepDataClientFactory.timer.scheduleAtFixedRate(
             connectionMonitorTask,
@@ -273,11 +304,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
 
     @Override
     public IPv4Addr getTunnelIp() {
-        if (physicalSwitch == null || physicalSwitch.tunnelIps == null ||
-            physicalSwitch.tunnelIps.isEmpty()) {
-            return null;
-        }
-        return IPv4Addr.apply(physicalSwitch.tunnelIps.iterator().next());
+        return physicalSwitchTunnelIp;
     }
 
     /**
@@ -466,7 +493,9 @@ public abstract class VtepDataClientBase implements VtepDataClient {
      */
     @Override
     public Observable<TableUpdates> updatesObservable() {
-        return connectionService.updatesObservable();
+        return connectionService.updatesObservable()
+            .filter(updatesFilter)
+            .map(updatesMap);
     }
 
     /**
@@ -499,6 +528,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             stateSubject.onNext(State.CONNECTING);
 
             physicalSwitch = null;
+            physicalSwitchTunnelIp = null;
 
             // Begin connecting to the VTEP. The connection service will
             // notify via the observable when the connection is established.
@@ -662,6 +692,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
             // Get the VTEP physical switch.
             if (null != node) {
                 physicalSwitch = getPhysicalSwitch(node);
+                physicalSwitchTunnelIp = getCurrentTunnelIp();
             }
 
             state = State.CONNECTED;
@@ -701,6 +732,54 @@ public abstract class VtepDataClientBase implements VtepDataClient {
 
                 state = State.BROKEN;
                 stateSubject.onNext(State.BROKEN);
+            }
+        } finally {
+            monitor.leave();
+        }
+    }
+
+    /**
+     * A handler called when receiving table updates for this client.
+     * @param notification The updates notification.
+     */
+    @GuardedBy("monitor")
+    private void onTableUpdates(NodeUpdateNotification notification) {
+        // Process updates only for the physical switch.
+        if (null == notification.tableUpdates.getPhysicalSwitchUpdate()) {
+            return;
+        }
+
+        // Get the update.
+        TableUpdate<Physical_Switch> update =
+            notification.tableUpdates.getPhysicalSwitchUpdate();
+
+        monitor.enter();
+        try {
+            if (null != physicalSwitch) {
+                // If there is a physical switch, search the updates by UUID.
+                for (TableUpdate.Row<Physical_Switch> row : update.getRows()) {
+                    if (row.getId().equals(physicalSwitch.uuid.toString())) {
+                        physicalSwitch = VtepModelTranslator.toMido(
+                            row.getNew(),
+                            new org.opendaylight.ovsdb.lib.notation.UUID(
+                                row.getId()));
+                        physicalSwitchTunnelIp = getCurrentTunnelIp();
+                        break;
+                    }
+                }
+            } else {
+                // Search the updates by the management IP address
+                for (TableUpdate.Row<Physical_Switch> row : update.getRows()) {
+                    if (row.getNew().getManagement_ips()
+                        .contains(endPoint.mgmtIp.toString())) {
+                        physicalSwitch = VtepModelTranslator.toMido(
+                            row.getNew(),
+                            new org.opendaylight.ovsdb.lib.notation.UUID(
+                                row.getId()));
+                        physicalSwitchTunnelIp = getCurrentTunnelIp();
+                        break;
+                    }
+                }
             }
         } finally {
             monitor.leave();
@@ -879,6 +958,7 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                   endPoint, psList);
         for (PhysicalSwitch ps : psList) {
             if (ps.mgmtIps.contains(mgmtIp)) {
+                log.debug("Physical switch for VTEP {}: {}", ps.uuid);
                 return ps;
             }
         }
@@ -906,6 +986,18 @@ public abstract class VtepDataClientBase implements VtepDataClient {
                 new org.opendaylight.ovsdb.lib.notation.UUID(e.getKey())));
         }
         return res;
+    }
+
+    /**
+     * Gets the tunnel IP address for the current physical switch.
+     */
+    @Nullable
+    IPv4Addr getCurrentTunnelIp() {
+        if (physicalSwitch == null || physicalSwitch.tunnelIps == null ||
+            physicalSwitch.tunnelIps.isEmpty()) {
+            return null;
+        }
+        return IPv4Addr.apply(physicalSwitch.tunnelIps.iterator().next());
     }
 
     @Override
