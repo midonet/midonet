@@ -80,7 +80,8 @@ public class NeutronResource extends AbstractResource {
      */
     @GET
     @RolesAllowed(AuthRole.ADMIN)
-    @Produces(NeutronMediaType.NEUTRON_JSON_V1)
+    @Produces({NeutronMediaType.NEUTRON_JSON_V1,
+              NeutronMediaType.NEUTRON_JSON_V2})
     public Neutron get() {
 
         Neutron neutron = new Neutron();
