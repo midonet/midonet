@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.inject.Inject;
+
 import scala.Option;
 
 import org.apache.zookeeper.KeeperException;
@@ -20,8 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
@@ -80,7 +82,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             // For detecting changes to these maps we did set watchers.
             if (!isUpdate) {
                 ZkPathManager pathManager = new ZkPathManager(
-                        zkConfig.getMidolmanRootKey());
+                        zkConfig.getZkRootPath());
                 setMacLearningTable(
                         pathManager, id, Bridge.UNTAGGED_VLAN_ID, builder);
 
@@ -238,7 +240,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         createdVlans.removeAll(oldVlans);
 
         ZkPathManager pathManager = new ZkPathManager(
-                zkConfig.getMidolmanRootKey());
+                zkConfig.getZkRootPath());
 
         for(Short createdVlanId: createdVlans) {
             try {

@@ -30,8 +30,8 @@ import org.midonet.cluster.ClusterRouterManager;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.ZookeeperLockFactory;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
@@ -134,7 +134,7 @@ public class DataClientModule extends PrivateModule {
         // Hard coding the the retry policy value for now.
         // Consider making this configurable in the future if necessary.
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        return CuratorFrameworkFactory.newClient(config.getZooKeeperHosts(),
+        return CuratorFrameworkFactory.newClient(config.getZkHosts(),
                                                  retryPolicy);
     }
 
@@ -154,7 +154,7 @@ public class DataClientModule extends PrivateModule {
 
         @Override
         public PathBuilder get() {
-            return new PathBuilder(config.getMidolmanRootKey());
+            return new PathBuilder(config.getZkRootPath());
         }
     }
 
@@ -271,7 +271,7 @@ public class DataClientModule extends PrivateModule {
         @Override
         public PortConfigCache get() {
             return new PortConfigCache(reactor, directory,
-                    config.getMidolmanRootKey(), connWatcher, serializer);
+                    config.getZkRootPath(), connWatcher, serializer);
         }
     }
 
