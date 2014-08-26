@@ -4,34 +4,29 @@
 
 package org.midonet.midolman.topology
 
-import java.util.UUID
-import java.util.{Set => JSet}
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration._
+import java.util.{UUID, Set => JSet}
 
 import akka.actor._
 import akka.testkit._
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
+import org.midonet.cluster.client._
+import org.midonet.midolman.state.Directory.TypedWatcher
+import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
+import org.midonet.packets.IPv4Addr
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.client._
-import org.midonet.midolman.state.Directory.DefaultTypedWatcher
-import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.packets.IPv4Addr
+import scala.concurrent.duration.{Duration, _}
 
 @RunWith(classOf[JUnitRunner])
 class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                           with ImplicitSender with Suite
                           with FunSpecLike with Matchers {
 
-    import VxLanPortMapper.Internal._
-    import VirtualTopologyActor.PortRequest
+    import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 
     case class IdsRequest(cb: DirectoryCallback[JSet[UUID]], wchr: TypedWatcher)
 
