@@ -54,15 +54,11 @@ public final class OvsDbDataClient extends ConfigurationService {
         params.put(ConnectionConstants.ADDRESS, address);
         params.put(ConnectionConstants.PORT, port);
 
-        conSrv.init();;
-        invSrv.init();
-
         conSrv.setInventoryServiceInternal(invSrv);
         setInventoryServiceInternal(invSrv);
         setConnectionServiceInternal(conSrv);
 
         node = conSrv.connect(VTEP_NODE_NAME, params);
-        this.setDefaultNode(node);
 
         log.info("Connected to OVS-DB server {}:{}.", address, port);
 

@@ -18,7 +18,7 @@ import rx.Observable;
 import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
-import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
+import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;

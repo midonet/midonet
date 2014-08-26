@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain.services.vxgw;
 
@@ -30,13 +30,15 @@ import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepException;
 import org.midonet.brain.southbound.vtep.VtepMAC;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.functors.Callback;
 
 import static org.junit.Assert.assertEquals;
 
@@ -46,7 +48,7 @@ public class VxLanGwBrokerTest {
     private static int vtepMgmtPort = 6632;
 
     @Mocked
-    private VtepDataClientProvider vtepDataClientProvider;
+    private VtepDataClientFactory vtepDataClientFactory;
 
     @Mocked
     private VtepDataClient vtepClient;
@@ -127,17 +129,21 @@ public class VxLanGwBrokerTest {
         }};
 
         new Expectations () {{
-            vtepDataClientProvider.get();
+            vtepDataClientFactory.connect(vtepMgmtIp, vtepMgmtPort, (UUID)any);
             result = vtepClient; times = 1;
-            vtepClient.connect(vtepMgmtIp, vtepMgmtPort); times = 1;
+
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any); times = 1;
+
             vtepClient.getTunnelIp(); times = 1;
         }};
 
         VTEP vtep = new VTEP();
         vtep.setId(vtepMgmtIp);
         vtep.setMgmtPort(vtepMgmtPort);
-        new VxLanGwBroker(midoClient, vtepDataClientProvider, vtep,
-                          new MockTunnelZoneState());
+
+        new VxLanGwBroker(midoClient, vtepDataClientFactory, vtep,
+                          new MockTunnelZoneState(), UUID.randomUUID());
     }
 
     /**

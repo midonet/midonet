@@ -18,12 +18,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import rx.Observable;
+import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.VTEP;
@@ -32,6 +34,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.functors.Callback;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -44,10 +47,13 @@ public class VxLanFailoverTest {
     private DataClient midoClient;
     private ZookeeperConnectionWatcher zkConnWatcher;
 
+    private static final Subscription emptySubscription =
+        Observable.empty().subscribe();
+
     @Mocked
     private VtepDataClient vtepClient;
     @Mocked
-    private VtepDataClientProvider vtepDataClientProvider;
+    private VtepDataClientFactory vtepDataClientFactory;
     @Mocked
     private MidoBrainConfig config;
 
@@ -73,27 +79,33 @@ public class VxLanFailoverTest {
         IPv4Addr vtepId = createVtep(1, tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(getVtepAddress(1), VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB1.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
 
-            vtepClient.disconnect(); times = 1;
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(getVtepAddress(1), VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB2.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepClient.disconnect(); times = 1;
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
         }};
 
         VxLanGatewayService srv1 = createService();
@@ -129,67 +141,83 @@ public class VxLanFailoverTest {
         IPv4Addr vtepId3 = createVtep(3, tzId);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1_1 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1_1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB1_1.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1_2 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1_2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB1_2.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1_3 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1_3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB1_3.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
 
-            vtepClient.disconnect(); times = 1;
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2_1 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2_1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB2_1.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
 
-            vtepClient.disconnect(); times = 1;
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2_2 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2_2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB2_2.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
+            vtepClient.disconnect((UUID)any, true);
+            times = 1;
 
-            vtepClient.disconnect(); times = 1;
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect((IPv4Addr)any, VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2_3 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2_3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect((IPv4Addr)any, VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB2_3.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepClient.disconnect(); times = 3;
+            vtepClient.disconnect((UUID)any, true);
+            times = 3;
         }};
 
         VxLanGatewayService srv1 = createService();
@@ -226,34 +254,41 @@ public class VxLanFailoverTest {
         UUID tzId = createTunnelZone(1);
 
         new Expectations() {{
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(1), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB1 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB1.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(getVtepAddress(1), VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB1.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(2), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB2 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB2.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(getVtepAddress(2), VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB2.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepDataClientProvider.get(); result = vtepClient; times = 1;
+            vtepDataClientFactory.connect(getVtepAddress(3), VTEP_MGMT_PORT,
+                                           (UUID)any);
+            result = vtepClient; times = 1;
 
             VtepBroker vB3 = new VtepBroker(vtepClient); times = 1;
+            vtepClient.onConnected(
+                (Callback<VtepDataClient, VtepException>)any);
+            result = emptySubscription; times = 1;
             vB3.observableUpdates(); result = Observable.empty(); times = 1;
-            vtepClient.connect(getVtepAddress(3), VTEP_MGMT_PORT); times = 1;
             vtepClient.getTunnelIp(); times = 1;
 
-            vB3.pruneUnwantedLogicalSwitches(new HashSet<UUID>());
-
-            vtepClient.disconnect(); times = 3;
+            vtepClient.disconnect((UUID)any, true);
+            times = 3;
         }};
 
         VxLanGatewayService srv1 = createService();
@@ -292,7 +327,7 @@ public class VxLanFailoverTest {
     }
 
     public VxLanGatewayService createService() {
-        return new VxLanGatewayService(midoClient, vtepDataClientProvider,
+        return new VxLanGatewayService(midoClient, vtepDataClientFactory,
                                        zkConnWatcher, config);
     }
 

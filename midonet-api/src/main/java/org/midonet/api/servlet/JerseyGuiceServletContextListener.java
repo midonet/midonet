@@ -17,6 +17,7 @@ import org.midonet.api.license.LicenseService;
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 
 /**
  * Guice servlet listener.
@@ -85,6 +86,8 @@ public class JerseyGuiceServletContextListener extends
         injector.getInstance(RestApiService.class)
             .stopAsync()
             .awaitTerminated();
+        injector.getInstance(VtepDataClientFactory.class)
+            .dispose();
 
         log.debug("destroyApplication: exiting");
     }
