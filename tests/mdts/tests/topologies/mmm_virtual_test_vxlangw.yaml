@@ -10,3 +10,9 @@ virtual_topology:
           - port:
               id: 1
               type: exterior
+          - port:
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
