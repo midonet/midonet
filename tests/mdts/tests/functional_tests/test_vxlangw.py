@@ -12,6 +12,7 @@ import logging
 import subprocess
 
 LOG = logging.getLogger(__name__)
+LOG.setLevel(logging.DEBUG)
 
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_vxlangw.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_vxlangw.yaml')
@@ -20,17 +21,33 @@ BM = BindingManager(PTM, VTM)
 bindings1 = {
     'description': 'on single MM',
     'bindings': [
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 1,
-              'host_id': 1, 'interface_id': 1}}
-        ]
-    }
+        { 'binding':
+              { 'device_name': 'bridge-000-001', 'port_id': 1,
+                'host_id': 1, 'interface_id': 1 } }
+
+    ]
+}
+
+bindings2 = {
+    'description': 'on all MMs',
+    'bindings': [
+        { 'binding':
+              { 'device_name': 'bridge-000-001', 'port_id': 1,
+                'host_id': 1, 'interface_id': 1 } },
+        { 'binding':
+              { 'device_name': 'bridge-000-001', 'port_id': 2,
+                'host_id': 2, 'interface_id': 1 } },
+        { 'binding':
+              { 'device_name': 'bridge-000-001', 'port_id': 3,
+                'host_id': 3, 'interface_id': 1 } }
+    ]
+}
 
 # TODO(tomohiko) Move those to the virtual topology data file.
 
-vtep_management_ip = '10.0.0.101' # The emulator's MGMT ip
+vtep_management_ip = '10.0.0.103' # The emulator's MGMT ip
 vtep_management_port = '6632' # The emulator's MGMT port
-port_name = 'in6' # Preconfigured in the VTEP emulator
+port_name = 'port0' # Preconfigured in the VTEP emulator
 vlan_id = 0 # Preconfigured in the VTEP emulator
 
 # Hosts that can talk to the VTEP should be added to this tunnel zone, the
@@ -59,7 +76,7 @@ vm_on_vtep = '10.0.2.26'
 # At this point, the MMM host (whose IP we're setting below) will send straight
 # to the VTEP from its own IP, as if it was a real host in the 10.0.0.0/24
 # network
-_host_ip = '10.0.0.8'
+_host_ips = ['10.0.0.8', '10.0.0.9', '10.0.0.10']
 
 def setup():
     PTM.build()
@@ -93,11 +110,10 @@ def teardown():
     PTM.destroy()
     VTM.destroy()
 
-
 @nottest
 @bindings(bindings1)
-def test_ping_host_on_vtep():
-    '''Tests if a VM can ping an IP address behind a VTEP.'''
+def test_ping_host_on_vtep_from_one_mm():
+    '''Tests if a VM can ping an IP address behind a VTEP from one host.'''
     sender = BM.get_iface_for_port('bridge-000-001', 1)
 
     pcap_filter = 'src host %s and icmp' % vm_on_vtep
@@ -107,6 +123,35 @@ def test_ping_host_on_vtep():
     f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
     wait_on_futures([f1, f2])
 
+@nottest
+@bindings(bindings2)
+def test_ping_host_on_vtep_from_all_mm():
+    '''Tests if a VM can ping an IP address behind a VTEP from all hosts.'''
+
+    raw_input("Press ENTER to continue and cleanup...")
+
+    pcap_filter = 'src host %s and icmp' % vm_on_vtep
+
+    sender = BM.get_iface_for_port('bridge-000-001', 1)
+
+    # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
+    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
+    wait_on_futures([f1, f2])
+
+    sender = BM.get_iface_for_port('bridge-000-001', 2)
+
+    # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
+    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
+    wait_on_futures([f1, f2])
+
+    sender = BM.get_iface_for_port('bridge-000-001', 3)
+
+    # Ping an IP address on the physical VTEP from a VM on a virtual bridge.
+    f1 = sender.ping_ipv4_addr(vm_on_vtep)
+    f2 = async_assert_that(sender, receives(pcap_filter, within_sec(5)))
+    wait_on_futures([f1, f2])
 
 def set_up_vtep():
     '''Helper function to set up a VTEP and a binding.
@@ -125,10 +170,10 @@ def set_up_vtep():
     LOG.debug('Setting up a VxLAN GW.')
     api = VTM._api
 
-    host_1 = None
-    for h in PTM._hosts:
-        host = h['host']
-        if host.get('id') == 1: host_1 = host
+    #host_1 = None
+    #for h in PTM._hosts:
+    #    host = h['host']
+    #    if host.get('id') == 1: host_1 = host
 
     # TODO: support this via topology, see MN-2623
     LOG.debug('Creating a new VTEP tunnel zone')
@@ -137,11 +182,16 @@ def set_up_vtep():
     tz.type('vtep')
     tz = tz.create()
 
-    LOG.debug('Adding host 1 to the VTEP tunnel zone %s %s', tz, host_1)
-    tzh = tz.add_tunnel_zone_host()
-    tzh.ip_address(_host_ip)
-    tzh.host_id(host_1.get('mn_host_id'))
-    tzh = tzh.create()
+    index = 0
+    for h in PTM._hosts:
+        host = h['host']
+        LOG.debug('Adding host %s to the VTEP tunnel zone %s %s',
+                  h, tz, host)
+        tzh = tz.add_tunnel_zone_host()
+        tzh.ip_address(_host_ips[index])
+        tzh.host_id(host.get('mn_host_id'))
+        tzh.create()
+        index = index + 1
 
     vtep = api.add_vtep()\
              .name('My VTEP')\
