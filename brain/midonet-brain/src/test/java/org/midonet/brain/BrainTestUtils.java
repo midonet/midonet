@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.brain;
 
@@ -8,12 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.inject.Module;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;

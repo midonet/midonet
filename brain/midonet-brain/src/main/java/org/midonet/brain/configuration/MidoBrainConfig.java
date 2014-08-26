@@ -1,14 +1,14 @@
-package org.midonet.brain.configuration;
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
+package org.midonet.brain.configuration;
 
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigString;
 import org.midonet.config.HostIdConfig;
-import org.midonet.midolman.config.CassandraConfig;
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.CassandraConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 
 @ConfigGroup(MidoBrainConfig.GROUP_NAME)
 public interface MidoBrainConfig

@@ -1,13 +1,13 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.guice.zookeeper;
 
 import com.google.inject.*;
 import com.google.inject.name.Names;
 
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;

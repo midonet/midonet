@@ -1,13 +1,13 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.guice.zookeeper;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
 
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
@@ -36,8 +36,8 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
         try {
             ZkConnection zkConnection =
                 new ZkConnection(
-                    config.getZooKeeperHosts(),
-                    config.getZooKeeperSessionTimeout(), watcher, reactorLoop);
+                    config.getZkHosts(),
+                    config.getZkSessionTimeout(), watcher, reactorLoop);
 
             if (watcher != null)
                 watcher.setZkConnection(zkConnection);

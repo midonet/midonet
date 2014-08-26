@@ -1,11 +1,11 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.zookeeper;
 
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
-import org.midonet.midolman.config.ZookeeperConfig;
 
 /**
  * Extension of ZookeeperConfig

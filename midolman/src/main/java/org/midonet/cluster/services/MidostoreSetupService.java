@@ -1,25 +1,25 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  * Copyright 2013 Midokura PTE LTD
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.cluster.services;
 
+import javax.inject.Inject;
+
 import com.google.common.util.concurrent.AbstractService;
-import org.midonet.midolman.Setup;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.state.Directory;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.SystemDataProvider;
-import org.midonet.midolman.state.ZkDirectory;
-import org.midonet.midolman.version.DataWriteVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.midolman.Setup;
+import org.midonet.midolman.SystemDataProvider;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkDirectory;
+import org.midonet.midolman.version.DataWriteVersion;
 
 
 public class MidostoreSetupService extends AbstractService {
@@ -41,7 +41,7 @@ public class MidostoreSetupService extends AbstractService {
     @Override
     protected void doStart() {
         try {
-            final String rootKey = config.getMidolmanRootKey();
+            final String rootKey = config.getZkRootPath();
 
             Setup.ensureZkDirectoryStructureExists(directory, rootKey);
 

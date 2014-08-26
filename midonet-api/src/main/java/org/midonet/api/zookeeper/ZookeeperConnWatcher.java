@@ -1,20 +1,22 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.zookeeper;
 
 import com.google.inject.Inject;
-import org.midonet.event.api.NsdbEvent;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkConnection;
-import org.midonet.midolman.state.ZkConnectionAwareWatcher;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.event.api.NsdbEvent;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkConnection;
+import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 
 /**
  * Zookeeper connection watcher for the API server.

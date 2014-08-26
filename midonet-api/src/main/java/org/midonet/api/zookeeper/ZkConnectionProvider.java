@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.zookeeper;
 
@@ -33,8 +33,8 @@ public class ZkConnectionProvider implements Provider<ZkConnection>  {
         log.debug("ZkConnectionProvider.get: entered.  Mock? ",
                 config.getUseMock());
 
-        ZkConnection conn = new ZkConnection(config.getZooKeeperHosts(),
-            config.getZooKeeperSessionTimeout(), null);
+        ZkConnection conn = new ZkConnection(config.getZkHosts(),
+            config.getZkSessionTimeout(), null);
         conn.setWatcher(connWatcher);
         connWatcher.setZkConnection(conn);
 
