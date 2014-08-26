@@ -76,9 +76,12 @@ public class JerseyGuiceServletContextListener extends
         log.debug("destroyApplication: entered");
 
         // TODO: Check if we need to do this after the cluster is completed.
-        injector.getInstance(VxLanGatewayService.class)
-            .stopAsync()
-            .awaitTerminated();
+        if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
+            log.info("Stopping VxLanGatewayService");
+            injector.getInstance(VxLanGatewayService.class)
+                .stopAsync()
+                .awaitTerminated();
+        }
         injector.getInstance(LicenseService.class)
             .stopAsync()
             .awaitTerminated();
