@@ -29,10 +29,10 @@ public final class PhysicalPort {
     public final String name;
 
     /** Bindings created on this port */
-    public final Map<Integer, UUID> vlanBindings;
+    public final Map<Short, UUID> vlanBindings;
 
     /** Stats of this port - refer to OVSDB VTEP schema documentation */
-    public final Map<Integer, UUID> vlanStats;
+    public final Map<Short, UUID> vlanStats;
 
     /** Fault status of this port - refer to OVSDB VTEP schema documenation */
     public final Set<String> portFaultStatus;
@@ -46,8 +46,8 @@ public final class PhysicalPort {
     }
 
     public PhysicalPort(String description, String name,
-                        Map<Integer, UUID> vlanBindings,
-                        Map<Integer, UUID> vlanStats,
+                        Map<Short, UUID> vlanBindings,
+                        Map<Short, UUID> vlanStats,
                         Set<String> portFaultStatus) {
         this.description = description;
         this.name = name;
@@ -66,5 +66,13 @@ public final class PhysicalPort {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "PhysicalPort{" +
+               "name=" + name +
+               ", description='" + description + '\'' +
+               '}';
     }
 }

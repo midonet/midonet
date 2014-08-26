@@ -28,6 +28,7 @@ import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
 import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
+import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -66,6 +67,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new VersionModule());
         install(new AuthModule());
         install(new ErrorModule());
+        install(new BrainModule());
         install(new RestApiModule());
         install(new SerializationModule());
         install(new ValidationModule());

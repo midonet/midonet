@@ -24,7 +24,7 @@ import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import org.midonet.brain.org.midonet.brain.test.RxTestUtils;
+import org.midonet.brain.test.RxTestUtils;
 import org.midonet.brain.services.vxgw.MacLocation;
 import org.midonet.brain.services.vxgw.VxLanPeerSyncException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
@@ -44,7 +44,7 @@ public class VtepBrokerTest {
 
     private String lsName = "ls";
     // This is the tunnel IP of a fake midonet host
-    private IPv4Addr midoVxTunIp = IPv4Addr.fromString("119.15.113.90");
+    private IPv4Addr midoVxTunIp = IPv4Addr.fromString("10.9.9.9");
     // This is the management ip of the vtep
     private IPv4Addr mgmtIp = IPv4Addr.fromString("10.1.2.3");
     // This is the management UDP port of the vtep
@@ -128,7 +128,7 @@ public class VtepBrokerTest {
     @Test
     public void testBrokerDeletesUcastMacRemote() throws Exception {
         new Expectations() {{
-            vtepDataClient.delUcastMacRemoteAllIps(lsName, mac1.IEEE802());
+            vtepDataClient.deleteAllUcastMacRemote(lsName, mac1.IEEE802());
             result = new Status(StatusCode.SUCCESS);
             times = 1;
         }};
@@ -198,7 +198,8 @@ public class VtepBrokerTest {
      * to emit MacLocation items even if the VTEP reports changes in the table.
      */
     @Test
-    public void testObservableUpdatesMacAdditionResilientToLSDeletions() {
+    public void testObservableUpdatesMacAdditionResilientToLSDeletions()
+        throws Exception {
 
         // Prepare an update consisting of a new row being added
         TableUpdates ups = makeLocalMacsUpdate(
@@ -290,7 +291,8 @@ public class VtepBrokerTest {
      * to emit MacLocation items even if the VTEP reports changes in the table.
      */
     @Test
-    public void testAdvertiseMacsUnknownVxlanTunnelEndpoint() {
+    public void testAdvertiseMacsUnknownVxlanTunnelEndpoint()
+        throws Exception {
         VtepBroker vb = new VtepBroker(vtepDataClient);
         // Even though we publish an update, we expect no MacLocations because
         // the broker doesn't know the vtep's vxlan tunnel IP.
@@ -398,7 +400,7 @@ public class VtepBrokerTest {
     }
 
     @Test
-    public void testPruneUnwantedLogicalSwitches() {
+    public void testPruneUnwantedLogicalSwitches() throws Exception {
 
         final java.util.UUID boundNetworkId = java.util.UUID.randomUUID();
 

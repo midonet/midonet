@@ -63,9 +63,9 @@ public final class VtepStatePublisher {
     };
 
     /**
-     * Creates
-     * @param midoClient
-     * @param zkConnWatcher
+     * Creates a VTEP monitor instance.
+     * @param midoClient The ZooKeeper data client.
+     * @param zkConnWatcher The ZooKeeper connection watcher.
      * @throws DeviceMonitor.DeviceMonitorException
      */
     public VtepStatePublisher(@Nonnull DataClient midoClient,

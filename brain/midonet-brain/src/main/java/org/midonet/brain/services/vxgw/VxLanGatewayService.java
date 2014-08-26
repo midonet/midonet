@@ -4,7 +4,6 @@
 package org.midonet.brain.services.vxgw;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,9 @@ import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.southbound.vtep.VtepConstants;
-import org.midonet.brain.southbound.vtep.VtepDataClientProvider;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
+import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;
 import org.midonet.cluster.data.Bridge;
@@ -58,7 +59,7 @@ public class VxLanGatewayService extends AbstractService {
     private ZookeeperConnectionWatcher zkConnWatcher;
 
     // Provides vtep clients
-    private final VtepDataClientProvider vtepDataClientProvider;
+    private final VtepDataClientFactory vtepDataClientFactory;
 
     // Index of VxlanGwBrokers for each VTEP
     private final Map<IPv4Addr, VxLanGwBroker> vxlanGwBrokers = new HashMap<>();
@@ -81,22 +82,22 @@ public class VxLanGatewayService extends AbstractService {
     @Inject
     public VxLanGatewayService(
         @Nonnull DataClient midoClient,
-        @Nonnull VtepDataClientProvider vtepDataClientProvider,
+        @Nonnull VtepDataClientFactory vtepDataClientFactory,
         @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
         @Nonnull MidoBrainConfig config) {
-        this(midoClient, vtepDataClientProvider, zkConnWatcher, config,
+        this(midoClient, vtepDataClientFactory, zkConnWatcher, config,
              new Random());
     }
 
     public VxLanGatewayService(
         @Nonnull DataClient midoClient,
-        @Nonnull VtepDataClientProvider vtepDataClientProvider,
+        @Nonnull VtepDataClientFactory vtepDataClientFactory,
         @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
         @Nonnull MidoBrainConfig config,
         @Nonnull Random random) {
         this.midoClient = midoClient;
         this.zkConnWatcher = zkConnWatcher;
-        this.vtepDataClientProvider = vtepDataClientProvider;
+        this.vtepDataClientFactory = vtepDataClientFactory;
         this.random = random;
 
         // Set the service identifier.
@@ -174,6 +175,7 @@ public class VxLanGatewayService extends AbstractService {
 
         log.info("Service started");
         notifyStarted();
+        this.awaitRunning();
     }
 
     @Override
@@ -235,6 +237,9 @@ public class VxLanGatewayService extends AbstractService {
         } catch (SerializationException e) {
             log.error("Failed to deserialize resource VTEP state {} (aborting)",
                       vtepIp, e);
+        } catch (VtepStateException e) {
+            log.error("Failed to connect to VTEP {} because of inconsistent"
+                      + "connection state (aborting)", e.vtep, e);
         }
     }
 
@@ -246,7 +251,8 @@ public class VxLanGatewayService extends AbstractService {
      * @return The VXLAN gateway broker corresponding to this VTEP.
      */
     private synchronized VxLanGwBroker onVtepCreatedUnsafe(VTEP vtep)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               VtepStateException {
 
         IPv4Addr mgmtIp = vtep.getId();
         log.debug("Starting VXLAN gateway pairing for VTEP {}", mgmtIp);
@@ -270,15 +276,10 @@ public class VxLanGatewayService extends AbstractService {
         }
 
         // Initialize the VTEP and wire peers.
-        VxLanGwBroker vxGwBroker = new VxLanGwBroker(midoClient,
-                                                     vtepDataClientProvider,
-                                                     vtep, tunnelZone);
+        VxLanGwBroker vxGwBroker = new VxLanGwBroker(
+            midoClient, vtepDataClientFactory, vtep,
+            tunnelZone, UUID.randomUUID());
         vxlanGwBrokers.put(mgmtIp, vxGwBroker);
-
-        // Remove Logical Switches that don't have a network bound to them
-        Collection<UUID> boundNetworks = midoClient.bridgesBoundToVtep(mgmtIp);
-        vxGwBroker.vtepPeer.pruneUnwantedLogicalSwitches(boundNetworks);
-        // TODO: in a future patch, find associated bridges and watch them
 
         return vxGwBroker;
     }
@@ -292,7 +293,12 @@ public class VxLanGatewayService extends AbstractService {
         log.info("Release VTEP {} by {}", vtepIp, serviceId);
         VxLanGwBroker broker = vxlanGwBrokers.remove(vtepIp);
         if (broker != null) {
-            broker.terminate();
+            try {
+                broker.terminate();
+            } catch (VtepStateException e) {
+                log.warn("Broker for VTEP {} failed to disconnect gracefully.",
+                         e.vtep);
+            }
         }
     }
 
@@ -329,6 +335,9 @@ public class VxLanGatewayService extends AbstractService {
         } catch (SerializationException e) {
             log.error("Failed to deserialize resource state {} (aborting)",
                       id, e);
+        } catch (VtepNotConnectedException e) {
+            log.error("Failed to consolidate VTEP {} state for bridge {} "
+                      + "because VTEP is not connected", e.vtep, id);
         }
     }
 
@@ -338,7 +347,8 @@ public class VxLanGatewayService extends AbstractService {
      * @param bridge The bridge.
      */
     private void onBridgeUpdatedUnsafe(Bridge bridge)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               VxLanPeerConsolidationException, VtepNotConnectedException {
 
         final UUID bridgeId = bridge.getId();
 
@@ -366,7 +376,7 @@ public class VxLanGatewayService extends AbstractService {
         }
 
         if (!broker.midoPeer.knowsBridgeId(bridgeId)) {
-            log.info("Consolidating VTEP configuration for newly managed bridge "
+            log.info("Consolidating VTEP configuration for new bridge "
                      + "{}", bridgeId);
             String lsName = VtepConstants.bridgeIdToLogicalSwitchName(bridgeId);
             org.opendaylight.ovsdb.lib.notation.UUID lsUuid =
@@ -390,7 +400,7 @@ public class VxLanGatewayService extends AbstractService {
 
         log.info("Monitoring bridge {} for mac updates", bridgeId);
         if (broker.midoPeer.watch(bridgeId)) {
-            broker.vtepPeer.advertiseMacs(); // Make sure initial state is in sync
+            broker.vtepPeer.advertiseMacs();
             broker.midoPeer.advertiseFloodingProxy(bridgeId);
         }
     }

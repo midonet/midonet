@@ -4,13 +4,12 @@
 package org.midonet.brain.guice;
 
 import com.google.inject.PrivateModule;
-import com.google.inject.Provider;
 
 import org.opendaylight.ovsdb.plugin.ConfigurationService;
 import org.opendaylight.ovsdb.plugin.ConnectionService;
 import org.opendaylight.ovsdb.plugin.InventoryService;
 
-import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
 
 /**
@@ -24,27 +23,9 @@ public class BrainModule extends PrivateModule {
         requireBinding(ConfigurationService.class);
         requireBinding(ConnectionService.class);
         requireBinding(InventoryService.class);
-        requireBinding(VtepDataClient.class);
-    }
 
-    public class InventoryServiceProvider implements Provider<InventoryService> {
-        @Override
-        public InventoryService get() {
-            return new InventoryService();
-        }
-    }
-
-    public class ConnectionServiceProvider implements Provider<ConnectionService> {
-        @Override
-        public ConnectionService get() {
-            return new ConnectionService();
-        }
-    }
-
-    public class ConfigurationServiceProvider implements Provider<ConfigurationService> {
-        @Override
-        public ConfigurationService get() {
-            return new ConfigurationService();
-        }
+        bind(VtepDataClientFactory.class)
+            .toInstance(new VtepDataClientFactory());
+        expose(VtepDataClientFactory.class);
     }
 }
