@@ -74,7 +74,8 @@ import scala.collection.mutable.ListBuffer
  * Port.class, "peerId", CLEAR);
  */
 class ZookeeperObjectMapper(private val basePath: String,
-                            private val curator: CuratorFramework) {
+                            private val curator: CuratorFramework)
+                            extends StorageService {
     import ZookeeperObjectMapper.log
     import ZookeeperObjectMapper.deserialize
     import ZookeeperObjectMapper.serialize
@@ -318,7 +319,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
-    def create(obj: Obj) = {
+    override def create(obj: Obj) = {
         val thisClass = obj.getClass
         assert(isRegistered(thisClass))
 
@@ -347,7 +348,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
-    def update(newThisObj: Obj) {
+    override def update(newThisObj: Obj) {
         val thisClass = newThisObj.getClass
         assert(isRegistered(thisClass))
 
@@ -384,7 +385,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      */
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
-    def delete(clazz: Class[_], id: ObjId): Unit = {
+    override def delete(clazz: Class[_], id: ObjId): Unit = {
         assert(isRegistered(clazz))
         val ObjWithVersion(_, version) = getWithVersion(clazz, id)
 
@@ -403,7 +404,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      * Gets the specified instance of the specified class.
      */
     @throws[NotFoundException]
-    def get[T](clazz: Class[T], id: ObjId): T = {
+    override def get[T](clazz: Class[T], id: ObjId): T = {
         assert(isRegistered(clazz))
         val data = try curator.getData.forPath(getPath(clazz, id)) catch {
             case nne: NoNodeException => throw new NotFoundException(clazz, id)
@@ -416,7 +417,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     /**
      * Gets all instances of the specified class.
      */
-    def getAll[T](clazz: Class[T]): List[T] = {
+    override def getAll[T](clazz: Class[T]): List[T] = {
         assert(isRegistered(clazz))
         val ids = try curator.getChildren.forPath(getPath(clazz)) catch {
             case ex: Exception =>
@@ -450,7 +451,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     /**
      * Returns true if the specified object exists in Zookeeper.
      */
-    def exists(clazz: Class[_], id: ObjId): Boolean = {
+    override def exists(clazz: Class[_], id: ObjId): Boolean = {
         try {
             curator.checkExists().forPath(getPath(clazz, id)) != null
         } catch {
