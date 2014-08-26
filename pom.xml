@@ -292,6 +292,14 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- ScalaCheck -->
+        <dependency>
+            <groupId>org.scalacheck</groupId>
+            <artifactId>scalacheck_2.10</artifactId>
+            <version>1.11.5</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- akka framework -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
