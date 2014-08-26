@@ -16,14 +16,12 @@ import org.opendaylight.ovsdb.lib.message.TableUpdate;
 import org.opendaylight.ovsdb.lib.message.TableUpdates;
 import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
 import org.opendaylight.ovsdb.lib.notation.UUID;
-import org.opendaylight.ovsdb.lib.table.vtep.Physical_Switch;
 import org.opendaylight.ovsdb.lib.table.vtep.Ucast_Macs_Local;
 import org.opendaylight.ovsdb.plugin.StatusWithUuid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
@@ -49,8 +47,6 @@ public class VtepBroker implements VxLanPeer {
     private final static Logger log = LoggerFactory.getLogger(VtepBroker.class);
 
     private final VtepDataClient vtepDataClient;
-
-    private IPv4Addr vxlanTunnelEndPoint;
 
     /* This is an intermediary Subject that subscribes on the Observable
      * provided by the VTEP client, and republishes all its updates. It also
@@ -106,13 +102,13 @@ public class VtepBroker implements VxLanPeer {
      * yet, it'll just emit an empty observable since we can't figure out the
      * right vxlan tunnel IP.
      */
-    private final Func1<TableUpdates, Observable<? extends MacLocation>>
+    Func1<TableUpdates, Observable<? extends MacLocation>>
         translateTableUpdates = new Func1<TableUpdates,
                                        Observable<? extends MacLocation>>() {
         @Override
         public Observable<? extends MacLocation> call(TableUpdates ups) {
-            if (vxlanTunnelEndPoint == null) {
-                log.warn("No vxlanTunnelEndpoint, can't process VTEP updates");
+            if (vtepDataClient.getTunnelIp() == null) {
+                log.warn("No VXLAN tunnel end-point, cannot process updates");
                 return Observable.<MacLocation>empty();
             }
             TableUpdate<Ucast_Macs_Local> u = ups.getUcast_Macs_LocalUpdate();
@@ -126,43 +122,11 @@ public class VtepBroker implements VxLanPeer {
         }
     };
 
-    /**
-     * Extracts the vxlan tunnel endpoint ip, which is captured from the
-     * Physical_Switch row corresponding to this VTEP.
-     */
-    private final Action1<TableUpdates> extractVxlanTunnelEndpoint =
-        new Action1<TableUpdates>() {
-            @Override
-            public void call(TableUpdates ups) {
-                if (vxlanTunnelEndPoint != null) {
-                    return;
-                }
-                TableUpdate<Physical_Switch> up = ups.getPhysicalSwitchUpdate();
-                if (up == null) {
-                    return;
-                }
-                String mgmtIp = vtepDataClient.getManagementIp().toString();
-                for (Row<Physical_Switch> row : up.getRows()) {
-                    // Find our physical switch row, and fetch the tunnel IP
-                    if (row.getNew().getManagement_ips().contains(mgmtIp)) {
-                        vxlanTunnelEndPoint =
-                            IPv4Addr.fromString(row.getNew()
-                                                    .getTunnel_ips()
-                                                    .iterator().next());
-                        log.info("Discovered vtep's tunnel IP: {}",
-                                 vxlanTunnelEndPoint);
-                        break;
-                    }
-                }
-            }
-        };
-
     @Inject
     public VtepBroker(final VtepDataClient client) {
         this.vtepDataClient = client;
         this.vtepDataClient
             .updatesObservable()
-            .doOnNext(extractVxlanTunnelEndpoint) // extract VTEP's tunnel IP
             .concatMap(translateTableUpdates)     // keeps order, filters nulls
             .subscribe(macLocationStream);        // dump into our Subject
     }
@@ -198,12 +162,11 @@ public class VtepBroker implements VxLanPeer {
      * but it's not needed in the Mido peer so keeping it here for now.
      */
     public void advertiseMacs() throws VtepNotConnectedException {
-        if (vxlanTunnelEndPoint == null) {
-            log.warn("Can't advertise MACs: VTEP's tunnel IP still unknown");
+        IPv4Addr tunnelIp = vtepDataClient.getTunnelIp();
+        if (null == tunnelIp) {
+            log.warn("Cannot advertise MACs: VTEP tunnel IP still unknown");
             return;
         }
-        log.info("Advertising MACs from VTEP at tunnel IP: {}",
-                 vxlanTunnelEndPoint);
         Collection<UcastMac> macs = vtepDataClient.listUcastMacsLocal();
         for (UcastMac ucastMac : macs) {
             LogicalSwitch ls =
@@ -217,7 +180,7 @@ public class VtepBroker implements VxLanPeer {
                 IPv4Addr ip = (ucastMac.ipAddr == null)
                               ? null : IPv4Addr.apply(ucastMac.ipAddr);
                 macLocationStream.onNext(new MacLocation(mac, ip, ls.name,
-                                                         vxlanTunnelEndPoint));
+                                                         tunnelIp));
             } catch (MAC.InvalidMacException e) {
                 log.warn("Invalid MAC found in VTEP: ", ucastMac.mac);
             }
@@ -449,8 +412,9 @@ public class VtepBroker implements VxLanPeer {
             return Observable.empty();
         }
 
-        // the vxlan tunnel endpoint: null if deleted, or the vtep's tunnel ip
-        IPv4Addr endpoint = r.getNew() == null ? null : vxlanTunnelEndPoint;
+        // The VXLAN tunnel endpoint: null if deleted, or the VTEP tunnel IP
+        IPv4Addr endpoint = r.getNew() == null ? null :
+                            vtepDataClient.getTunnelIp();
 
         IPv4Addr oldMacIp = RowParser.ip(r.getOld());
         IPv4Addr newMacIp = RowParser.ip(r.getNew());
