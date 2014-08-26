@@ -5,13 +5,16 @@
 package org.midonet.packets
 
 import org.junit.runner.RunWith
+import org.scalacheck.{Gen, Prop}
 import org.scalatest.{Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.prop.Checkers
 
 @RunWith(classOf[JUnitRunner])
-class TestMac extends Suite with Matchers {
-
+class TestMac extends Suite with Checkers with Matchers {
     val macpool = List.tabulate(1000) { _ => MAC.random }
+    // Random MAC address generator for ScalaCheck.
+    val randomMacGen: Gen[MAC] = Gen.wrap(MAC.random)
 
     def testConversions {
         val mask = 0xffffffffffffL
@@ -152,17 +155,17 @@ class TestMac extends Suite with Matchers {
         }
     }
 
-    def testInSets {
-        val mset = macpool.toSet
-        mset.size should be (macpool.size)
-        for (m <- macpool) { mset.contains(m) should be (true) }
-    }
+    def testMidokuraOuiIsSet =
+        check(Prop.forAll(randomMacGen) { (randomMac: MAC) =>
+            val maskedMac: Long = randomMac.asLong & MAC.MIDOKURA_OUI_MASK
+            maskedMac == MAC.MIDOKURA_OUI_MASK
+        })
 
-    def testInHashes {
-        val mmap = macpool.foldLeft(Map[MAC,String]()) {
-            (a,m) => a + (m -> m.toString)
-        }
-        mmap.size should be (macpool.size)
-        for (m <- macpool) { mmap.get(m) should be (Some(m.toString)) }
-    }
+    def testMidokuraOuiIsTheSameForAllMacs =
+        check(Prop.forAll(Gen.zip(randomMacGen, randomMacGen)) {
+            case (randomMacA: MAC, randomMacB: MAC) =>
+                val maskedMacA: Long = randomMacA.asLong & MAC.MIDOKURA_OUI_MASK
+                val maskedMacB: Long = randomMacB.asLong & MAC.MIDOKURA_OUI_MASK
+                maskedMacA == maskedMacB
+        })
 }

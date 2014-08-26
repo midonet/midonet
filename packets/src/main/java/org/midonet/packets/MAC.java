@@ -25,6 +25,13 @@ public class MAC {
     private static final Random rand = new Random();
 
     public static final long MAC_MASK = 0x0000_FFFF_FFFF_FFFFL;
+    public static final long MAC_NIC_MASK = 0x0000_0000_00FF_FFFFL;
+    // Midokura's Organization Unique Identifier as follows:
+    //   AC-CA-BA   (hex)       Midokura Co., Ltd.
+    //   ACCABA     (base 16)   Midokura Co., Ltd.
+    // Refer to the following OUI list:
+    //   http://standards.ieee.org/develop/regauth/oui/oui.txt
+    public static final long MIDOKURA_OUI_MASK = 0x0000_ACCA_BA00_0000L;
     public static final long MULTICAST_BIT = 0x1L << 40;
 
     public final static String regex =
@@ -56,7 +63,7 @@ public class MAC {
     }
 
     public MAC(long address) {
-      addr = MAC_MASK & address;
+        addr = MAC_MASK & address;
     }
 
     public MAC(byte[] rhs) {
@@ -87,7 +94,8 @@ public class MAC {
     }
 
     public static MAC random() {
-        return new MAC(rand.nextLong() & MAC_MASK & ~MULTICAST_BIT);
+        return new MAC(rand.nextLong() &
+                MAC_NIC_MASK | MIDOKURA_OUI_MASK & ~MULTICAST_BIT);
     }
 
     public boolean unicast() {
