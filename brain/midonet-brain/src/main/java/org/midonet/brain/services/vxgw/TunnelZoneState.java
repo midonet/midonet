@@ -460,7 +460,6 @@ public class TunnelZoneState {
         log.debug("Computing flooding proxy for tunnel zone {} (ignoring host "
                   + "{})", id, noHost);
 
-        int maximumWeight = Integer.MIN_VALUE;
         int sumWeight = 0;
         List<HostStateConfig> candidateProxies = new ArrayList<>();
 
@@ -496,12 +495,6 @@ public class TunnelZoneState {
                 if (proxyConfig.floodingProxyWeight <= 0)
                     continue;
 
-                //if (proxyConfig.floodingProxyWeight > maximumWeight) {
-                //    maximumWeight = host.getFloodingProxyWeight();
-                //} else if (proxyConfig.floodingProxyWeight == maximumWeight) {
-                //    canKeepProxy |= proxyConfig.equals(currentProxy);
-                //}
-
                 candidateProxies.add(proxyConfig);
                 sumWeight += proxyConfig.floodingProxyWeight;
                 canKeepProxy |= proxyConfig.equals(currentProxy);
@@ -516,6 +509,8 @@ public class TunnelZoneState {
                           new Object[] { hostConfig.getId(), id}, e);
             }
         }
+
+        log.debug("Flooding proxy candidate hosts: {}", candidateProxies);
 
         // If the list of candidate proxies is empty.
         if (candidateProxies.isEmpty()) {
@@ -545,6 +540,12 @@ public class TunnelZoneState {
             sum += candidateProxy.floodingProxyWeight;
         }
 
+        if (null == candidateProxy) {
+            log.error("Failed to select a flooding proxy host for tunnel zone "
+                      + "{}", id);
+            return;
+        }
+
         // Do not change the proxy if the new proxy is the same, or if the new
         // proxy has the same weight as the old proxy.
         if (null != currentProxy && canKeepProxy &&
@@ -554,16 +555,17 @@ public class TunnelZoneState {
 
             log.debug("Keeping same flooding proxy for tunnel zone {}: {}",
                       id, currentProxy);
-            return;
+
+        } else {
+
+            log.info("Configuring host {} with weight {} as flooding proxy for "
+                     + "tunnel zone {}",
+                     candidateProxy.id, candidateProxy.floodingProxyWeight, id);
+
+            // Notify the set of the flooding proxy.
+            floodingProxy = candidateProxy;
+            floodingProxyStream.onNext(new FloodingProxyEvent(
+                FloodingProxyOp.SET, id, floodingProxy));
         }
-
-        log.info("Configuring host {} with weight {} as flooding proxy for "
-                 + "tunnel zone {}",
-                 candidateProxy.id, maximumWeight, id);
-
-        // Notify the set of the flooding proxy.
-        floodingProxy = candidateProxy;
-        floodingProxyStream.onNext(new FloodingProxyEvent(
-            FloodingProxyOp.SET, id, floodingProxy));
     }
 }
