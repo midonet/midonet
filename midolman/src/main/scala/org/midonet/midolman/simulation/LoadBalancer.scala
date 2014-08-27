@@ -42,7 +42,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
     def processInbound(pktContext: PacketContext)(implicit ec: ExecutionContext,
                        actorSystem: ActorSystem)
-    : Urgent[RuleResult] = {
+    : RuleResult = {
 
         implicit val packetContext = pktContext
 
@@ -52,7 +52,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
         if (adminStateUp) {
             findVip(pktContext) match {
-                case null => Ready(simpleContinueRuleResult(pktContext))
+                case null => simpleContinueRuleResult(pktContext)
                 case vip => // Packet destined to this VIP, get relevant pool
                     log.debug("Traffic matched VIP ID {} in load balancer ID {}",
                               vip.id, id)
@@ -65,10 +65,10 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
                             RuleResult.Action.ACCEPT
                         else
                             RuleResult.Action.DROP
-                    Ready(simpleRuleResult(action, pktContext))
+                    simpleRuleResult(action, pktContext)
             }
         } else {
-            Ready(simpleContinueRuleResult(pktContext))
+            simpleContinueRuleResult(pktContext)
         }
     }
 

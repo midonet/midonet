@@ -72,9 +72,6 @@ trait TagManager {
  * into a block of bytes.
  * - ARP: this is not used in IPv6, an idea can be to make this a generic
  * version for IPv6, then extend adding IPv4 and IPv6 "toolsets" to each.
- * @param id
- * @param client
- * @param config
  */
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceWithChains {
@@ -95,9 +92,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     def topologyReady() {
         log.debug("Sending a Router to the VTA")
 
-        val router = new Router(id, cfg, rTable, device(cfg.inboundFilter),
-            device(cfg.outboundFilter), device(cfg.loadBalancer),
-            new TagManagerImpl, arpTable)
+        val router = new Router(id, cfg, rTable, new TagManagerImpl, arpTable)
 
         // Not using context.actorFor("..") because in tests it will
         // bypass the probes and make it harder to fish for these messages

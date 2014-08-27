@@ -6,10 +6,9 @@ package org.midonet.midolman
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
-import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.simulation.{Router, CustomMatchers, LoadBalancer}
+import org.midonet.midolman.simulation.{Router, LoadBalancer}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest,
                                                            RouterRequest}
@@ -40,7 +39,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
 
             Then("it should return the requested router, with correct loadbalancer ID")
             val r = expectMsgType[Router]
-            r.loadBalancer.id shouldEqual loadBalancer.getId
+            r.cfg.loadBalancer shouldEqual loadBalancer.getId
 
             And("The associated load balancer should be updated")
             vta.self ! LoadBalancerRequest(loadBalancer.getId, update = false)
@@ -52,7 +51,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
 
             Then("it should return the requested router, with null loadbalancer ID")
             val r2 = expectMsgType[Router]
-            assert(r2.loadBalancer == null)
+            r2.cfg.loadBalancer shouldBe null
         }
         scenario("The load balancer gets updated when the routerId changes") {
             Given ("a load balancer")

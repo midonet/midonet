@@ -9,13 +9,12 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.RouterPort
-import org.midonet.midolman.PacketsEntryPoint
+import org.midonet.midolman.{NotYetException, PacketsEntryPoint, Ready, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
-import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
@@ -27,20 +26,16 @@ import org.midonet.odp.flows.IPFragmentType
  * implementations for IPv4 and IPv6 that deal with version specific details
  * such as ARP vs. NDP.
  */
-abstract class RouterBase[IP <: IPAddr]()
-                                       (implicit system: ActorSystem,
-                                                 icmpErrors: IcmpErrorSender[IP])
+abstract class RouterBase[IP <: IPAddr](val id: UUID,
+                                        val cfg: RouterConfig,
+                                        val rTable: RoutingTableWrapper[IP],
+                                        val routerMgrTagger: TagManager)
+                                   (implicit system: ActorSystem,
+                                             icmpErrors: IcmpErrorSender[IP])
     extends Coordinator.Device {
 
     import Coordinator._
 
-    val id: UUID
-    val cfg: RouterConfig
-    val rTable: RoutingTableWrapper[IP]
-    val inFilter: Chain
-    val outFilter: Chain
-    val loadBalancer: LoadBalancer
-    val routerMgrTagger: TagManager
 
     val validEthertypes: Set[Short]
     implicit val log = LoggerFactory.getSimulationAwareLog(
@@ -127,6 +122,7 @@ abstract class RouterBase[IP <: IPAddr]()
         None
     }
 
+    @throws[NotYetException]
     private def preRouting(inPort: RouterPort)
                           (implicit ec: ExecutionContext,
                                     pktContext: PacketContext)
@@ -152,17 +148,20 @@ abstract class RouterBase[IP <: IPAddr]()
 
         pktContext.outPortId = null // input port should be set already
 
-        val preRoutingAction = applyServicesInbound() map {
+        val preRoutingAction = applyServicesInbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to inFilter / ingress chain
-                val chainResult = Chain.apply(inFilter, pktContext, id, false)
-                handlePreRoutingResult(chainResult, inPort)
-            case res =>
-                // Skip the inFilter / ingress chain
+
+                val inFilter = if (cfg.inboundFilter == null) null
+                               else tryAsk[Chain](cfg.inboundFilter)
+                handlePreRoutingResult(
+                    Chain.apply(inFilter, pktContext, id, false), inPort
+                )
+            case res => // Skip the inFilter / ingress chain
                 handlePreRoutingResult(res, inPort)
         }
 
-        preRoutingAction flatMap {
+        preRoutingAction match {
             case Some(a) => Ready(a)
             case None => routing(inPort)
         }
@@ -175,16 +174,14 @@ abstract class RouterBase[IP <: IPAddr]()
      *
      * Currently just does load balancing.
      */
-    protected def applyServicesInbound()
-                                      (implicit  ec: ExecutionContext,
-                                       pktContext: PacketContext)
-    : Urgent[RuleResult] = {
-        if (loadBalancer != null) {
-            loadBalancer.processInbound(pktContext)
-        } else {
-            Ready(new RuleResult(RuleResult.Action.CONTINUE,
-                                 null, pktContext.wcmatch))
-        }
+    @throws[NotYetException]
+    protected def applyServicesInbound()(implicit  ec: ExecutionContext,
+                                                   pktContext: PacketContext)
+    : RuleResult = {
+        if (cfg.loadBalancer == null)
+            new RuleResult(RuleResult.Action.CONTINUE, null, pktContext.wcmatch)
+        else
+            tryAsk[LoadBalancer](cfg.loadBalancer).processInbound(pktContext)
     }
 
 
@@ -306,6 +303,7 @@ abstract class RouterBase[IP <: IPAddr]()
     }
 
     // POST ROUTING
+    @throws[NotYetException]
     private def postRouting(inPort: RouterPort, outPort: RouterPort,
                             rt: Route, pktContext: PacketContext)
                            (implicit ec: ExecutionContext)
@@ -321,10 +319,10 @@ abstract class RouterBase[IP <: IPAddr]()
         val postRoutingResult = applyServicesOutbound() match {
             case res if res.action == RuleResult.Action.CONTINUE =>
                 // Continue to outFilter / egress chain
+                val outFilter = if (cfg.outboundFilter == null) null
+                                else tryAsk[Chain](cfg.outboundFilter)
                 Chain.apply(outFilter, pktContext, id, false)
-            case res =>
-                // Skip outFilter / egress chain
-                res
+            case res => res // Skip outFilter / egress chain
         }
 
         postRoutingResult.action match {
@@ -347,9 +345,8 @@ abstract class RouterBase[IP <: IPAddr]()
             log.error("Post-routing for {} returned a different match obj.", id)
             return Ready(ErrorDropAction)
         }
-
         if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
-            log.error("Got a packet addressed to a port without a LOCAL route")
+            log.error("Packet addressed to port without a LOCAL route")
             return Ready(DropAction)
         }
 
@@ -387,16 +384,15 @@ abstract class RouterBase[IP <: IPAddr]()
      *
      * Currently just does load balancing.
      */
-    protected def applyServicesOutbound()
-                                       (implicit  ec: ExecutionContext,
-                                        pktContext: PacketContext)
-    : RuleResult = {
-        if (loadBalancer != null) {
-            loadBalancer.processOutbound(pktContext)
-        } else {
+    @throws[NotYetException]
+    protected def applyServicesOutbound()(implicit ec: ExecutionContext,
+                                                   pktContext: PacketContext)
+    : RuleResult =
+        if (cfg.loadBalancer == null) {
             new RuleResult(RuleResult.Action.CONTINUE, null, pktContext.wcmatch)
+        } else {
+            tryAsk[LoadBalancer](cfg.loadBalancer).processOutbound(pktContext)
         }
-    }
 
     final protected def getRouterPort(portID: UUID, expiry: Long)
                                      (implicit pktContext: PacketContext) =
