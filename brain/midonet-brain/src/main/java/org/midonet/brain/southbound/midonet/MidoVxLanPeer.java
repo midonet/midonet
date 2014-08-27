@@ -544,7 +544,7 @@ public class MidoVxLanPeer implements VxLanPeer {
         }
 
         allUpdates.onNext(new MacLocation(
-            VtepMAC.UNKNOWN_DST, hostAddress, lsName, null));
+            VtepMAC.UNKNOWN_DST, null, lsName, hostAddress));
     }
 
 
@@ -583,7 +583,7 @@ public class MidoVxLanPeer implements VxLanPeer {
                                             vxTunnelIp)
                         );
                     } catch (StateAccessException | SerializationException e) {
-                        log.error("Failed to get vxlan tunnel endpoint for " +
+                        log.error("Failed to get VXLAN tunnel endpoint for " +
                                   "bridge port {}", portId, e);
                     }
                 }
