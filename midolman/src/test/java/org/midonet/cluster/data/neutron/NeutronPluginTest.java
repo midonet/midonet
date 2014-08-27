@@ -4,39 +4,20 @@
 package org.midonet.cluster.data.neutron;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import com.google.inject.PrivateModule;
 
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.curator.test.TestingServer;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.config.ZookeeperConfig;
-import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.guice.config.ConfigProviderModule;
-import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.midolman.state.ZookeeperTest;
 import org.midonet.packets.MAC;
 
-public abstract class NeutronPluginTest {
-
-    // Zookeeper configurations
-    private static TestingServer server;
-    private static final int ZK_PORT = 12181;
-    private static final String ZK_CONN_STRING = "127.0.0.1:" + ZK_PORT;
+public abstract class NeutronPluginTest extends ZookeeperTest {
 
     // Default tenant values
     protected static final String TENANT_ID = "tenant";
@@ -120,77 +101,31 @@ public abstract class NeutronPluginTest {
         UUID.randomUUID(), TENANT_ID, router.id, "200.0.0.5", port.id,
         "10.0.0.5");
 
-    private Injector injector;
     protected NeutronPlugin plugin;
 
-    protected Directory getDirectory() {
-        return injector.getInstance(Directory.class);
-    }
-
-    private MidostoreSetupService getMidostoreService() {
-        return injector.getInstance(MidostoreSetupService.class);
-    }
-
-    protected PathBuilder getPathBuilder() {
-        return injector.getInstance(PathBuilder.class);
-    }
-
-    private static HierarchicalConfiguration getConfig(String zkRoot) {
-        HierarchicalConfiguration config = new HierarchicalConfiguration();
-        config.addNodes(ZookeeperConfig.GROUP_NAME,
-                        Arrays.asList(
-                            new HierarchicalConfiguration.Node(
-                                "midolman_root_key", zkRoot),
-                            new HierarchicalConfiguration.Node(
-                                "zookeeper_hosts", ZK_CONN_STRING)));
-        return config;
-    }
-
-    private void initializeDeps(final String zkRoot) {
-
-        injector = Guice.createInjector(
-            new VersionModule(),
-            new SerializationModule(),
-            new ConfigProviderModule(getConfig(zkRoot)),
-            new ZookeeperConnectionModule(),
-            new DataClientModule(),
+    @Override
+    protected List<PrivateModule> getExtraModules() {
+        return Arrays.asList(
             new NeutronClusterModule(),
-            new AbstractModule() {
+            new PrivateModule() {
                 @Override
                 protected void configure() {
                     bind(NeutronPlugin.class);
+                    expose(NeutronPlugin.class);
                 }
             }
         );
     }
 
-    @BeforeClass
-    public static void classSetUp() throws Exception {
-        server = new TestingServer(ZK_PORT);
-    }
-
-    @AfterClass
-    public static void classTearDown() throws Exception {
-        server.close();
-    }
-
     @Before
     public void setUp() throws Exception {
 
-        // Run the test on a new directory
-        String zkRoot = "/test_" + UUID.randomUUID();
-        initializeDeps(zkRoot);
+        super.setUp();
 
-        getMidostoreService().startAsync().awaitRunning();
         plugin = injector.getInstance(NeutronPlugin.class);
 
         // Set up a basic scenario for all the tests for now
         setUpBasicScenario();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        getMidostoreService().stopAsync().awaitTerminated();
     }
 
     public void setUpBasicScenario()
