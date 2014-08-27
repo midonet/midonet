@@ -4,10 +4,12 @@
 package org.midonet.midolman.state;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
 
@@ -32,37 +34,16 @@ public class ZkOpList {
     private static final Logger logger =
         LoggerFactory.getLogger(ZkOpList.class);
 
-    private final Map<Integer, List<Op>> opMap;
+    private final SortedMap<String, Op> deleteOps = new TreeMap<>(
+        Collections.reverseOrder());
+    private final SortedMap<String, Op> createOps = new TreeMap<>();
+    private final List<Op> updateOps = new ArrayList<>();
+
     private final ZkManager zkManager;
 
     public ZkOpList(ZkManager zkManager) {
         Preconditions.checkNotNull(zkManager);
         this.zkManager = zkManager;
-
-        this.opMap = new HashMap<>(3);
-        this.opMap.put(ZooDefs.OpCode.create, new ArrayList<Op>());
-        this.opMap.put(ZooDefs.OpCode.delete, new ArrayList<Op>());
-        this.opMap.put(ZooDefs.OpCode.setData, new ArrayList<Op>());
-    }
-
-    private List<Op> getOps(int type) {
-        return this.opMap.get(type);
-    }
-
-    private void addOp(int type, Op op) {
-        this.opMap.get(type).add(op);
-    }
-
-    private List<Op> createOps() {
-        return getOps(ZooDefs.OpCode.create);
-    }
-
-    private List<Op> deleteOps() {
-        return getOps(ZooDefs.OpCode.delete);
-    }
-
-    private List<Op> setDataOps() {
-        return getOps(ZooDefs.OpCode.setData);
     }
 
     private static boolean validOpType(int type) {
@@ -88,16 +69,6 @@ public class ZkOpList {
         return cnt;
     }
 
-    private static boolean contains(List<Op> ops, String path) {
-
-        for (Op op : ops) {
-            if (op.getPath().equals(path)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void dump() {
         if (!logger.isDebugEnabled()) {
             return;
@@ -105,21 +76,24 @@ public class ZkOpList {
 
         logger.debug("******** BEGIN PRINTING ZK OPs *********");
 
-        for (Map.Entry<Integer, List<Op>> entry : this.opMap.entrySet()) {
-            for (Op op : entry.getValue()) {
-                logger.debug(getOpDesc(op));
-            }
+        for (Map.Entry<String, Op> entry : this.deleteOps.entrySet()) {
+            logger.debug(getOpDesc(entry.getValue()));
+        }
+
+        for (Map.Entry<String, Op> entry : this.createOps.entrySet()) {
+            logger.debug(getOpDesc(entry.getValue()));
+        }
+
+        for (Op op : this.updateOps) {
+            logger.debug(getOpDesc(op));
         }
 
         logger.debug("******** END PRINTING ZK OPs *********");
     }
 
     private int size() {
-        int size = 0;
-        for (Map.Entry<Integer, List<Op>> entry : this.opMap.entrySet()) {
-            size += entry.getValue().size();
-        }
-        return size;
+        return this.deleteOps.size() + this.createOps.size() +
+               this.updateOps.size();
     }
 
     private List<Op> combine() {
@@ -127,16 +101,18 @@ public class ZkOpList {
         //    - delete & re-add
         //    - create & update
         List<Op> ops = new ArrayList<>();
-        ops.addAll(deleteOps());
-        ops.addAll(createOps());
-        ops.addAll(setDataOps());
+
+        ops.addAll(this.deleteOps.values());
+        ops.addAll(this.createOps.values());
+        ops.addAll(this.updateOps);
+
         return ops;
     }
 
     private void clear() {
-        for (Map.Entry<Integer, List<Op>> entry : this.opMap.entrySet()) {
-            entry.getValue().clear();
-        }
+        this.deleteOps.clear();
+        this.createOps.clear();
+        this.updateOps.clear();
     }
 
     /**
@@ -158,24 +134,28 @@ public class ZkOpList {
         if (type == ZooDefs.OpCode.delete) {
 
             // Remove any updates previously added
-            remove(setDataOps(), op.getPath());
-
-            // Remove any deletes previously added
-            remove(deleteOps(), op.getPath());
+            remove(this.updateOps, op.getPath());
 
             // Remove any create added but if there was a create, there is no
             // need to add the delete Op
-            if (remove(createOps(), op.getPath()) > 0) {
+            if (this.createOps.containsKey(op.getPath())) {
+                this.createOps.remove(op.getPath());
                 return;
             }
 
+            // Replace any delete previously added
+            this.deleteOps.put(op.getPath(), op);
+
         } else if (type == ZooDefs.OpCode.create) {
 
-            // Remove the previously added create
-            remove(createOps(), op.getPath());
-        }
+            // Replace the previously added create
+            this.createOps.put(op.getPath(), op);
 
-        addOp(type, op);
+        } else if (type == ZooDefs.OpCode.setData) {
+
+            // For updates, just add to the list
+            this.updateOps.add(op);
+        }
     }
 
     /**
@@ -186,46 +166,6 @@ public class ZkOpList {
         Preconditions.checkNotNull(ops);
         for (Op op : ops) {
             add(op);
-        }
-    }
-
-    /**
-     * Add an Op object.
-     *
-     * For delete and create Ops, add only if there has been no other Op with
-     * the same path has been added.
-     *
-     * @param op Op object to add
-     */
-    public void addIfFirst(Op op) {
-        Preconditions.checkNotNull(op);
-        Preconditions.checkArgument(validOpType(op.getType()));
-
-        int type = op.getType();
-        if (type == ZooDefs.OpCode.create) {
-            if (contains(createOps(), op.getPath())) {
-                logger.warn("Ignoring Op {} because it already exists",
-                            getOpDesc(op));
-                return;
-            }
-        } else if (type == ZooDefs.OpCode.delete) {
-            if (contains(deleteOps(), op.getPath())) {
-                return;
-            }
-        }
-
-        addOp(type, op);
-    }
-
-    /**
-     * Add a list of Ops.  For create and delete, only add the paths do not
-     * already exist.
-     * @param ops Op objects to add
-     */
-    public void addAllIfFirst(List<Op> ops) {
-        Preconditions.checkNotNull(ops);
-        for (Op op : ops) {
-            addIfFirst(op);
         }
     }
 
