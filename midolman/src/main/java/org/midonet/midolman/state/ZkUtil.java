@@ -4,7 +4,15 @@
 package org.midonet.midolman.state;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+
+import com.google.common.base.Preconditions;
+
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.ZooDefs;
 
 /*
  * Collection of functions useful in dealing with Zk paths, etc. If we make
@@ -65,5 +73,63 @@ public class ZkUtil {
         } else {
             return nextLowestPath;
         }
+    }
+
+    /**
+     * Checks whether OpResult is an error result
+     *
+     * @param result OpResult object to check
+     * @return True if it's error
+     */
+    public static boolean isError(OpResult result) {
+        Preconditions.checkNotNull(result);
+        return result instanceof OpResult.ErrorResult &&
+               ((OpResult.ErrorResult) result).getErr() != 0;
+    }
+
+    /**
+     * Checks whether Op object is deletion
+     *
+     * @param op Op object to check
+     * @return True if it's error
+     */
+    public static boolean isDelete(Op op) {
+        return op != null && op.getType() == ZooDefs.OpCode.delete;
+    }
+
+    /**
+     * Retrieve the Op object corresponding to the erroneous OpResult.
+     * results and ops arguments must have the same size.
+     *
+     * @param results OpResult list from multi
+     * @param ops Op list submitted to multi
+     * @return Op that failed
+     */
+    public static Op getErrorOp(List<OpResult> results, List<Op> ops) {
+        Preconditions.checkNotNull(results);
+        Preconditions.checkNotNull(ops);
+        Preconditions.checkArgument(results.size() == ops.size());
+        for (int i = 0; i < results.size(); i++) {
+            OpResult result = results.get(i);
+            if (isError(result)) {
+                return ops.get(i);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Retrieve the Op object corresponding to the erroneous OpResult.
+     * Error results and ops arguments must have the same size.
+     *
+     * @param ex KeeperException to get the OpResult list from
+     * @param ops Op list submitted to mutli
+     * @return Op that failed
+     */
+    public static Op getErrorOp(KeeperException ex, List<Op> ops) {
+        Preconditions.checkNotNull(ex);
+        Preconditions.checkNotNull(ops);
+        return getErrorOp(ex.getResults(), ops);
     }
 }
