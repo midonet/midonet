@@ -16,6 +16,8 @@ package object topology {
     }
 
     implicit class TopologyOps(val topology: Topology) extends AnyVal {
-        def device[D <: AnyRef](id: UUID) = topology.get(id).asInstanceOf[D]
+        def device[D <: AnyRef](id: UUID) = {
+            topology.get(id).asInstanceOf[D]
+        }
     }
 }
