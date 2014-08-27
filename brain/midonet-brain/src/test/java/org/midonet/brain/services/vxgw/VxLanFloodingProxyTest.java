@@ -235,9 +235,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
         }};
 
@@ -326,9 +326,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
         }};
 
@@ -377,9 +377,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -388,9 +388,9 @@ public class VxLanFloodingProxyTest {
             times = 1;
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
         }};
 
@@ -445,9 +445,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -505,15 +505,15 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Set flooding proxy to host 2.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(2).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(2).getAddress())));
             times = 1;
         }};
 
@@ -571,21 +571,21 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Set flooding proxy to host 2.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(2).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(2).getAddress())));
             times = 1;
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
         }};
 
@@ -635,9 +635,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -699,9 +699,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -761,9 +761,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -822,9 +822,9 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Clear flooding proxy.
             vB.apply(new MacLocation(
@@ -902,9 +902,9 @@ public class VxLanFloodingProxyTest {
 
             // On bridge updated (VXLAN port): assign bridge to tunnel zone 1
             vB1.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // On bridge updated (VXLAN port): cleared bridge from tunnel zone
             vB1.apply(new MacLocation(
@@ -922,10 +922,9 @@ public class VxLanFloodingProxyTest {
 
             // On bridge updated (VXLAN port): assign bridge to tunnel zone 2
             vB2.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(2).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null
-                ));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(2).getAddress())));
             times = 1;
             // On bridge updated (VXLAN port): cleared bridge from tunnel zone
             vB2.apply(new MacLocation(
@@ -1001,33 +1000,33 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 4.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(4).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(4).getAddress())));
             times = 1;
             // Set flooding proxy to host 3.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(3).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(3).getAddress())));
             times = 1;
             // Set flooding proxy to host 4.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(4).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(4).getAddress())));
             times = 1;
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Set flooding proxy to host 3.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(3).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(3).getAddress())));
             times = 1;
         }};
 
@@ -1097,33 +1096,33 @@ public class VxLanFloodingProxyTest {
 
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
             // Set flooding proxy to host 2.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(2).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(2).getAddress())));
             times = 1;
             // Set flooding proxy to host 3.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(3).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(3).getAddress())));
             times = 1;
             // Set flooding proxy to host 4.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(4).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(4).getAddress())));
             times = 1;
             // Set flooding proxy to host 1.
             vB.apply(new MacLocation(
-                VtepMAC.UNKNOWN_DST,
-                IPv4Addr.fromBytes(getHostAddress(1).getAddress()),
-                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId), null));
+                VtepMAC.UNKNOWN_DST, null,
+                VtepConstants.bridgeIdToLogicalSwitchName(bridgeId),
+                IPv4Addr.fromBytes(getHostAddress(1).getAddress())));
             times = 1;
         }};
 
@@ -1185,8 +1184,7 @@ public class VxLanFloodingProxyTest {
         Host host = new Host();
         host.setName("Host-" + index);
         host.setAddresses(new InetAddress[] { getHostAddress(index) });
-        UUID hostId = midoClient.hostsCreate(UUID.randomUUID(), host);
-        return hostId;
+        return midoClient.hostsCreate(UUID.randomUUID(), host);
     }
 
     public UUID createBridge(int index)
