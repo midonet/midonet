@@ -27,7 +27,7 @@ EOF
         sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5/;s/^replication_factor =.*$/replication_factor = 1/" \
             -i /etc/midolman.$n/midolman.conf
     else
-        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5:9160,10.0.0.6:9160,10.0.0.7:9160/;s/^replication_factor =.*$/replication_factor = 3/" \
+        sed "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = 10.0.0.5,10.0.0.6,10.0.0.7/;s/^replication_factor =.*$/replication_factor = 3/" \
             -i /etc/midolman.$n/midolman.conf
     fi
 
