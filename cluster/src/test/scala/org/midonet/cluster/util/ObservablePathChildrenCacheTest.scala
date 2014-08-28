@@ -284,7 +284,7 @@ class ObservablePathChildrenCacheTest extends Suite
         opcc.allChildren should have size nInitial
 
         // This thread will add elements until reaching nTotal children
-        val step = 2
+        val step = 10
         val updater = new Runnable() {
             override def run() {
                 log.info("I'm creating additional paths..")
