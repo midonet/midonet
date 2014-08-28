@@ -201,7 +201,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                       ipAddrToInet(k.networkSrc), k.icmpIdOrTransportSrc.asInstanceOf[JInt],
                       ipAddrToInet(k.networkDst), k.icmpIdOrTransportDst.asInstanceOf[JInt],
                       k.deviceId,
-                      k.expiresAfter.toMillis.toInt: java.lang.Integer)
+                      k.expiresAfter.toSeconds.toInt: java.lang.Integer)
     }
 
     private def bind(st: PreparedStatement, port: UUID, k: NatKey, v: NatBinding) = {
@@ -211,7 +211,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
                       ipAddrToInet(k.networkDst), k.transportDst.asInstanceOf[JInt],
                       k.deviceId,
                       ipAddrToInet(v.networkAddress), v.transportPort.asInstanceOf[JInt],
-                      k.expiresAfter.toMillis.toInt: java.lang.Integer)
+                      k.expiresAfter.toSeconds.toInt: java.lang.Integer)
     }
 
     /**

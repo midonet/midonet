@@ -172,6 +172,7 @@ abstract class BaseFlowStateReplicator() {
     private def importConnTrack(keys: JIterator[ConnTrackKey], v: ConnTrackState.ConnTrackValue) {
         while (keys.hasNext) {
             val k = keys.next()
+            log.debug("importing state key from storage: {}", k)
             conntrackTable.putAndRef(k, v)
             conntrackTable.unref(k)
         }
@@ -180,6 +181,7 @@ abstract class BaseFlowStateReplicator() {
     private def importNat(entries: JIterator[java.util.Map.Entry[NatKey, NatBinding]]) {
         while (entries.hasNext) {
             val e = entries.next()
+            log.debug("importing state key from storage: {}", e.getKey)
             natTable.putAndRef(e.getKey, e.getValue)
             natTable.unref(e.getKey)
         }
