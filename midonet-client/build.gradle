@@ -6,6 +6,7 @@ jar {
 }
 
 dependencies {
+    compile project(':midonet-util')
     compile libraries.persistence, libraries.jsr311, libraries.jsr250,
             libraries.jersey_client, libraries.jersey_core,
             libraries.jackson_jaxrs, libraries.jackson_xc,

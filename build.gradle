@@ -313,6 +313,7 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
                 "org.apache.httpcomponents:httpcore-nio:4.2.1",
                 "io.netty:netty-all:4.0.10.Final",
                 "commons-collections:commons-collections:1.0",
+                "commons-lang:commons-lang:2.6",
                 "com.fasterxml.jackson.core:jackson-databind:2.3.2",
                 "com.fasterxml.jackson.core:jackson-core:2.3.2",
                 "com.fasterxml.jackson.core:jackson-annotations:2.3.2",
