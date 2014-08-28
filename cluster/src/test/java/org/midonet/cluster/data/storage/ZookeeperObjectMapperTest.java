@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.data.storage;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +19,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import rx.Observable;
+import rx.Observer;
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Devices;
@@ -27,10 +31,12 @@ import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import scala.None$;
 
 public class ZookeeperObjectMapperTest {
 
@@ -715,17 +721,225 @@ public class ZookeeperObjectMapperTest {
 
     @Test
     public void testGetAllWithEmptyResult() throws Exception {
-        List<PojoChain> chains = zom.getAll(PojoChain.class);
-        assertThat(chains, empty());
+        scala.collection.immutable.List<PojoChain> chains =
+            zom.getAll(PojoChain.class);
+        assertTrue(chains.isEmpty());
     }
 
     @Test
     public void testGetAllWithMultipleObjects() throws Exception {
+        zom.getAll(PojoChain.class);
+        PojoChain chain1 = new PojoChain("chain1");
+        PojoChain chain2 = new PojoChain("chain2");
+        zom.create(chain1);
+        zom.getAll(PojoChain.class);
+        zom.create(chain2);
+        // createObjects(chain1, chain2);
+        scala.collection.immutable.List<PojoChain> chains =
+            zom.getAll(PojoChain.class);
+        assertEquals(2, chains.size());
+    }
+
+    @Test
+    public void testSubscriberGetsInitialValue() throws Exception {
+        PojoChain chain = new PojoChain("chain");
+        zom.create(chain);
+
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
+        assertEquals(1, sub.updates);
+        assertNotNull(sub.t);
+        assertEquals(chain.name, sub.t.name);
+    }
+
+    @Test
+    public void testSubscriberGetsUpdates() throws Exception {
+        PojoChain chain = new PojoChain("chain");
+        zom.create(chain);
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
+
+        chain.name = "renamedChain";
+        updateAndWait(chain, sub);
+        assertEquals(2, sub.updates);
+        assertEquals(chain.name, sub.t.name);
+    }
+
+    @Test
+    public void testSubscriberGetsDelete() throws Exception {
+        PojoChain chain = new PojoChain("chain");
+        zom.create(chain);
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
+        deleteAndWait(PojoChain.class, chain.id, sub);
+        assertNull(sub.t);
+    }
+
+    @Test
+    public void testSubscribeToNonexistentObject() throws Throwable {
+        UUID id = UUID.randomUUID();
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id);
+        Thread.sleep(100);
+        assertThat(sub.ex, instanceOf(NotFoundException.class));
+        NotFoundException ex = (NotFoundException)sub.ex;
+        assertEquals(ex.clazz(), PojoChain.class);
+        assertEquals(None$.MODULE$, ex.id());
+    }
+
+    @Test
+    public void testSecondSubscriberGetsLatestVersion() throws Exception {
+        PojoChain chain = new PojoChain("chain");
+        zom.create(chain);
+        ObjectSubscription<PojoChain> sub1 = subscribe(PojoChain.class, chain.id);
+
+        chain.name = "renamedChain";
+        updateAndWait(chain, sub1);
+
+        ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class, chain.id);
+        assertEquals(1, sub2.updates);
+        assertNotNull(sub2.t);
+        assertEquals("renamedChain", sub2.t.name);
+    }
+
+    @Test
+    public void testClassSubscriberGetsCurrentList() throws Exception {
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         createObjects(chain1, chain2);
-        List<PojoChain> chains = zom.getAll(PojoChain.class);
-        assertEquals(2, chains.size());
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
+        Thread.sleep(100);
+        assertEquals(2, sub.subs.size());
+    }
+
+    @Test
+    public void testClassSubscriberGetsNewObject() throws Exception {
+        PojoChain chain1 = new PojoChain("chain1");
+        zom.create(chain1);
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
+        Thread.sleep(100);
+        assertEquals(1, sub.subs.size());
+        assertEquals("chain1", sub.subs.get(0).t.name);
+
+        PojoChain chain2 = new PojoChain("chain2");
+        createAndWait(chain2, sub);
+        assertEquals(2, sub.subs.size());
+    }
+
+    @Test
+    public void testSecondClassSubscriberGetsCurrentList() throws Exception {
+        PojoChain chain1 = new PojoChain("chain1");
+        zom.create(chain1);
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
+        Thread.sleep(100);
+        assertEquals(1, sub.subs.size());
+
+        PojoChain chain2 = new PojoChain("chain2");
+        createAndWait(chain2, sub);
+        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class);
+        assertEquals(2, sub2.subs.size());
+    }
+
+    @Test
+    public void testClassObservableIgnoresDeletedInstances() throws Exception {
+        ClassSubscription<PojoChain> sub1 = subscribe(PojoChain.class);
+        PojoChain chain1 = new PojoChain("chain1");
+        PojoChain chain2 = new PojoChain("chain2");
+        createAndWait(chain1, sub1);
+        createAndWait(chain2, sub1);
+        assertEquals(2, sub1.subs.size());
+
+        ObjectSubscription<PojoChain> chain1Sub =
+            (sub1.subs.get(0).t.id.equals(chain1.id)) ?
+            sub1.subs.get(0) : sub1.subs.get(1);
+        deleteAndWait(PojoChain.class, chain1.id, chain1Sub);
+        assertNull(chain1Sub.t);
+
+        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class);
+        assertEquals(1, sub2.subs.size());
+        assertEquals("chain2", sub2.subs.get(0).t.name);
+    }
+
+    private <T> ObjectSubscription<T> subscribe(
+        Class<T> clazz, Object id) throws Exception{
+
+        ObjectSubscription<T> sub = new ObjectSubscription<>();
+        zom.subscribe(clazz, id, sub);
+        return sub;
+    }
+
+    private <T> ClassSubscription<T> subscribe(Class<T> clazz) {
+        ClassSubscription<T> sub = new ClassSubscription<>();
+        zom.subscribeAll(clazz, sub);
+        return sub;
+    }
+
+    private class ObjectSubscription<T> implements Observer<T> {
+
+        public int updates = 0;
+        public T t = null;
+        public Throwable ex = null;
+
+        @Override
+        public synchronized void onCompleted() {
+            t = null;
+            this.notifyAll();
+        }
+
+        @Override
+        public synchronized void onError(Throwable e) {
+            ex = e;
+            this.notifyAll();
+        }
+
+        @Override
+        public synchronized void onNext(T t) {
+            updates++;
+            this.t = t;
+            this.notifyAll();
+        }
+    }
+
+    private class ClassSubscription<T> implements Observer<Observable<T>> {
+
+        List<ObjectSubscription<T>> subs = new ArrayList<>();
+
+        @Override
+        public synchronized void onCompleted() {
+            fail("Class subscription should not complete.");
+        }
+
+        @Override
+        public synchronized void onError(Throwable e) {
+            throw new RuntimeException(
+                "Got exception from class subscription", e);
+        }
+
+        @Override
+        public synchronized void onNext(Observable<T> tObservable) {
+            ObjectSubscription<T> sub = new ObjectSubscription<>();
+            tObservable.subscribe(sub);
+            subs.add(sub);
+            this.notifyAll();
+        }
+    }
+
+    private void createAndWait(Object o, Object lock) throws Exception {
+        synchronized (lock) {
+            zom.create(o);
+            lock.wait();
+        }
+    }
+
+    private void updateAndWait(Object o, Object lock) throws Exception {
+        synchronized (lock) {
+            zom.update(o);
+            lock.wait();
+        }
+    }
+
+    private void deleteAndWait(Class<?> clazz, Object id, Object lock)
+        throws Exception {
+        synchronized (lock) {
+            zom.delete(clazz, id);
+            lock.wait();
+        }
     }
 
     private void assertPortsRuleIds(PojoPort port, UUID... ruleIds)

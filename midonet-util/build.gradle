@@ -2,12 +2,13 @@ apply plugin: 'scala'
 
 dependencies {
     testCompile libraries.scalatest
-    compile libraries.commons_cli, libraries.commons_conf, libraries.commons_io,
-            libraries.findbugs, libraries.guava, libraries.hamcrest_core,
-            libraries.hamcrest_lib, libraries.hamcrest_integration,
-            libraries.jackson_core, libraries.jackson_mapper, libraries.jsch,
-            libraries.scala, libraries.servlet, libraries.sun_tools,
-            libraries.netty, libraries.akka, libraries.commons_lang3
+    compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
+            libraries.commons_io, libraries.commons_lang3, libraries.findbugs,
+            libraries.guava, libraries.hamcrest_core, libraries.hamcrest_lib,
+            libraries.hamcrest_integration, libraries.jackson_core,
+            libraries.jackson_mapper, libraries.jsch, libraries.netty,
+            libraries.rx, libraries.scala, libraries.servlet,
+            libraries.sun_tools
 }
 
 jar {

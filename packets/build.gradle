@@ -21,7 +21,7 @@ sourceSets {
 dependencies {
     compile project(':midonet-util')
     compile libraries.scala, libraries.jackson_core
-    testCompile libraries.scalatest
+    testCompile libraries.scalacheck, libraries.scalatest
 }
 
 cobertura {
