@@ -72,7 +72,7 @@ class ObservableNodeCacheTest extends Suite
         val onc = new ObservableNodeCache(curator)
         onc connect ROOT
         val cd = new TestObserver[ChildData]()
-        onc.observable().subscribe(cd)
+        onc.observable.subscribe(cd)
         Thread sleep 500
 
         cd.getOnNextEvents should have size 1

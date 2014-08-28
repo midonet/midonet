@@ -62,6 +62,6 @@ class ObservableNodeCache(zk: CuratorFramework) {
       *
       * This observable respects the same guarantees as ZK watchers.
       */
-    def observable() = stream.asObservable()
+    def observable = stream.asObservable
 
 }

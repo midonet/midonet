@@ -14,8 +14,9 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type._
 import org.apache.curator.framework.recipes.cache.{ChildData, PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.midonet.util.concurrent.Locks._
 import org.slf4j.LoggerFactory
+import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
-import rx.{Observable, Subscriber}
+import rx.{Observer, Observable, Subscriber}
 
 import scala.collection.mutable
 
@@ -105,7 +106,7 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
       *   removals are in progress (this will typically be very little time
       *   unless many children are added at once).
       */
-    def subscribe(subscriber: Subscriber[Observable[ChildData]]) = {
+    def subscribe(subscriber: Observer[_ >: Observable[ChildData]]) = {
         val funnel: PathSub = PublishSubject.create()
         withReadLock(childrenLock) {
             log.info("Subscribe: {}, curr. size {}", path, children.values.size)
