@@ -205,14 +205,14 @@ class DeduplicationActor(
         case HandlePackets(packets) =>
             actionsCache.clearProcessedFlowMatches()
 
+            connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
+            natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
+
             var i = 0
             while (i < packets.length && packets(i) != null) {
                 handlePacket(packets(i))
                 i += 1
             }
-
-            connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
-            natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
 
         case RestartWorkflow(pktCtx) =>
             if (pktCtx.idle) {
