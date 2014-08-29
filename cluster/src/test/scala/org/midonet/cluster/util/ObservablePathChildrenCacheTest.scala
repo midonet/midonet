@@ -3,32 +3,23 @@
  */
 package org.midonet.cluster.util
 
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.ForkJoinPool
-import java.util.concurrent.Future
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Callable, ExecutorService, ForkJoinPool, Future, TimeUnit}
 
 import ch.qos.logback.classic.Level
-
 import org.apache.curator.RetryPolicy
-import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.CuratorFrameworkFactory
+import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-
 import rx.Observable
-import rx.observers.TestObserver
-import rx.observers.TestSubscriber
+import rx.observers.{TestObserver, TestSubscriber}
 
-import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
-import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
@@ -36,7 +27,7 @@ class ObservablePathChildrenCacheTest extends Suite
                                       with BeforeAndAfter
                                       with BeforeAndAfterAll {
 
-    val ROOT = "/test"
+    val ROOT = "/ " + this.getClass.getSimpleName
     val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
 
     val retryPolicy: RetryPolicy = new ExponentialBackoffRetry(3000, 3)
@@ -48,15 +39,22 @@ class ObservablePathChildrenCacheTest extends Suite
         zk.start()
     }
 
-    override def afterAll() { zk.close() }
+    override def afterAll() {
+        zk.close()
+    }
 
     before {
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                    retryPolicy)
+                                                    1000, 1000, retryPolicy)
         curator.start()
         try {
+            if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+                fail("Curator did not connect to the test ZK server")
+            }
             curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
         } catch {
+            case _: InterruptedException =>
+                fail("Curator did not connect to the test ZK server")
             case _: Throwable =>  // OK, doesn't exist
         }
         curator.create().forPath(ROOT)
@@ -67,8 +65,9 @@ class ObservablePathChildrenCacheTest extends Suite
             curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
         } catch {
             case _: Throwable => // OK, doesn't exist
+        } finally {
+            curator.close()
         }
-        curator.close()
     }
 
     def makePaths(n: Int): Map[String, String] = makePaths(0, n)
@@ -79,7 +78,8 @@ class ObservablePathChildrenCacheTest extends Suite
             val childPath = ROOT + "/" + i
             val childData = i.toString
             data += (childPath -> childData)
-            curator.create().forPath(childPath, childData.getBytes)
+            curator.create().inBackground()
+                   .forPath(childPath, childData.getBytes)
         }
         data
     }
@@ -262,9 +262,9 @@ class ObservablePathChildrenCacheTest extends Suite
                                     .asInstanceOf[ch.qos.logback.classic.Logger]
         zkLogger.setLevel(Level.toLevel("INFO"))
 
-        val nInitial = 250  // children precreated
+        val nInitial = 50  // children precreated
         val nTotal = 1000   // total child count to reach during subscriptions
-        val nSubs = 50      // number of subscribers
+        val nSubs = 20     // number of subscribers
 
         makePaths(nInitial)
 
@@ -284,7 +284,7 @@ class ObservablePathChildrenCacheTest extends Suite
         opcc.allChildren should have size nInitial
 
         // This thread will add elements until reaching nTotal children
-        val step = 10
+        val step = 5
         val updater = new Runnable() {
             override def run() {
                 log.info("I'm creating additional paths..")
@@ -354,8 +354,21 @@ class ObservablePathChildrenCacheTest extends Suite
             children.diff(received.toSeq) should be (empty)
         }
 
-        // Stop the thread pool and wait until all subscribers read their data
-        es.shutdownNow()
+        log.debug("All streams are correct")
 
+        es.shutdown()
+        try {
+            // Wait a while for existing tasks to terminate
+            if (!es.awaitTermination(5, TimeUnit.SECONDS)) {
+                es.shutdownNow()
+                if (!es.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.warn("Pool didn't terminate")
+                }
+            }
+        } catch {
+            case e: InterruptedException =>
+                es.shutdownNow()
+                Thread.currentThread().interrupt()
+        }
     }
 }
