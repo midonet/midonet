@@ -3,6 +3,8 @@
  */
 package org.midonet.cluster.util
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.framework.recipes.cache.ChildData
@@ -14,7 +16,6 @@ import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-import org.junit.{AfterClass, BeforeClass}
 
 @RunWith(classOf[JUnitRunner])
 class ObservableNodeCacheTest extends Suite
@@ -22,7 +23,7 @@ class ObservableNodeCacheTest extends Suite
                               with BeforeAndAfter
                               with BeforeAndAfterAll {
 
-    val ROOT = "/test"
+    val ROOT = "/ " + this.getClass.getSimpleName
 
     val retryPolicy = new ExponentialBackoffRetry(1000, 3)
     var curator: CuratorFramework = null
@@ -38,21 +39,27 @@ class ObservableNodeCacheTest extends Suite
 
     before {
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                    retryPolicy)
+                                                    1000, 1000, retryPolicy)
+        curator.start()
         try {
+            if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+                   fail("Curator did not connect to the test ZK server")
+            }
             curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
         } catch {
+            case _: InterruptedException =>
+                fail("Curator did not connect to the test ZK server")
             case _: Throwable => // OK, doesn't exist
         }
-        curator.start()
     }
 
     after {
         try {
             curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
-            curator.close()
         } catch {
             case _: Throwable =>  // ok, probably
+        } finally {
+            curator.close()
         }
     }
 
