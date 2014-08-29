@@ -341,8 +341,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch match = flow.getMatch();
-
         // allows to see failing flow create requests if debug logging is on.
         if (callback == null && log.isDebugEnabled()) {
             callback = new LoggingCallback<Flow>() {
@@ -359,8 +357,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             flowFamily.contextNew,
             flags,
-            Flow.describeOneRequest(getBuffer(), datapathId,
-                                    match.getKeys(), flow.getActions()),
+            flow.describeOneRequest(getBuffer(), datapathId),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -449,9 +446,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        FlowMatch match = flow.getMatch();
-
-        if (match == null || match.getKeys().isEmpty()) {
+        if (flow.hasEmptyMatch()) {
             callback.onError(
                 new OvsDatapathInvalidParametersException(
                     "The flow should have a FlowMatch object set up (with non empty key set)."
@@ -463,8 +458,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             flowFamily.contextSet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            Flow.describeOneRequest(getBuffer(), datapathId,
-                                    match.getKeys(), flow.getActions()),
+            flow.describeOneRequest(getBuffer(), datapathId),
             callback,
             Flow.deserializer,
             timeoutMillis);

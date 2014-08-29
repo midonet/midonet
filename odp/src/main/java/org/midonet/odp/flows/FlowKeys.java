@@ -13,6 +13,7 @@ import org.midonet.netlink.Writer;
 import org.midonet.odp.OpenVSwitch.FlowKey.Attr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.TCP;
 import org.midonet.util.collection.WeakObjectPool;
 
 /**
@@ -114,6 +115,14 @@ public class FlowKeys {
         return intern(new FlowKeyTCP(src, dst));
     }
 
+    public static FlowKeyTCPFlags tcpFlags(short flags) {
+        return intern(new FlowKeyTCPFlags(flags));
+    }
+
+    public static FlowKeyTCPFlags tcpFlags(List<TCP.Flag> flags) {
+        return intern(new FlowKeyTCPFlags(flags));
+    }
+
     public static FlowKeyND neighborDiscovery(int[] target) {
         return intern(new FlowKeyND(target));
     }
@@ -163,6 +172,9 @@ public class FlowKeys {
 
             case Attr.TCP:
                 return new FlowKeyTCP();
+
+            case Attr.TcpFlags:
+                return new FlowKeyTCPFlags();
 
             case Attr.UDP:
                 return new FlowKeyUDP();
