@@ -13,6 +13,7 @@ import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
@@ -25,14 +26,14 @@ import org.slf4j.LoggerFactory;
  *
  * It assumes the following:
  *
- * - Delete, Create, Update should happen in that order
- * - There can be multiple updates with the same path but not for creates
- *   and deletes
+ * - Delete, Create, Update should happen in that order - There can be multiple
+ * updates with the same path but not for creates and deletes
  */
 public class ZkOpList {
 
     private static final Logger logger =
         LoggerFactory.getLogger(ZkOpList.class);
+    public static final int DEL_RETRIES = 1;
 
     private final SortedMap<String, Op> deleteOps = new TreeMap<>(
         Collections.reverseOrder());
@@ -67,6 +68,53 @@ public class ZkOpList {
             }
         }
         return cnt;
+    }
+
+    private static void removeStartsWith(Map<String, Op> ops, String path) {
+
+        Iterator<Map.Entry<String, Op>> it = ops.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Op> entry = it.next();
+            if (entry.getKey().startsWith(path)) {
+                logger.warn("Removing path starting with Op: {}.",
+                            getOpDesc(entry.getValue()));
+                it.remove();
+            }
+        }
+    }
+
+    private static Op getErrorDelOpOrThrow(StateAccessException ex,
+                                           List<Op> ops)
+        throws StateAccessException {
+
+        Op op = ZkUtil.getErrorOp((KeeperException) ex.getCause(), ops);
+        if (ZkUtil.isDelete(op)) {
+            return op;
+        } else {
+            throw ex;
+        }
+    }
+
+    private static int decrementOrThrow(int num, StateAccessException ex)
+        throws StateAccessException {
+
+        num--;
+        if (num < 0) {
+            throw ex;
+        }
+        return num;
+    }
+
+    private void addChildrenDelOps(String rootPath)
+        throws StateAccessException {
+
+        List<Op> ops = this.zkManager.getRecursiveDeleteOps(rootPath);
+        for (Op op : ops) {
+            String path = op.getPath();
+            if (!this.deleteOps.containsKey(path)) {
+                this.deleteOps.put(path, op);
+            }
+        }
     }
 
     private void dump() {
@@ -115,12 +163,38 @@ public class ZkOpList {
         this.updateOps.clear();
     }
 
+    private void tryCommit(int delRetries) throws StateAccessException {
+        logger.debug("Trying commit with delete retries: {}", delRetries);
+        dump();
+        List<Op> ops = combine();
+
+        try {
+            this.zkManager.multi(ops);
+        } catch (NoStatePathException ex) {
+
+            // For deletion, if a node was deleted, just skip it and retry.
+            Op errorOp = getErrorDelOpOrThrow(ex, ops);
+            removeStartsWith(this.deleteOps, errorOp.getPath());
+            tryCommit(delRetries);
+
+        } catch (NodeNotEmptyStateException ex) {
+
+            // For deletion, if a child node was added, try to re-fetch all
+            // children from the parent node and try again, but with a limit on
+            // the number of retries.
+            Op errorOp = getErrorDelOpOrThrow(ex, ops);
+            delRetries = decrementOrThrow(delRetries, ex);
+            addChildrenDelOps(errorOp.getPath());
+            tryCommit(delRetries);
+        }
+    }
+
     /**
      * Add an Op object.
      *
      * For delete Op, all the previously added updated and delete Ops are
-     * replaced by this one.  If there was a create Op prior to it, delete
-     * Op is not added, and the create Op is removed.
+     * replaced by this one.  If there was a create Op prior to it, delete Op is
+     * not added, and the create Op is removed.
      *
      * For create Op, if another create Op already exists, this replaces it.
      *
@@ -160,6 +234,7 @@ public class ZkOpList {
 
     /**
      * Add a list of Ops
+     *
      * @param ops Op objects to add
      */
     public void addAll(List<Op> ops) {
@@ -171,14 +246,10 @@ public class ZkOpList {
 
     /**
      * Commit the Ops with duplicate paths removed.
-     *
-     * @throws StateAccessException
      */
     public void commit() throws StateAccessException {
-
         if (size() > 0) {
-            dump();
-            this.zkManager.multi(combine());
+            tryCommit(DEL_RETRIES);
             clear();
         } else {
             logger.warn("No Op to commit");
