@@ -12,7 +12,7 @@ import org.junit.Test;
 import org.midonet.midolman.state.DirectoryVerifier;
 import org.midonet.midolman.state.PathBuilder;
 
-public final class ZookeeperDataTest extends NeutronPluginTest {
+public final class NeutronZkDataTest extends NeutronPluginTest {
 
     private DirectoryVerifier dirVerifier;
     private PathBuilder pathBuilder;
