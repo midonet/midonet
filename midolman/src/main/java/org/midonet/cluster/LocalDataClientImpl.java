@@ -58,7 +58,6 @@ import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
@@ -72,7 +71,6 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
-import org.midonet.midolman.host.commands.HostCommandGenerator;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.rules.RuleList;
@@ -1473,82 +1471,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return anInterface;
-    }
-
-    @Override
-    public Integer commandsCreateForInterfaceupdate(UUID hostId,
-                                                    String curInterfaceId,
-                                                    Interface newInterface)
-            throws StateAccessException, SerializationException {
-
-        HostCommandGenerator commandGenerator = new HostCommandGenerator();
-
-        HostDirectory.Interface curHostInterface = null;
-
-        if (curInterfaceId != null) {
-            curHostInterface = hostZkManager.getInterfaceData(hostId,
-                    curInterfaceId);
-        }
-
-        HostDirectory.Interface newHostInterface =
-                Converter.toHostInterfaceConfig(newInterface);
-
-        HostDirectory.Command command = commandGenerator.createUpdateCommand(
-                curHostInterface, newHostInterface);
-
-        return hostZkManager.createHostCommandId(hostId, command);
-    }
-
-    @Override
-    public List<Command> commandsGetByHost(UUID hostId)
-            throws StateAccessException, SerializationException {
-        List<Integer> commandsIds = hostZkManager.getCommandIds(hostId);
-        List<Command> commands = new ArrayList<>();
-        for (Integer commandsId : commandsIds) {
-
-            Command hostCommand = commandsGet(hostId, commandsId);
-
-            if (hostCommand != null) {
-                commands.add(hostCommand);
-            }
-        }
-
-        return commands;
-    }
-
-    @Override
-    public @CheckForNull Command commandsGet(UUID hostId, Integer id)
-            throws StateAccessException, SerializationException {
-        Command command;
-
-        try {
-            HostDirectory.Command hostCommand =
-                    hostZkManager.getCommandData(hostId, id);
-
-            HostDirectory.ErrorLogItem errorLogItem =
-                    hostZkManager.getErrorLogData(hostId, id);
-
-            command = Converter.fromHostCommandConfig(hostCommand);
-            command.setId(id);
-
-            if (errorLogItem != null) {
-                command.setErrorLogItem(
-                        Converter.fromHostErrorLogItemConfig(errorLogItem));
-            }
-
-        } catch (StateAccessException e) {
-            log.warn("Could not read command with id {} from datastore "
-                    + "(for host: {})", id, hostId, e);
-            throw e;
-        }
-
-        return command;
-    }
-
-    @Override
-    public void commandsDelete(UUID hostId, Integer id)
-            throws StateAccessException {
-        hostZkManager.deleteHostCommand(hostId, id);
     }
 
     @Override

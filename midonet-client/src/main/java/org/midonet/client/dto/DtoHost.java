@@ -20,7 +20,6 @@ public class DtoHost {
     private String[] addresses;
     private DtoInterface[] hostInterfaces;
     private URI interfaces;
-    private URI hostCommands;
     private URI ports;
     private boolean alive;
     private Integer floodingProxyWeight;
@@ -90,14 +89,6 @@ public class DtoHost {
 
     public void setFloodingProxyWeight(Integer floodingProxyWeight) {
         this.floodingProxyWeight = floodingProxyWeight;
-    }
-
-    public URI getHostCommands() {
-        return hostCommands;
-    }
-
-    public void setHostCommands(URI hostCommands) {
-        this.hostCommands = hostCommands;
     }
 
     public URI getPorts() {

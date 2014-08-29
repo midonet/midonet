@@ -392,16 +392,6 @@ public class ResourceUriBuilder {
                 .path(name).build();
     }
 
-    public static URI getHostCommands(URI baseUri, UUID hostId) {
-        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(COMMANDS)
-                .build();
-    }
-
-    public static URI getHostCommand(URI baseUri, UUID hostId, Integer id) {
-        return UriBuilder.fromUri(getHostCommands(baseUri, hostId))
-                .path(id.toString()).build();
-    }
-
     public static URI getHostInterfacePorts(URI baseUri, UUID hostId) {
         return UriBuilder.fromUri(getHost(baseUri, hostId)).path(PORTS).build();
     }

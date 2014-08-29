@@ -36,10 +36,6 @@ public class Host extends ResourceBase<Host, DtoHost> {
         return principalDto.getAddresses();
     }
 
-    public URI getHostCommands() {
-        return principalDto.getHostCommands();
-    }
-
     public UUID getId() {
         return principalDto.getId();
     }
