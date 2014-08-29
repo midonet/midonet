@@ -222,7 +222,7 @@ public class WildcardMatchTest {
             WildcardMatch.fromFlowMatch(
                 tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
                         "192.168.100.1", "192.168.100.2",
-                        8096, 1025));
+                        8096, 1025, 0));
 
         WildcardMatch projection = wildcard.project(EnumSet.of(
                 WildcardMatch.Field.EthernetSource,
@@ -241,7 +241,7 @@ public class WildcardMatchTest {
             WildcardMatch.fromFlowMatch(
                 tcpFlow("ae:b3:77:8c:a1:48", "33:33:00:00:00:16",
                         "192.168.100.1", "192.168.100.2",
-                        8096, 1025));
+                        8096, 1025, 0));
 
         WildcardMatch projection = wildcard.project(EnumSet.of(
             WildcardMatch.Field.EthernetSource,
@@ -269,7 +269,7 @@ public class WildcardMatchTest {
         FlowMatch fm = FlowMatches.tcpFlow(
             "02:aa:dd:dd:aa:01", "02:bb:ee:ee:ff:01",
             "192.168.100.2", "192.168.100.3",
-            40000, 50000);
+            40000, 50000, 0);
         WildcardMatch wcm = WildcardMatch.fromFlowMatch(fm);
         assertThat(wcm.getTransportSource(),
                    equalTo(40000));
