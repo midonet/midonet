@@ -4,20 +4,15 @@
 package org.midonet.midolman.host.state;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
-import org.midonet.midolman.host.commands.executors.CommandProperty;
 import org.midonet.odp.DpPort;
 
 
@@ -28,136 +23,6 @@ import org.midonet.odp.DpPort;
  *         Date: 2/1/12
  */
 public class HostDirectory {
-
-    public static class ErrorLogItem {
-        Integer commandId;
-        String error;
-        String interfaceName;
-        Date time = Calendar.getInstance().getTime();
-
-        public Integer getCommandId() {
-            return commandId;
-        }
-
-        public void setCommandId(Integer commandId) {
-            this.commandId = commandId;
-        }
-
-        public String getError() {
-            return error;
-        }
-
-        public void setError(String error) {
-            this.error = error;
-        }
-
-        public String getInterfaceName() {
-            return interfaceName;
-        }
-
-        public void setInterfaceName(String interfaceName) {
-            this.interfaceName = interfaceName;
-        }
-
-        public Date getTime() {
-            return time;
-        }
-
-        public void setTime(Date time) {
-            this.time = time;
-        }
-    }
-
-    public static class Command {
-
-        public static class AtomicCommand {
-
-            public enum OperationType {
-                // TODO(rossella) add other needed operation
-                SET, DELETE, CLEAR
-            }
-
-            CommandProperty property;
-            String value;
-            OperationType OpType;
-
-            // Default constructor for the Jackson de-serialization.
-            public AtomicCommand() {
-            }
-
-            public String getValue() {
-                return value;
-            }
-
-            public void setValue(Object value) {
-                this.value = value.toString();
-            }
-
-            public OperationType getOpType() {
-                return OpType;
-            }
-
-            public void setOpType(OperationType opType) {
-                OpType = opType;
-            }
-
-            public CommandProperty getProperty() {
-                return property;
-            }
-
-            public void setProperty(CommandProperty property) {
-                this.property = property;
-            }
-
-            @Override
-            public String toString() {
-                return "AtomicCommand{" +
-                    "property='" + property + '\'' +
-                    ", value='" + value + '\'' +
-                    ", OpType=" + OpType +
-                    '}';
-            }
-        }
-
-        public String interfaceName;
-
-        List<AtomicCommand> commandList = new ArrayList<AtomicCommand>();
-
-        // Default constructor for the Jackson de-serialization.
-        public Command() {
-
-        }
-
-        public String getInterfaceName() {
-            return interfaceName;
-        }
-
-        public void setInterfaceName(String interfaceName) {
-            this.interfaceName = interfaceName;
-        }
-
-        public void addAtomicCommand(Command.AtomicCommand command)
-        {
-            commandList.add(command);
-        }
-
-        public List<AtomicCommand> getCommandList() {
-            return commandList;
-        }
-
-        public void setCommandList(
-                List<AtomicCommand> commandList) {
-            this.commandList = commandList;
-        }
-
-        @Override
-        public String toString() {
-            return "Command{" +
-                "interfaceName='" + interfaceName + '\'' +
-                ", commandList=" + commandList +
-                '}';
-        }
-    }
 
     /**
      * Metadata for a host description (contains a host name and a list of

@@ -64,10 +64,6 @@ public class VendorMediaType {
             "application/vnd.org.midonet.Interface-v1+json";
     public static final String APPLICATION_INTERFACE_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.Interface-v1+json";
-    public static final String APPLICATION_HOST_COMMAND_JSON =
-            "application/vnd.org.midonet.HostCommand-v1+json";
-    public static final String APPLICATION_HOST_COMMAND_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.HostCommand-v1+json";
     public static final String APPLICATION_PORT_JSON =
             "application/vnd.org.midonet.Port-v1+json";
     public static final String APPLICATION_PORT_COLLECTION_JSON =
