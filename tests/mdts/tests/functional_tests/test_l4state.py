@@ -1,0 +1,274 @@
+from hamcrest.core import assert_that
+from nose.plugins.attrib import attr
+
+from mdts.lib.binding_manager import BindingManager
+from mdts.lib.physical_topology_manager import PhysicalTopologyManager
+from mdts.lib.virtual_topology_manager import VirtualTopologyManager
+from mdts.tests.utils.asserts import receives
+from mdts.tests.utils.asserts import should_NOT_receive
+from mdts.tests.utils.asserts import within_sec
+from mdts.tests.utils.utils import start_midolman_agents
+from mdts.tests.utils.utils import stop_midolman_agents
+from mdts.tests.utils.utils import get_midonet_api
+from mdts.tests.utils.utils import check_all_midolman_hosts
+from mdts.tests.utils import bindings
+from mdts.tests.utils import wait_on_futures
+
+import logging
+import random
+import time
+
+
+LOG = logging.getLogger(__name__)
+PTM = PhysicalTopologyManager(
+        '../topologies/mmm_physical_test_l4state.yaml')
+VTM = VirtualTopologyManager(
+        '../topologies/mmm_virtual_test_l4state.yaml')
+BM = BindingManager(PTM, VTM)
+
+
+binding_l4state = {
+    'description': 'on 3 MMs',
+    'bindings': [
+        {'binding':
+             {'device_name': 'router-000-001', 'port_id': 1,
+              'host_id': 1, 'interface_id': 1}},
+        {'binding':
+             {'device_name': 'router-000-001', 'port_id': 2,
+              'host_id': 2, 'interface_id': 1}},
+        {'binding':
+             {'device_name': 'router-000-001', 'port_id': 3,
+              'host_id': 3, 'interface_id': 1}},
+        ]
+    }
+
+
+def get_random_port_num():
+    '''Returns a random port number from a free port range.
+    
+    NOTE: Using a random number may cause test indeterminacy on a rare occasion.
+    '''
+    return random.randint(49152, 65535)
+
+
+##############################################################################
+#
+# Scenario: 
+#
+#          host-2                                 host-3
+#            |                                      |
+#            |           +---------------+          |
+#            |           |               |          |
+#            +-----------+    Router     +----------+
+#  172.16.42.254/24 - 2  |               | 3 - 172.16.84.254/24
+#                        +-------+-------+
+#                                | 1 - 192.168.0.254/24
+#                                |
+#                                |
+#                              host-1 
+#
+#   * 2 & 3 form a port group.
+#   * This chain will apply to all traffic:
+#      * input-port == 2 | input-port == 3  ---> REV_DNAT && ACCEPT
+#      * input-port == 1 && src = 192.168.0.1 && dst == 21.42.84.168
+#           && is-forwarwd flow ---> DNAT to 172.16.42.1:80 && ACCEPT
+#      * ----> DROP
+#
+##############################################################################
+
+def downlink_iface():
+    return BM.get_iface_for_port('router-000-001', 1)
+
+def downlink_port():
+    return VTM.get_router('router-000-001').get_port(1)
+
+def left_uplink_iface():
+    return BM.get_iface_for_port('router-000-001', 2)
+
+def left_uplink_port():
+    return VTM.get_router('router-000-001').get_port(2)
+
+def right_uplink_iface():
+    return BM.get_iface_for_port('router-000-001', 3)
+
+def right_uplink_port():
+    return VTM.get_router('router-000-001').get_port(3)
+
+def mac_for(port):
+    return port.get_mn_resource().get_port_mac()
+
+def feed_mac(port, iface):
+    try:
+        ip = port.get_mn_resource().get_port_address()
+        iface.send_arp_request(ip)
+        time.sleep(1)
+    except:
+        LOG.warn('Oops, sending ARP from the receiver VM failed.')
+        raise
+
+def feed_macs():
+    feed_mac(downlink_port(), downlink_iface())
+    feed_mac(left_uplink_port(), left_uplink_iface())
+    feed_mac(right_uplink_port(), right_uplink_iface())
+
+def setup():
+    PTM.build()
+    VTM.build()
+    random.seed()
+
+    router = VTM.get_router('router-000-001')
+    infilter = VTM.get_chain('router_infilter')
+    router.set_inbound_filter(infilter)
+    time.sleep(5)
+
+
+
+def teardown():
+    router = VTM.get_router('router-000-001')
+    router.set_inbound_filter(None)
+    time.sleep(2)
+    PTM.destroy()
+    VTM.destroy()
+
+def check_forward_flow(src_port_no):
+    dst_mac = mac_for(downlink_port());
+    f = downlink_iface().send_udp(dst_mac, '21.42.84.168', 41,
+                                     src_port=src_port_no, dst_port=1080)
+    expect_forward()
+    wait_on_futures([f])
+
+def check_return_flow(port, iface, dst_port_no, dropped = False):
+    dst_mac = mac_for(port);
+    f = iface.send_udp(dst_mac, '192.168.0.1', 41,
+                          src_port=80, dst_port=dst_port_no,
+                          src_ipv4 = '172.16.42.1')
+    if dropped:
+        expect_return_dropped(dst_port_no)
+    else:
+        expect_return(dst_port_no)
+    wait_on_futures([f])
+
+def forward_filter():
+    return 'dst host 172.16.42.1 and udp port 80'
+
+def expect_forward():
+    assert_that(left_uplink_iface(),
+            receives(forward_filter(), within_sec(5)),
+                     'Foward flow is DNATed and gets through.')
+
+def return_filter(dst_port_no):
+    filter_ = 'udp'
+    filter_ += ' and dst host %s and dst port %d' % ('192.168.0.1', dst_port_no)
+    filter_ += ' and src host %s and src port %d' % ('21.42.84.168', 1080)
+    return filter_
+
+def expect_return(dst_port_no):
+    assert_that(downlink_iface(),
+            receives(return_filter(dst_port_no), within_sec(5)),
+                     'Return flow is rev-DNATed and gets through.')
+
+def expect_return_dropped(dst_port_no):
+    assert_that(downlink_iface(),
+            should_NOT_receive(return_filter(dst_port_no), within_sec(5)),
+                     'Return flow gets dropped.')
+
+def reboot_agents(sleep_secs):
+    midonet_api = get_midonet_api()
+    stop_midolman_agents()
+    time.sleep(5)
+    check_all_midolman_hosts(midonet_api, alive=False)
+
+    time.sleep(sleep_secs)
+
+    start_midolman_agents()
+    time.sleep(30)
+    check_all_midolman_hosts(midonet_api, alive=True)
+
+@attr(version="v1.6.0", slow=False)
+@bindings(binding_l4state)
+def test_distributed_l4():
+    '''
+    Title: Tests that stateful flows work across multiple agent instances
+
+    Scenario:
+    When: A VM establishes a conntrack'ed, DNAT'ed connection
+    Then: Recipients can send back over two different routes
+    '''
+    feed_macs()
+    port_num = get_random_port_num()
+
+    for i in range(0, 4):
+        check_forward_flow(port_num)
+        check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+        time.sleep(30)
+
+@attr(version="v1.6.0", slow=False)
+@bindings(binding_l4state)
+def test_distributed_l4_expiration():
+    '''
+    Title: Tests that stateful flows expire after inactivity
+
+    Scenario:
+    When: A VM establishes a conntrack'ed, DNAT'ed connection
+    Then: Recipients can send back over two different routes
+    Then: After 90 seconds of inactivity, the return flow breaks
+    '''
+    feed_macs()
+
+    port_num = get_random_port_num()
+
+    check_forward_flow(port_num)
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+
+    time.sleep(90)
+
+    check_return_flow(left_uplink_port(), left_uplink_iface(),
+                      port_num, dropped = True)
+
+@attr(version="v1.6.0", slow=False)
+@bindings(binding_l4state)
+def test_distributed_l4_port_binding():
+    '''
+    Title: Tests that state is imported when a port is bound
+
+    Scenario:
+    When: A VM establishes a conntrack'ed, DNAT'ed connection
+    Then: Recipients can send back over two different routes
+    Then: Midolman agents are rebooted
+    Then: The pre-existing nat mappings are not lost and connections are not
+          broken
+    '''
+    feed_macs()
+
+    port_num = get_random_port_num()
+
+    check_forward_flow(port_num)
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+
+    reboot_agents(5)
+
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+
+@attr(version="v1.6.0", slow=False)
+@bindings(binding_l4state)
+def test_distributed_l4_storage_ttl():
+    '''
+    Title: Tests that state has a correct TTL in storage
+
+    Scenario:
+    When: A VM establishes a conntrack'ed, DNAT'ed connection
+    Then: Recipients can send back over two different routes
+    Then: Midolman agents are stopped and restarted after 90 seconds
+    Then: The pre-existing nat mappings are lost and connections are broken
+    '''
+    feed_macs()
+
+    port_num = get_random_port_num()
+
+    check_forward_flow(port_num)
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+
+    reboot_agents(90)
+
+    check_return_flow(left_uplink_port(), left_uplink_iface(),
+                      port_num, dropped = True)

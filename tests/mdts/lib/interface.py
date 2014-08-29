@@ -75,10 +75,16 @@ class Interface:
         return self.execute(cmdline, sync=sync)
 
     def send_packet(self, target_hw, target_ipv4, pkt_type, pkt_parms,
-                    hex_payload_file, delay, count, sync=False):
-        fmt = 'mz $peer_if -b {0} -B {1} -t {2} "{3}" -F {4} -d {5}s -c {6}'
+                    hex_payload_file, delay, count, sync=False,
+                    src_hw=None, src_ipv4=None):
+        src_addrs = ''
+        if src_hw:
+            src_addrs += '-a %s ' % src_hw
+        if src_ipv4:
+            src_addrs += '-A %s ' % src_ipv4
+        fmt = 'mz $peer_if {0} -b {1} -B {2} -t {3} "{4}" -F {5} -d {6}s -c {7}'
         fmt += ' 2> /dev/null'
-        cmdline = fmt.format(target_hw, target_ipv4,
+        cmdline = fmt.format(src_addrs, target_hw, target_ipv4,
                              pkt_type, pkt_parms,
                              hex_payload_file, delay, count)
         LOG.debug("cmdline: %s" % cmdline)
@@ -95,7 +101,7 @@ class Interface:
     def send_udp(self, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
                  src_port=9, dst_port=9, extra_params=None, delay=1, count=3,
-                 sync=False):
+                 sync=False, src_hw=None, src_ipv4=None):
         """ Sends UDP packets to target mac addr / ip address.
 
         Sends UDP packets from this interface to the target HW mac and ip
@@ -128,7 +134,7 @@ class Interface:
         """
         return self.send_protocol('udp', target_hw, target_ipv4, iplen,
                  hex_payload_file, src_port, dst_port, extra_params,
-                 delay, count, sync)
+                 delay, count, sync, src_hw, src_ipv4)
 
     def send_tcp(self, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
@@ -142,7 +148,7 @@ class Interface:
     def send_protocol(self, protocol_name, target_hw, target_ipv4, iplen,
                  hex_payload_file='trivial-test-udp',
                  src_port=9, dst_port=9, extra_params=None, delay=1, count=3,
-                 sync=False):
+                 sync=False, src_hw=None, src_ipv4=None):
         params = []
         if src_port: params.append('sp=%d' % src_port)
         if dst_port: params.append('dp=%d' % dst_port)
@@ -154,7 +160,8 @@ class Interface:
                                 pkt_type=protocol_name,
                                 pkt_parms=protocol_params,
                                 hex_payload_file=hex_payload_file,
-                                delay=delay, count=count, sync=sync)
+                                delay=delay, count=count, sync=sync,
+                                src_hw = src_hw, src_ipv4 = src_ipv4)
 
     def make_web_request_get_backend(self, dst_ip_port):
         """
