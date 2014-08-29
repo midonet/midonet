@@ -27,19 +27,4 @@ public interface CassandraConfig {
 
     @ConfigInt(key = "replication_factor", defaultValue = 1)
     public int getCassandraReplicationFactor();
-
-    @ConfigInt(key = "max_active_connections", defaultValue=3)
-    public int getCassandraMaxActiveConnections();
-
-    @ConfigInt(key = "thrift_socket_timeout", defaultValue=2500)
-    public int getCassandraThriftSocketTimeout();
-
-    @ConfigBool(key = "host_timeout_tracker", defaultValue=true)
-    public boolean getCassandraHostTimeoutTracker();
-
-    @ConfigInt(key = "host_timeout_counter", defaultValue=10)
-    public int getCassandraHostTimeoutCounter();
-
-    @ConfigInt(key = "host_timeout_window", defaultValue=500)
-    public int getCassandraHostTimeoutWindow();
 }
