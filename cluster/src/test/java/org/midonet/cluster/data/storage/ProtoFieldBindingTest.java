@@ -200,17 +200,19 @@ public class ProtoFieldBindingTest {
         assertFalse(updatedBridge.hasInboundFilterId());
     }
 
-    @Test(expected = ConcurrentModificationException.class)
+    @Test
     public void testClearMissingBackRefToBridge() throws Exception {
         Chain chain = Chain.newBuilder().setName("test_chain")
                                         .addBridgeIds(otherUuid1)
                                         .addBridgeIds(otherUuid2)
                                         .addBridgeIds(otherUuid3)
                                         .build();
-        bridgeToChainBinding.clearBackReference(chain, uuid);
+        Chain updatedChain =
+            bridgeToChainBinding.clearBackReference(chain, uuid);
+        assertEquals(chain, updatedChain);
     }
 
-    @Test(expected = ConcurrentModificationException.class)
+    @Test
     public void testClearConflictingBackRefToChain() throws Exception {
         Bridge bridge = Bridge.newBuilder().setName("test_bridge")
                                            .setInboundFilterId(conflictingUuid)
@@ -218,10 +220,10 @@ public class ProtoFieldBindingTest {
         Bridge updatedBridge =
                 chainToBridgeBinding.clearBackReference(bridge, uuid);
         assertEquals("test_bridge", updatedBridge.getName());
-        assertFalse(updatedBridge.hasInboundFilterId());
+        assertEquals(conflictingUuid, updatedBridge.getInboundFilterId());
     }
 
-    @Test(expected = ConcurrentModificationException.class)
+    @Test
     public void testClearMissingBackRefToChain() throws Exception {
         Bridge bridge = Bridge.newBuilder().setName("test_bridge").build();
         Bridge updatedBridge =

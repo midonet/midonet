@@ -6,11 +6,7 @@ package org.midonet.cluster.util
 import java.util.concurrent.{Callable, ExecutorService, ForkJoinPool, Future, TimeUnit}
 
 import ch.qos.logback.classic.Level
-import org.apache.curator.RetryPolicy
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.framework.recipes.cache.ChildData
-import org.apache.curator.retry.ExponentialBackoffRetry
-import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -23,59 +19,16 @@ import scala.collection.mutable.ListBuffer
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
-                                      with Matchers
-                                      with BeforeAndAfter
-                                      with BeforeAndAfterAll {
-
-    val ROOT = "/ " + this.getClass.getSimpleName
+                                      with CuratorTestFramework
+                                      with Matchers {
     val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
-
-    val retryPolicy: RetryPolicy = new ExponentialBackoffRetry(3000, 3)
-    var curator: CuratorFramework = null
-    var zk: TestingServer = _
-
-    override def beforeAll() {
-        zk = new TestingServer()
-        zk.start()
-    }
-
-    override def afterAll() {
-        zk.close()
-    }
-
-    before {
-        curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                    1000, 1000, retryPolicy)
-        curator.start()
-        try {
-            if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
-                fail("Curator did not connect to the test ZK server")
-            }
-            curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
-        } catch {
-            case _: InterruptedException =>
-                fail("Curator did not connect to the test ZK server")
-            case _: Throwable =>  // OK, doesn't exist
-        }
-        curator.create().forPath(ROOT)
-    }
-
-    after {
-        try {
-            curator.delete().deletingChildrenIfNeeded().forPath(ROOT)
-        } catch {
-            case _: Throwable => // OK, doesn't exist
-        } finally {
-            curator.close()
-        }
-    }
 
     def makePaths(n: Int): Map[String, String] = makePaths(0, n)
 
     def makePaths(start: Int, end: Int): Map[String, String] = {
         var data = Map.empty[String, String]
         start.until(end) foreach { i =>
-            val childPath = ROOT + "/" + i
+            val childPath = ZK_ROOT + "/" + i
             val childData = i.toString
             data += (childPath -> childData)
             curator.create().inBackground()
@@ -134,7 +87,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val opcc = new ObservablePathChildrenCache(curator)
 
         makePaths(nItems)         // preseed
-        opcc connect ROOT         // connect
+        opcc connect ZK_ROOT         // connect
         opcc subscribe collector  // subscribe
 
         Thread sleep 1000
@@ -154,13 +107,13 @@ class ObservablePathChildrenCacheTest extends Suite
         makePaths(2)
         val collector = new ChildDataAccumulator()
         val opcc = new ObservablePathChildrenCache(curator)
-        opcc connect ROOT
+        opcc connect ZK_ROOT
         opcc subscribe collector
         Thread sleep 500
         collector.getOnNextEvents should have size 2 // data is there
 
         // Delete one node
-        val deletedPath = ROOT + "/1"
+        val deletedPath = ZK_ROOT + "/1"
         curator.delete().forPath(deletedPath)
 
         Thread sleep 100  // let Curator catch up
@@ -170,7 +123,7 @@ class ObservablePathChildrenCacheTest extends Suite
             _.getOnNextEvents.head.getPath.equals(deletedPath)
         )
         kept.head.getOnCompletedEvents should be (empty)
-        deleted.head.getOnCompletedEvents should not be (empty)
+        deleted.head.getOnCompletedEvents should not be empty
         // The overall collector should not complete, since there is one active
         // child
         collector.getOnCompletedEvents should be (empty)
@@ -186,7 +139,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val collector = new ChildDataAccumulator()
         val opcc = new ObservablePathChildrenCache(curator)
 
-        opcc connect ROOT
+        opcc connect ZK_ROOT
         opcc subscribe collector
 
         Thread sleep 500
@@ -229,14 +182,14 @@ class ObservablePathChildrenCacheTest extends Suite
         val collector = new ChildDataAccumulator()
         val opcc = new ObservablePathChildrenCache(curator)
 
-        opcc connect ROOT
+        opcc connect ZK_ROOT
         opcc subscribe collector
 
         Thread sleep 500
 
         val newChildData = "new"
-        val newChildPath = ROOT + "/newchild"
-        curator.create().forPath(ROOT + "/newchild", newChildData.getBytes)
+        val newChildPath = ZK_ROOT + "/newchild"
+        curator.create().forPath(ZK_ROOT + "/newchild", newChildData.getBytes)
 
         Thread sleep 500
 
@@ -270,7 +223,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         val opcc = new ObservablePathChildrenCache(curator)
 
-        opcc.connect(ROOT)
+        opcc.connect(ZK_ROOT)
 
         // Let the OPCC catch up to the initial state
         var maxRetries = 20

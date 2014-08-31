@@ -4,14 +4,16 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util.ConcurrentModificationException
+import java.util.{List => JList, ConcurrentModificationException}
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{TextFormat, Message}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.utils.EnsurePath
+import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.apache.zookeeper.KeeperException.{BadVersionException, NodeExistsException, NoNodeException}
+import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.data.Stat
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
@@ -76,13 +78,9 @@ import scala.collection.mutable.ListBuffer
 class ZookeeperObjectMapper(private val basePath: String,
                             private val curator: CuratorFramework)
                             extends StorageService {
-    import ZookeeperObjectMapper.log
-    import ZookeeperObjectMapper.deserialize
-    import ZookeeperObjectMapper.serialize
+    import ZookeeperObjectMapper._
 
-
-    private case class Key[T](clazz: Class[T], id: ObjId)
-    private case class ObjWithVersion[T](obj: T, version: Int)
+    private val locksPath = basePath + "/zoomlocks/lock"
 
     private val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
 
@@ -95,24 +93,36 @@ class ZookeeperObjectMapper(private val basePath: String,
         Class[_], TrieMap[ObjId, InstanceSubscriptionCache[_]]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
 
-    curator.start()
-
     /**
      * Manages objects referenced by the primary target of a create, update,
      * or delete operation.
      *
      * Caches all objects loaded during the operation. This is necessary
      * because an object may reference another object more than once. If we
-     * reload the object from Zookeeper to add the second, backreference, the
+     * reload the object from Zookeeper to add the second backreference, the
      * object loaded from Zookeeper will not have the first backreference
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class TransactionManager private (
-        val transaction: CuratorTransactionFinal) {
-
+    private class TransactionManager {
+        private final val NEW_OBJ_VERSION = -1
         private val objCache = new mutable.HashMap[Key[_], ObjWithVersion[_]]()
         private val objsToDelete = new mutable.HashMap[Key[_], Int]()
+
+        // Create an ephemeral node so that we can get Zookeeper's current
+        // ZXID. This will allow us to determine if any of the nodes we read
+        // have been modified since the TransactionManager was created, allowing
+        // us to ensure a consistent read across multiple nodes.
+        private val (lockPath: String, zxid: Long) = try {
+            val path = curator.create().creatingParentsIfNeeded()
+                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(locksPath)
+            val stat = new Stat()
+            curator.getData.storingStatIn(stat).forPath(path)
+            (path, stat.getCzxid)
+        } catch {
+            case ex: Exception => throw new InternalObjectMapperException(
+                "Could not acquire current zxid.", ex)
+        }
 
         /**
          * Gets the specified object from the internal cache. If not found,
@@ -126,12 +136,34 @@ class ZookeeperObjectMapper(private val basePath: String,
                 return None
 
             objCache.get(key) match {
-                case Some(ObjWithVersion(obj, ver)) => Some(obj.asInstanceOf[T])
+                case Some(o) => Some(o.obj.asInstanceOf[T])
                 case None =>
                     val objWithVersion = getWithVersion(clazz, id)
                     objCache(key) = objWithVersion
                     Some(objWithVersion.obj)
             }
+        }
+
+        private def getWithVersion[T](clazz: Class[T],
+                                      id: ObjId): ObjWithVersion[T] = {
+            val stat = new Stat()
+            val path = getPath(clazz, id)
+            val data = try {
+                curator.getData.storingStatIn(stat).forPath(path)
+            } catch {
+                case nne: NoNodeException =>
+                    throw new NotFoundException(clazz, id)
+                case ex: Exception =>
+                    throw new InternalObjectMapperException(ex)
+            }
+
+            if (stat.getMzxid > zxid) {
+                throw new ConcurrentModificationException(
+                    s"${clazz.getSimpleName} with ID $id was modified " +
+                    "during the transaction.")
+            }
+
+            ObjWithVersion(deserialize(data, clazz), stat.getVersion)
         }
 
         /**
@@ -155,7 +187,8 @@ class ZookeeperObjectMapper(private val basePath: String,
          * If thatField is null, thatObj will be loaded and cached, but no
          * backreference will be added.
          */
-        def addBackreference(bdg: FieldBinding, thisId: ObjId, thatId: ObjId) {
+        private def addBackreference(bdg: FieldBinding,
+                                     thisId: ObjId, thatId: ObjId) {
             cachedGet(bdg.getReferencedClass, thatId).foreach { thatObj =>
                 val updatedThatObj = bdg.addBackReference(thatObj, thisId)
                 updateCache(bdg.getReferencedClass, thatId, updatedThatObj)
@@ -169,17 +202,68 @@ class ZookeeperObjectMapper(private val basePath: String,
          *
          * ThatObj is assumed to exist.
          */
-        def clearBackReference(bdg: FieldBinding, thisId: ObjId,
-                               thatId: ObjId) {
+        private def clearBackreference(bdg: FieldBinding, thisId: ObjId,
+                                       thatId: ObjId) {
             cachedGet(bdg.getReferencedClass, thatId).foreach { thatObj =>
                 val updatedThatObj = bdg.clearBackReference(thatObj, thisId)
                 updateCache(bdg.getReferencedClass, thatId, updatedThatObj)
             }
         }
 
-        private def prepareDelete(clazz: Class[_], id: ObjId) {
-            val ObjWithVersion(thisObj, thisVersion) = getWithVersion(clazz, id)
-            objsToDelete(Key(clazz, id)) = thisVersion
+        def create(thisObj: Obj): Unit = {
+            assert(isRegistered(thisObj.getClass))
+
+            val thisId = getObjectId(thisObj)
+            val key = Key(thisObj.getClass, thisId)
+            assert(!objCache.contains(key))
+            objCache(key) = ObjWithVersion(thisObj, NEW_OBJ_VERSION)
+
+            for (bdg <- allBindings.get(thisObj.getClass).asScala;
+                 thatId <- bdg.getFwdReferenceAsList(thisObj).asScala) {
+                addBackreference(bdg, thisId, thatId)
+            }
+        }
+
+        def update(newThisObj: Obj): Unit = {
+            val thisClass = newThisObj.getClass
+            assert(isRegistered(thisClass))
+
+            val thisId = getObjectId(newThisObj)
+            val oldThisObj = cachedGet(thisClass, thisId).getOrElse(
+                throw new NotFoundException(thisClass, thisId))
+
+            for (bdg <- allBindings.get(thisClass).asScala) {
+                val oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj).asScala
+                val newThoseIds = bdg.getFwdReferenceAsList(newThisObj).asScala
+
+                for (removedThatId <- oldThoseIds - newThoseIds)
+                    clearBackreference(bdg, thisId, removedThatId)
+                for (addedThatId <- newThoseIds - oldThoseIds)
+                    addBackreference(bdg, thisId, addedThatId)
+            }
+
+            updateCache(thisClass, thisId, newThisObj)
+        }
+
+        def delete(clazz: Class[_], id: ObjId) {
+            assert(isRegistered(clazz))
+            val key = Key(clazz, id)
+            if (objsToDelete.contains(key)) {
+                // The primary purpose of this is to throw up a red flag when
+                // the caller explicitly tries to delete the same object twice
+                // in a single multi() call, but this will throw an exception if
+                // an object is deleted twice via cascading delete. This is
+                // intentional; cascading delete implies an ownership
+                // relationship, and I don't think it makes sense for an object
+                // to have two owners. If you have a legitimate use case, let me
+                // know and I'll figure out a way to support it.
+                throw new NotFoundException(clazz, id)
+            }
+
+            // Remove the object from cache if cached, otherwise load from ZK.
+            val ObjWithVersion(thisObj, thisVersion) =
+                objCache.remove(key).getOrElse(getWithVersion(clazz, id))
+            objsToDelete(key) = thisVersion
 
             for (bdg <- allBindings.get(clazz).asScala
                  if bdg.hasBackReference;
@@ -192,53 +276,87 @@ class ZookeeperObjectMapper(private val basePath: String,
                         throw new ObjectReferencedException(
                             thisObj, bdg.getReferencedClass, thatId)
                     case DeleteAction.CLEAR =>
-                        clearBackReference(bdg, id, thatId)
+                        clearBackreference(bdg, id, thatId)
                     case DeleteAction.CASCADE =>
                         // Breaks if A has bindings with cascading delete to B
                         // and C, and B has a binding to C with ERROR semantics.
                         // This would be complicated to fix and probably isn't
                         // needed, so I'm leaving it as is.
-                        prepareDelete(bdg.getReferencedClass, thatId)
+                        delete(bdg.getReferencedClass, thatId)
                 }
             }
         }
 
         def commit() {
-            var ctf = transaction
-            for ((Key(clazz, id), ObjWithVersion(obj, ver)) <- objCache) {
+            var txn =
+                curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
+
+            val (toCreate, toUpdate) =
+                objCache.toList.partition(_._2.version == NEW_OBJ_VERSION)
+
+            for ((Key(clazz, id), ObjWithVersion(obj, _)) <- toCreate) {
                 val path = getPath(clazz, id)
-                ctf = ctf.setData().withVersion(ver)
+                txn = txn.create().forPath(path, serialize(obj)).and()
+            }
+
+            for ((Key(clazz, id), ObjWithVersion(obj, ver)) <- toUpdate) {
+                val path = getPath(clazz, id)
+                txn = txn.setData().withVersion(ver)
                     .forPath(path, serialize(obj)).and()
             }
 
             for ((Key(clazz, id), ver) <- objsToDelete) {
                 val path = getPath(clazz, id)
-                ctf = ctf.delete().withVersion(ver).forPath(path).and()
+                txn = txn.delete().withVersion(ver).forPath(path).and()
             }
 
-            ctf.commit()
-        }
-    }
-
-    private object TransactionManager {
-        def forCreate(obj: Obj, id: ObjId): TransactionManager = {
-            new TransactionManager(
-                curator.inTransaction().create()
-                    .forPath(getPath(obj.getClass, id), serialize(obj)).and())
-        }
-
-        def forUpdate(obj: Obj, id: ObjId, version: Int): TransactionManager = {
-            new TransactionManager(
-                curator.inTransaction().setData().withVersion(version)
-                    .forPath(getPath(obj.getClass, id), serialize(obj)).and())
+            try txn.commit() catch {
+                case nee: NodeExistsException =>
+                    val key = keyOfFailedCreate(nee, toCreate.map(_._1))
+                    throw new ObjectExistsException(key.clazz, key.id)
+                case rce: ReferenceConflictException => throw rce
+                case ex@(_: BadVersionException | _: NoNodeException) =>
+                    // NoNodeException is assumed to be due to concurrent delete
+                    // operation because we already sucessfully fetched any
+                    // objects that are being updated.
+                    throw new ConcurrentModificationException(ex)
+                case ex: Exception =>
+                    throw new InternalObjectMapperException(ex)
+            }
         }
 
-        def forDelete(clazz: Class[_], id: ObjId,
-                      version: Int): TransactionManager = {
-            val manager = new TransactionManager(
-                curator.inTransaction().asInstanceOf[CuratorTransactionFinal])
-            manager.prepareDelete(clazz, id)
-            manager
+        def releaseLock(): Unit = try {
+            curator.delete().forPath(lockPath)
+        } catch {
+            // Not much we can do. Fortunately, it's ephemeral.
+            case ex: Exception => log.warn(
+                s"Could not delete TransactionManager lock node $lockPath.", ex)
+        }
+
+        /**
+         * Zookeeper likes to play games and doesn't include the path of the
+         * failed create operation in the NodeExistsException. To figure out
+         * which create failed, we need to look at the list of results and find
+         * out which one has a NODEEXISTS error code. The index of that result
+         * in the result list is the index of the failed create operation in the
+         * list of submitted create operations.
+         *
+         * @param nee Exception raised from a ZK transaction that began with one
+         *            or more create operations.
+         *
+         * @param createKeys List of keys corresponding to create operations
+         *                   that were submitted, in the order in which the
+         *                   create operations were submitted.
+         *
+         * @return Key of create operation that triggered the exception.
+         */
+        private def keyOfFailedCreate(nee: NodeExistsException,
+                                      createKeys: List[Key[_]]): Key[_] = {
+            val i = nee.getResults.asScala.indexWhere { res =>
+                val err = res.asInstanceOf[ErrorResult].getErr
+                err == KeeperException.Code.NODEEXISTS.intValue
+            }
+            createKeys(i)
         }
     }
 
@@ -319,89 +437,25 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
-    override def create(obj: Obj) = {
-        val thisClass = obj.getClass
-        assert(isRegistered(thisClass))
-
-        val thisId = getObjectId(obj)
-        val manager = TransactionManager.forCreate(obj, thisId)
-        for (bdg <- allBindings.get(thisClass).asScala;
-             thatId <- bdg.getFwdReferenceAsList(obj).asScala) {
-            manager.addBackreference(bdg, thisId, thatId)
-        }
-
-        try manager.commit() catch {
-            case nee: NodeExistsException =>
-                throw new ObjectExistsException(thisClass, thisId)
-            case rce: ReferenceConflictException => throw rce
-            case ex @ (_: BadVersionException | _: NoNodeException) =>
-                // NoNodeException is assumed to be due to concurrent delete
-                // operation because we already sucessfully fetched any objects
-                // that are being updated.
-                throw new ConcurrentModificationException(ex)
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
-    }
+    override def create(obj: Obj) = multi(List(ZoomCreateOp(obj)))
 
     /**
      * Updates the specified object in Zookeeper.
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
-    override def update(newThisObj: Obj) {
-        val thisClass = newThisObj.getClass
-        assert(isRegistered(thisClass))
-
-        val thisId = getObjectId(newThisObj)
-        val ObjWithVersion(oldThisObj, thisVersion) =
-            getWithVersion(thisClass, thisId)
-
-        val manager =
-            TransactionManager.forUpdate(newThisObj, thisId, thisVersion)
-        for (bdg <- allBindings.get(thisClass).asScala) {
-            val oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj).asScala
-            val newThoseIds = bdg.getFwdReferenceAsList(newThisObj).asScala
-
-            for (removedThatId <- oldThoseIds - newThoseIds) {
-                manager.clearBackReference(bdg, thisId, removedThatId)
-            }
-            for (addedThatId <- newThoseIds - oldThoseIds) {
-                manager.addBackreference(bdg, thisId, addedThatId)
-            }
-        }
-
-        try manager.commit() catch {
-            case ex @ (_: BadVersionException | _: NoNodeException) =>
-                // NoNodeException is assumed to be due to concurrent delete
-                // operation because we already successfully fetched any objects
-                // that are being updated.
-                throw new ConcurrentModificationException(ex)
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
-    }
+    override def update(obj: Obj) = multi(List(ZoomUpdateOp(obj)))
 
     /**
      * Deletes the specified object from Zookeeper.
      */
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
-    override def delete(clazz: Class[_], id: ObjId): Unit = {
-        assert(isRegistered(clazz))
-        val ObjWithVersion(_, version) = getWithVersion(clazz, id)
-
-        val manager = TransactionManager.forDelete(clazz, id, version)
-        try manager.commit() catch {
-            case ex @ (_: BadVersionException | _: NoNodeException) =>
-                // NoStatePathException is assumed to be due to concurrent
-                // delete operation because we already sucessfully fetched any
-                // objects that are being updated.
-                throw new ConcurrentModificationException(ex)
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
-    }
+    override def delete(clazz: Class[_], id: ObjId) =
+        multi(List(ZoomDeleteOp(clazz, id)))
 
     /**
-     * Gets the specified instance of the specified class.
+     * Gets the specified instance of the specified class from Zookeeper.
      */
     @throws[NotFoundException]
     override def get[T](clazz: Class[T], id: ObjId): T = {
@@ -415,7 +469,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     }
 
     /**
-     * Gets all instances of the specified class.
+     * Gets all instances of the specified class from Zookeeper.
      */
     override def getAll[T](clazz: Class[T]): List[T] = {
         assert(isRegistered(clazz))
@@ -431,21 +485,11 @@ class ZookeeperObjectMapper(private val basePath: String,
             try ts += get(clazz, id) catch {
                 case nne: NotFoundException =>
                     // Must have been deleted since fetching IDs. Ignore.
+                case ex: Exception =>
+                    throw new InternalObjectMapperException(ex)
             }
         }
         ts.toList
-    }
-
-    private def getWithVersion[T](clazz: Class[T],
-                                  id: ObjId): ObjWithVersion[T] = {
-        val stat = new Stat()
-        val path = getPath(clazz, id)
-        val data = try curator.getData.storingStatIn(stat).forPath(path) catch {
-            case nne: NoNodeException => throw new NotFoundException(clazz, id)
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
-
-        ObjWithVersion(deserialize(data, clazz), stat.getVersion)
     }
 
     /**
@@ -458,6 +502,35 @@ class ZookeeperObjectMapper(private val basePath: String,
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
+
+    /**
+     * Executes multiple create, update, and/or delete operations atomically.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    def multi(ops: Seq[ZoomOp]): Unit = {
+        if (ops.isEmpty) return
+
+        val manager = new TransactionManager
+        ops.foreach {
+            case ZoomCreateOp(obj) => manager.create(obj)
+            case ZoomUpdateOp(obj) => manager.update(obj)
+            case ZoomDeleteOp(clazz, id) => manager.delete(clazz, id)
+        }
+
+        try manager.commit() finally { manager.releaseLock() }
+    }
+
+    /**
+     * Executes multiple create, update, and/or delete operations atomically.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    def multi(ops: JList[ZoomOp]): Unit = multi(ops.asScala)
 
     private[storage] def getPath(clazz: Class[_]) =
         basePath + "/" + clazz.getSimpleName
@@ -561,6 +634,9 @@ class ZookeeperObjectMapper(private val basePath: String,
 }
 
 object ZookeeperObjectMapper {
+    private case class Key[T](clazz: Class[T], id: ObjId)
+    private case class ObjWithVersion[T](obj: T, version: Int)
+
     protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
@@ -619,6 +695,12 @@ object ZookeeperObjectMapper {
         t
     }
 }
+
+// Op classes for ZookeeperObjectMapper.multi
+sealed trait ZoomOp
+case class ZoomCreateOp(obj: Obj) extends ZoomOp
+case class ZoomUpdateOp(obj: Obj) extends ZoomOp
+case class ZoomDeleteOp(clazz: Class[_], id: ObjId) extends ZoomOp
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the

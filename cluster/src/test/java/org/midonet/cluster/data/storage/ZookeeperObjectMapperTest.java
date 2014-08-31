@@ -50,11 +50,15 @@ public class ZookeeperObjectMapperTest {
 
         PojoBridge() {}
 
-        PojoBridge(String name, UUID inChainId, UUID outChainId) {
-            this.id = UUID.randomUUID();
+        PojoBridge(UUID id, String name, UUID inChainId, UUID outChainId) {
+            this.id = id;
             this.name = name;
             this.inChainId = inChainId;
             this.outChainId = outChainId;
+        }
+
+        PojoBridge(String name, UUID inChainId, UUID outChainId) {
+            this(UUID.randomUUID(), name, inChainId, outChainId);
         }
     }
 
@@ -67,11 +71,15 @@ public class ZookeeperObjectMapperTest {
 
         PojoRouter() {}
 
-        PojoRouter(String name, UUID inChainId, UUID outChainId) {
-            this.id = UUID.randomUUID();
+        PojoRouter(UUID id, String name, UUID inChainId, UUID outChainId) {
+            this.id = id;
             this.name = name;
             this.inChainId = inChainId;
             this.outChainId = outChainId;
+        }
+
+        PojoRouter(String name, UUID inChainId, UUID outChainId) {
+            this(UUID.randomUUID(), name, inChainId, outChainId);
         }
     }
 
@@ -173,6 +181,7 @@ public class ZookeeperObjectMapperTest {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFramework client =
             CuratorFrameworkFactory.newClient(zkConnectionString, retryPolicy);
+        client.start();
         zom = new ZookeeperObjectMapper(zkRootDir, client);
 
         // Clear ZK data from last test.
