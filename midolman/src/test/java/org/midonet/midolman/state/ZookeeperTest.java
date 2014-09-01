@@ -47,6 +47,11 @@ public abstract class ZookeeperTest {
                         Arrays.asList(
                             new HierarchicalConfiguration.Node(
                                 "midolman_root_key", zkRoot)));
+        config.addNodes(ZookeeperConfig.GROUP_NAME,
+                        Arrays.asList(
+                            new HierarchicalConfiguration.Node(
+                                "zookeeper_hosts", "127.0.0.1:" + ZK_PORT)));
+
         return config;
     }
 
@@ -84,12 +89,16 @@ public abstract class ZookeeperTest {
 
     @BeforeClass
     public static void classSetUp() throws Exception {
-        server = new TestingServer(ZK_PORT);
-    }
-
-    @AfterClass
-    public static void classTearDown() throws Exception {
-        server.close();
+        // Start once for all the Neutron tests that rely on Curator test
+        // server.  This is certainly undesirable since multiple test classes
+        // will end up sharing one test ZK server.  However, each test is
+        // performed under a different root directory.  Also, this is
+        // temporary.  Once ZkConnection is replaced by Curator, we can remove
+        // this check, and stop/start the server on class teardown/setup.
+        // TODO(RYU): Remove this check when Curator is fully integrated
+        if (server == null) {
+            server = new TestingServer(ZK_PORT);
+        }
     }
 
     @Before
