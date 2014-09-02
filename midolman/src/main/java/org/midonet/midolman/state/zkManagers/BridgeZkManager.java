@@ -22,6 +22,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -329,7 +330,13 @@ public class BridgeZkManager
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
         // Delete this bridge's port-set
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
+        try {
+            ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
+        } catch (NoStatePathException ex) {
+            // It's possible that port sets are already gone.  So it's ok if
+            // we NoStatePath exception here.
+            log.warn("Port set was already gone for bridge {}", id);
+        }
 
         // Delete the bridge
         ops.add(Op.delete(paths.getBridgePath(id), -1));
