@@ -255,6 +255,13 @@ public class L3ZkManager extends BaseZkManager {
             throws StateAccessException, SerializationException {
 
         Subnet subnet = networkZkManager.getSubnet(dhcpPort.firstSubnetId());
+        if (subnet == null) {
+            // This could happen if subnet was deleted
+            log.warn("Attempted to add metatdata route for a non-existent"
+                     + "subnet with port {}", dhcpPort.id);
+            return;
+        }
+
         // no need to add the metadata service route if there is no gateway
         // associated with the subnet.
         if (subnet.gatewayIpAddr() != null) {
