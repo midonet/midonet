@@ -29,6 +29,7 @@ import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.utils.Status;
 import org.opendaylight.controller.sal.utils.StatusCode;
+import org.opendaylight.ovsdb.lib.message.NodeUpdateNotification;
 import org.opendaylight.ovsdb.lib.notation.OvsDBMap;
 import org.opendaylight.ovsdb.lib.notation.OvsDBSet;
 import org.opendaylight.ovsdb.lib.notation.UUID;
@@ -125,7 +126,8 @@ public class VtepDataClientImplTest {
         PublishSubject.create();
     private final PublishSubject<Connection> disconnectObservable =
         PublishSubject.create();
-
+    private final PublishSubject<NodeUpdateNotification> updatesObservable =
+        PublishSubject.create();
 
     private VtepDataClientFactory provider;
 
@@ -163,10 +165,12 @@ public class VtepDataClientImplTest {
         // Basic expectations in all connections
         new Expectations() {{
             // Observables setup
-            cnxnSrv.connectedObservable(); times = 1; result =
-                connectObservable;
-            cnxnSrv.disconnectedObservable(); times = 1; result =
-                disconnectObservable;
+            cnxnSrv.connectedObservable(); times = 1;
+            result = connectObservable;
+            cnxnSrv.disconnectedObservable(); times = 1;
+            result = disconnectObservable;
+            cnxnSrv.updatesObservable(); times = 1;
+            result = updatesObservable;
             // Connect
             cnxnSrv.connect(anyString, params); times = 1; result = node;
             // On connect
