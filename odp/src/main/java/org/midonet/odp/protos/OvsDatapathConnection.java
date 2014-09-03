@@ -22,6 +22,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.SettableFuture;
+import org.midonet.odp.ports.NetDevPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -727,7 +728,21 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
                                               Callback<Boolean> callback,
                                               long timeoutMillis);
 
-
+    /**
+     * Callback based api for adding an interface to the datapath.
+     *
+     * @param datapath      the datapath to which an interface is added.
+     * @param interfaceName the name of the interface to be added.
+     * @param callback      the callback which will receive the added dp-port.
+     * @param timeoutMills  the timeout until the operation should complete
+     */
+    public void addInterface(@Nonnull final Datapath datapath,
+                             @Nonnull final String interfaceName,
+                             final Callback<DpPort> callback,
+                             long timeoutMills) {
+        DpPort boundPort = new NetDevPort(interfaceName);
+        _doPortsCreate(datapath, boundPort, callback, timeoutMills);
+    }
 
     public class FuturesApi {
 
@@ -994,6 +1009,17 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
             OvsDatapathConnection.this.packetsExecute(
                 datapath, packet, actions, wrapFuture(resultFuture));
             return resultFuture;
+        }
+
+        public Future<DpPort> addInterface(
+                @Nonnull final Datapath datapath,
+                @Nonnull final String interfaceName) {
+            SettableFuture<DpPort> addInterfaceFuture =
+                    SettableFuture.create();
+            OvsDatapathConnection.this.addInterface(
+                    datapath, interfaceName, wrapFuture(addInterfaceFuture),
+                    DEF_REPLY_TIMEOUT);
+            return addInterfaceFuture;
         }
     }
 
