@@ -4,9 +4,13 @@
 
 package org.midonet.cluster.data.l4lb;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
@@ -14,11 +18,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -29,23 +33,19 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
-import org.midonet.midolman.state.zkManagers.PoolZkManager;
-import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
-import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig;
+import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
+import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.version.guice.VersionModule;
-
-import java.util.Arrays;
-import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

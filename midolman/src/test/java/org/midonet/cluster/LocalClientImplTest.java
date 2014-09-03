@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster;
@@ -27,7 +27,7 @@ import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;

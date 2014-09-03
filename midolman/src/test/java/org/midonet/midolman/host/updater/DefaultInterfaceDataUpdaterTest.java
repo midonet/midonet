@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Midokura Europe SARL
+ * Copyright (c) 2011-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.host.updater;
 
@@ -11,6 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.collection.JavaConversions;
+
+import akka.actor.Actor;
+import akka.testkit.TestActorRef;
+import akka.testkit.TestKit;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.yammer.metrics.core.Clock;
@@ -21,7 +27,7 @@ import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
@@ -44,9 +50,6 @@ import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
 
-import akka.actor.Actor;
-import akka.testkit.TestActorRef;
-import akka.testkit.TestKit;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
@@ -54,7 +57,6 @@ import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
-import scala.collection.JavaConversions;
 
 
 public class DefaultInterfaceDataUpdaterTest {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.zookeeper;
 
@@ -9,8 +9,8 @@ import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
 
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.state.Directory;
