@@ -1,7 +1,7 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
-package org.midonet.midolman.config;
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ */
+package org.midonet.cluster.config;
 
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
@@ -10,9 +10,6 @@ import org.midonet.config.ConfigString;
 
 /**
  * Cassandra configuration interface.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 6/14/12
  */
 @ConfigGroup(CassandraConfig.GROUP_NAME)
 public interface CassandraConfig {

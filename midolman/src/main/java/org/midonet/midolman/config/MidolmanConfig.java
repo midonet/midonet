@@ -1,8 +1,10 @@
 /*
-* Copyright 2012 Midokura Europe SARL
-*/
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.midolman.config;
 
+import org.midonet.cluster.config.CassandraConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;

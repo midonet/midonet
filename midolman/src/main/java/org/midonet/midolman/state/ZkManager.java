@@ -12,11 +12,12 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
-import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NoNodeException;
+import org.apache.zookeeper.KeeperException.NodeExistsException;
 import org.apache.zookeeper.KeeperException.NotEmptyException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.OpResult;
@@ -25,7 +26,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -55,7 +56,7 @@ public class ZkManager {
      */
     @Inject
     public ZkManager(Directory zk, ZookeeperConfig config) {
-        this(zk, (config == null) ? null : config.getMidolmanRootKey());
+        this(zk, (config == null) ? null : config.getZkRootPath());
     }
 
     public ZkManager(Directory zk, String basePath) {

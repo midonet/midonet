@@ -1,24 +1,25 @@
 /*
- * Copyright 2012 Midokura Pte. Ltd.
+ * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.midolman.state;
-
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.midonet.event.agent.NsdbEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.midonet.midolman.config.ZookeeperConfig;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.event.agent.NsdbEvent;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 
@@ -57,18 +58,18 @@ public class ZookeeperConnectionWatcher implements ZkConnectionAwareWatcher {
         if (event.getState() == Watcher.Event.KeeperState.Disconnected) {
             log.warn("KeeperState is Disconnected, will shutdown in {} " +
                 "milliseconds if the connection is not restored.",
-                config.getZooKeeperGraceTime());
+                config.getZkGraceTime());
             nsdbEvent.disconnect();
 
             disconnectHandle = reactorLoop.schedule(new Runnable() {
                 @Override
                 public void run() {
                     log.error("have been disconnected for {} milliseconds, " +
-                              "so exiting", config.getZooKeeperGraceTime());
+                              "so exiting", config.getZkGraceTime());
                     nsdbEvent.connExpire();
                     System.exit(7453);
                 }
-            }, config.getZooKeeperGraceTime(), TimeUnit.MILLISECONDS);
+            }, config.getZkGraceTime(), TimeUnit.MILLISECONDS);
             submitDisconnectCallbacks();
         }
 

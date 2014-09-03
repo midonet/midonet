@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura PTE LTD.
+ * Copyright 2014 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster.data.neutron;
@@ -24,13 +24,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.midolman.Setup;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.TestDataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;

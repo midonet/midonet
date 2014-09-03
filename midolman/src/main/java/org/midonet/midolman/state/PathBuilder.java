@@ -1,6 +1,5 @@
 /*
- * Copyright 2011 Midokura KK
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2011-2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 
@@ -8,7 +7,7 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
-import org.midonet.midolman.config.ZookeeperConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.packets.IPv4Addr;
 
 /**
@@ -28,7 +27,7 @@ public class PathBuilder extends ZkPathManager {
 
     @Inject
     public PathBuilder(ZookeeperConfig config) {
-        this(config.getMidolmanRootKey());
+        this(config.getZkRootPath());
     }
 
     public PathBuilder(String rootKey) {

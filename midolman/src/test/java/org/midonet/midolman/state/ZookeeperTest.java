@@ -13,15 +13,13 @@ import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
