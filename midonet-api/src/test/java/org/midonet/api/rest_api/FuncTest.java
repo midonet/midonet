@@ -4,28 +4,31 @@
  */
 package org.midonet.api.rest_api;
 
+import java.net.URI;
+import java.util.UUID;
+
 import com.google.inject.servlet.GuiceFilter;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.midonet.api.auth.AuthConfig;
-import org.midonet.api.auth.cors.CorsConfig;
-import org.midonet.api.serialization.ObjectMapperProvider;
-import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
-import org.midonet.api.servlet.JerseyGuiceServletContextListener;
-import org.midonet.api.version.VersionParser;
-import org.midonet.api.zookeeper.ExtendedZookeeperConfig;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 
-import java.net.URI;
-import java.util.UUID;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import org.midonet.api.auth.AuthConfig;
+import org.midonet.api.auth.cors.CorsConfig;
+import org.midonet.api.serialization.ObjectMapperProvider;
+import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.api.version.VersionParser;
+import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.cluster.config.ZookeeperConfig;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
+    private static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     public final static String BASE_URI_CONFIG = "rest_api-base_uri";
     public final static String CONTEXT_PATH = "/test";
@@ -42,7 +45,7 @@ public class FuncTest {
 
     public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
-    public static final WebAppDescriptor.Builder getBuilder() {
+    public static WebAppDescriptor.Builder getBuilder() {
 
         VersionParser parser = new VersionParser();
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
@@ -50,34 +53,36 @@ public class FuncTest {
                 mapperProvider, parser);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
+
+        UUID testRunUuid = UUID.randomUUID();
+
         return new WebAppDescriptor.Builder()
-                .contextListenerClass(JerseyGuiceServletContextListener.class)
+                .contextListenerClass(JerseyGuiceTestServletContextListener.class)
                 .filterClass(GuiceFilter.class)
                 .servletPath("/")
-                .contextParam(
-                        getConfigKey(CorsConfig.GROUP_NAME,
-                                CorsConfig.ALLOW_ORIGIN_KEY), "*")
-                .contextParam(
-                        getConfigKey(CorsConfig.GROUP_NAME,
-                                CorsConfig.ALLOW_HEADERS_KEY),
-                        "Origin, X-Auth-Token, Content-Type, Accept")
-                .contextParam(
-                        getConfigKey(CorsConfig.GROUP_NAME,
-                                CorsConfig.ALLOW_METHODS_KEY),
-                        "GET, POST, PUT, DELETE, OPTIONS")
-                .contextParam(
-                        getConfigKey(CorsConfig.GROUP_NAME,
-                                CorsConfig.EXPOSE_HEADERS_KEY), "Location")
-                .contextParam(
-                        getConfigKey(AuthConfig.GROUP_NAME,
-                                AuthConfig.AUTH_PROVIDER),
-                        "org.midonet.api.auth.MockAuthService")
-                .contextParam(
-                        getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
-                                ExtendedZookeeperConfig.USE_MOCK_KEY), "true")
-                .contextParam(
-                        getConfigKey(ExtendedZookeeperConfig.GROUP_NAME,
-                                "midolman_root_key"), ZK_ROOT_MIDOLMAN)
+                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
+                                           CorsConfig.ALLOW_ORIGIN_KEY), "*")
+                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
+                                           CorsConfig.ALLOW_HEADERS_KEY),
+                              "Origin, X-Auth-Token, Content-Type, Accept")
+                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
+                                           CorsConfig.ALLOW_METHODS_KEY),
+                              "GET, POST, PUT, DELETE, OPTIONS")
+                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
+                                           CorsConfig.EXPOSE_HEADERS_KEY),
+                              "Location")
+                .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
+                                           AuthConfig.AUTH_PROVIDER),
+                              "org.midonet.api.auth.MockAuthService")
+                .contextParam(getConfigKey(ZookeeperConfig.DEFAULT_HOSTS,
+                                           "zookeeper_hosts"),
+                                           "127.0.0.1:2181")
+                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
+                                           "midolman_root_key"),
+                              ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID())
+                .contextParam(getConfigKey(MidoBrainConfig.GROUP_NAME,
+                                           "properties_file"),
+                              "/tmp/" + testRunUuid + "_host_uuid.properties")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 

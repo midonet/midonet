@@ -106,8 +106,8 @@ public class VxLanGatewayService extends AbstractService {
         try {
             HostIdGenerator.writeHostId(serviceId, config);
         } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
-            log.error("The VXLAN gateway service cannot write to the "
-                      + "configuration file.", e);
+            log.warn("The VXLAN gateway service cannot write to the " +
+                      "configuration file; will continue anyway.", e);
         }
     }
 

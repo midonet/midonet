@@ -13,17 +13,11 @@ import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.type.JavaType;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -31,12 +25,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import org.midonet.api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.VendorMediaType;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -46,16 +39,10 @@ import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -115,7 +102,7 @@ public class TestRouter {
                                                    String tenantId,
                                                    int startTagNum,
                                                    int endTagNum) {
-            List<DtoRouter> routers = new ArrayList<DtoRouter>();
+            List<DtoRouter> routers = new ArrayList<>();
 
             for (int i = startTagNum; i <= endTagNum; i++) {
                 String tag = Integer.toString(i) + tenantId;
@@ -141,11 +128,6 @@ public class TestRouter {
             addActualRouters(builder, "tenant1", 5);
 
             topology = builder.build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -200,73 +182,19 @@ public class TestRouter {
 
         private DtoWebResource dtoResource;
         private Topology topology;
-        private Directory dir;
-        private Injector injector = null;
-
-        public class TestModule extends AbstractModule {
-
-            private final String basePath;
-
-            public TestModule(String basePath) {
-                this.basePath = basePath;
-            }
-
-            @Override
-            protected void configure() {
-                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            }
-
-            @Provides @Singleton
-            public Directory provideDirectory() {
-                Directory directory
-                        = StaticMockDirectory.getDirectoryInstance();
-                return directory;
-            }
-
-            @Provides @Singleton
-            public ZkManager provideZkManager(Directory directory) {
-                return new ZkManager(directory, basePath);
-            }
-
-            @Provides @Singleton
-            public RouterZkManager provideRouterZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new RouterZkManager(zkManager, paths, serializer);
-            }
-
-            @Provides @Singleton
-            public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new HostZkManager(zkManager, paths, serializer);
-            }
-
-            @Provides @Singleton
-            public FiltersZkManager provideFilterZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new FiltersZkManager(zkManager, paths, serializer);
-            }
-        }
 
         public TestRouterCrud() {
             super(FuncTest.appDesc);
         }
 
         private Map<String, String> getTenantQueryParams(String tenantId) {
-            Map<String, String> queryParams = new HashMap<String, String>();
+            Map<String, String> queryParams = new HashMap<>();
             queryParams.put("tenant_id", tenantId);
             return queryParams;
         }
 
         @Before
         public void setUp() throws KeeperException, InterruptedException {
-            String basePath = "/test/midolman";
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(basePath));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
@@ -291,18 +219,13 @@ public class TestRouter {
                     .create("loadBalancer2", loadBalancer2).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         private DtoRouter createRouter(
                 String name, String tenant, boolean withChains,
                 boolean withLoadBalancer, int routerVersion) {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
-            DtoLoadBalancer loadBalancer1 = topology.getLoadBalancer("loadBalancer1");
+            DtoLoadBalancer lb1 = topology.getLoadBalancer("loadBalancer1");
 
             String routerMediaType = APPLICATION_ROUTER_JSON;
             if(routerVersion == 2){
@@ -318,7 +241,7 @@ public class TestRouter {
             }
 
             if(withLoadBalancer) {
-                router.setLoadBalancerId(loadBalancer1.getId());
+                router.setLoadBalancerId(lb1.getId());
             }
 
             DtoRouter resRouter = dtoResource.postAndVerifyCreated(
@@ -401,7 +324,8 @@ public class TestRouter {
                     APPLICATION_ROUTER_COLLECTION_JSON, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
-            assertEquals(resRouter.getLoadBalancerId(), routers[0].getLoadBalancerId());
+            assertEquals(resRouter.getLoadBalancerId(),
+                         routers[0].getLoadBalancerId());
 
             // Update the router: change name, admin state, and swap filters.
             resRouter.setName("router1-modified");
@@ -440,8 +364,8 @@ public class TestRouter {
             DtoApplication app = topology.getApplication();
             DtoRuleChain chain1 = topology.getChain("chain1");
             DtoRuleChain chain2 = topology.getChain("chain2");
-            DtoLoadBalancer loadBalancer1 = topology.getLoadBalancer("loadBalancer1");
-            DtoLoadBalancer loadBalancer2 = topology.getLoadBalancer("loadBalancer2");
+            DtoLoadBalancer lb1 = topology.getLoadBalancer("loadBalancer1");
+            DtoLoadBalancer lb2 = topology.getLoadBalancer("loadBalancer2");
 
             assertNotNull(app.getRouters());
             DtoRouter[] routers = dtoResource.getAndVerifyOk(app.getRouters(),
@@ -457,14 +381,15 @@ public class TestRouter {
                     APPLICATION_ROUTER_COLLECTION_JSON_V2, DtoRouter[].class);
             assertEquals(1, routers.length);
             assertEquals(resRouter.getId(), routers[0].getId());
-            assertEquals(resRouter.getLoadBalancerId(), routers[0].getLoadBalancerId());
+            assertEquals(resRouter.getLoadBalancerId(),
+                         routers[0].getLoadBalancerId());
 
             // Update the router: change name, admin state, and swap filters.
             resRouter.setName("router1-modified");
             resRouter.setAdminStateUp(false);
             resRouter.setInboundFilterId(chain2.getId());
             resRouter.setOutboundFilterId(chain1.getId());
-            resRouter.setLoadBalancerId(loadBalancer2.getId());
+            resRouter.setLoadBalancerId(lb2.getId());
             DtoRouter updatedRouter = dtoResource.putAndVerifyNoContent(
                     resRouter.getUri(), APPLICATION_ROUTER_JSON_V2, resRouter,
                     DtoRouter.class);
@@ -501,8 +426,8 @@ public class TestRouter {
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);
             // Add an ARP entry in this router's ARP cache.
-            RouterZkManager routerMgr
-                    = injector.getInstance(RouterZkManager.class);
+            RouterZkManager routerMgr = JerseyGuiceTestServletContextListener
+                .getRouterZkManager();
             ArpTable arpTable =
                 new ArpTable(routerMgr.getArpTableDirectory(resRouter.getId()));
             arpTable.put(IPv4Addr.fromString("10.0.0.3"),
@@ -518,8 +443,8 @@ public class TestRouter {
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);
             // Reserve a SNAT block in this router.
-            FiltersZkManager filtersMgr
-                    = injector.getInstance(FiltersZkManager.class);
+            FiltersZkManager filtersMgr = JerseyGuiceTestServletContextListener
+                .getFiltersZkManager();
             filtersMgr.addSnatReservation(resRouter.getId(),
                                  new IPv4Addr(0x0a000001), 100);
             dtoResource.deleteAndVerifyNoContent(
@@ -594,15 +519,10 @@ public class TestRouter {
                     .create("router1", r).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null name
             DtoRouter nullNameRouter = new DtoRouter();
@@ -636,7 +556,8 @@ public class TestRouter {
         private DtoWebResource dtoResource;
         private Topology topology;
 
-        public TestUpdateRouterBadRequest(DtoRouter testRouter, String property) {
+        public TestUpdateRouterBadRequest(DtoRouter testRouter,
+                                          String property) {
             super(FuncTest.appDesc);
             this.testRouter = testRouter;
             this.property = property;
@@ -657,15 +578,10 @@ public class TestRouter {
                     .create("router1", r1).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null name
             DtoRouter nullNameRouter = new DtoRouter();

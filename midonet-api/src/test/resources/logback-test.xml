@@ -15,6 +15,9 @@
         </encoder>
     </appender>
 
+    <!-- Avoid TestingServer spam -->
+    <logger name="org.apache.zookeeper" level="INFO" />
+
     <root level="debug">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />

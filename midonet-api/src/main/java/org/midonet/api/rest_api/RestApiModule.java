@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.rest_api;
 
@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.license.LicenseManager;
 import org.midonet.api.license.LicenseService;
-import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
 
 /**
@@ -31,7 +31,8 @@ public class RestApiModule extends AbstractModule {
         requireBinding(ConfigProvider.class);
 
         bind(WebApplicationExceptionMapper.class).asEagerSingleton();
-        bind(VtepMockableDataClientFactory.class).asEagerSingleton();
+
+        bindVtepDataClientFactory(); // allow mocking
 
         bind(ApplicationResource.class);
         install(new FactoryModuleBuilder().build(ResourceFactory.class));
@@ -42,6 +43,10 @@ public class RestApiModule extends AbstractModule {
         bind(VxLanGatewayService.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
+    }
+
+    protected void bindVtepDataClientFactory() {
+        bind(VtepDataClientFactory.class).asEagerSingleton();
     }
 
     @Provides

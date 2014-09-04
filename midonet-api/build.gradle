@@ -37,7 +37,7 @@ dependencies {
 
     testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly,
-                libraries.jersey_test_core
+                libraries.jersey_test_core, libraries.curator_test
 }
 
 distributions {

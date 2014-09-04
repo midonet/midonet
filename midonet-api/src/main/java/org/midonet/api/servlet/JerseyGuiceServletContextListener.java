@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.servlet;
 
@@ -26,7 +26,7 @@ public class JerseyGuiceServletContextListener extends
         GuiceServletContextListener {
 
     private final static Logger log = LoggerFactory
-            .getLogger(JerseyGuiceServletContextListener.class);
+        .getLogger(JerseyGuiceServletContextListener.class);
 
     protected ServletContext servletContext;
     protected Injector injector;

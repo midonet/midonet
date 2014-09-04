@@ -12,54 +12,63 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.ws.rs.core.Response;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoHostInterfacePort;
+import org.midonet.client.dto.DtoInterface;
+import org.midonet.client.dto.DtoLink;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoPortGroupPort;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestPort {
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     public static DtoRouterPort createRouterPort(
         UUID id, UUID deviceId, String networkAddr, int networkLen,
@@ -202,12 +211,7 @@ public class TestPort {
             r.setTenantId("tenant1-id");
 
             topology = new Topology.Builder(dtoResource)
-                    .create("router1", r).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
+                                   .create("router1", r).build();
         }
 
         @Parameters
@@ -479,10 +483,6 @@ public class TestPort {
                     APPLICATION_PORT_V2_JSON, port, 404);
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
     }
 
     public static class TestBridgePortCrudSuccess extends JerseyTest {
@@ -529,11 +529,6 @@ public class TestPort {
                     .create("bridge1", b)
                     .create("portGroup1", pg1)
                     .create("portGroup2", pg2).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -717,11 +712,6 @@ public class TestPort {
                     .create("router1", r)
                     .create("portGroup1", pg1)
                     .create("portGroup2", pg2).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -985,11 +975,6 @@ public class TestPort {
                 .build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Test
         public void testLinkUnlink() {
 
@@ -1127,11 +1112,6 @@ public class TestPort {
                     .create("bridge1", "port1", port1).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Test
         public void testUpdate() throws Exception {
 
@@ -1245,13 +1225,12 @@ public class TestPort {
         private HostTopology hostTopology;
         private HostZkManager hostManager;
         private MidonetApi api;
-        private Injector injector = null;
 
         private DtoRouter router1;
         private DtoBridge bridge1;
         private DtoRouterPort port1;
         private DtoBridgePort port2;
-        private DtoHost host1, host2, host3;
+        private DtoHost host1, host2;
         private DtoInterface interface1, interface2;
         private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2;
 
@@ -1262,38 +1241,6 @@ public class TestPort {
             super(FuncTest.appDesc);
         }
 
-        public class TestModule extends AbstractModule {
-
-            private final String basePath;
-
-            public TestModule(String basePath) {
-                this.basePath = basePath;
-            }
-
-            @Override
-            protected void configure() {
-                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            }
-
-            @Provides
-            @Singleton
-            public Directory provideDirectory() {
-                return StaticMockDirectory.getDirectoryInstance();
-            }
-
-            @Provides @Singleton
-            public ZkManager provideZkManager(Directory directory) {
-                return new ZkManager(directory, basePath);
-            }
-
-            @Provides @Singleton
-            public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new HostZkManager(zkManager, paths, serializer);
-            }
-        }
-
         /**
          * Set up the logical network topology and the host topology.
          *
@@ -1302,13 +1249,10 @@ public class TestPort {
         @Before
         @Override
         public void setUp() throws Exception {
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            hostManager = injector.getInstance(HostZkManager.class);
+            hostManager = JerseyGuiceTestServletContextListener
+                          .getHostZkManager();
 
             // Creating the topology for the exterior **router** port and the
             // interface.
@@ -1357,7 +1301,7 @@ public class TestPort {
                                                  new byte[]{10, 10, 10, 2})
                                          });
             // Create a host that contains an interface bound to the bridge port.
-            host3 = createHost(UUID.randomUUID(), "host3", true, null);
+            createHost(UUID.randomUUID(), "host3", true, null);
             port1 = topology.getRouterPort("port1");
             port2 = topology.getBridgePort("port2");
 
@@ -1380,7 +1324,7 @@ public class TestPort {
             // Create a host-interface-port binding finally.
             hostInterfacePort2 = createHostInterfacePort(
                     host2.getId(), interface2.getName(), port2.getId());
-            hostTopology = new HostTopology.Builder(dtoResource, hostManager)
+            hostTopology = new HostTopology.Builder(dtoResource)
                     .create("tz1", tunnelZone)
                     .create(host1.getId(), host1)
                     .create("tz1", tzh1.getHostId(), tzh1)
@@ -1398,17 +1342,6 @@ public class TestPort {
         }
 
         /**
-         * Teardown method to clean up the mock directory at the end of tests
-         * defined in this class.
-         *
-         * @throws Exception
-         */
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
-        /**
          * Test that the router's port has the appropriate host-interface-port
          * binding.
          *
@@ -1417,7 +1350,7 @@ public class TestPort {
         @Test
         public void testGetRouterPortHostInterfaceSuccess() throws Exception {
             Map<UUID, DtoRouterPort> portMap =
-                    new HashMap<UUID, DtoRouterPort>();
+                    new HashMap<>();
 
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouterPort[] routerPorts = dtoResource.getAndVerifyOk(
@@ -1464,7 +1397,7 @@ public class TestPort {
         @Test
         public void testGetBridgePortHostInterfaceSuccess() throws Exception {
             Map<UUID, DtoBridgePort> portMap =
-                    new HashMap<UUID, DtoBridgePort>();
+                    new HashMap<>();
 
             DtoBridge bridge1 = topology.getBridge("bridge1");
             DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(

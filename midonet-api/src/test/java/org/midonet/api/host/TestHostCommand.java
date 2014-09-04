@@ -7,57 +7,46 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
+
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.StateAccessException;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostCommand;
 import org.midonet.client.dto.DtoInterface;
-import org.midonet.client.VendorMediaType;
-import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * Test cases to validate the update/create interface functionality of the
  * Interface management REST api.
- *
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 2/20/12
  */
 public class TestHostCommand extends JerseyTest {
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
-
     private HostZkManager hostManager;
     private ClientResponse response;
-    private Injector injector;
 
     private DtoHost dtoHost;
     private URI baseUri;
@@ -72,39 +61,6 @@ public class TestHostCommand extends JerseyTest {
 
     }
 
-    public class TestModule extends AbstractModule {
-
-        private final String basePath;
-
-        public TestModule(String basePath) {
-            this.basePath = basePath;
-        }
-
-        @Override
-        protected void configure() {
-            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-        }
-
-        @Provides
-        @Singleton
-        public Directory provideDirectory() {
-            Directory directory = StaticMockDirectory.getDirectoryInstance();
-            return directory;
-        }
-
-        @Provides @Singleton
-        public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory, basePath);
-        }
-
-        @Provides @Singleton
-        public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                  PathBuilder paths,
-                                                  Serializer serializer) {
-            return new HostZkManager(zkManager, paths, serializer);
-        }
-    }
-
     // This one also tests Create with given tenant ID string
     @Before
     public void before() throws KeeperException,
@@ -116,13 +72,8 @@ public class TestHostCommand extends JerseyTest {
             .get(DtoApplication.class);
 
 
-        injector = Guice.createInjector(
-                new VersionModule(),
-                new SerializationModule(),
-                new TestModule(ZK_ROOT_MIDOLMAN));
-
         baseUri = application.getUri();
-        hostManager = injector.getInstance(HostZkManager.class);
+        hostManager = JerseyGuiceTestServletContextListener.getHostZkManager();
 
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("testHost");
@@ -152,11 +103,6 @@ public class TestHostCommand extends JerseyTest {
         DtoInterface[] interfaces = interfacesResponse.getEntity(
                 DtoInterface[].class);
         assertThat("There was no interface returned", interfaces, emptyArray());
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

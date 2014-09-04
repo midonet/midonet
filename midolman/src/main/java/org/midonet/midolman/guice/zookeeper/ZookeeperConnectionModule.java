@@ -6,6 +6,10 @@ package org.midonet.midolman.guice.zookeeper;
 import com.google.inject.*;
 import com.google.inject.name.Names;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+
 import org.midonet.config.ConfigProvider;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.state.Directory;
@@ -35,6 +39,11 @@ public class ZookeeperConnectionModule extends PrivateModule {
         bindDirectory();
         bindReactor();
 
+        bind(CuratorFramework.class)
+            .toProvider(CuratorFrameworkProvider.class)
+            .asEagerSingleton();
+        expose(CuratorFramework.class);
+
         expose(Key.get(Reactor.class,
                        Names.named(
                            ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
@@ -63,6 +72,22 @@ public class ZookeeperConnectionModule extends PrivateModule {
             Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
             .toProvider(ZookeeperReactorProvider.class)
             .asEagerSingleton();
+    }
+
+    public static class CuratorFrameworkProvider
+        implements Provider<CuratorFramework> {
+        private ZookeeperConfig cfg;
+        @Inject
+        public CuratorFrameworkProvider(ZookeeperConfig cfg) {
+            this.cfg = cfg;
+        }
+        @Override
+        public CuratorFramework get() {
+            // DO not start, the MidostoreSetupService will take care of that
+            return CuratorFrameworkFactory.newClient(
+                cfg.getZkHosts(), new ExponentialBackoffRetry(1000, 10)
+            );
+        }
     }
 
     /**

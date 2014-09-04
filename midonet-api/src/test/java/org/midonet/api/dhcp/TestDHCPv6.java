@@ -6,21 +6,20 @@ package org.midonet.api.dhcp;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
-import org.junit.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
+
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoDhcpSubnet6;
+import org.midonet.client.dto.DtoDhcpV6Host;
+
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
-import org.midonet.client.dto.DtoDhcpV6Host;
-import org.midonet.client.dto.DtoDhcpSubnet6;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_JSON;
@@ -52,11 +51,6 @@ public class TestDHCPv6 extends JerseyTest {
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
                 .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

@@ -6,6 +6,7 @@ package org.midonet.cluster.data.neutron;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.curator.test.TestingServer;
 import org.junit.Before;
 import org.junit.Test;
 

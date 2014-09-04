@@ -3,6 +3,7 @@
  */
 package org.midonet.cluster.config;
 
+import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
@@ -45,4 +46,10 @@ public interface ZookeeperConfig {
      */
     @ConfigString(key = "midolman_root_key", defaultValue = "/midonet")
     String getZkRootPath();
+
+    /**
+     * Whether to start the Curator client.
+     */
+    @ConfigBool(key = "curator_enabled", defaultValue = true)
+    Boolean getCuratorEnabled();
 }

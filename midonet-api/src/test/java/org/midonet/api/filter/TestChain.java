@@ -3,49 +3,46 @@
  */
 package org.midonet.api.filter;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.net.URI;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
 
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.midonet.api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.api.VendorMediaType
-        .APPLICATION_RULE_COLLECTION_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import org.midonet.client.dto.DtoRouterPort;
+import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestChain {
@@ -77,11 +74,6 @@ public class TestChain {
 
             topology = new Topology.Builder(dtoResource)
                     .create("chain1", c).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameters
@@ -154,11 +146,6 @@ public class TestChain {
             dtoResource = new DtoWebResource(resource);
 
             topology = new Topology.Builder(dtoResource).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test

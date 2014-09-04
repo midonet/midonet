@@ -4,28 +4,47 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
-import org.midonet.client.dto.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.core.UriBuilder;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
-import java.util.*;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoPortGroupPort;
+import org.midonet.client.dto.DtoRule;
+import org.midonet.client.dto.DtoRuleChain;
 
-import static org.midonet.api.VendorMediaType.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
+import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestPortGroup {
@@ -58,11 +77,6 @@ public class TestPortGroup {
             topology = new Topology.Builder(dtoResource)
                     .create("bridge1", bridge)
                     .create("chain1", chain).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -240,15 +254,10 @@ public class TestPortGroup {
                     .create("pg1", pg).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameterized.Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null name
             DtoPortGroup nullNamePortGroup = new DtoPortGroup();

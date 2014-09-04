@@ -1,10 +1,11 @@
 /*
- * Copyright 2012 Midokura PTE LTD.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.servlet;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.servlet.ServletContext;
 
 import com.sun.jersey.api.container.filter.LoggingFilter;
@@ -12,6 +13,11 @@ import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.auth.AuthContainerRequestFilter;
 import org.midonet.api.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
@@ -34,10 +40,6 @@ import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Jersey servlet module for MidoNet REST API application.
  */
@@ -46,9 +48,8 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     private final static Logger log = LoggerFactory
             .getLogger(RestApiJerseyServletModule.class);
 
-    private final ServletContext servletContext;
-    private final static Map<String, String> servletParams = new
-            HashMap<String, String>();
+    protected final ServletContext servletContext;
+    protected final static Map<String, String> servletParams = new HashMap<>();
     static {
 
         String[] requestFilters = new String[] {
@@ -75,6 +76,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
     @Override
     protected void configureServlets() {
+
         log.debug("configureServlets: entered");
 
         install(new ConfigurationModule(servletContext));
@@ -82,7 +84,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new AuthModule());
         install(new ErrorModule());
         install(new BrainModule());
-        install(new RestApiModule());
+        installRestApiModule(); // allow mocking
         install(new SerializationModule());
         install(new ValidationModule());
 
@@ -90,13 +92,12 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new ZookeeperModule());
         install(new DataClientModule());
 
-        // Install Neutron modules
+        // Install Neutron module;
         install(new NeutronClusterModule());
         install(new NeutronRestApiModule());
 
         install(new NetworkModule());
         install(new FilterModule());
-
         install(new MidoBrainModule());
 
         // Register filters - the order matters here.  Make sure that CORS
@@ -112,6 +113,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         serve("/*").with(GuiceContainer.class, servletParams);
 
         log.debug("configureServlets: exiting");
+    }
+
+    protected void installRestApiModule() {
+        install(new RestApiModule());
     }
 
 }

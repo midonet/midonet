@@ -13,19 +13,12 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -35,8 +28,7 @@ import org.midonet.api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.zookeeper.StaticMockDirectory;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHost;
@@ -50,12 +42,7 @@ import org.midonet.client.resource.TunnelZoneHost;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -66,51 +53,13 @@ import static org.hamcrest.Matchers.notNullValue;
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
-
-    @Ignore("helper class - not test")
-    public static class TestModule extends AbstractModule {
-
-        private final String basePath;
-
-        public TestModule(String basePath) {
-            this.basePath = basePath;
-        }
-
-        @Override
-        protected void configure() {
-            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-        }
-
-        @Provides
-        @Singleton
-        public Directory provideDirectory() {
-            Directory directory = StaticMockDirectory.getDirectoryInstance();
-            return directory;
-        }
-
-        @Provides @Singleton
-        public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory, basePath);
-        }
-
-        @Provides @Singleton
-        public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                  PathBuilder paths,
-                                                  Serializer serializer) {
-            return new HostZkManager(zkManager, paths, serializer);
-        }
-    }
-
     public static class TestCrud extends JerseyTest {
 
         private DtoWebResource dtoResource;
         private HostTopology topologyGre;
         private HostZkManager hostManager;
-        private Injector injector = null;
 
         private UUID host1Id = UUID.randomUUID();
-        private UUID host2Id = UUID.randomUUID();
 
         public TestCrud() {
             super(FuncTest.appDesc);
@@ -121,12 +70,7 @@ public class TestTunnelZoneHost {
                 InterruptedException, KeeperException, SerializationException {
 
             WebResource resource = resource();
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
             dtoResource = new DtoWebResource(resource);
-            hostManager = injector.getInstance(HostZkManager.class);
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
@@ -136,24 +80,10 @@ public class TestTunnelZoneHost {
             DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
-            topologyGre = new HostTopology.Builder(dtoResource, hostManager)
+            hostManager = JerseyGuiceTestServletContextListener
+                          .getHostZkManager();
+            topologyGre = new HostTopology.Builder(dtoResource)
                     .create(host1Id, host1).create("tz1", tunnelZone1).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
-        private void testTypeMismatch(DtoTunnelZone tz, String tzhMediaType) {
-            DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();
-            mapping.setHostId(host1Id);
-            mapping.setIpAddress("192.168.100.2");
-
-            dtoResource.postAndVerifyBadRequest(
-                    tz.getHosts(),
-                    tzhMediaType,
-                    mapping);
         }
 
         private <DTO extends DtoTunnelZone> void testCrud(DTO tz,
@@ -281,8 +211,6 @@ public class TestTunnelZoneHost {
         private DtoWebResource dtoResource;
         private final DtoTunnelZoneHost tunnelZoneHost;
         private final String property;
-        private HostZkManager hostManager;
-        private Injector injector;
 
         public TestBadRequestTunnelHostCreate(
                 DtoTunnelZoneHost tunnelZoneHost, String property) {
@@ -297,28 +225,18 @@ public class TestTunnelZoneHost {
 
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
-            hostManager = injector.getInstance(HostZkManager.class);
 
             DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
-            topology = new HostTopology.Builder(dtoResource, hostManager)
+            topology = new HostTopology.Builder(dtoResource)
                     .create("tz1", tunnelZone1).build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Parameterized.Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Invalid host ID
             DtoTunnelZoneHost badHostId = new DtoTunnelZoneHost();
@@ -347,7 +265,6 @@ public class TestTunnelZoneHost {
 
         private HostZkManager hostManager;
         private UUID hostId = UUID.randomUUID();
-        private Injector injector = null;
 
         public TestBaseUriOverride() {
             super(FuncTest.appDescOverrideBaseUri);
@@ -356,16 +273,8 @@ public class TestTunnelZoneHost {
         @Before
         public void setUp() throws StateAccessException,
                 InterruptedException, KeeperException{
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
-            hostManager = injector.getInstance(HostZkManager.class);
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
+            hostManager = JerseyGuiceTestServletContextListener
+                .getHostZkManager();
         }
 
         @Test

@@ -4,6 +4,7 @@
 package org.midonet.api.host.rest_api;
 
 import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
@@ -68,16 +69,17 @@ public class HostTopology {
         private final Map<UUID, UUID> tagToHosts;
         private final Map<UUID, String> tagToTunnelZone;
 
-        public Builder(DtoWebResource resource, HostZkManager hostZkManager) {
+        public Builder(DtoWebResource resource) {
             this.resource = resource;
-            this.hostZkManager = hostZkManager;
-            this.hosts = new HashMap<UUID, DtoHost>();
-            this.tunnelZones = new HashMap<String, DtoTunnelZone>();
-            this.tunnelZoneHosts = new HashMap<UUID, DtoTunnelZoneHost>();
-            this.hostInterfacePorts = new HashMap<UUID, DtoHostInterfacePort>();
+            this.hostZkManager = JerseyGuiceTestServletContextListener
+                                 .getHostZkManager();
+            this.hosts = new HashMap<>();
+            this.tunnelZones = new HashMap<>();
+            this.tunnelZoneHosts = new HashMap<>();
+            this.hostInterfacePorts = new HashMap<>();
 
-            this.tagToHosts = new HashMap<UUID, UUID>();
-            this.tagToTunnelZone = new HashMap<UUID, String>();
+            this.tagToHosts = new HashMap<>();
+            this.tagToTunnelZone = new HashMap<>();
         }
 
         public DtoWebResource getResource() {

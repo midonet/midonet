@@ -44,6 +44,10 @@ public abstract class ZookeeperTest {
         config.addNodes(ZookeeperConfig.GROUP_NAME,
                         Arrays.asList(
                             new HierarchicalConfiguration.Node(
+                                "curator_enabled", true)));
+        config.addNodes(ZookeeperConfig.GROUP_NAME,
+                        Arrays.asList(
+                            new HierarchicalConfiguration.Node(
                                 "midolman_root_key", zkRoot)));
         config.addNodes(ZookeeperConfig.GROUP_NAME,
                         Arrays.asList(

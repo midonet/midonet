@@ -3,26 +3,37 @@
  */
 package org.midonet.api.filter;
 
+import java.net.URI;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
-import org.junit.Assert;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoIpAddrGroup;
+import org.midonet.client.dto.DtoIpAddrGroupAddr;
+import org.midonet.client.dto.DtoIpv4AddrGroupAddr;
+import org.midonet.client.dto.DtoIpv6AddrGroupAddr;
+import org.midonet.client.dto.DtoRule;
+import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.IPv4Addr$;
-
-import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.client.VendorMediaType.*;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.client.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestIpAddrGroup {
@@ -53,11 +64,6 @@ public class TestIpAddrGroup {
                     .create("chain1", chain).build();
 
             app = topology.getApplication();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -139,6 +145,7 @@ public class TestIpAddrGroup {
 
         }
 
+        @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
         @Test
         public void testInvalidIpAddr() {
             String ipString = "10.0.2";

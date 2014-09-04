@@ -22,40 +22,38 @@ import org.midonet.midolman.state.ZkDirectory;
 import org.midonet.midolman.version.DataWriteVersion;
 
 
+/**
+ * The MidostoreSetupService is in charge of ensuring that the topology storage
+ * is using the expected version. It expects to have a fully operative
+ * connection to ZK, or will block until it can connect.
+ */
 public class MidostoreSetupService extends AbstractService {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(MidostoreSetupService.class);
-    @Inject
-    Directory directory;
+    private static final Logger log =
+        LoggerFactory.getLogger(MidostoreSetupService.class);
 
     @Inject
-    ZookeeperConfig config;
+    protected Directory directory;
 
     @Inject
-    SystemDataProvider systemDataProvider;
+    protected ZookeeperConfig config;
 
     @Inject
-    CuratorFramework curatorFramework;
+    protected SystemDataProvider systemDataProvider;
+
+    @Inject
+    protected CuratorFramework curator;
 
     @Override
     protected void doStart() {
         try {
             final String rootKey = config.getZkRootPath();
-
             Setup.ensureZkDirectoryStructureExists(directory, rootKey);
-
             verifyVersion();
-
             verifySystemState();
-
-            // A hack to avoid having this client start in unit tests. Only
-            // start if the configuration indicates that an actual zookeeper
-            // server is running (not MockDirectory, for example)
-            if (directory instanceof ZkDirectory) {
-                curatorFramework.start();
+            if (config.getCuratorEnabled()) {
+                curator.start();
             }
-
             notifyStarted();
         } catch (Exception e) {
             this.notifyFailed(e);
@@ -86,8 +84,7 @@ public class MidostoreSetupService extends AbstractService {
 
     @Override
     protected void doStop() {
-        // The following call works even if it has not been started
-        curatorFramework.close();
+        curator.close(); // will work even if not started
         notifyStopped();
     }
 }

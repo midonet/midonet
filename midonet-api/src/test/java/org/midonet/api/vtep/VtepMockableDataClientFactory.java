@@ -9,25 +9,20 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 import rx.Subscription;
 import rx.functions.Action1;
 
+import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.brain.southbound.vtep.VtepDataClientMock;
 import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.packets.IPv4Addr;
 
-import org.midonet.api.zookeeper.ExtendedZookeeperConfig;
-import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientMock;
-
 /**
- * Cannot be made a MockProvider in the tests packages because the modules deps
- * in the API are dependant on the ExtendedZookeeperConfig, but modules are not
- * customized on tests.
+ * A VtepDataClientFactory that provides a Mock implementation.
  */
-public class VtepMockableDataClientFactory {
+public class VtepMockableDataClientFactory extends VtepDataClientFactory {
 
     public static final String MOCK_VTEP_MGMT_IP = "250.132.36.225";
     public static final int MOCK_VTEP_MGMT_PORT = 12345;
@@ -38,16 +33,8 @@ public class VtepMockableDataClientFactory {
     public static final String[] MOCK_VTEP_PORT_NAMES =
             new String[]{"eth0", "eth1", "eth_2", "Te 0/2"};
 
-    private final VtepDataClientFactory provider;
     private VtepDataClientMock mockInstance = null;
     private Subscription mockSubscription = null;
-
-    @Inject
-    public VtepMockableDataClientFactory(VtepDataClientFactory provider,
-                                         ExtendedZookeeperConfig zkConfig) {
-
-        this.provider = zkConfig.getUseMock() ? null : provider;
-    }
 
     /**
      * Connects to the VTEP with the specified IP address and transport port
@@ -67,20 +54,11 @@ public class VtepMockableDataClientFactory {
      */
     public VtepDataClient connect(IPv4Addr mgmtIp, int mgmtPort, UUID owner)
         throws VtepStateException {
-        if (null != provider) {
-            return provider.connect(mgmtIp, mgmtPort, owner);
-        } else {
-            // Currently support mock only for MOCK_VTEP_MGMT_IP.
-            if (!mgmtIp.toString().equals(MOCK_VTEP_MGMT_IP) ||
-                    mgmtPort != MOCK_VTEP_MGMT_PORT) {
-                throw new IllegalArgumentException("Could not connect to VTEP");
-            }
-            return getMockInstance();
+        // Currently support mock only for MOCK_VTEP_MGMT_IP.
+        if (!mgmtIp.toString().equals(MOCK_VTEP_MGMT_IP) ||
+            mgmtPort != MOCK_VTEP_MGMT_PORT) {
+            throw new IllegalArgumentException("Could not connect to VTEP");
         }
-    }
-
-    private VtepDataClientMock getMockInstance()
-        throws VtepStateException {
         if (mockInstance == null) {
             mockInstance = new VtepDataClientMock(
                 MOCK_VTEP_MGMT_IP, MOCK_VTEP_MGMT_PORT,
