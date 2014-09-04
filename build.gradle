@@ -102,6 +102,7 @@ project.ext {
 
         grizzly_servlet: "org.glassfish.grizzly:grizzly-http-servlet:2.1.2",
         jersey_core: "com.sun.jersey:jersey-core:${versions.jersey}",
+        jersey_bundle: "com.sun.jersey:jersey-bundle:${versions.jersey}",
         jersey_servlet: "com.sun.jersey:jersey-servlet:${versions.jersey}",
         jersey_server: "com.sun.jersey:jersey-server:${versions.jersey}",
         jersey_client: "com.sun.jersey:jersey-client:${versions.jersey}",
