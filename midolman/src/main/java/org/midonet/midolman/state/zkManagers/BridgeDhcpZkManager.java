@@ -19,6 +19,7 @@ import org.midonet.cluster.data.neutron.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -373,9 +374,16 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             throws StateAccessException {
 
         // Delete the hostAssignments
-        for (MAC mac : listHosts(bridgeId, subnetAddr)) {
-            String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr, mac);
-            ops.add(Op.delete(path, -1));
+        try {
+            for (MAC mac : listHosts(bridgeId, subnetAddr)) {
+                String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
+                                                          mac);
+                ops.add(Op.delete(path, -1));
+            }
+        } catch (NoStatePathException ex) {
+            // It's possible that hosts were deleted already by a separate
+            // process. Log and ignore.
+            log.warn("Hosts already gone for bridge {}", bridgeId);
         }
 
         // Delete the 'hosts' subdirectory.
