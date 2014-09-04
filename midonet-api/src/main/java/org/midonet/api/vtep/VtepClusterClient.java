@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.inject.Inject;
 
@@ -26,6 +26,7 @@ import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
+import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
 import org.midonet.brain.southbound.vtep.VtepStateException;
 import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
@@ -59,14 +60,14 @@ public class VtepClusterClient {
     private static final Logger log =
             LoggerFactory.getLogger(VtepClusterClient.class);
 
-    private final VtepMockableDataClientFactory provider;
+    private final VtepDataClientFactory provider;
     private final DataClient dataClient;
 
     private final java.util.UUID clientId = java.util.UUID.randomUUID();
 
     @Inject
     public VtepClusterClient(DataClient dataClient,
-                             VtepMockableDataClientFactory provider) {
+                             VtepDataClientFactory provider) {
         this.dataClient = dataClient;
         this.provider = provider;
     }

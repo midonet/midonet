@@ -8,16 +8,10 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,98 +23,42 @@ import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
-import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
+
+import static org.midonet.api.vtep.VtepMockableDataClientFactory.*;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZone {
-
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
 
     public static class TestCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
         private HostTopology topology;
-        private HostZkManager hostManager;
         private MidonetApi api;
-        private Injector injector = null;
-
-        private UUID host1Id = UUID.randomUUID();
 
         public TestCrud() {
             super(FuncTest.appDesc);
         }
-
-        public class TestModule extends AbstractModule {
-
-            private final String basePath;
-
-            public TestModule(String basePath) {
-                this.basePath = basePath;
-            }
-
-            @Override
-            protected void configure() {
-                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            }
-
-            @Provides
-            @Singleton
-            public Directory provideDirectory() {
-                return StaticMockDirectory.getDirectoryInstance();
-            }
-
-            @Provides @Singleton
-            public ZkManager provideZkManager(Directory directory) {
-                return new ZkManager(directory, basePath);
-            }
-
-            @Provides @Singleton
-            public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new HostZkManager(zkManager, paths, serializer);
-            }
-        }
-
         @Before
         public void setUp() throws StateAccessException,
                 InterruptedException, KeeperException, SerializationException {
 
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            hostManager = injector.getInstance(HostZkManager.class);
 
-            topology = new HostTopology.Builder(dtoResource, hostManager)
-                    .build();
+            topology = new HostTopology.Builder(dtoResource).build();
 
             URI baseUri = resource().getURI();
             api = new MidonetApi(baseUri.toString());
             api.enableLogging();
 
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -209,8 +147,8 @@ public class TestTunnelZone {
                       VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
                       DtoTunnelZone.class);
             DtoVtep vtep = new DtoVtep();
-            vtep.setManagementIp(VtepMockableDataClientFactory.MOCK_VTEP_MGMT_IP);
-            vtep.setManagementPort(VtepMockableDataClientFactory.MOCK_VTEP_MGMT_PORT);
+            vtep.setManagementIp(MOCK_VTEP_MGMT_IP);
+            vtep.setManagementPort(MOCK_VTEP_MGMT_PORT);
             vtep.setTunnelZoneId(tunnelZone.getId());
             DtoVtep vtepDto = dtoResource.postAndVerifyCreated(
                 app.getVteps(), VendorMediaType.APPLICATION_VTEP_JSON, vtep,

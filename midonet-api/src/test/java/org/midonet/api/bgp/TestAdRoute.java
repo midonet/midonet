@@ -3,24 +3,24 @@
  */
 package org.midonet.api.bgp;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.client.dto.DtoAdRoute;
-import org.midonet.client.dto.DtoBgp;
-import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoRouter;
+import java.net.URI;
+import java.util.UUID;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
-import java.util.UUID;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.client.dto.DtoAdRoute;
+import org.midonet.client.dto.DtoBgp;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
 
 import static org.junit.Assert.assertEquals;
 
@@ -93,11 +93,6 @@ public class TestAdRoute extends JerseyTest {
 
         adRoutesUri = bgp.getAdRoutes();
         log.debug("adRoute {}", adRoutesUri);
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test

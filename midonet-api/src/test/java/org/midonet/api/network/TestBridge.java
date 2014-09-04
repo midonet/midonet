@@ -20,7 +20,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.codehaus.jackson.type.JavaType;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -34,7 +33,6 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -111,7 +109,7 @@ public class TestBridge {
                                                    String tenantId,
                                                    int startTagNum,
                                                    int endTagNum) {
-            List<DtoBridge> bridges = new ArrayList<DtoBridge>();
+            List<DtoBridge> bridges = new ArrayList<>();
 
             for (int i = startTagNum; i <= endTagNum; i++) {
                 String tag = Integer.toString(i) + tenantId;
@@ -137,11 +135,6 @@ public class TestBridge {
             addActualBridges(builder, "tenant1", 5);
 
             topology = builder.build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test
@@ -219,7 +212,7 @@ public class TestBridge {
         }
 
         private Map<String, String> getTenantQueryParams(String tenantId) {
-            Map<String, String> queryParams = new HashMap<String, String>();
+            Map<String, String> queryParams = new HashMap<>();
             queryParams.put("tenant_id", tenantId);
             return queryParams;
         }
@@ -876,15 +869,10 @@ public class TestBridge {
                     .create("bridge1", b).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null name
             DtoBridge nullNameBridge = new DtoBridge();
@@ -941,15 +929,10 @@ public class TestBridge {
                     .create("bridge1", b1).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null name
             DtoBridge nullNameBridge = new DtoBridge();

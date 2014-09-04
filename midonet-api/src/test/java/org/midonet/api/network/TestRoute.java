@@ -4,15 +4,19 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
-import org.midonet.client.dto.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -22,13 +26,27 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.*;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoLink;
+import org.midonet.client.dto.DtoRoute;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoRuleChain;
 
-import static org.midonet.client.VendorMediaType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_ROUTE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestRoute {
@@ -88,11 +106,6 @@ public class TestRoute {
                     .getLocation());
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Test
         public void testNullNextHopGateway() {
             DtoRoute route = new DtoRoute();
@@ -102,7 +115,6 @@ public class TestRoute {
             String dstNetworkAddr = "192.168.0.0";
             int dstNetworkLength = 24;
             UUID nextHopPort = testRouterPortId;
-            String nextHopGateway = null;
             int weight = 100;
 
             // Create a route
@@ -112,7 +124,7 @@ public class TestRoute {
             route.setDstNetworkAddr(dstNetworkAddr);
             route.setDstNetworkLength(dstNetworkLength);
             route.setNextHopPort(nextHopPort);
-            route.setNextHopGateway(nextHopGateway);
+            route.setNextHopGateway(null);
             route.setWeight(weight);
 
             URI routerRouteUri = URI.create(testRouterUri.toString()
@@ -133,7 +145,7 @@ public class TestRoute {
             assertEquals(200, response.getStatus());
 
             // Check the next hop gateway is null
-            assertNull(nextHopGateway);
+            assertNull(route.getNextHopGateway());
 
             // Delete the route
             response = resource().uri(routeUri).type(APPLICATION_ROUTE_JSON)
@@ -231,15 +243,10 @@ public class TestRoute {
                     .create("router1", r).build();
         }
 
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
-        }
-
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Null type
             DtoRoute nullType = new DtoRoute();
@@ -343,11 +350,6 @@ public class TestRoute {
                 .create("router1", "router1Port1", r1Lp1)
                 .create("bridge1", "bridge1Port1", b1Lp1)
                 .build();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         @Test

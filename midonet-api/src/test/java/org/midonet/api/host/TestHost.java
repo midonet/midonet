@@ -5,141 +5,85 @@ package org.midonet.api.host;
 
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
-import com.google.inject.Injector;
-import com.google.inject.Guice;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
+
+import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.type.JavaType;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.client.MidonetApi;
+import org.midonet.client.VendorMediaType;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoInterface;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.exception.HttpForbiddenException;
+import org.midonet.client.resource.Host;
+import org.midonet.client.resource.HostInterface;
+import org.midonet.client.resource.ResourceCollection;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.Topology;
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.zookeeper.StaticMockDirectory;
-import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoBridge;
-import org.midonet.client.dto.DtoPort;
-import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoInterface;
-import org.midonet.client.exception.HttpForbiddenException;
-import org.midonet.client.resource.*;
-import org.midonet.client.resource.Host;
-import org.midonet.client.VendorMediaType;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.ZkPathManager;
-import org.midonet.midolman.version.guice.VersionModule;
-import org.midonet.packets.MAC;
-
+import static org.junit.Assert.fail;
+import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
     public static final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
     public static final int FLOODING_PROXY_WEIGHT = 42;
 
     private HostZkManager hostManager;
-    private ZkPathManager pathManager;
     private DtoWebResource dtoResource;
     private Topology topology;
-    private Directory dir;
+    private CuratorFramework curator;
     private MidonetApi api;
-    private static Injector injector;
 
     public TestHost() {
-        super(createWebApp());
-
-        pathManager = new ZkPathManager(ZK_ROOT_MIDOLMAN);
-    }
-
-    private static AppDescriptor createWebApp() {
-
-        return FuncTest.getBuilder().build();
-
-    }
-
-    public class TestModule extends AbstractModule {
-
-        private final String basePath;
-
-        public TestModule(String basePath) {
-            this.basePath = basePath;
-        }
-
-        @Override
-        protected void configure() {
-            bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-        }
-
-        @Provides @Singleton
-        public Directory provideDirectory() {
-            Directory directory = StaticMockDirectory.getDirectoryInstance();
-            return directory;
-        }
-
-        @Provides @Singleton
-        public ZkManager provideZkManager(Directory directory) {
-            return new ZkManager(directory, basePath);
-        }
-
-        @Provides @Singleton
-        public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                  PathBuilder paths,
-                                                  Serializer serializer) {
-            return new HostZkManager(zkManager, paths, serializer);
-        }
+        super(FuncTest.appDesc);
     }
 
     private DtoHost retrieveHostV1(UUID hostId) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
-        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
-                                                  APPLICATION_HOST_JSON,
-                                                  DtoHost.class);
-        return host;
+        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON,
+                                          DtoHost.class);
     }
 
     private DtoHost retrieveHostV2(UUID hostId) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
-        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
-                                                  APPLICATION_HOST_JSON_V2,
-                                                  DtoHost.class);
-        return host;
+        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V2,
+                                          DtoHost.class);
     }
 
     private List<DtoHost> retrieveHostListV1() throws Exception {
@@ -149,9 +93,7 @@ public class TestHost extends JerseyTest {
                APPLICATION_HOST_COLLECTION_JSON, String.class);
         JavaType type = FuncTest.objectMapper.getTypeFactory()
             .constructParametricType(List.class, DtoHost.class);
-        List<DtoHost> actualHosts = FuncTest.objectMapper.readValue(rawHosts,
-                                                                    type);
-        return actualHosts;
+        return FuncTest.objectMapper.readValue(rawHosts, type);
     }
 
     private List<DtoHost> retrieveHostListV2() throws Exception {
@@ -161,9 +103,7 @@ public class TestHost extends JerseyTest {
                APPLICATION_HOST_COLLECTION_JSON_V2, String.class);
         JavaType type = FuncTest.objectMapper.getTypeFactory()
                                              .constructParametricType(List.class, DtoHost.class);
-        List<DtoHost> actualHosts = FuncTest.objectMapper.readValue(rawHosts,
-                                                                    type);
-        return actualHosts;
+        return FuncTest.objectMapper.readValue(rawHosts, type);
     }
 
     private void putHostV2(DtoHost host) {
@@ -200,25 +140,16 @@ public class TestHost extends JerseyTest {
     @Before
     public void before() throws KeeperException, InterruptedException {
         dtoResource = new DtoWebResource(resource());
-        injector = Guice.createInjector(
-                new VersionModule(),
-                new SerializationModule(),
-                new TestModule(ZK_ROOT_MIDOLMAN));
-        dir = injector.getInstance(Directory.class);
         resource().type(VendorMediaType.APPLICATION_JSON_V5)
                 .accept(VendorMediaType.APPLICATION_JSON_V5)
                 .get(ClientResponse.class);
 
         topology = new Topology.Builder(dtoResource).build();
-        hostManager = injector.getInstance(HostZkManager.class);
+        hostManager = JerseyGuiceTestServletContextListener.getHostZkManager();
+        curator = JerseyGuiceTestServletContextListener.getCurator();
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
 
@@ -328,15 +259,19 @@ public class TestHost extends JerseyTest {
 
         try {
             hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
-            Assert.fail(
+            fail(
                 "Flooding proxy weight cannot be set on non-existing hosts");
-        } catch (NoStatePathException e) { }
+        } catch (NoStatePathException e) {
+            // ok
+        }
 
         try {
             hostManager.getFloodingProxyWeight(hostId);
-            Assert.fail(
+            fail(
                 "Flooding proxy weight cannot be retrieved on non-existing hosts");
-        } catch (NoStatePathException e) { }
+        } catch (NoStatePathException e) {
+            // ok
+        }
     }
 
     @Test
@@ -369,18 +304,14 @@ public class TestHost extends JerseyTest {
         hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
-                   !dir.has(pathManager.getHostPath(hostId)));
-        assertThat("Host flooding proxy weight should have been removed from ZooKeeper.",
-                   !dir.has(pathManager.getHostFloodingProxyWeightPath(hostId)));
+                   hostManager.getHostIds().isEmpty());
 
-        boolean caughtNotFound = false;
         try {
             hostManager.getFloodingProxyWeight(hostId);
+            fail("Host flooding proxy weight should be removed from ZK.");
         } catch (NoStatePathException e) {
-            caughtNotFound = true;
+            // ok
         }
-        assertThat("Flooding proxy weight cannot be retrieved on non-existing hosts",
-                   caughtNotFound, equalTo(true));
     }
 
     @Test
@@ -511,7 +442,8 @@ public class TestHost extends JerseyTest {
         DtoBridge bridge = addBridge("testBridge");
         DtoPort port = addPort(bridge);
         hostManager.addVirtualPortMapping(hostId,
-                new HostDirectory.VirtualPortMapping(port.getId(), "BLAH"));
+                                          new HostDirectory.VirtualPortMapping(
+                                              port.getId(), "BLAH"));
 
         ResourceCollection<Host> hosts = api.getHosts();
         Host deadHost = hosts.get(0);
@@ -523,15 +455,13 @@ public class TestHost extends JerseyTest {
         }
         assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
-                   dir.has(pathManager.getHostPath(hostId)),
-                   equalTo(true));
+                   hostManager.getHostIds(), contains(hostId));
 
         hostManager.delVirtualPortMapping(hostId, port.getId());
         deadHost.delete();
 
         assertThat("Host was removed from zk",
-                   dir.has(pathManager.getHostPath(hostId)),
-                   equalTo(false));
+                   hostManager.getHostIds(), not(contains(hostId)));
     }
 
     @Test
@@ -636,7 +566,7 @@ public class TestHost extends JerseyTest {
         hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
-                   !dir.has(pathManager.getHostPath(hostId)));
+                   hostManager.getHostIds(), not(contains(hostId)));
     }
 
     @Test
@@ -672,12 +602,10 @@ public class TestHost extends JerseyTest {
             h1.delete();
         } catch (HttpForbiddenException ex) {
             caught403 = true;
-
         }
         assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
-                   dir.has(pathManager.getHostPath(hostId)),
-                   equalTo(true));
+                   hostManager.getHostIds(), contains(hostId));
     }
 
     @Test

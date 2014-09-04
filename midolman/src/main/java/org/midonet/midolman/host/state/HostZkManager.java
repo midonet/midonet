@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
@@ -60,6 +62,7 @@ public class HostZkManager
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public HostZkManager(ZkManager zk, PathBuilder paths,
                          Serializer serializer) {
         super(zk, paths, serializer);

@@ -3,21 +3,28 @@
  */
 package org.midonet.api.auth;
 
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.ResponseUtils;
-import org.midonet.cluster.data.SystemState;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.state.PathBuilder;
-import org.midonet.midolman.state.StateAccessException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.SystemState;
+import org.midonet.midolman.state.StateAccessException;
 
 /**
  * Servlet filter for API server state

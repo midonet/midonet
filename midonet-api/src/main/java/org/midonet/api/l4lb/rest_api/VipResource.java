@@ -233,7 +233,7 @@ public class VipResource extends AbstractResource {
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
-            List<VIP> vips = new ArrayList<VIP>();
+            List<VIP> vips = new ArrayList<>();
             if (dataVips != null) {
                 for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
                     VIP vip = new VIP(dataVip);

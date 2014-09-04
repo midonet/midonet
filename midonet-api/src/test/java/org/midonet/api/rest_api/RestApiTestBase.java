@@ -13,10 +13,8 @@ import javax.ws.rs.core.UriBuilder;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.junit.After;
 import org.junit.Before;
 
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -51,11 +49,6 @@ public abstract class RestApiTestBase extends JerseyTest {
 
         topology = builder.build();
         app = topology.getApplication();
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
     /**

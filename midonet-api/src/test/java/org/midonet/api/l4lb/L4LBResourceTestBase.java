@@ -41,7 +41,6 @@ import static org.junit.Assert.assertEquals;
  * through the client calls to the data store logic should be done by other
  * tests in `e2e` package.
  */
-@RunWith(MockitoJUnitRunner.class)
 public class L4LBResourceTestBase {
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)

@@ -7,20 +7,15 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.inject.Exposed;
 import com.google.inject.Inject;
 import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
-import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterHostManager;
@@ -78,6 +73,7 @@ public class DataClientModule extends PrivateModule {
     protected void configure() {
         binder().requireExplicitBindings();
 
+        requireBinding(CuratorFramework.class); // for the zk lock factory
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class, Names.named(
                 ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
@@ -120,22 +116,8 @@ public class DataClientModule extends PrivateModule {
         bind(ClusterPortGroupManager.class)
                 .in(Singleton.class);
 
-        bind(MidostoreSetupService.class).in(Singleton.class);
-        expose(MidostoreSetupService.class);
-
         bindZookeeperLockFactory();
         expose(ZookeeperLockFactory.class);
-    }
-
-    @Provides
-    @Exposed
-    @Inject @Singleton
-    private CuratorFramework provideCuratorFramework(ZookeeperConfig config) {
-        // Hard coding the the retry policy value for now.
-        // Consider making this configurable in the future if necessary.
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        return CuratorFrameworkFactory.newClient(config.getZkHosts(),
-                                                 retryPolicy);
     }
 
     /**

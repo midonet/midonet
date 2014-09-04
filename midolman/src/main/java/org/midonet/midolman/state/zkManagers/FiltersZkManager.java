@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import com.google.inject.Inject;
+
 import org.apache.zookeeper.Op;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -39,12 +41,9 @@ public class FiltersZkManager extends BaseZkManager {
      * @param serializer
      *         ZK data serialization class
      */
+    @Inject
     public FiltersZkManager(ZkManager zk, PathBuilder paths, Serializer serializer) {
         super(zk, paths, serializer);
-    }
-
-    public FiltersZkManager(Directory dir, String basePath, Serializer serializer) {
-        this(new ZkManager(dir, basePath), new PathBuilder(basePath), serializer);
     }
 
     /**
@@ -70,8 +69,7 @@ public class FiltersZkManager extends BaseZkManager {
      * @throws org.midonet.midolman.state.StateAccessException
      */
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
-        List<Op> ops = new ArrayList<Op>();
-        String basePath = paths.getBasePath();
+        List<Op> ops = new ArrayList<>();
 
         // The SNAT blocks are nested under
         // /filters/<deviceId>/snat_blocks/<ip>/<startPortRange>

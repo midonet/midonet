@@ -23,9 +23,6 @@ public class BrainModule extends PrivateModule {
         requireBinding(ConfigurationService.class);
         requireBinding(ConnectionService.class);
         requireBinding(InventoryService.class);
-
-        bind(VtepDataClientFactory.class)
-            .toInstance(new VtepDataClientFactory());
-        expose(VtepDataClientFactory.class);
+        requireBinding(VtepDataClientFactory.class);
     }
 }

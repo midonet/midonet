@@ -7,15 +7,9 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,9 +22,8 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.serialization.SerializationModule;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -49,12 +42,7 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkManager;
-import org.midonet.midolman.version.guice.VersionModule;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -67,8 +55,6 @@ import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {
 
-    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
-
     public static class TestCrud extends RestApiTestBase {
 
         private DtoWebResource dtoResource;
@@ -76,7 +62,6 @@ public class TestHostInterfacePort {
         private HostTopology hostTopology;
         private HostZkManager hostManager;
         private MidonetApi api;
-        private Injector injector = null;
 
         private UUID host1Id = UUID.randomUUID();
 
@@ -84,50 +69,14 @@ public class TestHostInterfacePort {
             super(FuncTest.appDesc);
         }
 
-        public class TestModule extends AbstractModule {
-
-            private final String basePath;
-
-            public TestModule(String basePath) {
-                this.basePath = basePath;
-            }
-
-            @Override
-            protected void configure() {
-                bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            }
-
-            @Provides
-            @Singleton
-            public Directory provideDirectory() {
-                Directory directory = StaticMockDirectory.getDirectoryInstance();
-                return directory;
-            }
-
-            @Provides @Singleton
-            public ZkManager provideZkManager(Directory directory) {
-                return new ZkManager(directory, basePath);
-            }
-
-            @Provides @Singleton
-            public HostZkManager provideHostZkManager(ZkManager zkManager,
-                                                      PathBuilder paths,
-                                                      Serializer serializer) {
-                return new HostZkManager(zkManager, paths, serializer);
-            }
-        }
-
         @Before
         public void setUp() throws StateAccessException,
                 InterruptedException, KeeperException, SerializationException {
 
-            injector = Guice.createInjector(
-                    new VersionModule(),
-                    new SerializationModule(),
-                    new TestModule(ZK_ROOT_MIDOLMAN));
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            hostManager = injector.getInstance(HostZkManager.class);
+            hostManager = JerseyGuiceTestServletContextListener
+                          .getHostZkManager();
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
@@ -153,7 +102,7 @@ public class TestHostInterfacePort {
                     .create("bridge1", "bridgePort2", bridgePort2)
                     .build();
 
-            hostTopology = new HostTopology.Builder(dtoResource, hostManager)
+            hostTopology = new HostTopology.Builder(dtoResource)
                     .create(host1Id, host1)
                     .create("tz1", tunnelZone1)
                     .build();
@@ -161,11 +110,6 @@ public class TestHostInterfacePort {
             URI baseUri = resource().getURI();
             api = new MidonetApi(baseUri.toString());
             api.enableLogging();
-        }
-
-        @After
-        public void resetDirectory() throws Exception {
-            StaticMockDirectory.clearDirectoryInstance();
         }
 
         private void bindHostToTunnelZone(UUID hostId) {
@@ -368,12 +312,11 @@ public class TestHostInterfacePort {
             hostBinding.setHostId(resHost.getId());
             hostBinding.setInterfaceName("eth0");
             hostBinding.setPortId(resPort.getId());
-            DtoHostInterfacePort resPortBinding =
-                    dtoResource.postAndVerifyCreated(resHost.getPorts(),
-                            APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
-                            DtoHostInterfacePort.class);
-            dtoResource.deleteAndVerifyNoContent(
-                    resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
+            dtoResource.postAndVerifyCreated(resHost.getPorts(),
+                 APPLICATION_HOST_INTERFACE_PORT_JSON, hostBinding,
+                 DtoHostInterfacePort.class);
+            dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),
+                                                 APPLICATION_ROUTER_JSON_V2);
         }
     }
 }

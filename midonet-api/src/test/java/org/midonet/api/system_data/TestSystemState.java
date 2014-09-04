@@ -5,24 +5,23 @@ package org.midonet.api.system_data;
 
 import java.net.URI;
 
+import javax.ws.rs.core.MultivaluedMap;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.junit.After;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.zookeeper.StaticMockDirectory;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.resource.Router;
 import org.midonet.client.VendorMediaType;
+import org.midonet.client.resource.Router;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.state.StateAccessException;
 
-import javax.ws.rs.core.MultivaluedMap;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class TestSystemState extends JerseyTest {
 
@@ -40,11 +39,6 @@ public class TestSystemState extends JerseyTest {
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
-    }
-
-    @After
-    public void resetDirectory() throws Exception {
-        StaticMockDirectory.clearDirectoryInstance();
     }
 
     @Test
