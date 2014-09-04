@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletContext;
 
+import com.sun.jersey.api.container.filter.LoggingFilter;
 import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
@@ -35,6 +36,8 @@ import org.midonet.midolman.version.guice.VersionModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import joptsimple.internal.Strings;
+
 /**
  * Jersey servlet module for MidoNet REST API application.
  */
@@ -47,10 +50,21 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     private final static Map<String, String> servletParams = new
             HashMap<String, String>();
     static {
+
+        String[] requestFilters = new String[] {
+            LoggingFilter.class.getName(),
+            AuthContainerRequestFilter.class.getName()
+        };
+
+        String[] responseFilters = new String[] {
+            ExceptionFilter.class.getName(),
+            LoggingFilter.class.getName()
+        };
+
         servletParams.put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS,
-                AuthContainerRequestFilter.class.getName());
+                          Strings.join(requestFilters, ";"));
         servletParams.put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS,
-                ExceptionFilter.class.getName());
+                          Strings.join(responseFilters, ";"));
         servletParams.put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES,
                 RolesAllowedResourceFilterFactory.class.getName());
     }
