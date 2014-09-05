@@ -18,7 +18,6 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkDirectory;
 import org.midonet.midolman.version.DataWriteVersion;
 
 

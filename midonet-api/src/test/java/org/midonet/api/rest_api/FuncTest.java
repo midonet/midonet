@@ -78,6 +78,8 @@ public class FuncTest {
                                            "zookeeper_hosts"),
                                            "127.0.0.1:2181")
                 .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
+                                           "curator_enabled"), "true")
+                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
                                            "midolman_root_key"),
                               ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID())
                 .contextParam(getConfigKey(MidoBrainConfig.GROUP_NAME,

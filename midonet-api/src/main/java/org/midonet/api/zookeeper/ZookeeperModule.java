@@ -6,7 +6,6 @@ package org.midonet.api.zookeeper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Provides;
 import com.google.inject.name.Names;
 
 import org.apache.curator.framework.CuratorFramework;
@@ -14,7 +13,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.config.ConfigProvider;
+import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
 import org.midonet.midolman.guice.zookeeper.DirectoryProvider;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
@@ -53,6 +52,10 @@ public class ZookeeperModule extends AbstractModule {
             .toProvider(CuratorFrameworkProvider.class)
             .asEagerSingleton();
 
+        bind(ZookeeperObjectMapper.class)
+            .toProvider(ZoomProvider.class)
+            .asEagerSingleton();
+
         bind(Reactor.class).annotatedWith(
             Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG))
                 .toProvider(ZookeeperReactorProvider.class)
@@ -65,6 +68,16 @@ public class ZookeeperModule extends AbstractModule {
         @Override
         public Reactor get() {
             return new TryCatchReactor("zookeeper-mgmt", 1);
+        }
+    }
+
+    public static class ZoomProvider
+        implements Provider<ZookeeperObjectMapper> {
+        @Inject ZookeeperConfig cfg;
+        @Inject CuratorFramework curator;
+        @Override public ZookeeperObjectMapper get() {
+            return new ZookeeperObjectMapper(cfg.getZkRootPath() + "/zoom",
+                                             curator);
         }
     }
 
