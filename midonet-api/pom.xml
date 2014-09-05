@@ -386,10 +386,9 @@
             <artifactId>guice</artifactId>
         </dependency>
 
-        <dependency> <!-- unique to midonet-api -->
+        <dependency>
             <groupId>com.google.inject.extensions</groupId>
             <artifactId>guice-assistedinject</artifactId>
-            <version>3.0</version>
         </dependency>
 
         <dependency> <!-- unique to midonet-api -->
