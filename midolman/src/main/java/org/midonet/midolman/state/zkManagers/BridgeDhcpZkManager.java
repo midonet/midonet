@@ -374,16 +374,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             throws StateAccessException {
 
         // Delete the hostAssignments
-        try {
-            for (MAC mac : listHosts(bridgeId, subnetAddr)) {
-                String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
-                                                          mac);
-                ops.add(Op.delete(path, -1));
-            }
-        } catch (NoStatePathException ex) {
-            // It's possible that hosts were deleted already by a separate
-            // process. Log and ignore.
-            log.warn("Hosts already gone for bridge {}", bridgeId);
+        for (MAC mac : listHosts(bridgeId, subnetAddr)) {
+            String path = paths.getBridgeDhcpHostPath(bridgeId, subnetAddr,
+                                                      mac);
+            ops.add(Op.delete(path, -1));
         }
 
         // Delete the 'hosts' subdirectory.
