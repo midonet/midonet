@@ -92,10 +92,10 @@ class PojoFieldBinding extends FieldBinding {
     public static ListMultimap<Class<?>,FieldBinding> createBindings(
             Class<?> leftClass,
             String leftFieldName,
-            DeleteAction onDeleteLeft,
+            FieldBinding.DeleteAction onDeleteLeft,
             Class<?> rightClass,
             String rightFieldName,
-            DeleteAction onDeleteRight) {
+            FieldBinding.DeleteAction onDeleteRight) {
         assert(leftFieldName != null || rightFieldName != null);
 
         Field leftIdField = getField(leftClass, ID_FIELD);
