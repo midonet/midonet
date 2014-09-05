@@ -330,13 +330,7 @@ public class BridgeZkManager
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
 
         // Delete this bridge's port-set
-        try {
-            ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
-        } catch (NoStatePathException ex) {
-            // It's possible that port sets are already gone.  So it's ok if
-            // we NoStatePath exception here.
-            log.warn("Port set was already gone for bridge {}", id);
-        }
+        ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
 
         // Delete the bridge
         ops.add(Op.delete(paths.getBridgePath(id), -1));
