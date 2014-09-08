@@ -4,6 +4,7 @@
 package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -77,10 +78,7 @@ public class NetworkZkManager extends BaseZkManager {
         // Delete Neutron subnets.  That should be the only thing that is still
         // left over after deleting the bridge.
         List<Subnet> subs = getSubnets(id);
-        for (Subnet sub : subs) {
-            String subPath = paths.getNeutronSubnetPath(sub.id);
-            ops.add(zk.getDeleteOp(subPath));
-        }
+        prepareDeleteNeutronSubnets(ops, subs);
 
         String path = paths.getNeutronNetworkPath(id);
         ops.add(zk.getDeleteOp(path));
@@ -129,6 +127,20 @@ public class NetworkZkManager extends BaseZkManager {
      * Subnet methods
      */
 
+    public void prepareDeleteNeutronSubnets(List<Op> ops, List<Subnet> subnets)
+        throws SerializationException, StateAccessException {
+        for (Subnet subnet : subnets) {
+            String path = paths.getNeutronSubnetPath(subnet.id);
+            ops.add(zk.getDeleteOp(path));
+        }
+        for (Port port : getPorts()) {
+            if (port.isInSubnets(subnets)) {
+                String portPath = paths.getNeutronPortPath(port.id);
+                ops.add(zk.getDeleteOp(portPath));
+            }
+        }
+    }
+
     public void prepareCreateSubnet(List<Op> ops, Subnet subnet)
         throws SerializationException, StateAccessException {
 
@@ -165,16 +177,7 @@ public class NetworkZkManager extends BaseZkManager {
                 subnet.getIpVersion());
         }
 
-        ops.add(zk.getDeleteOp(paths.getNeutronSubnetPath(subnet.id)));
-    }
-
-     public void prepareDeleteSubnet(List<Op> ops, UUID id)
-        throws StateAccessException, SerializationException {
-
-        Subnet subnet = getSubnet(id);
-        if (subnet != null) {
-            prepareDeleteSubnet(ops, subnet);
-        }
+        prepareDeleteNeutronSubnets(ops, Collections.singletonList(subnet));
     }
 
     public void prepareUpdateSubnet(List<Op> ops, Subnet subnet)
