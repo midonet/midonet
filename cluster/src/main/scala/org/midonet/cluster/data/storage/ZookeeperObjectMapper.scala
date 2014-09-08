@@ -495,7 +495,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     }
 
     private class PojoIdGetter(clazz: Class[_]) extends IdGetter {
-        val idField = clazz.getField(FieldBinding.ID_FIELD)
+        val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
         idField.setAccessible(true)
 
         def idOf(obj: Obj) = idField.get(obj)
