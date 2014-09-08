@@ -195,6 +195,21 @@ public class Port {
         return UUID.fromString(deviceId);
     }
 
+    @JsonIgnore
+    public final boolean isInSubnets(List<Subnet> subnets) {
+        if (id == null) {
+            // Don't want to count cases where the subnet id is null and
+            // the port subnet id is null.
+            return false;
+        }
+        for (Subnet sub : subnets) {
+            if (Objects.equal(this.firstSubnetId(), sub.id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String egressChainName(UUID portId) {
         if (portId == null)
             throw new IllegalArgumentException("portId is null");
