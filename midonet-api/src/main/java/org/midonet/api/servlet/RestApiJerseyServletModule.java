@@ -33,10 +33,10 @@ import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import joptsimple.internal.Strings;
 
 /**
  * Jersey servlet module for MidoNet REST API application.
@@ -62,9 +62,9 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         };
 
         servletParams.put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS,
-                          Strings.join(requestFilters, ";"));
+                          StringUtils.join(requestFilters, ";"));
         servletParams.put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS,
-                          Strings.join(responseFilters, ";"));
+                          StringUtils.join(responseFilters, ";"));
         servletParams.put(ResourceConfig.PROPERTY_RESOURCE_FILTER_FACTORIES,
                 RolesAllowedResourceFilterFactory.class.getName());
     }
