@@ -135,6 +135,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.scalacheck</groupId>
+            <artifactId>scalacheck_2.10</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
