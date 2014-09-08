@@ -76,8 +76,7 @@ public abstract class ForwardNatRule extends NatRule {
                     new org.midonet.midolman.rules.NatTarget(
                             IPv4Addr.stringToInt(natTarget.addressFrom),
                             IPv4Addr.stringToInt(natTarget.addressTo),
-                            (short) natTarget.portFrom,
-                            (short) natTarget.portTo);
+                            natTarget.portFrom, natTarget.portTo);
             targets.add(t);
         }
         return targets;
