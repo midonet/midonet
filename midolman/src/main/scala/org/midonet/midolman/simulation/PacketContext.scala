@@ -128,6 +128,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         state.clear()
         runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
+        toPortSet = false
     }
 
     var traceConditions: TraceConditions = null
