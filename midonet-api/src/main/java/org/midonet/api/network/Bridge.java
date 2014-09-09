@@ -6,6 +6,7 @@ package org.midonet.api.network;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.api.network.validation.IsVxlanPortIdIntact;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.data.Bridge.Property;
 import org.midonet.util.version.Since;
@@ -22,6 +23,7 @@ import java.util.UUID;
  * Class representing Virtual Bridge.
  */
 @XmlRootElement
+@IsVxlanPortIdIntact
 public class Bridge extends UriResource {
 
     @NotNull(groups = BridgeUpdateGroup.class)

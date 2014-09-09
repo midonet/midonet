@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import scala.Option;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -25,9 +27,9 @@ import org.midonet.cluster.client.IpMacMap;
 import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.config.TypedConfigModule;
@@ -52,7 +54,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import scala.Option;
 
 public class LocalClientImplTest {
 
@@ -128,8 +129,7 @@ public class LocalClientImplTest {
         getBridgeZkManager().update(bridgeId,
                                     new BridgeZkManager.BridgeConfig("test1",
                                             getRandomChainId(),
-                                            getRandomChainId()),
-                                    true);
+                                            getRandomChainId()));
 
         pollCallCounts(bridgeBuilder, 2);
         assertThat("Bridge update was notified",
@@ -288,7 +288,7 @@ public class LocalClientImplTest {
 
         @Override
         public Set<Short> vlansInMacLearningTable() {
-            return new HashSet<Short>();
+            return new HashSet<>();
         }
 
         @Override

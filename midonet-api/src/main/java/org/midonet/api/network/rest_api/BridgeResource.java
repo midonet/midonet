@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.api.network.rest_api;
 
@@ -56,14 +56,12 @@ import org.midonet.cluster.data.ports.VlanMacPort;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
 import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
@@ -244,11 +242,7 @@ public class BridgeResource extends AbstractResource {
                     "Not authorized to update this bridge.");
         }
 
-        try {
-            dataClient.bridgesUpdate(bridge.toData());
-        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
-            throw new BadRequestHttpException(ex, getMessage(VXLAN_PORT_ID_NOT_SETTABLE));
-        }
+        dataClient.bridgesUpdate(bridge.toData());
         bridgeEvent.update(id, dataClient.bridgesGet(id));
     }
 
@@ -624,7 +618,7 @@ public class BridgeResource extends AbstractResource {
 
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         Map<IPv4Addr, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
-        List<IP4MacPair> IP4MacPairList = new ArrayList<IP4MacPair>();
+        List<IP4MacPair> IP4MacPairList = new ArrayList<>();
         for (Map.Entry<IPv4Addr, MAC> entry : IP4MacPairMap.entrySet()) {
             IP4MacPair pair = new IP4MacPair(
                 entry.getKey().toString(), entry.getValue().toString());

@@ -22,7 +22,6 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -198,74 +197,66 @@ public class BridgeZkManager
      * Construct a list of ZK operations needed to update the configuration of a
      * bridge.
      *
-     * @param id
-     *            ID of the bridge to update
-     * @param config
-     *            the new bridge configuration.
-     * @param userUpdate
-     *            Pass true if the user has explicitly requested this
-     *            bridge update. Controls whether certain updates are
-     *            allowed.
+     * This operation assumes that validations have been performed before the
+     * call. These include for example modifications on the vxlan port id that
+     * is not allowed to be made directly by the user.
+     *
+     * @param id ID of the bridge to update
+     * @param newConfig the new bridge configuration.
      * @return The ZK operation required to update the bridge.
      * @throws org.midonet.midolman.serialization.SerializationException
      *             if the BridgeConfig could not be serialized.
      */
-    public List<Op> prepareUpdate(UUID id, BridgeConfig config,
-                                  boolean userUpdate)
-            throws StateAccessException, SerializationException,
-            VxLanPortIdUpdateException {
+    public List<Op> prepareUpdate(UUID id, BridgeConfig newConfig)
+            throws StateAccessException, SerializationException {
         BridgeConfig oldConfig = get(id);
         // Have the name, inbound or outbound filter changed?
         boolean dataChanged = false;
 
-        if (!Objects.equals(oldConfig.name, config.name)) {
+        if (!Objects.equals(oldConfig.name, newConfig.name)) {
             log.debug("The name of bridge {} changed from {} to {}",
-                    new Object[]{id, oldConfig.name, config.name});
+                      id, oldConfig.name, newConfig.name);
             dataChanged = true;
         }
 
         UUID id1 = oldConfig.inboundFilter;
-        UUID id2 = config.inboundFilter;
+        UUID id2 = newConfig.inboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {
             log.debug("The inbound filter of bridge {} changed from {} to {}",
-                    new Object[] { id, id1, id2 });
+                      id, id1, id2);
             dataChanged = true;
         }
         id1 = oldConfig.outboundFilter;
-        id2 = config.outboundFilter;
+        id2 = newConfig.outboundFilter;
         if (id1 == null ? id2 != null : !id1.equals(id2)) {
             log.debug("The outbound filter of bridge {} changed from {} to {}",
-                    new Object[] { id, id1, id2 });
+                      id, id1, id2);
             dataChanged = true;
         }
 
-        if (config.adminStateUp != oldConfig.adminStateUp) {
+        if (newConfig.adminStateUp != oldConfig.adminStateUp) {
             log.debug("The admin state of bridge {} changed from {} to {}",
-                    new Object[] { id, oldConfig.adminStateUp,
-                                   config.adminStateUp });
+                      id, oldConfig.adminStateUp, newConfig.adminStateUp);
             dataChanged = true;
         }
 
-        if (!Objects.equals(config.vxLanPortId, oldConfig.vxLanPortId)) {
-            // Users cannot set vxLanPortId directly.
-            if (userUpdate)
-                throw new VxLanPortIdUpdateException();
+        if (!Objects.equals(oldConfig.vxLanPortId, newConfig.vxLanPortId)) {
             log.debug("The vxLanPortId of bridge {} changed from {} to {}",
-                    new Object[]{id, oldConfig.vxLanPortId, config.vxLanPortId});
+                      id, oldConfig.vxLanPortId, newConfig.vxLanPortId);
             dataChanged = true;
         }
 
         List<Op> ops = new ArrayList<>();
         if (dataChanged) {
             // Update the midolman data. Don't change the Bridge's GRE-key.
-            config.tunnelKey = oldConfig.tunnelKey;
-            ops.add(simpleUpdateOp(id, config));
+            newConfig.tunnelKey = oldConfig.tunnelKey;
+            ops.add(simpleUpdateOp(id, newConfig));
             ops.addAll(chainZkManager.prepareUpdateFilterBackRef(
                     ResourceType.BRIDGE,
                     oldConfig.inboundFilter,
-                    config.inboundFilter,
+                    newConfig.inboundFilter,
                     oldConfig.outboundFilter,
-                    config.outboundFilter,
+                    newConfig.outboundFilter,
                     id));
         }
         return ops;
@@ -397,12 +388,12 @@ public class BridgeZkManager
         }
     }
 
-    public void update(UUID id, BridgeConfig cfg, boolean userUpdate)
-            throws StateAccessException, SerializationException,
-            VxLanPortIdUpdateException {
-        List<Op> ops = prepareUpdate(id, cfg, userUpdate);
-        if (!ops.isEmpty())
+    public void update(UUID id, BridgeConfig newCfg)
+            throws StateAccessException, SerializationException {
+        List<Op> ops = prepareUpdate(id, newCfg);
+        if (!ops.isEmpty()) {
             zk.multi(ops);
+        }
     }
 
     /***

@@ -113,8 +113,7 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void bridgesUpdate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException,
-            BridgeZkManager.VxLanPortIdUpdateException;
+            throws StateAccessException, SerializationException;
 
     List<Bridge> bridgesGetAll() throws StateAccessException,
             SerializationException;
@@ -437,8 +436,8 @@ public interface DataClient {
     EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
             ZookeeperConnectionWatcher zkConnection);
 
-    EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
-            ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
+    EntityIdSetMonitor tunnelZonesGetUuidSetMonitor(
+        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
             @Nonnull UUID zoneId,
