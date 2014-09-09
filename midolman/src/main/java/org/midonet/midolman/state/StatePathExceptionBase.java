@@ -104,6 +104,11 @@ public abstract class StatePathExceptionBase extends StateAccessException {
         if (nodeInfo != null)
             return nodeInfo;
 
+        if (path == null) {
+            // We can't get any info for this node without the path.
+            return null;
+        }
+
         // Make sure path starts with basePath.
         String normalizedBasePath =
                 basePath.endsWith("/") ? basePath : basePath + "/";
@@ -133,14 +138,6 @@ public abstract class StatePathExceptionBase extends StateAccessException {
             throw new IllegalStateException(
                     "Expected UUID after step '" + typeStep + "' in path: " + path, this);
         }
-
-        // May need to relax this assumption at some point. Obviously
-        // we do have paths with more than two steps (e.g.,
-        // "pools/{UUID}/vips/{UUID}"), but I don't know if we'll ever
-        // need to parse one for an error message.
-        if (!steps.isEmpty())
-            throw new IllegalStateException(
-                    "Unexpected continuation of path after first UUID: " + path, this);
 
         // Cache for future calls.
         nodeInfo = new NodeInfo(nodeType, id);
