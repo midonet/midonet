@@ -78,7 +78,9 @@ trait FlowTranslator {
                     NotADpPort
             }
         }
-        Urgent flatten localPorts.map {
+
+        val outPortSet = pktCtx.outPortId
+        val result = Urgent flatten localPorts.map {
             port =>
                 val filterId = port.outboundFilter
                 if (filterId == null) {
@@ -89,6 +91,8 @@ trait FlowTranslator {
                     expiringAsk[Chain](filterId) map { applyChainOn(_, port) }
                 }
         }
+        pktCtx.outPortId = outPortSet
+        result
     }
 
     /** translates a Seq of FlowActions expressed in virtual references into a
