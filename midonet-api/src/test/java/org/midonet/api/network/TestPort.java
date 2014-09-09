@@ -453,6 +453,32 @@ public class TestPort {
             verifyPortNumber(portCounter);
         }
 
+        @Test
+        public void testCreatePortOnBridgeWithoutDeviceId() throws Exception {
+            DtoBridge bridge1 = topology.getBridge("bridge1");
+            URI uri = bridge1.getPorts();
+            uri = new URI(uri.toString().replace(bridge1.getId().toString(),
+                    UUID.randomUUID().toString()));
+            DtoBridgePort port = createBridgePort(null, null, null, null, null);
+            dtoResource.postAndVerifyStatus(uri,
+                    APPLICATION_PORT_V2_JSON, port, 404);
+        }
+
+        @Test
+        public void testCreatePortOnRouterWithoutDeviceId() throws Exception {
+            DtoRouter router1 = topology.getRouter("router1");
+            URI uri = router1.getPorts();
+            uri = new URI(uri.toString().replace(router1.getId().toString(),
+                    UUID.randomUUID().toString()));
+            DtoRouterPort port = createRouterPort(null,
+                    router1.getId(),
+                    "10.0.10.0",
+                    24,
+                    "10.0.10.1");
+            dtoResource.postAndVerifyStatus(uri,
+                    APPLICATION_PORT_V2_JSON, port, 404);
+        }
+
         @After
         public void resetDirectory() throws Exception {
             StaticMockDirectory.clearDirectoryInstance();
