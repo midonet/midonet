@@ -65,7 +65,13 @@ public class BadRequestHttpException extends WebApplicationException {
 
     private static String getMessage(NoStatePathException ex) {
         StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
-        return MessageProperty.getMessage(MessageProperty.RESOURCE_NOT_FOUND,
-                node.nodeType.name, node.id);
+        if (node == null) {
+            return MessageProperty.getMessage(
+                MessageProperty.RESOURCE_NOT_FOUND);
+        } else {
+            return MessageProperty.getMessage(
+                MessageProperty.RESOURCE_NOT_FOUND, node.nodeType.name,
+                node.id);
+        }
     }
 }
