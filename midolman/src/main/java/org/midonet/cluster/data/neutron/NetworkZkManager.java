@@ -94,7 +94,7 @@ public class NetworkZkManager extends BaseZkManager {
 
         BridgeConfig config = new BridgeConfig(network);
         config.setTenantId(network.tenantId);
-        ops.addAll(bridgeZkManager.prepareUpdate(id, config, true));
+        ops.addAll(bridgeZkManager.prepareUpdate(id, config));
 
         String path = paths.getNeutronNetworkPath(id);
         ops.add(zk.getSetDataOp(path, serializer.serialize(network)));

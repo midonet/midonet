@@ -585,20 +585,17 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public void bridgesUpdate(@Nonnull Bridge bridge)
-            throws StateAccessException, SerializationException,
-            BridgeZkManager.VxLanPortIdUpdateException {
+    public void bridgesUpdate(@Nonnull Bridge b)
+            throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
 
         // Get the original data
-        Bridge oldBridge = bridgesGet(bridge.getId());
+        Bridge oldBridge = bridgesGet(b.getId());
 
-        BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(
-                bridge);
+        BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(b);
 
         // Update the config
-        ops.addAll(bridgeZkManager.prepareUpdate(
-                bridge.getId(), bridgeConfig, true));
+        ops.addAll(bridgeZkManager.prepareUpdate(b.getId(), bridgeConfig));
 
         if (!ops.isEmpty()) {
             zkManager.multi(ops);
@@ -1454,8 +1451,7 @@ public class LocalDataClientImpl implements DataClient {
                 log.warn(
                         "An interface description went missing in action while "
                                 + "we were looking for it host: {}, interface: "
-                                + "{}.",
-                        new Object[] { hostId, interfaceName, e });
+                                + "{}.", hostId, interfaceName, e);
             }
         }
 
@@ -1541,7 +1537,7 @@ public class LocalDataClientImpl implements DataClient {
 
         } catch (StateAccessException e) {
             log.warn("Could not read command with id {} from datastore "
-                    + "(for host: {})", new Object[] { id, hostId, e });
+                    + "(for host: {})", id, hostId, e);
             throw e;
         }
 
@@ -3538,9 +3534,9 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public void vtepDelete(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException {
-        List<Op> deleteNoOwner = new ArrayList<Op>(
+        List<Op> deleteNoOwner = new ArrayList<>(
             vtepZkManager.prepareDelete(ipAddr));
-        List<Op> deleteOwner = new ArrayList<Op>(
+        List<Op> deleteOwner = new ArrayList<>(
             vtepZkManager.prepareDeleteOwner(ipAddr));
         deleteOwner.addAll(deleteNoOwner);
 
@@ -3721,9 +3717,8 @@ public class LocalDataClientImpl implements DataClient {
         if (hostCfg == null) {
             log.error("Port {} on bridge {} bount to an interface in host {} " +
                       "was expected to belong to tunnel zone {} through " +
-                      "binding to VTEP {}",
-                      new Object[]{port.getId(), b.getId(), hostId, tzId,
-                          vtepMgmtIp});
+                      "binding to VTEP {}", port.getId(), b.getId(), hostId,
+                      tzId, vtepMgmtIp);
             return null;
         }
 
@@ -3751,14 +3746,7 @@ public class LocalDataClientImpl implements DataClient {
         ops.addAll(portZkManager.prepareCreate(port.getId(), portConfig));
 
         bridgeConfig.vxLanPortId = port.getId();
-        try {
-            ops.addAll(bridgeZkManager.prepareUpdate(
-                    bridgeId, bridgeConfig, false));
-        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
-            // Should never happen, since this exception is only
-            // thrown when userUpdate is true.
-            throw new RuntimeException(ex);
-        }
+        ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
 
         zkManager.multi(ops);
         return port;
@@ -3781,13 +3769,7 @@ public class LocalDataClientImpl implements DataClient {
 
         // Clear bridge's vxLanPortId property.
         bridgeConfig.vxLanPortId = null;
-        try {
-            ops.addAll(bridgeZkManager.prepareUpdate(
-                    bridgeId, bridgeConfig, false));
-        } catch (BridgeZkManager.VxLanPortIdUpdateException ex) {
-            // This should never happen when userUpdate arg is false.
-            throw new RuntimeException("Unexpected exception", ex);
-        }
+        ops.addAll(bridgeZkManager.prepareUpdate(bridgeId, bridgeConfig));
 
         // Delete the port.
         VxLanPortConfig portConfig =

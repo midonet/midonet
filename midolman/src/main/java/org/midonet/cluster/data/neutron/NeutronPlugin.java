@@ -191,6 +191,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         List<Op> ops = new ArrayList<>();
         InterProcessSemaphoreMutex lock = acquireLock();
         try {
+
+            // Note that the internal vxlan port id of the bridge is not being
+            // validated here because neutron has no vxgw. But just to make it
+            // explicit: the vxlan port id can NOT be modified by the user, if
+            // it ever gets modified from here we should be using the same
+            // validation as in the Midonet API BridgeResource.
             networkZkManager.prepareUpdateNetwork(ops, network);
             externalNetZkManager.prepareUpdateExternalNetwork(ops, network);
 
