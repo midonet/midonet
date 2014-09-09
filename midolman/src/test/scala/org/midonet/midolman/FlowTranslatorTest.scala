@@ -543,6 +543,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                     translatedActions = null
                     do {
                         pktCtx = packetContext(ethernet, inPortUUID)
+                        val id = UUID.randomUUID()
+                        pktCtx.outPortId = id
                         new TestFlowTranslator(dpState)
                                 .translateActions(pktCtx, actions) match {
                             case Ready(v) =>
@@ -550,6 +552,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                             case NotYet(f) =>
                                 Await.result(f, 200 millis)
                         }
+                        pktCtx.outPortId should be (id)
                     } while (translatedActions == null)
                 }
 
@@ -580,6 +583,8 @@ class FlowTranslatorTest extends MidolmanSpec {
 
                 do {
                     pktCtx = packetContext(ethernet, inPortUUID)
+                    val id = UUID.randomUUID()
+                    pktCtx.outPortId = id
                     val wildFlow = WildcardFlow(pktCtx.wcmatch, actions)
                     new TestFlowTranslator(dpState)
                             .translateVirtualWildcardFlow(pktCtx, wildFlow) match {
@@ -588,6 +593,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                         case NotYet(f) =>
                             Await.result(f, 200 millis)
                     }
+                    pktCtx.outPortId should be (id)
                 } while (translation == null)
             }
 
