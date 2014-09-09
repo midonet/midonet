@@ -371,6 +371,11 @@ public class PortResource extends AbstractResource {
             port.setDeviceId(bridgeId);
             validate(port);
 
+            if (dataClient.bridgesGet(bridgeId) == null) {
+                throw new NotFoundHttpException(
+                        "Cannot create port for non existent bridge");
+            }
+
             if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
                 throw new ForbiddenHttpException(
                         "Not authorized to add port to this bridge.");
