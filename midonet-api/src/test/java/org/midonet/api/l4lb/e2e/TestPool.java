@@ -170,10 +170,9 @@ public class TestPool {
         public void testCreateWithBadHealthMonitorId() {
             DtoPool pool = getStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
-            DtoError error = dtoResource.postAndVerifyError(
-                    topLevelPoolsUri, APPLICATION_POOL_JSON, pool, BAD_REQUEST);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                    "health monitor", pool.getHealthMonitorId());
+            dtoResource.postAndVerifyError(topLevelPoolsUri,
+                                           APPLICATION_POOL_JSON, pool,
+                                           BAD_REQUEST);
         }
 
         @Test
