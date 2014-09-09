@@ -363,8 +363,8 @@ class Coordinator(pktCtx: PacketContext)
             case true =>
                 log.debug("Emitting packet from port set {}", outputID)
                 actions.append(FlowActionOutputToVrnPortSet(outputID))
-                pktCtx.toPortSet = true
         }
+        pktCtx.toPortSet = isPortSet
 
         if (pktCtx.isGenerated) {
             log.debug("SendPacket with actions {}", actions)
