@@ -147,7 +147,7 @@
                 <groupId>org.vafer</groupId>
                 <artifactId>jdeb</artifactId>
                 <configuration>
-                    <deb>[[buildDir]]/midonet-api_[[version]].[[extension]]</deb>
+                    <deb>[[buildDir]]/midonet-api_[[version]]_all.[[extension]]</deb>
                     <dataSet>
                         <data>
                             <src>${project.build.directory}/${project.build.finalName}</src>
@@ -454,6 +454,13 @@
             <groupId>net.java.truelicense</groupId>
             <artifactId>truelicense-json</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <profiles>
