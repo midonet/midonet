@@ -14,6 +14,11 @@ import org.midonet.packets.IPv4Addr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.midolman.rules.RuleMatcher.DefaultDropRuleMatcher;
+import org.midonet.midolman.rules.RuleMatcher.DnatRuleMatcher;
+import org.midonet.midolman.rules.RuleMatcher.DropFragmentRuleMatcher;
+import org.midonet.midolman.rules.RuleMatcher.ReverseSnatRuleMatcher;
+import org.midonet.midolman.rules.RuleMatcher.SnatRuleMatcher;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -520,7 +525,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .toIp(matchIp)
             .destNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
-            new RuleMatcher.DnatRuleMatcher(oldTarget), r);
+            new DnatRuleMatcher(oldTarget), r);
     }
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
@@ -532,20 +537,20 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .fromIp(matchIp)
             .sourceNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
-            new RuleMatcher.SnatRuleMatcher(oldTarget), r);
+            new SnatRuleMatcher(oldTarget), r);
     }
 
     public void prepareDeleteDnatRules(List<Op> ops, UUID chainId,
                                        IPv4Addr target)
             throws SerializationException, StateAccessException {
         prepareDeleteRules(ops, chainId,
-            new RuleMatcher.DnatRuleMatcher(target));
+            new DnatRuleMatcher(target));
     }
 
     public void prepareDeleteSnatRules(List<Op> ops, UUID chainId,
                                        IPv4Addr addr)
             throws SerializationException, StateAccessException {
-        prepareDeleteRules(ops, chainId, new RuleMatcher.SnatRuleMatcher(addr));
+        prepareDeleteRules(ops, chainId, new SnatRuleMatcher(addr));
     }
 
     public void prepareDeleteRules(List<Op> ops, UUID chainId,
@@ -558,8 +563,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             throws StateAccessException, SerializationException {
         RuleList ruleList = getRuleList(chainId);
         NatTarget target = new NatTarget(addr);
-        RuleMatcher.SnatRuleMatcher matcher
-            = new RuleMatcher.SnatRuleMatcher(target);
+        SnatRuleMatcher matcher = new SnatRuleMatcher(target);
         for (UUID rId : ruleList.getRuleList()) {
             Rule r = get(rId);
             if (matcher.apply(r)) {
@@ -680,6 +684,11 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         Rule sourceNat = new RuleBuilder(outboundChainId)
             .goingOutPort(portId)
             .sourceNat(new NatTarget(addr));
+        Rule dropUnmatched = new RuleBuilder(outboundChainId)
+            .isAnyFragmentState()
+            .goingOutPort(portId)
+            .drop();
+
         Rule reverseSourceNat = new RuleBuilder(inboundChainId)
             .hasDestIp(addr)
             .comingInPort(portId)
@@ -689,7 +698,11 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .hasDestIp(addr)
             .drop();
 
-        prepareCreateRuleLastPosition(ops, sourceNat);
+        ArrayList<Rule> outboudRules = new ArrayList<>(2);
+        outboudRules.add(sourceNat);
+        outboudRules.add(dropUnmatched);
+        prepareRulesAppendToEndOfChain(ops, outboundChainId, outboudRules);
+
         ArrayList<Rule> inboundRules = new ArrayList<>(2);
         inboundRules.add(reverseSourceNat);
         inboundRules.add(dropSourceNat);
@@ -697,21 +710,23 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
     }
 
     public void prepareDeleteSourceNatRules(List<Op> ops, UUID inboundChainId,
-                                UUID outboundChainId, IPv4Addr addr)
+                                UUID outboundChainId, IPv4Addr addr, UUID portId)
             throws SerializationException, StateAccessException,
             RuleIndexOutOfBoundsException {
-        RuleMatcher reverseSnatMatcher =
-            new RuleMatcher.ReverseSnatRuleMatcher(addr);
-        RuleMatcher dropRule = new RuleMatcher.DefaultDropRuleMatcher(addr);
-        List<RuleMatcher> matchers = new ArrayList<>(2);
-        matchers.add(reverseSnatMatcher);
-        matchers.add(dropRule);
 
-        RuleMatcher snatMatcher = new RuleMatcher.SnatRuleMatcher(
-            new NatTarget(addr));
-        prepareDeleteRules(ops, outboundChainId, snatMatcher);
+        RuleMatcher reverseSnatMatcher = new ReverseSnatRuleMatcher(addr);
+        RuleMatcher dropRuleMatcher = new DefaultDropRuleMatcher(addr);
+        List<RuleMatcher> inboundMatchers = new ArrayList<>(2);
+        inboundMatchers.add(reverseSnatMatcher);
+        inboundMatchers.add(dropRuleMatcher);
+        prepareDeleteRules(ops, inboundChainId, inboundMatchers);
 
-        prepareDeleteRules(ops, inboundChainId, matchers);
+        RuleMatcher snatMatcher = new SnatRuleMatcher(new NatTarget(addr));
+        RuleMatcher dropUnmatchedMatcher = new DropFragmentRuleMatcher(portId);
+        List<RuleMatcher> outboundMatchers = new ArrayList<>(2);
+        outboundMatchers.add(snatMatcher);
+        outboundMatchers.add(dropUnmatchedMatcher);
+        prepareDeleteRules(ops, outboundChainId, outboundMatchers);
     }
 
     /***
