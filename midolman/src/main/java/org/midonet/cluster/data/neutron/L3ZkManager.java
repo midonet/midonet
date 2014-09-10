@@ -319,7 +319,7 @@ public class L3ZkManager extends BaseZkManager {
         PortConfig peer = portZkManager.getPeerPort(port.id);
         RouterConfig rCfg = routerZkManager.get(peer.device_id);
         ruleZkManager.prepareDeleteSourceNatRules(ops, rCfg.inboundFilter,
-            rCfg.outboundFilter, port.firstIpv4Addr());
+            rCfg.outboundFilter, port.firstIpv4Addr(), peer.id);
     }
 
     private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID gwPortId)
@@ -378,9 +378,9 @@ public class L3ZkManager extends BaseZkManager {
         UUID portId = prepareLinkToGwRouter(ops, router.id, gwPort);
 
         if (router.snatEnabled()) {
-            ruleZkManager.prepareCreateSourceNatRules(ops,
-                inboundChainId, outboundChainId, portId,
-                gwPort.firstIpv4Addr());
+            ruleZkManager.prepareCreateSourceNatRules(ops, inboundChainId,
+                                                      outboundChainId, portId,
+                                                      gwPort.firstIpv4Addr());
         }
     }
 
@@ -427,7 +427,7 @@ public class L3ZkManager extends BaseZkManager {
             } else {
                 ruleZkManager.prepareDeleteSourceNatRules(ops,
                     config.inboundFilter, config.outboundFilter,
-                    gwPort.firstIpv4Addr());
+                    gwPort.firstIpv4Addr(), portId);
             }
         }
     }
