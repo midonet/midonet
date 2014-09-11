@@ -9,7 +9,7 @@ project_name="midonet"
 
 # Space separated, these are expected to contain a package.sh script that takes
 # two params: (deb|rhel) version-tag
-build_packages="python-midonetclient"
+build_packages=""
 
 usage() {
     echo -e "\n\e[1;33mMidonet release script\e[m\n\n\
