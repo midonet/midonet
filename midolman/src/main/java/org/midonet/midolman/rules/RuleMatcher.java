@@ -5,8 +5,6 @@ package org.midonet.midolman.rules;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 
@@ -25,10 +23,6 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
 
         public SnatRuleMatcher(NatTarget target) {
             this.target = target;
-        }
-
-        public SnatRuleMatcher(IPv4Addr nwStart, IPv4Addr nwEnd) {
-            this(new NatTarget(nwStart, nwEnd));
         }
 
         public SnatRuleMatcher(IPv4Addr addr) {
@@ -69,16 +63,31 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
         }
     }
 
+    public static class DropFragmentRuleMatcher extends RuleMatcher {
+        private final UUID portId;
+
+        public DropFragmentRuleMatcher(UUID portId) {
+            this.portId = portId;
+        }
+
+        @Override
+        public Boolean apply(Rule rule) {
+            if (!rule.getClass().equals(LiteralRule.class))
+                return false;
+            LiteralRule r = (LiteralRule) rule;
+            return r.action == RuleResult.Action.DROP &&
+                   r.getCondition().fragmentPolicy == FragmentPolicy.ANY &&
+                   r.getCondition().outPortIds != null &&
+                   r.getCondition().outPortIds.contains(portId);
+        }
+    }
+
     public static class DnatRuleMatcher extends RuleMatcher {
 
         private final NatTarget target;
 
         public DnatRuleMatcher(NatTarget target) {
             this.target = target;
-        }
-
-        public DnatRuleMatcher(IPv4Addr nwStart, IPv4Addr nwEnd) {
-            this(new NatTarget(nwStart, nwEnd));
         }
 
         public DnatRuleMatcher(IPv4Addr addr) {
