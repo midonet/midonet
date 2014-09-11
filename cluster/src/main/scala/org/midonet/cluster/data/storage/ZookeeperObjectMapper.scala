@@ -4,9 +4,7 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util
-import java.util.Map.Entry
-import java.util.{List => JList, ConcurrentModificationException}
+import java.util.ConcurrentModificationException
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{TextFormat, Message}
@@ -19,12 +17,12 @@ import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.slf4j.LoggerFactory
-import rx.subjects.Subject
+import rx.{Subscription, Observer, Observable}
 
 import scala.collection.JavaConverters._
-import scala.collection.concurrent.{Map => ConcurrentMap, TrieMap}
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
-
+import scala.collection.mutable.ListBuffer
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -78,11 +76,12 @@ import scala.collection.mutable
 class ZookeeperObjectMapper(private val basePath: String,
                             private val curator: CuratorFramework) {
     import ZookeeperObjectMapper.log
+    import ZookeeperObjectMapper.deserialize
+    import ZookeeperObjectMapper.serialize
+
 
     private case class Key[T](clazz: Class[T], id: ObjId)
     private case class ObjWithVersion[T](obj: T, version: Int)
-
-    private val jsonFactory = new JsonFactory(new ObjectMapper())
 
     private val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
 
@@ -91,8 +90,9 @@ class ZookeeperObjectMapper(private val basePath: String,
     private val simpleNameToClass =
         new mutable.HashMap[String, Class[_]]()
 
-    private val instanceSubjects =
-        new mutable.HashMap[Class[_], ConcurrentMap[ObjId, Subject[_, _]]]
+    private val instanceCaches = new mutable.HashMap[
+        Class[_], TrieMap[ObjId, InstanceSubscriptionCache[_]]]
+    private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
 
     curator.start()
 
@@ -117,7 +117,7 @@ class ZookeeperObjectMapper(private val basePath: String,
          * Gets the specified object from the internal cache. If not found,
          * loads it from Zookeeper and caches it.
          *
-         * Returns null if the object has been marked for deletion.
+         * Returns None if the object has been marked for deletion.
          */
         private def cachedGet[T](clazz: Class[T], id: ObjId): Option[T] = {
             val key = Key(clazz, id)
@@ -266,14 +266,15 @@ class ZookeeperObjectMapper(private val basePath: String,
 
         val ensurePath = new EnsurePath(getPath(clazz))
         try ensurePath.ensure(curator.getZookeeperClient) catch {
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
 
-        // Add the subject map last, since we use this to verify registration.
-        instanceSubjects(clazz) = new TrieMap[ObjId, Subject[_, _]]()
+        // Add the instance cache map last, since we use this to verify
+        // registration.
+        instanceCaches(clazz) = new TrieMap[ObjId, InstanceSubscriptionCache[_]]
     }
 
-    def isRegistered(clazz: Class[_]) = instanceSubjects.contains(clazz)
+    def isRegistered(clazz: Class[_]) = instanceCaches.contains(clazz)
 
     def declareBinding(leftClass: Class[_], leftFieldName: String,
                        onDeleteLeft: DeleteAction,
@@ -337,7 +338,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                 // operation because we already sucessfully fetched any objects
                 // that are being updated.
                 throw new ConcurrentModificationException(ex)
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
@@ -374,7 +375,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                 // operation because we already successfully fetched any objects
                 // that are being updated.
                 throw new ConcurrentModificationException(ex)
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
@@ -390,11 +391,11 @@ class ZookeeperObjectMapper(private val basePath: String,
         val manager = TransactionManager.forDelete(clazz, id, version)
         try manager.commit() catch {
             case ex @ (_: BadVersionException | _: NoNodeException) =>
-                // NoStatePathException is assumed to be due to concurrent delete
-                // operation because we already sucessfully fetched any objects
-                // that are being updated.
+                // NoStatePathException is assumed to be due to concurrent
+                // delete operation because we already sucessfully fetched any
+                // objects that are being updated.
                 throw new ConcurrentModificationException(ex)
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
@@ -405,32 +406,33 @@ class ZookeeperObjectMapper(private val basePath: String,
     def get[T](clazz: Class[T], id: ObjId): T = {
         assert(isRegistered(clazz))
         val data = try curator.getData.forPath(getPath(clazz, id)) catch {
-            case nne: NoNodeException =>
-                throw new NotFoundException(clazz, id)
-            case t: Throwable =>
-                throw new InternalObjectMapperException(t)
+            case nne: NoNodeException => throw new NotFoundException(clazz, id)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
 
         deserialize(data, clazz)
     }
 
-    def getAll[T](clazz: Class[T]): JList[T] = {
+    /**
+     * Gets all instances of the specified class.
+     */
+    def getAll[T](clazz: Class[T]): List[T] = {
         assert(isRegistered(clazz))
         val ids = try curator.getChildren.forPath(getPath(clazz)) catch {
-            case t: Throwable =>
+            case ex: Exception =>
                 // Should have created this during class registration.
                 throw new InternalObjectMapperException(
-                    s"Node ${getPath(clazz)} does not exist in Zookeeper.", t)
+                    s"Node ${getPath(clazz)} does not exist in Zookeeper.", ex)
         }
 
-        val ts = new util.ArrayList[T](ids.size())
+        val ts = ListBuffer[T]()
         ids.asScala.foreach { id =>
-            try ts.add(get(clazz, id)) catch {
+            try ts += get(clazz, id) catch {
                 case nne: NotFoundException =>
                     // Must have been deleted since fetching IDs. Ignore.
             }
         }
-        ts
+        ts.toList
     }
 
     private def getWithVersion[T](clazz: Class[T],
@@ -439,7 +441,7 @@ class ZookeeperObjectMapper(private val basePath: String,
         val path = getPath(clazz, id)
         val data = try curator.getData.storingStatIn(stat).forPath(path) catch {
             case nne: NoNodeException => throw new NotFoundException(clazz, id)
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
 
         ObjWithVersion(deserialize(data, clazz), stat.getVersion)
@@ -452,13 +454,14 @@ class ZookeeperObjectMapper(private val basePath: String,
         try {
             curator.checkExists().forPath(getPath(clazz, id)) != null
         } catch {
-            case t: Throwable => throw new InternalObjectMapperException(t)
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
-    private def getPath(clazz: Class[_]) = basePath + "/" + clazz.getSimpleName
+    private[storage] def getPath(clazz: Class[_]) =
+        basePath + "/" + clazz.getSimpleName
 
-    private def getPath(clazz: Class[_], id: ObjId): String = {
+    private[storage] def getPath(clazz: Class[_], id: ObjId): String = {
         val idString = if (classOf[Message].isAssignableFrom(clazz)) {
             ProtoFieldBinding.getIdString(id)
         } else {
@@ -476,11 +479,63 @@ class ZookeeperObjectMapper(private val basePath: String,
                 new PojoIdGetter(clazz)
             }
         } catch {
-            case t: Throwable =>
+            case ex: Exception =>
                 throw new IllegalArgumentException(
                     s"Class $clazz does not have a field named 'id', or the " +
-                     "field could not be made accessible.", t)
+                     "field could not be made accessible.", ex)
         }
+    }
+
+    /**
+     * Subscribe to the specified object. Upon subscription at time t0,
+     * obs.onNext() will receive the object's state at time t0, and future
+     * updates at tn > t0 will trigger additional calls to onNext(). If an
+     * object is updated in Zookeeper multiple times in quick succession, some
+     * updates may not trigger a call to onNext(), but each call to onNext()
+     * will provide the most up-to-date data available.
+     *
+     * obs.onCompleted() will be called when the object is deleted, and
+     * obs.onError() will be invoked with a NotFoundException if the object
+     * does not exist.
+     */
+    def subscribe[T](clazz: Class[T],
+                     id: ObjId,
+                     obs: Observer[_ >: T]): Subscription = {
+        assert(isRegistered(clazz))
+        val cache = instanceCaches(clazz).getOrElse(id, {
+            val path = getPath(clazz, id)
+            val nw = new InstanceSubscriptionCache(clazz, path, curator)
+            instanceCaches(clazz).putIfAbsent(id, nw) match {
+                case Some(cur) => nw.close(); cur
+                case None => nw
+            }
+        }).asInstanceOf[InstanceSubscriptionCache[T]]
+        cache.subscribe(obs)
+    }
+
+    /**
+     * Subscribes to the specified class. Upon subscription at time t0,
+     * obs.onNext() will receive an Observable[T] for each object of class
+     * T existing at time t0, and future updates at tn > t0 will each trigger
+     * a call to onNext() with an Observable[T] for a new object.
+     *
+     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
+     * circumstances.
+     *
+     * The subscribe() method of each of these Observables has the same behavior
+     * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
+     */
+    def subscribeAll[T](clazz: Class[T],
+                        obs: Observer[_ >: Observable[T]]): Subscription = {
+        assert(isRegistered(clazz))
+        val cache = classCaches.getOrElse(clazz, {
+            val nw = new ClassSubscriptionCache(clazz, getPath(clazz), curator)
+            classCaches.putIfAbsent(clazz, nw) match {
+                case Some(cur) => nw.close(); cur
+                case None => nw
+            }
+        }).asInstanceOf[ClassSubscriptionCache[T]]
+        cache.subscribe(obs)
     }
 
     private trait IdGetter {
@@ -501,7 +556,15 @@ class ZookeeperObjectMapper(private val basePath: String,
         def idOf(obj: Obj) = idField.get(obj)
     }
 
-    private def serialize(obj: Obj): Array[Byte] ={
+    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
+}
+
+object ZookeeperObjectMapper {
+    protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
+
+    private val jsonFactory = new JsonFactory(new ObjectMapper())
+
+    private[storage] def serialize(obj: Obj): Array[Byte] ={
         obj match {
             case msg: Message => serializeMessage(msg)
             case pojo => serializePojo(pojo)
@@ -517,7 +580,7 @@ class ZookeeperObjectMapper(private val basePath: String,
             generator.writeObject(obj)
             generator.close()
         } catch {
-            case ex: Throwable =>
+            case ex: Exception =>
                 throw new InternalObjectMapperException(
                     "Could not serialize " + obj, ex)
         }
@@ -525,7 +588,8 @@ class ZookeeperObjectMapper(private val basePath: String,
         writer.toString.trim.getBytes
     }
 
-    private def deserialize[T](data: Array[Byte], clazz: Class[T]): T = {
+    private[storage] def deserialize[T](data: Array[Byte],
+                                        clazz: Class[T]): T = {
         try {
             if (classOf[Message].isAssignableFrom(clazz)) {
                 deserializeMessage(data, clazz)
@@ -533,7 +597,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                 deserializePojo(data, clazz)
             }
         } catch {
-            case ex: Throwable =>
+            case ex: Exception =>
                 throw new InternalObjectMapperException(
                     "Could not parse data from Zookeeper: " + new String(data),
                     ex)
@@ -553,12 +617,6 @@ class ZookeeperObjectMapper(private val basePath: String,
         parser.close()
         t
     }
-
-    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
-}
-
-object ZookeeperObjectMapper {
-    protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 }
 
 /**
@@ -573,7 +631,9 @@ class InternalObjectMapperException private[storage] (val message: String,
 }
 
 class NotFoundException private[storage] (val clazz: Class[_], val id: ObjId)
-    extends RuntimeException(s"There is no ${clazz.getSimpleName} with ID $id.")
+    extends RuntimeException(
+        if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
+        else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
 class ObjectExistsException private[storage] (val clazz: Class[_],
                                               val id: ObjId)
