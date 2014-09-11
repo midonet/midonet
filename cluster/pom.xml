@@ -61,8 +61,11 @@
                                 </copy>
                                 <exec executable="protoc" dir="build/tmp/proto">
                                     <arg value="--java_out=../../../target/generated-sources"/>
+                                    <!-- Need to enumerate all the input protocol buffer definitions. -->
+                                    <!-- Maven Antrun plugin does not expand file globs. -->
                                     <arg value="commons.proto"/>
                                     <arg value="devices.proto"/>
+                                    <arg value="storage_evaluation.proto"/>
                                     <arg value="test.proto"/>
                                 </exec>
                                 <delete dir="build/tmp/proto"/>
