@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import scala.None$;
+
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -36,7 +38,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import scala.None$;
 
 public class ZookeeperObjectMapperTest {
 
@@ -734,7 +735,6 @@ public class ZookeeperObjectMapperTest {
         zom.create(chain1);
         zom.getAll(PojoChain.class);
         zom.create(chain2);
-        // createObjects(chain1, chain2);
         scala.collection.immutable.List<PojoChain> chains =
             zom.getAll(PojoChain.class);
         assertEquals(2, chains.size());
