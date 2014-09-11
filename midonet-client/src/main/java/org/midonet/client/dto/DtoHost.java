@@ -18,6 +18,7 @@ public class DtoHost {
     private UUID id;
     private String name;
     private String[] addresses;
+    private DtoInterface[] hostInterfaces;
     private URI interfaces;
     private URI hostCommands;
     private URI ports;
@@ -41,6 +42,14 @@ public class DtoHost {
 
     public void setInterfaces(URI interfaces) {
         this.interfaces = interfaces;
+    }
+
+    public DtoInterface[] getHostInterfaces() {
+        return hostInterfaces;
+    }
+
+    public void setHostInterfaces(DtoInterface[] hostInterfaces) {
+        this.hostInterfaces = hostInterfaces;
     }
 
     public URI getUri() {

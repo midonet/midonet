@@ -55,8 +55,8 @@ public class HostResource extends AbstractResource {
 
     @GET
     @RolesAllowed({AuthRole.ADMIN})
-    @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON,
-               VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V2,
+    @Produces({VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V2,
+               VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3,
                MediaType.APPLICATION_JSON})
     public List<Host> list()
         throws ForbiddenHttpException,
@@ -86,8 +86,8 @@ public class HostResource extends AbstractResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
-    @Produces({VendorMediaType.APPLICATION_HOST_JSON,
-               VendorMediaType.APPLICATION_HOST_JSON_V2,
+    @Produces({VendorMediaType.APPLICATION_HOST_JSON_V2,
+               VendorMediaType.APPLICATION_HOST_JSON_V3,
                MediaType.APPLICATION_JSON})
     public Host get(@PathParam("id") UUID id)
         throws NotFoundHttpException,
@@ -185,7 +185,8 @@ public class HostResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Path("{id}")
     @Consumes({VendorMediaType.APPLICATION_HOST_JSON_V2,
-                  MediaType.APPLICATION_JSON})
+               VendorMediaType.APPLICATION_HOST_JSON_V3,
+               MediaType.APPLICATION_JSON})
     public Response update(@PathParam("id") UUID id, Host host)
             throws StateAccessException, SerializationException {
         host.setId(id);

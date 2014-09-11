@@ -6,8 +6,10 @@ package org.midonet.cluster.data.host;
 import org.midonet.cluster.data.Entity;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +30,8 @@ public class Host extends Entity.Base<UUID, Host.Data, Host> {
      * If the value is not explicitly set, then the default value should be 1.
      */
     private int floodingProxyWeight;
+
+    private List<Interface> interfaces = new ArrayList<>();
 
     public Host() {
         this(null, new Data());
@@ -71,6 +75,15 @@ public class Host extends Entity.Base<UUID, Host.Data, Host> {
 
     public Host setAddresses(InetAddress[] addresses) {
         getData().addresses = addresses;
+        return self();
+    }
+
+    public List<Interface> getInterfaces() {
+        return this.interfaces;
+    }
+
+    public Host setInterfaces(List<Interface> interfaces) {
+        this.interfaces = interfaces;
         return self();
     }
 
