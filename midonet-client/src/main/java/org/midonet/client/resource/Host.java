@@ -5,6 +5,8 @@
 package org.midonet.client.resource;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.midonet.client.VendorMediaType;
@@ -22,7 +24,7 @@ public class Host extends ResourceBase<Host, DtoHost> {
 
     public Host(WebResource resource, URI uriForCreation, DtoHost host) {
         super(resource, uriForCreation, host,
-              VendorMediaType.APPLICATION_HOST_JSON);
+              VendorMediaType.APPLICATION_HOST_JSON_V3);
     }
 
     @Override
@@ -59,6 +61,16 @@ public class Host extends ResourceBase<Host, DtoHost> {
             principalDto.getInterfaces(), null,
             VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
             HostInterface.class, DtoInterface.class);
+    }
+
+    public List<HostInterface> getHostInterfaces() {
+        List<HostInterface> hostInterfaces = new ArrayList<>();
+        DtoInterface[] interfaces = principalDto.getHostInterfaces();
+        for (DtoInterface intf : interfaces) {
+            hostInterfaces.add(new HostInterface(this.resource, null, intf));
+        }
+
+        return hostInterfaces;
     }
 
     public ResourceCollection<HostInterfacePort> getPorts() {

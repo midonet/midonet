@@ -46,7 +46,7 @@ import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
+import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -301,7 +301,7 @@ public class TestHostInterfacePort {
             // Get the host DTO.
             DtoHost[] hosts = dtoResource.getAndVerifyOk(
                     topology.getApplication().getHosts(),
-                    APPLICATION_HOST_COLLECTION_JSON,
+                    APPLICATION_HOST_COLLECTION_JSON_V3,
                     DtoHost[].class);
             Assert.assertEquals(1, hosts.length);
             DtoHost resHost = hosts[0];
