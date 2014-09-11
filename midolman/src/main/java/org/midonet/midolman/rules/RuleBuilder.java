@@ -100,6 +100,16 @@ public class RuleBuilder {
         return this;
     }
 
+    public RuleBuilder hasSrcIp(IPv4Addr ip) {
+        c.nwSrcIp = new IPv4Subnet(ip, 32);
+        return this;
+    }
+
+    public RuleBuilder isAnyFragmentState() {
+        c.fragmentPolicy = FragmentPolicy.ANY;
+        return this;
+    }
+
     public RuleBuilder notICMP() {
         c.nwProtoInv = true;
         c.nwProto = RuleProtocol.ICMP.number();

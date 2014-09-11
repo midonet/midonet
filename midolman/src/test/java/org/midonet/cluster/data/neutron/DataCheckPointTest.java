@@ -888,15 +888,13 @@ public class DataCheckPointTest {
         }
 
         for (Rule<?, ?> r : outboundRules) {
-            Set<org.midonet.midolman.rules.NatTarget>
-                targets
-                =
-                ((org.midonet.cluster.data.rules.ForwardNatRule) r)
-                    .getTargets();
-            for (NatTarget nt : targets) {
-                if (nt.getNwEnd().equals(snatIp) &&
-                    nt.getNwStart().equals(snatIp)) {
-                    foundRevSnat = true;
+            if (r instanceof ForwardNatRule) {
+                Set<NatTarget> targets = ((ForwardNatRule) r).getTargets();
+                for (NatTarget nt : targets) {
+                    if (nt.getNwEnd().equals(snatIp) &&
+                        nt.getNwStart().equals(snatIp)) {
+                        foundRevSnat = true;
+                    }
                 }
             }
         }
