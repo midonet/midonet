@@ -81,6 +81,7 @@ project.ext {
             exclude group: 'io.netty', module: 'netty'
             exclude group: 'log4j', module: 'log4j'
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+        curator_framework: "org.apache.curator:curator-framework:2.6.0",
         curator_recipes: "org.apache.curator:curator-recipes:2.6.0",
         curator_test: "org.apache.curator:curator-test:2.6.0",
 

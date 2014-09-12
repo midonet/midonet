@@ -52,14 +52,11 @@ public class HealthMonitorResource extends AbstractResource {
     private final static HealthMonitorEvent healthMonitorEvent
             = new HealthMonitorEvent();
 
-    private final DataClient dataClient;
-
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
                                  SecurityContext context,
                                  DataClient dataClient, Validator validator) {
-        super(config, uriInfo, context, null, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     @GET

@@ -5,6 +5,10 @@ package org.midonet.cluster.data.storage;
 
 import java.util.List;
 
+import rx.Observable;
+import rx.Observer;
+import rx.Subscription;
+
 /**
  * An interface defining the cluster persistence service.
  */
@@ -44,4 +48,20 @@ public interface StorageService {
      * Returns true if the specified object exists in the storage.
      */
     public boolean exists(Class<?> clazz, Object id);
+
+    public <T> Subscription subscribe(Class<T> clazz, Object id,
+                                      Observer<? super T> obs);
+
+    public <T> Subscription subscribeAll(Class<T> clazz,
+                                         Observer<? super Observable<T>> obs);
+
+    public void multi(List<ZoomOp> ops);
+
+    /* We should remove both methods, but first we must make ZOOM support
+     * offline class registration so that we can register classes from the
+     * guice modules without causing exceptions */
+    public void registerClass(Class<?> clazz);
+
+    public boolean isRegistered(Class<?> clazz);
+
 }

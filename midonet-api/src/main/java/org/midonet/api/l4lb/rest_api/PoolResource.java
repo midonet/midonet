@@ -59,17 +59,14 @@ public class PoolResource extends AbstractResource {
 
     private final ResourceFactory factory;
 
-    private final DataClient dataClient;
-
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context,
                         DataClient dataClient,
                         ResourceFactory factory,
                         Validator validator) {
-        super(config, uriInfo, context, null, validator);
+        super(config, uriInfo, context, dataClient, validator);
         this.factory = factory;
-        this.dataClient = dataClient;
     }
 
     @GET
@@ -211,17 +208,14 @@ public class PoolResource extends AbstractResource {
     public static class LoadBalancerPoolResource extends AbstractResource {
         private final UUID loadBalancerId;
 
-        private final DataClient dataClient;
-
         @Inject
         public LoadBalancerPoolResource(RestApiConfig config, UriInfo uriInfo,
                                         SecurityContext context,
                                         DataClient dataClient,
                                         Validator validator,
                                         @Assisted UUID id) {
-            super(config, uriInfo, context, null, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.loadBalancerId = id;
-            this.dataClient = dataClient;
         }
 
         @GET

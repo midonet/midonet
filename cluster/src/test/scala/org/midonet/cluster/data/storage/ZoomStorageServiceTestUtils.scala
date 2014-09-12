@@ -8,8 +8,8 @@ import java.util.{List => JList}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
-
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import rx.{Observable, Observer, Subscription}
 
 /**
  * DTO for ZOOM binding.
@@ -62,6 +62,20 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
     override def exists(clazz: Class[_], id: Object): Boolean = {
         zoom.exists(clazz, id)
     }
+
+    override def subscribe[T](clazz: Class[T], id: scala.Any,
+                              obs: Observer[_ >: T]): Subscription =
+        throw new NotImplementedError
+
+    override def subscribeAll[T](
+            clazz: Class[T], obs: Observer[_ >: Observable[T]]): Subscription =
+        throw new NotImplementedError()
+
+    override def multi(ops: java.util.List[ZoomOp]): Unit = zoom.multi(ops)
+
+    override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
+
+    override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
     @throws[Exception]
     override def cleanUpDirectories() {
