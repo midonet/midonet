@@ -731,8 +731,7 @@ public class ZookeeperObjectMapperTest {
 
     @Test
     public void testGetAllWithEmptyResult() throws Exception {
-        scala.collection.immutable.List<PojoChain> chains =
-            zom.getAll(PojoChain.class);
+        List<PojoChain> chains = zom.getAll(PojoChain.class);
         assertTrue(chains.isEmpty());
     }
 
@@ -744,8 +743,7 @@ public class ZookeeperObjectMapperTest {
         zom.create(chain1);
         zom.getAll(PojoChain.class);
         zom.create(chain2);
-        scala.collection.immutable.List<PojoChain> chains =
-            zom.getAll(PojoChain.class);
+        List<PojoChain> chains = zom.getAll(PojoChain.class);
         assertEquals(2, chains.size());
     }
 

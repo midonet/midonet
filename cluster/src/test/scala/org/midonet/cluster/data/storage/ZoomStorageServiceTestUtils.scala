@@ -3,19 +3,13 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.ArrayList
-
-import scala.collection.JavaConverters._
+import java.util.{List => JList}
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.models.Devices.Bridge
-import org.midonet.cluster.models.Devices.Chain
-import org.midonet.cluster.models.Devices.Port
-import org.midonet.cluster.models.Devices.Router
 
 /**
  * DTO for ZOOM binding.
@@ -61,7 +55,7 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
         zoom.get(clazz, id)
     }
 
-    override def getAll[T](clazz: Class[T]): List[T] = {
+    override def getAll[T](clazz: Class[T]): JList[T] = {
         zoom.getAll(clazz)
     }
 

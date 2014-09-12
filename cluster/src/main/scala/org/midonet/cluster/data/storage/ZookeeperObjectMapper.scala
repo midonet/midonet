@@ -4,22 +4,22 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util.{List => JList, ConcurrentModificationException}
+import java.util.{ConcurrentModificationException, List => JList}
 
 import com.google.common.collect.ArrayListMultimap
-import com.google.protobuf.{TextFormat, Message}
+import com.google.protobuf.{Message, TextFormat}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.utils.EnsurePath
-import org.apache.zookeeper.{CreateMode, KeeperException}
-import org.apache.zookeeper.KeeperException.{BadVersionException, NodeExistsException, NoNodeException}
+import org.apache.zookeeper.KeeperException.{BadVersionException, NoNodeException, NodeExistsException}
 import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.data.Stat
+import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.slf4j.LoggerFactory
-import rx.{Subscription, Observer, Observable}
+import rx.{Observable, Observer, Subscription}
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
@@ -78,7 +78,7 @@ import scala.collection.mutable.ListBuffer
 class ZookeeperObjectMapper(private val basePath: String,
                             private val curator: CuratorFramework)
                             extends StorageService {
-    import ZookeeperObjectMapper._
+    import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 
     private val locksPath = basePath + "/zoomlocks/lock"
 
@@ -471,7 +471,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     /**
      * Gets all instances of the specified class from Zookeeper.
      */
-    override def getAll[T](clazz: Class[T]): List[T] = {
+    override def getAll[T](clazz: Class[T]): JList[T] = {
         assert(isRegistered(clazz))
         val ids = try curator.getChildren.forPath(getPath(clazz)) catch {
             case ex: Exception =>
@@ -489,7 +489,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                     throw new InternalObjectMapperException(ex)
             }
         }
-        ts.toList
+        ts.toList.asJava
     }
 
     /**

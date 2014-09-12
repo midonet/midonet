@@ -3,7 +3,7 @@
  */
 package org.midonet.cluster.data.storage;
 
-import scala.collection.immutable.List;
+import java.util.List;
 
 /**
  * An interface defining the cluster persistence service.
