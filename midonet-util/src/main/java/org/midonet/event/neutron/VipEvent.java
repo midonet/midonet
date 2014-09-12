@@ -12,7 +12,7 @@ import org.midonet.event.topology.AbstractVirtualTopologyEvent;
 public class VipEvent extends AbstractVirtualTopologyEvent {
 
     private static final String eventKey =
-        "org.midonet.event.neutron.Vip";
+        "org.midonet.event.neutron.VIP";
 
     public VipEvent() {
         super(eventKey);
