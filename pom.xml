@@ -57,6 +57,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.5.1</version>
                 <configuration>
+                    <source>${versions.java}</source>
+                    <target>${versions.java}</target>
                     <excludes><exclude>**/*.java</exclude></excludes>
                     <skip>true</skip>
                 </configuration>
@@ -672,6 +674,7 @@
                         <format>html</format>   <!-- for humans -->
                         <format>xml</format>    <!-- for jenkins -->
                     </formats>
+                    <check/>
                 </configuration>
             </plugin>
 
