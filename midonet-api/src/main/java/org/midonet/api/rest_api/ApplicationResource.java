@@ -302,9 +302,7 @@ public class ApplicationResource extends AbstractResource {
      */
     @GET
     @PermitAll
-    @Produces({VendorMediaType.APPLICATION_JSON,
-            VendorMediaType.APPLICATION_JSON_V3,
-            VendorMediaType.APPLICATION_JSON_V4,
+    @Produces({VendorMediaType.APPLICATION_JSON_V4,
             VendorMediaType.APPLICATION_JSON_V5,
             MediaType.APPLICATION_JSON })
     public Application get() {
