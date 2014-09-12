@@ -60,7 +60,6 @@ public class Application extends UriResource {
     /**
      * @return the tenants URI
      */
-    @Since("2")
     public URI getTenants() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getTenants(getBaseUri());
@@ -94,7 +93,6 @@ public class Application extends UriResource {
     /**
      * @return the loadbalancers URI
      */
-    @Since("4")
     public URI getLoadBalancers() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLoadBalancers(getBaseUri());
@@ -106,7 +104,6 @@ public class Application extends UriResource {
     /**
      * @return the health monitors URI
      */
-    @Since("4")
     public URI getHealthMonitors() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHealthMonitors(getBaseUri());
@@ -118,7 +115,6 @@ public class Application extends UriResource {
     /**
      * @return the pool members URI
      */
-    @Since("4")
     public URI getPoolMembers() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolMembers(getBaseUri());
@@ -130,7 +126,6 @@ public class Application extends UriResource {
     /**
      * @return the pools URI
      */
-    @Since("4")
     public URI getPools() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPools(getBaseUri());
@@ -154,7 +149,6 @@ public class Application extends UriResource {
     /**
      * @return the VIP URI
      */
-    @Since("4")
     public URI getVips() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getVips(getBaseUri());
@@ -188,7 +182,6 @@ public class Application extends UriResource {
     /**
      * @return the IP addr groups URI
      */
-    @Since("3")
     public URI getIpAddrGroups() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getIpAddrGroups(getBaseUri());
@@ -249,7 +242,6 @@ public class Application extends UriResource {
     /**
      * @return the health monitor URI template
      */
-    @Since("4")
     public String getHealthMonitorTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getHealthMonitorTemplate(getBaseUri());
@@ -261,7 +253,6 @@ public class Application extends UriResource {
     /**
      * @return the loadbalancer URI template
      */
-    @Since("4")
     public String getLoadBalancerTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLoadBalancerTemplate(getBaseUri());
@@ -273,7 +264,6 @@ public class Application extends UriResource {
     /**
      * @return the pool member URI template
      */
-    @Since("4")
     public String getPoolMemberTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolMemberTemplate(getBaseUri());
@@ -285,7 +275,6 @@ public class Application extends UriResource {
     /**
      * @return the pool URI template
      */
-    @Since("4")
     public String getPoolTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getPoolTemplate(getBaseUri());
@@ -297,7 +286,6 @@ public class Application extends UriResource {
     /**
      * @return the VIP URI template
      */
-    @Since("4")
     public String getVipTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getVipTemplate(getBaseUri());
@@ -353,7 +341,6 @@ public class Application extends UriResource {
     /**
      * @return the ip addr group URI template
      */
-    @Since("3")
     public String getIpAddrGroupTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getIpAddrGroupTemplate(getBaseUri());
@@ -397,7 +384,6 @@ public class Application extends UriResource {
     /**
      * @return the tenant URI template
      */
-    @Since("2")
     public String getTenantTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getTenantTemplate(getBaseUri());
@@ -479,6 +465,7 @@ public class Application extends UriResource {
     /**
      * @return Licenses URI
      */
+    @Since("5")
     public URI getLicenses() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLicenses(getBaseUri());
@@ -490,6 +477,7 @@ public class Application extends UriResource {
     /**
      * @return License URI template
      */
+    @Since("5")
     public String getLicenseTemplate() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLicenseTemplate(getBaseUri());
@@ -501,6 +489,7 @@ public class Application extends UriResource {
     /**
      * @return License status URI
      */
+    @Since("5")
     public URI getLicenseStatus() {
         if (getBaseUri() != null) {
             return ResourceUriBuilder.getLicenseStatus(getBaseUri());

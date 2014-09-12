@@ -57,7 +57,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
-            VendorMediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
     public VtepBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)

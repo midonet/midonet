@@ -53,7 +53,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
-               VendorMediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     public Response create(VtepBinding binding)
         throws StateAccessException, SerializationException {
         validate(binding);
@@ -68,7 +68,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
-               VendorMediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
     public VtepBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
