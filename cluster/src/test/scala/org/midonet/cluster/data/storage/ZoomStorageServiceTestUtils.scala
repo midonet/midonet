@@ -3,13 +3,19 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.ArrayList
 import java.util.{List => JList}
+
+import scala.collection.JavaConverters._
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
+import rx.Observable
+import rx.Observer
+import rx.Subscription
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import rx.{Observable, Observer, Subscription}
 
 /**
  * DTO for ZOOM binding.
@@ -34,24 +40,24 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
     @throws(classOf[NotFoundException])
     @throws(classOf[ObjectExistsException])
     @throws(classOf[ReferenceConflictException])
-    override def create(o: Object) {
+    override def create(o: Obj) {
         zoom.create(o)
     }
 
     @throws(classOf[NotFoundException])
     @throws(classOf[ReferenceConflictException])
-    override def update(o: Object) {
+    override def update(o: Obj) {
         zoom.update(o)
     }
 
     @throws(classOf[NotFoundException])
     @throws(classOf[ObjectReferencedException])
-    override def delete(clazz: Class[_], id: Object) {
+    override def delete(clazz: Class[_], id: ObjId) {
         zoom.delete(clazz, id)
     }
 
     @throws(classOf[NotFoundException])
-    override def get[T](clazz: Class[T], id: Object): T = {
+    override def get[T](clazz: Class[T], id: ObjId): T = {
         zoom.get(clazz, id)
     }
 
@@ -59,23 +65,31 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
         zoom.getAll(clazz)
     }
 
-    override def exists(clazz: Class[_], id: Object): Boolean = {
+    override def exists(clazz: Class[_], id: ObjId): Boolean = {
         zoom.exists(clazz, id)
     }
 
-    override def subscribe[T](clazz: Class[T], id: scala.Any,
-                              obs: Observer[_ >: T]): Subscription =
-        throw new NotImplementedError
+    /**
+     * Executes multiple create, update, and/or delete operations atomically.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    override def multi(ops: Seq[PersistenceOp]) {
+        zoom.multi(ops)
+    }
 
-    override def subscribeAll[T](
-            clazz: Class[T], obs: Observer[_ >: Observable[T]]): Subscription =
-        throw new NotImplementedError()
-
-    override def multi(ops: java.util.List[ZoomOp]): Unit = zoom.multi(ops)
-
-    override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
-
-    override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
+    /**
+     * Executes multiple create, update, and/or delete operations atomically.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ObjectReferencedException]
+    @throws[ReferenceConflictException]
+    override def multi(ops: JList[PersistenceOp]) {
+        zoom.multi(ops)
+    }
 
     @throws[Exception]
     override def cleanUpDirectories() {
@@ -86,6 +100,34 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
                 // Nonde may not exist yet.
         }
     }
+
+    override def subscribe[T](clazz: Class[T],
+                              id: ObjId,
+                              obs: Observer[_ >: T]): Subscription = {
+        zoom.subscribe[T](clazz, id, obs)
+    }
+
+    /**
+     * Subscribes to the specified class. Upon subscription at time t0,
+     * obs.onNext() will receive an Observable[T] for each object of class
+     * T existing at time t0, and future updates at tn > t0 will each trigger
+     * a call to onNext() with an Observable[T] for a new object.
+     *
+     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
+     * circumstances.
+     *
+     * The subscribe() method of each of these Observables has the same behavior
+     * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
+     */
+    override def subscribeAll[T](clazz: Class[T],
+                                 obs: Observer[_ >: Observable[T]])
+                                 : Subscription = {
+        zoom.subscribeAll(clazz, obs)
+    }
+
+    override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
+
+    override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
     @throws[Exception]
     override def cleanUpDeviceData() {

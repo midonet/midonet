@@ -58,10 +58,10 @@ class ZoomBulkCrudTest extends StorageBulkCrudTest
             )
 
     before {
-        // Curator is started inside ZOOM, so it needs to be created per
-        // ZOOM instance
         curator = CuratorFrameworkFactory.newClient(zkConnectionString,
                                                    retryPolicy)
+        curator.start()
+
         zoom = new ZookeeperObjectMapper(zkRootDir, curator)
 
         // Directories can be cleaned up only after Zoom has been created, and

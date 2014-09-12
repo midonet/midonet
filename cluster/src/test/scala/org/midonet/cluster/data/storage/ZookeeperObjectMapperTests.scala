@@ -61,7 +61,7 @@ class ZookeeperObjectMapperTests extends Suite
     def testMultiCreate() {
         val bridge = PojoBridge()
         val port = PojoPort(bridgeId = bridge.id)
-        zom.multi(List(ZoomCreateOp(bridge), ZoomCreateOp(port)))
+        zom.multi(List(CreateOp(bridge), CreateOp(port)))
 
         val updatedBridge = zom.get(classOf[PojoBridge], bridge.id)
         updatedBridge.portIds.asScala should equal(List(port.id))
@@ -80,12 +80,12 @@ class ZookeeperObjectMapperTests extends Suite
         val routerUpdate = PojoRouter(id = router.id,
                                       inChainId = chain2.id,
                                       outChainId = chain.id)
-        zom.multi(List(ZoomCreateOp(chain2),
-                       ZoomCreateOp(bridge),
-                       ZoomCreateOp(router),
-                       ZoomUpdateOp(bridgeUpdate),
-                       ZoomUpdateOp(routerUpdate),
-                       ZoomDeleteOp(classOf[PojoChain], chain.id)))
+        zom.multi(List(CreateOp(chain2),
+                       CreateOp(bridge),
+                       CreateOp(router),
+                       UpdateOp(bridgeUpdate),
+                       UpdateOp(routerUpdate),
+                       DeleteOp(classOf[PojoChain], chain.id)))
 
         val updatedChain2 = zom.get(classOf[PojoChain], chain2.id)
         updatedChain2.bridgeIds.asScala should equal(List(bridge.id))
@@ -107,13 +107,13 @@ class ZookeeperObjectMapperTests extends Suite
         val rule1 = PojoRule(name = "rule1", chainId = chain1.id)
         val rule2 = PojoRule(name = "rule2", chainId = chain1.id)
         val rule3 = PojoRule(name = "rule3", chainId = chain1.id)
-        zom.multi(List(ZoomCreateOp(chain1), ZoomCreateOp(rule1),
-                       ZoomCreateOp(rule2), ZoomCreateOp(rule3)))
+        zom.multi(List(CreateOp(chain1), CreateOp(rule1),
+                       CreateOp(rule2), CreateOp(rule3)))
 
         val chain2 = PojoChain(name = "chain2")
         rule3.chainId = chain2.id
-        zom.multi(List(ZoomCreateOp(chain2), ZoomUpdateOp(rule3),
-                       ZoomDeleteOp(classOf[PojoChain], chain1.id)))
+        zom.multi(List(CreateOp(chain2), UpdateOp(rule3),
+                       DeleteOp(classOf[PojoChain], chain1.id)))
 
         zom.exists(classOf[PojoChain], chain1.id) shouldBe false
         zom.exists(classOf[PojoRule], rule1.id) shouldBe false
@@ -130,9 +130,9 @@ class ZookeeperObjectMapperTests extends Suite
         val chain = PojoChain()
         val rule = PojoRule(chainId = chain.id)
         try {
-            zom.multi(List(ZoomCreateOp(chain), ZoomCreateOp(rule),
-                           ZoomDeleteOp(classOf[PojoChain], chain.id),
-                           ZoomUpdateOp(rule)))
+            zom.multi(List(CreateOp(chain), CreateOp(rule),
+                           DeleteOp(classOf[PojoChain], chain.id),
+                           UpdateOp(rule)))
             fail("Rule update should fail due to rule being deleted by " +
                  "cascade from chain deletion.")
         } catch {
@@ -146,9 +146,9 @@ class ZookeeperObjectMapperTests extends Suite
         val chain = PojoChain()
         val rule = PojoRule(chainId = chain.id)
         try {
-            zom.multi(List(ZoomCreateOp(chain), ZoomCreateOp(rule),
-                           ZoomDeleteOp(classOf[PojoChain], chain.id),
-                           ZoomDeleteOp(classOf[PojoRule], rule.id)))
+            zom.multi(List(CreateOp(chain), CreateOp(rule),
+                           DeleteOp(classOf[PojoChain], chain.id),
+                           DeleteOp(classOf[PojoRule], rule.id)))
             fail("Rule deletion should fail due to rule being deleted by " +
                  "cascade from chain deletion.")
         } catch {
