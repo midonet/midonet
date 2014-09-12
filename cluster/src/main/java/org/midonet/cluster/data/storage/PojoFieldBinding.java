@@ -8,7 +8,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
 
@@ -170,15 +169,8 @@ class PojoFieldBinding extends FieldBinding {
             removeFromList(referenced, this.thatField, referrerId);
         } else {
             Object curFieldVal = getValue(referenced,this.thatField);
-            if (!Objects.equals(curFieldVal, referrerId)) {
-                // Zookeeper doesn't support atomic reads of multiple
-                // nodes, so assume that this is caused by a concurrent
-                // modification.
-                throw new ConcurrentModificationException(String.format(
-                        "Expected field %s of %s to be %s, but was not.",
-                        this.thatField.getName(), referenced, referrerId));
-            }
-            setValue(referenced, this.thatField, null);
+            if (Objects.equals(curFieldVal, referrerId))
+                setValue(referenced, this.thatField, null);
         }
         return referenced;
     }
@@ -242,11 +234,7 @@ class PojoFieldBinding extends FieldBinding {
      */
     private static void removeFromList(Object o, Field f, Object val) {
         List<?> list = (List<?>)getValue(o, f);
-        if (!list.remove(val)) {
-            throw new ConcurrentModificationException(
-                    "Expected to find "+val+" in list "+f.getName()+" of "+o+
-                    ", but did not.");
-        }
+        list.remove(val);
     }
 
     /* Checks type compatibility between the ID getter and ID reference
