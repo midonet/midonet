@@ -73,7 +73,7 @@ public class VtepResource extends AbstractVtepResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_JSON,
-               VendorMediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     public Response create(VTEP vtep)
             throws SerializationException, StateAccessException {
 
