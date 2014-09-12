@@ -5,7 +5,6 @@ package org.midonet.cluster.data.storage;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
 
@@ -271,33 +270,14 @@ class ProtoFieldBinding extends FieldBinding {
                 }
                 updateBuilder.addRepeatedField(this.thatField, val);
             }
-            if (!itemRemoved) {
-                // No back reference to the referring object found, indicating
-                // concurrent modification to the target object.
-                throwConcurrentModificationException(
-                        referencedMsg, this.thatField.getName(), referrerId);
-            }
         } else {
             if (referencedMsg.hasField(this.thatField) &&
                 Objects.equals(referrerId,
                                referencedMsg.getField(this.thatField))) {
                 updateBuilder.clearField(this.thatField);
-            } else {
-                // No back reference to the referring object found, indicating
-                // concurrent modification to the target object.
-                throwConcurrentModificationException(
-                        referencedMsg, this.thatField.getName(), referrerId);
             }
         }
         return (T) updateBuilder.build();
-    }
-
-    private static void throwConcurrentModificationException(
-            Message referencedMsg, String fieldName, Object referrerId) {
-        throw new ConcurrentModificationException(
-                "Expected to find "+referrerId+" in "+fieldName+" of "+
-                referencedMsg.getDescriptorForType().getFullName()+", " +
-                "but did not.");
     }
 
     @Override
