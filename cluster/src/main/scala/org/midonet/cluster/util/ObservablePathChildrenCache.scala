@@ -14,9 +14,8 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type._
 import org.apache.curator.framework.recipes.cache.{ChildData, PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
 import org.midonet.util.concurrent.Locks._
 import org.slf4j.LoggerFactory
-import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
-import rx.{Observer, Observable, Subscriber}
+import rx.{Observer, Observable}
 
 import scala.collection.mutable
 
@@ -85,7 +84,7 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
         stream.onCompleted()
     }
 
-    /** Subscribes the given Subscriber to the main stream of child observables.
+    /** Subscribes the given Observer to the main stream of child observables.
       *
       * Assuming the subscription happens at t0, the subscriber will immediately
       * receive one child Observable for each child node that is known at t0 by
