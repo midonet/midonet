@@ -437,14 +437,14 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[NotFoundException]
     @throws[ObjectExistsException]
     @throws[ReferenceConflictException]
-    override def create(obj: Obj) = multi(List(ZoomCreateOp(obj)))
+    override def create(obj: Obj) = multi(List(CreateOp(obj)))
 
     /**
      * Updates the specified object in Zookeeper.
      */
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
-    override def update(obj: Obj) = multi(List(ZoomUpdateOp(obj)))
+    override def update(obj: Obj) = multi(List(UpdateOp(obj)))
 
     /**
      * Deletes the specified object from Zookeeper.
@@ -452,7 +452,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
     override def delete(clazz: Class[_], id: ObjId) =
-        multi(List(ZoomDeleteOp(clazz, id)))
+        multi(List(DeleteOp(clazz, id)))
 
     /**
      * Gets the specified instance of the specified class from Zookeeper.
@@ -510,14 +510,14 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[ObjectExistsException]
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
-    def multi(ops: Seq[ZoomOp]): Unit = {
+    override def multi(ops: Seq[PersistenceOp]): Unit = {
         if (ops.isEmpty) return
 
         val manager = new TransactionManager
         ops.foreach {
-            case ZoomCreateOp(obj) => manager.create(obj)
-            case ZoomUpdateOp(obj) => manager.update(obj)
-            case ZoomDeleteOp(clazz, id) => manager.delete(clazz, id)
+            case CreateOp(obj) => manager.create(obj)
+            case UpdateOp(obj) => manager.update(obj)
+            case DeleteOp(clazz, id) => manager.delete(clazz, id)
         }
 
         try manager.commit() finally { manager.releaseLock() }
@@ -530,7 +530,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[ObjectExistsException]
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
-    def multi(ops: JList[ZoomOp]): Unit = multi(ops.asScala)
+    override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
     private[storage] def getPath(clazz: Class[_]) =
         basePath + "/" + clazz.getSimpleName
@@ -572,7 +572,8 @@ class ZookeeperObjectMapper(private val basePath: String,
      * obs.onError() will be invoked with a NotFoundException if the object
      * does not exist.
      */
-    override def subscribe[T](clazz: Class[T], id: ObjId,
+    override def subscribe[T](clazz: Class[T],
+                              id: ObjId,
                               obs: Observer[_ >: T]): Subscription = {
         assert(isRegistered(clazz))
         val cache = instanceCaches(clazz).getOrElse(id, {
@@ -585,8 +586,6 @@ class ZookeeperObjectMapper(private val basePath: String,
         }).asInstanceOf[InstanceSubscriptionCache[T]]
         cache.subscribe(obs)
     }
-
-
 
     /**
      * Subscribes to the specified class. Upon subscription at time t0,
@@ -697,12 +696,6 @@ object ZookeeperObjectMapper {
         t
     }
 }
-
-// Op classes for ZookeeperObjectMapper.multi
-sealed trait ZoomOp
-case class ZoomCreateOp(obj: Obj) extends ZoomOp
-case class ZoomUpdateOp(obj: Obj) extends ZoomOp
-case class ZoomDeleteOp(clazz: Class[_], id: ObjId) extends ZoomOp
 
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the
