@@ -13,10 +13,6 @@ public class VendorMediaType {
     // IMPORTANT: There are two copies of this file, one in midonet-api and
     // one in midonet-client. When updating one, make sure to make the same
     // change in the other.
-    public static final String APPLICATION_JSON =
-            "application/vnd.org.midonet.Application-v1+json";
-    public static final String APPLICATION_JSON_V3 =
-            "application/vnd.org.midonet.Application-v3+json";
     public static final String APPLICATION_JSON_V4 =
             "application/vnd.org.midonet.Application-v4+json";
     public static final String APPLICATION_JSON_V5 =
