@@ -5,12 +5,11 @@
 package org.midonet.sdn.state
 
 import java.util.ArrayList
-import java.util.concurrent.ConcurrentHashMap
 
 import akka.event.{NoLogging, LoggingAdapter}
 import com.yammer.metrics.core.Clock
 
-import org.midonet.util.concurrent.ConcurrentRefAccountant
+import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.collection.Reducer
 
 object ShardedFlowStateTable {
@@ -151,73 +150,47 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
      * It stores entries locally but forwards queries to the parent table for
      * aggregation. Reference counting is also delegated on the parent.
      */
-    class FlowStateShard(val workerId: Int, override val log: LoggingAdapter)
-            extends ConcurrentRefAccountant[K, V] with FlowStateTable[K, V] {
+    class FlowStateShard(workerId: Int, log: LoggingAdapter) extends FlowStateTable[K, V] {
+        private val map = new TimedExpirationMap[K, V](log, _.expiresAfter)
 
-        private val data = new ConcurrentHashMap[K, V]()
-
-        override def newRefCb(k: K, v: V) = ()
-
-        override def deletedRefCb(k: K) = data.remove(k)
-
-        override def expirationMillis(k: K) = k.expiresAfter().toMillis
-
-        override def putAndRef(key: K, value: V): V = {
-            val oldV = get(key)
-            incRefCount(key, value)
-            /* modifying data like this is not racy. ConcurrentRefAccountant
-             * would place its call to newRefCb in the same place as this put()
-             * ends up being. The difference is that we want putAndRef to
-             * overwrite a pre-existing value, and ConcurrentRefAccountant
-             * does not include that case in its contract. */
-            data.put(key, value)
-            oldV
-        }
+        override def putAndRef(key: K, value: V): V =
+            map.putAndRef(key, value)
 
         override def get(key: K) = {
-            val v = data.get(key)
+            val v = map.get(key)
             if (v != null)
                 v
             else
                 ShardedFlowStateTable.this.get(key, workerId)
         }
 
-        def shallowGet(key: K): V = data.get(key)
+        def shallowGet(key: K): V =
+            map.get(key)
 
-        override def ref(key: K): V = {
-            val v = data.get(key)
-            if (v != null)
-                incRefCount(key, v)
-            v
-        }
+        override def ref(key: K): V =
+            map.ref(key)
 
-        override def getRefCount(key: K): Int = super.getRefCount(key)
+        override def getRefCount(key: K): Int =
+            map.getRefCount(key)
 
-        override def touch(key: K, value: V) {
+        override def touch(key: K, value: V): Unit = {
             putAndRef(key, value)
             unref(key)
         }
 
         private def tickMillis = clock.tick / 1000000
 
-        override def unref(key: K) = decRefCount(key, tickMillis)
+        override def unref(key: K) =
+            map.unref(key, tickMillis)
 
-        override def fold[U](seed: U, func: Reducer[K, V, U]): U = {
-            var acc = seed
-            val it = data.entrySet().iterator()
-            while (it.hasNext) {
-                val e = it.next()
-                acc = func.apply(acc, e.getKey, e.getValue)
-            }
-            acc
-        }
+        override def fold[U](seed: U, func: Reducer[K, V, U]): U =
+            map.fold(seed, func)
 
-        override def expireIdleEntries() = doDeletions(tickMillis)
+        override def expireIdleEntries() =
+            map.obliterateIdleEntries(tickMillis)
 
         override def expireIdleEntries[U](seed: U, func: Reducer[K, V, U]): U =
-            doDeletionsAndFold(tickMillis,
-                               seed,
-                               (acc: U, k: K) => func.apply(acc, k, data.get(k)))
+            map.obliterateIdleEntries(tickMillis, seed, func)
     }
 }
 

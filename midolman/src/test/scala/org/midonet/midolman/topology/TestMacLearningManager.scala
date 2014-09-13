@@ -6,6 +6,8 @@ import java.lang.{Short => JShort}
 
 import collection.mutable
 
+import scala.concurrent.duration._
+
 import akka.actor.ActorSystem
 import akka.event.Logging
 
@@ -30,7 +32,7 @@ class TestMacLearningManager  extends FunSuite with Matchers {
 
     test("foo") {
         val expiry: Long = 40
-        val mgr = new MacLearningManager(log, expiry)
+        val mgr = new MacLearningManager(log, expiry millis)
         val table = mutable.Map[MAC, UUID]()
         val macLearningTables = mutable.Map[JShort, MacLearningTable]()
         macLearningTables.put(Bridge.UNTAGGED_VLAN_ID, new MockMacLearningTable(table))
@@ -56,11 +58,11 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         p = table.get(mac1)
         p should equal (Some(port1))
         // We do a cleanup at time 59 and the entry is still there
-        mgr.doDeletions(59)
+        mgr.expireEntries(59)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We do a cleanup at time 60 and the entry is removed
-        mgr.doDeletions(60)
+        mgr.expireEntries(60)
         p = table.get(mac1)
         p should equal (None)
 
@@ -89,11 +91,11 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         mgr.decRefCount(MacPortMapping(mac4, Bridge.UNTAGGED_VLAN_ID, port2), 110)
 
         // At time 139 we do a cleanup, but the entry is not removed.
-        mgr.doDeletions(139)
+        mgr.expireEntries(139)
         p = table.get(mac1)
         p should equal (Some(port1))
         // We do a cleanup at time 140 and the entry is removed
-        mgr.doDeletions(140)
+        mgr.expireEntries(140)
         p = table.get(mac1)
         p should equal (None)
 
@@ -106,7 +108,7 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         p should equal (Some(port2))
 
         // We do a cleanup at time 150 and the other entries are removed
-        mgr.doDeletions(150)
+        mgr.expireEntries(150)
         p = table.get(mac2)
         p should equal (None)
         p = table.get(mac3)

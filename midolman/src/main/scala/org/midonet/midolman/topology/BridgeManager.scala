@@ -8,7 +8,7 @@ import compat.Platform
 import java.lang.{Short => JShort}
 import java.util.concurrent.TimeUnit
 import java.util.UUID
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 import akka.event.LoggingAdapter
 
@@ -20,8 +20,10 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
-import org.midonet.util.concurrent.ConcurrentRefAccountant
+import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.functors.Callback0
+import org.midonet.util.collection.Reducer
+import org.midonet.midolman.topology.BridgeManager.MacPortMapping
 
 /* The MacFlowCount is called from the Coordinators' actors and dispatches
  * to the BridgeManager's actor to get/modify the flow counts.  */
@@ -60,36 +62,39 @@ object BridgeManager {
 }
 
 /**
- * A ConcurrentRefAccountant for a bridge's mac-port associations.
- *
- * Its keys are (MAC, VLAN, PORT) tuples and it's add/delete callbacks
- * invoke add/remove on the underlying replicated map. The callbacks guarantee
+ * Handles a bridge's mac-port associations. It add/removes the (MAC, VLAN, PORT)
+ * tuples to/from the underlying replicated map. The callbacks guarantee
  * the required happens-before relationship because all zookeeper requests
  * are served by a single threaded reactor.
  */
-class MacLearningManager(override val log: LoggingAdapter, val ttlMillis: Long)
-        extends ConcurrentRefAccountant[BridgeManager.MacPortMapping, Unit] {
+class MacLearningManager(log: LoggingAdapter, ttlMillis: Duration) {
+
+    val map = new TimedExpirationMap[BridgeManager.MacPortMapping, AnyRef](log, _ => ttlMillis)
 
     @volatile var vlanMacTableMap: ROMap[JShort, MacLearningTable] = null
 
-    override def expirationMillis(e: BridgeManager.MacPortMapping): Long = ttlMillis
+    val reducer = new Reducer[BridgeManager.MacPortMapping, Any, Unit] {
+        override def apply(acc: Unit, key: MacPortMapping, value: Any): Unit =
+            vlanMacTableOperation(key.vlan, _.remove(key.mac, key.port))
+    }
 
     private def vlanMacTableOperation(vlanId: JShort, fun: MacLearningTable => Unit) {
         vlanMacTableMap.get(vlanId) match {
-            case Some(map) => fun(map)
+            case Some(macLearningTable) => fun(macLearningTable)
             case None => log.error("Mac learning table not found for VLAN {}", vlanId)
         }
     }
 
-    override def newRefCb(e: BridgeManager.MacPortMapping, userData: Unit) {
-        vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.add(e.mac, e.port))
-    }
+    def incRefCount(e: BridgeManager.MacPortMapping): Unit =
+        if (map.putIfAbsentAndRef(e, e) eq null) {
+            vlanMacTableOperation(e.vlan, _.add(e.mac, e.port))
+        }
 
-    override def deletedRefCb(e: BridgeManager.MacPortMapping) {
-        vlanMacTableOperation(e.vlan, (map: MacLearningTable) => map.remove(e.mac, e.port))
-    }
+    def decRefCount(key: BridgeManager.MacPortMapping, currentTime: Long): Unit =
+        map.unref(key, currentTime)
 
-    def incRefCount(key: BridgeManager.MacPortMapping): Unit = incRefCount(key, ())
+    def expireEntries(currentTime: Long): Unit =
+        map.obliterateIdleEntries(currentTime, (), reducer)
 }
 
 class BridgeManager(id: UUID, val clusterClient: Client,
@@ -112,7 +117,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private val macPortExpiration: Int = config.getMacPortMappingExpireMillis
     private val learningMgr = new MacLearningManager(
-        log, config.getMacPortMappingExpireMillis)
+        log, config.getMacPortMappingExpireMillis millis)
 
     private var vlanToPort: VlanPortMap = null
 
@@ -145,7 +150,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     override def receive = super.receive orElse {
 
         case CheckExpiredMacPorts() =>
-            learningMgr.doDeletions(Platform.currentTime)
+            learningMgr.expireEntries(Platform.currentTime)
 
         case TriggerUpdate(newCfg, vlanMacTableMap, newIp4MacMap,
                            newMacToLogicalPortId, newRtrIpToMac,
@@ -170,7 +175,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
 
     private class MacFlowCountImpl extends MacFlowCount {
         override def increment(mac: MAC, vlanId: JShort, port: UUID) {
-            learningMgr.incRefCount(MacPortMapping(mac, vlanId, port), ())
+            learningMgr.incRefCount(MacPortMapping(mac, vlanId, port))
         }
 
         override def decrement(mac: MAC, vlanId: JShort, port: UUID) {
