@@ -12,7 +12,7 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.odp.{Packet, FlowMatch}
+import org.midonet.odp.Packet
 import org.midonet.odp.flows.FlowKeyTunnel
 
 object FlowStatePackets {
@@ -141,9 +141,12 @@ object FlowStatePackets {
             setType(key.keyType).build()
 
     def natKeyFromProto(proto: Proto.NatKey) =
-        NatKey(proto.getType, proto.getSrcIp, proto.getSrcPort,
-               proto.getDstIp, proto.getDstPort, proto.getProtocol.toByte,
-               proto.getDevice)
+        NatKey(proto.getType,
+               ipAddressFromProto(proto.getSrcIp).asInstanceOf[IPv4Addr],
+               proto.getSrcPort,
+               ipAddressFromProto(proto.getDstIp).asInstanceOf[IPv4Addr],
+               proto.getDstPort,
+               proto.getProtocol.toByte, proto.getDevice)
 
     def natBindingToProto(key: NatBinding) =
         Proto.NatValue.newBuilder().
@@ -151,7 +154,8 @@ object FlowStatePackets {
             setPort(key.transportPort).build()
 
     def natBindingFromProto(proto: Proto.NatValue) =
-        NatBinding(proto.getIp, proto.getPort)
+        NatBinding(ipAddressFromProto(proto.getIp).asInstanceOf[IPv4Addr],
+                   proto.getPort)
 
     def parseDatagram(p: Ethernet): Proto.StateMessage  = {
         if (p.getDestinationMACAddress != DST_MAC ||

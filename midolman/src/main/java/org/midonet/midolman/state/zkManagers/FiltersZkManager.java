@@ -3,26 +3,21 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPAddr$;
 
 /**
  * Class to manage the ZK data for the implicit filters of Ports, Bridges,
@@ -56,8 +51,7 @@ public class FiltersZkManager extends BaseZkManager {
      */
     public List<Op> prepareCreate(UUID id)
             throws SerializationException {
-        return zk.getPersistentCreateOps(paths.getFilterPath(id),
-                                         paths.getFilterSnatBlocksPath(id));
+        return zk.getPersistentCreateOps(paths.getFilterPath(id));
     }
 
     /**
@@ -69,29 +63,8 @@ public class FiltersZkManager extends BaseZkManager {
      * @throws org.midonet.midolman.state.StateAccessException
      */
     public List<Op> prepareDelete(UUID id) throws StateAccessException {
-        List<Op> ops = new ArrayList<>();
-
-        // The SNAT blocks are nested under
-        // /filters/<deviceId>/snat_blocks/<ip>/<startPortRange>
-        // Delete everything under snat_blocks
-        String devicePath = paths.getFilterSnatBlocksPath(id);
-        for (String ipStr : zk.getChildren(devicePath, null)) {
-            IPAddr ipv4 = IPAddr$.MODULE$.fromString(ipStr);
-            String ipPath =
-                paths.getFilterSnatBlocksPath(id, ipv4);
-            for (String portBlock : zk.getChildren(ipPath, null))
-                ops.add(Op.delete(
-                    paths.getFilterSnatBlocksPath(
-                        id, ipv4, Integer.parseInt(portBlock)),
-                    -1));
-            ops.add(Op.delete(ipPath, -1));
-        }
-        ops.add(Op.delete(devicePath, -1));
-
-        // Finally, delete the filter path for the device.
         String filterPath = paths.getFilterPath(id);
-        ops.add(Op.delete(filterPath, -1));
-        return ops;
+        return Arrays.asList(Op.delete(filterPath, -1));
     }
 
     /**
@@ -115,35 +88,5 @@ public class FiltersZkManager extends BaseZkManager {
      */
     public void delete(UUID id) throws StateAccessException {
         zk.multi(prepareDelete(id));
-    }
-
-    public NavigableSet<Integer> getSnatBlocks(UUID parentId, IPAddr ip)
-            throws StateAccessException {
-        StringBuilder sb = new StringBuilder(paths
-                .getFilterSnatBlocksPath(parentId));
-        sb.append("/").append(ip.toString());
-        TreeSet<Integer> ports = new TreeSet<Integer>();
-        Set<String> blocks = null;
-        try {
-            blocks = zk.getChildren(sb.toString(), null);
-        } catch (NoStatePathException e) {
-            return ports;
-        }
-        for (String str : blocks)
-            ports.add(Integer.parseInt(str));
-        return ports;
-    }
-
-    public void addSnatReservation(UUID parentId, IPAddr ip, int startPort)
-            throws StateAccessException {
-        StringBuilder sb = new StringBuilder(paths
-                .getFilterSnatBlocksPath(parentId));
-        sb.append("/").append(ip.toString());
-
-        // Call the safe add method to avoid exception when node exists.
-        zk.addPersistent_safe(sb.toString(), null);
-
-        sb.append("/").append(startPort);
-        zk.addEphemeral(sb.toString(), null);
     }
 }

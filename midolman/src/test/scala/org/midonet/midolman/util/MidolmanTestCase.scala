@@ -56,8 +56,7 @@ import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.util.guice.OutgoingMessage
-import org.midonet.midolman.util.guice.TestableMidolmanActorsModule
+import org.midonet.midolman.util.guice.{MockMidolmanModule, OutgoingMessage, TestableMidolmanActorsModule}
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
@@ -236,9 +235,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                 }
             },
             new ClusterClientModule(),
+            new MockMidolmanModule(),
             new TestableMidolmanActorsModule(probesByName, actorsByName, clock),
             new ResourceProtectionModule(),
-            new MidolmanModule(),
             new PrivateModule {
                 override def configure() {
                     bind(classOf[InterfaceScanner])

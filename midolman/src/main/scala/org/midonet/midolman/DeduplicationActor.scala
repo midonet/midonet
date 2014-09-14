@@ -27,7 +27,7 @@ import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
-import org.midonet.midolman.state.{FlowStateStorage, FlowStatePackets, FlowStateReplicator}
+import org.midonet.midolman.state.{NatLeaser, FlowStateStorage, FlowStatePackets, FlowStateReplicator}
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
@@ -127,6 +127,7 @@ class DeduplicationActor(
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val storage: FlowStateStorage,
+            val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
             extends Actor with ActorLogWithoutPath {
@@ -176,7 +177,7 @@ class DeduplicationActor(
 
     private val invalidateExpiredNatKeys =
         new Reducer[NatKey, NatBinding, Unit]() {
-            override def apply(u: Unit, k: NatKey, v: NatBinding) {
+            override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
                 FlowController ! InvalidateFlowsByTag(k)
             }
         }
@@ -207,6 +208,7 @@ class DeduplicationActor(
 
             connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
             natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)
+            natLeaser.obliterateUnusedBlocks()
 
             var i = 0
             while (i < packets.length && packets(i) != null) {
@@ -264,7 +266,7 @@ class DeduplicationActor(
         val expiry = Platform.currentTime + simulationExpireMillis
         val pktCtx = new PacketContext(cookieOrEgressPort, packet, expiry,
                                        parentCookie, wcMatch)
-        pktCtx.state.initialize(connTrackTx, natTx)
+        pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
 
         def matchTraceConditions(): Boolean = {
             val anyConditionMatching =

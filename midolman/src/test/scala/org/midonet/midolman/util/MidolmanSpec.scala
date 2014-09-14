@@ -19,18 +19,19 @@ import org.scalatest.OneInstancePerTest
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
-import org.midonet.midolman.simulation.CustomMatchers
-import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.cluster.ClusterClientModule
-import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
+import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.guice._
+import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
+import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.util.guice.MockMidolmanModule
+import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
+import org.midonet.midolman.version.guice.VersionModule
 import org.midonet.util.MockClock
 
 /**
@@ -115,6 +116,7 @@ trait MidolmanSpec extends FeatureSpecLike
                 }
             },
             new ClusterClientModule(),
+            new MockMidolmanModule(),
             new MidolmanActorsModule {
                 override def configure() {
                     bind(classOf[MidolmanActorsService])
@@ -124,7 +126,6 @@ trait MidolmanSpec extends FeatureSpecLike
                 }
             },
             new ResourceProtectionModule(),
-            new MidolmanModule(),
             new PrivateModule {
                 override def configure() {
                     bind(classOf[InterfaceScanner])

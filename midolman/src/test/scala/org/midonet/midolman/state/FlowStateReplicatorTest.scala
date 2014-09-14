@@ -33,11 +33,10 @@ class FlowStateReplicatorTest extends FeatureSpec
                             with Matchers
                             with OneInstancePerTest
                             with GivenWhenThen {
-    implicit def stringToIp(str: String): IPAddr = IPv4Addr.fromString(str)
+    implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
     type NatTx = FlowStateTransaction[NatKey, NatBinding]
-
 
     var ports = mutable.Map[UUID, Port]()
     var portGroups = mutable.Map[UUID, PortGroup]()

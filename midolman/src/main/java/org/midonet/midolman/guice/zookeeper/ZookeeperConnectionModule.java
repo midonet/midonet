@@ -65,6 +65,7 @@ public class ZookeeperConnectionModule extends PrivateModule {
         bind(ZkConnection.class)
             .toProvider(ZKConnectionProvider.class)
             .asEagerSingleton();
+        expose(ZkConnection.class);
     }
 
     protected void bindReactor() {

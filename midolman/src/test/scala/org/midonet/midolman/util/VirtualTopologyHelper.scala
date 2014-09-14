@@ -36,6 +36,7 @@ import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import scala.util.{Failure, Success, Try}
+import org.midonet.midolman.state.HappyGoLuckyLeaser
 
 trait VirtualTopologyHelper {
 
@@ -67,7 +68,7 @@ trait VirtualTopologyHelper {
         val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
                                         Platform.currentTime + 3000,
                                         None, WildcardMatch.fromEthernetPacket(frame))
-        context.state.initialize(conntrackTx, natTx)
+        context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
         context.inPortId = Await.result(
@@ -84,14 +85,16 @@ trait VirtualTopologyHelper {
         do {
             triesLeft -= 1
             val ctx = packetContextFor(frame, inPort)
-            device.process(ctx) match {
-                case Ready(action) =>
+            Try(device.process(ctx)) match {
+                case Success(Ready(action)) =>
                     return (ctx, action)
-                case NotYet(f) =>
-                    flushTransactions(conntrackTx, natTx)
-                    ctx.state.clear()
+                case Success(NotYet(f)) =>
+                    Await.result(f, 1 second)
+                case Failure(NotYetException(f, _)) =>
                     Await.result(f, 1 second)
             }
+            flushTransactions(conntrackTx, natTx)
+            ctx.state.clear()
         } while (triesLeft > 0)
         Assertions.fail("Failed to complete simulation")
     }
@@ -110,7 +113,7 @@ trait VirtualTopologyHelper {
                 (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                           natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (SimulationResult, PacketContext) = {
-        pktCtx.state.initialize(conntrackTx, natTx)
+        pktCtx.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         def await(f: Future[_]) = {
             Await.result(f, 3 seconds)
             flushTransactions(conntrackTx, natTx)

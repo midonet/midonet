@@ -438,20 +438,6 @@ public class TestRouter {
         }
 
         @Test
-        public void testRouterDeleteWithSnatBlockLeases() throws Exception {
-            // Add a router
-            DtoRouter resRouter = createRouter("router1", "tenant1-id",
-                    false, false, 2);
-            // Reserve a SNAT block in this router.
-            FiltersZkManager filtersMgr = JerseyGuiceTestServletContextListener
-                .getFiltersZkManager();
-            filtersMgr.addSnatReservation(resRouter.getId(),
-                                 new IPv4Addr(0x0a000001), 100);
-            dtoResource.deleteAndVerifyNoContent(
-                resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
-        }
-
-        @Test
         public void testRouterDeleteWithLinkedInteriorPort() throws Exception {
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
