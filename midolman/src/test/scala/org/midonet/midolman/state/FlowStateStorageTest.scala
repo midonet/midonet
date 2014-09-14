@@ -29,7 +29,7 @@ class FlowStateStorageTest extends FeatureSpec
                             with ShouldMatchers
                             with OneInstancePerTest
                             with GivenWhenThen {
-    implicit def stringToIp(str: String): IPAddr = IPv4Addr.fromString(str)
+    implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     implicit val actors = ActorSystem.create()
     import actors.dispatcher

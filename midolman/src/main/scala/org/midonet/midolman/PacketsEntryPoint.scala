@@ -7,7 +7,7 @@ package org.midonet.midolman
 import scala.collection.immutable
 
 import akka.actor._
-import akka.event.LoggingReceive
+import akka.event.{Logging, BusLogging, LoggingAdapter, LoggingReceive}
 import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import com.google.inject.Inject
 
@@ -19,7 +19,7 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.state.FlowStateStorageFactory
+import org.midonet.midolman.state.{NatLeaser, NatBlockAllocator, FlowStateStorageFactory}
 import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.rcu.TraceConditions
@@ -85,8 +85,12 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var clock: Clock = null
 
+    @Inject
+    var natBlockAllocator: NatBlockAllocator = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
+    var natLeaser: NatLeaser = _
 
     override def preStart() {
         super.preStart()
@@ -98,6 +102,13 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
+        natLeaser = new NatLeaser {
+            val log: LoggingAdapter = new BusLogging(context.system.eventStream,
+                                                     Logging.simpleName(classOf[NatLeaser]),
+                                                     classOf[NatLeaser])
+            val allocator = natBlockAllocator
+            val clock = PacketsEntryPoint.this.clock
+        }
 
         for (i <- 0 until NUM_WORKERS) {
             workers :+= startWorker(i)
@@ -113,7 +124,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             cookieGen, dpConnPool, clusterDataClient,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
-            storageFactory.create(), metrics,
+            storageFactory.create(),
+            natLeaser,
+            metrics,
             counter.addAndGet(index, _: Int)).withDispatcher("actors.pinned-dispatcher")
 
         context.actorOf(props, s"PacketProcessor-$index")

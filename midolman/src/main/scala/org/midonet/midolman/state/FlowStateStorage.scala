@@ -20,9 +20,8 @@ import org.slf4j.{Logger, LoggerFactory}
 import org.midonet.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
-import org.midonet.packets.IPAddr
+import org.midonet.packets.{IPv4Addr, IPAddr}
 import org.midonet.util.collection.Bimap
-
 
 object FlowStateStorage {
     val KEYSPACE_NAME = "MidonetFlowState"
@@ -101,15 +100,15 @@ object FlowStateStorage {
 
     def rowToNatKey(r: Row) = NatKey(
             keyType = NAT_KEY_TYPES.inverse.get(r.getString("type")).get,
-            networkSrc = r.getInet("srcIp"),
-            networkDst = r.getInet("dstIp"),
+            networkSrc = inetToIPAddr(r.getInet("srcIp")).asInstanceOf[IPv4Addr],
+            networkDst = inetToIPAddr(r.getInet("dstIp")).asInstanceOf[IPv4Addr],
             transportSrc = r.getInt("srcPort"),
             transportDst = r.getInt("dstPort"),
             networkProtocol = r.getInt("proto").toByte,
             deviceId = r.getUUID("device"))
 
     def rowToNatBinding(r: Row) = NatBinding(
-            networkAddress = r.getInet("translateIp"),
+            networkAddress = inetToIPAddr(r.getInet("translateIp")).asInstanceOf[IPv4Addr],
             transportPort = r.getInt("translatePort"))
 
     def apply(client: CassandraClient): FlowStateStorage = new FlowStateStorageImpl(client)

@@ -200,7 +200,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 pktCtx.flowTags, pktCtx.lastInvalidation, pktCtx.packet.getMatch,
                 actionsCache.pending, actionsCache.getSlot(pktCtx.cookieStr))
             actionsCache.actions.put(pktCtx.packet.getMatch, wildFlow.actions)
-
         } else {
             createFlow(pktCtx, wildFlow, Some(wildFlow))
         }

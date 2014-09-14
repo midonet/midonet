@@ -203,7 +203,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
                            IPv4Addr.fromString(vmNetworkIp.toUnicastString), 24)
         snatCond.nwDstInv = true
         // FIXME(guillermo) why does a port range of 0:0 allow 0 to be picked as source port??
-        val snatTarget = new NatTarget(snatAddressStart, snatAddressEnd, 10001.toShort, 65535.toShort)
+        val snatTarget = new NatTarget(snatAddressStart, snatAddressEnd, 10001, 65535)
         val snatRule = newForwardNatRuleOnChain(rtrOutChain, 2, snatCond,
                 RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
         snatRule should not be null

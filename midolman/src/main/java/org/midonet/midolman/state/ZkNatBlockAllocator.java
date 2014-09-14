@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +22,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback;
 
@@ -44,8 +48,9 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
     // TODO: Until ZK 3.5, which supports async multi operations
     private final Reactor reactor;
 
+    @Inject
     public ZkNatBlockAllocator(ZkConnection zk, PathBuilder paths,
-                               Reactor reactor) {
+                               @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG) Reactor reactor) {
         this.zk = zk;
         this.paths = paths;
         this.reactor = reactor;

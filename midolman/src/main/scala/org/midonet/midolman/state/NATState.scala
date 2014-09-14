@@ -5,16 +5,17 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{UUID, Random}
+import java.util.UUID
+import java.util.concurrent.ThreadLocalRandom
 
 import scala.concurrent.duration._
 
 import org.midonet.midolman.rules.NatTarget
-import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP, IPAddr}
+import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.midolman.state.FlowState.FlowStateKey
-import org.midonet.midolman.state.NatState.{REV_STICKY_DNAT, FWD_STICKY_DNAT}
+import org.midonet.util.functors.Callback0
 
 object NatState {
     private val WILDCARD_PORT = 0
@@ -47,10 +48,10 @@ object NatState {
 
         def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: KeyType): NatKey = {
             val key = NatKey(keyType,
-                             wcMatch.getNetworkSourceIP,
+                             wcMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr],
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
                              else wcMatch.getTransportSource,
-                             wcMatch.getNetworkDestinationIP,
+                             wcMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
                              if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
                              else wcMatch.getTransportDestination,
                              wcMatch.getNetworkProtocol.byteValue(),
@@ -100,9 +101,9 @@ object NatState {
         }
 
     case class NatKey(var keyType: KeyType,
-                      var networkSrc: IPAddr,
+                      var networkSrc: IPv4Addr,
                       var transportSrc: Int,
-                      var networkDst: IPAddr,
+                      var networkDst: IPv4Addr,
                       var transportDst: Int,
                       var networkProtocol: Byte,
                       var deviceId: UUID) extends FlowStateKey {
@@ -144,8 +145,7 @@ object NatState {
 
     }
 
-    case class NatBinding(var networkAddress: IPAddr,
-                          var transportPort: Int)
+    case class NatBinding(var networkAddress: IPv4Addr, var transportPort: Int)
 }
 
 trait NatState extends FlowState {
@@ -153,7 +153,7 @@ trait NatState extends FlowState {
     import org.midonet.midolman.state.NatState.NatKey._
 
     var natTx: FlowStateTransaction[NatKey, NatBinding] = _
-    private val rand = new Random
+    var natLeaser: NatLeaser = _
 
     def applyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
         applyDnat(deviceId, FWD_DNAT, natTargets)
@@ -317,10 +317,10 @@ trait NatState extends FlowState {
                 val header = new IPv4
                 header.deserializeHeader(bb)
                 if (isSnat) {
-                    header.setSourceAddress(binding.networkAddress.asInstanceOf[IPv4Addr])
+                    header.setSourceAddress(binding.networkAddress)
                     pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
                 } else {
-                    header.setDestinationAddress(binding.networkAddress.asInstanceOf[IPv4Addr])
+                    header.setDestinationAddress(binding.networkAddress)
                     pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
                 }
                 val ipHeadSize = dataSize - bb.remaining
@@ -376,23 +376,35 @@ trait NatState extends FlowState {
     }
 
     private def tryAllocateNatBinding(key: NatKey,
-                                      nats: Array[NatTarget]): NatBinding = {
-        val nat = chooseRandomNatTarget(nats)
-        val port = if (isIcmp) key.transportDst else chooseRandomPort(nat)
-        NatBinding(chooseRandomIp(nat), port)
-    }
+                                      nats: Array[NatTarget]): NatBinding =
+        if (isIcmp) {
+            val nat = chooseRandomNatTarget(nats)
+            NatBinding(chooseRandomIp(nat), key.transportDst)
+        } else if (key.keyType eq FWD_SNAT) {
+            val binding = natLeaser.allocateNatBinding(key.deviceId, key.networkDst,
+                                                       key.transportDst, nats)
+            pktCtx.addFlowRemovedCallback(new Callback0 {
+                override def call(): Unit =
+                    natLeaser.freeNatBinding(key.deviceId, key.networkDst,
+                                             key.transportDst, binding)
+            })
+            binding
+        } else {
+            val nat = chooseRandomNatTarget(nats)
+            NatBinding(chooseRandomIp(nat), chooseRandomPort(nat))
+        }
 
     private def isIcmp = pktCtx.wcmatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER
 
     private def chooseRandomNatTarget(nats: Array[NatTarget]): NatTarget =
-        nats(rand.nextInt(nats.size))
+        nats(ThreadLocalRandom.current().nextInt(nats.size))
 
-    private def chooseRandomIp(nat: NatTarget): IPAddr =
-        nat.nwStart.randomTo(nat.nwEnd, rand)
+    private def chooseRandomIp(nat: NatTarget): IPv4Addr =
+        nat.nwStart.randomTo(nat.nwEnd, ThreadLocalRandom.current())
 
     private def chooseRandomPort(nat: NatTarget): Int = {
         val tpStart = nat.tpStart & USHORT
         val tpEnd = nat.tpEnd & USHORT
-        rand.nextInt(tpEnd - tpStart + 1) + tpStart
+        ThreadLocalRandom.current().nextInt(tpEnd - tpStart + 1) + tpStart
     }
 }

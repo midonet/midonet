@@ -219,38 +219,6 @@ public class ZkPathManager {
     }
 
     /**
-     * Get ZK path of the SNAT blocks in a filter state.
-     *
-     * @param id Router, bridge or port UUID
-     * @return /filters/parentId/snat_blocks
-     */
-    public String getFilterSnatBlocksPath(UUID id) {
-        return buildFilterSnatBlocksPath(id).toString();
-    }
-
-    private StringBuilder buildFilterSnatBlocksPath(UUID id) {
-        return buildFilterPath(id).append("/snat_blocks");
-    }
-
-    public String getFilterSnatBlocksPath(UUID id, IPAddr ip) {
-        return buildFilterSnatBlocksPath(id, ip).toString();
-    }
-
-    private StringBuilder buildFilterSnatBlocksPath(UUID id, IPAddr ipv4) {
-        return buildFilterSnatBlocksPath(id)
-            .append("/").append(ipv4.toString());
-    }
-
-    public String getFilterSnatBlocksPath(UUID id, IPAddr ip, int startPort) {
-        return buildFilterSnatBlocksPath(id, ip, startPort).toString();
-    }
-
-    private StringBuilder buildFilterSnatBlocksPath(UUID id, IPAddr ip,
-                                                    int startPort) {
-        return buildFilterSnatBlocksPath(id, ip).append("/").append(startPort);
-    }
-
-    /**
      * Get Versions path.
      *
      * @return /version

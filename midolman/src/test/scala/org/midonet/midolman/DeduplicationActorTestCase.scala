@@ -34,7 +34,7 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.state.MockStateStorage
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends MidolmanSpec {
@@ -291,6 +291,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
                                        new MockStateStorage(),
+                                       HappyGoLuckyLeaser,
                                        metrics, packetOut)
             with MessageAccumulator {
 

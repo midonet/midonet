@@ -46,11 +46,11 @@ public class NatRange {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        NatBlock natBlock = (NatBlock) o;
-        return tpPortEnd == natBlock.tpPortEnd
-               && tpPortStart != natBlock.tpPortStart
-               && ip.equals(natBlock.ip)
-               && deviceId.equals(natBlock.deviceId);
+        NatRange natRange = (NatRange) o;
+        return tpPortEnd == natRange.tpPortEnd
+               && tpPortStart == natRange.tpPortStart
+               && ip.equals(natRange.ip)
+               && deviceId.equals(natRange.deviceId);
     }
 
     @Override

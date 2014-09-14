@@ -13,7 +13,7 @@ import org.midonet.packets.IPv4Addr;
  * virtual device.
  */
 public final class NatBlock extends NatRange {
-    public static final int BLOCK_SIZE = 64;
+    public static final int BLOCK_SIZE = 64; // Must be power of 2
     public static final int TOTAL_BLOCKS = 1024;
 
     public static final NatBlock NO_BLOCK =

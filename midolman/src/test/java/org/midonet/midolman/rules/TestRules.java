@@ -19,6 +19,7 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.ConnTrackState;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.HappyGoLuckyLeaser$;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.NatState;
 import org.midonet.midolman.state.PathBuilder;
@@ -41,7 +42,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
-
 
 public class TestRules {
 
@@ -176,7 +176,7 @@ public class TestRules {
                 shardedNat.addShard(akka.event.NoLogging.getInstance());
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        fwdInfo.state().initialize(conntrackTx, natTx);
+        fwdInfo.state().initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
     }
 
     @Test

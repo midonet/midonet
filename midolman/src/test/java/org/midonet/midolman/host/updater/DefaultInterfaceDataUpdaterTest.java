@@ -46,6 +46,7 @@ import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.MockDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkPathManager;
+import org.midonet.midolman.util.guice.MockMidolmanModule;
 import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
@@ -94,12 +95,12 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockZookeeperConnectionModule(),
             new HostModule(),
             new ClusterClientModule(),
+            new MockMidolmanModule(),
             new TestableMidolmanActorsModule(
                 JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
                 JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>()),
                 Clock.defaultClock()),
             new ResourceProtectionModule(),
-            new MidolmanModule(),
             new InterfaceScannerModule());
 
         directory = injector.getInstance(Directory.class);

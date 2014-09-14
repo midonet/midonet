@@ -6,7 +6,7 @@ package org.midonet.midolman.simulation
 
 import akka.event.LoggingAdapter
 
-import org.midonet.midolman.state.{FlowState, ConnTrackState, NatState}
+import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.sdn.state.FlowStateTransaction
@@ -25,9 +25,11 @@ sealed class StateContext(val pktCtx: PacketContext,
     }
 
     def initialize(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
-                   natTx: FlowStateTransaction[NatKey, NatBinding]) {
+                   natTx: FlowStateTransaction[NatKey, NatBinding],
+                   natLeaser: NatLeaser) {
         this.conntrackTx = conntrackTx
         this.natTx = natTx
+        this.natLeaser = natLeaser
     }
 
     def containsForwardStateKeys = conntrackTx.size() > 0 || natTx.size() > 0
