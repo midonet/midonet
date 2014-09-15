@@ -6,6 +6,7 @@ package org.midonet.midolman
 import java.util.{List => JList}
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 import akka.actor._
@@ -19,8 +20,8 @@ import org.midonet.midolman.simulation.{Coordinator, PacketContext, DhcpImpl}
 import org.midonet.midolman.state.FlowStateReplicator
 import org.midonet.midolman.topology.{VirtualTopologyActor, VirtualToPhysicalMapper, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.{Packet, Datapath, Flow, FlowMatch}
-import org.midonet.odp.flows.{FlowKey, FlowKeyUDP, FlowAction}
+import org.midonet.odp._
+import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
@@ -121,7 +122,30 @@ class PacketWorkflow(protected val dpState: DatapathState,
                            wildFlow: WildcardFlow,
                            newWildFlow: Option[WildcardFlow] = None) {
         log.debug("Creating flow from {} for {}", wildFlow, pktCtx.cookieStr)
-        val dpFlow = new Flow(pktCtx.packet.getMatch, wildFlow.getActions)
+
+        val flowMatch = pktCtx.packet.getMatch
+        val providedKeys = flowMatch.getKeys.asScala.toList
+        val hasTcpFlags = providedKeys.exists({ x => x.isInstanceOf[FlowKeyTCPFlags] })
+
+        val flowMask = new FlowMask()
+        if (hasTcpFlags) {
+            // wildcard the TCP flags
+            // TODO: this will change in the future: we'll use the wildcard match
+            //       until then when we are smarter, we must set exact matches
+            //       for everything up to the TCPFlags level... [alvaro]
+            flowMask.addKey(FlowKeys.priority(FlowMask.PRIO_EXACT)).
+                     addKey(FlowKeys.inPort(FlowMask.INPORT_EXACT)).
+                     addKey(FlowKeys.ethernet(FlowMask.ETHER_EXACT,
+                                              FlowMask.ETHER_EXACT)).
+                     addKey(FlowKeys.etherType(FlowMask.ETHERTYPE_EXACT)).
+                     addKey(FlowKeys.ipv4(FlowMask.IP_EXACT, FlowMask.IP_EXACT,
+                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT,
+                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT)).
+                     addKey(FlowKeys.tcp(FlowMask.TCP_EXACT, FlowMask.TCP_EXACT)).
+                     addKey(FlowKeys.tcpFlags(FlowMask.TCPFLAGS_ANY))
+        }
+
+        val dpFlow = new Flow(flowMatch, flowMask, wildFlow.getActions)
         try {
             datapathConn(pktCtx).flowsCreate(datapath, dpFlow)
             notifyFlowAdded(pktCtx, dpFlow, newWildFlow)

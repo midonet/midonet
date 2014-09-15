@@ -11,6 +11,17 @@ import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
+
+/**
+ * Flow key/mask for TCP flags
+ *
+ * When using TCP flags, the flow must also include an **exact** match for the
+ * TCP source and destination. Otherwise, no packets will match this key/mask.
+ *
+ * @see org.midonet.odp.flows.FlowKey
+ * @see org.midonet.odp.flows.FlowKeyTCP
+ * @see org.midonet.odp.FlowMask
+ */
 public class FlowKeyTCPFlags implements FlowKey {
 
     /*__be16*/ private short flags;
@@ -26,9 +37,7 @@ public class FlowKeyTCPFlags implements FlowKey {
         flags = TCP.Flag.allOf(flst);
     }
 
-    public short getFlags() {
-        return flags;
-    }
+    public short getFlags() { return flags; }
 
     // TODO: probably we do not need these two functions... [alvaro]
 
@@ -42,7 +51,7 @@ public class FlowKeyTCPFlags implements FlowKey {
     }
 
     public int serializeInto(ByteBuffer buffer) {
-        buffer.putShort(BytesUtil.instance.reverseBE((short)flags));
+        buffer.putShort(BytesUtil.instance.reverseBE(flags));
         return 2;
     }
 

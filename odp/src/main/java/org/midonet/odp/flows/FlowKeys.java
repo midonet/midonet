@@ -68,6 +68,13 @@ public class FlowKeys {
                                       ttl, fragmentType.value));
     }
 
+    public static FlowKeyIPv4 ipv4(int src, int dst, byte protocol,
+                                   byte typeOfService, byte ttl,
+                                   byte fragmentType) {
+        return intern(new FlowKeyIPv4(src, dst, protocol, typeOfService,
+                                      ttl, fragmentType));
+    }
+
     public static FlowKeyIPv6 ipv6(IPv6Addr src, IPv6Addr dst,
                                    IpProtocol protocol) {
         return ipv6(src, dst, protocol.value, (byte)0, IPFragmentType.None);
