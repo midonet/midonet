@@ -17,6 +17,7 @@ object OvsIntegrationTest extends OvsIntegrationTestBase {
 trait OvsIntegrationTestBase extends DatapathTest
                                      with FlowTest
                                      with FlowMatchesTcpHeadersTest
+                                     with WildcardFlowTest
                                      with PortTest {
 
     import org.midonet.util.IntegrationTests._
@@ -36,6 +37,8 @@ trait OvsIntegrationTestBase extends DatapathTest
         passed = printReport(runSuite(dpTests))
 
         passed &= printReport(runSuite(flowTests(dpF)))
+
+        passed &= printReport(runSuite(wflowTests(dpF)))
 
         passed &= printReport(runSuite(tcpFlagsMatchesTests(dpF)))
 

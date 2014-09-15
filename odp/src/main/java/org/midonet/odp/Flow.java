@@ -27,6 +27,7 @@ import org.midonet.packets.TCP;
 public class Flow implements AttributeHandler {
 
     private FlowMatch match;
+    private FlowMask mask = new FlowMask();
     private List<FlowAction> actions = new ArrayList<>();
     private FlowStats stats;
     private Byte tcpFlags;
@@ -42,13 +43,28 @@ public class Flow implements AttributeHandler {
         this.match = match;
     }
 
+    public Flow(FlowMatch match, FlowMask mask) {
+        this(match);
+        this.mask = mask;
+    }
+
     public Flow(FlowMatch match, List<FlowAction> actions) {
         this(match);
         this.actions = actions;
     }
 
+    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions) {
+        this(match, mask);
+        this.actions = actions;
+    }
+
     public Flow(FlowMatch match, List<FlowAction> actions, FlowStats stats) {
         this(match, actions);
+        this.stats = stats;
+    }
+
+    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions, FlowStats stats) {
+        this(match, mask, actions);
         this.stats = stats;
     }
 
@@ -59,6 +75,15 @@ public class Flow implements AttributeHandler {
 
     public boolean hasEmptyMatch() {
         return (match == null || match.getKeys().isEmpty());
+    }
+
+    @Nullable
+    public FlowMask getMask() {
+        return mask;
+    }
+
+    public boolean hasEmptyMask() {
+        return (mask == null || mask.getKeys().isEmpty());
     }
 
     @Nonnull
@@ -122,6 +147,10 @@ public class Flow implements AttributeHandler {
           case Attr.Key:
             match = FlowMatch.reader.deserializeFrom(buf);
             break;
+
+          case Attr.Mask:
+            mask = FlowMask.reader.deserializeFrom(buf);
+            break;
         }
     }
 
@@ -156,7 +185,8 @@ public class Flow implements AttributeHandler {
             ", stats=" + stats +
             ", tcpFlags=" + tcpFlags +
             ", lastUsedTime=" + lastUsedTime +
-            '}';
+            ", mask=" + mask +
+            "}";
     }
 
     public List<String> toPrettyStrings() {
@@ -219,6 +249,9 @@ public class Flow implements AttributeHandler {
         // actions nested attribute header needs to be written otherwise the
         // datapath will answer back with EINVAL
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, getActions(), FlowActions.writer);
+
+        if (!hasEmptyMask())
+            NetlinkMessage.writeAttrSeq(buf, Attr.Mask, mask.getKeys(), FlowKeys.writer);
 
         buf.flip();
         return buf;

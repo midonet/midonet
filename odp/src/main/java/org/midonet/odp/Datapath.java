@@ -172,6 +172,76 @@ public class Datapath {
         }
     }
 
+    /**
+     * Megaflows-specific datapath statistics
+     */
+    public static class MegaflowStats {
+
+        private final long maskHits;
+        private final int numMasks;
+
+        public MegaflowStats(long hits, int num) {
+            this.maskHits = hits;
+            this.numMasks = num;
+        }
+
+        /** Get the number of masks used for flow lookups. */
+        public long getMaskHits() {
+            return maskHits;
+        }
+
+        /** Get the number of masks for the datapath. */
+        public int getNumMasks() {
+            return numMasks;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            @SuppressWarnings("unchecked") // safe cast
+            MegaflowStats that = (MegaflowStats) o;
+
+            return (this.maskHits == that.maskHits)
+                   && (this.numMasks == that.numMasks);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Longs.hashCode(maskHits);
+            return 31 * result + Ints.hashCode(numMasks);
+        }
+
+        @Override
+        public String toString() {
+            return "Stats{" +
+                   "maskHits=" + maskHits +
+                   ", num=" + numMasks +
+                   '}';
+        }
+
+        public static final Translator<MegaflowStats> trans = new Translator<MegaflowStats>() {
+            public short attrIdOf(MegaflowStats any) {
+                return Attr.MegaflowStat;
+            }
+            public int serializeInto(ByteBuffer receiver, MegaflowStats value) {
+                receiver.putLong(value.maskHits)
+                    .putInt(value.numMasks);
+                return 4 * 8;
+            }
+            public MegaflowStats deserializeFrom(ByteBuffer source) {
+                long hits = source.getLong();
+                int num = source.getInt();
+                return new MegaflowStats(hits, num);
+            }
+        };
+
+        public static MegaflowStats random() {
+            return new MegaflowStats(r.nextLong(), r.nextInt());
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

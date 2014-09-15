@@ -9,6 +9,34 @@ import org.midonet.netlink.BytesUtil;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.IPv4Addr;
 
+/**
+ * Flow key/mask for IP
+ *
+ * When using IP masks, the flow must also include an exact match for the
+ * ethernet protocol equal to IP. Otherwise, no packets will match this key/mask.
+ *
+ * Example:
+ *
+ * <code>
+ * FlowMatch flowMatch = new FlowMatch();
+ * FlowMask flowMask = new FlowMask();
+ *
+ * // ... some other matches/masks
+ *
+ * flowMatch.addKey(FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_IP));
+ * flowMask.addKey(FlowKeys.etherType(0xFFFF.toShort));
+ * flowMatch.addKey(FlowKeys.ipv4(srcIp, dstIp, IpProtocol.TCP));
+ * flowMask.addKey(FlowKeys.ipv4(0x0001.toShort, 0x0001.toShort, 0x00, 0x00, 0x00, 0x00));
+ *
+ * // ... some other matches/masks
+ *
+ * Flow flow = new Flow(flowMatch, flowMask);
+ * </code>
+ *
+ * @see org.midonet.odp.flows.FlowKey
+ * @see org.midonet.odp.flows.FlowKeyEthernet
+ * @see org.midonet.odp.FlowMask
+ */
 public class FlowKeyIPv4 implements FlowKey {
 
     /*__be32*/ private int ipv4_src;

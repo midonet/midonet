@@ -20,7 +20,8 @@ public class TCP extends BasePacket implements Transport {
         Ack(4, "ACK"),
         Urg(5, "URG"),
         Ece(6, "ECE"),
-        Cwr(7, "CWR");
+        Cwr(7, "CWR"),
+        Ns(8, "NS");
 
         public final int position;
         public final int bit;
@@ -58,7 +59,9 @@ public class TCP extends BasePacket implements Transport {
                 for (TCP.Flag f : TCP.Flag.allOf(b)) {
                     buf.append(f).append("|");
                 }
-                buf.deleteCharAt(buf.length() - 1);
+                int bl = buf.length();
+                if (bl > 0)
+                    buf.deleteCharAt(bl - 1);
             }
             return buf.toString();
         }
@@ -87,7 +90,7 @@ public class TCP extends BasePacket implements Transport {
         sb.append(", seqNo=").append(seqNo);
         sb.append(", ackNo=").append(ackNo);
         sb.append(", cksum=").append(checksum);
-        sb.append(", flags=b").append(Integer.toBinaryString(flags));
+        sb.append(", flags=").append(Flag.allOfToString(flags));
         sb.append("]");
         return sb.toString();
     }
