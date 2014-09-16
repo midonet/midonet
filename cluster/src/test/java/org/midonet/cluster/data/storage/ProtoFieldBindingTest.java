@@ -29,7 +29,6 @@ import org.midonet.cluster.models.TestModels;
 import org.midonet.cluster.models.Topology.Chain;
 import org.midonet.cluster.models.Topology.Network;
 import org.midonet.cluster.models.Topology.Port;
-import org.midonet.cluster.models.Topology.VtepBinding;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
@@ -105,8 +104,8 @@ public class ProtoFieldBindingTest {
         ProtoFieldBinding.createBindings(Network.class,
                                          null,
                                          DeleteAction.CASCADE,
-                                         VtepBinding.class,
-                                         "network_id",
+                                         TestModels.TestMessageNoId.class,
+                                         "uuid_ref",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding of class with no id field.");
     }

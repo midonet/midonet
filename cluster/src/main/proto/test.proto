@@ -97,3 +97,8 @@ message TestFlatMessage {
     // Top members
     optional int32 top_int = 30;
 }
+
+message TestMessageNoId {
+    optional string name = 1;
+    optional UUID uuid_ref = 2;
+}
