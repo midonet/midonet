@@ -1,27 +1,39 @@
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ */
 package org.midonet.cluster.util
 
+import java.lang.reflect.Type
+import java.util.{UUID => JUUID}
 
+import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.{UUID => PUUID}
 
 object UUID {
 
-    /** Convert a java.util.UUID to a Protobufs object */
-    implicit def toProto(uuid: java.util.UUID): Commons.UUID = {
+    /**
+     * Convert a java.util.UUID to a Protocol Buffers message.
+     */
+    implicit def toProto(uuid: JUUID): PUUID = {
         if (uuid == null) null
-        else  Commons.UUID.newBuilder
-                          .setMsb(uuid.getMostSignificantBits)
-                          .setLsb(uuid.getLeastSignificantBits)
-                          .build()
+        else PUUID.newBuilder
+                  .setMsb(uuid.getMostSignificantBits)
+                  .setLsb(uuid.getLeastSignificantBits)
+                  .build()
     }
 
     implicit def fromProto(uuid: Commons.UUID): java.util.UUID = {
-        new java.util.UUID(uuid.getMsb, uuid.getLsb)
+        new JUUID(uuid.getMsb, uuid.getLsb)
     }
 
-    def randomUuidProto = {
-        val uuid = java.util.UUID.randomUUID;
-        Commons.UUID.newBuilder.setMsb(uuid.getMostSignificantBits)
-                               .setLsb(uuid.getLeastSignificantBits)
-                               .build()
+    def randomUuidProto: PUUID = JUUID.randomUUID()
+
+    sealed class Converter extends ZoomConvert.Converter[JUUID, PUUID] {
+        override def toProto(value: JUUID, clazz: Type): PUUID =
+            UUID.toProto(value)
+
+        override def fromProto(value: PUUID, clazz: Type): JUUID =
+            UUID.fromProto(value)
     }
 }
