@@ -211,15 +211,20 @@ message TunnelZone {
 }
 
 message Vtep {
-    optional string id = 1;  // This is actually an IP address.
+    optional string id = 1;         // This is actually an IP address.
     optional uint32 management_port = 2;
     optional UUID tunnel_zone_id = 3;
+    repeated string tunnel_ips = 4;
+
+    repeated UUID bindings = 101;   // A back-ref to VTEP bindings.
 }
 
 message VtepBinding {
-    optional string port_name = 1;
-    optional uint32 vlan_id = 2;    // A VLAN ID is a short int.
-    optional string network_id = 3;
+    optional UUID id = 1;
+    optional string port_name = 2;
+    optional uint32 vlan_id = 3;    // A VLAN ID is a short int.
+    optional UUID network_id = 4;
+    optional string vtep_id = 5;    // A forward ref to VtEP.
 }
 
 message Host {
