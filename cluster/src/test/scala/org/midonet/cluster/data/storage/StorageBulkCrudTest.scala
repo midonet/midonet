@@ -66,7 +66,8 @@ trait StorageBulkCrudTest extends FlatSpec
         testResults += test.build()
     }
 
-    override def afterAll() {
+    override protected def afterAll() {
+        super.afterAll()
         // Outputs the test results to log.
         for (result <- testResults.toArray) {
             log.info("\n{}", result)
