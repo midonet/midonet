@@ -50,6 +50,6 @@ public interface ZookeeperConfig {
     /**
      * Whether to start the Curator client.
      */
-    @ConfigBool(key = "curator_enabled", defaultValue = true)
+    @ConfigBool(key = "curator_enabled", defaultValue = false)
     Boolean getCuratorEnabled();
 }
