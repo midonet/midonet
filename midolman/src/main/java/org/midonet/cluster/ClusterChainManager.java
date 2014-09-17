@@ -136,8 +136,16 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
             for (UUID ruleId : curRuleIds) {
                 if (!oldRuleIds.contains(ruleId)) {
                     chainToMissingRuleIds.put(chainId, ruleId);
-                    requestRule(ruleId);
                 }
+            }
+            /* NOTE(guillermo) this loop is split in two because, unit tests
+             * will have the rule callback run synchronously with requestRule(),
+             * meaning that the rule callback will not be serialized vs this
+             * callback, causing it to run on an inconsistent state.
+             */
+            for (UUID ruleId : curRuleIds) {
+                if (!ruleMap.containsKey(ruleId))
+                    requestRule(ruleId);
             }
         }
 

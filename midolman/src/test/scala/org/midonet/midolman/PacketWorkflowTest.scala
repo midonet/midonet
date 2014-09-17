@@ -89,7 +89,7 @@ object PacketWorkflowTest {
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         with ImplicitSender with FeatureSpecLike with Matchers
-        with GivenWhenThen with BeforeAndAfter {
+        with GivenWhenThen with BeforeAndAfter with BeforeAndAfterAll {
 
     import PacketWorkflow._
     import PacketWorkflowTest._
@@ -103,6 +103,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     val testKit = self
     val aliases = List(PacketsEntryPoint.Name, FlowController.Name)
+
+    override def afterAll() { system.shutdown() }
 
     def makeAlias(name: String)(implicit ctx: ActorContext) {
         ctx.actorOf(Props(new Forwarder), name)
