@@ -3,6 +3,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util
+
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll
@@ -29,4 +31,5 @@ class InMemoryZoomBulkCrudTest extends ZoomBulkCrudTest
         log.info("Shutting down the test ZK server.")
         testingServer.close()
     }
+
 }

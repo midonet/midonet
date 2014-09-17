@@ -53,14 +53,11 @@ public class LoadBalancerResource extends AbstractResource {
 
     private final ResourceFactory factory;
 
-    private final DataClient dataClient;
-
     @Inject
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
                                 SecurityContext context, DataClient dataClient,
                                 ResourceFactory factory) {
-        super(config, uriInfo, context, null);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient);
         this.factory = factory;
     }
 
@@ -81,7 +78,7 @@ public class LoadBalancerResource extends AbstractResource {
         List<org.midonet.cluster.data.l4lb.LoadBalancer> dataLoadBalancers;
 
         dataLoadBalancers = dataClient.loadBalancersGetAll();
-        List<LoadBalancer> loadBalancers = new ArrayList<LoadBalancer>();
+        List<LoadBalancer> loadBalancers = new ArrayList<>();
         if (dataLoadBalancers != null) {
             for (org.midonet.cluster.data.l4lb.LoadBalancer dataLoadBalancer:
                     dataLoadBalancers) {
@@ -239,7 +236,7 @@ public class LoadBalancerResource extends AbstractResource {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
         vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
-        List<VIP> vips = new ArrayList<VIP>();
+        List<VIP> vips = new ArrayList<>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
                 VIP vip = new VIP(vipData);

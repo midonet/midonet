@@ -56,14 +56,11 @@ public class PoolMemberResource extends AbstractResource {
 
     private final PoolMemberEvent poolMemberEvent = new PoolMemberEvent();
 
-    private final DataClient dataClient;
-
     @Inject
     public PoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context, DataClient dataClient,
                               Validator validator) {
-        super(config, uriInfo, context, null, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     @GET
@@ -189,17 +186,14 @@ public class PoolMemberResource extends AbstractResource {
     public static class PoolPoolMemberResource extends AbstractResource {
         private final UUID poolId;
 
-        private final DataClient dataClient;
-
         @Inject
         public PoolPoolMemberResource(RestApiConfig config, UriInfo uriInfo,
                                       SecurityContext context,
                                       DataClient dataClient,
                                       Validator validator,
                                       @Assisted UUID id) {
-            super(config, uriInfo, context, null, validator);
+            super(config, uriInfo, context, dataClient, validator);
             this.poolId = id;
-            this.dataClient = dataClient;
         }
 
         @GET
