@@ -40,6 +40,7 @@ trait CuratorTestFramework extends BeforeAndAfter
     protected var curator: CuratorFramework = _
 
     override protected def beforeAll(): Unit = {
+        super.beforeAll()
         val ts = new TestingServer
         testServers(this.getClass) = ts
         ts.start()
@@ -49,10 +50,19 @@ trait CuratorTestFramework extends BeforeAndAfter
 
     protected def teardown(): Unit = {}
 
-    before {
+    /**
+     * Sets up a new CuratorFramework client against a in-memory test ZooKeeper
+     * server. If one needs to test against a different ZooKeeper setup, he/she
+     * should override this method.
+     */
+    protected def setUpCurator(): Unit = {
         zk = testServers(this.getClass)
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
                                                     1000, 1000, retryPolicy)
+    }
+
+    before {
+        setUpCurator()
         curator.start()
         if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS))
            fail("Curator did not connect to the test ZK server")
@@ -77,6 +87,7 @@ trait CuratorTestFramework extends BeforeAndAfter
         }
 
     override protected def afterAll(): Unit = {
+        super.afterAll()
         testServers.remove(this.getClass).foreach(_.close())
     }
 }

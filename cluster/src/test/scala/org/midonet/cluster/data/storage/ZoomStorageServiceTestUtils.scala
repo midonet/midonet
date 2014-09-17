@@ -11,11 +11,18 @@ import scala.collection.JavaConverters._
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
+import org.scalatest.Suite
 import rx.Observable
 import rx.Observer
 import rx.Subscription
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.models.Devices.Bridge
+import org.midonet.cluster.models.Devices.Chain
+import org.midonet.cluster.models.Devices.Port
+import org.midonet.cluster.models.Devices.Router
+import org.midonet.cluster.models.Devices.Rule
+import org.midonet.cluster.util.CuratorTestFramework
 
 /**
  * DTO for ZOOM binding.
@@ -31,11 +38,33 @@ class ZoomBinding(val leftClass: Class[_],
 /**
  * A trait implementing the common API for testing ZOOM-based Storage Service.
  */
-trait ZoomStorageServiceTester extends StorageServiceTester {
-    var curator: CuratorFramework = null
+trait ZoomStorageServiceTester extends StorageServiceTester
+                               with CuratorTestFramework { this: Suite =>
     var zoom: ZookeeperObjectMapper = null
-    def zkRootDir: String
-    def deviceClasses: Array[Class[_]]
+    val deviceClasses: Array[Class[_]] =
+        Array(classOf[Bridge], classOf[Chain], classOf[Port], classOf[Router],
+              classOf[Rule])
+
+    val bindings = Array(
+            new ZoomBinding(
+                    classOf[Bridge], "inbound_filter_id", DeleteAction.CLEAR,
+                    classOf[Chain], "bridge_ids", DeleteAction.CLEAR),
+            new ZoomBinding(
+                    classOf[Bridge], "outbound_filter_id", DeleteAction.CLEAR,
+                    classOf[Chain], "bridge_ids", DeleteAction.CLEAR),
+            new ZoomBinding(
+                    classOf[Router], "port_ids", DeleteAction.CASCADE,
+                    classOf[Port], "router_id", DeleteAction.CLEAR),
+            new ZoomBinding(
+                    classOf[Bridge], "port_ids", DeleteAction.CASCADE,
+                    classOf[Port], "bridge_id", DeleteAction.CLEAR),
+            new ZoomBinding(
+                    classOf[Port], "peer_uuid", DeleteAction.CLEAR,
+                    classOf[Port], "peer_uuid", DeleteAction.CLEAR),
+            new ZoomBinding(
+                    classOf[Chain], "rule_ids", DeleteAction.CASCADE,
+                    classOf[Rule], "chain_id", DeleteAction.CLEAR)
+            )
 
     @throws(classOf[NotFoundException])
     @throws(classOf[ObjectExistsException])
@@ -91,16 +120,6 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
         zoom.multi(ops)
     }
 
-    @throws[Exception]
-    override def cleanUpDirectories() {
-        try {
-            curator.delete().deletingChildrenIfNeeded().forPath(zkRootDir)
-        } catch {
-            case _: KeeperException.NoNodeException =>
-                // Nonde may not exist yet.
-        }
-    }
-
     override def subscribe[T](clazz: Class[T],
                               id: ObjId,
                               obs: Observer[_ >: T]): Subscription = {
@@ -129,6 +148,16 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
 
     override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
+    override protected def setup(): Unit = {
+        zoom = new ZookeeperObjectMapper(ZK_ROOT, curator)
+
+        registerClasses(deviceClasses, bindings)
+    }
+
+    override def cleanUpDirectories(): Unit = {
+        clearZookeeper()
+    }
+
     @throws[Exception]
     override def cleanUpDeviceData() {
         for (device <- deviceClasses) {
@@ -137,7 +166,7 @@ trait ZoomStorageServiceTester extends StorageServiceTester {
                        .forPath(zoom.getPath(device))
             } catch {
                 case _: KeeperException.NoNodeException =>
-                    // Nonde may not exist yet.
+                    // Node may not exist yet.
             }
 
             val ensurePath = new EnsurePath(zoom.getPath(device))
