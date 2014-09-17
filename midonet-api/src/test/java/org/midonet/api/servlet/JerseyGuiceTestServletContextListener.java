@@ -11,6 +11,7 @@ import org.apache.curator.test.TestingServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.api.rest_api.FuncTest;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
@@ -27,7 +28,7 @@ public class JerseyGuiceTestServletContextListener extends
 
     public JerseyGuiceTestServletContextListener() {
         try {
-            testZk = new TestingServer(2181);
+            testZk = new TestingServer(FuncTest.ZK_TEST_PORT);
         } catch (Exception e) {
             throw new IllegalStateException("Cannot start zookeeper server");
         }

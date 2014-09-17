@@ -28,7 +28,9 @@ import org.midonet.cluster.config.ZookeeperConfig;
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
 
-    private static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
+    public static final String ZK_ROOT_MIDOLMAN = "/test/midolman";
+    public static final int ZK_TEST_PORT = (int)(Math.random() * 50000) + 10000;
+    public static final String ZK_TEST_SERVER = "127.0.0.1:" + ZK_TEST_PORT;
 
     public final static String BASE_URI_CONFIG = "rest_api-base_uri";
     public final static String CONTEXT_PATH = "/test";
@@ -74,9 +76,9 @@ public class FuncTest {
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
                               "org.midonet.api.auth.MockAuthService")
-                .contextParam(getConfigKey(ZookeeperConfig.DEFAULT_HOSTS,
+                .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
                                            "zookeeper_hosts"),
-                                           "127.0.0.1:2181")
+                                           FuncTest.ZK_TEST_SERVER)
                 .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
                                            "curator_enabled"), "true")
                 .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
