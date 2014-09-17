@@ -140,6 +140,14 @@ public class ZkPathManager {
         return buildBridgesPath().append("/").append(id);
     }
 
+    protected StringBuilder buildBridgeMacPortsPath(UUID id, short vlanId) {
+        StringBuilder builder = buildBridgePath(id);
+        if (vlanId != Bridge.UNTAGGED_VLAN_ID)
+            builder.append("/vlans/").append(vlanId);
+        builder.append("/mac_ports");
+        return builder;
+    }
+
     /**
      * Get the path of a bridge's dynamic filtering database (mac to ports map).
      *
@@ -149,11 +157,14 @@ public class ZkPathManager {
      *         Otherwise: /bridges/bridgeId/vlans/vlanId/mac_ports.
      */
     public String getBridgeMacPortsPath(UUID id, short vlanId) {
-        StringBuilder builder = buildBridgePath(id);
-        if (vlanId != Bridge.UNTAGGED_VLAN_ID)
-            builder.append("/vlans/").append(vlanId);
-        builder.append("/mac_ports");
-        return builder.toString();
+        return buildBridgeMacPortsPath(id, vlanId).toString();
+    }
+
+    public String getBridgeMacPortEntryPath(UUID bridgeId, short vlanId,
+                                            String macEntry) {
+        StringBuilder macPortPath = buildBridgeMacPortsPath(bridgeId, vlanId);
+        macPortPath.append(macEntry);
+        return macPortPath.toString();
     }
 
     /**

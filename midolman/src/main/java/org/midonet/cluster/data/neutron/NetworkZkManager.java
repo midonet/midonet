@@ -15,9 +15,11 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
+import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
@@ -305,6 +307,10 @@ public class NetworkZkManager extends BaseZkManager {
 
         BridgePortConfig cfg = prepareCreateBridgePort(ops, port);
 
+        String macPortEntryPath = getMacPortEntryPath(port);
+
+        ops.add(zk.getPersistentCreateOp(macPortEntryPath, null));
+
         // Create DHCP host entries
         prepareCreateDhcpHostEntries(ops, port);
 
@@ -414,11 +420,31 @@ public class NetworkZkManager extends BaseZkManager {
         }
     }
 
+    private String getMacPortEntryPath(Port port) {
+        String macEntry = MacPortMap.encodePersistentPath(port.macAddress(), port.id);
+        String path = paths.getBridgeMacPortEntryPath(port.networkId,
+                                                      Bridge.UNTAGGED_VLAN_ID,
+                                                      macEntry);
+        return path;
+    }
+
+    public void prepareDeletePersistentMac(List<Op> ops, Port port)
+        throws StateAccessException, SerializationException {
+        String path = getMacPortEntryPath(port);
+
+        // In the case of upgrade, the entry may not exist.
+        if (zk.exists(path)) {
+            ops.add(zk.getDeleteOp(path));
+        }
+    }
+
     public void prepareDeleteVifPort(List<Op> ops, Port port)
         throws StateAccessException, SerializationException {
 
         // Remove DHCP mappings
         prepareDeleteDhcpHostEntries(ops, port);
+
+        prepareDeletePersistentMac(ops, port);
 
         // Remove the port config
         prepareDeletePortConfig(ops, port.id);

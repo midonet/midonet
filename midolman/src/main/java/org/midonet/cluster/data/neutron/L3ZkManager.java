@@ -8,8 +8,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import org.apache.zookeeper.Op;
+
 import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;
@@ -23,7 +23,6 @@ import org.midonet.packets.IPv4Subnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -181,10 +180,12 @@ public class L3ZkManager extends BaseZkManager {
 
         BridgePortConfig bpConfig =
                 (BridgePortConfig) portZkManager.get(port.id);
-        if (!port.isRouterInterface()) {
+        if (port.isVif()) {
             // Update this port to the correct port type.  This happens when
             // a non-RouterInterface port was specified to be used to create
             // RouterInterface port.
+            networkZkManager.prepareDeletePersistentMac(ops, port);
+
             port.deviceId = rInt.id.toString();
             port.deviceOwner = DeviceOwner.ROUTER_INTF;
             networkZkManager.prepareUpdateNeutronPort(ops, port);
