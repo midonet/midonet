@@ -30,3 +30,8 @@ dependencies {
                 libraries.logback, libraries.scalatest,
                 libraries.test_frameworks
 }
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}

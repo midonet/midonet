@@ -45,3 +45,8 @@ dependencies {
 
     testCompile libraries.hamcrest_lib, libraries.scalatest
 }
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}
