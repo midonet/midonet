@@ -572,9 +572,8 @@ class ZookeeperObjectMapper(private val basePath: String,
      * obs.onError() will be invoked with a NotFoundException if the object
      * does not exist.
      */
-    def subscribe[T](clazz: Class[T],
-                     id: ObjId,
-                     obs: Observer[_ >: T]): Subscription = {
+    override def subscribe[T](clazz: Class[T], id: ObjId,
+                              obs: Observer[_ >: T]): Subscription = {
         assert(isRegistered(clazz))
         val cache = instanceCaches(clazz).getOrElse(id, {
             val path = getPath(clazz, id)
@@ -586,6 +585,8 @@ class ZookeeperObjectMapper(private val basePath: String,
         }).asInstanceOf[InstanceSubscriptionCache[T]]
         cache.subscribe(obs)
     }
+
+
 
     /**
      * Subscribes to the specified class. Upon subscription at time t0,
@@ -599,8 +600,9 @@ class ZookeeperObjectMapper(private val basePath: String,
      * The subscribe() method of each of these Observables has the same behavior
      * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
      */
-    def subscribeAll[T](clazz: Class[T],
-                        obs: Observer[_ >: Observable[T]]): Subscription = {
+    override def subscribeAll[T](
+            clazz: Class[T],
+            obs: Observer[_ >: Observable[T]]): Subscription = {
         assert(isRegistered(clazz))
         val cache = classCaches.getOrElse(clazz, {
             val nw = new ClassSubscriptionCache(clazz, getPath(clazz), curator)

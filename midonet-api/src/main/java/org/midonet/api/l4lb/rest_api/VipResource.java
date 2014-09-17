@@ -53,14 +53,11 @@ public class VipResource extends AbstractResource {
 
     private final VipEvent vipEvent = new VipEvent();
 
-    private final DataClient dataClient;
-
     @Inject
     public VipResource(RestApiConfig config, UriInfo uriInfo,
                        SecurityContext context, DataClient dataClient,
                        Validator validator) {
-        super(config, uriInfo, context, null, validator);
-        this.dataClient = dataClient;
+        super(config, uriInfo, context, dataClient, validator);
     }
 
     /**
@@ -212,16 +209,13 @@ public class VipResource extends AbstractResource {
     public static class PoolVipResource extends AbstractResource {
         private final UUID poolId;
 
-        private final DataClient dataClient;
-
         @Inject
         public PoolVipResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                DataClient dataClient,
                                Validator validator,
                                @Assisted UUID id) {
-            super(config, uriInfo, context, null, validator);
-            this.dataClient = dataClient;
+            super(config, uriInfo, context, dataClient, validator);
             this.poolId = id;
         }
 
