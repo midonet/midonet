@@ -14,3 +14,7 @@ dependencies {
 compileJava {
     options.bootClasspath = project.jdkBootstrap
 }
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+}

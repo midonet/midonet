@@ -48,33 +48,33 @@ cobertura {
     coverageSourceDirs << sourceSets.main.scala.srcDirs
 
     coverageExcludes = [
-        '.*/FlowController$Wildcard.*',
-        '.*/FlowController$Wildcard.*',
-        '.*/FlowController$Add.*',
-        '.*/FlowController$Remove.*',
-        '.*/FlowController$Invalidate.*',
-        '.*/FlowController$FlowAdded.*',
-        '.*/FlowController$Internal$.*',
+        '.*FlowController$Wildcard.*',
+        '.*FlowController$Wildcard.*',
+        '.*FlowController$Add.*',
+        '.*FlowController$Remove.*',
+        '.*FlowController$Invalidate.*',
+        '.*FlowController$FlowAdded.*',
+        '.*FlowController$Internal$.*',
 
-        '.*/DatapathController$DpPort.*',
-        '.*/DatapathController$Init.*',
-        '.*/DatapathController$Datapath.*',
-        '.*/DatapathController$Internal$.*',
+        '.*DatapathController$DpPort.*',
+        '.*DatapathController$Init.*',
+        '.*DatapathController$Datapath.*',
+        '.*DatapathController$Internal$.*',
 
-        '.*/DeduplicationActor$ApplyFlow.*',
-        '.*/DeduplicationActor$.*Packet.*',
-        '.*/DeduplicationActor$_.*',
+        '.*DeduplicationActor$ApplyFlow.*',
+        '.*DeduplicationActor$.*Packet.*',
+        '.*DeduplicationActor$_.*',
 
-        '.*/PacketWorkflow$PacketIn.*',
-        '.*/PacketWorkflow$SendPacket.*',
-        '.*/PacketWorkflow$AddVirtual.*',
+        '.*PacketWorkflow$PacketIn.*',
+        '.*PacketWorkflow$SendPacket.*',
+        '.*PacketWorkflow$AddVirtual.*',
 
-        '.*/Coordinator$ToPort.*',
-        '.*/Coordinator$DoFlowAction.*',
-        '.*/Coordinator$ForkAction.*',
-        '.*/VirtualActions$.*',
+        '.*Coordinator$ToPort.*',
+        '.*Coordinator$DoFlowAction.*',
+        '.*Coordinator$ForkAction.*',
+        '.*VirtualActions$.*',
 
-        '.*/VxLanPortMapper$Internal$.*'
+        '.*VxLanPortMapper$Internal$.*'
     ]
 }
 
