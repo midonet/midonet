@@ -662,7 +662,7 @@ public class ZookeeperObjectMapperTest {
             zom.update(chain2);
             fail("Should not be able to steal rule from another chain.");
         } catch (ReferenceConflictException ex) {
-            assertThat(ex.referencingObj(), instanceOf(PojoRule.class));
+            assertEquals(PojoRule.class.getSimpleName(), ex.referencingClass());
             assertEquals("chainId", ex.referencingFieldName());
             assertEquals(PojoChain.class.getSimpleName(), ex.referencedClass());
             assertEquals(chain1.id.toString(), ex.referencedId());

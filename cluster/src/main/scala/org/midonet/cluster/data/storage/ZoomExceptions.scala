@@ -51,9 +51,12 @@ class ObjectExistsException private[storage](val clazz: Class[_],
  * mapper.delete(port);
  */
 class ObjectReferencedException private[storage](
-        val referencedObj: Obj, val referencingClass: Class[_],
+        val referencedClass: Class[_],
+        val referencedId: ObjId,
+        val referencingClass: Class[_],
         val referencingId: ObjId) extends RuntimeException(
-    s"Cannot delete $referencedObj because it is still referenced by the " +
+    s"Cannot delete the ${referencedClass.getSimpleName} with ID " +
+    s"$referencingId because it is still referenced by the " +
     s"${referencingClass.getSimpleName} with ID $referencingId.")
 
 /**
@@ -98,10 +101,12 @@ class ObjectReferencedException private[storage](
  *        example above.
  */
 class ReferenceConflictException private[storage](
-        val referencingObj: Obj, val referencingFieldName: String,
+        val referencingClass: String, val referencingId: String,
+        val referencingFieldName: String,
         val referencedClass: String, val referencedId: String)
     extends RuntimeException(
-        s"Operation failed because $referencingObj already references the " +
+        s"Operation failed because the ${referencingClass} with ID " +
+        s"$referencingId. already references the " +
         s"$referencedClass with ID $referencedId via the field " +
         s"$referencingFieldName. This field can accommodate only one " +
         "reference.")
