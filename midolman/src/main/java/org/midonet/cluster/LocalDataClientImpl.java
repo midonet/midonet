@@ -3419,11 +3419,13 @@ public class LocalDataClientImpl implements DataClient {
         SystemState systemState = new SystemState();
         boolean upgrade = systemDataProvider.systemUpgradeStateExists();
         boolean readonly = systemDataProvider.configReadOnly();
+        String writeVersion = systemDataProvider.getWriteVersion();
         systemState.setState(upgrade ? SystemState.State.UPGRADE.toString()
                                      : SystemState.State.ACTIVE.toString());
         systemState.setAvailability(
                 readonly ? SystemState.Availability.READONLY.toString()
                 : SystemState.Availability.READWRITE.toString());
+        systemState.setWriteVersion(writeVersion);
         return systemState;
     }
 
@@ -3438,6 +3440,7 @@ public class LocalDataClientImpl implements DataClient {
 
         systemDataProvider.setOperationState(systemState.getState());
         systemDataProvider.setConfigState(systemState.getAvailability());
+        systemDataProvider.setWriteVersion(systemState.getWriteVersion());
     }
 
     /**

@@ -7,6 +7,7 @@ import java.net.URI;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
+import org.midonet.util.version.Since;
 
 /* Class representing system state info */
 @XmlRootElement
@@ -14,6 +15,7 @@ public class SystemState extends UriResource {
 
     private String state;
     private String availability;
+    private String writeVersion;
 
     public SystemState() {
         super();
@@ -23,12 +25,14 @@ public class SystemState extends UriResource {
         super();
         this.state = systemState.getState();
         this.availability = systemState.getAvailability();
+        this.writeVersion = systemState.getWriteVersion();
     }
 
     public org.midonet.cluster.data.SystemState toData() {
         return new org.midonet.cluster.data.SystemState()
-                .setState(this.state)
-                .setAvailability(this.availability);
+            .setState(this.state)
+            .setAvailability(this.availability)
+            .setWriteVersion(this.writeVersion);
     }
 
     public String getState() {
@@ -45,6 +49,11 @@ public class SystemState extends UriResource {
 
     public void setAvailability(String availability) {
         this.availability = availability;
+    }
+
+    @Since("2")
+    public String getWriteVersion() {
+        return this.writeVersion;
     }
 
     /**

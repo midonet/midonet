@@ -78,8 +78,18 @@ public class SystemState {
         return getData().availability;
     }
 
+    public SystemState setWriteVersion(String writeVersion) {
+        getData().writeVersion = writeVersion;
+        return self();
+    }
+
+    public String getWriteVersion() {
+        return getData().writeVersion;
+    }
+
     public static class Data {
         public String state;
         public String availability;
+        public String writeVersion;
     }
 }

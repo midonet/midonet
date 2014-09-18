@@ -423,7 +423,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = principalDto.getSystemState();
         DtoSystemState systemState = resource.get(uri, null,
                 DtoSystemState.class,
-                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON);
+                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2);
         return new SystemState(resource, null, systemState);
     }
 

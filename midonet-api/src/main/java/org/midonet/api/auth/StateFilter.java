@@ -76,7 +76,8 @@ public final class StateFilter implements Filter {
         String[] allowedMediaTypes = {
                 VendorMediaType.APPLICATION_HOST_VERSION_JSON,
                 VendorMediaType.APPLICATION_WRITE_VERSION_JSON,
-                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON};
+                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON,
+                VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2};
 
         String availability;
         try {

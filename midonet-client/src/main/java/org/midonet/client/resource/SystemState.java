@@ -15,7 +15,7 @@ public class SystemState extends ResourceBase<SystemState, DtoSystemState> {
 
     public SystemState(WebResource resource, URI uriForCreation, DtoSystemState ss) {
         super(resource, uriForCreation, ss,
-              VendorMediaType.APPLICATION_SYSTEM_STATE_JSON);
+              VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2);
     }
 
     @Override
@@ -41,9 +41,20 @@ public class SystemState extends ResourceBase<SystemState, DtoSystemState> {
         return this;
     }
 
+    public String getWriteVersion() {
+        return principalDto.getWriteVersion();
+    }
+
+    public SystemState setWriteVersion(String writeVersion) {
+        principalDto.setWriteVersion(writeVersion);
+        return this;
+    }
+
     @Override
     public String toString() {
-        return String.format("SystemState{state=%s, availability=%s}",
-                principalDto.getState(), principalDto.getAvailability());
+        return String.format("SystemState{state=%s, availability=%s, "
+                             + "writeVersion-%s}",
+                principalDto.getState(), principalDto.getAvailability(),
+                principalDto.getWriteVersion());
     }
 }
