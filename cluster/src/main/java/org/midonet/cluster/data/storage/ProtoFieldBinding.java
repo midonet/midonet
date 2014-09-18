@@ -10,9 +10,9 @@ import java.util.Objects;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import com.google.protobuf.Message;
 import com.google.protobuf.Descriptors.Descriptor;
 import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.Message;
 
 import org.midonet.cluster.models.Commons.UUID;
 
@@ -223,7 +223,8 @@ class ProtoFieldBinding extends FieldBinding {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T addBackReference(T referenced, Object referrerId)
+    public <T> T addBackReference(
+            T referenced, Object referencedId, Object referrerId)
             throws ReferenceConflictException {
         if (this.thatField == null) return referenced;
         assert(referenced instanceof Message);
@@ -233,16 +234,18 @@ class ProtoFieldBinding extends FieldBinding {
         if (this.thatField.isRepeated()) {
             updateBuilder.addRepeatedField(this.thatField, referrerId);
         } else {
-            if (referencedMsg.hasField(this.thatField))
+            if (referencedMsg.hasField(this.thatField)) {
                 // Even if the field contains the same ID, throws an exception
                 // because the referencing Object may hold more than 1 reference
                 // to this object, in which case we cannot track which reference
                 // to clear if we allow both references.
                 throw new ReferenceConflictException(
-                        referencedMsg,
+                        referencedMsg.getClass().getSimpleName(),
+                        getIdString(referencedId),
                         this.thatField.getName(),
                         this.thisField.getContainingType().getName(),
                         getIdString(referencedMsg.getField(this.thatField)));
+            }
             updateBuilder.setField(this.thatField, referrerId);
         }
         return (T) updateBuilder.build();

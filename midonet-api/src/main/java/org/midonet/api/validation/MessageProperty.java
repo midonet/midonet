@@ -136,6 +136,18 @@ public class MessageProperty {
             "{midokura.javarx.LicenseStatusNotValid.message}";
     public static final String LICENSE_INVALID_ID_FORMAT =
             "{midokura.javarx.LicenseInvalidIdFormat.message}";
+    public static final String ZOOM_OBJECT_NOT_FOUND_EXCEPTION =
+            "{midokura.javarx.ZoomObjectNotFound.message}";
+    public static final String ZOOM_OBJECT_EXISTS_EXCEPTION =
+            "{midokura.javarx.ZoomObjectExists.message}";
+    public static final String ZOOM_OBJECT_REFERENCED_EXCEPTION =
+            "{midokura.javarx.ZoomObjectReferenced.message}";
+    public static final String ZOOM_REFERENCE_CONFLICT_EXCEPTION =
+            "{midokura.javarx.ZoomReferenceCoflict.message}";
+    public static final String ZOOM_CONCURRENT_MODIFICATION =
+            "{midokura.javarx.ZoomConcurrentModification.message}";
+    public static final String ZOOM_SERVER_ERROR =
+            "{midokura.javarx.ZoomServerError.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");
