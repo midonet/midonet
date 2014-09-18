@@ -13,11 +13,13 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.TreeSet
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
+
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FlatSpec
 import org.slf4j.Logger
@@ -49,6 +51,7 @@ trait StorageBulkCrudTest extends FlatSpec
         BulkUpdateEval.newBuilder()
                       .setType(BulkUpdateEval.Type.LOCAL_ZK_ZOOM)
                       .setNumThreads(1)  // Default thread size
+                      .setMultiSize(1)   // Default multi operation size
                       .setTrialSize(TRIAL_SIZE)
 
     def getExperimentDate = new Date().toString
@@ -177,37 +180,33 @@ trait StorageBulkCrudTest extends FlatSpec
         val bridgesPerTenant = topology.getBridgesPerTenant
         val portsPerBridge = topology.getPortsPerBridge
         val numRules = topology.getNumRulesPerBridgeChains
-        val devices = Multimaps.synchronizedListMultimap(
-                ArrayListMultimap.create[Class[_], Commons.UUID]())
+        val devices = emptyDeviceCollection
 
         val start = System.currentTimeMillis()
-
-        val providerRouter = createRouter("provider router")
-        val tenantRouter = createRouter("tenant router")
+        val providerRouter = createRouter("provider router", devices)
+        val tenantRouter = createRouter("tenant router", devices)
         connect(providerRouter, tenantRouter)
-        devices.put(classOf[Router], providerRouter.getId)
-        devices.put(classOf[Router], tenantRouter.getId)
 
         val pool = getThreadPool(test.getNumThreads)
         val successfulTasks = new AtomicLong()
         for (bridge_i <- 1 to bridgesPerTenant) {
-            val bridge = createBridge(s"bridge$bridge_i")
-            devices.put(classOf[Bridge], bridge.getId)
+            val bridge = createBridge(s"bridge$bridge_i", devices)
             connect(tenantRouter, bridge)
 
-            // Distribute port creation to different threads.
+            // Dispatch port / chain creations to separate threads.
             pool.execute(addPortsAndChainsRunnable(
-                    bridge, portsPerBridge, numRules, devices, successfulTasks))
+                    bridge, portsPerBridge, numRules,
+                    test.getMultiSize, devices, successfulTasks))
         }
 
         pool.shutdown()
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
         val end = System.currentTimeMillis()
-        val layoutWrite = end - start
         assert(successfulTasks.get === bridgesPerTenant,
                s"Executed $bridgesPerTenant writes, but succeeded only " +
                s"$successfulTasks writes.")
 
+        val layoutWrite = end - start
         // Test reading all the devices in the layout.
         val layoutRead = testReadDevices(test.getNumThreads, devices)
 
@@ -222,35 +221,47 @@ trait StorageBulkCrudTest extends FlatSpec
                                  .setValue(layoutWrite.toString)
     }
 
+    /* Adds ports and chains to a given bridge either with either normal CRUD
+     * operations or with "multi" operations of the specified operation size.
+     *
+     * @param bridge A bridge to which ports and chains are attached. The bridge
+     * must already exist.
+     * @param numPorts A number of ports to be attached to the bridge.
+     * @param numRules A number of rules that inbound and outbound chains of the
+     * bridge have.
+     * @param devices A collection of devices created by this call.
+     * @param taskSuccessCounter A successful task counter to be incremented
+     * when the whole operation operations are successful.
+     */
     private def addPortsAndChainsRunnable(bridge: Bridge,
                                           numPorts: Int,
                                           numRules: Int,
-                                          devices: Multimap[Class[_],
-                                                            Commons.UUID],
+                                          multiSize: Int,
+                                          devices: Devices,
                                           taskSuccessCounter: AtomicLong) = {
         new Runnable() {
             override def run() {
                 try {
-                    for (_ <- 1 to numPorts) {
-                        val port = attachPortTo(bridge)
-                        devices.put(classOf[Port], port.getId)
-                    }
-                    taskSuccessCounter.incrementAndGet()
+                    val multis =
+                        if (multiSize > 1) ListBuffer[PersistenceOp]() else null
+                    for (_ <- 1 to numPorts)
+                        attachPortTo(bridge, multis, devices)
 
                     val chains = (1 to 2).map(_ => {
-                        val chain = createChain()
-                        devices.put(classOf[Chain], chain.getId)
-                        for (_ <- 1 to numRules) {
-                            val rule = addRule(chain, Rule.Action.ACCEPT)
-                            devices.put(classOf[Rule], rule.getId)
-                        }
+                        val chain = createChain(multis, devices)
+                        for (_ <- 1 to numRules)
+                            addRule(chain, Rule.Action.ACCEPT, multis, devices)
                         chain
                     })
-                    attachChains(bridge, chains(0), chains(1))
+                    attachChains(bridge, chains(0), chains(1), multis)
+
+                    if (multis != null)  // Performs multi operations
+                        multis.grouped(multiSize).foreach(multi)
+
+                    val successfull = taskSuccessCounter.incrementAndGet()
                 } catch {
                     case e: Exception =>
-                        log.warn("Error attaching a port to a bridge {} ",
-                                 bridge)
+                        log.warn("Error constructing a bridge.", e)
                 }
             }
         }
@@ -259,21 +270,9 @@ trait StorageBulkCrudTest extends FlatSpec
      * Measure the read latency of reading the specified devices with the
      * number of threads specified in the test spec.
      */
-    def testReadDevices(numThreads: Int,
-                        devices: Multimap[Class[_], Commons.UUID]) = {
-        // Prepare work queues. Split the reads into NUM-THREADS batches.
-        val workQueues =
-            new ArrayList[Multimap[Class[_], Commons.UUID]](numThreads)
-        var taskCount: Long = 0
-        for (i <- 1 to numThreads) {
-            workQueues.add(ArrayListMultimap.create[Class[_], Commons.UUID]())
-        }
-        for (device <- devices.entries) {
-            workQueues(taskCount.toInt % numThreads).put(device.getKey,
-                                                         device.getValue)
-            taskCount += 1
-        }
-
+    def testReadDevices(numThreads: Int, devices: Devices) = {
+        // Split the reads into NUM-THREADS batches.
+        val workQueues = splitDeviceCollection(devices, numThreads)
         val pool = getThreadPool(numThreads)
         val successfulTask = new AtomicLong()
         val current = System.currentTimeMillis()
@@ -282,7 +281,7 @@ trait StorageBulkCrudTest extends FlatSpec
 
         pool.shutdown()
         pool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-        assert(successfulTask.get() === taskCount,
+        assert(successfulTask.get() === devices.size(),
                s"Executed ${devices.size} reads, but succeeded only " +
                s"$successfulTask reads.")
 
@@ -352,20 +351,37 @@ trait StorageBulkCrudTest extends FlatSpec
         }
     }
 
-    "max-ports-per-bridge" should "be handled efficiently" ignore {
-        val test = experimentCommonSettings
-        test.getTopologyBuilder().setBridgesPerTenant(1)
-                                 .setPortsPerBridge(10000)
-                                 .setNumRulesPerBridgeChains(1000)
-        val result = getResultsBuilder(test)
+    "Multi-operation" can "bulk-create ports & chains" ignore {
+        val testBase = experimentCommonSettings
+        testBase.getTopologyBuilder().setBridgesPerTenant(1)
+                                     .setPortsPerBridge(1000)
+                                     .setNumRulesPerBridgeChains(1000)
+        for (multiSize <- Array(100, 1000)) {
+            if (multiSize != 100) cleanUpDeviceData()
+            val test = testBase.clone().setMultiSize(multiSize)
+            val result = getResultsBuilder(test)
 
-        buildLayoutAndMeasureLatency(test, result)
-        testSimpleBulkUpdate(test, result,
-                             "simple read/write after building topology")
-        collectTest(test)
+            buildLayoutAndMeasureLatency(test, result)
+            collectTest(test)
+        }
     }
 
-    "max-total-ports" should "be handled efficiently" ignore {
+    "Max-ports-per-bridge" can "be handled efficiently" ignore {
+        val testBase = experimentCommonSettings
+        testBase.getTopologyBuilder().setBridgesPerTenant(1)
+                                     .setPortsPerBridge(10000)
+                                     .setNumRulesPerBridgeChains(1000)
+        for (multiSize <- Array(1000, 5000, 7000)) {
+            if (multiSize != 5000) cleanUpDeviceData()
+            val test = testBase.clone().setMultiSize(multiSize)
+            val result = getResultsBuilder(test)
+
+            buildLayoutAndMeasureLatency(test, result)
+            collectTest(test)
+        }
+    }
+
+    "Max-total-ports" should "be handled efficiently" ignore {
         val test = experimentCommonSettings
         test.getTopologyBuilder().setBridgesPerTenant(100)
                                  .setPortsPerBridge(10000)

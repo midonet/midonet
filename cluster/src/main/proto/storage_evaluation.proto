@@ -26,6 +26,7 @@ message BulkUpdateEval {
     optional Type type = 3;
     optional int32 num_threads = 4;
     optional int32 trial_size = 5;
+    optional int32 multi_size = 6;
 
     message Topology {
         optional int32 num_tenants = 1;
@@ -33,7 +34,7 @@ message BulkUpdateEval {
         optional int32 ports_per_bridge = 3;
         optional int32 num_rules_per_bridge_chains = 4;
     }
-    optional Topology topology = 6;
+    optional Topology topology = 7;
 
-    repeated EvalResult result = 7;
+    repeated EvalResult result = 8;
 }
