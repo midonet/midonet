@@ -3,6 +3,16 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.ArrayList
+
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.Multimap
+import com.google.common.collect.Multimaps
+
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Devices.Bridge
 import org.midonet.cluster.models.Devices.Chain
 import org.midonet.cluster.models.Devices.Port
@@ -14,6 +24,32 @@ import org.midonet.cluster.util.UUID.randomUuidProto
  * Provides utility methods for testing Storage Service.
  */
 trait StorageServiceTester extends StorageService {
+    import StorageServiceTester._
+
+    private[storage] type Devices = Multimap[Class[_], Commons.UUID]
+
+    private def deviceMultimap =
+        ArrayListMultimap.create[Class[_], Commons.UUID]()
+
+    private[storage]
+    def emptyDeviceCollection: Devices =
+        Multimaps.synchronizedListMultimap(deviceMultimap)
+
+    private[storage]
+    def splitDeviceCollection(devices: Devices, splits: Int) = {
+        val deviceCollections = new ArrayList[Devices](splits)
+        for (i <- 1 to splits) deviceCollections.add(deviceMultimap)
+
+        var index: Long = 0
+        for (device <- devices.entries) {
+            deviceCollections(index.toInt % splits).put(device.getKey,
+                                                        device.getValue)
+            index += 1
+        }
+
+        deviceCollections
+    }
+
     /**
      * Cleans up all the data in the storage.
      */
@@ -24,50 +60,89 @@ trait StorageServiceTester extends StorageService {
      */
     def cleanUpDeviceData(): Unit
 
-    def createBridge(bridgeName: String) = {
+    /**
+     * Creates a bridge with a given name.
+     */
+    def createBridge(bridgeName: String): Bridge = {
+        createBridge(bridgeName, null)
+    }
+
+    /**
+     * Creates a bridge with a given name and add the device ID to devices.
+     */
+    def createBridge(bridgeName: String, devices: Devices) = {
         val bridge = Bridge.newBuilder
                            .setId(randomUuidProto)
                            .setName(bridgeName)
                            .build()
         create(bridge)
+        if (devices != null) devices.put(classOf[Bridge], bridge.getId)
         bridge
     }
 
-    def createRouter(routerName: String) = {
+    /**
+     * Creates a router with a given name.
+     */
+    def createRouter(routerName: String): Router = {
+        createRouter(routerName, null)
+    }
+
+    /**
+     * Creates a router with a given name and add the device ID to devices.
+     */
+    def createRouter(routerName: String, devices: Devices) = {
         val router = Router.newBuilder
                            .setId(randomUuidProto)
                            .setName(routerName)
                            .build()
         create(router)
+        if (devices != null) devices.put(classOf[Router], router.getId)
         router
     }
 
+    /**
+     * Creates a new port.
+     */
     def createPort() = {
-        val port = Port.newBuilder
-                       .setId(randomUuidProto)
-                       .build()
+        val port = ProtoPort
         create(port)
         port
     }
 
+    /**
+     * Creates a new port that's attached to the router.
+     */
     def attachPortTo(router: Router) = {
-        val routerPort = Port.newBuilder
-                             .setId(randomUuidProto)
-                             .setRouterId(router.getId)
-                             .build()
-        create(routerPort)
-        routerPort
-    }
-
-    def attachPortTo(bridge: Bridge) = {
-        val port = Port.newBuilder
-                       .setId(randomUuidProto)
-                       .setBridgeId(bridge.getId)
-                       .build()
+        val port = ProtoPort(router)
         create(port)
         port
     }
 
+    /**
+     * Creates a new port that's attached to the bridge.
+     */
+    def attachPortTo(bridge: Bridge): Port = {
+        attachPortTo(bridge, null, null)
+    }
+
+    /**
+     * Creates a new port that's attached to the bridge. If "ops" is given,
+     * a CreateOp is created and stored in ops. Otherwise the port is
+     * created in normal operation.
+     */
+    def attachPortTo(bridge: Bridge,
+                     ops: ListBuffer[PersistenceOp],
+                     devices: Devices): Port = {
+        val port = ProtoPort(bridge)
+        if (ops != null) ops += CreateOp(port)
+        else create(port)
+        if (devices != null) devices.put(classOf[Port], port.getId)
+        port
+    }
+
+    /**
+     * Attaches the given port to the given bridge.
+     */
     def attachPortTo(bridge: Bridge, port: Port) = {
         val attachedPort = port.toBuilder
                                .setBridgeId(bridge.getId)
@@ -76,48 +151,111 @@ trait StorageServiceTester extends StorageService {
         attachedPort
     }
 
+    /**
+     * Links ports to each other.
+     */
     def linkPorts(port: Port, peer: Port) {
         update(port.toBuilder
                    .setPeerUuid(peer.getId)
                    .build())
     }
 
+    /**
+     * Connects the given routers by creating internal ports for each and
+     * linking them.
+     */
     def connect(router1: Router, router2: Router) {
         val router1Port = attachPortTo(router1)
         val router2Port = attachPortTo(router2)
         linkPorts(router1Port, router2Port)
     }
 
+    /**
+     * Connects the given router and bridge by creating internal ports for each
+     * and linking them.
+     */
     def connect(router: Router, bridge: Bridge) {
         val routerPort = attachPortTo(router)
         val bridgePort = attachPortTo(bridge)
         linkPorts(routerPort, bridgePort)
     }
 
-    def createChain() = {
-       val chain = Chain.newBuilder
-                        .setId(randomUuidProto)
-                        .build()
-       create(chain)
+    /**
+     * Creates a new chain. If "ops" is given, a CreateOP is created and stored
+     * in ops. Otherwise the port is created in normal operation.
+     */
+    def createChain(ops: ListBuffer[PersistenceOp], devices: Devices) = {
+       val chain = ProtoChain()
+       if (ops != null) ops += CreateOp(chain)
+       else create(chain)
+       if (devices != null) devices.put(classOf[Chain], chain.getId)
        chain
     }
 
-    def addRule(chain: Chain, action: Rule.Action) = {
-       val rule = Rule.newBuilder
-                      .setId(randomUuidProto)
-                      .setAction(action)
-                      .setChainId(chain.getId)
-                      .build()
-       create(rule)
+    /**
+     * Adds a new rule to the given chain. If "ops" is given, a CreateOP is
+     * created and stored in ops. Otherwise the rule is created in normal
+     * operation.
+     */
+    def addRule(chain: Chain,
+                action: Rule.Action,
+                ops: ListBuffer[PersistenceOp],
+                devices: Devices) = {
+       val rule = ProtoRule(action, chain.getId)
+       if (ops != null) ops += CreateOp(rule)
+       else create(rule)
+       if (devices != null) devices.put(classOf[Rule], rule.getId)
        rule
     }
 
-    def attachChains(bridge: Bridge, inbound: Chain, outbound: Chain) = {
+    /**
+     * Attaches the given in/out-bound chains to the bridge. If "ops" is given,
+     * an UpdateOP is created and stored in ops. Otherwise the bridge is updated
+     * in a normal operation.
+     */
+    def attachChains(bridge: Bridge,
+                     inbound: Chain,
+                     outbound: Chain,
+                     ops: ListBuffer[PersistenceOp]) = {
         val bridgeWithChains = bridge.toBuilder
                                      .setInboundFilterId(inbound.getId)
                                      .setOutboundFilterId(outbound.getId)
                                      .build()
-        update(bridgeWithChains)
+        if (ops != null) ops += UpdateOp(bridgeWithChains)
+        else update(bridgeWithChains)
         bridgeWithChains
+    }
+}
+
+private object StorageServiceTester {
+    def ProtoPort(): Port = {
+        ProtoPort(null, null)
+    }
+
+    def ProtoPort(bridge: Bridge): Port = {
+        ProtoPort(bridge.getId, null)
+    }
+
+    def ProtoPort(router: Router): Port = {
+        ProtoPort(null, router.getId)
+    }
+
+    def ProtoPort(bridgeId: Commons.UUID, routerId: Commons.UUID): Port = {
+        val portBuilder = Port.newBuilder.setId(randomUuidProto)
+        if (bridgeId != null) portBuilder.setBridgeId(bridgeId)
+        if (routerId != null) portBuilder.setRouterId(routerId)
+
+        portBuilder.build
+    }
+
+    def ProtoChain(): Chain =
+       Chain.newBuilder.setId(randomUuidProto).build()
+
+    def ProtoRule(action: Rule.Action, chainId: Commons.UUID): Rule = {
+        val ruleBuilder = Rule.newBuilder.setId(randomUuidProto)
+        if (action != null) ruleBuilder.setAction(action)
+        if (chainId != null) ruleBuilder.setChainId(chainId)
+
+        ruleBuilder.build()
     }
 }

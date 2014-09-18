@@ -15,7 +15,7 @@ import org.midonet.cluster.data.storage.ObjectExistsException;
 import org.midonet.cluster.data.storage.ObjectReferencedException;
 import org.midonet.cluster.data.storage.ReferenceConflictException;
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
-import org.midonet.cluster.data.storage.ZoomOp;
+import org.midonet.cluster.data.storage.PersistenceOp;
 
 public class HttpAwareZoom extends ZookeeperObjectMapper {
     private static final Logger log =
@@ -83,7 +83,7 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     }
 
     @Override
-    public void multi(List<ZoomOp> ops) {
+    public void multi(List<PersistenceOp> ops) {
         super.multi(ops);
     }
 
