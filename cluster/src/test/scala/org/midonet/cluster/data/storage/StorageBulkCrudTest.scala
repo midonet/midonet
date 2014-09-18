@@ -259,7 +259,7 @@ trait StorageBulkCrudTest extends FlatSpec
                     if (multis != null)  // Performs multi operations
                         multis.grouped(multiSize).foreach(multi)
 
-                    val successfull = taskSuccessCounter.incrementAndGet()
+                    taskSuccessCounter.incrementAndGet()
                 } catch {
                     case e: Exception =>
                         log.warn("Error constructing a bridge.", e)
