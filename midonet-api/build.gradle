@@ -12,7 +12,8 @@ jar {
 dependencies {
     compile project(':packets'), project(':cluster'), project(':midolman'),
             project(':midonet-client'), project(':brain:odl-ovsdb:ovsdb'),
-            project(':brain:midonet-brain'), project(':tools:keylib')
+            project(':brain:midonet-brain'), project(':tools:keylib'),
+            project(':odp')
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }
@@ -31,13 +32,14 @@ dependencies {
             libraries.commons_codec, libraries.hamcrest_core,
             libraries.hamcrest_lib, libraries.validation,
             libraries.hibernate_validator, libraries.guice_multibind,
-            libraries.vmware_midoapi, libraries.jcabi
+            libraries.vmware_midoapi, libraries.jcabi, libraries.scala
 
     runtime libraries.aspectj
 
     testCompile libraries.hamcrest_integration, libraries.grizzly_servlet,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly,
-                libraries.jersey_test_core, libraries.curator_test
+                libraries.jersey_test_core, libraries.curator_test,
+                libraries.commons_io
 }
 
 distributions {

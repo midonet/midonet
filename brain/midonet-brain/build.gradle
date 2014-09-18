@@ -24,8 +24,8 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':midolman'), project(':brain:odl-ovsdb:ovsdb'),
-            "com.netflix.rxjava:rxjava-core:0.19.6",
+    compile project(':brain:odl-ovsdb:ovsdb'), project(':cluster'),
+            project(':midolman'), project(':midonet-util'), project(':packets'),
             "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
             "com.fasterxml.jackson.core:jackson-core:2.3.0",
             "com.fasterxml.jackson.core:jackson-databind:2.3.0",
@@ -36,9 +36,12 @@ dependencies {
             "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             "io.netty:netty-all:4.0.10.Final",
-            "org.apache.zookeeper:zookeeper:3.4.5",
             "com.googlecode.jmockit:jmockit:1.7",
-            "com.google.guava:guava:14.0.1"
+            libraries.commons_conf,
+            libraries.guava,
+            libraries.guice,
+            libraries.rx,
+            libraries.zookeeper
 
-    testCompile libraries.scalatest
+    testCompile libraries.hamcrest_lib, libraries.scalatest
 }
