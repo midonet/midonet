@@ -99,26 +99,30 @@ class MidolmanActorsService extends AbstractService {
 
     protected override def doStop() {
         try {
-            val stopFutures = childrenActors map { child => stopActor(child) }
+            log.info("Stopping all actors")
             try {
-                log.debug("Stopping the actor system")
-                Await.result(Future.sequence(stopFutures), 500 millis)
-                stopActor(supervisorActor)
+                var stopFutures = childrenActors map stopActor
+                stopFutures ::= stopActor(supervisorActor)
+                Await.result(Future.sequence(stopFutures), Duration.Inf)
+                log.info("All actors stopped successfully")
             } catch {
-                case e: TimeoutException =>
-                    log.warn("Failed to gracefully stop the actor system")
+                case e: Throwable =>
+                    log.error("Failed to gracefully stop all actors", e)
             }
+
+            log.info("Stopping the actor system")
             system.shutdown()
             system.awaitTermination()
-            // Because Akka sucks...
+            log.info("System stopped, stopping the global dispatcher")
             system.dispatchers
                   .defaultGlobalDispatcher
                   .asInstanceOf[{def shutdown(): Unit}]
                   .shutdown()
+            log.info("Global dispatcher stopped")
             notifyStopped()
         } catch {
             case e: Throwable =>
-                log.error("Exception", e)
+                log.error("Failed to stop the actors syste", e)
                 notifyFailed(e)
         }
     }

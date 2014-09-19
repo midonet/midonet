@@ -446,7 +446,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
 
         if (pktCtx.packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
-            false
+            return Ready(false)
 
         (for {
             ip4 <- payloadAs[IPv4](pktCtx.packet.getEthernet)

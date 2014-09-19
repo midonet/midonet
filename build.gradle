@@ -8,7 +8,7 @@ project.ext {
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
     scalaLangLevel = 'Scala 2.10.3'
 
-    versions = [akka: "2.2.3", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
+    versions = [akka: "2.2.4", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
                 java: "1.7",   jersey: "1.10", jetty: "7.6.14.v20131031",
                 jsonpath: "0.9.1"]
 
@@ -214,6 +214,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         maven { url "http://jsch.sf.net/maven2/" }
         maven { url "http://maven.restlet.org" }
     }
+
+    /* Disabled until rest api randomizes zk server port.
+    test {
+        maxParallelForks = 6
+    }
+    */
 
     tasks.build {
         dependsOn(perfClasses)
