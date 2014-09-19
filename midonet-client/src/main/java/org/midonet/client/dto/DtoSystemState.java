@@ -13,6 +13,7 @@ import java.net.URI;
 public class DtoSystemState {
     private String state;
     private String availability;
+    private String writeVersion;
     private URI uri;
 
     public String getState() {
@@ -29,6 +30,14 @@ public class DtoSystemState {
 
     public String getAvailability() {
         return this.availability;
+    }
+
+    public String getWriteVersion() {
+        return writeVersion;
+    }
+
+    public void setWriteVersion(String writeVersion) {
+        this.writeVersion = writeVersion;
     }
 
     public URI getUri() {
@@ -60,6 +69,11 @@ public class DtoSystemState {
         }
 
         if (!Objects.equal(this.availability, otherSystemState.getAvailability())) {
+            return false;
+        }
+
+        if (!Objects.equal(this.writeVersion,
+                           otherSystemState.getWriteVersion())) {
             return false;
         }
 
