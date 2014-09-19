@@ -46,6 +46,7 @@ public class SystemStateResource extends AbstractResource {
     @GET
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_SYSTEM_STATE_JSON,
+               VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2,
                   MediaType.APPLICATION_JSON})
     public SystemState get()
         throws StateAccessException {
@@ -65,7 +66,8 @@ public class SystemStateResource extends AbstractResource {
     @PUT
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_SYSTEM_STATE_JSON,
-            MediaType.APPLICATION_JSON})
+               VendorMediaType.APPLICATION_SYSTEM_STATE_JSON_V2,
+               MediaType.APPLICATION_JSON})
     public void update(SystemState systemState)
             throws StateAccessException {
         dataClient.systemStateUpdate(systemState.toData());
