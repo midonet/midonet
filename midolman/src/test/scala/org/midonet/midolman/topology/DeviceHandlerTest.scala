@@ -13,18 +13,20 @@ import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
 import scala.concurrent.duration._
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, BeforeAndAfter, Suite}
+import org.scalatest.{BeforeAndAfterAll, Matchers, BeforeAndAfter, Suite}
 import org.scalatest.junit.JUnitRunner
 import scala.collection.mutable
 
 @RunWith(classOf[JUnitRunner])
 class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         with ImplicitSender with Suite with Matchers with BeforeAndAfter
-        with DeviceHandler {
+        with DeviceHandler with BeforeAndAfterAll {
 
     // the testkit actor is reused between test, therefore we need to drain
     // its mailbox between test in case some test fails to receive all msgs.
     before { while (msgAvailable) receiveOne(0 seconds) }
+
+    override def afterAll() { system.shutdown() }
 
     case class HandleMsg(id: UUID)
 

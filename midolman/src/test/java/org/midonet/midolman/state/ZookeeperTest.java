@@ -10,11 +10,14 @@ import java.util.UUID;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.PrivateModule;
+import com.google.inject.name.Names;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -24,13 +27,15 @@ import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.util.eventloop.Reactor;
 
 public abstract class ZookeeperTest {
 
     // Zookeeper configurations
     protected static TestingServer server;
-    protected static final int ZK_PORT = 12181;
+    protected static final int ZK_PORT = (int) (Math.random() * 50000) + 10000;
 
     protected Injector injector;
     private String zkRoot;
@@ -103,6 +108,14 @@ public abstract class ZookeeperTest {
         }
     }
 
+    @AfterClass
+    public static void classTearDown() throws Exception {
+        if (server != null) {
+            server.stop();
+            server = null;
+        }
+    }
+
     @Before
     public void setUp() throws Exception {
 
@@ -116,5 +129,9 @@ public abstract class ZookeeperTest {
     @After
     public void tearDown() throws Exception {
         getMidostoreService().stopAsync().awaitTerminated();
+        injector.getInstance(Directory.class).closeConnection();
+        injector.getInstance(Key.get(Reactor.class,
+                Names.named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)))
+            .shutDownNow();
     }
 }

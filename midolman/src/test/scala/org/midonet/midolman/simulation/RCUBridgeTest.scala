@@ -80,6 +80,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         brPort.setDeviceID(bridge.id)
     }
 
+    override def afterAll() {
+        system.shutdown()
+    }
+
 
 /*
     def verifyMacLearned(learnedMac : String, expectedPort : UUID) {
