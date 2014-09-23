@@ -49,7 +49,7 @@ sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /
 sudo service zookeeper start
 
 # Install cassandra
-sudo apt-get -y --force-yes install dsc20
+sudo apt-get -y --force-yes install dsc21
 sudo update-rc.d cassandra enable
 CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
 sudo sed -i -e "s/^cluster_name:.*$/cluster_name: \'midonet\'/g" $CASSANDRA_CONF_FILE
