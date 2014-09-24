@@ -4,7 +4,6 @@
 package org.midonet.cluster.data.storage;
 
 import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,9 +17,9 @@ import org.midonet.cluster.models.TestModels;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.midonet.cluster.models.Devices.Bridge;
 import static org.midonet.cluster.models.Devices.Chain;
@@ -131,7 +130,8 @@ public class ProtoFieldBindingTest {
     @Test
     public void testAddBackRefFromChainToBridge() throws Exception {
         Chain chain = Chain.newBuilder().setName("test_chain").build();
-        Chain updatedChain = bridgeToChainBinding.addBackReference(chain, uuid);
+        Chain updatedChain = bridgeToChainBinding.addBackReference(
+                chain, chain.getId(), uuid);
         assertEquals("test_chain", updatedChain.getName());
         assertThat(updatedChain.getBridgeIdsList(), contains(uuid));
     }
@@ -139,8 +139,8 @@ public class ProtoFieldBindingTest {
     @Test
     public void testAddBackRefToChain() throws Exception {
         Bridge bridge = Bridge.newBuilder().setName("test_bridge").build();
-        Bridge updatedBridge =
-                chainToBridgeBinding.addBackReference(bridge, uuid);
+        Bridge updatedBridge = chainToBridgeBinding.addBackReference(
+                bridge, bridge.getId(), uuid);
         assertEquals("test_bridge", updatedBridge.getName());
         assertEquals(uuid, updatedBridge.getInboundFilterId());
     }
@@ -151,7 +151,7 @@ public class ProtoFieldBindingTest {
         Bridge bridge = Bridge.newBuilder().setName("test_bridge")
                                            .setInboundFilterId(uuid)
                                            .build();
-        chainToBridgeBinding.addBackReference(bridge, uuid);
+        chainToBridgeBinding.addBackReference(bridge, bridge.getId(), uuid);
     }
 
     @Test(expected = ReferenceConflictException.class)
@@ -159,7 +159,7 @@ public class ProtoFieldBindingTest {
         Bridge bridge = Bridge.newBuilder().setName("test_bridge")
                                            .setInboundFilterId(conflictingUuid)
                                            .build();
-        chainToBridgeBinding.addBackReference(bridge, uuid);
+        chainToBridgeBinding.addBackReference(bridge, bridge.getId(),  uuid);
     }
 
     @Test

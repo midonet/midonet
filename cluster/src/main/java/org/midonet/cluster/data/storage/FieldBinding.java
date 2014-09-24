@@ -62,12 +62,14 @@ abstract class FieldBinding {
      * Add a back-reference to a referring object with the specified ID to the
      * referenced object and returns an updated referenced object.
      * @param referenced A referenced object.
+     * @param referencedId An ID of the referenced object.
      * @param referrerId A referring object ID.
      * @return An updated referenced object with back-refs added.
      * @throws ReferenceConflictException when adding the back-reference would
      * overwrite other back-references.
      */
-    abstract public <T> T addBackReference(T referenced, Object referrerId)
+    abstract public <T> T addBackReference(
+            T referenced, Object referencedId, Object referrerId)
             throws ReferenceConflictException;
 
     /**

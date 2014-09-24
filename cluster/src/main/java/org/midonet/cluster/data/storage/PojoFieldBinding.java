@@ -140,7 +140,8 @@ class PojoFieldBinding extends FieldBinding {
     }
 
     @Override
-    public <T> T addBackReference(T referenced, Object referrerId)
+    public <T> T addBackReference(
+            T referenced, Object referencedId, Object referrerId)
             throws ReferenceConflictException {
         if (!this.hasBackReference()) return referenced;
 
@@ -151,8 +152,10 @@ class PojoFieldBinding extends FieldBinding {
             if (curFieldVal == null) {
                 setValue(referenced, this.thatField, referrerId);
             } else {
+                // Reference conflict. Throws an exception.
                 throw new ReferenceConflictException(
-                        referenced,
+                        referenced.getClass().getSimpleName(),
+                        referencedId.toString(),
                         this.thatField.getName(),
                         this.thisField.getDeclaringClass().getSimpleName(),
                         curFieldVal.toString());
