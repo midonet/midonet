@@ -150,8 +150,8 @@ trait ZoomStorageServiceTester extends StorageServiceTester
 
     override protected def setup(): Unit = {
         zoom = new ZookeeperObjectMapper(ZK_ROOT, curator)
-
         registerClasses(deviceClasses, bindings)
+        zoom.build()
     }
 
     override def cleanUpDirectories(): Unit = {
