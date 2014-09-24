@@ -8,7 +8,7 @@ echo bootstrap script $0 called at `date` with args $*
 sudo apt-get update
 
 # Install basic tools
-sudo apt-get install curl screen tmux -y
+sudo apt-get install curl screen tmux python-dev libncurses5-dev -y
 
 # Bring in newer version of iproute, which fixes "Cannot remove <namespace>: Device or resource busy":
 # https://bugs.launchpad.net/ubuntu/+source/iproute/+bug/1238981
@@ -76,11 +76,20 @@ sudo apt-get install -y --force-yes midolman
 sudo update-rc.d midolman enable
 sudo service midolman start
 
+# Install python-midonetclient from source
+MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-/tmp/python-midonetclient}
+sudo rm -rf /usr/local/lib/python2.7/dist-packages/midonetclient* /usr/local/bin/midonet-cli
+[ -d $MMM_PMC_SOURCE_DIR ] || {
+    git clone git@github.com:midokura/python-midonetclient -b master $MMM_PMC_SOURCE_DIR
+}
+cd $MMM_PMC_SOURCE_DIR
+sudo python setup.py install
+cd -
 
 # Install midonet-api
 sudo apt-get install -y --force-yes tomcat7
 sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes midonet-api
-sudo apt-get install -y --force-yes python-httplib2 python-midonetclient
+sudo apt-get install -y --force-yes python-httplib2
 
 sudo service tomcat7 stop
 sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
