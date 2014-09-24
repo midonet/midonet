@@ -334,6 +334,63 @@ trait StorageBulkCrudTest extends FlatSpec
         }
     }
 
+    /**
+     * Tests whether the storage service can update a plain bridge without any
+     * ports or chains with 10k port IDs (and in/out-bound filter IDs) in a
+     * single update request.
+     */
+    def build10KPortsBridgeOneShot(test: BulkUpdateEval.Builder,
+                                   result: EvalResult.Builder) {
+        val testItemName = "One-shot 10K ports-bridge creation"
+        val multiSize = 1000
+        val topology = test.getTopologyBuilder()
+        topology.setBridgesPerTenant(1)
+        topology.setPortsPerBridge(10000)
+        topology.setNumRulesPerBridgeChains(10)
+
+        val testItem = result.addTestItemBuilder()
+        testItem.setItemName(testItemName)
+        try {
+            val devices = emptyDeviceCollection
+            val bridge = createBridge("bridge1", devices)
+            val chains = (1 to 2).map(_ => {
+                val chain = createChain(null, devices)
+                for (_ <- 1 to topology.getNumRulesPerBridgeChains)
+                    addRule(chain, Rule.Action.ACCEPT, null, devices)
+                chain
+            })
+            val multis = ListBuffer[PersistenceOp]()
+            for (_ <- 1 to topology.getPortsPerBridge)
+                createPort(multis, devices)
+            multis.grouped(multiSize).foreach(multi)
+
+            // Created all the devices.
+            testItem.addDataBuilder().setProperty("topology size")
+                                     .setValue(devices.size.toString)
+
+            // Update a bridge with 10K port IDs.
+            val bridgeWithPorts = bridge.toBuilder()
+            for (portId <- devices.get(classOf[Port])) {
+                bridgeWithPorts.addPortIds(portId)
+            }
+            bridgeWithPorts.setInboundFilterId(chains(0).getId())
+            bridgeWithPorts.setInboundFilterId(chains(1).getId())
+            update(bridgeWithPorts.build())
+
+            // Record the results.
+            testItem.setTestStatus(TestItem.TestStatus.SUCCESS)
+        } catch {
+            case ex: Exception =>
+                log.warn(s"$testItemName failed with exception", ex)
+                testItem.setTestStatus(TestItem.TestStatus.FAILURE)
+                val failureData = testItem.addDataBuilder()
+                failureData.setProperty("exception")
+                if (ex.getMessage != null) failureData.setValue(ex.getMessage)
+                else failureData.setValue(ex.getStackTraceString)
+        }
+    }
+
+
     "Empty layout" should "be tested for read/write latency" ignore {
         val test = experimentCommonSettings
         val result = getResultsBuilder(test)
@@ -403,6 +460,12 @@ trait StorageBulkCrudTest extends FlatSpec
             buildLayoutAndMeasureLatency(test, result)
             collectTest(test)
         }
+    }
+
+    it can "be created in a single update request" ignore {
+        val test = experimentCommonSettings
+        build10KPortsBridgeOneShot(test, getResultsBuilder(test))
+        collectTest(test)
     }
 
     "Max-total-ports" should "be handled efficiently" ignore {
