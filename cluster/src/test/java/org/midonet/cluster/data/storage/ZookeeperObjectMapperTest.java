@@ -178,18 +178,7 @@ public class ZookeeperObjectMapperTest {
 
     @Before
     public void setup() throws Exception {
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-        CuratorFramework client =
-            CuratorFrameworkFactory.newClient(zkConnectionString, retryPolicy);
-        client.start();
-        zom = new ZookeeperObjectMapper(zkRootDir, client);
-
-        // Clear ZK data from last test.
-        try {
-            client.delete().deletingChildrenIfNeeded().forPath(zkRootDir);
-        } catch (KeeperException.NoNodeException ex) {
-            // Won't exist for first test.
-        }
+        zom = createZoom();
 
         for (Class<?> clazz : new Class<?>[]{
             PojoBridge.class, PojoRouter.class, PojoPort.class, PojoChain.class,
@@ -198,6 +187,8 @@ public class ZookeeperObjectMapperTest {
         }
 
         this.initBindings();
+
+        zom.build();
     }
 
     /* Initializes Bindings for ZOM. */
@@ -237,6 +228,22 @@ public class ZookeeperObjectMapperTest {
         zom.declareBinding(
             Devices.Bridge.class, "outbound_filter_id", DeleteAction.CLEAR,
             Devices.Chain.class, "bridge_ids", DeleteAction.CLEAR);
+    }
+
+    private ZookeeperObjectMapper createZoom() throws Exception {
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
+        CuratorFramework client =
+            CuratorFrameworkFactory.newClient(zkConnectionString, retryPolicy);
+        client.start();
+
+        // Clear ZK data from last test.
+        try {
+            client.delete().deletingChildrenIfNeeded().forPath(zkRootDir);
+        } catch (KeeperException.NoNodeException ex) {
+            // Won't exist for first test.
+        }
+
+        return new ZookeeperObjectMapper(zkRootDir, client);
     }
 
     /* A helper method for creating a proto Bridge. */
@@ -428,43 +435,60 @@ public class ZookeeperObjectMapperTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testRegisterClassWithNoIdField() {
-        zom.registerClass(NoIdField.class);
+    public void testRegisterClassWithNoIdField() throws Exception {
+        ZookeeperObjectMapper zom2 = createZoom();
+        zom2.registerClass(NoIdField.class);
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testRegisterDuplicateClass() {
-        zom.registerClass(PojoBridge.class);
+    @Test
+    public void testRegisterDuplicateClass() throws Exception {
+        ZookeeperObjectMapper zom2 = createZoom();
+        zom2.registerClass(PojoBridge.class);
+        try {
+            zom2.registerClass(PojoBridge.class);
+            fail("Duplicate class registration succeeded.");
+        } catch (IllegalStateException ex) {
+            // Expected.
+        }
     }
 
     @Test(expected = AssertionError.class)
-    public void testBindUnregisteredClass() {
-        zom.declareBinding(
+    public void testBindUnregisteredClass() throws Exception {
+        ZookeeperObjectMapper zom2 = createZoom();
+        zom2.registerClass(Devices.Router.class);
+        zom2.declareBinding(
             Devices.Router.class, "inbound_filter_id", DeleteAction.CLEAR,
             Devices.Chain.class, "router_ids", DeleteAction.CLEAR);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBindPojoToProtobufClass() {
-        zom.declareBinding(
+    public void testBindPojoToProtobufClass() throws Exception {
+        ZookeeperObjectMapper zom2 = createZoom();
+        zom2.registerClass(PojoBridge.class);
+        zom2.registerClass(Devices.Chain.class);
+        zom2.declareBinding(
             PojoBridge.class, "inChainId", DeleteAction.CLEAR,
             Devices.Chain.class, "bridge_ids", DeleteAction.CLEAR);
     }
 
     @Test(expected = ObjectReferencedException.class)
     public void testCascadeToDeleteError() throws Exception {
-        zom.clearBindings();
-        zom.declareBinding(PojoBridge.class, "inChainId", DeleteAction.CASCADE,
+        ZookeeperObjectMapper zom2 = createZoom();
+        zom2.registerClass(PojoBridge.class);
+        zom2.registerClass(PojoChain.class);
+        zom2.registerClass(PojoRule.class);
+        zom2.declareBinding(PojoBridge.class, "inChainId", DeleteAction.CASCADE,
                            PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
-        zom.declareBinding(PojoChain.class, "ruleIds", DeleteAction.ERROR,
+        zom2.declareBinding(PojoChain.class, "ruleIds", DeleteAction.ERROR,
                            PojoRule.class, "chainId", DeleteAction.CLEAR);
+        zom2.build();
 
         PojoChain chain = new PojoChain("chain");
         PojoRule rule = new PojoRule("rule", chain.id);
         PojoBridge bridge = new PojoBridge("bridge", chain.id, null);
         createObjects(chain, rule, bridge);
 
-        zom.delete(PojoBridge.class, bridge.id);
+        zom2.delete(PojoBridge.class, bridge.id);
     }
 
     @Test
