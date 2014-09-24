@@ -190,7 +190,8 @@ class ZookeeperObjectMapper(private val basePath: String,
         private def addBackreference(bdg: FieldBinding,
                                      thisId: ObjId, thatId: ObjId) {
             cachedGet(bdg.getReferencedClass, thatId).foreach { thatObj =>
-                val updatedThatObj = bdg.addBackReference(thatObj, thisId)
+                val updatedThatObj =
+                    bdg.addBackReference(thatObj, thatId, thisId)
                 updateCache(bdg.getReferencedClass, thatId, updatedThatObj)
             }
         }
@@ -274,7 +275,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                 bdg.onDeleteThis match {
                     case DeleteAction.ERROR =>
                         throw new ObjectReferencedException(
-                            thisObj, bdg.getReferencedClass, thatId)
+                            clazz, id, bdg.getReferencedClass, thatId)
                     case DeleteAction.CLEAR =>
                         clearBackreference(bdg, id, thatId)
                     case DeleteAction.CASCADE =>
