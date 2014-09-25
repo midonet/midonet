@@ -50,10 +50,8 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
@@ -72,49 +70,34 @@ public class TestHost extends JerseyTest {
         super(FuncTest.appDesc);
     }
 
-    private DtoHost retrieveHostV1(UUID hostId) {
+    private DtoHost retrieveHostV3(UUID hostId) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
-        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON,
-                                          DtoHost.class);
+        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
+                                                  APPLICATION_HOST_JSON_V3,
+                                                  DtoHost.class);
+        return host;
     }
 
-    private DtoHost retrieveHostV2(UUID hostId) {
-        URI hostUri = ResourceUriBuilder.getHost(
-            topology.getApplication().getUri(), hostId);
-        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V2,
-                                          DtoHost.class);
-    }
-
-    private List<DtoHost> retrieveHostListV1() throws Exception {
+    private List<DtoHost> retrieveHostListV3() throws Exception {
         URI hostListUri = ResourceUriBuilder.getHosts(
             topology.getApplication().getUri());
         String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
-               APPLICATION_HOST_COLLECTION_JSON, String.class);
-        JavaType type = FuncTest.objectMapper.getTypeFactory()
-            .constructParametricType(List.class, DtoHost.class);
-        return FuncTest.objectMapper.readValue(rawHosts, type);
-    }
-
-    private List<DtoHost> retrieveHostListV2() throws Exception {
-        URI hostListUri = ResourceUriBuilder.getHosts(
-            topology.getApplication().getUri());
-        String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
-               APPLICATION_HOST_COLLECTION_JSON_V2, String.class);
+               APPLICATION_HOST_COLLECTION_JSON_V3, String.class);
         JavaType type = FuncTest.objectMapper.getTypeFactory()
                                              .constructParametricType(List.class, DtoHost.class);
         return FuncTest.objectMapper.readValue(rawHosts, type);
     }
 
-    private void putHostV2(DtoHost host) {
-        putHostV2(host, ClientResponse.Status.OK);
+    private void putHostV3(DtoHost host) {
+        putHostV3(host, ClientResponse.Status.OK);
     }
 
-    private void putHostV2(DtoHost host, ClientResponse.Status status) {
+    private void putHostV3(DtoHost host, ClientResponse.Status status) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), host.getId());
         dtoResource.putAndVerifyStatus(hostUri,
-                                       APPLICATION_HOST_JSON_V2,
+                                       APPLICATION_HOST_JSON_V3,
                                        host,
                                        status.getStatusCode());
     }
@@ -157,7 +140,8 @@ public class TestHost extends JerseyTest {
     public void testNoHosts() throws Exception {
         ClientResponse response = resource()
             .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON).get(ClientResponse.class);
+            .type(APPLICATION_HOST_COLLECTION_JSON_V3)
+            .get(ClientResponse.class);
 
         assertThat("We should have a proper response",
                    response, is(notNullValue()));
@@ -169,7 +153,7 @@ public class TestHost extends JerseyTest {
 
         ClientResponse clientResponse = resource()
             .path("hosts/" + UUID.randomUUID().toString())
-            .type(APPLICATION_HOST_JSON).get(ClientResponse.class);
+            .accept(APPLICATION_HOST_JSON_V3).get(ClientResponse.class);
 
         assertThat(clientResponse.getClientResponseStatus(),
                    equalTo(ClientResponse.Status.NOT_FOUND));
@@ -321,20 +305,12 @@ public class TestHost extends JerseyTest {
         metadata.setName("semporiki");
         hostManager.createHost(hostId, metadata);
 
-        DtoHost dtoHost = retrieveHostV2(hostId);
+        DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
         Integer weight = dtoHost.getFloodingProxyWeight();
         assertThat("Flooding Proxy Weight has the default value",
                    weight, equalTo(DEFAULT_FLOODING_PROXY_WEIGHT));
-
-        // Check that we are back-compatible
-        DtoHost dtoHostV1 = retrieveHostV1(hostId);
-        assertThat("Retrieved host info is not null",
-                   dtoHostV1, is(notNullValue()));
-        weight = dtoHostV1.getFloodingProxyWeight();
-        assertThat("Flooding Proxy Weight has a null value",
-                   weight, is(nullValue()));
     }
 
     @Test
@@ -345,20 +321,12 @@ public class TestHost extends JerseyTest {
         hostManager.createHost(hostId, metadata);
         hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
 
-        DtoHost dtoHost = retrieveHostV2(hostId);
+        DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
         Integer weight = dtoHost.getFloodingProxyWeight();
         assertThat("Flooding Proxy Weight has the proper value",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
-
-        // Check that we are back-compatible
-        DtoHost dtoHostV1 = retrieveHostV1(hostId);
-        assertThat("Retrieved host info is not null",
-                   dtoHostV1, is(notNullValue()));
-        weight = dtoHostV1.getFloodingProxyWeight();
-        assertThat("Flooding Proxy Weight has a null value",
-                   weight, is(nullValue()));
     }
 
     @Test
@@ -369,22 +337,13 @@ public class TestHost extends JerseyTest {
         hostManager.createHost(hostId, metadata);
         hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
 
-        List<DtoHost> hostListV2 = retrieveHostListV2();
+        List<DtoHost> hostListV2 = retrieveHostListV3();
         DtoHost dtoHost = hostListV2.iterator().next();
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
         Integer weight = dtoHost.getFloodingProxyWeight();
         assertThat("Flooding Proxy Weight has the proper value",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
-
-        // Check that we are back-compatible
-        List<DtoHost> hostListV1 = retrieveHostListV1();
-        DtoHost dtoHostV1 = hostListV1.iterator().next();
-        assertThat("Retrieved host info is not null",
-                   dtoHostV1, is(notNullValue()));
-        weight = dtoHostV1.getFloodingProxyWeight();
-        assertThat("Flooding Proxy Weight has a null value",
-                   weight, is(nullValue()));
     }
 
     @Test
@@ -393,23 +352,23 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("semporiki");
         hostManager.createHost(hostId, metadata);
-        DtoHost dtoHost = retrieveHostV2(hostId);
+        DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
 
-        putHostV2(dtoHost);
+        putHostV3(dtoHost);
         Integer weight = hostManager.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be the default value",
                    weight, equalTo(DEFAULT_FLOODING_PROXY_WEIGHT));
 
         dtoHost.setFloodingProxyWeight(FLOODING_PROXY_WEIGHT);
-        putHostV2(dtoHost);
+        putHostV3(dtoHost);
         weight = hostManager.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be properly set",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
 
         dtoHost.setFloodingProxyWeight(null);
-        putHostV2(dtoHost, ClientResponse.Status.BAD_REQUEST);
+        putHostV3(dtoHost, ClientResponse.Status.BAD_REQUEST);
         weight = hostManager.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be properly set",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
@@ -421,13 +380,13 @@ public class TestHost extends JerseyTest {
         HostDirectory.Metadata metadata = new HostDirectory.Metadata();
         metadata.setName("semporiki");
         hostManager.createHost(hostId, metadata);
-        DtoHost dtoHost = retrieveHostV2(hostId);
+        DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
         dtoHost.setId(UUID.randomUUID());
 
         dtoHost.setFloodingProxyWeight(null);
-        putHostV2(dtoHost, ClientResponse.Status.NOT_FOUND);
+        putHostV3(dtoHost, ClientResponse.Status.NOT_FOUND);
     }
 
     @Test
@@ -624,24 +583,15 @@ public class TestHost extends JerseyTest {
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
-            .type(APPLICATION_HOST_JSON)
+            .accept(APPLICATION_HOST_JSON_V3)
             .get(DtoHost.class);
 
         assertThat(host, is(notNullValue()));
-
-        ClientResponse clientResponse = resource()
-            .uri(host.getInterfaces())
-            .type(APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(ClientResponse.class);
-
-        assertThat(clientResponse, is(notNullValue()));
-
-        assertThat(clientResponse.getClientResponseStatus(),
-                   equalTo(ClientResponse.Status.OK));
+        assertThat(host.getHostInterfaces(), is(notNullValue()));
 
         ResourceCollection<Host> hosts = api.getHosts();
         Host h = hosts.get(0);
-        ResourceCollection<HostInterface> hIfaces = h.getInterfaces();
+        List<HostInterface> hIfaces = h.getHostInterfaces();
 
         assertThat("Host doesn't have any interfaces", hIfaces.size(),
                    equalTo(0));
@@ -677,7 +627,7 @@ public class TestHost extends JerseyTest {
         ResourceCollection<Host> hosts = api.getHosts();
         Host host = hosts.get(0);
 
-        ResourceCollection<HostInterface> hIfaces = host.getInterfaces();
+        List<HostInterface> hIfaces = host.getHostInterfaces();
 
 
         assertThat("The host should return a proper interfaces object",
@@ -721,38 +671,6 @@ public class TestHost extends JerseyTest {
     }
 
     @Test
-    public void testInterfaceUriExists() throws Exception {
-        UUID hostId = UUID.randomUUID();
-
-        HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
-        hostMetadata.setName("host1");
-
-        hostManager.createHost(hostId, hostMetadata);
-
-        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
-        hostInterface.setName("test");
-        hostManager.createInterface(hostId, hostInterface);
-
-        DtoHost host = resource()
-            .path("hosts/" + hostId.toString())
-            .type(VendorMediaType.APPLICATION_HOST_JSON)
-            .get(DtoHost.class);
-
-        DtoInterface[] interfaces = resource()
-            .uri(host.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(DtoInterface[].class);
-
-        assertThat("There should be one interface description for the host",
-                   interfaces, arrayWithSize(1));
-
-        DtoInterface dtoHostInterface = interfaces[0];
-        assertThat("the host dto should be properly configured",
-                   dtoHostInterface,
-                   allOf(notNullValue(), hasProperty("uri", notNullValue())));
-    }
-
-    @Test
     public void testInterfaceUriIsValid() throws Exception {
         UUID hostId = UUID.randomUUID();
 
@@ -767,13 +685,10 @@ public class TestHost extends JerseyTest {
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
-            .type(VendorMediaType.APPLICATION_HOST_JSON)
+            .accept(VendorMediaType.APPLICATION_HOST_JSON_V3)
             .get(DtoHost.class);
 
-        DtoInterface[] interfaces = resource()
-            .uri(host.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(DtoInterface[].class);
+        DtoInterface[] interfaces = host.getHostInterfaces();
 
         assertThat("There should be one interface description for the host",
                    interfaces, arrayWithSize(1));
@@ -785,7 +700,7 @@ public class TestHost extends JerseyTest {
 
         DtoInterface rereadInterface = resource()
             .uri(dtoHostInterface.getUri())
-            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
+            .accept(VendorMediaType.APPLICATION_INTERFACE_JSON)
             .get(DtoInterface.class);
 
         assertThat(

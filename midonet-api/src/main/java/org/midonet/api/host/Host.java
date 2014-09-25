@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.util.version.Since;
+import org.midonet.util.version.Until;
 
 /**
  * @author Mihai Claudiu Toader <mtoader@midokura.com> Date: 1/30/12
@@ -29,6 +30,8 @@ public class Host extends UriResource {
     List<String> addresses;
     boolean alive;
 
+    private List<Interface> hostInterfaces = new ArrayList<>();
+
     /*
      * From specs: This weight is a non-negative integer whose default
      * value is 1. The MN administrator may set this value to zero to signify
@@ -37,11 +40,7 @@ public class Host extends UriResource {
      * Note: though null is not a valid value, we accept it to support clients
      * not providing any value (this will be converted to the proper default
      * value when stored and retrieved afterwards).
-     *
-     * This property belongs to version 2 of the the class, to be used with
-     * MN version >= 1.5
      */
-    @Since("2")
     @Min(0)
     @Max(65535)
     private Integer floodingProxyWeight;
@@ -67,6 +66,10 @@ public class Host extends UriResource {
         }
 
         this.alive = host.getIsAlive();
+        for (org.midonet.cluster.data.host.Interface intf :
+            host.getInterfaces()) {
+            this.hostInterfaces.add(new Interface(this.id, intf));
+        }
     }
 
     public UUID getId() {
@@ -109,6 +112,11 @@ public class Host extends UriResource {
         this.floodingProxyWeight = floodingProxyWeight;
     }
 
+    @Since("3")
+    public List<Interface> getHostInterfaces() {
+        return this.hostInterfaces;
+    }
+
     @Override
     public URI getUri() {
         if (super.getBaseUri() != null && id != null) {
@@ -121,6 +129,7 @@ public class Host extends UriResource {
     /**
      * @return the interfaces URI
      */
+    @Until("3")
     public URI getInterfaces() {
         if (getBaseUri() != null && id != null) {
             return ResourceUriBuilder.getHostInterfaces(getBaseUri(), id);
@@ -148,6 +157,14 @@ public class Host extends UriResource {
             return ResourceUriBuilder.getHostInterfacePorts(getBaseUri(), id);
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public void setBaseUri(URI baseUri) {
+        super.setBaseUri(baseUri);
+        for (Interface intf : this.hostInterfaces) {
+            intf.setBaseUri(baseUri);
         }
     }
 }

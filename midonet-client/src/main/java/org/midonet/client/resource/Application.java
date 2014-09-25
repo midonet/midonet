@@ -145,7 +145,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return getChildResources(principalDto.getHosts(),
                                  queryParams,
                                  VendorMediaType
-                                     .APPLICATION_HOST_COLLECTION_JSON,
+                                     .APPLICATION_HOST_COLLECTION_JSON_V3,
                                  Host.class, DtoHost.class);
     }
 
@@ -277,7 +277,7 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         URI uri = createUriFromTemplate(
                 principalDto.getHostTemplate(), ID_TOKEN, id);
         DtoHost host = resource.get(uri, null, DtoHost.class,
-                VendorMediaType.APPLICATION_HOST_JSON);
+                VendorMediaType.APPLICATION_HOST_JSON_V3);
         return new Host(resource, null, host);
     }
 

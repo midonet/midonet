@@ -20,10 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 
 /**
@@ -170,7 +170,7 @@ public class HostTopology {
                 // Get DtoHosts
                 URI hostsUri = this.app.getHosts();
                 DtoHost[] hostList = resource.getAndVerifyOk(hostsUri,
-                        APPLICATION_HOST_COLLECTION_JSON,
+                        APPLICATION_HOST_COLLECTION_JSON_V3,
                         DtoHost[].class);
                 Map<UUID, DtoHost> hostMap = new HashMap<UUID, DtoHost>();
                 for (DtoHost host : hostList) {
