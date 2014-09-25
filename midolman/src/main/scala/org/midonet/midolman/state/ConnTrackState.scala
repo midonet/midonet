@@ -130,6 +130,11 @@ trait ConnTrackState extends FlowState {
 
     protected def fetchIngressDevice(wcMatch: WildcardMatch): UUID = {
         implicit val actorSystem: ActorSystem = null
-        VirtualTopologyActor.tryAsk[Port](wcMatch.getInputPortUUID).deviceID
+        try {
+            VirtualTopologyActor.tryAsk[Port](wcMatch.getInputPortUUID).deviceID
+        } catch {
+            case ignored: NullPointerException =>
+                throw org.midonet.midolman.simulation.FixPortSets
+        }
     }
 }

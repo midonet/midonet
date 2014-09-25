@@ -406,6 +406,7 @@ class DeduplicationActor(
             }
         } catch {
             case NotYetException(f, _) => postponeOn(pktCtx, f)
+            case org.midonet.midolman.simulation.FixPortSets => drop(pktCtx)
             case ex: Exception => handleErrorOn(pktCtx, ex)
         } finally {
             flushTransactions()
