@@ -168,9 +168,6 @@ abstract class ConcurrentRefAccountant[K, V]() {
     def doDeletions(currentTime: Long) = doDeletionsAndFold(currentTime, (), (acc: Unit, k: K) => ())
 
     def doDeletionsAndFold[U](currentTime: Long, seed: U, func: (U, K) => U): U = {
-        log.debug("Found expiring={}, currentTime={}",
-            expiring, currentTime)
-
         var acc = seed
         while (true) {
             val pair = expiring.peek()
