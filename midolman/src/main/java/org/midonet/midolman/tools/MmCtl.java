@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sun.security.auth.module.UnixSystem;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -57,7 +58,8 @@ public class MmCtl {
         BAD_COMMAND(1, "Invalid command"),
         HOST_ID_NOT_IN_FILE(2, "Failed to get host ID"),
         STATE_ERROR(3, "State configuration error"),
-        NO_CONFIG(4, "Configuration file not found");
+        NO_CONFIG(4, "Configuration file not found"),
+        PERMISSION_DENIED(13, "Permission denied");
 
         private final int code;
         private final String msg;
@@ -285,6 +287,11 @@ public class MmCtl {
     }
 
     public static void main(String... args) {
+        if (new UnixSystem().getUid() != 0) {
+            System.err.println("This command should be executed by root.");
+            System.exit(MM_CTL_RET_CODE.PERMISSION_DENIED.code);
+        }
+
         Options options = new Options();
 
         // Configure the CLI options
