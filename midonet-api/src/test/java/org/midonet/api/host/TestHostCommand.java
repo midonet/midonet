@@ -38,6 +38,7 @@ import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 /**
  * Test cases to validate the update/create interface functionality of the
@@ -84,25 +85,14 @@ public class TestHostCommand extends JerseyTest {
 
         dtoHost = resource()
             .uri(ResourceUriBuilder.getHost(baseUri, hostId))
-            .type(VendorMediaType.APPLICATION_HOST_JSON).get(DtoHost.class);
+            .type(VendorMediaType.APPLICATION_HOST_JSON_V3).get(DtoHost.class);
 
         assertThat("We should have been able to create a new host",
                    dtoHost,
                    allOf(notNullValue(), hasProperty("id", equalTo(hostId))));
 
-        ClientResponse interfacesResponse = resource()
-            .uri(dtoHost.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON)
-            .get(ClientResponse.class);
-
-        assertThat("There should new no interfaces for this new host",
-                   interfacesResponse,
-                   allOf(notNullValue(),
-                         hasProperty("clientResponseStatus", equalTo(
-                             Status.OK))));
-        DtoInterface[] interfaces = interfacesResponse.getEntity(
-                DtoInterface[].class);
-        assertThat("There was no interface returned", interfaces, emptyArray());
+        DtoInterface[] interfaces = dtoHost.getHostInterfaces();
+        assertThat("There was no interface returned", interfaces, nullValue());
     }
 
     @Test
@@ -285,46 +275,6 @@ public class TestHostCommand extends JerseyTest {
         assertThat("Request should return and http error code",
                    response,
                    anyOf(notNullValue(), hasProperty("status", equalTo(400))));
-    }
-
-    @Test
-    public void testHostCommandCreate() throws Exception {
-
-        DtoInterface dtoInterface = new DtoInterface();
-        dtoInterface.setName("eth1");
-        dtoInterface.setType(DtoInterface.Type.Virtual);
-
-        response = resource()
-            .uri(dtoHost.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
-            .post(ClientResponse.class, dtoInterface);
-
-        assertThat("The interface creation call should have returned HTTP 200.",
-                   response,
-                   allOf(notNullValue(),
-                         hasProperty("clientResponseStatus",
-                                     equalTo(Status.OK))));
-
-        dtoInterface.setName("eth2");
-        response = resource()
-            .uri(dtoHost.getInterfaces())
-            .type(VendorMediaType.APPLICATION_INTERFACE_JSON)
-            .post(ClientResponse.class, dtoInterface);
-
-        assertThat("The interface creation call should have returned HTTP 200.",
-                   response,
-                   allOf(notNullValue(),
-                         hasProperty("clientResponseStatus",
-                                     equalTo(Status.OK))));
-
-        DtoHostCommand[] hostCommands = resource()
-            .uri(dtoHost.getHostCommands())
-            .type(VendorMediaType.APPLICATION_HOST_COMMAND_COLLECTION_JSON)
-            .get(DtoHostCommand[].class);
-
-        assertThat("We should have two host commands returned",
-                   hostCommands,
-                   allOf(notNullValue(), arrayWithSize(2)));
     }
 
     private DtoInterface saveInterface(HostDirectory.Interface anInterface)

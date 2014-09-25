@@ -1338,6 +1338,7 @@ public class LocalDataClientImpl implements DataClient {
             host = Converter.fromHostConfig(hostMetadata);
             host.setId(hostId);
             host.setIsAlive(hostsIsAlive(hostId));
+            host.setInterfaces(interfacesGetByHost(hostId));
 
             /* The flooding proxy weight might have not been initialized
              * for this host; if so, leave the default value set by Host

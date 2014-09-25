@@ -332,10 +332,7 @@ public class TestTunnelZoneHost {
                     tzHostUri.toString()
                             .startsWith(FuncTest.OVERRIDE_BASE_URI));
 
-            ResourceCollection<HostInterface> hIfaces = host.getInterfaces();
-
-            assertThat("The host should return a proper interfaces object",
-                    hIfaces, is(notNullValue()));
+            List<HostInterface> hIfaces = host.getHostInterfaces();
 
             assertThat(hIfaces.size(), equalTo(1));
 
