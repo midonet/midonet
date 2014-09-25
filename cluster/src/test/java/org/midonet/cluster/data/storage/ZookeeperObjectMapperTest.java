@@ -688,6 +688,37 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testUpdateWithValidatorError() throws Exception {
+        PojoRule rule = new PojoRule("rule", null);
+        zom.create(rule);
+
+        rule.name = "updated";
+        zom.update(rule, new UpdateValidator<PojoRule>() {
+            @Override
+            public void validate(PojoRule oldObj, PojoRule newObj) {
+                if (!oldObj.name.equals(newObj.name))
+                    throw new IllegalStateException("Expected");
+            }
+        });
+    }
+
+    @Test
+    public void testUpdateWithValidatorModification() throws Exception {
+        PojoRule rule = new PojoRule("rule", null);
+        zom.create(rule);
+
+        zom.update(rule, new UpdateValidator<PojoRule>() {
+            @Override
+            public void validate(PojoRule oldObj, PojoRule newObj) {
+                newObj.name = "renamed";
+            }
+        });
+
+        PojoRule renamed = zom.get(PojoRule.class, rule.id);
+        assertEquals("renamed", renamed.name);
+    }
+
     @Test(expected = AssertionError.class)
     public void testDeleteForUnregisteredClass() throws Exception {
         zom.delete(Devices.Router.class, UUID.randomUUID());

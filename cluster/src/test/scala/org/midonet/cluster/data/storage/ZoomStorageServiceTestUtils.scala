@@ -7,11 +7,13 @@ import java.util.{List => JList}
 
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
+import org.scalatest.Suite
+
+import rx.{Observable, Observer, Subscription}
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.models.Devices.{Bridge, Chain, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
-import org.scalatest.Suite
-import rx.{Observable, Observer, Subscription}
 
 /**
  * DTO for ZOOM binding.
@@ -65,6 +67,12 @@ trait ZoomStorageServiceTester extends StorageServiceTester
     @throws(classOf[NotFoundException])
     @throws(classOf[ReferenceConflictException])
     override def update(o: Obj) {
+        zoom.update(o)
+    }
+
+    @throws(classOf[NotFoundException])
+    @throws(classOf[ReferenceConflictException])
+    override def update[T <: Obj](o: T, validator: UpdateValidator[T]) {
         zoom.update(o)
     }
 

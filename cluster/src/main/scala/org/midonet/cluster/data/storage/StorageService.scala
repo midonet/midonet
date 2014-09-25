@@ -5,19 +5,66 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
+import rx.{Observable, Observer, Subscription}
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-
-import scala.collection.immutable.List
-
-import rx.Observable
-import rx.Observer
-import rx.Subscription
 
 /* Op classes for ZookeeperObjectMapper.multi */
 sealed trait PersistenceOp
+
 case class CreateOp(obj: Obj) extends PersistenceOp
-case class UpdateOp(obj: Obj) extends PersistenceOp
+
+case class UpdateOp[T <: Obj](
+    obj: T, validator: UpdateValidator[T]) extends PersistenceOp {
+    def this(obj: T) = this(obj, null)
+}
+
+object UpdateOp {
+    def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
+}
+
 case class DeleteOp(clazz: Class[_], id: ObjId) extends PersistenceOp
+
+
+/**
+ * Used in StorageService update operations to perform validation that depends
+ * on knowing the current state of the object to be validated. For example, we
+ * don't allow a LoadBalancer update to change the value of routerId. Without
+ * knowing the current value of routerId in the data store, there's no way to
+ * validate this.
+ *
+ * A caller could call StorageService.get() to get the current value and use
+ * that for validation, but this creates a race condition and requires an extra
+ * round trip to the data store, as the update operation will also need to fetch
+ * the object's current state from the data store. Using an UpdateValidator
+ * solves both these problems.
+ */
+trait UpdateValidator[-T <: Obj] {
+    /**
+     * Called at the beginning of the update operation after fetching the
+     * current state of the object from the data store but before doing anything
+     * else. Implementations of validate() may:
+     *
+     * 1. Throw an exception after detecting a validation error.
+     * 2. Modify newObj. This is useful for cases where a field in type T is not
+     *    exposed via the API, and will thus be null in instances received from
+     *    the API. In such cases, validate() should update newObj to set the
+     *    values of thees fields to their values in oldObj so that the update
+     *    does not set them to null in the data store.
+     *
+     * Do not modify oldObj, as this can lead to errors and data corruption.
+     *
+     * @param oldObj
+     *     The current state of the object in the data store. In the case of a
+     *     multi() operation, this will also reflect any changes made by prior
+     *     operations.
+     *
+     * @param newObj
+     *     The state to which the object is to be updated. This is the same
+     *     object passed to update() or UpdateOp().
+     */
+    def validate(oldObj: T, newObj: T)
+}
 
 /**
  * A trait defining the cluster persistence service API.
@@ -39,6 +86,16 @@ trait StorageService {
     @throws[NotFoundException]
     @throws[ReferenceConflictException]
     def update(obj: Obj): Unit
+
+    /**
+     * Updates the specified object in the storage. Takes an optional
+     * UpdateValidator callback which can be used to validate the new version
+     * of obj against the current version in storage and/or to copy data from
+     * the current version to the new version.
+     */
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit
 
     /**
      * Deletes the specified object from the storage.

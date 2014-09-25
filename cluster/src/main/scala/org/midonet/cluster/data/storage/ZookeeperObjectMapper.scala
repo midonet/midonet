@@ -194,7 +194,8 @@ class ZookeeperObjectMapper(private val basePath: String,
             cachedGet(bdg.getReferencedClass, thatId).foreach { thatObj =>
                 val updatedThatObj =
                     bdg.addBackReference(thatObj, thatId, thisId)
-                updateCache(bdg.getReferencedClass, thatId, updatedThatObj)
+                updateCache(bdg.getReferencedClass, thatId,
+                            updatedThatObj.asInstanceOf[Obj])
             }
         }
 
@@ -209,7 +210,8 @@ class ZookeeperObjectMapper(private val basePath: String,
                                        thatId: ObjId) {
             cachedGet(bdg.getReferencedClass, thatId).foreach { thatObj =>
                 val updatedThatObj = bdg.clearBackReference(thatObj, thisId)
-                updateCache(bdg.getReferencedClass, thatId, updatedThatObj)
+                updateCache(bdg.getReferencedClass, thatId,
+                            updatedThatObj.asInstanceOf[Obj])
             }
         }
 
@@ -227,13 +229,16 @@ class ZookeeperObjectMapper(private val basePath: String,
             }
         }
 
-        def update(newThisObj: Obj): Unit = {
+        def update(newThisObj: Obj, validator: UpdateValidator[Obj]): Unit = {
             val thisClass = newThisObj.getClass
             assert(isRegistered(thisClass))
 
             val thisId = getObjectId(newThisObj)
             val oldThisObj = cachedGet(thisClass, thisId).getOrElse(
                 throw new NotFoundException(thisClass, thisId))
+
+            if (validator != null)
+                validator.validate(oldThisObj, newThisObj)
 
             for (bdg <- allBindings.get(thisClass).asScala) {
                 val oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj).asScala
@@ -299,13 +304,14 @@ class ZookeeperObjectMapper(private val basePath: String,
 
             for ((Key(clazz, id), ObjWithVersion(obj, _)) <- toCreate) {
                 val path = getPath(clazz, id)
-                txn = txn.create().forPath(path, serialize(obj)).and()
+                txn = txn.create()
+                    .forPath(path, serialize(obj.asInstanceOf[Obj])).and()
             }
 
             for ((Key(clazz, id), ObjWithVersion(obj, ver)) <- toUpdate) {
                 val path = getPath(clazz, id)
                 txn = txn.setData().withVersion(ver)
-                    .forPath(path, serialize(obj)).and()
+                    .forPath(path, serialize(obj.asInstanceOf[Obj])).and()
             }
 
             for ((Key(clazz, id), ver) <- objsToDelete) {
@@ -496,6 +502,11 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[ReferenceConflictException]
     override def update(obj: Obj) = multi(List(UpdateOp(obj)))
 
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    override def update[T <: Obj](obj: T, validator: UpdateValidator[T]) =
+        multi(List(UpdateOp(obj, validator)))
+
     /**
      * Deletes the specified object from Zookeeper.
      */
@@ -571,7 +582,7 @@ class ZookeeperObjectMapper(private val basePath: String,
         val manager = new TransactionManager
         ops.foreach {
             case CreateOp(obj) => manager.create(obj)
-            case UpdateOp(obj) => manager.update(obj)
+            case UpdateOp(obj, validator) => manager.update(obj, validator)
             case DeleteOp(clazz, id) => manager.delete(clazz, id)
         }
 

@@ -13,10 +13,11 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.data.storage.NotFoundException;
 import org.midonet.cluster.data.storage.ObjectExistsException;
 import org.midonet.cluster.data.storage.ObjectReferencedException;
+import org.midonet.cluster.data.storage.PersistenceOp;
 import org.midonet.cluster.data.storage.ReferenceConflictException;
 import org.midonet.cluster.data.storage.ServiceUnavailableException;
+import org.midonet.cluster.data.storage.UpdateValidator;
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
-import org.midonet.cluster.data.storage.PersistenceOp;
 
 import static org.midonet.api.validation.MessageProperty.ZOOM_CONCURRENT_MODIFICATION;
 import static org.midonet.api.validation.MessageProperty.ZOOM_OBJECT_EXISTS_EXCEPTION;
@@ -45,9 +46,14 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
 
     @Override
     public void update(Object newThisObj) {
+        update(newThisObj, null);
+    }
+
+    @Override
+    public <T> void update(T newThisObj, UpdateValidator<T> validator) {
         try {
-            super.update(newThisObj);
-        } catch (NotFoundException | ReferenceConflictException ex) {
+            super.update(newThisObj, validator);
+        } catch (Exception ex) {
             wrapAndRethrow(ex, "update");
         }
     }

@@ -4,6 +4,6 @@
 package org.midonet.cluster.data
 
 package object storage {
-    private[storage] type Obj = Any
+    private[storage] type Obj = Object
     private[storage] type ObjId = Any
 }
