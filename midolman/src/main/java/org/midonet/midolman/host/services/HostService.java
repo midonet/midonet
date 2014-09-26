@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.Subscription;
 import org.midonet.config.HostIdGenerator;
-import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -52,9 +51,6 @@ public class HostService extends AbstractService
     HostConfig configuration;
 
     @Inject
-    private HostCommandWatcher cmdWatcher;
-
-    @Inject
     InterfaceScanner scanner;
 
     @Inject
@@ -83,7 +79,6 @@ public class HostService extends AbstractService
         log.info("Starting Midolman host agent.");
         try {
             identifyHostId();
-            cmdWatcher.checkCommands(hostId);
             scanner.start();
             scanner.register(new Callback<Set<InterfaceDescription>>() {
                 @Override

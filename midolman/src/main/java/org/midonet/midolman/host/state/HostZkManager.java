@@ -36,8 +36,6 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 
-import static org.midonet.midolman.host.state.HostDirectory.Command;
-
 /**
  * Wrapper class over a Directory that handled setting and reading data related
  * to hosts and interfaces associated with the hosts.
@@ -100,8 +98,6 @@ public class HostZkManager
 
         ops.addAll(zk.getPersistentCreateOps(
                 paths.getHostInterfacesPath(hostId),
-                paths.getHostCommandsPath(hostId),
-                paths.getHostCommandErrorLogsPath(hostId),
                 paths.getHostVrnMappingsPath(hostId),
                 paths.getHostVrnPortMappingsPath(hostId),
                 paths.getHostTunnelZonesPath(hostId)));
@@ -245,17 +241,6 @@ public class HostZkManager
 
         List<Op> ops = new ArrayList<>();
 
-        if (zk.exists(paths.getHostCommandsPath(id))) {
-            ops.addAll(
-                    zk.getRecursiveDeleteOps(paths.getHostCommandsPath(id)));
-        }
-
-        if (zk.exists(paths.getHostCommandErrorLogsPath(id))) {
-            ops.addAll(
-                    zk.getRecursiveDeleteOps(
-                            paths.getHostCommandErrorLogsPath(id)));
-        }
-
         Collection<UUID> tunnelZones = getTunnelZoneIds(id, null);
         for (UUID zoneId : tunnelZones) {
             ops.addAll(zk.getDeleteOps(
@@ -286,24 +271,6 @@ public class HostZkManager
     public List<UUID> getHostIds(Directory.TypedWatcher watcher)
             throws StateAccessException {
         return getUuidList(paths.getHostsPath(), watcher);
-    }
-
-    public Integer createHostCommandId(UUID hostId, Command command)
-            throws StateAccessException, SerializationException {
-
-        try {
-            String path = zk.addPersistentSequential(
-                paths.getHostCommandsPath(hostId),
-                serializer.serialize(command));
-
-            int idx = path.lastIndexOf('/');
-            return Integer.parseInt(path.substring(idx + 1));
-
-        } catch (SerializationException e) {
-            throw new SerializationException(
-                "Could not serialize host command for id: " + hostId, e,
-                Command.class);
-        }
     }
 
     public boolean existsInterface(UUID hostId, String interfaceName)
@@ -344,24 +311,6 @@ public class HostZkManager
                     hostId + " / " + name,
                 e, HostDirectory.Metadata.class);
         }
-    }
-
-    public List<Integer> listCommandIds(UUID hostId, Runnable watcher)
-            throws StateAccessException {
-        List<Integer> result = new ArrayList<>();
-
-        String hostCommandsPath = paths.getHostCommandsPath(hostId);
-        Set<String> commands = zk.getChildren(hostCommandsPath, watcher);
-        for (String commandId : commands) {
-            try {
-                result.add(Integer.parseInt(commandId));
-            } catch (NumberFormatException e) {
-                log.warn("HostCommand id is not a number: {} (for host: {}",
-                         commandId, hostId);
-            }
-        }
-
-        return result;
     }
 
     /**
@@ -426,92 +375,6 @@ public class HostZkManager
 
         if (!updateInterfacesOperation.isEmpty()) {
             zk.multi(updateInterfacesOperation);
-        }
-    }
-
-    public List<Integer> getCommandIds(UUID hostId)
-        throws StateAccessException {
-
-        Set<String> commandIdKeys = zk.getChildren(
-            paths.getHostCommandsPath(hostId));
-
-        List<Integer> commandIds = new ArrayList<>();
-        for (String commandIdKey : commandIdKeys) {
-            try {
-                commandIds.add(Integer.parseInt(commandIdKey));
-            } catch (NumberFormatException e) {
-                log.warn("Command key could not be converted to a number: " +
-                             "host {}, command {}", hostId, commandIdKey);
-            }
-        }
-
-        Collections.sort(commandIds);
-
-        return commandIds;
-    }
-
-    public Command getCommandData(UUID hostId, Integer commandId)
-            throws StateAccessException, SerializationException {
-
-        try {
-            byte[] data = zk.get(
-                paths.getHostCommandPath(hostId, commandId));
-
-            return serializer.deserialize(data, Command.class);
-        } catch (SerializationException e) {
-            throw new SerializationException(
-                "Could not deserialize host command data id: " +
-                    hostId + " / " + commandId, e, Command.class);
-        }
-    }
-
-    public void deleteHostCommand(UUID hostId, Integer id)
-        throws StateAccessException {
-
-        String commandPath = paths.getHostCommandPath(hostId, id);
-
-        List<Op> delete = zk.getRecursiveDeleteOps(commandPath);
-
-        zk.multi(delete);
-    }
-
-    public void setCommandErrorLogEntry(UUID hostId,
-                                        HostDirectory.ErrorLogItem errorLog)
-            throws StateAccessException, SerializationException {
-        String path = paths.getHostCommandErrorLogsPath(hostId) + "/"
-            + String.format("%010d", errorLog.getCommandId());
-        if (!(zk.exists(path))) {
-            zk.addPersistent(path, null);
-        }
-        try {
-            // Assign to the error log the same id of the command that generated it
-            zk.update(path, serializer.serialize(errorLog));
-
-        } catch (SerializationException e) {
-            throw new SerializationException(
-                "Could not serialize host metadata for id: " + hostId,
-                e, HostDirectory.Metadata.class);
-        }
-    }
-
-    public HostDirectory.ErrorLogItem getErrorLogData(UUID hostId, Integer logId)
-            throws StateAccessException, SerializationException {
-        try {
-            String errorItemPath =
-                paths.getHostCommandErrorLogPath(hostId, logId);
-
-            if (zk.exists(errorItemPath)) {
-                byte[] data = zk.get(errorItemPath);
-                return serializer.deserialize(data,
-                        HostDirectory.ErrorLogItem.class);
-            }
-
-            return null;
-        } catch (SerializationException e) {
-            throw new SerializationException(
-                "Could not deserialize host error log data id: " +
-                    hostId + " / " + logId, e,
-                HostDirectory.ErrorLogItem.class);
         }
     }
 

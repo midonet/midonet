@@ -139,17 +139,6 @@ public class Host extends UriResource {
     }
 
     /**
-     * @return the commands URI
-     */
-    public URI getHostCommands() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getHostCommands(getBaseUri(), id);
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * @return the interface port map URI
      */
     public URI getPorts() {

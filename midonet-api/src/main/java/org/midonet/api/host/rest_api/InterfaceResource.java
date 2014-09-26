@@ -13,7 +13,6 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.host.HostCommand;
 import org.midonet.api.host.Interface;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -48,45 +47,6 @@ public class InterfaceResource extends AbstractResource {
                              @Assisted UUID hostId) {
         super(config, uriInfo, context, dataClient);
         this.hostId = hostId;
-    }
-
-    /**
-     * Handler for creating an interface.
-     *
-     * @param anInterface Interface object.
-     * @return Response object with 201 status code set if successful.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *          Data access error.
-     */
-    @POST
-    @RolesAllowed({AuthRole.ADMIN})
-    @Consumes({VendorMediaType.APPLICATION_INTERFACE_JSON,
-                  MediaType.APPLICATION_JSON})
-    public Response create(Interface anInterface)
-        throws StateAccessException, SerializationException {
-
-        try {
-
-            Integer id = dataClient.commandsCreateForInterfaceupdate(hostId,
-                    null, anInterface.toData());
-
-            if (id != null) {
-                HostCommand hostCommand = new HostCommand();
-                hostCommand.setId(id);
-                hostCommand.setHostId(hostId);
-                hostCommand.setBaseUri(getBaseUri());
-
-                return Response
-                    .ok(hostCommand,
-                            VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
-                    .location(hostCommand.getUri())
-                    .build();
-            }
-
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        } catch (DataValidationException e) {
-            throw new BadRequestHttpException(e, e.getMessage());
-        }
     }
 
     /**
@@ -142,38 +102,5 @@ public class InterfaceResource extends AbstractResource {
         iface.setBaseUri(getBaseUri());
 
         return iface;
-    }
-
-    /**
-     * Handler for updating an interface.
-     *
-     * @param name       Interface name from the request.
-     * @return An Interface object.
-     * @throws StateAccessException  Data access error.
-     */
-    @PUT
-    @RolesAllowed({AuthRole.ADMIN})
-    @Path("{name}")
-    public Response update(@PathParam("name") String name,
-                           Interface newInterfaceData)
-        throws StateAccessException, SerializationException {
-
-        try {
-            Integer cmdId = dataClient.commandsCreateForInterfaceupdate(
-                    hostId, name, newInterfaceData.toData());
-
-            HostCommand command = new HostCommand();
-            command.setId(cmdId);
-            command.setHostId(hostId);
-            command.setBaseUri(getBaseUri());
-
-            return
-                Response
-                    .ok(command, VendorMediaType.APPLICATION_HOST_COMMAND_JSON)
-                    .location(command.getUri())
-                    .build();
-        } catch (DataValidationException e) {
-            throw new BadRequestHttpException(e, e.getMessage());
-        }
     }
 }

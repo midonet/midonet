@@ -1311,37 +1311,6 @@ public class ZkPathManager {
             .append(name);
     }
 
-    /**
-     * Get ZK host commands path.
-     *
-     * @param hostId Host UUID
-     * @return /hosts/&lt;hostId&gt;/commands
-     */
-    public String getHostCommandsPath(UUID hostId) {
-        return buildHostCommandsPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostCommandsPath(UUID hostId) {
-        return buildHostPath(hostId).append("/commands");
-    }
-
-    /**
-     * Get ZK a specific host commands path.
-     *
-     * @param hostId    Host UUID
-     * @param commandId Command Id
-     * @return /hosts/&lt;hostId&gt;/commands/&lt;commandIs&gt;
-     */
-    public String getHostCommandPath(UUID hostId, Integer commandId) {
-        return buildHostCommandPath(hostId, commandId).toString();
-    }
-
-    private StringBuilder buildHostCommandPath(UUID hostId, Integer commandId) {
-        return buildHostCommandsPath(hostId).append("/")
-            .append(String.format("%010d", commandId));
-    }
-
-
     public String getHostTunnelZonesPath(UUID hostId) {
         return buildHostTunnelZonesPath(hostId).toString();
     }
@@ -1356,36 +1325,6 @@ public class ZkPathManager {
 
     private StringBuilder buildHostTunnelZonePath(UUID hostId, UUID zoneId) {
         return buildHostTunnelZonesPath(hostId).append("/").append(zoneId);
-    }
-
-    /**
-     * Get ZK commands error log path
-     *
-     * @param hostId Host UUID
-     * @return /hosts/&lt;hostId&gt;/errors
-     */
-    public String getHostCommandErrorLogsPath(UUID hostId) {
-        return buildHostCommandErrorLogsPath(hostId).toString();
-    }
-
-    private StringBuilder buildHostCommandErrorLogsPath(UUID hostId) {
-        return buildHostPath(hostId).append("/errors");
-    }
-
-    /**
-     * Get the error log path of a specific host
-     *
-     * @param hostId    Host UUID
-     * @param commandId Host identifier
-     * @return /hosts/&lt;hostId&gt;/errors/&lt;commandIs&gt;
-     */
-    public String getHostCommandErrorLogPath(UUID hostId, Integer commandId) {
-        return buildHostCommandErrorLogPath(hostId, commandId).toString();
-    }
-
-    private StringBuilder buildHostCommandErrorLogPath(UUID hostId, Integer commandId) {
-        return buildHostCommandErrorLogsPath(hostId)
-            .append("/").append(String.format("%010d", commandId));
     }
 
     public String getHostVrnMappingsPath(UUID hostId) {

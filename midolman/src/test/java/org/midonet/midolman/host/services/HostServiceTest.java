@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.guice.HostConfigProvider;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
@@ -59,7 +58,6 @@ public class HostServiceTest {
         @Override
         protected void configure() {
             bind(PathBuilder.class).toInstance(new PathBuilder(basePath));
-            bind(HostCommandWatcher.class);
             bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
             bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
             bind(HostConfigProvider.class).asEagerSingleton();

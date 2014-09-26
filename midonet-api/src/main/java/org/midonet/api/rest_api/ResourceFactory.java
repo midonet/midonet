@@ -15,7 +15,6 @@ import org.midonet.api.dhcp.rest_api.DhcpV6HostsResource;
 import org.midonet.api.filter.rest_api.ChainResource;
 import org.midonet.api.filter.rest_api.IpAddrGroupResource;
 import org.midonet.api.filter.rest_api.RuleResource;
-import org.midonet.api.host.rest_api.HostCommandResource;
 import org.midonet.api.host.rest_api.HostInterfacePortResource;
 import org.midonet.api.host.rest_api.HostResource;
 import org.midonet.api.host.rest_api.InterfaceResource;
@@ -99,8 +98,6 @@ public interface ResourceFactory {
     RuleResource.ChainRuleResource getChainRuleResource(UUID id);
 
     InterfaceResource getInterfaceResource(UUID id);
-
-    HostCommandResource getHostCommandsResource(UUID id);
 
     BgpResource.PortBgpResource getPortBgpResource(UUID id);
 

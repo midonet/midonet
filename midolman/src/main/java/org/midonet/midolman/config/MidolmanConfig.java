@@ -75,11 +75,6 @@ public interface MidolmanConfig
     @ConfigInt(key = "mac_port_mapping_expire_millis", defaultValue = 30000)
     public int getMacPortMappingExpireMillis();
 
-    @ConfigGroup("vrn")
-    @ConfigString(key = "router_network_id",
-                  defaultValue = "01234567-0123-0123-aaaa-0123456789ab")
-    public String getVrnRouterNetworkId();
-
     @ConfigInt(key = "simulation_threads", defaultValue = 1)
     public int getSimulationThreads();
 

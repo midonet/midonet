@@ -35,7 +35,6 @@ import org.midonet.cluster.data.WriteVersion;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.cluster.data.host.Command;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
@@ -615,18 +614,6 @@ public interface DataClient {
 
     @CheckForNull Interface interfacesGet(UUID hostId, String interfaceName)
             throws StateAccessException, SerializationException;
-
-    Integer commandsCreateForInterfaceupdate(UUID hostId, String curInterfaceId,
-                                             Interface newInterface)
-            throws StateAccessException, SerializationException;
-
-    List<Command> commandsGetByHost(UUID hostId)
-            throws StateAccessException, SerializationException;
-
-    @CheckForNull Command commandsGet(UUID hostId, Integer id)
-            throws StateAccessException, SerializationException;
-
-    void commandsDelete(UUID hostId, Integer id) throws StateAccessException;
 
     List<VirtualPortMapping> hostsGetVirtualPortMappingsByHost(UUID hostId)
             throws StateAccessException, SerializationException;

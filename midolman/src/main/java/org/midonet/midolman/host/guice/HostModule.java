@@ -6,8 +6,6 @@ package org.midonet.midolman.host.guice;
 import com.google.inject.PrivateModule;
 import com.google.inject.Scopes;
 import org.midonet.config.ConfigProvider;
-import org.midonet.midolman.host.commands.executors.CommandInterpreter;
-import org.midonet.midolman.host.commands.executors.HostCommandWatcher;
 import org.midonet.midolman.host.config.HostConfig;
 import org.midonet.midolman.host.sensor.IpAddrInterfaceSensor;
 import org.midonet.midolman.host.sensor.IpTuntapInterfaceSensor;
@@ -32,11 +30,9 @@ public class HostModule extends PrivateModule {
 
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
-        bind(CommandInterpreter.class).in(Scopes.SINGLETON);
 
         //expose(InterfaceScanner.class);
         expose(InterfaceDataUpdater.class);
-        expose(CommandInterpreter.class);
 
         requireBinding(ConfigProvider.class);
         bind(HostConfig.class)
@@ -48,7 +44,6 @@ public class HostModule extends PrivateModule {
         // TODO: uncomment this when the direct dependency on HostZKManager has been removed
         // requireBinding(Client.class);
         requireBinding(HostZkManager.class);
-        bind(HostCommandWatcher.class);
 
         bind(HostIdProviderService.class)
             .to(HostService.class)

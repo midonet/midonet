@@ -52,6 +52,7 @@ import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.Bimap
 import org.midonet.util.functors.Callback0
+import org.midonet.midolman.logging.ActorLogWithoutPath
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
@@ -243,7 +244,7 @@ object DatapathController extends Referenceable {
  * may receive requests from the FVE to invalidate specific wildcard flows; these
  * are passed on to the FlowController.
  */
-class DatapathController extends Actor with ActorLogging {
+class DatapathController extends Actor with ActorLogWithoutPath {
 
     import DatapathController._
     import FlowController.AddWildcardFlow
@@ -964,7 +965,7 @@ class VirtualPortManager(
         copy._updateInterfaces(interfaces)
 
     private def _newInterface(itf: InterfaceDescription, isUp: Boolean) {
-        log.info("New interface found: {} isUp: {}", itf, isUp)
+        log.info("Found new interface {} which is {}", itf, if (isUp) "up" else "down")
         interfaceEvent.detect(itf.toString);
         interfaceToStatus += ((itf.getName, isUp))
 
@@ -998,7 +999,7 @@ class VirtualPortManager(
         } else {
             if (isUp != wasUp) {
                 interfaceToStatus += ((itf.getName, isUp))
-                log.info("Updating interface={} isUp status to {}", itf, isUp)
+                log.info("interface {} is now {}", itf, if (isUp) "up" else "down")
                 interfaceEvent.update(itf.toString)
                 for (
                     vportId <- interfaceToVport.get(itf.getName);
@@ -1025,7 +1026,7 @@ class VirtualPortManager(
         // Now deal with any interface that has been deleted.
         val deletedInterfaces = interfaceToStatus -- currentInterfaces
         deletedInterfaces.keys.foreach { name =>
-            log.info("Deleting interface name={}", name)
+            log.info("Deleting interface {}", name)
             interfaceEvent.delete(name)
             interfaceToStatus -= name
             // we don't have to remove the binding, the interface was deleted
@@ -1048,22 +1049,24 @@ class VirtualPortManager(
         copy._updateVPortInterfaceBindings(vportToInterface)
 
     // Aux method for _updateVPortInterfaceBindings
-    private def _newInterfaceVportBinding(vportId: UUID, itfName: String) {
-        if (interfaceToVport.contains(itfName))
+    private def _newInterfaceVportBinding(vport: UUID, ifname: String) {
+        if (interfaceToVport.contains(ifname))
             return
 
-        interfaceToVport += (itfName, vportId)
+        interfaceToVport += (ifname, vport)
         // This is a new binding. Does the interface exist?
-        if (!interfaceToStatus.contains(itfName))
+        if (!interfaceToStatus.contains(ifname))
             return
 
         // Has the interface been added to the datapath?
-        interfaceToDpPort.get(itfName) match {
-            case Some(dpPort) if interfaceToStatus(itfName) =>
+        interfaceToDpPort.get(ifname) match {
+            case Some(dpPort) if interfaceToStatus(ifname) =>
                 // The vport is active if the interface is up.
-                controller.setVportStatus(dpPort, vportId, isActive = true)
+                controller.setVportStatus(dpPort, vport, isActive = true)
             case None =>
-                requestDpPortAdd(itfName)
+                log.info("binding of port {} to {} discovered, plugging "+
+                         "to datapath", vport, ifname)
+                requestDpPortAdd(ifname)
             case _ =>
         }
     }
@@ -1078,6 +1081,8 @@ class VirtualPortManager(
                    so we untrack it as such if it was */
                 dpPortsInProgress -= ifname
             case Some(port) =>
+                log.info("binding of port {} to {} disappeared, unplugging "+
+                         "from datapath", vport, ifname)
                 requestDpPortRemove(port)
                 if (interfaceToStatus.get(ifname).getOrElse(false)) {
                     // If the port was up, the vport just became inactive.
@@ -1091,7 +1096,7 @@ class VirtualPortManager(
     // interface will occur in at most one binding.
     private def _updateVPortInterfaceBindings(vportToInterface: Map[UUID, String]) = {
 
-        log.debug("updateVPortInterfaceBindings {}", vportToInterface)
+        log.debug("updating vport to interface bindings: {}", vportToInterface)
 
         // First, deal with new bindings.
         for ((vportId: UUID, itfName: String) <- vportToInterface) {
@@ -1121,7 +1126,7 @@ class VirtualPortManager(
         copy._datapathPortAdded(port)
 
     private def _datapathPortAdded(port: DpPort) = {
-        log.debug("datapathPortAdded {}", port)
+        log.debug("interface {} was added to the datapath", port.getName)
         // First clear the in-progress operation
         dpPortsInProgress -= port.getName
 
@@ -1133,6 +1138,8 @@ class VirtualPortManager(
         // If the itf is up and still bound to a vport, then the vport is UP.
         interfaceToVport.get(port.getName) match {
             case None =>
+                log.debug("interface {} was added but it doesn't have a vport " +
+                          "binding anymore, requesting removal", port.getName)
                 requestDpPortRemove(port)
             case Some(vportId) =>
                 interfaceToStatus.get(port.getName) match {
@@ -1149,7 +1156,7 @@ class VirtualPortManager(
         copy._datapathPortRemoved(itfName)
 
     private def _datapathPortRemoved(itfName: String) = {
-        log.debug("datapathPortRemoved {}", itfName)
+        log.debug("interface {} was removed from the datapath", itfName)
         // Clear the in-progress operation
         val requestedByMe = dpPortsInProgress.contains(itfName)
         dpPortsInProgress -= itfName
@@ -1169,6 +1176,8 @@ class VirtualPortManager(
                     // If we didn't request this removal, and the interface is
                     // up, then notify that the vport is now down. Also, if the
                     // interface exists, request that the dpPort be re-added.
+                    log.debug("interface {} was removed from the datapath "+
+                              "but has a port binding, adding back", itfName)
                     requestDpPortAdd(itfName)
                     if (isUp && !requestedByMe)
                         controller.setVportStatus(port, vportId, isActive=false)

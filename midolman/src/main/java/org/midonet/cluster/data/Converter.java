@@ -15,8 +15,6 @@ import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
 import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.cluster.data.host.Command;
-import org.midonet.cluster.data.host.ErrorLogItem;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.host.Interface;
 import org.midonet.cluster.data.host.VirtualPortMapping;
@@ -670,56 +668,6 @@ public class Converter {
 
         return new Subnet6()
                 .setPrefix(subnetConfig.getPrefix());
-    }
-
-    public static HostDirectory.ErrorLogItem toHostErrorLogItemConfig(
-            ErrorLogItem errorLogItem) {
-        HostDirectory.ErrorLogItem errorLogItemConfig = new HostDirectory
-                .ErrorLogItem();
-        errorLogItemConfig.setCommandId(errorLogItem.getCommandId());
-        errorLogItemConfig.setError(errorLogItem.getError());
-        errorLogItemConfig.setInterfaceName(errorLogItem.getInterfaceName());
-        errorLogItemConfig.setTime(errorLogItem.getTime());
-        return errorLogItemConfig;
-    }
-
-    public static ErrorLogItem fromHostErrorLogItemConfig(
-            HostDirectory.ErrorLogItem errorLogItemConfig) {
-        return new ErrorLogItem()
-                .setCommandId(errorLogItemConfig.getCommandId())
-                .setError(errorLogItemConfig.getError())
-                .setInterfaceName(errorLogItemConfig.getInterfaceName())
-                .setTime(errorLogItemConfig.getTime());
-    }
-
-    public static HostDirectory.Command toHostCommandConfig(Command command) {
-        HostDirectory.Command commandConfig = new HostDirectory.Command();
-        commandConfig.setInterfaceName(command.getInterfaceName());
-        commandConfig.setCommandList(command.getCommandList());
-        return commandConfig;
-    }
-
-    public static Command fromHostCommandConfig(
-            HostDirectory.Command commandConfig) {
-        return new Command()
-                .setInterfaceName(commandConfig.getInterfaceName())
-                .setCommandList(commandConfig.getCommandList());
-    }
-
-    public static HostDirectory.Interface toHostInterfaceConfig(
-            Interface intf) {
-        HostDirectory.Interface interfaceConfig =
-                new HostDirectory.Interface();
-        interfaceConfig.setPortType(intf.getPortType());
-        interfaceConfig.setAddresses(intf.getAddresses());
-        interfaceConfig.setEndpoint(intf.getEndpoint());
-        interfaceConfig.setMac(intf.getMac());
-        interfaceConfig.setMtu(intf.getMtu());
-        interfaceConfig.setPortType(intf.getPortType());
-        interfaceConfig.setName(intf.getName());
-        interfaceConfig.setStatus(intf.getStatus());
-        interfaceConfig.setType(intf.getType());
-        return interfaceConfig;
     }
 
     public static Interface fromHostInterfaceConfig(
