@@ -637,7 +637,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         public abstract String dataString();
         public void onSuccess(T any) { }
         public void onError(NetlinkException ex) {
-            log.error(requestString() + " request for " +
+            log.debug(requestString() + " request for " +
                       dataString() + " failed", ex);
         }
     }
