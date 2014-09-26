@@ -157,6 +157,7 @@ allprojects {
 
         tasks.withType(ScalaCompile) {
             scalaCompileOptions.fork = true
+            scalaCompileOptions.forkOptions.jvmArgs = ['-XX:MaxPermSize=1024m']
             scalaCompileOptions.useAnt = false
             scalaCompileOptions.deprecation = true
             scalaCompileOptions.unchecked = true
@@ -215,11 +216,9 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         maven { url "http://maven.restlet.org" }
     }
 
-    /* Disabled until rest api randomizes zk server port.
     test {
-        maxParallelForks = 6
+        maxParallelForks = 8
     }
-    */
 
     tasks.build {
         dependsOn(perfClasses)
@@ -294,12 +293,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         }
 
         dependsOn(compileBenchmarks)
-    }
-
-    cobertura {
-        rootProject.subprojects.each {
-            coverageDirs << file("${it.name}/build/classes/main")
-        }
     }
 }
 

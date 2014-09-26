@@ -48,33 +48,33 @@ cobertura {
     coverageSourceDirs << sourceSets.main.scala.srcDirs
 
     coverageExcludes = [
-        '.*/FlowController$Wildcard.*',
-        '.*/FlowController$Wildcard.*',
-        '.*/FlowController$Add.*',
-        '.*/FlowController$Remove.*',
-        '.*/FlowController$Invalidate.*',
-        '.*/FlowController$FlowAdded.*',
-        '.*/FlowController$Internal$.*',
+        '.*FlowController$Wildcard.*',
+        '.*FlowController$Wildcard.*',
+        '.*FlowController$Add.*',
+        '.*FlowController$Remove.*',
+        '.*FlowController$Invalidate.*',
+        '.*FlowController$FlowAdded.*',
+        '.*FlowController$Internal$.*',
 
-        '.*/DatapathController$DpPort.*',
-        '.*/DatapathController$Init.*',
-        '.*/DatapathController$Datapath.*',
-        '.*/DatapathController$Internal$.*',
+        '.*DatapathController$DpPort.*',
+        '.*DatapathController$Init.*',
+        '.*DatapathController$Datapath.*',
+        '.*DatapathController$Internal$.*',
 
-        '.*/DeduplicationActor$ApplyFlow.*',
-        '.*/DeduplicationActor$.*Packet.*',
-        '.*/DeduplicationActor$_.*',
+        '.*DeduplicationActor$ApplyFlow.*',
+        '.*DeduplicationActor$.*Packet.*',
+        '.*DeduplicationActor$_.*',
 
-        '.*/PacketWorkflow$PacketIn.*',
-        '.*/PacketWorkflow$SendPacket.*',
-        '.*/PacketWorkflow$AddVirtual.*',
+        '.*PacketWorkflow$PacketIn.*',
+        '.*PacketWorkflow$SendPacket.*',
+        '.*PacketWorkflow$AddVirtual.*',
 
-        '.*/Coordinator$ToPort.*',
-        '.*/Coordinator$DoFlowAction.*',
-        '.*/Coordinator$ForkAction.*',
-        '.*/VirtualActions$.*',
+        '.*Coordinator$ToPort.*',
+        '.*Coordinator$DoFlowAction.*',
+        '.*Coordinator$ForkAction.*',
+        '.*VirtualActions$.*',
 
-        '.*/VxLanPortMapper$Internal$.*'
+        '.*VxLanPortMapper$Internal$.*'
     ]
 }
 
@@ -104,6 +104,24 @@ task preparePkg(type: Copy, dependsOn: installDist) {
     from("src/deb/bin/mm-dpctl") {
         into "usr/bin"
     }
+    from("src/deb/bin/mm-ctl") {
+        into "usr/bin"
+    }
+    from("src/deb/bin/mm-tests") {
+        into "usr/bin"
+    }
+    from("src/deb/bin/mm-stat") {
+        into "usr/bin"
+    }
+    from("src/deb/init/midolman-prepare") {
+        into "usr/share/midolman"
+    }
+    from("src/deb/init/midolman-start") {
+        into "usr/share/midolman"
+    }
+    from("src/deb/init/midolman-env.sh") {
+        into "usr/share/midolman"
+    }
     into "${pkgDestDir}"
 
     doLast {
@@ -124,14 +142,21 @@ packaging {
     url = project.url
     description = 'Midolman is a virtual network controller'
     dependencies = [ 'quagga (>= 0.99.21)', 'bridge-utils',
-      'java7-runtime-headless',
-      'openvswitch-datapath-dkms (>= 1.9) | openvswitch-datapath-source (>= 1.9)']
-    confFiles = ['/etc/midolman/midolman.conf',
-                 '/etc/midolman/midolman-akka.conf',
+      'java7-runtime-headless', 'haproxy', 'iproute (>= 20111117-1ubuntu2.1)',
+      'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0)']
+    confFiles = ['/etc/midolman/midolman-akka.conf',
+                 '/etc/midolman/midolman-akka.conf.compute',
+                 '/etc/midolman/midolman-akka.conf.gateway',
                  '/etc/midolman/midolman-env.sh',
-                 '/etc/midolman/midolman-agent.conf',
+                 '/etc/midolman/midolman-env.sh.compute',
+                 '/etc/midolman/midolman-env.sh.gateway',
+                 '/etc/midolman/midolman.conf',
+                 '/etc/midolman/midolman.conf.compute',
+                 '/etc/midolman/midolman.conf.gateway',
                  '/etc/midolman/logback.xml' ] 
     fpmOpts = ['-a', 'all',
+               '--category', 'network',
+               '--url', 'http://midokura.com',
                '--before-install', "${project.projectDir}/src/deb/control/preinst",
                '--after-remove', "${project.projectDir}/src/deb/control/postrm",
                '--before-remove', "${project.projectDir}/src/deb/control/prerm" ]
@@ -145,6 +170,9 @@ debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '--conflicts', 'openvswitch-switch',
+        '--conflicts', 'openvswitch-datapath-source (>= 1.11)',
+        '--conflicts', 'openvswitch-datapath-dkms (>= 1.11)',
         '--deb-recommends', 'java7-runtime-headless | java7-runtime',
         '--after-install', "${project.projectDir}/src/deb/control/postinst"])
 }
@@ -157,4 +185,11 @@ rpm.doFirst {
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
         '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+}
+
+debian.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+rpm.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
 }
