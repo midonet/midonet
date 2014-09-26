@@ -24,14 +24,14 @@ public class MAC {
 
     private static final Random rand = new Random();
 
-    public static final long MAC_MASK = 0x0000_FFFF_FFFF_FFFFL;
-    public static final long MAC_NIC_MASK = 0x0000_0000_00FF_FFFFL;
+    public static final long MAC_MASK = 0x0000FFFFFFFFFFFFL;
+    public static final long MAC_NIC_MASK = 0x0000000000FFFFFFL;
     // Midokura's Organization Unique Identifier as follows:
     //   AC-CA-BA   (hex)       Midokura Co., Ltd.
     //   ACCABA     (base 16)   Midokura Co., Ltd.
     // Refer to the following OUI list:
     //   http://standards.ieee.org/develop/regauth/oui/oui.txt
-    public static final long MIDOKURA_OUI_MASK = 0x0000_ACCA_BA00_0000L;
+    public static final long MIDOKURA_OUI_MASK = 0x0000ACCABA000000L;
     public static final long MULTICAST_BIT = 0x1L << 40;
 
     public final static String regex =
