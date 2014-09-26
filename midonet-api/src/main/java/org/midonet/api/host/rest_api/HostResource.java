@@ -154,18 +154,6 @@ public class HostResource extends AbstractResource {
         return factory.getInterfaceResource(hostId);
     }
 
-    /**
-     * Interface resource locator for hosts.
-     *
-     * @param hostId Host ID from the request.
-     * @return InterfaceResource object to handle sub-resource requests.
-     */
-    @Path("/{id}" + ResourceUriBuilder.COMMANDS)
-    public HostCommandResource getHostCommandsResource(
-        @PathParam("id") UUID hostId) {
-        return factory.getHostCommandsResource(hostId);
-    }
-
     @Path("/{id}" + ResourceUriBuilder.PORTS)
     public HostInterfacePortResource getHostInterfacePortResource(
             @PathParam("id") UUID hostId) {
