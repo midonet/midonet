@@ -18,7 +18,7 @@ import org.midonet.cluster.models.Devices.Chain
 import org.midonet.cluster.models.Devices.Port
 import org.midonet.cluster.models.Devices.Router
 import org.midonet.cluster.models.Devices.Rule
-import org.midonet.cluster.util.UUID.randomUuidProto
+import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
  * Provides utility methods for testing Storage Service.
