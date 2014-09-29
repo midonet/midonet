@@ -5,7 +5,7 @@ package org.midonet.midolman.util.mock
 
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
+import akka.actor.{Actor, ActorSystem}
 import akka.testkit.TestActorRef
 
 import org.midonet.midolman.{MockScheduler, Referenceable}
@@ -25,16 +25,16 @@ trait MockMidolmanActors {
     protected def withDispatcher(dispatcher: String) =
         actorsService.dispatcher = dispatcher
 
-    protected def registerActors(actors: (Referenceable, () => MessageAccumulator)*) =
+    protected def registerActors(actors: (Referenceable, () => Actor)*) =
         actorsService.register(actors)
 
-    implicit def toActorRef(ref: Referenceable): TestActorRef[MessageAccumulator] =
+    implicit def toActorRef(ref: Referenceable): TestActorRef[Actor] =
         actorsService.actor(ref)
 
     implicit def toMessageAccumulator(ref: Referenceable): MessageAccumulator =
-        toActorRef(ref).underlyingActor
+        toTypedActor(ref).as[MessageAccumulator]
 
     implicit def toTypedActor(ref: Referenceable) = new {
-        def as[A] = toMessageAccumulator(ref).asInstanceOf[A with MessageAccumulator]
+        def as[A] = toActorRef(ref).underlyingActor.asInstanceOf[A]
     }
 }
