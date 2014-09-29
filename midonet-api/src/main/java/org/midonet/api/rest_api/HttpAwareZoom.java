@@ -14,6 +14,7 @@ import org.midonet.cluster.data.storage.NotFoundException;
 import org.midonet.cluster.data.storage.ObjectExistsException;
 import org.midonet.cluster.data.storage.ObjectReferencedException;
 import org.midonet.cluster.data.storage.ReferenceConflictException;
+import org.midonet.cluster.data.storage.ServiceUnavailableException;
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
 import org.midonet.cluster.data.storage.PersistenceOp;
 
@@ -37,29 +38,8 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     public void create(Object obj) {
         try {
             super.create(obj);
-        } catch (NotFoundException nfe) {
-            throw new NotFoundHttpException(
-                    nfe, getMessage(ZOOM_OBJECT_NOT_FOUND_EXCEPTION,
-                                    nfe.clazz(), nfe.id()));
-        } catch (ObjectExistsException oee) {
-            throw new ConflictHttpException(
-                    oee, getMessage(ZOOM_OBJECT_EXISTS_EXCEPTION,
-                                    oee.clazz(), oee.id()));
-        } catch (ReferenceConflictException rce) {
-            throw new ConflictHttpException(
-                    rce, getMessage(ZOOM_REFERENCE_CONFLICT_EXCEPTION,
-                                    rce.referencingClass(),
-                                    rce.referencingId(),
-                                    rce.referencedClass(),
-                                    rce.referencedId(),
-                                    rce.referencingFieldName()));
-        } catch (ConcurrentModificationException cme) {
-            throw new ConflictHttpException(
-                    cme, getMessage(ZOOM_CONCURRENT_MODIFICATION));
         } catch (Exception ex) {
-            log.error("Unexpected exception during ZOOM create.", ex);
-            throw new InternalServerErrorHttpException(
-                    ex, getMessage(ZOOM_SERVER_ERROR));
+            wrapAndRethrow(ex, "create");
         }
     }
 
@@ -67,25 +47,8 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     public void update(Object newThisObj) {
         try {
             super.update(newThisObj);
-        } catch (NotFoundException nfe) {
-            throw new NotFoundHttpException(
-                    nfe, getMessage(ZOOM_OBJECT_NOT_FOUND_EXCEPTION,
-                                    nfe.clazz(), nfe.id()));
-        } catch (ReferenceConflictException rce) {
-            throw new ConflictHttpException(
-                    rce, getMessage(ZOOM_REFERENCE_CONFLICT_EXCEPTION,
-                                    rce.referencingClass(),
-                                    rce.referencingId(),
-                                    rce.referencedClass(),
-                                    rce.referencedId(),
-                                    rce.referencingFieldName()));
-        } catch (ConcurrentModificationException cme) {
-            throw new ConflictHttpException(
-                    cme, getMessage(ZOOM_CONCURRENT_MODIFICATION));
-        } catch (Exception ex) {
-            log.error("Unexpected exception during ZOOM update.", ex);
-            throw new InternalServerErrorHttpException(
-                    ex, getMessage(ZOOM_SERVER_ERROR));
+        } catch (NotFoundException | ReferenceConflictException ex) {
+            wrapAndRethrow(ex, "update");
         }
     }
 
@@ -93,25 +56,9 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     public void delete(Class<?> clazz, Object id) {
         try {
             super.delete(clazz, id);
-        } catch (NotFoundException nfe) {
-            // TODO: Or ignore?
-            throw new NotFoundHttpException(
-                    nfe, getMessage(ZOOM_OBJECT_NOT_FOUND_EXCEPTION,
-                                    nfe.clazz(), nfe.id()));
-        } catch (ObjectReferencedException ore) {
-            throw new ConflictHttpException(
-                    ore, getMessage(ZOOM_OBJECT_REFERENCED_EXCEPTION,
-                                    ore.referencedClass(),
-                                    ore.referencedId(),
-                                    ore.referencingClass(),
-                                    ore.referencingId()));
-        } catch (ConcurrentModificationException cme) {
-            throw new ConflictHttpException(
-                    cme, getMessage(ZOOM_CONCURRENT_MODIFICATION));
         } catch (Exception ex) {
-            log.error("Unexpected exception during ZOOM delete.", ex);
-            throw new InternalServerErrorHttpException(
-                    ex, getMessage(ZOOM_SERVER_ERROR));
+            // TODO: Catch and ignore NotFoundException for idempotency?
+            wrapAndRethrow(ex, "delete");
         }
     }
 
@@ -119,20 +66,23 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     public <T> T get(Class<T> clazz, Object id) {
         try {
             return super.get(clazz, id);
-        } catch (NotFoundException nfe) {
-            throw new NotFoundHttpException(
-                    nfe, getMessage(ZOOM_OBJECT_NOT_FOUND_EXCEPTION,
-                                    nfe.clazz(), nfe.id()));
         } catch (Exception ex) {
-            log.error("Unexpected exception during ZOOM get.", ex);
-            throw new InternalServerErrorHttpException(
-                    ex, getMessage(ZOOM_SERVER_ERROR));
+            wrapAndRethrow(ex, "get");
+            // Won't get here because wrapAndRethrow always throws, but the
+            // compiler, or at least IDEA, doesn't know that, so we need this
+            // to stop it from complaining about a path that doesn't return
+            // a value.
+            return null;
         }
     }
 
     @Override
     public void multi(List<PersistenceOp> ops) {
-        super.multi(ops);
+        try {
+            super.multi(ops);
+        } catch (Exception ex) {
+            wrapAndRethrow(ex, "multi");
+        }
     }
 
     @Override
@@ -143,5 +93,52 @@ public class HttpAwareZoom extends ZookeeperObjectMapper {
     @Override
     public boolean isRegistered(Class<?> clazz) {
         return super.isRegistered(clazz);
+    }
+
+    /**
+     * Standard transformations for exceptions thrown by Zoom. If an operation
+     * needs to handle a particular exception in a non-standard way, it can
+     * catch that exception before it gets here.
+     */
+    private void wrapAndRethrow(Exception ex, String opName) {
+        if (ex instanceof ConcurrentModificationException) {
+            throw new ConflictHttpException(
+                ex, getMessage(ZOOM_CONCURRENT_MODIFICATION));
+        } else if (ex instanceof NotFoundException) {
+            NotFoundException nfe = (NotFoundException)ex;
+            throw new NotFoundHttpException(
+                nfe, getMessage(ZOOM_OBJECT_NOT_FOUND_EXCEPTION,
+                                nfe.clazz(), nfe.id()));
+        } else if (ex instanceof ObjectExistsException) {
+            ObjectExistsException oee = (ObjectExistsException)ex;
+            throw new ConflictHttpException(
+                oee, getMessage(ZOOM_OBJECT_EXISTS_EXCEPTION,
+                                oee.clazz(), oee.id()));
+        } else if (ex instanceof ObjectReferencedException) {
+            ObjectReferencedException ore = (ObjectReferencedException)ex;
+            throw new ConflictHttpException(
+                ore, getMessage(ZOOM_OBJECT_REFERENCED_EXCEPTION,
+                                ore.referencedClass(),
+                                ore.referencedId(),
+                                ore.referencingClass(),
+                                ore.referencingId()));
+        } else if (ex instanceof ReferenceConflictException) {
+            ReferenceConflictException rce = (ReferenceConflictException)ex;
+            throw new ConflictHttpException(
+                rce, getMessage(ZOOM_REFERENCE_CONFLICT_EXCEPTION,
+                                rce.referencingClass(),
+                                rce.referencingId(),
+                                rce.referencedClass(),
+                                rce.referencedId(),
+                                rce.referencingFieldName()));
+        } else if (ex instanceof ServiceUnavailableException) {
+            log.error("ZOOM service unavailable.", ex);
+            throw new ServiceUnavailableHttpException();
+        } else {
+            log.error("Unexpected exception during ZOOM " + opName +
+                      " operation.", ex);
+            throw new InternalServerErrorHttpException(
+                ex, getMessage(ZOOM_SERVER_ERROR));
+        }
     }
 }
