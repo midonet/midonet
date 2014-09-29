@@ -14,6 +14,13 @@ class InternalObjectMapperException private[storage](val message: String,
     private[storage] def this(cause: Throwable) = this(null, cause)
 }
 
+/**
+ * Thrown when the StorageService receives a request while it is unable to
+ * service requests.
+ */
+class ServiceUnavailableException(val message: String)
+    extends RuntimeException(message)
+
 class NotFoundException private[storage](val clazz: Class[_], val id: ObjId)
     extends RuntimeException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."

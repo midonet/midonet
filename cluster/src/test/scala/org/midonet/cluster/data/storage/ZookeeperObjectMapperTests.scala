@@ -56,6 +56,8 @@ class ZookeeperObjectMapperTests extends Suite
 
         zom.declareBinding(classOf[PojoRule], "portIds", CLEAR,
                            classOf[PojoPort], "ruleIds", CLEAR)
+
+        zom.build()
     }
 
     def testMultiCreate() {

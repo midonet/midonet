@@ -23,7 +23,7 @@ import rx.{Observable, Observer, Subscription}
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import scala.collection.mutable
+import scala.collection.{Set, mutable}
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -79,6 +79,8 @@ class ZookeeperObjectMapper(private val basePath: String,
                             private val curator: CuratorFramework)
                             extends StorageService {
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+
+    @volatile private var built = false
 
     private val locksPath = basePath + "/zoomlocks/lock"
 
@@ -371,6 +373,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      * intended to be stored in this instance of ZookeeperObjectManager.
      */
     def registerClass(clazz: Class[_]) {
+        assert(!built)
         val name = clazz.getSimpleName
         simpleNameToClass.get(name) match {
             case Some(_) =>
@@ -400,6 +403,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                        onDeleteLeft: DeleteAction,
                        rightClass: Class[_], rightFieldName: String,
                        onDeleteRight: DeleteAction): Unit = {
+        assert(!built)
         assert(isRegistered(leftClass))
         assert(isRegistered(rightClass))
 
@@ -426,9 +430,49 @@ class ZookeeperObjectMapper(private val basePath: String,
     }
 
     /**
-     * For testing. There should be no need to do this in production.
+     * This method must be called after all calls to registerClass() and
+     * declareBinding() have been made, but before any calls to data-related
+     * methods such as CRUD operations and subscribe().
      */
-    private[storage] def clearBindings() = allBindings.clear()
+    def build() {
+        assert(!built)
+        ensureClassNodes(instanceCaches.keySet)
+        built = true
+    }
+
+    def isBuilt = built
+
+    /**
+     * Ensures that the class nodes in Zookeeper for each provided class exist,
+     * creating them if needed.
+     */
+    private def ensureClassNodes(classes: Set[Class[_]]) {
+        assert(classes.forall(isRegistered))
+
+        // First try a multi-check for all the classes. If they already exist,
+        // as they usually will except on the first startup, we can verify this
+        // in a single round trip to Zookeeper.
+        var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
+        for (clazz <- classes)
+            txn = txn.check().forPath(getPath(clazz)).and()
+        try {
+            txn.commit()
+            return
+        } catch {
+            case ex: Exception =>
+                log.info("Could not confirm existence of all class nodes in " +
+                         "Zookeeper. Creating missing class node(s).")
+        }
+
+        // One or more didn't exist, so we'll have to check them individually.
+        for (clazz <- classes) {
+            val ensurePath = new EnsurePath(getPath(clazz))
+            try ensurePath.ensure(curator.getZookeeperClient) catch {
+                case ex: Exception => throw new
+                        InternalObjectMapperException(ex)
+            }
+        }
+    }
 
     /**
      * Persists the specified object to Zookeeper. The object must have a field
@@ -460,6 +504,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      */
     @throws[NotFoundException]
     override def get[T](clazz: Class[T], id: ObjId): T = {
+        assertBuilt()
         assert(isRegistered(clazz))
         val data = try curator.getData.forPath(getPath(clazz, id)) catch {
             case nne: NoNodeException => throw new NotFoundException(clazz, id)
@@ -473,6 +518,7 @@ class ZookeeperObjectMapper(private val basePath: String,
      * Gets all instances of the specified class from Zookeeper.
      */
     override def getAll[T](clazz: Class[T]): JList[T] = {
+        assertBuilt()
         assert(isRegistered(clazz))
         val ids = try curator.getChildren.forPath(getPath(clazz)) catch {
             case ex: Exception =>
@@ -497,6 +543,8 @@ class ZookeeperObjectMapper(private val basePath: String,
      * Returns true if the specified object exists in Zookeeper.
      */
     override def exists(clazz: Class[_], id: ObjId): Boolean = {
+        assertBuilt()
+        assert(isRegistered(clazz))
         try {
             curator.checkExists().forPath(getPath(clazz, id)) != null
         } catch {
@@ -512,6 +560,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
     override def multi(ops: Seq[PersistenceOp]): Unit = {
+        assertBuilt()
         if (ops.isEmpty) return
 
         val manager = new TransactionManager
@@ -576,6 +625,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     override def subscribe[T](clazz: Class[T],
                               id: ObjId,
                               obs: Observer[_ >: T]): Subscription = {
+        assertBuilt()
         assert(isRegistered(clazz))
         val cache = instanceCaches(clazz).getOrElse(id, {
             val path = getPath(clazz, id)
@@ -603,6 +653,7 @@ class ZookeeperObjectMapper(private val basePath: String,
     override def subscribeAll[T](
             clazz: Class[T],
             obs: Observer[_ >: Observable[T]]): Subscription = {
+        assertBuilt()
         assert(isRegistered(clazz))
         val cache = classCaches.getOrElse(clazz, {
             val nw = new ClassSubscriptionCache(clazz, getPath(clazz), curator)
@@ -612,6 +663,11 @@ class ZookeeperObjectMapper(private val basePath: String,
             }
         }).asInstanceOf[ClassSubscriptionCache[T]]
         cache.subscribe(obs)
+    }
+
+    private def assertBuilt() {
+        if (!built) throw new ServiceUnavailableException(
+            "Data operation received before call to build().")
     }
 
     private trait IdGetter {
