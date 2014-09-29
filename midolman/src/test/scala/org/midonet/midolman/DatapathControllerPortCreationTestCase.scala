@@ -9,6 +9,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.time.{Seconds, Span}
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.host.Host
@@ -114,7 +115,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             addInterface()
 
             Then("the DpC should create the datapath port")
-            eventually {
+            eventually(timeout(Span(2, Seconds))) {
                 testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             }
             And("the min MTU should be the interface one")
