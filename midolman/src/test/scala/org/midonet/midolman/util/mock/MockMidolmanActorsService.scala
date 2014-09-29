@@ -48,15 +48,15 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
     override val injector: Injector = null
     private[this] var props = mutable.Map[String, Props]()
     private[this] val actors =
-        mutable.Map[String, TestActorRef[MessageAccumulator]]()
+        mutable.Map[String, TestActorRef[Actor]]()
     var dispatcher: String = _
 
-    def actor(actor: Referenceable): TestActorRef[MessageAccumulator] =
+    def actor(actor: Referenceable): TestActorRef[Actor] =
         actors.get(actor.Name) getOrElse {
             throw new IllegalArgumentException(s"No actor named ${actor.Name}")
         }
 
-    def register(actors: Seq[(Referenceable, () => MessageAccumulator)]) {
+    def register(actors: Seq[(Referenceable, () => Actor)]) {
         actors foreach { case (ref, f) =>
             props += ref.Name -> Props(injectedActor(f))
         }
@@ -76,8 +76,7 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
 
     override protected def startActor(specs: (Props, String)) = {
         val (_, name) = specs
-        var p = props.getOrElse(name, Props(new EmptyActor
-                                            with MessageAccumulator))
+        var p = props.getOrElse(name, Props(new EmptyActor with MessageAccumulator))
 
         p = setDispatcher(p)
 
@@ -87,7 +86,7 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
         val supervisor = Await.result(supervisorActor ? Identify(null),
                                       Duration.Inf)
                               .asInstanceOf[ActorIdentity].ref.get
-        val testRef = TestActorRef[MessageAccumulator](p, supervisor, name)
+        val testRef = TestActorRef[Actor](p, supervisor, name)
         actors += (name -> testRef)
         Future successful testRef
     }
