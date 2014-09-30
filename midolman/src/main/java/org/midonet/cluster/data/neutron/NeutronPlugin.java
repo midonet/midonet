@@ -18,13 +18,12 @@ package org.midonet.cluster.data.neutron;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
 
 import com.google.inject.Inject;
 
-import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.zookeeper.Op;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +35,14 @@ import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
+import org.midonet.cluster.data.util.ZkOpLock;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkOpList;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
+
 
 /**
  * MidoNet implementation of Neutron plugin interface.
@@ -55,6 +56,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     public static final String LOCK_NAME = "neutron";
     public static final int LOCK_WAIT_SEC = 5;
+    private AtomicInteger lockOpNumber = new AtomicInteger(0);
 
     @Inject
     private ZkManager zkManager;
@@ -82,28 +84,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // The following wrapper functions for locking are defined so that
     // these lock methods throw a RuntimeException instead of checked Exception
-    private InterProcessSemaphoreMutex acquireLock() {
+    private ZkOpLock acquireLock() {
 
-        InterProcessSemaphoreMutex lock = lockFactory.createShared(LOCK_NAME);
+        ZkOpLock lock = new ZkOpLock(lockFactory, lockOpNumber.getAndAdd(1),
+                                     LOCK_NAME);
 
-        try {
-            if (!lock.acquire(LOCK_WAIT_SEC, TimeUnit.SECONDS)) {
-                throw new RuntimeException("Could not acquire lock in time");
-            }
-        } catch (Exception ex){
-            throw new RuntimeException(ex);
-        }
+        lock.acquire();
 
         return lock;
-    }
-
-    private void releaseLock(InterProcessSemaphoreMutex lock) {
-
-        try {
-            lock.release();
-        } catch (Exception ex){
-            throw new RuntimeException(ex);
-        }
     }
 
     @Override
@@ -111,7 +99,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             if (network.external) {
                 // Ensure that the provider router is created for this provider.
@@ -125,7 +113,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             networkZkManager.prepareCreateNetwork(ops, network);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getNetwork(network.id);
@@ -137,7 +125,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             for (Network network : networks) {
                 networkZkManager.prepareCreateNetwork(ops, network);
@@ -145,7 +133,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             commitOps(ops);
 
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         List<Network> nets = new ArrayList<>(networks.size());
@@ -159,7 +147,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteNetwork(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             Network net = networkZkManager.getNetwork(id);
             if (net == null) {
@@ -179,7 +167,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -201,7 +189,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                BridgeZkManager.VxLanPortIdUpdateException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
 
             // Note that the internal vxlan port id of the bridge is not being
@@ -216,7 +204,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // Throws NotStatePathException if it does not exist.
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getNetwork(id);
@@ -227,7 +215,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             networkZkManager.prepareCreateSubnet(ops, subnet);
 
@@ -239,7 +227,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getSubnet(subnet.id);
@@ -250,14 +238,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             for (Subnet subnet : subnets) {
                 networkZkManager.prepareCreateSubnet(ops, subnet);
             }
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         List<Subnet> newSubnets = new ArrayList<>(subnets.size());
@@ -272,7 +260,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteSubnet(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             Subnet sub = networkZkManager.getSubnet(id);
             if (sub == null) {
@@ -289,7 +277,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -310,14 +298,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             networkZkManager.prepareUpdateSubnet(ops, subnet);
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getSubnet(id);
@@ -364,12 +352,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         List<Op> ops = new ArrayList<>();
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             createPortOps(ops, port);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getPort(port.id);
@@ -381,14 +369,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             for (Port port : ports) {
                 createPortOps(ops, port);
             }
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         List<Port> outPorts = new ArrayList<>(ports.size());
@@ -403,7 +391,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException,
                Rule.RuleIndexOutOfBoundsException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             Port port = getPort(id);
             if (port == null) {
@@ -442,7 +430,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             networkZkManager.prepareDeleteNeutronPort(ops, port);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -465,7 +453,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
         // Fixed IP and security groups can be updated
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             if (port.isVif()) {
 
@@ -485,7 +473,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getPort(id);
@@ -497,13 +485,13 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             // Create a RouterConfig in ZK
             l3ZkManager.prepareCreateRouter(ops, router);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getRouter(router.id);
@@ -525,7 +513,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public final void deleteRouter(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             Router router = l3ZkManager.getRouter(id);
             if (router == null) {
@@ -536,7 +524,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             l3ZkManager.prepareDeleteRouter(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -546,7 +534,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             // Update the router config
             l3ZkManager.prepareUpdateRouter(ops, router);
@@ -555,7 +543,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // exist.
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getRouter(router.id);
@@ -567,12 +555,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             l3ZkManager.prepareCreateRouterInterface(ops, routerInterface);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return routerInterface;
@@ -594,12 +582,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             l3ZkManager.prepareCreateFloatingIp(ops, floatingIp);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getFloatingIp(floatingIp.id);
@@ -623,7 +611,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteFloatingIp(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             FloatingIp fip = l3ZkManager.getFloatingIp(id);
             if (fip == null) {
@@ -638,7 +626,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             l3ZkManager.prepareDeleteFloatingIp(ops, fip);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -654,12 +642,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         }
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             l3ZkManager.prepareUpdateFloatingIp(ops, floatingIp);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return l3ZkManager.getFloatingIp(id);
@@ -671,12 +659,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getSecurityGroup(sg.id);
@@ -688,14 +676,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException,
                Rule.RuleIndexOutOfBoundsException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             for (SecurityGroup sg : sgs) {
                 securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
             }
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         List<SecurityGroup> newSgs = new ArrayList<>(sgs.size());
@@ -710,7 +698,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteSecurityGroup(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             SecurityGroup sg = securityGroupZkManager.getSecurityGroup(id);
             if (sg == null) {
@@ -722,7 +710,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             securityGroupZkManager.prepareDeleteSecurityGroup(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -763,14 +751,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             securityGroupZkManager.prepareUpdateSecurityGroup(ops, sg);
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getSecurityGroup(id);
@@ -783,12 +771,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         return getSecurityGroupRule(rule.id);
@@ -801,7 +789,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                Rule.RuleIndexOutOfBoundsException {
 
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             for (SecurityGroupRule rule : rules) {
                 securityGroupZkManager.prepareCreateSecurityGroupRule(ops,
@@ -809,7 +797,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             }
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
 
         List<SecurityGroupRule> newRules = new ArrayList<>(rules.size());
@@ -824,7 +812,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteSecurityGroupRule(@Nonnull UUID id)
         throws StateAccessException, SerializationException {
 
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             SecurityGroupRule rule =
                 securityGroupZkManager.getSecurityGroupRule(id);
@@ -837,7 +825,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             securityGroupZkManager.prepareDeleteSecurityGroupRule(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -871,12 +859,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void createPool(Pool pool)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreatePool(ops, pool);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -884,12 +872,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void updatePool(UUID id, Pool pool)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdatePool(ops, id, pool);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -897,12 +885,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deletePool(UUID id)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeletePool(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -923,12 +911,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void createMember(Member member)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateMember(ops, member);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -936,12 +924,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void updateMember(UUID id, Member member)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateMember(ops, id, member);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -949,12 +937,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteMember(UUID id)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteMember(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -975,12 +963,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void createVip(VIP vip)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateVip(ops, vip);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -988,12 +976,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void updateVip(UUID id, VIP vip)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateVip(ops, id, vip);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1001,12 +989,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteVip(UUID id)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteVip(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1027,12 +1015,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void createHealthMonitor(HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateHealthMonitor(ops, healthMonitor);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1041,12 +1029,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                                              HealthMonitor healthMonitor)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateHealthMonitor(ops, id, healthMonitor);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1054,12 +1042,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deleteHealthMonitor(UUID id)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteHealthMonitor(ops, id);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1069,12 +1057,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                                         PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.createPoolHealthMonitor(ops, poolId, poolHealthMonitor);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 
@@ -1082,12 +1070,12 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     public void deletePoolHealthMonitor(UUID poolId, UUID hmId)
         throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
-        InterProcessSemaphoreMutex lock = acquireLock();
+        ZkOpLock lock = acquireLock();
         try {
             lbZkManager.deletePoolHealthMonitor(ops, poolId, hmId);
             commitOps(ops);
         } finally {
-            releaseLock(lock);
+            lock.release();
         }
     }
 }

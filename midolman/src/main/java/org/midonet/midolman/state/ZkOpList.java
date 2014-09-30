@@ -25,6 +25,7 @@ import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.commons.lang.time.StopWatch;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
@@ -260,11 +261,16 @@ public class ZkOpList {
      * Commit the Ops with duplicate paths removed.
      */
     public void commit() throws StateAccessException {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         if (size() > 0) {
             tryCommit(DEL_RETRIES);
             clear();
         } else {
             logger.warn("No Op to commit");
         }
+        stopWatch.stop();
+        logger.debug("Commit operation took " + stopWatch.getTime() +
+                     " milliseconds.");
     }
 }
