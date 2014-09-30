@@ -5,19 +5,17 @@
  */
 package org.midonet.midolman.state;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.UUID;
+
 import org.midonet.cluster.data.Bridge;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
-import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.UUID;
 
 /**
  * This class was created to have all state classes share the Zk path
@@ -69,10 +67,7 @@ public class ZkPathManager {
 
 
     public String getHostVersionPath(UUID uuid, String version) {
-        return new StringBuilder(getVersionPath(version))
-                                 .append("/")
-                                 .append(uuid)
-                                 .toString();
+        return getVersionPath(version) + "/" + uuid;
     }
 
     private StringBuilder buildHealthMonitorLeaderDirPath() {
@@ -83,16 +78,6 @@ public class ZkPathManager {
         return buildHealthMonitorLeaderDirPath().toString();
     }
 
-    public String getHealthMonitorNodeFullPath(String node) {
-        return buildHealthMonitorLeaderDirPath()
-                .append("/").append(node).toString();
-    }
-
-    /**
-     * Get tunnel (GRE) path.
-     *
-     * @return /gre
-     */
     public String getTunnelPath() {
         return buildTunnelPath().toString();
     }
@@ -527,7 +512,8 @@ public class ZkPathManager {
         return buildBridgeDhcpSubnetPath(bridgeId, subnetAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpSubnetPath(UUID bridgeId, IPv4Subnet subnetAddr) {
+    private StringBuilder buildBridgeDhcpSubnetPath(UUID bridgeId,
+                                                    IPv4Subnet subnetAddr) {
         return buildBridgeDhcpPath(bridgeId).append("/")
             .append(subnetAddr.toZkString());
     }
@@ -542,7 +528,8 @@ public class ZkPathManager {
         return buildBridgeDhcpHostsPath(bridgeId, subnetAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpHostsPath(UUID bridgeId, IPv4Subnet subnetAddr) {
+    private StringBuilder buildBridgeDhcpHostsPath(UUID bridgeId,
+                                                   IPv4Subnet subnetAddr) {
         return new StringBuilder(getBridgeDhcpSubnetPath(bridgeId, subnetAddr))
             .append("/hosts");
     }
@@ -559,7 +546,9 @@ public class ZkPathManager {
                                        macAddr).toString();
     }
 
-    private StringBuilder buildBridgeDhcpHostPath(UUID bridgeId, IPv4Subnet subnetAddr, MAC macAddr) {
+    private StringBuilder buildBridgeDhcpHostPath(UUID bridgeId,
+                                                  IPv4Subnet subnetAddr,
+                                                  MAC macAddr) {
         return new StringBuilder(getBridgeDhcpHostsPath(bridgeId, subnetAddr))
             .append('/').append(macAddr.toString());
     }
@@ -588,7 +577,8 @@ public class ZkPathManager {
         return buildBridgeDhcpSubnet6Path(bridgeId, prefix).toString();
     }
 
-    private StringBuilder buildBridgeDhcpSubnet6Path(UUID bridgeId, IPv6Subnet prefix) {
+    private StringBuilder buildBridgeDhcpSubnet6Path(UUID bridgeId,
+                                                     IPv6Subnet prefix) {
         return buildBridgeDhcpV6Path(bridgeId).append("/")
             .append(prefix.toZkString());
     }
@@ -603,7 +593,8 @@ public class ZkPathManager {
         return buildBridgeDhcpV6HostsPath(bridgeId, prefix).toString();
     }
 
-    private StringBuilder buildBridgeDhcpV6HostsPath(UUID bridgeId, IPv6Subnet prefix) {
+    private StringBuilder buildBridgeDhcpV6HostsPath(UUID bridgeId,
+                                                     IPv6Subnet prefix) {
         return new StringBuilder(getBridgeDhcpSubnet6Path(bridgeId, prefix))
             .append("/hosts");
     }
@@ -619,7 +610,9 @@ public class ZkPathManager {
         return buildBridgeDhcpV6HostPath(bridgeId, prefix, clientId).toString();
     }
 
-    private StringBuilder buildBridgeDhcpV6HostPath(UUID bridgeId, IPv6Subnet prefix, String clientId) {
+    private StringBuilder buildBridgeDhcpV6HostPath(UUID bridgeId,
+                                                    IPv6Subnet prefix,
+                                                    String clientId) {
         return new StringBuilder(getBridgeDhcpV6HostsPath(bridgeId, prefix))
             .append('/').append(clientId);
     }
@@ -632,34 +625,8 @@ public class ZkPathManager {
         return buildVlanBridgeTrunkPortsPath(bridgeId).toString();
     }
 
-    public String getVlanBridgeTrunkPortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgeTrunkPortPath(bridgeId, portId).toString();
-    }
-
-    private StringBuilder buildVlanBridgeTrunkPortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgeTrunkPortsPath(bridgeId)
-            .append("/").append(portId);
-    }
-
-    public String getVlanBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgeLogicalPortPath(bridgeId, portId).toString();
-    }
-
-    private StringBuilder buildVlanBridgeLogicalPortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgeLogicalPortsPath(bridgeId)
-            .append("/").append(portId);
-    }
-
     private StringBuilder buildVlanBridgeLogicalPortsPath(UUID bridgeId) {
         return buildVlanBridgePath(bridgeId).append("/interior-ports");
-    }
-
-    public String getVlanBridgePortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgePortPath(bridgeId, portId).toString();
-    }
-
-    private StringBuilder buildVlanBridgePortPath(UUID bridgeId, UUID portId) {
-        return buildVlanBridgeTrunkPortsPath(bridgeId).append("/").append(portId);
     }
 
     private StringBuilder buildVlanBridgeTrunkPortsPath(UUID bridgeId) {
@@ -676,10 +643,6 @@ public class ZkPathManager {
 
     protected StringBuilder buildVlanBridgesPath() {
         return basePath().append("/vlan-bridges");
-    }
-
-    public String getVlanBridgePath(UUID id) {
-        return buildVlanBridgePath(id).toString();
     }
 
     protected StringBuilder buildVlanBridgePath(UUID id) {
@@ -706,49 +669,6 @@ public class ZkPathManager {
 
     private StringBuilder buildBridgeTagPath(UUID bridgeID, String tag) {
         return buildBridgeTagsPath(bridgeID).append("/").append(tag);
-    }
-
-    /**
-     * Returns a ZK path for the given tag for the specified resource.
-     * @param resourceId UUID of the resource.
-     * @param taggableResource A config data for the taggable resource.
-     * @param tag A resource tag.
-     * @return A ZooKeeper path.
-     */
-    public String getResourceTagPath(
-            UUID resourceId, TaggableConfig taggableResource, String tag) {
-        String path = null;
-        // The following conditionals on the implementation class of the
-        // taggable resource are very ugly. The ZooKeeper path info should be
-        // kept with the Config classes.
-        // TODO(tomohiko) Refactor ZkPathManager and make Config classes have
-        // the path info.
-        if (taggableResource instanceof BridgeConfig) {
-            path = getBridgeTagPath(resourceId, tag);
-        } else {
-            throw new RuntimeException("No resource tag path defined for " +
-                                       taggableResource.getClass());
-        }
-        return path;
-    }
-
-    /**
-     * Returns a ZK path for tags for the specified resource.
-     * @param resourceId UUID of the resource.
-     * @param taggableResource A config data for the taggable resource.
-     * @return A ZooKeeper path.
-     */
-    public String getResourceTagsPath(UUID resourceId, TaggableConfig taggableResource) {
-        String path = null;
-        // TODO(tomohiko) Refactor ZkPathManager and make Config classes have
-        // the path info.
-        if (taggableResource instanceof BridgeConfig) {
-            path = getBridgeTagsPath(resourceId);
-        } else {
-            throw new RuntimeException("No resource tags path defined for " +
-                                       taggableResource.getClass());
-        }
-        return path;
     }
 
     /**
@@ -922,18 +842,6 @@ public class ZkPathManager {
         return buildPortGroupRulesPath(id).append("/").append(ruleId);
     }
 
-    /**
-     * Get ZK port path inside a group.
-     *
-     * @param id Group UUID.
-     * @param portId Port UUID as a String.
-     *
-     * @return /port_groups/groupId/portId
-     */
-    public String getPortInGroupPath(UUID id, String portId) {
-        return buildPortInGroupPath(id, portId).toString();
-    }
-
     private StringBuilder buildPortInGroupPath(UUID id, String portId) {
         return buildPortGroupPath(id).append("/")
             .append(portId);
@@ -1035,7 +943,7 @@ public class ZkPathManager {
     private StringBuilder buildChainBackRefPath(UUID chainId, String deviceType,
                                                 UUID deviceId) {
         return buildChainBackRefsPath(chainId)
-                .append("/" + deviceType + ":" + deviceId);
+                .append("/").append(deviceType).append(":").append(deviceId);
     }
 
     public String getTypeFromBackRef(String backRef) {
@@ -1057,8 +965,7 @@ public class ZkPathManager {
     }
 
     private StringBuilder buildRouterRoutingTablePath(UUID routerId) {
-        return buildRouterPath(routerId).append(
-            "/routing_table");
+        return buildRouterPath(routerId).append("/routing_table");
     }
 
     public String getRouterArpTablePath(UUID routerId) {
@@ -1208,20 +1115,6 @@ public class ZkPathManager {
 
     private StringBuilder buildAgentPortPath() {
         return new StringBuilder(getAgentPath()).append("/ports");
-    }
-
-    /**
-     * Get ZK agent port path.
-     *
-     * @param portId Port UUID
-     * @return /agents/ports/portId
-     */
-    public String getAgentPortPath(UUID portId) {
-        return buildAgentPortPath(portId).toString();
-    }
-
-    private StringBuilder buildAgentPortPath(UUID portId) {
-        return new StringBuilder(getAgentPortPath()).append("/").append(portId);
     }
 
     public String getTunnelZonesPath() {

@@ -26,8 +26,6 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.ZookeeperLockFactory;
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.services.MidostoreSetupService;
-import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -56,13 +54,14 @@ import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
-import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
 import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
+
+import static org.midonet.midolman.guice.zookeeper.ZKConnectionProvider.DIRECTORY_REACTOR_TAG;
 
 /**
  * Guice module to install dependencies for data access.
@@ -75,46 +74,40 @@ public class DataClientModule extends PrivateModule {
 
         requireBinding(CuratorFramework.class); // for the zk lock factory
         requireBinding(Directory.class);
-        requireBinding(Key.get(Reactor.class, Names.named(
-                ZKConnectionProvider.DIRECTORY_REACTOR_TAG)));
+        requireBinding(Key.get(Reactor.class,
+                               Names.named(DIRECTORY_REACTOR_TAG)));
         requireBinding(ZkConnectionAwareWatcher.class);
 
         bind(PathBuilder.class).toProvider(PathBuilderProvider.class)
-                .asEagerSingleton();
+                               .asEagerSingleton();
         expose(PathBuilder.class);
 
         bind(ZkManager.class).toProvider(BaseZkManagerProvider.class)
-                .asEagerSingleton();
+                             .asEagerSingleton();
         expose(ZkManager.class);
         bindZkManagers();
 
         bind(DataClient.class).to(LocalDataClientImpl.class)
-                .asEagerSingleton();
+                              .asEagerSingleton();
         expose(DataClient.class);
 
         // TODO: Move these out of LocalDataClientImpl so that they can be
         // installed in DataClusterClientModule instead.
-        bind(ClusterRouterManager.class)
-                .in(Singleton.class);
+        bind(ClusterRouterManager.class).in(Singleton.class);
 
-        bind(ClusterBridgeManager.class)
-                .in(Singleton.class);
+        bind(ClusterBridgeManager.class).in(Singleton.class);
 
-        bind(ClusterPortsManager.class)
-                .in(Singleton.class);
+        bind(ClusterPortsManager.class).in(Singleton.class);
 
-        bind(ClusterHostManager.class)
-                .in(Singleton.class);
+        bind(ClusterHostManager.class).in(Singleton.class);
 
-        bind(PortConfigCache.class)
-                .toProvider(PortConfigCacheProvider.class)
-                .in(Singleton.class);
+        bind(PortConfigCache.class).toProvider(PortConfigCacheProvider.class)
+                                   .in(Singleton.class);
 
         bind(PortGroupCache.class).toProvider(PortGroupCacheProvider.class)
-                .in(Singleton.class);
+                                  .in(Singleton.class);
 
-        bind(ClusterPortGroupManager.class)
-                .in(Singleton.class);
+        bind(ClusterPortGroupManager.class).in(Singleton.class);
 
         bindZookeeperLockFactory();
         expose(ZookeeperLockFactory.class);
@@ -158,7 +151,6 @@ public class DataClientModule extends PrivateModule {
         managers.add(TenantZkManager.class);
         managers.add(TunnelZoneZkManager.class);
         managers.add(PortSetZkManager.class);
-        managers.add(TaggableConfigZkManager.class);
         managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(VtepZkManager.class);
@@ -241,7 +233,7 @@ public class DataClientModule extends PrivateModule {
         ZookeeperConfig config;
 
         @Inject
-        @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+        @Named(DIRECTORY_REACTOR_TAG)
         Reactor reactor;
 
         @Inject
@@ -261,7 +253,7 @@ public class DataClientModule extends PrivateModule {
             implements Provider<PortGroupCache> {
 
         @Inject
-        @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+        @Named(DIRECTORY_REACTOR_TAG)
         Reactor reactor;
 
         @Inject

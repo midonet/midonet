@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.cluster.data;
 
@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.Client;
-import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.dhcp.Opt121;
 import org.midonet.cluster.data.dhcp.Subnet;
 import org.midonet.cluster.data.dhcp.Subnet6;
@@ -41,16 +40,17 @@ import org.midonet.midolman.state.zkManagers.BridgeDhcpZkManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager.BridgeConfig;
 import org.midonet.midolman.state.zkManagers.ChainZkManager.ChainConfig;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager.HealthMonitorConfig;
-import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager.IpAddrGroupConfig;
+import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager.PoolMemberConfig;
 import org.midonet.midolman.state.zkManagers.PoolZkManager.PoolConfig;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager.PortGroupConfig;
 import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
-import org.midonet.midolman.state.zkManagers.TaggableConfig;
 import org.midonet.midolman.state.zkManagers.VipZkManager.VipConfig;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
+
+import static org.midonet.midolman.layer3.Route.NO_GATEWAY;
 
 
 /**
@@ -106,7 +106,7 @@ public class Converter {
 
     public static ChainConfig toChainConfig(Chain chain) {
         ChainConfig chainConfig = new ChainConfig(chain.getName());
-        chainConfig.properties = new HashMap<String, String>(
+        chainConfig.properties = new HashMap<>(
                 chain.getProperties());
 
         return chainConfig;
@@ -126,7 +126,7 @@ public class Converter {
 
         portGroupConfig.name = portGroup.getData().name;
         portGroupConfig.stateful = portGroup.getData().stateful;
-        portGroupConfig.properties = new HashMap<String, String>(
+        portGroupConfig.properties = new HashMap<>(
                 portGroup.getData().properties);
 
         return portGroupConfig;
@@ -147,7 +147,7 @@ public class Converter {
 
         config.name = group.getData().name;
         config.id = group.getId();
-        config.properties = new HashMap<String, String>(
+        config.properties = new HashMap<>(
                 group.getData().properties);
 
         return config;
@@ -408,8 +408,7 @@ public class Converter {
         routerConfig.inboundFilter = router.getInboundFilter();
         routerConfig.outboundFilter = router.getOutboundFilter();
         routerConfig.loadBalancer = router.getLoadBalancer();
-        routerConfig.properties = new HashMap<String, String>(
-                router.getProperties());
+        routerConfig.properties = new HashMap<>(router.getProperties());
 
         return routerConfig;
     }
@@ -430,24 +429,20 @@ public class Converter {
     public static org.midonet.midolman.layer3.Route toRouteConfig(
             Route route) {
 
-        int gateway = route.getNextHopGateway() == null ?
-                org.midonet.midolman.layer3.Route.NO_GATEWAY :
-                IPv4Addr.stringToInt(route.getNextHopGateway());
-        org.midonet.midolman.layer3.Route routeConfig =
-                new org.midonet.midolman.layer3.Route(
-                        IPv4Addr.stringToInt(route.getSrcNetworkAddr()),
-                        route.getSrcNetworkLength(),
-                        IPv4Addr.stringToInt(route.getDstNetworkAddr()),
-                        route.getDstNetworkLength(),
-                        route.getNextHop(),
-                        route.getNextHopPort(),
-                        gateway,
-                        route.getWeight(),
-                        route.getAttributes(),
-                        route.getRouterId()
-                );
-
-        return routeConfig;
+        int gateway = route.getNextHopGateway() == null ? NO_GATEWAY :
+                      IPv4Addr.stringToInt(route.getNextHopGateway());
+        return new org.midonet.midolman.layer3.Route(
+            IPv4Addr.stringToInt(route.getSrcNetworkAddr()),
+            route.getSrcNetworkLength(),
+            IPv4Addr.stringToInt(route.getDstNetworkAddr()),
+            route.getDstNetworkLength(),
+            route.getNextHop(),
+            route.getNextHopPort(),
+            gateway,
+            route.getWeight(),
+            route.getAttributes(),
+            route.getRouterId()
+        );
     }
 
     public static Route fromRouteConfig(
@@ -515,11 +510,10 @@ public class Converter {
 
         }
 
-        if (ruleConfig == null)
-            return ruleConfig;
-
-        ruleConfig.chainId = rule.getChainId();
-        ruleConfig.setProperties(rule.getProperties());
+        if (ruleConfig != null) {
+            ruleConfig.chainId = rule.getChainId();
+            ruleConfig.setProperties(rule.getProperties());
+        }
 
         return ruleConfig;
     }
@@ -591,8 +585,7 @@ public class Converter {
     public static BridgeDhcpZkManager.Subnet toDhcpSubnetConfig(
             Subnet subnet) {
 
-        List<BridgeDhcpZkManager.Opt121> opt121Configs =
-                new ArrayList<BridgeDhcpZkManager.Opt121>();
+        List<BridgeDhcpZkManager.Opt121> opt121Configs = new ArrayList<>();
         if (subnet.getOpt121Routes() != null) {
             for (Opt121 opt121 : subnet.getOpt121Routes()) {
                 opt121Configs.add(toDhcpOpt121Config(opt121));
@@ -614,7 +607,7 @@ public class Converter {
     public static Subnet fromDhcpSubnetConfig(
             BridgeDhcpZkManager.Subnet subnetConfig) {
 
-        List<Opt121> opt121s = new ArrayList<Opt121>();
+        List<Opt121> opt121s = new ArrayList<>();
         for (BridgeDhcpZkManager.Opt121 opt121Config
                 : subnetConfig.getOpt121Routes()) {
             opt121s.add(fromDhcpOpt121Config(opt121Config));
@@ -695,20 +688,9 @@ public class Converter {
 
         metadata.setName(host.getName());
         metadata.setAddresses(host.getAddresses());
-        metadata.setTunnelZones(new HashSet<UUID>(
-                host.getTunnelZones()));
+        metadata.setTunnelZones(new HashSet<UUID>(host.getTunnelZones()));
 
         return metadata;
-    }
-
-    public static HostDirectory.VirtualPortMapping toHostVirtPortMappingConfig(
-            VirtualPortMapping mapping) {
-
-        HostDirectory.VirtualPortMapping mappingConfig =
-                new HostDirectory.VirtualPortMapping();
-        mappingConfig.setLocalDeviceName(mapping.getLocalDeviceName());
-        mappingConfig.setVirtualPortId(mapping.getVirtualPortId());
-        return mappingConfig;
     }
 
     public static VirtualPortMapping fromHostVirtPortMappingConfig(
@@ -717,22 +699,6 @@ public class Converter {
         return new VirtualPortMapping()
                 .setLocalDeviceName(mappingConfig.getLocalDeviceName())
                 .setVirtualPortId(mappingConfig.getVirtualPortId());
-    }
-
-    public static TaggableConfig
-    toTaggableConfig(TaggableEntity taggableData) {
-        // These conditionals on implementing classes are ugly, but such
-        // conditionals are everywhere in this class:P
-        TaggableConfig config = null;
-        if (taggableData instanceof Bridge) {
-            config = toBridgeConfig((Bridge) taggableData);
-
-        } else {
-            throw new RuntimeException(
-                    "No conversion to TaggableConfig exists for "
-                            + taggableData.getClass());
-        }
-        return config;
     }
 
     public static VTEP fromVtepConfig(VtepZkManager.VtepConfig config) {

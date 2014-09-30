@@ -4,37 +4,33 @@
  */
 package org.midonet.api.host.rest_api;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.midolman.host.commands.DataValidationException;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.host.Interface;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * @author Mihai Claudiu Toader <mtoader@midokura.com>
- *         Date: 1/30/12
- */
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.VendorMediaType;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.host.Interface;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
 @RequestScoped
 public class InterfaceResource extends AbstractResource {
 
@@ -64,10 +60,9 @@ public class InterfaceResource extends AbstractResource {
 
         List<org.midonet.cluster.data.host.Interface> ifConfigs =
                 dataClient.interfacesGetByHost(hostId);
-        List<Interface> interfaces = new ArrayList<Interface>();
+        List<Interface> interfaces = new ArrayList<>();
 
-        for (org.midonet.cluster.data.host.Interface ifConfig
-                : ifConfigs) {
+        for (org.midonet.cluster.data.host.Interface ifConfig : ifConfigs) {
             Interface iface = new Interface(hostId, ifConfig);
             iface.setBaseUri(getBaseUri());
             interfaces.add(iface);
