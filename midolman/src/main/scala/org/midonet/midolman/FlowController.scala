@@ -356,10 +356,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
         case FlowMissing_(flowMatch, callback) =>
             callback.call(null)
-            if (flowManager.getActionsForDpFlow(flowMatch) != null) {
-                log.warning("DP flow was lost, forgetting: {}", flowMatch)
-                flowManager.forgetFlow(flowMatch)
-            }
+            flowManager.flowMissing(flowMatch)
             metrics.currentDpFlows = flowManager.getNumDpFlows
     }
 

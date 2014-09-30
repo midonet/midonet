@@ -13,6 +13,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.hamcrest.CoreMatchers.is;
 import scala.collection.JavaConversions;
 
 import akka.actor.ActorSystem;
@@ -96,7 +98,7 @@ public class FlowManagerTest {
         flowManagerHelper.addFlow(new Flow(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
-                   flowManager.getDpFlowTable().size(),
+                   flowManager.dpFlowTable.size(),
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
@@ -134,7 +136,7 @@ public class FlowManagerTest {
         flowManager.add(flow, wflow);
 
         assertThat("DpFlowTable was not updated",
-                flowManager.getDpFlowTable().size(),
+                flowManager.dpFlowTable.size(),
                 equalTo(1));
 
         flowManager.remove(wflow);
@@ -145,7 +147,7 @@ public class FlowManagerTest {
         flowManager.add(flow2, wflow2);
 
         assertThat("DpFlowTable couldn't handle racy flow add/remove ops",
-                flowManager.getDpFlowTable().size(),
+                flowManager.dpFlowTable.size(),
                 equalTo(1));
     }
 
@@ -166,7 +168,7 @@ public class FlowManagerTest {
         flowManagerHelper.addFlow(new Flow(flowMatch));
         numberOfFlowsAdded++;
         assertThat("DpFlowTable was not updated",
-                   flowManager.getDpFlowTable().size(),
+                   flowManager.dpFlowTable.size(),
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
@@ -230,7 +232,7 @@ public class FlowManagerTest {
         numberOfFlowsAdded++;
 
         assertThat("DpFlowTable was not updated",
-                   flowManager.getDpFlowTable().size(),
+                   flowManager.dpFlowTable.size(),
                    equalTo(numberOfFlowsAdded));
 
         assertThat("WildcardFlowsToDpFlows was not updated",
@@ -382,12 +384,16 @@ public class FlowManagerTest {
         flowManager.checkFlowsExpiration();
 
         assertThat("DpFlowTable, a flow hasn't been removed",
-                   flowManager.getDpFlowTable().size(),
+                   flowManager.dpFlowTable.size(),
                    equalTo(maxAcceptedDpFlows));
 
         assertThat("First flow was not deleted",
                    flowManagerHelper.flowsMap.get(firstFlowMatch),
                    nullValue());
+
+        assertThat("FlowMatch should have been removed from ManagedWildcardFlow",
+                   managedFlow.dpFlows().contains(firstFlowMatch),
+                   is(false));
     }
 
     @Test
@@ -408,14 +414,17 @@ public class FlowManagerTest {
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(1));
         assertThat("FlowManager didn't accept the second wildcard flow", flowManager.add(flows.get(1)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(2));
-        assertThat("FlowManager didn't accept the third wildcard flow", flowManager.add(flows.get(2)));
+        assertThat("FlowManager didn't accept the third wildcard flow",
+                   flowManager.add(flows.get(2)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(3));
-        assertThat("FlowManager didn't accept the fourth wildcard flow", flowManager.add(flows.get(3)));
+        assertThat("FlowManager didn't accept the fourth wildcard flow",
+                   flowManager.add(flows.get(3)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(4));
         assertThat("FlowManager didn't accept the fifth wildcard flow", flowManager.add(flows.get(4)));
         assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
         assertThat("FlowManager didn't reject the last wildcard flow", !flowManager.add(flows.get(5)));
-        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(5));
+        assertThat("Table size is incorrect", flowManager.getNumWildcardFlows(), equalTo(
+            5));
     }
 
     @Test
@@ -427,7 +436,8 @@ public class FlowManagerTest {
             FlowMatch flowMatch =
                 new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
-            WildcardFlow wf = WildcardFlowFactory.createHardExpiration(wildcardMatch, timeOut);
+            WildcardFlow wf = WildcardFlowFactory.createHardExpiration(
+                wildcardMatch, timeOut);
             flows.add(ManagedWildcardFlow.create(wf));
         }
 
@@ -458,7 +468,7 @@ public class FlowManagerTest {
     // Implementation of the FlowManagerHelper for this test
     class FlowManagerHelperImpl implements FlowManagerHelper {
 
-        public Map<FlowMatch, Flow> flowsMap = new HashMap<FlowMatch, Flow>();
+        public Map<FlowMatch, Flow> flowsMap = new HashMap<>();
         public Queue<Flow> toRemove;
 
         public void addFlow(Flow flow) {
