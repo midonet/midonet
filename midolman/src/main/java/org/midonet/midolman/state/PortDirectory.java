@@ -96,7 +96,8 @@ public class PortDirectory {
         public RouterPortConfig(UUID routerId, int networkAddr,
                                 int networkLength, int portAddr,
                                 boolean adminStateUp) {
-            this(routerId, networkAddr, networkLength, portAddr, null, null);
+            this(routerId, networkAddr, networkLength, portAddr, null,
+                    MAC.random());
             this.adminStateUp = adminStateUp;
         }
 
@@ -108,10 +109,7 @@ public class PortDirectory {
             this.nwLength = networkLength;
             this.portAddr = portAddr;
             this.routes = routes;
-            if (mac == null) {
-                initializeHwAddr();
-            } else
-                this.hwAddr = mac;
+            this.hwAddr = (mac == null) ? MAC.random() : mac;
         }
 
         public RouterPortConfig(UUID device_id,
@@ -127,15 +125,7 @@ public class PortDirectory {
         // Default constructor for the Jackson deserialization.
         public RouterPortConfig() {
             super();
-            initializeHwAddr();
-        }
-
-        private void initializeHwAddr() {
-            // TODO: Use the midokura OUI.
-            byte[] macBytes = new byte[6];
-            rand.nextBytes(macBytes);
-            macBytes[0] = 0x02;
-            this.hwAddr = new MAC(macBytes);
+            this.hwAddr = MAC.random();
         }
 
         // Custom accessors for Jackson serialization

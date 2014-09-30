@@ -29,7 +29,7 @@ public class RouterPort
             setDeviceId(routerId);
 
         if (getData() != null && portData.hwAddr == null) {
-            setHwAddr(generateHwAddr());
+            setHwAddr(MAC.random());
         }
     }
 
@@ -43,14 +43,6 @@ public class RouterPort
 
     public RouterPort() {
         this(null, null, new Data());
-    }
-
-    private MAC generateHwAddr() {
-        // TODO: Use the midokura OUI. (Why not use MAC.random()?)
-        byte[] macBytes = new byte[6];
-        rand.nextBytes(macBytes);
-        macBytes[0] = 0x02;
-        return MAC.fromAddress(macBytes);
     }
 
     public String getNwAddr() {

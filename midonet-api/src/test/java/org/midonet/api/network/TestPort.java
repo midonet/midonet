@@ -48,6 +48,7 @@ import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -815,6 +816,28 @@ public class TestPort {
             ports = dtoResource.getAndVerifyOk(r.getPorts(),
                 APPLICATION_PORT_V2_COLLECTION_JSON, DtoRouterPort[].class);
             assertEquals(0, ports.length);
+        }
+
+        @Test
+        public void testRouterPortHasMACWithMidokuraOUI() {
+            // Get the router and chains
+            DtoRouter router = topology.getRouter("router1");
+            // Create a Interior router port
+            DtoRouterPort routerPort = createRouterPort(null,
+                    router.getId(),
+                    "10.0.0.0",
+                    24,
+                    "10.0.0.1");
+            routerPort.setAdminStateUp(false);
+            routerPort = dtoResource.postAndVerifyCreated(
+                    router.getPorts(),
+                    APPLICATION_PORT_V2_JSON,
+                    routerPort,
+                    DtoRouterPort.class);
+            MAC routerPortMac =
+                    MAC.fromString(routerPort.getPortMac());
+            assertEquals(MAC.MIDOKURA_OUI_MASK,
+                    routerPortMac.asLong() & MAC.MIDOKURA_OUI_MASK);
         }
 
         @Test
