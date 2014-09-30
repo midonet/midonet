@@ -21,7 +21,7 @@ for n in 1 2 3; do
         mkdir -p /var/lib/zookeeper.$n
     fi
     if test -d /var/lib/zookeeper.$n/data; then
-        rm -rf /var/lib/zookeeper.$n/data
+        rm -rf /var/lib/zookeeper.$n/*
     fi
     mkdir -p /var/lib/zookeeper.$n/data
     echo "$n" >/var/lib/zookeeper.$n/data/myid
