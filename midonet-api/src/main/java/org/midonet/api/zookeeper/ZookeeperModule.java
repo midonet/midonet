@@ -12,8 +12,9 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
+import org.midonet.api.rest_api.HttpAwareZoom;
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
+import org.midonet.cluster.data.storage.StorageService;
 import org.midonet.midolman.guice.zookeeper.DirectoryProvider;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
@@ -23,9 +24,6 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.eventloop.TryCatchReactor;
 
-/**
- * Zookeeper module
- */
 public class ZookeeperModule extends AbstractModule {
 
     @Override
@@ -52,8 +50,8 @@ public class ZookeeperModule extends AbstractModule {
             .toProvider(CuratorFrameworkProvider.class)
             .asEagerSingleton();
 
-        bind(ZookeeperObjectMapper.class)
-            .toProvider(ZoomProvider.class)
+        bind(StorageService.class)
+            .toProvider(StorageServiceProvider.class)
             .asEagerSingleton();
 
         bind(Reactor.class).annotatedWith(
@@ -71,13 +69,12 @@ public class ZookeeperModule extends AbstractModule {
         }
     }
 
-    public static class ZoomProvider
-        implements Provider<ZookeeperObjectMapper> {
+    public static class StorageServiceProvider
+        implements Provider<StorageService> {
         @Inject ZookeeperConfig cfg;
         @Inject CuratorFramework curator;
-        @Override public ZookeeperObjectMapper get() {
-            return new ZookeeperObjectMapper(cfg.getZkRootPath() + "/zoom",
-                                             curator);
+        @Override public StorageService get() {
+            return new HttpAwareZoom(cfg.getZkRootPath() + "/zoom", curator);
         }
     }
 

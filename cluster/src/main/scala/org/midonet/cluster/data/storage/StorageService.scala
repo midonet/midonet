@@ -5,6 +5,8 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+
 import scala.collection.immutable.List
 
 import rx.Observable
@@ -110,10 +112,24 @@ trait StorageService {
     def subscribeAll[T](clazz: Class[T],
                         obs: Observer[_ >: Observable[T]]): Subscription
 
-    /* We should remove both methods, but first we must make ZOOM support
+    /* We should remove the methods below, but first we must make ZOOM support
      * offline class registration so that we can register classes from the
      * guice modules without causing exceptions */
     def registerClass(clazz: Class[_]): Unit
 
     def isRegistered(clazz: Class[_]): Boolean
+
+    def declareBinding(leftClass: Class[_], leftFieldName: String,
+                       onDeleteLeft: DeleteAction,
+                       rightClass: Class[_], rightFieldName: String,
+                       onDeleteRight: DeleteAction): Unit
+
+    /** This method must be called after all calls to registerClass() and
+      * declareBinding() have been made, but before any calls to data-related
+      * methods such as CRUD operations and subscribe().
+      */
+    def build()
+
+    def isBuilt: Boolean
+
 }

@@ -6,12 +6,13 @@ option java_outer_classname = "Devices";
 
 message Bridge {
     optional UUID id = 1;
-    optional string name = 2;
-    optional bool admin_state_up = 3;
-    optional int64 tunnel_key = 4;
-    optional UUID inbound_filter_id = 5;
-    optional UUID outbound_filter_id = 6;
-    optional UUID vx_lan_port_id = 7;
+    optional string tenant_id = 2; //  legacy: BridgeResource::list(tenant)
+    optional string name = 3;
+    optional bool admin_state_up = 4;
+    optional uint32 tunnel_key = 5;
+    optional UUID inbound_filter_id = 6;
+    optional UUID outbound_filter_id = 7;
+    optional UUID vxlan_port_id = 8;
 
     // Back references
     repeated UUID port_ids = 101;
@@ -19,11 +20,12 @@ message Bridge {
 
 message Router {
     optional UUID id = 1;
-    optional string name = 2;
-    optional bool admin_state_up = 3;
-    optional UUID inbound_filter_id = 4;
-    optional UUID outbound_filter_id = 5;
-    optional UUID load_balancer_id = 6;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional bool admin_state_up = 4;
+    optional UUID inbound_filter_id = 5;
+    optional UUID outbound_filter_id = 6;
+    optional UUID load_balancer_id = 7;
 
     // Back references
     repeated UUID port_ids = 101;
@@ -35,20 +37,39 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    repeated UUID port_group_id = 6;
-    optional int64 tunnel_key = 7;
-    optional UUID peer_uuid = 8;
+    optional int32 tunnel_key = 6;
+    optional UUID peer_id = 7;
+    optional UUID vif_id = 8;
     optional UUID host_id = 9;
     optional string interface_name = 10;
-    optional bool adminStateUp = 11 [default = true];
+    optional bool admin_state_up = 11 [default = true];
+
+    repeated UUID port_group_id = 12;
+
+    // interior bridge port specific
+    optional uint32 vlan_id = 13;
+
+    // router port specific
+    optional string network_address = 14;
+    optional uint32 network_length = 15;
+    optional string port_address = 16;
+    optional string port_mac = 17;
+
+    // vxlan port specific - TODO: should we nest instead?
+    optional string vxlan_mgmt_ip = 18;
+    optional uint32 vxlan_mgmt_port = 19;
+    optional uint32 vxlan_vni = 20;
+    optional UUID vxlan_tunnel_zone_id = 21;
 
     // Back references
     repeated UUID rule_ids = 101;
+    repeated UUID port_ids = 102;
 }
 
 message PortGroup {
     optional UUID id = 1;
     optional string name = 2;
+    optional string tenant_id = 3;
 
     // Back references
     repeated UUID port_ids = 101;
@@ -155,12 +176,27 @@ message TunnelZone {
 
 message Vtep {
     optional string id = 1;  // This is actually an IP address.
-    optional int32 management_port = 2;
+    optional uint32 management_port = 2;
     optional UUID tunnel_zone_id = 3;
 }
 
 message VtepBinding {
     optional string port_name = 1;
-    optional int32 vlan_id = 2;  // A VLAN ID is a short int.
+    optional uint32 vlan_id = 2;    // A VLAN ID is a short int.
     optional string network_id = 3;
+}
+
+message Host {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional bool alive = 3;
+    repeated string addresses = 4; // IP addrs
+    optional int32 flooding_proxy_weight = 5;
+}
+
+message HostInterfacePort {
+    optional string id = 1;
+    optional UUID host_id = 2;
+    optional UUID port_id = 3;
+    optional string interface_name = 4;
 }

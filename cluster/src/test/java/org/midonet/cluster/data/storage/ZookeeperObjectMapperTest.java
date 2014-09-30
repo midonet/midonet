@@ -250,7 +250,7 @@ public class ZookeeperObjectMapperTest {
     private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
                                              String name,
                                              boolean adminStateUp,
-                                             long tunnelKey,
+                                             int tunnelKey,
                                              Commons.UUID inFilterId,
                                              Commons.UUID outFilterId,
                                              Commons.UUID vxLanPortId) {
@@ -264,7 +264,7 @@ public class ZookeeperObjectMapperTest {
         if (outFilterId != null)
             bridgeBuilder.setOutboundFilterId(outFilterId);
         if (vxLanPortId != null)
-            bridgeBuilder.setVxLanPortId(vxLanPortId);
+            bridgeBuilder.setVxlanPortId(vxLanPortId);
 
         return bridgeBuilder.build();
     }
@@ -273,14 +273,9 @@ public class ZookeeperObjectMapperTest {
     private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
                                              String name,
                                              boolean adminStateUp,
-                                             long tunnelKey) {
-        return this.createProtoBridge(bridgeId,
-                                      name,
-                                      adminStateUp,
-                                      tunnelKey,
-                                      null,
-                                      null,
-                                      null);
+                                             int tunnelKey) {
+        return this.createProtoBridge(bridgeId, name, adminStateUp, tunnelKey,
+                                      null, null, null);
     }
 
     /* A helper method for creating a proto Bridge. */

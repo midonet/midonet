@@ -3,28 +3,22 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.ArrayList
+import java.util
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
-import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.Multimap
-import com.google.common.collect.Multimaps
+import com.google.common.collect.{ArrayListMultimap, Multimap, Multimaps}
 
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.Bridge
-import org.midonet.cluster.models.Devices.Chain
-import org.midonet.cluster.models.Devices.Port
-import org.midonet.cluster.models.Devices.Router
-import org.midonet.cluster.models.Devices.Rule
+import org.midonet.cluster.models.Devices.{Bridge, Chain, Port, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
  * Provides utility methods for testing Storage Service.
  */
 trait StorageServiceTester extends StorageService {
-    import StorageServiceTester._
+    import org.midonet.cluster.data.storage.StorageServiceTester._
 
     private[storage] type Devices = Multimap[Class[_], Commons.UUID]
 
@@ -37,7 +31,7 @@ trait StorageServiceTester extends StorageService {
 
     private[storage]
     def splitDeviceCollection(devices: Devices, splits: Int) = {
-        val deviceCollections = new ArrayList[Devices](splits)
+        val deviceCollections = new util.ArrayList[Devices](splits)
         for (i <- 1 to splits) deviceCollections.add(deviceMultimap)
 
         var index: Long = 0
@@ -162,7 +156,7 @@ trait StorageServiceTester extends StorageService {
      */
     def linkPorts(port: Port, peer: Port) {
         update(port.toBuilder
-                   .setPeerUuid(peer.getId)
+                   .setPeerId(peer.getId)
                    .build())
     }
 

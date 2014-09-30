@@ -5,7 +5,9 @@ package org.midonet.cluster.data.storage
 
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.junit.runner.RunWith
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.scalatest.junit.JUnitRunner
+
 
 /**
  * Tests for bulk CRUD operations with ZOOM-based Storage Service.
@@ -23,4 +25,23 @@ class ZoomBulkCrudTest extends StorageBulkCrudTest
         curator = CuratorFrameworkFactory.newClient(ZK_CONNECT_STRING,
                                                     retryPolicy)
     }
+
+    override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
+
+    override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
+
+    override def declareBinding(leftClass: Class[_], leftFieldName: String,
+                                onDeleteLeft: DeleteAction,
+                                rightClass: Class[_], rightFieldName: String,
+                                onDeleteRight: DeleteAction): Unit =
+        zoom.declareBinding(leftClass, leftFieldName, onDeleteLeft,
+                            rightClass, rightFieldName, onDeleteRight)
+
+    /** This method must be called after all calls to registerClass() and
+      * declareBinding() have been made, but before any calls to data-related
+      * methods such as CRUD operations and subscribe().
+      */
+    override def build(): Unit = zoom.build()
+
+    override def isBuilt: Boolean = zoom.isBuilt
 }

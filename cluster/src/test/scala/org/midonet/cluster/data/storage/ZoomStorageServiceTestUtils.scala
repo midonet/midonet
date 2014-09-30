@@ -3,26 +3,15 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.ArrayList
 import java.util.{List => JList}
 
-import scala.collection.JavaConverters._
-
-import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
-import org.scalatest.Suite
-import rx.Observable
-import rx.Observer
-import rx.Subscription
-
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.models.Devices.Bridge
-import org.midonet.cluster.models.Devices.Chain
-import org.midonet.cluster.models.Devices.Port
-import org.midonet.cluster.models.Devices.Router
-import org.midonet.cluster.models.Devices.Rule
+import org.midonet.cluster.models.Devices.{Bridge, Chain, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
+import org.scalatest.Suite
+import rx.{Observable, Observer, Subscription}
 
 /**
  * DTO for ZOOM binding.
@@ -186,4 +175,16 @@ trait ZoomStorageServiceTester extends StorageServiceTester
                 binding.rightClass, binding.rightField, binding.onRightDelete)
         }
     }
+
+    override def declareBinding(leftClass: Class[_], leftFieldName: String,
+                       onDeleteLeft: DeleteAction,
+                       rightClass: Class[_], rightFieldName: String,
+                       onDeleteRight: DeleteAction): Unit = {
+        zoom.declareBinding(leftClass, leftFieldName, onDeleteLeft,
+                            rightClass, rightFieldName, onDeleteRight)
+    }
+
+    override def build() = zoom.build()
+    override def isBuilt: Boolean = zoom.isBuilt
+
 }

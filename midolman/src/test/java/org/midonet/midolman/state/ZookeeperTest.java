@@ -13,7 +13,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.name.Names;
-
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
@@ -24,10 +23,11 @@ import org.junit.BeforeClass;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.midolman.guice.cluster.DataClientModule;
+import org.midonet.midolman.guice.cluster.MidostoreModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
-import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.eventloop.Reactor;
 
@@ -87,6 +87,7 @@ public abstract class ZookeeperTest {
                 new SerializationModule(),
                 new ConfigProviderModule(getConfig(zkRoot)),
                 new ZookeeperConnectionModule(),
+                new MidostoreModule(),
                 new DataClientModule())
         );
 

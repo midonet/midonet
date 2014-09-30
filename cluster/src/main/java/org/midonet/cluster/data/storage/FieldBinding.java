@@ -26,8 +26,11 @@ import java.util.List;
  * Eg. Bridge and Chain
  * A bridge's in-bound filter ID refers to a chain, and a chain has back-
  * references to all the bridges to which the chain is being applied.
+ *
+ * TODO: make protected once it's not required to expose it on the
+ *       StorageService
  */
-abstract class FieldBinding {
+abstract public class FieldBinding {
     public static final String ID_FIELD = "id";
     public enum DeleteAction {
         CASCADE,

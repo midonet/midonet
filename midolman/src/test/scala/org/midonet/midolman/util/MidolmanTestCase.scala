@@ -38,7 +38,7 @@ import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.ClusterClientModule
+import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
@@ -222,6 +222,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
+            new MidostoreModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),

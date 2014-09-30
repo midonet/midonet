@@ -487,7 +487,7 @@ trait StorageBulkCrudTest extends FlatSpec
                     // Create a peer, triggering back-ref update on main port.
                     val peerPort = Port.newBuilder
                                        .setId(randomUuidProto)
-                                       .setPeerUuid(port.getId)
+                                       .setPeerId(port.getId)
                                        .build()
                     create(peerPort)
                     peers.add(peerPort)
@@ -501,9 +501,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
         val portInZk = get(classOf[Port], port.getId)
         val peerInZk = get(classOf[Port], peers(0).getId)
-        assert(portInZk.getPeerUuid === peers(0).getId,
+        assert(portInZk.getPeerId === peers(0).getId,
                "The port in ZK has a corrupted peer port ID.")
-        assert(peerInZk.getPeerUuid === port.getId,
+        assert(peerInZk.getPeerId === port.getId,
                "The peer in ZK has a corrupted peer port ID.")
     }
 }

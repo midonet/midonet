@@ -19,13 +19,13 @@ import org.scalatest.OneInstancePerTest
 import com.yammer.metrics.core.Clock
 
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice._
+import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
@@ -103,6 +103,7 @@ trait MidolmanSpec extends FeatureSpecLike
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
+            new MidostoreModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
