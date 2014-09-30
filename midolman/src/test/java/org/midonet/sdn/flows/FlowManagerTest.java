@@ -17,6 +17,8 @@ import com.typesafe.config.ConfigFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.midonet.util.functors.Callback1;
+
+import static org.hamcrest.core.Is.is;
 import scala.collection.JavaConversions;
 import sun.awt.Mutex;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -396,6 +398,10 @@ public class FlowManagerTest {
         assertThat("First flow was not deleted",
                    flowManagerHelper.flowsMap.get(firstFlowMatch),
                    nullValue());
+
+        assertThat("FlowMatch should have been removed from ManagedWildcardFlow",
+                   managedFlow.dpFlows().contains(firstFlowMatch),
+                   is(false));
     }
 
     @Test

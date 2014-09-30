@@ -113,18 +113,18 @@ public class FlowManager {
      * by a callback of the DpConnection, that notifies the deletion or the
      * addiction of a flow.
      */
-    private LinkedHashMap<FlowMatch, Flow> dpFlowTable =
-            new LinkedHashMap<FlowMatch, Flow>();
+    private LinkedHashMap<FlowMatch, ManagedWildcardFlow> dpFlowTable =
+            new LinkedHashMap<>((int)maxDpFlows);
 
     //TODO(ross) size for the priority queue?
     final int priorityQueueSize = 10000;
     /* Priority queue to evict flows based on hard time-out */
     private PriorityQueue<ManagedWildcardFlow> hardTimeOutQueue =
-        new PriorityQueue<ManagedWildcardFlow>(priorityQueueSize, new WildcardFlowHardTimeComparator());
+        new PriorityQueue<>(priorityQueueSize, new WildcardFlowHardTimeComparator());
 
     /* Priority queue to evict flows based on idle time-out */
     private PriorityQueue<ManagedWildcardFlow> idleTimeOutQueue =
-        new PriorityQueue<ManagedWildcardFlow>(priorityQueueSize, new WildcardFlowIdleTimeComparator());
+        new PriorityQueue<>(priorityQueueSize, new WildcardFlowIdleTimeComparator());
     /* Map to keep track of the kernel flows for which we required an update using
     FloManagerHelper.getFlow() that will in turn call dpConnection.getFlow
      */
@@ -238,7 +238,7 @@ public class FlowManager {
         }
 
         wildFlow.dpFlows().add(flow.getMatch());
-        dpFlowTable.put(flow.getMatch(), flow);
+        dpFlowTable.put(flow.getMatch(), wildFlow);
 
         log.debug("Added flow with match {} that matches wildcard flow {}",
                   flow.getMatch(), wildFlow);
@@ -270,11 +270,10 @@ public class FlowManager {
         Set<FlowMatch> dpFlowsToRemove = wildFlow.dpFlows();
         if (dpFlowsToRemove != null) {
             for (FlowMatch flowMatch : dpFlowsToRemove) {
-                Flow flow = dpFlowTable.get(flowMatch);
                 /* the flow may have been evicted already, leaving for lazy
                  * clean up of the wildcard flow reference */
-                if (flow != null) {
-                    flowManagerHelper.removeFlow(flow);
+                if (dpFlowTable.remove(flowMatch) != null) {
+                    flowManagerHelper.removeFlow(new Flow().setMatch(flowMatch));
                     forgetFlow(flowMatch);
                 }
             }
@@ -318,8 +317,9 @@ public class FlowManager {
      * @param flowMatch
      * @return
      */
-    public List<FlowAction> getActionsForDpFlow(FlowMatch flowMatch) {
-        Flow flow = dpFlowTable.get(flowMatch);
+    public scala.collection.immutable.List<FlowAction> getActionsForDpFlow(
+                                                            FlowMatch flowMatch) {
+        WildcardFlow flow = dpFlowTable.get(flowMatch);
         return (flow != null) ? flow.getActions() : null;
     }
 
@@ -415,13 +415,12 @@ public class FlowManager {
         if (nFlowsToRemove <= 0)
             return;
 
-        Iterator<FlowMatch> it = dpFlowTable.keySet().iterator();
+        Iterator<Map.Entry<FlowMatch, ManagedWildcardFlow>> it = dpFlowTable.entrySet().iterator();
         while(it.hasNext() && nFlowsToRemove-- > 0) {
-            // we will update the wildFlowToDpFlows lazily
-            FlowMatch match = it.next();
-            // this call will eventually lead to the removal of this flow
-            // from dpFlowTable
+            Map.Entry<FlowMatch, ManagedWildcardFlow> entry = it.next();
+            FlowMatch match = entry.getKey();
             flowManagerHelper.removeFlow(new Flow().setMatch(match));
+            entry.getValue().dpFlows().remove(match);
             it.remove();
         }
     }
@@ -485,7 +484,7 @@ public class FlowManager {
         return wildcardTables.tables();
     }
 
-    LinkedHashMap<FlowMatch, Flow> getDpFlowTable() {
+    LinkedHashMap<FlowMatch, ManagedWildcardFlow> getDpFlowTable() {
         return dpFlowTable;
     }
 
