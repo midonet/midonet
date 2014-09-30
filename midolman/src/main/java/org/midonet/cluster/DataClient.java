@@ -18,8 +18,6 @@ import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.Entity;
-import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Port;
@@ -118,12 +116,6 @@ public interface DataClient {
             SerializationException;
 
     /**
-     * Return all bridges with a VxLan Port
-     */
-    List<Bridge> bridgesGetAllWithVxlanPort() throws StateAccessException,
-                                                     SerializationException;
-
-    /**
      * Provide the ids of all the bridges with a binding to the given VTEP.
      */
     Set<UUID> bridgesBoundToVtep(IPv4Addr mgmtIp)
@@ -139,9 +131,6 @@ public interface DataClient {
      */
     EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
-
-    List<UUID> bridgesGetAllIds() throws StateAccessException,
-            SerializationException;
 
     List<Bridge> bridgesFindByTenant(String tenantId)
             throws StateAccessException, SerializationException;
@@ -176,16 +165,6 @@ public interface DataClient {
 
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId)
         throws StateAccessException;
-
-    /**
-     * Returns the list of VlanMacPort pairs that correspond *only* to exterior
-     * ports in the bridge, associated to the VxLan tunnel end point of their
-     * host. If the bridge has no binding to a VTEP, then it'll return an empty
-     * map.
-     */
-    Map<VlanMacPort, IPv4Addr> bridgeGetMacPortsWithVxTunnelEndpoint(
-        @Nonnull UUID bridgeId) throws StateAccessException,
-                                       SerializationException;
 
     List<VlanMacPort> bridgeGetMacPorts(@Nonnull UUID bridgeId, short vlanId)
         throws StateAccessException;
@@ -390,7 +369,6 @@ public interface DataClient {
      * active" or stops being so. This may be used e.g. by the BGP Manager
      * to discover the local ports, so that it may then watch those specific
      * ports and manage their BGPs (if any).
-     * @param cb
      */
     void subscribeToLocalActivePorts(@Nonnull Callback2<UUID, Boolean> cb);
 
@@ -410,9 +388,6 @@ public interface DataClient {
 
     void tunnelZonesUpdate(@Nonnull TunnelZone zone)
             throws StateAccessException, SerializationException;
-
-    boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
-        throws StateAccessException;
 
     Set<TunnelZone.HostConfig> tunnelZonesGetMemberships(UUID uuid)
         throws StateAccessException;
@@ -446,8 +421,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* load balancers related methods */
-    boolean loadBalancerExists(UUID id)
-            throws StateAccessException;
 
     @CheckForNull
     LoadBalancer loadBalancerGet(UUID id)
@@ -473,10 +446,6 @@ public interface DataClient {
     List<VIP> loadBalancerGetVips(UUID id)
             throws StateAccessException, SerializationException;
 
-    /* health monitors related methods */
-    boolean healthMonitorExists(UUID id)
-            throws StateAccessException;
-
     @CheckForNull
     HealthMonitor healthMonitorGet(UUID id)
             throws StateAccessException, SerializationException;
@@ -499,8 +468,7 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* pool member related methods */
-    boolean poolMemberExists(UUID id)
-            throws StateAccessException;
+    boolean poolMemberExists(UUID id) throws StateAccessException;
 
     @CheckForNull
     PoolMember poolMemberGet(UUID id)
@@ -525,8 +493,6 @@ public interface DataClient {
             SerializationException;
 
     /* pool related methods */
-    boolean poolExists(UUID id)
-            throws StateAccessException;
 
     @CheckForNull
     Pool poolGet(UUID id)
@@ -557,8 +523,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     /* VIP related methods */
-    boolean vipExists(UUID id)
-            throws StateAccessException;
 
     @CheckForNull
     VIP vipGet(UUID id)
@@ -639,9 +603,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
-            throws StateAccessException, SerializationException;
-
-    Integer hostsGetFloodingProxyWeight(UUID hostId)
             throws StateAccessException, SerializationException;
 
     /**
@@ -927,51 +888,6 @@ public interface DataClient {
             throws SerializationException, StateAccessException;
 
     /**
-     * Adds a new tag to a resource represented by "taggable" data with id.
-     *
-     * @param taggable A resource to be tagged.
-     * @param id An id of the resource to be tagged.
-     * @param tag A tag to be added.
-     * @throws StateAccessException
-     */
-    public void tagsAdd(@Nonnull TaggableEntity taggable, UUID id, String tag)
-        throws StateAccessException;
-
-    /**
-     * Gets the data for the particular tag attached to a resource represented by
-     * "taggable" with "id" UUID.
-     *
-     * @param taggable A parent resource to which a tag is attached.
-     * @param id An id of the parent resource.
-     * @param tag A tag.
-     * @throws StateAccessException
-     */
-    public String tagsGet(@Nonnull TaggableEntity taggable, UUID id, String tag)
-            throws StateAccessException;
-
-    /**
-     * Returns a list of tags attached to a resource represented by "taggable"
-     * with "id" UUID.
-     *
-     * @param taggable A parent resource to which a tag is attached.
-     * @param id An id of the parent resource.
-     * @throws StateAccessException
-     */
-    public List<String> tagsList(@Nonnull TaggableEntity taggable, UUID id)
-            throws StateAccessException;
-
-    /**
-     * Deletes a tag attached to a resource represented by "taggable" data with id.
-     *
-     * @param taggable A parent resource to which tag is attached.
-     * @param id An id of the parent resource.
-     * @param tag A tag.
-     * @throws StateAccessException
-     */
-    public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
-        throws StateAccessException;
-
-    /**
      * Get tenants
      *
      * @return Set of tenant IDs
@@ -999,8 +915,7 @@ public interface DataClient {
      * @return system state info
      * @throws StateAccessException
      */
-    public SystemState systemStateGet()
-            throws StateAccessException;
+    public SystemState systemStateGet() throws StateAccessException;
 
     /**
      * Update the system state
@@ -1123,10 +1038,10 @@ public interface DataClient {
 
     /**
      * Get all the vtep bindings for this bridge.
-     * @param bridgeId
+     * @param id
      * @throws StateAccessException, SerializationException
      */
-    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID bridgeId)
+    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id)
         throws StateAccessException, SerializationException;
 
     public VxLanPort bridgeCreateVxLanPort(
@@ -1174,20 +1089,6 @@ public interface DataClient {
      * @return True if the ownership was deleted, false otherwise.
      */
     public boolean deleteVtepOwner(IPv4Addr mgmtIp, UUID ownerId)
-        throws SerializationException, StateAccessException;
-
-    /**
-     * Given a bridge port that is expected to be exterior and bound to a given
-     * host's interface, this method will figure out what's the IP that should
-     * be used as vxlan tunnel end point given the bridge's configuration.
-     *
-     * If the bridge contains a vxlan port, we will fetch the VTEP's configured
-     * tunnel zone, and use the host's IP in that tunnel zone. If the bridge
-     * does not contain a vxlan port, then we'll simply return null, which
-     * should be understood as "there is no vxlan tunnel end point relevant for
-     * this bridge".
-     */
-    public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
         throws SerializationException, StateAccessException;
 
     /**

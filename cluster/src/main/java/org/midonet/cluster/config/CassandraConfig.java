@@ -3,7 +3,6 @@
  */
 package org.midonet.cluster.config;
 
-import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
@@ -22,9 +21,6 @@ public interface CassandraConfig {
     @ConfigString(key = "cluster", defaultValue = "midonet")
     public String getCassandraCluster();
 
-    @ConfigString(key = "midonet_keyspace", defaultValue = "midolman")
-    public String getCassandraMidonetKeyspace();
-
-    @ConfigInt(key = "replication_factor", defaultValue = 1)
+   @ConfigInt(key = "replication_factor", defaultValue = 1)
     public int getCassandraReplicationFactor();
 }

@@ -10,6 +10,7 @@ import java.security.PrivilegedExceptionAction;
 
 import sun.misc.Unsafe;
 
+@SuppressWarnings("unsafe")
 public final class Util {
 
     private static final Unsafe THE_UNSAFE;

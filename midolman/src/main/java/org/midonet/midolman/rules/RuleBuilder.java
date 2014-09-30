@@ -2,18 +2,18 @@
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.rules;
-import org.midonet.cluster.data.neutron.RuleProtocol;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
-import org.midonet.packets.ARP;
-import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPSubnet;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
-import org.midonet.packets.MAC;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.midonet.cluster.data.neutron.RuleProtocol;
+import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.packets.ARP;
+import org.midonet.packets.IPSubnet;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.MAC;
 
 
 public class RuleBuilder {
@@ -65,7 +65,7 @@ public class RuleBuilder {
         return fromSubnet(addr.subnet(32));
     }
 
-    public RuleBuilder fromSubnet(IPSubnet addr) {
+    public RuleBuilder fromSubnet(IPSubnet<?> addr) {
         c.nwSrcIp = addr;
         return this;
     }
@@ -74,7 +74,7 @@ public class RuleBuilder {
         return toSubnet(addr.subnet(32));
     }
 
-    public RuleBuilder toSubnet(IPSubnet addr) {
+    public RuleBuilder toSubnet(IPSubnet<?> addr) {
         c.nwDstIp = addr;
         return this;
     }

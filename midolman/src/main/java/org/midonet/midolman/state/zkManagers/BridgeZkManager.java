@@ -45,8 +45,7 @@ public class BridgeZkManager
         private static final long serialVersionUID = 1L;
     }
 
-    public static class BridgeConfig extends ConfigWithProperties
-                                     implements TaggableConfig {
+    public static class BridgeConfig extends ConfigWithProperties {
         public BridgeConfig() {
             super();
         }

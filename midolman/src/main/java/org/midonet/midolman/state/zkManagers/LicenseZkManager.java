@@ -25,8 +25,7 @@ public class LicenseZkManager
     private final static Logger log = LoggerFactory
         .getLogger(LicenseZkManager.class);
 
-    public static class LicenseConfig extends BaseConfig
-                                      implements TaggableConfig {
+    public static class LicenseConfig extends BaseConfig {
         private UUID licenseId;
         private byte[] licenseData;
 
