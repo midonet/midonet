@@ -261,6 +261,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         dependsOn(perfClasses, cleanPerf)
     }
 
+    cobertura {
+        coverageFormats = ['html', 'xml']
+    }
+
     task compileBenchmarks(type: JavaCompile) {
         classpath = sourceSets.perf.runtimeClasspath
         source = benchOutput
