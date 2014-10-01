@@ -397,7 +397,12 @@ class ZookeeperObjectMapper(private val basePath: String,
         instanceCaches(clazz) = new TrieMap[ObjId, InstanceSubscriptionCache[_]]
     }
 
-    def isRegistered(clazz: Class[_]) = instanceCaches.contains(clazz)
+    def isRegistered(clazz: Class[_]) = {
+        val registered = instanceCaches.contains(clazz)
+        if (!registered)
+            log.warn(s"Class ${clazz.getSimpleName} is not registered.")
+        registered
+    }
 
     def declareBinding(leftClass: Class[_], leftFieldName: String,
                        onDeleteLeft: DeleteAction,
