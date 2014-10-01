@@ -15,7 +15,7 @@ JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 \
 
 SKIP_THROUGHPUT=0
 SKIP_IO=0
-MIDO_JAR=
+MIDO_EXTRA_JARS=
 
 usage() {
     cat <<EOF
@@ -25,7 +25,7 @@ mm-tests
 Basic:
   --skip-throughput  do not run throughput tests
   --skip-io          do not run IO tests
-  --mido-jar         set the mido*.jar file
+  --cp               additional jars to prepend to CLASSPATH
 
 Troubleshooting:
   --verbose | -v             run in verbose mode
@@ -34,8 +34,8 @@ EOF
 
 while [ $# -gt 0 ] ; do
     case "$1" in
-        --mido-jar)
-          MIDO_JAR=$1
+        --cp)
+          MIDO_EXTRA_JARS=$2
           shift
           ;;
         --skip-throughput)
@@ -52,7 +52,7 @@ while [ $# -gt 0 ] ; do
           exit 0
           ;;
         *)
-          log "Unknown argument $1"
+          echo "Unknown argument $1"
           usage
           exit 1
           ;;
@@ -117,15 +117,16 @@ fi
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
-if [ -z "$MIDO_JAR" ] ; then
-    MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
-    if [ ! -e "$MIDO_JAR" ]; then
-       echo "ERROR: $MIDO_JAR does not exist"
-       exit 1
-    fi
+MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar 2>/dev/null`
+if [ ! -e "$MIDO_JAR" -a -z "$MIDO_EXTRA_JARS" ] ; then
+   echo "ERROR: midolman jar does not exist [$MIDO_HOME/midolman-*.jar]"
+   exit 1
 fi
-
-CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
+if [ -n "$MIDO_EXTRA_JARS" ] ; then
+	CLASSPATH=$MIDO_EXTRA_JARS:$MIDO_JAR:$MIDO_DEP_CLASS_PATH
+else
+	CLASSPATH=$MIDO_JAR:$MIDO_DEP_CLASS_PATH
+fi
 
 run_test() {
     MAIN=$1
