@@ -4,8 +4,6 @@
 
 package org.midonet.event.topology;
 
-import org.midonet.event.topology.AbstractVirtualTopologyEvent;
-
 /**
  * A class for handle events for topology changes in Bridges
  */
