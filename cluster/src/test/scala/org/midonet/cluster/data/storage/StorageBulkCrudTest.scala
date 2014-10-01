@@ -19,7 +19,6 @@ import scala.collection.mutable.TreeSet
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
-
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FlatSpec
 import org.slf4j.Logger
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.StorageEval.BulkUpdateEval
 import org.midonet.cluster.data.storage.StorageEval.BulkUpdateEvalOrBuilder
 import org.midonet.cluster.data.storage.StorageEval.EvalResult
+import org.midonet.cluster.data.storage.StorageEval.EvalResult.TestItem
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Devices.Bridge
 import org.midonet.cluster.models.Devices.Chain
@@ -177,49 +177,61 @@ trait StorageBulkCrudTest extends FlatSpec
      */
     def buildLayoutAndMeasureLatency(test: BulkUpdateEvalOrBuilder,
                                      result: EvalResult.Builder) {
-        val topology = test.getTopology
-        val bridgesPerTenant = topology.getBridgesPerTenant
-        val portsPerBridge = topology.getPortsPerBridge
-        val numRules = topology.getNumRulesPerBridgeChains
-        val devices = emptyDeviceCollection
-
-        val start = System.currentTimeMillis()
-        val providerRouter = createRouter("provider router", devices)
-        val tenantRouter = createRouter("tenant router", devices)
-        connect(providerRouter, tenantRouter)
-
-        val pool = getThreadPool(test.getNumThreads)
-        val successfulTasks = new AtomicLong()
-        for (bridge_i <- 1 to bridgesPerTenant) {
-            val bridge = createBridge(s"bridge$bridge_i", devices)
-            connect(tenantRouter, bridge)
-
-            // Dispatch port / chain creations to separate threads.
-            pool.execute(addPortsAndChainsRunnable(
-                    bridge, portsPerBridge, numRules,
-                    test.getMultiSize, devices, successfulTasks))
-        }
-
-        pool.shutdown()
-        pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
-        val end = System.currentTimeMillis()
-        assert(successfulTasks.get === bridgesPerTenant,
-               s"Executed $bridgesPerTenant writes, but succeeded only " +
-               s"$successfulTasks writes.")
-
-        val layoutWrite = end - start
-        // Test reading all the devices in the layout.
-        val layoutRead = testReadDevices(test.getNumThreads, devices)
-
-        // Record the results.
+        val testItemName = "Whole topology read/write latency"
         val testItem = result.addTestItemBuilder()
-        testItem.setItemName("Whole topology read/write latency")
-        testItem.addDataBuilder().setProperty("topology size")
-                                 .setValue(devices.size.toString)
-        testItem.addDataBuilder().setProperty("read")
-                                 .setValue(layoutRead.toString)
-        testItem.addDataBuilder().setProperty("write")
-                                 .setValue(layoutWrite.toString)
+        testItem.setItemName(testItemName)
+        try {
+            val topology = test.getTopology
+            val bridgesPerTenant = topology.getBridgesPerTenant
+            val portsPerBridge = topology.getPortsPerBridge
+            val numRules = topology.getNumRulesPerBridgeChains
+            val devices = emptyDeviceCollection
+
+            val start = System.currentTimeMillis()
+            val providerRouter = createRouter("provider router", devices)
+            val tenantRouter = createRouter("tenant router", devices)
+            connect(providerRouter, tenantRouter)
+
+            val pool = getThreadPool(test.getNumThreads)
+            val successfulTasks = new AtomicLong()
+            for (bridge_i <- 1 to bridgesPerTenant) {
+                val bridge = createBridge(s"bridge$bridge_i", devices)
+                connect(tenantRouter, bridge)
+
+                // Dispatch port / chain creations to separate threads.
+                pool.execute(addPortsAndChainsRunnable(
+                        bridge, portsPerBridge, numRules,
+                        test.getMultiSize, devices, successfulTasks))
+            }
+
+            pool.shutdown()
+            pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+            val end = System.currentTimeMillis()
+            assert(successfulTasks.get === bridgesPerTenant,
+                   s"Executed $bridgesPerTenant writes, but succeeded only " +
+                   s"$successfulTasks writes.")
+
+            val layoutWrite = end - start
+            // Test reading all the devices in the layout.
+            val layoutRead = testReadDevices(test.getNumThreads, devices)
+
+            // Record the results.
+            testItem.addDataBuilder().setProperty("topology size")
+                                     .setValue(devices.size.toString)
+            testItem.addDataBuilder().setProperty("read")
+                                     .setValue(layoutRead.toString)
+            testItem.addDataBuilder().setProperty("write")
+                                     .setValue(layoutWrite.toString)
+            testItem.setTestStatus(TestItem.TestStatus.SUCCESS)
+        } catch {
+            case ex: Exception =>
+                log.warn(s"$testItemName failed with exception", ex)
+                testItem.setTestStatus(TestItem.TestStatus.FAILURE)
+                val dataBuilder = testItem.addDataBuilder()
+                dataBuilder.setProperty("exception")
+                if (ex.getMessage != null) dataBuilder.setValue(ex.getMessage)
+                else dataBuilder.setValue(ex.getStackTraceString)
+        }
     }
 
     /* Adds ports and chains to a given bridge either with either normal CRUD
@@ -300,15 +312,26 @@ trait StorageBulkCrudTest extends FlatSpec
     def testSimpleBulkUpdate(test: BulkUpdateEvalOrBuilder,
                              result: EvalResult.Builder,
                              testItemName: String) {
-        val read = readLatency(test)
-        val write = writeLatency(test)
-
         val testItem = result.addTestItemBuilder()
         testItem.setItemName(testItemName)
-        testItem.addDataBuilder().setProperty("read")
-                                 .setLatencyMilliSec(read)
-        testItem.addDataBuilder().setProperty("write")
-                                 .setLatencyMilliSec(write)
+        try {
+            val read = readLatency(test)
+            testItem.addDataBuilder().setProperty("read")
+                                     .setLatencyMilliSec(read)
+
+            val write = writeLatency(test)
+            testItem.addDataBuilder().setProperty("write")
+                                     .setLatencyMilliSec(write)
+            testItem.setTestStatus(TestItem.TestStatus.SUCCESS)
+        } catch {
+            case ex: Exception =>
+                log.warn(s"$testItemName failed with exception", ex)
+                testItem.setTestStatus(TestItem.TestStatus.FAILURE)
+                val dataBuilder = testItem.addDataBuilder()
+                dataBuilder.setProperty("exception")
+                if (ex.getMessage != null) dataBuilder.setValue(ex.getMessage)
+                else dataBuilder.setValue(ex.getStackTraceString)
+        }
     }
 
     "Empty layout" should "be tested for read/write latency" ignore {
