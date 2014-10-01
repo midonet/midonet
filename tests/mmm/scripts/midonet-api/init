@@ -16,3 +16,8 @@ sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.aut
 # Copy the configuration file template for Tomcat7
 sudo cp ../../../../midonet-api/conf/midonet-api.xml \
     /etc/tomcat7/Catalina/localhost/midonet-api.xml
+
+# Add a workaround for tomcat7 to start slowly: MN-2723
+if ! grep -q 'java.security.egd' /etc/default/tomcat7; then  
+  echo 'JAVA_OPTS="$JAVA_OPTS -Djava.security.egd=file:/dev/./urandom"' >> /etc/default/tomcat7
+fi

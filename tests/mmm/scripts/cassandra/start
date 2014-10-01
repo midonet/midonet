@@ -25,7 +25,7 @@ retries=0
 for i in 5 6 7
 do
   echo "Cassandra at ns00$i"
-  until sudo ip netns exec ns00$i nodetool status -h 10.0.0.$i
+  until sudo ip netns exec ns00$i nodetool -h 10.0.0.$i status
   do
     echo "Waiting for Cassandra ns00$i to start"
     sleep 5

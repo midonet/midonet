@@ -12,19 +12,27 @@ for n in 1 2 3; do
     if test x"$ZOOKEEPER_STANDALONE" = xyes; then
         :
     else
-        echo "server.1=10.0.0.2:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
-        echo "server.2=10.0.0.3:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
-        echo "server.3=10.0.0.4:2888:3888" >>/etc/zookeeper.$n/zoo.cfg
+        # ZK package on Trusty has extra "conf" dir under /etc/zookeeper
+        if test -d /etc/zookeeper/conf ; then
+            CONF_DIR=conf
+        fi
+
+        if ! egrep -q '^server.1' /etc/zookeeper.$n/$CONF_DIR/zoo.cfg ; then
+            echo "server.1=10.0.0.2:2888:3888" >>/etc/zookeeper.$n/$CONF_DIR/zoo.cfg
+            echo "server.2=10.0.0.3:2888:3888" >>/etc/zookeeper.$n/$CONF_DIR/zoo.cfg
+            echo "server.3=10.0.0.4:2888:3888" >>/etc/zookeeper.$n/$CONF_DIR/zoo.cfg
+        fi
     fi
 
     if test ! -d /var/lib/zookeeper.$n; then
         mkdir -p /var/lib/zookeeper.$n
     fi
     if test -d /var/lib/zookeeper.$n/data; then
-        rm -rf /var/lib/zookeeper.$n/data
+        rm -rf /var/lib/zookeeper.$n/*
     fi
     mkdir -p /var/lib/zookeeper.$n/data
     echo "$n" >/var/lib/zookeeper.$n/data/myid
+    echo "$n" >/var/lib/zookeeper.$n/myid # for Trusty
     chown -R zookeeper.zookeeper /var/lib/zookeeper.$n
 
     if test ! -d /var/log/zookeeper.$n; then

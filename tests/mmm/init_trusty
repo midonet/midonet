@@ -8,7 +8,7 @@ echo bootstrap script $0 called at `date` with args $*
 sudo apt-get update
 
 # Install basic tools
-sudo apt-get install curl screen tmux -y
+sudo apt-get install curl screen tmux bridge-utils iproute quagga -y
 
 # add midokura apt source
 echo 'deb [arch=amd64] http://suzuki:ironchef@apt.midokura.com/midonet/master precise main non-free' |sudo tee /etc/apt/sources.list.d/midokura.list
