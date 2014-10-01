@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
-package org.midonet.cluster.data.storage;
+package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 

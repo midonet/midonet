@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.midolman.state;
 
@@ -17,7 +17,6 @@ import org.midonet.packets.IPv4Addr;
 public class PathBuilder extends ZkPathManager {
 
     public static final String BRIDGE_NAMES_PATH = "bridge-names";
-    public static final String VLAN_BRIDGE_NAMES_PATH = "vlan-bridge-names";
     public static final String CHAIN_NAMES_PATH = "chain-names";
     public static final String ROUTER_NAMES_PATH = "router-names";
     public static final String TENANTS_PATH = "tenants";
@@ -37,8 +36,7 @@ public class PathBuilder extends ZkPathManager {
     /**
      * Get ZK tenant port group name path.
      *
-     * @param tenantId
-     *            Tenant UUID
+     * @param tenantId Tenant UUID
      * @return /tenants/tenantId/port_group-names/name
      */
     public String getTenantPortGroupNamePath(String tenantId, String name) {
@@ -53,8 +51,7 @@ public class PathBuilder extends ZkPathManager {
     /**
      * Get ZK tenant port group names path.
      *
-     * @param tenantId
-     *            Tenant UUID
+     * @param tenantId Tenant UUID
      * @return /tenant/tenantId/port_group-names
      */
     public String getTenantPortGroupNamesPath(String tenantId) {
@@ -69,8 +66,7 @@ public class PathBuilder extends ZkPathManager {
     /**
      * Get ZK tenant chain name path.
      *
-     * @param tenantId
-     *            Tenant UUID
+     * @param tenantId Tenant UUID
      * @return /tenants/tenantId/chain-names/name
      */
     public String getTenantChainNamePath(String tenantId, String name) {
@@ -111,35 +107,8 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantBridgeNamesPath(tenantId).append("/").append(name);
     }
 
-    /**
-     * Get ZK tenant bridge names path.
-     *
-     * @return /tenants/tenantId/bridge-names
-     */
-    public String getTenantBridgeNamesPath(String tenantId) {
-        return buildTenantBridgeNamesPath(tenantId).toString();
-    }
-
-
     private StringBuilder buildTenantBridgeNamesPath(String tenantId) {
         return buildTenantPath(tenantId).append("/").append(BRIDGE_NAMES_PATH);
-    }
-
-    public String getTenantVlanBridgeNamePath(String tenantId, String name) {
-        return buildTenantVlanBridgeNamePath(tenantId, name).toString();
-    }
-
-    public StringBuilder buildTenantVlanBridgeNamePath(String tenantId,
-                                                       String name) {
-        return buildTenantVlanBridgeNamesPath(tenantId).append("/").append(name);
-    }
-
-    public String getTenantVlanBridgeNamesPath(String tenantId) {
-        return buildTenantVlanBridgeNamesPath(tenantId).toString();
-    }
-
-    private StringBuilder buildTenantVlanBridgeNamesPath(String tenantId) {
-        return buildTenantPath(tenantId).append("/").append(VLAN_BRIDGE_NAMES_PATH);
     }
 
     /**
@@ -156,26 +125,10 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantRouterNamesPath(tenantId).append("/").append(name);
     }
 
-    /**
-     * Get ZK tenant router names path.
-     *
-     * @return /tenants/tenantId/router-names
-     */
-    public String getTenantRouterNamesPath(String tenantId) {
-        return buildTenantRouterNamesPath(tenantId).toString();
-    }
-
     private StringBuilder buildTenantRouterNamesPath(String tenantId) {
         return buildTenantPath(tenantId).append("/").append(ROUTER_NAMES_PATH);
     }
 
-    /**
-     * Get ZK tenant path.
-     *
-     * @param id
-     *            Tenant ID
-     * @return /tenants/tenantId
-     */
     public String getTenantPath(String id) {
         return buildTenantPath(id).toString();
     }
@@ -184,11 +137,6 @@ public class PathBuilder extends ZkPathManager {
         return buildTenantsPath().append("/").append(id);
     }
 
-    /**
-     * Get ZK tenant path.
-     *
-     * @return /tenants
-     */
     public String getTenantsPath() {
         return buildTenantsPath().toString();
     }
@@ -206,35 +154,16 @@ public class PathBuilder extends ZkPathManager {
                                           .append(TRACED_CONDITIONS_PATH);
     }
 
-    /**
-     * Get ZK trace condition path
-     *
-     * @param id Trace condition id
-     * @return /trace-conditions/id
-     */
     public String getTraceConditionPath(UUID id) {
-        StringBuilder tcBuilder =
-            new StringBuilder(getTraceConditionsPath()).append("/").append(id);
-        return tcBuilder.toString();
+        return getTraceConditionsPath() + "/" + id;
     }
 
-    /**
-     * Get ZK licenses path.
-     *
-     * @return /licenses
-     */
     public String getLicensesPath() { return buildLicensesPath().toString(); }
 
     private StringBuilder buildLicensesPath() {
         return new StringBuilder(basePath).append("/").append(LICENSES_PATH);
     }
 
-    /**
-     * Get ZK license path.
-     *
-     * @param id License ID
-     * @return /licenses/licenseId
-     */
     public String getLicensePath(UUID id) {
         return buildLicensePath(id).toString();
     }
@@ -243,11 +172,6 @@ public class PathBuilder extends ZkPathManager {
         return buildLicensesPath().append("/").append(id.toString());
     }
 
-    /**
-     * Get NAT blocks path.
-     *
-     * @return /nat
-     */
     public String getNatPath() {
         return buildNatPath().toString();
     }
@@ -291,7 +215,8 @@ public class PathBuilder extends ZkPathManager {
         return buildNatBlockPath(deviceId, ip, blockIdx).toString();
     }
 
-    private StringBuilder buildNatBlockPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+    private StringBuilder buildNatBlockPath(UUID deviceId, IPv4Addr ip,
+                                            int blockIdx) {
         return buildNatIpPath(deviceId, ip).append("/").append(blockIdx);
     }
 
@@ -300,11 +225,13 @@ public class PathBuilder extends ZkPathManager {
      *
      * @return /nat/{deviceId}/{ip}/{blockIdx}/taken
      */
-    public String getNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+    public String getNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip,
+                                           int blockIdx) {
         return buildNatBlockOwnershipPath(deviceId, ip, blockIdx).toString();
     }
 
-    private StringBuilder buildNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip, int blockIdx) {
+    private StringBuilder buildNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip,
+                                                     int blockIdx) {
         return buildNatBlockPath(deviceId, ip, blockIdx).append("/taken");
     }
 }

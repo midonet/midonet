@@ -6,7 +6,6 @@ package org.midonet.cluster;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -22,8 +21,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import com.google.common.base.Function;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -41,7 +38,6 @@ import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.ChainName;
 import org.midonet.cluster.data.Converter;
-import org.midonet.cluster.data.Entity.TaggableEntity;
 import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Port;
@@ -121,8 +117,6 @@ import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
-import org.midonet.midolman.state.zkManagers.TaggableConfig;
-import org.midonet.midolman.state.zkManagers.TaggableConfigZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
@@ -131,7 +125,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
 import org.midonet.packets.MAC;
-import org.midonet.util.collection.ListUtil;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback2;
 import org.midonet.util.functors.CollectionFunctors;
@@ -223,9 +216,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private Serializer serializer;
-
-    @Inject
-    private TaggableConfigZkManager taggableConfigZkManager;
 
     @Inject
     private SystemDataProvider systemDataProvider;
@@ -330,36 +320,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesFindByTenant exiting: {} bridges found", bridges.size());
         return bridges;
-    }
-
-    @Override
-    public Map<VlanMacPort, IPv4Addr> bridgeGetMacPortsWithVxTunnelEndpoint(
-        @Nonnull UUID bridgeId) throws StateAccessException,
-                                       SerializationException {
-
-        Bridge bridge = bridgesGet(bridgeId);
-        if (bridge.getVxLanPortId() == null) {
-            log.warn("Requesting ports with vxlan tunnel port for a bridge " +
-                     "that is not bound to a VTEP: {}", bridgeId);
-            return new HashMap<>();
-        }
-
-        List<VlanMacPort> allPorts = bridgeGetMacPorts(bridgeId);
-        Map<VlanMacPort, IPv4Addr> filtered = new HashMap<>();
-        for (VlanMacPort vmp : allPorts) {
-            Port<?, ?> p = portsGet(vmp.portId);
-            if (p == null || !p.isExterior()) {
-               continue;
-            }
-            // skip on null - caused by race condition
-            // (disappeared/unbound port/bridge)
-            IPv4Addr ip = vxlanTunnelEndpointForInternal(bridge, (BridgePort)p);
-            if (ip == null) {
-                continue;
-            }
-            filtered.put(vmp, ip);
-        }
-        return filtered;
     }
 
     /**
@@ -478,7 +438,7 @@ public class LocalDataClientImpl implements DataClient {
             Ip4ToMacReplicatedMap.deleteEntry(dir, ip4, oldMac);
         }
         Ip4ToMacReplicatedMap.addPersistentEntry(
-                bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId), ip4, mac);
     }
 
     @Override
@@ -566,11 +526,11 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         BridgeZkManager.BridgeConfig bridgeConfig = Converter.toBridgeConfig(
-                bridge);
+            bridge);
 
         List<Op> ops =
                 bridgeZkManager.prepareBridgeCreate(bridge.getId(),
-                        bridgeConfig);
+                                                    bridgeConfig);
 
         // Create the top level directories for
         String tenantId = bridge.getProperty(Bridge.Property.tenant_id);
@@ -606,8 +566,8 @@ public class LocalDataClientImpl implements DataClient {
         log.debug("bridgesGetAll entered");
         List<Bridge> bridges = new ArrayList<>();
 
-        List<UUID> bridgeIds = bridgesGetAllIds();
-        for (UUID id : bridgeIds) {
+        for (UUID id :
+            bridgeZkManager.getUuidList(pathBuilder.getBridgesPath())) {
             Bridge bridge = bridgesGet(id);
             if (bridge != null) {
                 bridges.add(bridge);
@@ -616,20 +576,6 @@ public class LocalDataClientImpl implements DataClient {
 
         log.debug("bridgesGetAll exiting: {} bridges found", bridges.size());
         return bridges;
-    }
-
-    @Override
-    public List<Bridge> bridgesGetAllWithVxlanPort()
-        throws StateAccessException, SerializationException {
-        return ListUtil.filter(
-            this.bridgesGetAll(),
-            new Function<Bridge, Boolean>() {
-                @Override
-                public Boolean apply(@Nullable Bridge bridge) {
-                    return bridge != null && bridge.getVxLanPortId() != null;
-                }
-            }
-        );
     }
 
     @Override
@@ -665,12 +611,6 @@ public class LocalDataClientImpl implements DataClient {
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
         return new EntityIdSetMonitor<>(bridgeZkManager, zkConnection);
-    }
-
-    @Override
-    public List<UUID> bridgesGetAllIds() throws StateAccessException,
-            SerializationException {
-        return bridgeZkManager.getUuidList(pathBuilder.getBridgesPath());
     }
 
     @Override
@@ -718,37 +658,9 @@ public class LocalDataClientImpl implements DataClient {
         zkManager.multi(ops);
     }
 
-    @Override
-    public void tagsAdd(@Nonnull TaggableEntity taggable, UUID id, String tag)
-            throws StateAccessException {
-        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
-        taggableConfigZkManager.create(id, taggableConfig, tag);
-    }
-
-    @Override
-    public String tagsGet(@Nonnull TaggableEntity taggable, UUID id, String tag)
-            throws StateAccessException {
-        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
-        return this.taggableConfigZkManager.get(id, taggableConfig, tag);
-    }
-
-    @Override
-    public List<String> tagsList(@Nonnull TaggableEntity taggable, UUID id)
-            throws StateAccessException {
-        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
-        return this.taggableConfigZkManager.listTags(id, taggableConfig, null);
-    }
-
-    @Override
-    public void tagsDelete(@Nonnull TaggableEntity taggable, UUID id, String tag)
-        throws StateAccessException {
-        TaggableConfig taggableConfig = Converter.toTaggableConfig(taggable);
-        this.taggableConfigZkManager.delete(id, taggableConfig, tag);
-    }
-
      @Override
-    public List<Chain> chainsGetAll() throws StateAccessException,
-            SerializationException {
+     public List<Chain> chainsGetAll() throws StateAccessException,
+                                              SerializationException {
         log.debug("chainsGetAll entered");
 
         List<Chain> chains = new ArrayList<>();
@@ -891,12 +803,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public boolean tunnelZonesMembershipExists(UUID uuid, UUID hostId)
-            throws StateAccessException {
-        return zonesZkManager.membershipExists(uuid, hostId);
-    }
-
-    @Override
     public @CheckForNull TunnelZone.HostConfig tunnelZonesGetMembership(UUID id,
                                                                 UUID hostId)
             throws StateAccessException, SerializationException {
@@ -909,7 +815,7 @@ public class LocalDataClientImpl implements DataClient {
         List<TunnelZone> tunnelZones = tunnelZonesGetAll();
         boolean hostExistsInTunnelZone = false;
         for (TunnelZone tunnelZone : tunnelZones) {
-            if (tunnelZonesMembershipExists(tunnelZone.getId(), hostId)) {
+            if (zonesZkManager.membershipExists(tunnelZone.getId(), hostId)) {
                 hostExistsInTunnelZone = true;
                 break;
             }
@@ -978,7 +884,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(
-        final UUID zoneId, ZookeeperConnectionWatcher zkConnection)
+        @Nonnull final UUID zoneId, ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
         return new EntityIdSetMonitor<>(
             new WatchableZkManager<UUID, TunnelZone.HostConfig>() {
@@ -1982,11 +1888,6 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     /* load balancer related methods */
-    @Override
-    public boolean loadBalancerExists(UUID id)
-        throws StateAccessException {
-        return loadBalancerZkManager.exists(id);
-    }
 
     @Override
     @CheckForNull
@@ -2210,12 +2111,6 @@ public class LocalDataClientImpl implements DataClient {
             }
         }
         return pairs;
-    }
-
-    @Override
-    public boolean healthMonitorExists(UUID id)
-        throws StateAccessException {
-        return healthMonitorZkManager.exists(id);
     }
 
     @Override
@@ -2562,13 +2457,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     @CheckForNull
-    public boolean poolExists(UUID id)
-        throws StateAccessException {
-        return poolZkManager.exists(id);
-    }
-
-    @Override
-    @CheckForNull
     public Pool poolGet(UUID id)
         throws StateAccessException, SerializationException {
         Pool pool = null;
@@ -2874,12 +2762,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     @CheckForNull
-    public boolean vipExists(UUID id) throws StateAccessException {
-        return vipZkManager.exists(id);
-    }
-
-    @Override
-    @CheckForNull
     public VIP vipGet(UUID id)
         throws StateAccessException, SerializationException {
         VIP vip = null;
@@ -3033,12 +2915,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         return vips;
-    }
-
-    @Override
-    public Integer hostsGetFloodingProxyWeight(UUID hostId)
-        throws StateAccessException, SerializationException {
-        return hostZkManager.getFloodingProxyWeight(hostId);
     }
 
     @Override
@@ -3569,12 +3445,9 @@ public class LocalDataClientImpl implements DataClient {
     public IPv4Addr vxlanTunnelEndpointFor(UUID id)
         throws SerializationException, StateAccessException {
         BridgePort port = (BridgePort) portsGet(id);
-        return (port == null)? null: vxlanTunnelEndpointFor(port);
-    }
-
-    @Override
-    public IPv4Addr vxlanTunnelEndpointFor(BridgePort port)
-        throws SerializationException, StateAccessException {
+        if (port == null) {
+            return null;
+        }
 
         if (!port.isExterior()) {
             throw new IllegalArgumentException("Port " + port.getId() + " is " +
