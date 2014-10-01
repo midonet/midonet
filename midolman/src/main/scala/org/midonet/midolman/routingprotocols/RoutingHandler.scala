@@ -22,6 +22,7 @@ import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 import akka.actor.{Stash, Actor, ActorRef}
+import akka.pattern.pipe
 
 import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
@@ -29,6 +30,7 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.io.{VirtualMachine, UpcallDatapathConnectionManager}
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
@@ -36,6 +38,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
 import org.midonet.netlink.AfUnix
+import org.midonet.odp.{DpPort, Datapath}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
@@ -81,6 +84,10 @@ object RoutingHandler {
                                        destination: IPv4Subnet,
                                        gateway: IPv4Addr)
 
+    private case class DpPortCreateSuccess(port: DpPort, pid: Int)
+    private case class DpPortDeleteSuccess(port: DpPort)
+    private case class DpPortError(port: String, ex: Throwable)
+
     // For testing
     case class BGPD_STATUS(port: UUID, isActive: Boolean)
 
@@ -109,7 +116,9 @@ object RoutingHandler {
  * RoutingHandlers for different virtual ports of the same router. *
  */
 class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
+                     val datapath: Datapath,
                      val dpState: DatapathState,
+                     val upcallConnManager: UpcallDatapathConnectionManager,
                      val client: Client, val dataClient: DataClient,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher,
@@ -117,7 +126,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     extends Actor with ActorLogWithoutPath with Stash with FlowTranslator {
 
     import RoutingHandler._
-    import DatapathController._
 
     override protected implicit val system = context.system
 
@@ -153,10 +161,10 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private val peerRoutes = mutable.Map[Route, UUID]()
     private var socketAddress: AfUnix.Address = null
 
-    private val dpPorts = mutable.Map[String, NetDevPort]()
-
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
+
+    private val dpPorts = mutable.Map[String, NetDevPort]()
 
     /**
      * This actor can be in these phases:
@@ -389,23 +397,23 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     stash()
             }
 
-        case DpPortDeleteSuccess(_, netdevPort) =>
-            log.info("({}) Datapath port was deleted: {} ", phase, netdevPort.getName)
+        case DpPortDeleteSuccess(netdevPort) =>
+            log.info(s"($phase) Datapath port was deleted: ${netdevPort.getName} ")
             dpPorts.remove(netdevPort.getName)
 
-        case DpPortCreateSuccess(_, netdevPort, pid) =>
+        case DpPortCreateSuccess(netdevPort, pid) =>
             log.info("({}) Datapath port was created: {}", phase, netdevPort.getName)
             phase match {
                 case Starting =>
                     netdevPortReady(netdevPort.asInstanceOf[NetDevPort], pid)
                 case _ =>
-                    log.error("({}) PortNetdevOpReply expected only while " +
-                        "Starting", phase)
+                    log.error(s"($phase) PortNetdevOpReply expected only while " +
+                              "Starting")
             }
 
-        case DpPortError(DpPortCreateNetdev(port, _), ex) =>
+        case DpPortError(port, ex) =>
             // Only log errors, do nothing
-            log.error(s"({$phase}) Datapath port creation failed: ${port.getName}", ex)
+            log.error(s"($phase) Datapath port operation failed: $port", ex)
 
         case BGPD_READY =>
             log.debug("({}) BGPD_READY", phase)
@@ -750,8 +758,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Add port to datapath
         log.debug("({}) Adding port to datapath: {}", phase, BGP_NETDEV_PORT_NAME)
-        DatapathController !
-            DpPortCreateNetdev(new NetDevPort(BGP_NETDEV_PORT_NAME), null)
+        createDpPort(BGP_NETDEV_PORT_NAME)
 
         /* VTY interface configuration */
         log.debug("({}) Setting up vty interface: {}", phase, BGP_VTY_PORT_NAME)
@@ -814,9 +821,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         IP.deleteNS(BGP_NETWORK_NAMESPACE)
 
         // Delete port from datapath
-        dpPorts.get(BGP_NETDEV_PORT_NAME) foreach {
-            DatapathController ! DpPortDeleteNetdev(_, null)
-        }
+        dpPorts.get(BGP_NETDEV_PORT_NAME) foreach removeDpPort
 
         log.debug("({}) announcing BGPD_STATUS inactive", phase)
         context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
@@ -974,6 +979,22 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
     }
 
+    private def createDpPort(port: String): Unit = {
+        log.debug(s"Creating port $port")
+        val f = upcallConnManager.createAndHookDpPort(datapath,
+                                                      new NetDevPort(port),
+                                                      VirtualMachine)
+        f map { case (dpPort, pid) =>
+            DpPortCreateSuccess(dpPort, pid)
+        } recover { case e => DpPortError(port, e) } pipeTo self
+    }
+
+    private def removeDpPort(port: DpPort): Unit = {
+        log.debug(s"Removing port ${port.getName}")
+        upcallConnManager.deleteDpPort(datapath, port) map { _ =>
+            DpPortDeleteSuccess(port)
+        } recover { case e => DpPortError(port.getName, e) } pipeTo self
+    }
 }
 
 object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */

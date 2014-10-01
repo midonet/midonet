@@ -60,7 +60,7 @@ object PacketWorkflowTest {
             override def start(): Unit = { }
         }
         dpCon.flowsSubscribe(flowListener)
-        val dpState = new DatapathStateManager(null)(null)
+        val dpState = new DatapathStateManager(null)(null, null)
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,

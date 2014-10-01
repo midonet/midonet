@@ -19,9 +19,6 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest._
-import org.scalatest.concurrent.Eventually._
-import org.scalatest.time.{Seconds, Span}
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
 import org.midonet.cluster.data.host.Host
@@ -30,17 +27,14 @@ import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
-import org.midonet.midolman.services.{HostIdProviderService}
-import org.midonet.midolman.topology.{LocalPortActive,
-                                      VirtualToPhysicalMapper,
-                                      VirtualTopologyActor}
+import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.ports.VxLanTunnelPort
-import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
@@ -57,12 +51,10 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
     var interfaceScanner: MockInterfaceScanner = null
 
     registerActors(
-        VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                       with MessageAccumulator),
+        VirtualTopologyActor -> (() => new VirtualTopologyActor),
         VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                           with MessageAccumulator),
-        DatapathController -> (() => new DatapathController
-                                     with MessageAccumulator))
+        DatapathController -> (() => new DatapathController))
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
@@ -127,9 +119,8 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             addInterface()
 
             Then("the DpC should create the datapath port")
-            eventually(timeout(Span(2, Seconds))) {
-                testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
-            }
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
+
             And("the min MTU should be the interface one")
             DatapathController.minMtu should be (ifmtu - VxLanTunnelPort.TunnelOverhead)
 
@@ -143,9 +134,8 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             interfaceScanner.removeInterface(ifname)
 
             Then("the DpC should delete the datapath port")
-            eventually {
-                testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
-            }
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
+
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (DatapathController.DEFAULT_MTU)
 
@@ -164,9 +154,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             val port = addAndMaterializeBridgePort(host.getId, clusterBridge, ifname)
 
             Then("the DpC should create the datapath port")
-            eventually {
-                testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
-            }
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
@@ -177,9 +165,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             clusterDataClient().hostsDelVrnPortMapping(host.getId, port.getId)
 
             Then("the DpC should delete the datapath port")
-            eventually {
-                testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
-            }
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false

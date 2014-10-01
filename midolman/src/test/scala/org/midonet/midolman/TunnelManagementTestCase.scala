@@ -26,7 +26,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.{TunnelZone, Bridge}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.{Host => RCUHost}
@@ -100,11 +99,6 @@ class TunnelManagementTestCase extends MidolmanTestCase
     }
 
     def testTunnelZone() {
-
-        val port = datapathEventsProbe.expectMsgClass(classOf[DpPortCreate]).port
-        port shouldBe a [NetDevPort]
-        port.getName shouldBe "port1"
-
         portActiveProbe.expectMsgClass(classOf[LocalPortActive])
 
         // check that no route exists yet

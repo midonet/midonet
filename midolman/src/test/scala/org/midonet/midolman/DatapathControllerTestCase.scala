@@ -163,26 +163,14 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
         initializeDatapath() should not be (null)
 
-        var opReply = askAndAwait[DpPortReply](
-            dpController(), DpPortCreateNetdev(new NetDevPort("netdev"), None))
-
-        opReply should not be (null)
-        val netdevPort: NetDevPort = opReply.request.port.asInstanceOf[NetDevPort]
-
         // validate the final datapath state
-        val datapaths: mutable.Set[Datapath] = dpConn().futures.datapathsEnumerate().get()
+        val datapaths: mutable.Set[Datapath] = dpConn().futures
+            .datapathsEnumerate().get()
 
         datapaths should have size 1
         datapaths.head should have('name("test"))
 
-        val ports = checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay",
-                                        "tnvxlan-vtep","test", "netdev")
-
-        val delRequest =
-            DpPortDeleteNetdev(ports("netdev").asInstanceOf[NetDevPort], None)
-        askAndAwait[DpPortReply](dpController(), delRequest) should not be(null)
-
-        checkPortsAndTunnel("tngre-overlay","tnvxlan-overlay","tnvxlan-vtep","test")
+        checkPortsAndTunnel("tngre-overlay", "tnvxlan-overlay", "tnvxlan-vtep", "test")
     }
 
     def testInternalControllerState() {

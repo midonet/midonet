@@ -50,8 +50,8 @@ object VxLanPortMapper {
     def uuidOf(vni: Int): Option[UUID] = vniUUIDMap get (vni & (1 << 24) - 1)
 
     /** Type safe actor Props constructor for #actorOf(). */
-    def props(vta: ActorRef, provider: VxLanIdsProvider) =
-        Props(classOf[VxLanPortMapper], vta, provider, 2.seconds)
+    def props(vta: ActorRef, provider: VxLanIdsProvider, dispatcher: String) =
+        Props(classOf[VxLanPortMapper], vta, provider, 2.seconds).withDispatcher(dispatcher)
 
     case object PortsIDRequest
     case class VxLanPorts(vxlanPorts: Seq[UUID])

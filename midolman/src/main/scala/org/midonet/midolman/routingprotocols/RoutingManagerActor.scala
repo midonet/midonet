@@ -28,12 +28,14 @@ import org.midonet.midolman.{DatapathState, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.{BgpStatus, ShowBgp}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
+import org.midonet.odp.Datapath
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback2
 
@@ -69,7 +71,11 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     private val activePorts = mutable.Set[UUID]()
     private val portHandlers = mutable.Map[UUID, ActorRef]()
 
+    var datapath: Datapath = null
     var dpState: DatapathState = null
+
+    @Inject
+    var upcallConnManager: UpcallDatapathConnectionManager = null
 
     private case class LocalPortActive(portID: UUID, active: Boolean)
 
@@ -89,7 +95,8 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     }
 
     override def receive = {
-        case DatapathReady(_, state) =>
+        case DatapathReady(dp, state) =>
+            datapath = dp
             dpState = state
         case LocalPortActive(portID, true) =>
             log.debug(s"port $portID became active")
@@ -147,8 +154,9 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                 portHandlers.put(
                     port.id,
                     context.actorOf(
-                        Props(new RoutingHandler(port, bgpPortIdx, dpState, client,
-                                dataClient, config, zkConnWatcher, zebraLoop)).
+                        Props(new RoutingHandler(port, bgpPortIdx, datapath,
+                                    dpState, upcallConnManager, client,
+                                    dataClient, config, zkConnWatcher, zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )

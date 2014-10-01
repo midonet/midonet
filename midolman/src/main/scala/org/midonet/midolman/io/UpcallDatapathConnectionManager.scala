@@ -15,9 +15,9 @@
  */
 package org.midonet.midolman.io
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import scala.concurrent.{ExecutionContext, Future}
-import scala.collection.mutable
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
@@ -49,7 +49,7 @@ trait UpcallDatapathConnectionManager {
         (implicit ec: ExecutionContext, as: ActorSystem): Future[(DpPort, Int)]
 
     def deleteDpPort(datapath: Datapath, port: DpPort)
-        (implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean]
+        (implicit ec: ExecutionContext, as: ActorSystem): Future[_]
 }
 
 /**
@@ -67,8 +67,8 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     protected def stopConnection(conn: ManagedDatapathConnection)
 
-    protected val portToChannel = mutable.Map[(Datapath, Int),
-                                              ManagedDatapathConnection]()
+    protected val portToChannel = new ConcurrentHashMap[(Datapath, Int),
+                                                        ManagedDatapathConnection]()
 
     protected def setUpcallHandler(conn: OvsDatapathConnection,
                                    w: Workers)
@@ -109,8 +109,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                 ensurePortPid(port, datapath, dpConn)
         } andThen {
             case Success((createdPort, _)) =>
-                val kv = ((datapath, createdPort.getPortNo.intValue), conn)
-                portToChannel += kv
+                portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
             case Failure(e) =>
                 log.error("failed to create or retrieve datapath port "
                           + port.getName, e)
@@ -141,27 +140,24 @@ abstract class UpcallDatapathConnectionManagerBase(
     }
 
     def deleteDpPort(datapath: Datapath, port: DpPort)(
-        implicit ec: ExecutionContext, as: ActorSystem): Future[Boolean] =
-        portToChannel.get((datapath, port.getPortNo)) match {
-            case None => Future.successful(true)
-            case Some(conn) =>
+        implicit ec: ExecutionContext, as: ActorSystem): Future[_] =
+        portToChannel.remove((datapath, port.getPortNo)) match {
+            case null => Future.successful(null)
+            case conn =>
                 val (delCb, delFuture) =
                     OvsConnectionOps.callbackBackedFuture[DpPort]()
                 conn.getConnection.portsDelete(port, datapath, delCb)
 
-                delFuture recover {
-                    case ex: NetlinkException =>
-                        // Although recovers all NetlinkException protectively,
-                        // currently expected exceptions are: ENOENT and ENODEV
-                        log.info("Ignoring error while deleting datapath port "
-                            + port.getName, ex)
-                        port
-                } andThen {
-                    case Success(v) =>
-                        stopConnection(conn)
-                        portToChannel.remove((datapath, port.getPortNo))
-                        tbPolicy.unlink(port)
-                } map { _ => true }
+                delFuture recover { case ex: NetlinkException =>
+                    // Although recovers all NetlinkException protectively,
+                    // currently expected exceptions are: ENOENT and ENODEV
+                    log.info("Ignoring error while deleting datapath port "
+                             + port.getName, ex)
+                    port
+                } map { v =>
+                    stopConnection(conn)
+                    tbPolicy.unlink(port)
+                }
         }
 
     protected def initConnection(conn: ManagedDatapathConnection) = {

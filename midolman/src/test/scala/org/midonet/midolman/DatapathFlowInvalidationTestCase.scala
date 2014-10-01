@@ -29,7 +29,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.{TunnelZone, Router}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.DatapathController.DpPortCreate
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.FlowController.WildcardFlowRemoved
@@ -218,7 +217,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         // Wait for LocalPortActive messages - they prove the
         // VirtualToPhysicalMapper has the correct information for the PortSet.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
-        requestOfType[DpPortCreate](datapathEventsProbe)
 
         val srcIp = IPv4Addr("192.168.100.1")
         val dstIp1 = IPv4Addr("192.168.125.1")

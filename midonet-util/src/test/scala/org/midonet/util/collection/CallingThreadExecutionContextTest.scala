@@ -15,9 +15,7 @@
  */
 package org.midonet.util.collection
 
-import java.util.concurrent.locks.LockSupport
-
-import scala.concurrent.{TimeoutException, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +26,7 @@ import org.midonet.util.concurrent._
 @RunWith(classOf[JUnitRunner])
 class CallingThreadExecutionContextTest extends FeatureSpec with Matchers {
     feature("CallingThreadExecutionContext executes Runnables on the calling thread") {
-        scenario("the reentrancy counter is not exceeded") {
+        scenario("no reentrancy") {
             var otherTid = -1L
 
             ExecutionContext.callingThread.execute(new Runnable {
@@ -40,39 +38,23 @@ class CallingThreadExecutionContextTest extends FeatureSpec with Matchers {
             Thread.currentThread().getId should be (otherTid)
         }
 
-        scenario("the reentrancy counter is exceeded") {
-            import CallingThreadExecutionContext.maxReentrancyAllowed
-            val t = Thread.currentThread()
-            @volatile var unparked = false
+        scenario("reentrant executions are delayed") {
+            var i = 0
 
-            def schedule(cnt: Int) {
-                ExecutionContext.callingThread.execute(new Runnable {
-                    def run() {
-                        val tid = Thread.currentThread().getId
-                        if (cnt == maxReentrancyAllowed) {
-                            tid should not be t.getId
-                            unparked = true
-                            LockSupport.unpark(t)
-                        } else {
-                            tid should be (t.getId)
-                            schedule(cnt + 1)
+            ExecutionContext.callingThread.execute(new Runnable {
+                def run() {
+                    ExecutionContext.callingThread.execute(new Runnable {
+                        def run() {
+                            i should be (1)
+                            i += 1
                         }
-                    }
-                })
-            }
+                    })
 
-            schedule(0)
-            parkUntil { unparked }
+                    i += 1
+                }
+            })
+
+            i should be (2)
         }
-    }
-
-    private[this] def parkUntil(pred: => Boolean) {
-        val deadline = System.currentTimeMillis() + 500
-        do {
-            LockSupport.parkUntil(deadline)
-            if (System.currentTimeMillis() > deadline) {
-                throw new TimeoutException()
-            }
-        } while (!pred)
     }
 }

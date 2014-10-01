@@ -15,8 +15,8 @@
  */
 package org.midonet.util.concurrent
 
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContextExecutor, ExecutionContext}
-import java.util.concurrent.ForkJoinWorkerThread
 
 /* TL;DR: Use this when executing small-ish future continuations.
  *
@@ -55,37 +55,30 @@ import java.util.concurrent.ForkJoinWorkerThread
  * 3) A thread without work in its WSQ steals these tasks instead of more meaty
  * ones and soon has to go steal more, which is an expensive operation.
  */
-object CallingThreadExecutionContext extends ExecutionContextExecutor {
+object CallingThreadExecutionContext extends ExecutionContextExecutor
+                                     with SingleThreadExecutionContext {
 
     /* We have to be careful with reentrancy, because a runnable may schedule
      * continuations on a future that is already completed and will end up being
-     * executed inline. As we don't want to go into stack probing and platform-
-     * dependent code, we just use a dumb counter and redirect to another
-     * ExecutionContext when it is exceeded.
+     * executed inline, increasing the callstack. We solve this by using a
+     * queue to order the callbacks.
      */
-    val maxReentrancyAllowed = 50
-    val reentrancyCounter = new ThreadLocal[Integer] {
-        override def initialValue: Integer = maxReentrancyAllowed
+    val reentrancyQueue = new ThreadLocal[mutable.Queue[Runnable]] {
+        override def initialValue = mutable.Queue[Runnable]()
     }
 
     def execute(runnable: Runnable) = {
-        val rc = reentrancyCounter.get()
-        if (rc > 0) {
-            reentrancyCounter.set(rc - 1)
-            try {
-                runnable.run()
-            } finally {
-                reentrancyCounter.set(rc)
-            }
-        } else {
-            (Thread.currentThread match {
-                case fjw: ForkJoinWorkerThread => fjw.getPool
-                case _ => ExecutionContext.global
-            }) execute runnable
+        val rq = reentrancyQueue.get()
+        rq enqueue runnable
+
+        if (rq.size == 1) {
+            do {
+                rq.front.run()
+                rq.dequeue()
+            } while (rq.nonEmpty)
         }
     }
 
-    def reportFailure(t: Throwable): Unit = {
+    def reportFailure(t: Throwable): Unit =
         ExecutionContext.defaultReporter(t)
-    }
 }

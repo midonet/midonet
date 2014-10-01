@@ -43,7 +43,7 @@ import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman._
-import org.midonet.midolman.DatapathController.{DpPortCreate, Initialize}
+import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.guice.config.ConfigProviderModule
@@ -154,7 +154,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         for (klass <- List(classOf[PacketIn], classOf[EmitGeneratedPacket])) {
             registerProbe(sProbe, klass, actors.eventStream)
         }
-        datapathEventsProbe = makeEventProbe(classOf[DpPortCreate])
         packetInProbe = makeEventProbe(classOf[PacketIn])
         packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
         wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
@@ -478,7 +477,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def allProbes() = List(vtaProbe(), sProbe, flowProbe(), vtpProbe(),
             dpProbe(), dedupProbe(), discardPacketProbe, wflowAddedProbe,
             wflowRemovedProbe, packetInProbe, packetsEventsProbe,
-            flowUpdateProbe, datapathEventsProbe, wflowAddReqProbe)
+            flowUpdateProbe, wflowAddReqProbe)
             //flowUpdateProbe, datapathEventsProbe, portsProbe)
 
     protected def drainProbes() {

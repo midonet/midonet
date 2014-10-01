@@ -505,7 +505,8 @@ abstract class VirtualToPhysicalMapperBase
                 clusterDataClient vxLanPortIdsAsyncGet (cb, watcher)
             }
         }
-        val props = VxLanPortMapper props (VirtualTopologyActor, provider)
+        val props = VxLanPortMapper props (VirtualTopologyActor, provider,
+                                           context.props.dispatcher)
         context actorOf (props, "VxLanPortMapper")
     }
 

@@ -81,7 +81,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
         ddaRef ! DatapathController.DatapathReady(datapath, new DatapathState {
-            override def version: Long = ???
             override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
             override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
             override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???

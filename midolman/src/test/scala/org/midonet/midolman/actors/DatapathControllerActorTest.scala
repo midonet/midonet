@@ -26,7 +26,6 @@ import akka.testkit._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone
@@ -35,6 +34,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.io.ChannelType
+import org.midonet.midolman.state.{MockStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.HostConfigOperation
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.rcu.Host
@@ -42,7 +42,6 @@ import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports._
-import org.midonet.midolman.state.{MockStateStorage, FlowStateStorageFactory}
 
 class TestableDpC extends DatapathController {
     override def storageFactory = new FlowStateStorageFactory() {
@@ -68,15 +67,6 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     val dpPortInt = new InternalPort("int")
     val dpPortDev = new NetDevPort("eth0")
 
-    val portRequests = List[DpPortRequest](
-        DpPortCreateNetdev(dpPortDev, None),
-        DpPortDeleteNetdev(dpPortDev, None)
-    )
-
-    val portReplies =
-        portRequests.map{ req => DpPortCreateSuccess(req, req.port, 1) } ++
-            portRequests.map{ DpPortError(_, null) }
-
     val miscMessages = List[AnyRef](
         InterfacesUpdate_(emptyJSet),
         ZoneChanged(UUID.randomUUID, TunnelZone.Type.gre, null, HostConfigOperation.Added),
@@ -91,12 +81,10 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     val initOnlyMessages = List[AnyRef](
         ExistingDatapathPorts_(null, Set(dpPortGre,dpPortInt)),
         DatapathClear_,
-        GrePortReady_(null),
-        VxLanPortReady_(null),
-        VtepPortReady_(null)
+        TunnelPortsCreated_
     )
 
-    val allMessages = commonMessages ++ portRequests ++ portReplies ++ miscMessages
+    val allMessages = commonMessages ++ miscMessages
     val initMessages = commonMessages ++ initOnlyMessages
 
     val conf1 = ConfigProvider.providerForIniConfig(new HierarchicalConfiguration)
@@ -128,7 +116,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
     }
 
     feature("Datapath Controller Actor receive messages") {
-        val normalReceive = dpc.underlyingActor.DatapathControllerActor
+        val normalReceive = dpc.underlyingActor.receive
         for (m <- allMessages) {
             scenario(" should accept message " + m) {
                 normalReceive.isDefinedAt(m) should be(true)

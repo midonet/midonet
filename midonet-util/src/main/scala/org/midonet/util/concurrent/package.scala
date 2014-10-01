@@ -16,6 +16,7 @@
 package org.midonet.util
 
 import scala.concurrent.{ExecutionContext, Future}
+import akka.actor.ActorRef
 
 package object concurrent {
 
@@ -31,5 +32,6 @@ package object concurrent {
     implicit class ExecutionContextOps(val ec: ExecutionContext.type)
             extends AnyVal {
         def callingThread = CallingThreadExecutionContext
+        def onActor(actor: ActorRef) = new ActorExecutionContext(actor)
     }
 }

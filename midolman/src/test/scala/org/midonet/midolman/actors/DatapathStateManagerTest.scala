@@ -17,6 +17,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 import scala.util.Random
+import scala.concurrent.{ExecutionContext, Future}
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
@@ -25,11 +26,13 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
+import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
@@ -50,19 +53,20 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
 
     implicit val log = Logger(NOPLogger.NOP_LOGGER)
 
-    var controller = new VirtualPortManager.Controller {
-        override def addToDatapath(itfName: String) = { }
-        override def removeFromDatapath(port: DpPort) = { }
-        override def setVportStatus(
-            port: DpPort, vportId: UUID, isActive: Boolean) = { }
+    var controller = new DatapathPortEntangler.Controller {
+        override def addToDatapath(itfName: String) =
+            Future.successful(null)
+        override def removeFromDatapath(port: DpPort) =
+            Future.successful(true)
+        override def setVportStatus(port: DpPort, vportId: UUID, isActive: Boolean) =
+            Future.successful(null)
     }
 
     /* class reference tests work with */
     var stateMgr: DatapathStateManager = null
 
     before {
-        stateMgr = new DatapathStateManager(controller)(log)
-        stateMgr.version shouldBe 0
+        stateMgr = new DatapathStateManager(controller)(ExecutionContext.callingThread, log)
         stateMgr.tunnelOverlayGre shouldBe null
         stateMgr.tunnelOverlayVxLan shouldBe null
         stateMgr.tunnelVtepVxLan shouldBe null
@@ -73,14 +77,6 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         for (p <- peers) { (stateMgr peerTunnelInfo p) shouldBe None }
     }
 
-    after { }
-
-    def checkVUp(testToRun: => Unit) {
-        val ver = stateMgr.version
-        testToRun
-        stateMgr.version should be > (ver)
-    }
-
     def testTunnelSet {
         def makePort[P <: DpPort](factory: (String) => P): ((String, Int)) => P = {
             case (name, portNo) =>
@@ -89,7 +85,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val args = List(("gre", 0),("foo", 1),("bar", 2))
         args.map(makePort(GreTunnelPort.make))
             .foreach {
-                tun => checkVUp {
+                tun => {
                     stateMgr setTunnelOverlayGre tun
                     stateMgr.tunnelOverlayGre shouldBe tun
                     stateMgr.greOverlayTunnellingOutputAction shouldBe tun.toOutputAction
@@ -97,7 +93,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         }
         args.map(makePort(VxLanTunnelPort.make))
             .foreach {
-                tun => checkVUp {
+                tun => {
                     stateMgr.setTunnelOverlayVxLan(tun)
                     stateMgr.tunnelOverlayVxLan shouldBe tun
                     stateMgr.vxlanOverlayTunnellingOutputAction shouldBe tun.toOutputAction
@@ -109,7 +105,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         List[Host](
             null
             /* add some more */
-        ).foreach { h => checkVUp {
+        ).foreach { h => {
                 stateMgr.host = h
                 stateMgr.host should be (h)
             }
@@ -120,7 +116,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
         stateMgr.greOverlayTunnellingOutputAction = output
-        (1 to 100) foreach { _ => checkVUp {
+        (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
             val zone = zones(r nextInt zones.length)
@@ -142,7 +138,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val output2 = (DpPort fakeFrom (port, 2)).toOutputAction
         stateMgr.greOverlayTunnellingOutputAction = output1
         stateMgr.vxlanOverlayTunnellingOutputAction = output2
-        (1 to 100) foreach { _ => checkVUp {
+        (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
             val zoneI = r nextInt zones.length
@@ -176,7 +172,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val output2 = (DpPort fakeFrom (port, 2)).toOutputAction
         stateMgr.greOverlayTunnellingOutputAction = output1
         stateMgr.vxlanOverlayTunnellingOutputAction = output2
-        (1 to 100) foreach { _ => checkVUp {
+        (1 to 100) foreach { _ => {
             val r = Random
             val peerI = r nextInt peers.length
             val peer1 = peers(peerI)
@@ -215,7 +211,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
         stateMgr.greOverlayTunnellingOutputAction = output
-        (1 to 100) foreach { _ => checkVUp {
+        (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r nextInt peers.length)
             val zone = zones(r nextInt zones.length)
@@ -251,7 +247,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         val port = GreTunnelPort make "bla"
         val output = (DpPort fakeFrom (port, 1)).toOutputAction
         stateMgr.greOverlayTunnellingOutputAction = output
-        (1 to 100) foreach { _ => checkVUp {
+        (1 to 100) foreach { _ => {
             val r = Random
             val peer = peers(r.nextInt(peers.length))
 
