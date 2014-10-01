@@ -19,6 +19,6 @@ fi
 
 if test -f /var/www/html/midonet-cp/config.js; then
     sed "s%https://example.com/midonet-api%http://$public:8080/midonet-api%g;s/example.com/$public:8443/g" -i /var/www/html/midonet-cp/config.js
-else
+elif test -f /var/www/midonet-cp/config.js; then
     sed "s%https://example.com/midonet-api%http://$public:8080/midonet-api%g;s/example.com/$public:8443/g" -i /var/www/midonet-cp/config.js
 fi
