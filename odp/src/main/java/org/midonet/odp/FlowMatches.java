@@ -57,7 +57,7 @@ public class FlowMatches {
                         IPv4Addr.fromString(ipDst),
                         IpProtocol.TCP))
                 .addKey(tcp(portSrc, portDst))
-                .addKey(tcpFlags((short) flags));
+                .addKey(tcpFlags((short)flags));
     }
 
     public static FlowMatch fromEthernetPacket(Ethernet ethPkt) {
@@ -214,7 +214,7 @@ public class FlowMatches {
                                      tcpPkt.getDestinationPort()));
 
                     // add some matches for some important flags
-                    match.addKey(tcpFlags(TCP.Flag.allOf(tcpPkt.getFlags())));
+                    match.addKey(tcpFlags(tcpPkt.getFlags()));
                 }
                 break;
             case UDP.PROTOCOL_NUMBER:
