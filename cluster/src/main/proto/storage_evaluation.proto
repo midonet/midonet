@@ -7,14 +7,20 @@ message EvalResult {
     optional string timestamp = 1;
     message TestItem {
         optional string item_name = 1;
+        enum TestStatus {
+            SUCCESS = 1;
+            FAILURE = 2;
+        }
+        optional TestStatus test_status = 2;
+
         message TestData {
             optional string property = 1;
             optional string value = 2;
             optional int64 latency_milli_sec = 3;
         }
-        repeated TestData data = 2;
+        repeated TestData data = 3;
     }
-    repeated TestItem test_item= 2;
+    repeated TestItem test_item = 2;
 }
 
 message BulkUpdateEval {
