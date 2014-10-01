@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
+
 package org.midonet.midolman
 
 import java.util.UUID
@@ -28,8 +29,12 @@ import org.midonet.midolman.util.mock.{MockMidolmanActors, MockInterfaceScanner}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.util.MockClock
+import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
 
-trait MidolmanBenchmark extends MockMidolmanActors {
+trait MidolmanBenchmark extends MockMidolmanActors
+                        with MidolmanServices
+                        with VirtualTopologyHelper
+                        with VirtualConfigurationBuilders {
     var injector: Injector = null
     var clock = new MockClock
 

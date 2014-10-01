@@ -127,6 +127,8 @@ trait VirtualTopologyHelper {
                 await(f)
             case Failure(NotYetException(f, _)) =>
                 await(f)
+            case Failure(e) =>
+                throw e
         }
     }
 
