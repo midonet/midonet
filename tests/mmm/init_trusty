@@ -1,0 +1,97 @@
+#!/bin/bash
+
+set -xe
+
+echo bootstrap script $0 called at `date` with args $*
+
+# update apt
+sudo apt-get update
+
+# Install basic tools
+sudo apt-get install curl screen tmux -y
+
+# add midokura apt source
+echo 'deb [arch=amd64] http://suzuki:ironchef@apt.midokura.com/midonet/master precise main non-free' |sudo tee /etc/apt/sources.list.d/midokura.list
+curl -k http://suzuki:ironchef@apt.midokura.com/packages.midokura.key | sudo apt-key add -
+
+# add apt source for cassandra
+echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
+
+# update apt
+sudo apt-get update
+
+
+# Install zookeeper
+sudo apt-get -y --force-yes install zookeeper zookeeperd
+
+# Install cassandra
+sudo apt-get -y --force-yes install dsc21
+CASSANDRA_CONF_FILE='/etc/cassandra/cassandra.yaml'
+sudo sed -i -e "s/^cluster_name:.*$/cluster_name: \'midonet\'/g" $CASSANDRA_CONF_FILE
+
+CASSANDRA_ENV_FILE='/etc/cassandra/cassandra-env.sh'
+sudo sed -i 's/#\(MAX_HEAP_SIZE=\).*$/\1128M/' $CASSANDRA_ENV_FILE
+sudo sed -i 's/#\(HEAP_NEWSIZE=\).*$/\164M/' $CASSANDRA_ENV_FILE
+
+sudo service cassandra stop
+sudo rm -rf /var/lib/cassandra/*
+sudo service cassandra stop
+sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) >>/etc/hosts"
+sudo service cassandra start
+
+
+
+# Install haproxy
+sudo apt-get -y install haproxy
+
+# Install midolman
+# Commented out as the repo is not updated now
+#sudo apt-get install -y --force-yes midolman
+
+# Install python-midonetclient from source
+sudo apt-get install python-dev libncurses5-dev python-setuptools python-pip -y
+sudo pip install readline
+MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-/tmp/python-midonetclient}
+sudo rm -rf /usr/local/lib/python2.7/dist-packages/midonetclient* /usr/local/bin/midonet-cli
+[ -d $MMM_PMC_SOURCE_DIR ] || {
+    git clone git@github.com:midokura/python-midonetclient -b master $MMM_PMC_SOURCE_DIR
+}
+cd $MMM_PMC_SOURCE_DIR
+sudo python setup.py install
+cd -
+
+# Install midonet-api
+sudo apt-get install -y --force-yes tomcat7
+# Commented out as the repo is not updated 
+#sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes midonet-api
+
+sudo service tomcat7 stop
+sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
+sleep 5
+sudo service tomcat7 start
+
+
+# Install midonet-cp
+#echo "Install midonet-cp if available"
+#set +e
+#sudo apt-get -o Dpkg::Options::="--force-confnew" install -q -y --force-yes midonet-cp
+#if [ $? -ne 0 ]; then 
+#     echo "Warning midonet-cp not installed."
+#fi
+#set -e 
+
+sudo service apache2 restart
+
+# use java7 by default for mm-dpctl
+sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+
+sudo apt-get install -y --force-yes dnsmasq-base
+
+# Install tools
+sudo apt-get install -y --force-yes zkdump
+
+# Install dependencies for MDTS
+bash -xe ../mdts/install_deps.sh
+
+sudo bash -c 'cd scripts && bash -xe init'
