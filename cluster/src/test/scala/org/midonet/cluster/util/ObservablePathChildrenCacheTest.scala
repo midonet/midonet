@@ -139,6 +139,8 @@ class ObservablePathChildrenCacheTest extends Suite
         val collector = new ChildDataAccumulator()
         val opcc = new ObservablePathChildrenCache(curator)
 
+        nodeData should not be null
+
         opcc connect ZK_ROOT
         opcc subscribe collector
 
