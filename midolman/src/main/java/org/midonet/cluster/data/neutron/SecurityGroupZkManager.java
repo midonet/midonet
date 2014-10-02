@@ -121,6 +121,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
             IPSubnet ipSub = subnet.isIpv4()
                              ? fixedIp.ipv4Subnet() : fixedIp.ipv6Subnet();
             Rule ipSpoofProtectionRule = new RuleBuilder(inChainId)
+                .isAnyFragmentState()
                 .notFromSubnet(ipSub)
                 .drop();
             inRules.add(ipSpoofProtectionRule);
@@ -129,6 +130,7 @@ public class SecurityGroupZkManager extends BaseZkManager {
         // MAC spoofing protection for in_chain
         Rule macSpoofProtectionRule = new RuleBuilder(inChainId)
             .notFromMac(port.macAddress())
+            .isAnyFragmentState()
             .drop();
         inRules.add(macSpoofProtectionRule);
 
@@ -149,8 +151,18 @@ public class SecurityGroupZkManager extends BaseZkManager {
         }
 
         // Both chains drop non-ARP traffic if no other rules match.
-        inRules.add(new RuleBuilder(inChainId).notARP().drop());
-        outRules.add(new RuleBuilder(outChainId).notARP().drop());
+        Rule inFinalDrop = new RuleBuilder(inChainId)
+            .notARP()
+            .isAnyFragmentState()
+            .drop();
+
+        Rule outFinalDrop = new RuleBuilder(outChainId)
+            .notARP()
+            .isAnyFragmentState()
+            .drop();
+
+        inRules.add(inFinalDrop);
+        outRules.add(outFinalDrop);
     }
 
     private void prepareUpdatePortChains(List<Op> ops, Port port,
