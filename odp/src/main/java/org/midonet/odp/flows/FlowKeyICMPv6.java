@@ -69,9 +69,9 @@ public class FlowKeyICMPv6 implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyICMPv6{" +
-            "icmpv6_type=" + unsign(icmpv6_type) +
-            ", icmpv6_code=" + unsign(icmpv6_code) +
+        return "ICMPv6{" +
+              "type=" + unsign(icmpv6_type) +
+            ", code=" + unsign(icmpv6_code) +
             '}';
     }
 }

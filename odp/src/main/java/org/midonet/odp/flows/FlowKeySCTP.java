@@ -69,6 +69,6 @@ public class FlowKeySCTP implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeySCTP{sctp_src=" + sctp_src + ", sctp_dst=" + sctp_dst + "}";
+        return "SCTP{src=" + sctp_src + ", dst=" + sctp_dst + "}";
     }
 }

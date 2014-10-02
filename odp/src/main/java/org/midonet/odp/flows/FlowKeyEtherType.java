@@ -88,7 +88,7 @@ public class FlowKeyEtherType implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyEtherType{etherType=0x"
+        return "EtherType{0x"
                + Integer.toHexString(etherType) + "}";
     }
 }

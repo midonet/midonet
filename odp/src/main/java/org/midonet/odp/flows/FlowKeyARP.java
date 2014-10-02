@@ -110,12 +110,12 @@ public class FlowKeyARP implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyARP{" +
-            "arp_sip=" + IPv4Addr.intToString(arp_sip) +
-            ", arp_tip=" + IPv4Addr.intToString(arp_tip) +
-            ", arp_op=" + arp_op +
-            ", arp_sha=" + MAC.bytesToString(arp_sha) +
-            ", arp_tha=" + MAC.bytesToString(arp_tha) +
+        return "KeyARP{" +
+              "sip=" + IPv4Addr.intToString(arp_sip) +
+            ", tip=" + IPv4Addr.intToString(arp_tip) +
+            ", op=" + arp_op +
+            ", sha=" + MAC.bytesToString(arp_sha) +
+            ", tha=" + MAC.bytesToString(arp_tha) +
             '}';
     }
 }

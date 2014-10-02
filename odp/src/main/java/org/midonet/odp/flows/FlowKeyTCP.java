@@ -104,6 +104,6 @@ public class FlowKeyTCP implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyTCP{tcp_src=" + tcp_src + ", tcp_dst=" + tcp_dst + '}';
+        return "TCP{src=" + tcp_src + ", dst=" + tcp_dst + '}';
     }
 }

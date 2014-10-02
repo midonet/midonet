@@ -41,6 +41,6 @@ public class FlowActionPopVLAN implements FlowAction {
 
     @Override
     public String toString() {
-        return "FlowActionPopVLAN{}";
+        return "PopVLAN{}";
     }
 }

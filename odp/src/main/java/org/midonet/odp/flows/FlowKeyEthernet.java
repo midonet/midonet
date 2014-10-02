@@ -75,9 +75,9 @@ public class FlowKeyEthernet implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyEthernet{" +
-            "eth_src=" + MAC.bytesToString(eth_src) +
-            ", eth_dst=" + MAC.bytesToString(eth_dst) +
+        return "Ethernet{" +
+              "src=" + MAC.bytesToString(eth_src) +
+            ", dst=" + MAC.bytesToString(eth_dst) +
             '}';
     }
 }

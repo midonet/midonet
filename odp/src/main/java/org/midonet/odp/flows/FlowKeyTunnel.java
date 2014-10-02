@@ -230,7 +230,7 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     @Override
     public String toString() {
-        return "FlowKeyTunnel{"
+        return "Tunnel{"
             + "tun_id=" + tun_id + ", "
             + "ipv4_src=" + IPv4Addr.intToString(ipv4_src) + ", "
             + "ipv4_dst=" + IPv4Addr.intToString(ipv4_dst) + ", "

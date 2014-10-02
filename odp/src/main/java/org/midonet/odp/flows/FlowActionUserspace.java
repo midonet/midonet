@@ -87,8 +87,8 @@ public class FlowActionUserspace implements FlowAction,
 
     @Override
     public String toString() {
-        return "FlowActionUserspace{uplinkPid=" + uplinkPid +
-               ", userData=" + userData + '}';
+        return "ToUserspace{socket=" + uplinkPid +
+               ", data=" + userData + '}';
     }
 
     public int getUplinkPid() {

@@ -44,8 +44,8 @@ public class FlowKeyICMPEcho extends FlowKeyICMP
 
     @Override
     public String toString() {
-        return String.format("FlowKeyICMPEcho{icmp_type=0x%X, icmp_code=%d, " +
-                             "icmp_id=%d}", icmp_type, icmp_code, icmp_id);
+        return String.format("ICMPEcho{type=0x%X, code=%d, " +
+                             "id=%d}", icmp_type, icmp_code, icmp_id);
     }
 
     public short getIdentifier() {

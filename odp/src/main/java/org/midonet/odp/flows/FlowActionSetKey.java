@@ -63,6 +63,6 @@ public class FlowActionSetKey implements FlowAction, Randomize {
 
     @Override
     public String toString() {
-        return "FlowActionSetKey{flowKey=" + flowKey + '}';
+        return "SetKey{" + flowKey + '}';
     }
 }

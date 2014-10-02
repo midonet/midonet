@@ -131,13 +131,13 @@ public class FlowKeyIPv4 implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyIPv4{" +
-            "ipv4_src=" + IPv4Addr.intToString(ipv4_src) +
-            ", ipv4_dst=" + IPv4Addr.intToString(ipv4_dst) +
-            ", ipv4_proto=" + ipv4_proto +
-            ", ipv4_tos=" + ipv4_tos +
-            ", ipv4_ttl=" + ipv4_ttl +
-            ", ipv4_frag=" + ipv4_frag +
+        return "KeyIPv4{" +
+              "src=" + IPv4Addr.intToString(ipv4_src) +
+            ", dst=" + IPv4Addr.intToString(ipv4_dst) +
+            ", proto=" + ipv4_proto +
+            ", tos=" + ipv4_tos +
+            ", ttl=" + ipv4_ttl +
+            ", frag=" + ipv4_frag +
             '}';
     }
 

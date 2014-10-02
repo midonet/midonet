@@ -56,6 +56,6 @@ public class FlowKeyInPort implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyInPort{portNo=" + portNo + '}';
+        return "InPort{" + portNo + '}';
     }
 }

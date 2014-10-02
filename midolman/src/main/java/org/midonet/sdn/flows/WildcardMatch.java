@@ -781,74 +781,117 @@ public class WildcardMatch implements Cloneable {
         return result;
     }
 
+    private String getNetworkProtocolAsString() {
+        switch (networkProtocol) {
+            case 1: return "icmp";
+            case 2: return "igmp";
+            case 4: return "ipv4-encap";
+            case 6: return "tcp";
+            case 8: return "egp";
+            case 9: return "igp";
+            case 17: return "udp";
+            case 33: return "dccp";
+            case 41: return "ipv6-encap";
+            case 43: return "ipv6-route";
+            case 44: return "ipv6-frag";
+            case 47: return "gre";
+            case 50: return "esp";
+            case 51: return "ah";
+            case 58: return "ipv6-icmp";
+            case 59: return "ipv6-nonxt";
+            case 60: return "ipv6-opts";
+            case 94: return "ipip";
+            case 97: return "etherip";
+            case 112: return "vrrp";
+            case 115: return "l2tp";
+            case (byte)0x84: return "sctp";
+            default: return Byte.toString(networkProtocol);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder("WildcardMatch[");
         Set<Field> usedFields = getUsedFields();
         for (Field f: usedFields) {
-            str.append(f.toString() + "=");
             switch (f) {
                 case EtherType:
+                    str.append("ethertype=");
                     str.append(etherType);
                     break;
 
                 case FragmentType:
+                    str.append("ipfrag=");
                     str.append(ipFragmentType.toString());
                     break;
 
                 case EthernetDestination:
+                    str.append("eth_dst=");
                     str.append(ethernetDestination.toString());
                     break;
 
                 case EthernetSource:
+                    str.append("eth_src=");
                     str.append(ethernetSource.toString());
                     break;
 
                 case TransportDestination:
+                    str.append("transport_dst=");
                     str.append(transportDestination);
                     break;
 
                 case TransportSource:
+                    str.append("transport_src=");
                     str.append(transportSource);
                     break;
 
                 case InputPortUUID:
+                    str.append("inport_id=");
                     str.append(inputPortUUID.toString());
                     break;
 
                 case InputPortNumber:
+                    str.append("inport=");
                     str.append(inputPortNumber);
                     break;
 
                 case NetworkDestination:
+                    str.append("nw_dst=");
                     str.append(networkDestination.toString());
                     break;
 
                 case NetworkSource:
+                    str.append("nw_src=");
                     str.append(networkSource.toString());
                     break;
 
                 case NetworkProtocol:
-                    str.append(networkProtocol);
+                    str.append("nw_proto=");
+                    str.append(getNetworkProtocolAsString());
                     break;
 
                 case NetworkTTL:
+                    str.append("nw_ttl=");
                     str.append(networkTTL);
                     break;
 
                 case TunnelID:
+                    str.append("tunnel_id=");
                     str.append(tunnelID);
                     break;
 
                 case IcmpId:
+                    str.append("icmp_id=");
                     str.append(icmpId);
                     break;
 
                 case IcmpData:
+                    str.append("icmp_data=");
                     str.append(Arrays.toString(icmpData));
                     break;
 
                 case VlanId:
+                    str.append("vlan=");
                     str.append(vlanIds);
                     break;
             }
