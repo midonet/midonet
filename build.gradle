@@ -220,10 +220,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         maxParallelForks = 8
     }
 
-    tasks.build {
-        dependsOn(perfClasses)
-    }
-
     dependencies {
         compile libraries.slf4j
         compile libraries.guava
@@ -261,10 +257,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         dependsOn(perfClasses, cleanPerf)
     }
 
-    cobertura {
-        coverageFormats = ['html', 'xml']
-    }
-
     task compileBenchmarks(type: JavaCompile) {
         classpath = sourceSets.perf.runtimeClasspath
         source = benchOutput
@@ -297,6 +289,14 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         }
 
         dependsOn(compileBenchmarks)
+    }
+
+    tasks.build {
+        dependsOn(compileBenchmarks)
+    }
+
+    cobertura {
+        coverageFormats = ['html', 'xml']
     }
 }
 
