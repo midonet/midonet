@@ -16,13 +16,10 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{ArrayList, Arrays, UUID, Set => JSet}
-
+import java.util.{Arrays, ArrayList, Set => JSet, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-
-import akka.actor.ActorSystem
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -50,17 +47,19 @@ object PacketContext {
  * context of the same thread, the PacketContext can be safely mutated and
  * used to pass state between different simulation stages, or between virtual
  * devices.
+ *
+ * The PacketContext mixes in the StateContext, which contains fields that are
+ * accessed together. Inheritance ensures those fields will be laid out together
+ * in memory.
  */
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val parentCookie: Option[Int],
-                    val origMatch: FlowMatch)
-                   (implicit actorSystem: ActorSystem) {
+                    val origMatch: FlowMatch) extends StateContext {
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
 
-    val state = new StateContext(this, log)
     var portGroups: JSet[UUID] = null
 
     var lastInvalidation: Long = _
@@ -73,10 +72,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     val outPorts = new ArrayList[UUID]()
 
     val wcmatch = origMatch.clone()
-
-    private var traceID: UUID = null
-    private var traceStep = 0
-    private var isTraced = false
 
     var inputPort: UUID = _
 
@@ -126,14 +121,14 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         idle = false
         lastInvalidation = lastInvalidationSeen
         flowTags.clear()
-        state.clear()
+        clear()
         runFlowRemovedCallbacks()
     }
 
     def postpone() {
         idle = true
         flowTags.clear()
-        state.clear()
+        clear()
         runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
         inputPort = null
@@ -152,15 +147,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         origMatch.doTrackSeenFields()
         actions
     }
-
-    /*
-     * Compares two objects, which may be null, to determine if they should
-     * cause flow actions.
-     * The catch here is that if `modif` is null, the verdict is true regardless
-     * because we don't create actions that set values to null.
-     */
-    private def matchObjectsSame(orig: AnyRef, modif: AnyRef) =
-        (modif eq null) || orig == modif
 
     private def diffEthernet(actions: ArrayBuffer[FlowAction]): Unit =
         if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
@@ -252,5 +238,5 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
             }
         }
 
-    override def toString = s"PacketContext[$cookieStr]"
+    override def toString = s"PacketContext[$cookieStr, $flowTags]"
 }

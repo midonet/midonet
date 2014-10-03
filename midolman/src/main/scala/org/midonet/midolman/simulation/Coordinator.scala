@@ -362,7 +362,7 @@ class Coordinator(context: PacketContext)
                 val chain = tryAsk[Chain](port.outboundFilter)
                 val result = Chain.apply(chain, context, port.id, true)
                 log.debug(s"Chain ${chain.id} on port ${port.id} returned ${result.action}")
-                (result.action == RuleResult.Action.ACCEPT)
+                result.action == RuleResult.Action.ACCEPT
             } else {
                 true
             }
@@ -395,11 +395,11 @@ class Coordinator(context: PacketContext)
             SendPacket(actions)
         } else {
             log.debug("Add a flow with actions {}", actions)
-            context.state.trackConnection(deviceId)
+            context.trackConnection(deviceId)
 
             var hardExp = 0
             var idleExp = 0
-            if (context.state.containsForwardStateKeys)
+            if (context.containsForwardStateKeys)
                 hardExp = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
             else
                 idleExp = IDLE_EXPIRATION_MILLIS

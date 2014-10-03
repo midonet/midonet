@@ -285,15 +285,15 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
         if (actions.nonEmpty) {
             context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.state.conntrackTx,
-                                         context.state.natTx,
+            replicator.accumulateNewKeys(context.conntrackTx,
+                                         context.natTx,
                                          context.inputPort,
                                          context.outPorts,
                                          context.flowTags,
                                          context.flowRemovedCallbacks)
             replicator.pushState(dpChannel)
-            context.state.conntrackTx.commit()
-            context.state.natTx.commit()
+            context.conntrackTx.commit()
+            context.natTx.commit()
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {

@@ -26,15 +26,17 @@ import akka.testkit.TestActorRef
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import org.junit.runner.RunWith
-
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.DatapathChannel
 import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.PacketWorkflow.Simulation
+import org.midonet.midolman.PacketWorkflow.{StateMessage, Simulation}
+import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockStateStorage}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.ResolvedHost
@@ -43,17 +45,18 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
+import org.midonet.packets.util.PacketBuilder.udp
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.FlowActions._
+import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.sdn.state.ShardedFlowStateTable
-import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
 
 @RunWith(classOf[JUnitRunner])
 class DeduplicationActorTestCase extends MidolmanSpec {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
+    var stateMessagesExecuted = 0
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
     var packetsOut = 0
@@ -114,6 +117,13 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
     def makePacket(variation: Short): Packet = makeFrame(variation)
 
+    def makeStatePacket(): Packet = {
+        val eth = FlowStatePackets.makeUdpShell(Array())
+        val fmatch = FlowMatches.fromEthernetPacket(eth)
+        fmatch.addKey(tunnel(FlowStatePackets.TUNNEL_KEY, 1, 2, 0))
+        new Packet(eth, fmatch)
+    }
+
     def makeUniquePacket(variation: Short): Packet = makeUniqueFrame(variation)
 
     def cookieList(cookies: Seq[Int]): List[Either[Int, UUID]] =
@@ -135,6 +145,28 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             And("packetOut should have been called with the correct number")
             packetsOut should be (4)
+        }
+
+        scenario("state messages are not deduplicated") {
+            Given("four identical state packets")
+            val pkts = (1 to 4) map (_ => makeStatePacket())
+
+            When("they are fed to the DDA")
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute all packets")
+            packetsSeen.length should be (4)
+            stateMessagesExecuted should be (0)
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
+
+            When("the simulations are completed")
+            dda.complete(pkts.head.getMatch, null)
+
+            Then("all state messages are consumed")
+            stateMessagesExecuted should be (4)
+            mockDpConn().packetsSent should be (empty)
         }
 
         scenario("discards packets when ApplyFlow has no actions") {
@@ -256,6 +288,29 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
         }
+
+        scenario("state messages are not expired") {
+            Given("state messages in the waiting room")
+            createDda(0)
+            val pkts = (1 to 4) map (_ => makeStatePacket())
+
+            When("they are fed to the DDA")
+            ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
+
+            Then("the DDA should execute all packets")
+            packetsSeen.length should be (4)
+            stateMessagesExecuted should be (0)
+
+            And("packetOut should have been called with the correct number")
+            packetsOut should be (4)
+
+            When("the simulations are completed")
+            dda.complete(pkts.head.getMatch, null)
+
+            Then("all state messages are consumed without having expired")
+            stateMessagesExecuted should be (4)
+            mockDpConn().packetsSent should be (empty)
+        }
     }
 
     class MockPacketHandler(actionsCache: ActionsCache) extends PacketHandler {
@@ -269,6 +324,9 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             } else if (pktCtx.runs == 2) {
                 // re-suspend the packet (with a completed future)
                 throw new NotYetException(p.future)
+            } else if (pktCtx.isStateMessage) {
+                stateMessagesExecuted += 1
+                StateMessage
             } else {
                 Simulation
             }

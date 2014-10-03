@@ -82,10 +82,6 @@ project.ext {
         jackson_xc: "org.codehaus.jackson:jackson-xc:${versions.jackson}",
         jackson_core: "org.codehaus.jackson:jackson-core-asl:${versions.jackson}",
         jackson_mapper: "org.codehaus.jackson:jackson-mapper-asl:${versions.jackson}",
-        jackson_scala: dependencies.create("com.fasterxml:jackson-module-scala:${versions.jackson}") {
-            exclude group: 'junit', module: 'junit'
-            exclude group: 'org.scalatest', module: 'scalatest_2.9.1'
-            exclude group: 'com.google.guava', module: 'guava'},
         jsonpath: "com.jayway.jsonpath:json-path:${versions.jsonpath}",
         jsonpath_assert: "com.jayway.jsonpath:json-path-assert:${versions.jsonpath}",
         test_frameworks: ["junit:junit:4.11",

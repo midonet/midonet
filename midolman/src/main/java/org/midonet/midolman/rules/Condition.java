@@ -178,9 +178,9 @@ public class Condition extends BaseConfig {
          * of 'conjunctionInv'.  If the conjunction evaluates to true, then
          * we return 'NOT conjunctionInv'.
          */
-        if (matchForwardFlow && !pktCtx.state().isForwardFlow())
+        if (matchForwardFlow && !pktCtx.isForwardFlow())
             return conjunctionInv;
-        if (matchReturnFlow && pktCtx.state().isForwardFlow())
+        if (matchReturnFlow && pktCtx.isForwardFlow())
             return conjunctionInv;
 
         UUID inPortId = isPortFilter ? null : pktCtx.inPortId();
