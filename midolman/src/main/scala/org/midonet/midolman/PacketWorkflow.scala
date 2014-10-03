@@ -124,11 +124,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
         log.debug("Creating flow from {} for {}", wildFlow, pktCtx.cookieStr)
 
         val flowMatch = pktCtx.packet.getMatch
-        val providedKeys = flowMatch.getKeys.asScala.toList
-        val hasTcpFlags = providedKeys.exists({ x => x.isInstanceOf[FlowKeyTCPFlags] })
-
         val flowMask = new FlowMask()
-        if (hasTcpFlags) {
+        if (flowMatch.hasKey(OpenVSwitch.FlowKey.Attr.TcpFlags)) {
             // wildcard the TCP flags
             // TODO: this will change in the future: we'll use the wildcard match
             //       until then when we are smarter, we must set exact matches

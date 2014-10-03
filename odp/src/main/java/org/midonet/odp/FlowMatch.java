@@ -52,6 +52,14 @@ public class FlowMatch implements AttributeHandler {
         return this;
     }
 
+    public boolean hasKey(int keyId) {
+        for (FlowKey key : keys) {
+            if (key.attrId() == keyId)
+                return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
