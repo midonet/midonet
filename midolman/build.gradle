@@ -50,7 +50,7 @@ dependencies {
             libraries.commons_lang, libraries.commons_lang3,
             libraries.commons_conf, libraries.commons_cli, libraries.commons_io,
             libraries.guava, libraries.guice, libraries.metrics, libraries.rx,
-            libraries.jetty, libraries.jackson_scala, libraries.cassandra,
+            libraries.jetty, libraries.cassandra,
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath, libraries.curator_recipes,

@@ -47,7 +47,7 @@ public class Packet {
         FlowActionUserspace,
     }
 
-    private FlowMatch match = new FlowMatch();
+    private FlowMatch match;
     private Long userData;
     private Reason reason;
     private Ethernet eth;

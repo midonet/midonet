@@ -86,8 +86,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // which should be unique for every new connection. If there isn't,
         // we then check for a sticky NAT where we don't care about the source
         // port, that is, if they are different connections.
-        if (!(hasNonStickyVips && packetContext.state.reverseDnat(id)) &&
-            !(hasStickyVips && packetContext.state.reverseStickyDnat(id))) {
+        if (!(hasNonStickyVips && packetContext.reverseDnat(id)) &&
+            !(hasStickyVips && packetContext.reverseStickyDnat(id))) {
             return simpleContinueRuleResult
         }
 

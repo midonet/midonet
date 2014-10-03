@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.lang.{Long => JLong}
+import java.lang.{Integer => JInt, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.{TimeoutException, ThreadLocalRandom, ConcurrentHashMap}
 
@@ -76,9 +76,9 @@ object NatLeaser {
      */
     object LeasedBlocks {
         def apply(log: Logger): LeasedBlocks =
-            new TimedExpirationMap[JLong, LeasedBlock](log, _ => BLOCK_EXPIRATION)
+            new TimedExpirationMap[JInt, LeasedBlock](log, _ => BLOCK_EXPIRATION)
     }
-    type LeasedBlocks = TimedExpirationMap[JLong, LeasedBlock]
+    type LeasedBlocks = TimedExpirationMap[JInt, LeasedBlock]
 
     /**
      * This type is a map a NatTarget IP addresses to leased port blocks of
@@ -159,8 +159,8 @@ trait NatLeaser {
         leasedBlock.leasedPorts(portOffset).remove(uniquefier)
     }
 
-    val blockObliterator = new Reducer[JLong, LeasedBlock, NatBlockAllocator]() {
-        override def apply(acc: NatBlockAllocator, key: JLong,
+    val blockObliterator = new Reducer[JInt, LeasedBlock, NatBlockAllocator]() {
+        override def apply(acc: NatBlockAllocator, key: JInt,
                            value: LeasedBlock): NatBlockAllocator = {
             val block = value.block
             log.debug("Releasing NAT block {}", block)

@@ -186,12 +186,12 @@ public class TestRules {
     @Before
     public void setup() {
         pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                                   null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+                                   null, Option.empty(), pktMatch);
         @SuppressWarnings("unchecked")
         ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
         pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+                null, Option.empty(), pktMatch);
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
                 shardedConntrack.addShard(
                     Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
@@ -201,8 +201,7 @@ public class TestRules {
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        pktCtx.state().initialize(conntrackTx, natTx,
-                                  HappyGoLuckyLeaser$.MODULE$);
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
     }
 
     @Test
