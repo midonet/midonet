@@ -304,6 +304,10 @@ public class ProcessHelper {
     }
 
     public static ProcessResult executeCommandLine(String command) {
+        return executeCommandLine(command, false);
+    }
+
+    public static ProcessResult executeCommandLine(String command, boolean ignoreErrors) {
         ProcessResult result = new ProcessResult();
         List<String> outputList = new ArrayList<String>();
         List<String> errorList = new ArrayList<String>();
@@ -317,7 +321,7 @@ public class ProcessHelper {
         result.consoleOutput = outputList;
         result.errorOutput = errorList;
 
-        if (errorList.size() != 0) {
+        if (errorList.size() != 0 && !ignoreErrors) {
             // TODO: remove once tuntap is out (RHEL)
             if(!errorList.get(0).contains("tuntap")) {
                 log.warn("Process \"$ {}\" generated errors:", command);

@@ -15,7 +15,6 @@ import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -26,7 +25,7 @@ import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
-import org.midonet.sdn.flows.VirtualActions.{VirtualFlowAction, FlowActionOutputToVrnPort}
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.process.ProcessHelper
@@ -198,22 +197,22 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     var portActive = true
 
     override def preStart() {
-        log.debug("Starting routingHandler for port {}.", rport.id)
+        log.info("({}) Starting, port {}.", phase, rport.id)
 
         super.preStart()
 
         if (rport == null) {
-            log.error("port is null")
+            log.error("({}) port is null", phase)
             return
         }
 
         if (client == null) {
-            log.error("client is null")
+            log.error("({}) client is null", phase)
             return
         }
 
         if (dataClient == null) {
-            log.error("dataClient is null")
+            log.error("({}) dataClient is null", phase)
             return
         }
 
@@ -259,12 +258,13 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Subscribe to the VTA for updates to the Port configuration.
         VirtualTopologyActor ! PortRequest(rport.id, update = true)
 
-        log.debug("RoutingHandler started.")
+        log.debug("({}) Started", phase)
     }
 
     override def postStop() {
         super.postStop()
         disable()
+        log.debug("({}) Stopped", phase)
     }
 
     private val handler = new ZebraProtocolHandler {
@@ -295,17 +295,18 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 if (store)
                     rport = port
             case port: Port =>
-                log.error("Cannot run BGP on anything but an exterior " +
-                    "virtual router port. We got {}", port)
+                log.error("({}) Cannot run BGP on anything but an exterior " +
+                    "virtual router port. We got {}", phase, port)
 
             case NewBgpSession(bgp) =>
-                log.debug("NewBgpSession called for port {}.", rport.id)
+                log.info("({}) New BGP session.", phase)
                 phase match {
                     case NotStarted =>
                         // This must be the first bgp we learn about.
                         if (bgps.size != 0) {
-                            log.error("This should be the first bgp connection" +
-                                " but there was already other connections configured")
+                            log.error("({}) This should be the first BGP " +
+                                "connection but there were already other " +
+                                "connections configured", phase)
                             return
                         }
                         bgps.put(bgp.getId, bgp)
@@ -320,14 +321,15 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         // that specify different peers must have that field
                         // in common.
                         if (bgps.size == 0) {
-                            log.error("This shouldn't be the first bgp connection" +
-                                " no other connections have been set up so far")
+                            log.error("({}) This shouldn't be the first bgp "+
+                                "connection no other connections have been set "+
+                                "up so far", phase)
 
                             val bgpPair = bgps.toList.head
                             val originalBgp = bgpPair._2
 
                             if (bgp.getLocalAS != originalBgp.getLocalAS) {
-                                log.error("new BGP connections must have same AS")
+                                log.error("({}) new sessions must have same AS", phase)
                                 return
                             }
 
@@ -338,8 +340,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                                            bgp.getPeerAddr,
                                            bgp.getPeerAS)
                         } else {
-                            log.error("Ignoring BGP session {}, only one BGP "+
-                                      "session per port is supported", bgp.getId)
+                            log.error("({}) Ignoring BGP session {}, only one BGP "+
+                                      "session per port is supported", phase, bgp.getId)
                         }
 
                     case Stopping =>
@@ -350,9 +352,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
             case ModifyBgpSession(bgp) =>
                 //TODO(abel) case not implemented (yet)
-                phase match {
-                    case _ => log.debug("message not implemented: ModifyBgpSession")
-                }
+                log.info("({}) Not implemented: ModifyBgpSession", phase)
 
             case RemoveBgpSession(bgpID) =>
                 phase match {
@@ -360,12 +360,12 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         // This probably shouldn't happen. A BGP config is being
                         // removed, implying we knew about it - we shouldn't be
                         // NotStarted...
-                        log.error("KillBgp not expected in phase NotStarted for port {}",
-                            rport.id)
+                        log.error("({}) RemoveBgpSession({}): unexpected", phase, bgpID)
                     case Starting =>
                         stash()
                     case Started if bgps.contains(bgpID) =>
                         // TODO(pino): Use bgpVty to remove this BGP and its routes
+                        log.info("({}) Removing BGP session {}", phase, bgpID)
                         val Some(bgp) = bgps.remove(bgpID)
                         bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                         // Remove all the flows for this BGP link
@@ -382,7 +382,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             stopBGP()
                         }
                     case Started =>
-                        log.warning("Received RemoveBgpSession({}) for an unknown id", bgpID)
+                        log.warning("({}) RemoveBgpSession({}) unknown id", phase, bgpID)
                     case Stopping =>
                         stash()
                     case Disabled =>
@@ -390,25 +390,25 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 }
 
             case DpPortDeleteSuccess(_, netdevPort) =>
-                log.debug("PortNetdevOpReply - delete, for port {}", netdevPort)
+                log.info("({}) Datapath port was deleted: {} ", phase, netdevPort.getName)
                 dpPorts.remove(netdevPort.getName)
 
             case DpPortCreateSuccess(_, netdevPort, pid) =>
-                log.debug("PortNetdevOpReply - create, for port {}", rport.id)
+                log.info("({}) Datapath port was created: {}", phase, netdevPort.getName)
                 phase match {
                     case Starting =>
                         netdevPortReady(netdevPort.asInstanceOf[NetDevPort], pid)
                     case _ =>
-                        log.error("PortNetdevOpReply expected only while " +
-                            "Starting - we're now in {}", phase)
+                        log.error("({}) PortNetdevOpReply expected only while " +
+                            "Starting", phase)
                 }
 
             case DpPortError(DpPortCreateNetdev(port, _), ex) =>
                 // Only log errors, do nothing
-                log.error(ex, "Netdev port {} creation request failed: {}")
+                log.error(ex, "({}) Datapath port creation failed: {}", phase, port.getName)
 
             case BGPD_READY =>
-                log.debug("BGPD_READY for port {}", rport.id)
+                log.debug("({}) BGPD_READY", phase)
                 phase match {
                     case Starting =>
                         phase = Started
@@ -435,17 +435,16 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         // - create method
                         // - received from BGPListBuilder
 
-                        log.debug("announcing we are BGPD_STATUS active")
+                        log.debug("({}) announcing we are BGPD_STATUS active", phase)
                         context.system.eventStream.publish(
                             BGPD_STATUS(rport.id, true))
 
                     case _ =>
-                        log.error("BGP_READY expected only while " +
-                            "Starting - we're now in {}", phase)
+                        log.error("({}) BGP_READY expected only while Starting", phase)
                 }
 
             case BGPD_DEAD =>
-                log.debug("BGPD_DEAD")
+                log.debug("({}) BGPD_DEAD", phase)
                 phase match {
                     case Enabling =>
                         phase = Disabled
@@ -457,7 +456,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         phase = NotStarted
                         unstashAll()
                     case _ =>
-                        log.error("unexpected BGPD_DEAD message, now in {} state", phase)
+                        log.error("({}) unexpected BGPD_DEAD message", phase)
                 }
             case BGPD_SHOW(cmd) =>
                 if (bgpVty != null)
@@ -466,40 +465,44 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     sender ! BgpStatus(Array[String]("BGP session is not ready"))
 
             case AdvertiseRoute(rt) =>
-                log.debug("AdvertiseRoute: {}, phase: {}", rt, phase)
+                log.info("({}) Advertise: {}/{}", phase,
+                         rt.getNwPrefix, rt.getPrefixLength)
                 phase match {
                     case NotStarted =>
-                        log.error("AddRoute not expected in phase NotStarted")
+                        log.warning("({}) Advertise: unexpected", phase)
                     case Starting =>
-                        log.debug("AdvertiseRoute, starting phase")
+                        log.debug("({}) Advertise: stashing", phase)
                         stash()
                     case Started =>
-                        log.debug("AdvertiseRoute, started phase")
                         adRoutes.add(rt)
                         val bgp = bgps.get(rt.getBgpId)
-                        log.debug("AdvertiseRoute - bgp: {}", bgp)
                         bgp match {
                             case Some(b) =>
-                                log.debug("AdvertiseRoute - we got a BGP object: {}", b)
+                                log.debug("({}) Advertise: local AS is {}",
+                                          phase, b.getLocalAS)
                                 val as = b.getLocalAS
                                 bgpVty.setNetwork(as, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
-                            case unknownObject =>
-                                log.debug("AdvertiseRoute - we got an unknown object: {}", unknownObject)
+                            case None =>
+                                log.debug("({}) Advertise: unknown BGP {}",
+                                          phase, rt.getBgpId)
                         }
                     case Stopping =>
-                        log.debug("AdvertiseRoute, stopping phase")
+                        log.debug("({}) Advertise: stashing", phase)
                         //TODO(abel) do we need to stash the message when stopping?
                         stash()
                     case Disabled =>
+                        log.debug("({}) Advertise: stashing", phase)
                         stash()
                 }
 
             case StopAdvertisingRoute(rt) =>
-                log.debug("StopAdvertisingRoute: {}", rt)
+                log.info("({}) StopAdvertising: {}/{}",
+                         phase, rt.getNwPrefix, rt.getPrefixLength)
                 phase match {
                     case NotStarted =>
-                        log.error("RemoveRoute not expected in phase NotStarted")
+                        log.warning("({}) StopAdvertising: unexpected", phase)
                     case Starting =>
+                        log.debug("({}) StopAdvertising: stashing", phase)
                         stash()
                     case Started =>
                         adRoutes.remove(rt)
@@ -510,17 +513,21 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         }
                     case Stopping =>
                         //TODO(abel) do we need to stash the message when stopping?
+                        log.debug("({}) StopAdvertising: stashing", phase)
                         stash()
                     case Disabled =>
+                        log.debug("({}) StopAdvertising: stashing", phase)
                         stash()
                 }
 
             case AddPeerRoute(ribType, destination, gateway) =>
-                log.debug("AddPeerRoute: {}, {}, {}", ribType, destination, gateway)
+                log.info("({}) AddPeerRoute: {}, {}, {}",
+                         phase, ribType, destination, gateway)
                 phase match {
                     case NotStarted =>
-                        log.error("AddPeerRoute not expected in phase NotStarted")
+                        log.error("({}) AddPeerRoute: unexpected", phase)
                     case Starting =>
+                        log.debug("({}) AddPeerRoute: stashing", phase)
                         stash()
                     case Started =>
                         if (peerRoutes.size > 100) {
@@ -535,7 +542,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                              * this problem should be tackled in a more elegant
                              * way and it's not used elsewhere.
                              */
-                            log.error("Max amount of peer routes reached (100)")
+                            log.error("({}) Max no. of peer routes reached (100)", phase)
                             return
                         }
 
@@ -548,21 +555,25 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                         route.setNextHopPort(rport.id)
                         val routeId = dataClient.routesCreateEphemeral(route)
                         peerRoutes.put(route, routeId)
-                        log.debug("announcing we've added a peer route")
+                        log.debug("({}) announcing we've added a peer route", phase)
                         context.system.eventStream.publish(
                             new PEER_ROUTE_ADDED(rport.deviceID, route))
                     case Stopping =>
+                        log.debug("({}) AddPeerRoute: ignoring", phase)
                         // ignore
                     case Disabled =>
+                        log.debug("({}) AddPeerRoute: ignoring", phase)
                         // ignore
                 }
 
             case RemovePeerRoute(ribType, destination, gateway) =>
-                log.debug("RemovePeerRoute: {}, {}, {}", ribType, destination, gateway)
+                log.info("({}) RemovePeerRoute: {}, {}, {}",
+                         phase, ribType, destination, gateway)
                 phase match {
                     case NotStarted =>
-                        log.error("AddPeerRoute not expected in phase NotStarted")
+                        log.error("({}) RemovePeerRoute: unexpected", phase)
                     case Starting =>
+                        log.debug("({}) RemovePeerRoute: stashing", phase)
                         stash()
                     case Started =>
                         val route = new Route()
@@ -576,52 +587,48 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             case Some(routeId) => deleteRoute(routeId)
                             case None =>
                         }
-                    case Stopping =>
-                        // ignore
-                    case Disabled =>
-                        // ignore
-                    case Disabling =>
-                    // ignore
                     case _ =>
+                        // ignore
+                        log.debug("({}) RemovePeerRoute: ignoring", phase)
                 }
 
             case PortActive(true) =>
-                log.info("Port became active")
+                log.info("({}) Port became active", phase)
                 portActive = true
                 if (zookeeperActive)
                     enable()
 
             case ZookeeperActive(true) =>
-                log.info("Reconnected to Zookeeper")
+                log.info("({}) Reconnected to Zookeeper", phase)
                 zookeeperActive = true
                 if (portActive)
                     enable()
 
             case PortActive(false) =>
-                log.info("Port became inactive")
+                log.info("({}) Port became inactive", phase)
                 portActive = false
                 disable()
 
             case ZookeeperActive(false) =>
-                log.info("Disconnected from Zookeeper")
+                log.info("({}) Disconnected from Zookeeper", phase)
                 zookeeperActive = true
                 disable()
 
             case m =>
-                log.warning("Unexpected message {}", m)
+                log.warning("({}) Unexpected message {}", m, phase)
         }
     }
 
     def enable() {
         if (!portActive || !zookeeperActive) {
-            log.warning("enable() invoked in incorrect state zkActive:{} portActive:{}",
-                        zookeeperActive, portActive)
+            log.warning("({}) enable() invoked in incorrect state zkActive:{} portActive:{}",
+                        phase, zookeeperActive, portActive)
             return
         }
         phase match {
             case Disabled =>
                 if (bgps.size > 0) {
-                    log.info("Enabling BGP link: {}", bgps.head._1)
+                    log.info("({}) Enabling BGP link: {}", phase, bgps.head._1)
                     startBGP()
                     phase = Starting
                 } else {
@@ -631,7 +638,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             case Disabling =>
                 phase = Enabling
             case _ =>
-                log.warning("enable() invoked while in the wrong state: {}", phase)
+                log.warning("({}) enable() unexpected call", phase)
         }
     }
 
@@ -642,7 +649,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             case Enabling =>
                 phase = Disabled
             case _ if bgps.size > 0 =>
-                log.info("Disabling BGP link: {}", bgps.head._1)
+                log.info("({}) Disabling BGP link: {}", phase, bgps.head._1)
                 phase = Disabling
 
                 FlowController !
@@ -671,7 +678,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             dataClient.routesDelete(routeId)
         } catch {
             case e: StateAccessException =>
-                log.error("Exception: {}", e)
+                log.error(e, "({}) Exception: {}", phase)
                 val retry = new Runnable() {
                     @Override
                     override def run() {
@@ -684,7 +691,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     private def startBGP() {
-        log.debug("startBGP - begin for port {}", rport.id)
+        log.debug("({}) preparing environment for bgpd", phase)
 
         // In Linux interface names can be at most 15 characters long
         List(
@@ -693,7 +700,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             BGP_VTY_PORT_NAME,
             BGP_VTY_PORT_MIRROR_NAME
         ).withFilter{ _.length > 15 }.foreach { itf =>
-            log.error("Interface name can be at most 15 characters: {}", itf)
+            log.error("({}) Interface name can be at most 15 chars: {}", phase, itf)
             return
         }
 
@@ -702,12 +709,14 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val bgpdPidFile = "/var/run/quagga/bgpd." + BGP_VTY_PORT + ".pid"
         val file = new File(bgpdPidFile)
         if (file.exists()) {
+            log.debug("({}) found bgpd pid file", phase)
             val source = scala.io.Source.fromFile(bgpdPidFile)
             val lines = source.getLines()
 
             // we only expect one pid stored here
             if (lines.hasNext) {
                 val cmdLine = "kill -9 " + lines.next()
+                log.debug("({}) killing lingering bgpd: {}", phase, cmdLine)
                 ProcessHelper.executeCommandLine(cmdLine)
             }
         }
@@ -715,14 +724,18 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val socketFile = new File(ZSERVE_API_SOCKET)
         val socketDir = socketFile.getParentFile
         if (!socketDir.exists()) {
+            log.debug("({}) Creating socket dir at {}", phase, socketDir.getAbsolutePath)
             socketDir.mkdirs()
             // Set permission to let quagga daemons write.
             socketDir.setWritable(true, false)
         }
 
-        if (socketFile.exists())
+        if (socketFile.exists()) {
+            log.debug("({}) Deleting socket file at {}", phase, socketFile.getAbsolutePath)
             socketFile.delete()
+        }
 
+        log.debug("({}) Starting zebra server actor", phase)
         socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
         zebra = ZebraServer(socketAddress, handler, rport.portAddr.getAddress,
                             BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
@@ -732,33 +745,32 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         val bgpNS = BGP_NETWORK_NAMESPACE
 
+        log.debug("({}) Creating namespace: {}", phase, bgpNS)
         IP.ensureNamespace(bgpNS)
 
-
         /* Bgp interface configuration */
+        log.debug("({}) Setting up bgp interface: {}", phase, BGP_NETDEV_PORT_NAME)
 
         val bgpPort = BGP_NETDEV_PORT_NAME
         val bgpMirror = BGP_NETDEV_PORT_MIRROR_NAME
         val (bgpMac, bgpIp) = (rport.portMac.toString, rport.portAddr.toString)
 
         IP.ensureNoInterface(bgpPort)
-
         IP.preparePair(bgpPort, bgpMirror, bgpNS)
-
         IP.configureMac(bgpMirror, bgpMac, bgpNS)
-
         IP.configureIp(bgpMirror, bgpIp, bgpNS)
 
         // wake up loopback inside network namespace
         IP.execIn(bgpNS, " ifconfig lo up")
-
         IP.configureUp(bgpPort)
 
         // Add port to datapath
+        log.debug("({}) Adding port to datapath: {}", phase, BGP_NETDEV_PORT_NAME)
         DatapathController !
             DpPortCreateNetdev(new NetDevPort(BGP_NETDEV_PORT_NAME), null)
 
         /* VTY interface configuration */
+        log.debug("({}) Setting up vty interface: {}", phase, BGP_VTY_PORT_NAME)
 
         val vtyPort = BGP_VTY_PORT_NAME
         val vtyMirror = BGP_VTY_PORT_MIRROR_NAME
@@ -766,17 +778,13 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val vtyMirrorIp = BGP_VTY_MIRROR_IP + "/" + BGP_VTY_MASK_LEN
 
         IP.ensureNoInterface(vtyPort)
-
         IP.preparePair(vtyPort, vtyMirror, bgpNS)
-
         IP.configureUp(vtyMirror, bgpNS)
-
         IP.configureIp(vtyMirror, vtyMirrorIp, bgpNS)
-
         IP.configureUp(vtyPort)
 
         /* bridge configuration */
-
+        log.debug("({}) Setting up bridge for vty: {}", phase, BGP_VTY_BRIDGE_NAME)
         val bgpBridge = BGP_VTY_BRIDGE_NAME
 
         // Create a bridge for VTY communication
@@ -791,18 +799,21 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Bring up bridge interface for VTY
         IP.configureUp(bgpBridge)
 
-        log.debug("startBGP - end")
+        log.debug("({}) prepared environment for bgpd", phase)
     }
 
     private def stopBGP() {
-        log.debug("stopBGP - begin")
+        log.debug("({}) stopping bgpd", phase)
 
         if (bgpdProcess != null) {
+            log.debug("({}) bgpd is running, stop", phase)
             bgpdProcess.stop()
         }
 
+        log.debug("({}) stopping zebra server", phase)
         context.stop(zebra)
 
+        log.debug("({}) cleaning up bgpd environment", phase)
         // delete vty interface pair
         IP.deleteItf(BGP_VTY_PORT_NAME)
 
@@ -823,22 +834,20 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             DatapathController ! DpPortDeleteNetdev(_, null)
         }
 
-        log.debug("announcing BGPD_STATUS inactive")
+        log.debug("({}) announcing BGPD_STATUS inactive", phase)
         context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
 
         self ! BGPD_DEAD
-
-        log.debug("stopBGP - end")
     }
 
     private def netdevPortReady(newPort: NetDevPort, uplinkPid: Int) {
-        log.debug("begin")
+        log.debug("({}) datapath port is ready, starting bgpd", phase)
 
         dpPorts.put(newPort.getName, newPort)
 
         // The internal port is ready. Set up the flows
         if (bgps.size <= 0) {
-            log.warning("No BGPs configured for this port: {}", newPort)
+            log.warning("({}) No BGPs configured for this port: {}", phase, newPort)
             return
         }
 
@@ -854,16 +863,15 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val didStart = bgpdProcess.start()
         if (didStart) {
             self ! BGPD_READY
-            log.debug("bgpd process did start")
+            log.debug("({}) bgpd process did start", phase)
         } else {
-            log.debug("bgpd process did not start")
+            log.debug("({}) bgpd process did not start", phase)
         }
-
-        log.debug("end")
     }
 
     def create(localAddr: IPAddr, bgp: BGP) {
-        log.debug("create - begin")
+        log.debug("({}) create bgp session to peer AS {} at {}",
+                  phase, bgp.getPeerAS, bgp.getPeerAddr)
         bgpVty.setAs(bgp.getLocalAS)
         bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
         bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
@@ -874,14 +882,14 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             adRoutes.add(adRoute)
-            log.debug("added adRoute: {}", adRoute)
+            log.debug("({}) added advertised route: {}", phase, adRoute)
         }
     }
 
     def setBGPFlows(localPortNum: Short, bgp: BGP,
                     bgpPort: RouterPort, uplinkPid: Int) {
 
-        log.debug("setBGPFlows - begin")
+        log.debug("({}) setting up wildcard flows for bgpd", phase)
 
         def addVirtualWildcardFlow(wcMatch: WildcardMatch,
                                    actions: List[FlowAction]): Unit = {
@@ -891,7 +899,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             translateActions(pktCtx, actions) match {
                 case Ready(translatedActions) =>
                     val flow = WildcardFlow(wcMatch, translatedActions.toList)
-                    log.debug("Installing: {}", flow)
+                    log.debug("({}) Installing: {}", phase, flow)
                     FlowController ! AddWildcardFlow(flow, null,
                                                      new ArrayList[Callback0],
                                                      pktCtx.flowTags)
@@ -899,7 +907,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     case Success(_) =>
                         addVirtualWildcardFlow(wcMatch, actions) // Thread-safe
                     case Failure(ex) =>
-                        log.error(ex, "AddVirtualWildcardFlow failed to complete")
+                        log.error(ex, "({}) AddVirtualWildcardFlow failed to complete", phase)
                 }
             }
         }
@@ -981,8 +989,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)))
-
-        log.debug("setBGPFlows - end")
     }
 
 }
@@ -992,11 +998,17 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
     val exec: String => Int =
         ProcessHelper.executeCommandLine(_).returnValue
 
+    val execNoErrors: String => Int =
+        ProcessHelper.executeCommandLine(_, true).returnValue
+
     val execGetOutput: String => java.util.List[String] =
         ProcessHelper.executeCommandLine(_).consoleOutput
 
     val link: String => Int =
         s => exec("ip link " + s)
+
+    val ifaceExists: String => Int =
+        s => execNoErrors("ip link show " + s)
 
     val netns: String => Int =
         s => exec("ip netns " + s)
@@ -1025,7 +1037,7 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
 
     /** checks if an interface exists and deletes if it does */
     def ensureNoInterface(itf: String) =
-        if (link("show " + itf) == 0) IP.deleteItf(itf) else 0
+        if (ifaceExists(itf) == 0) IP.deleteItf(itf) else 0
 
     def deleteItf(itf: String) = link(" delete " + itf)
 
