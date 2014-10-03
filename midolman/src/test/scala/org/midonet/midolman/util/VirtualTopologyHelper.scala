@@ -78,7 +78,7 @@ trait VirtualTopologyHelper {
         val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
         val context = new PacketContext(Left(1), new Packet(frame, fmatch),
                                         None, fmatch)
-        context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
+        context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort
         context.inPortId = inPort
@@ -92,7 +92,7 @@ trait VirtualTopologyHelper {
         val ctx = packetContextFor(frame, inPort)
         force {
             flushTransactions(conntrackTx, natTx)
-            ctx.state.clear()
+            ctx.clear()
             (ctx, device.process(ctx))
         }
     }
@@ -111,15 +111,15 @@ trait VirtualTopologyHelper {
                 (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                           natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (SimulationResult, PacketContext) = {
-        pktCtx.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
+        pktCtx.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         val r = force {
             flushTransactions(conntrackTx, natTx)
-            pktCtx.state.clear()
+            pktCtx.clear()
             new Coordinator(pktCtx) simulate()
         }
         commitTransactions(conntrackTx, natTx)
         flushTransactions(conntrackTx, natTx)
-        pktCtx.state.clear()
+        pktCtx.clear()
         (r, pktCtx)
     }
 

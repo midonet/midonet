@@ -42,11 +42,11 @@ class VIPTest extends MidolmanTestCase {
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)
 
         val tcpContext = new PacketContext(Left(1), null, None,
-                                           tcpIngressMatch)(actors)
+                                           tcpIngressMatch)
 
         val udpIngressMatch = tcpIngressMatch.clone().setNetworkProto(UDP.PROTOCOL_NUMBER)
         val udpContext = new PacketContext(Left(1), null, None,
-                                           udpIngressMatch)(actors)
+                                           udpIngressMatch)
 
         // Admin state up VIP with same addr / port should match
         val vip1Up = createTestVip(true, addr1, port1)

@@ -16,9 +16,10 @@
 
 package org.midonet.midolman
 
-import java.util.{List => JList}
+import java.util.{List => JList, ArrayList, UUID}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -26,6 +27,14 @@ import akka.actor._
 import akka.testkit._
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
+import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockFlowStateTable, FlowStateReplicator}
+import org.midonet.midolman.topology.rcu.ResolvedHost
+import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.functors.Callback0
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
@@ -48,6 +57,11 @@ object PacketWorkflowTest {
 
     val output = FlowActions.output(12)
 
+    val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
+    val natTable = new MockFlowStateTable[NatKey, NatBinding]()
+
+    var statePushed = false
+
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
         val dpCon = OvsDatapathConnection.
@@ -66,10 +80,33 @@ object PacketWorkflowTest {
         val dpState = new DatapathStateManager(null)(null, null)
         val wcMatch = pkt.getMatch
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
+        pktCtx.initialize(new FlowStateTransaction(conntrackTable),
+                          new FlowStateTransaction(natTable),
+                          HappyGoLuckyLeaser)
+
+        val replicator = new FlowStateReplicator(null, null, null, new UnderlayResolver {
+            override def host: ResolvedHost = new ResolvedHost(UUID.randomUUID(), true, 1, "", Map(), Map())
+            override def peerTunnelInfo(peer: UUID): Option[Route] = ???
+            override def vtepTunnellingOutputAction: FlowActionOutput = ???
+            override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
+            override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
+        }, null, null, 0) {
+            override def pushState(dp: OvsDatapathConnection): Unit = {
+                 statePushed = true
+            }
+
+            override def accumulateNewKeys(
+                          conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
+                          natTx: FlowStateTransaction[NatKey, NatBinding],
+                          ingressPort: UUID, egressPorts: JList[UUID],
+                          tags: mutable.Set[FlowTag],
+                          callbacks: ArrayList[Callback0]): Unit = { }
+        }
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     CallbackExecutor.Immediate,
                                     new ActionsCache(4, CallbackExecutor.Immediate,
-                                                     log = NoLogging), null) {
+                                                     log = NoLogging),
+                                    replicator) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def executePacket(pktCtx: PacketContext,
@@ -82,8 +119,6 @@ object PacketWorkflowTest {
                 testKit ! TranslateActions
                 List(output)
             }
-            override def applyState(pktCtx: PacketContext,
-                                    actions: Seq[FlowAction]): Unit = { }
         }
         (pktCtx, wf)
     }
@@ -166,6 +201,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("action translation is performed")
             And("the current packet gets executed")
             runChecks(pktCtx, pkfw, checkTranslate, checkExecPacket)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns NoOp") {
@@ -177,6 +215,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
             Then("the resulting actions are empty")
             runChecks(pktCtx, pkfw, checkEmptyActions _)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns Drop for userspace only match") {
@@ -189,6 +230,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             Then("the FlowController gets an AddWildcardFlow request")
             And("the packets gets executed (with 0 action)")
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns Drop") {
@@ -202,6 +246,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns TemporaryDrop for userspace only match") {
@@ -215,6 +262,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the Deduplication actor gets an empty ApplyFlow request")
             And("the packets gets executed (with 0 action)")
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns TemporaryDrop") {
@@ -228,6 +278,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("a new WildcardFlow is sent to the Flow Controller")
             And("the current packet gets executed (with 0 actions)")
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
+
+            And("state is not pushed")
+            statePushed should be (false)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow " +
@@ -246,6 +299,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the current packet gets executed")
             runChecks(pktCtx, pkfw,
                 checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+
+            And("state is pushed")
+            statePushed should be (true)
         }
 
         scenario("A Simulation returns AddVirtualWildcardFlow") {
@@ -262,7 +318,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             And("the current packet gets executed")
             runChecks(pktCtx, pkfw,
                 checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
+
+            And("state is pushed")
+            statePushed should be (true)
         }
+
     }
 
     /* helper generator functions */

@@ -19,15 +19,12 @@ import java.util.UUID
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest._
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
-import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.{DropAction, TemporaryDropAction, ToPortAction}
-import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.simulation.Coordinator.DropAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -35,8 +32,6 @@ import org.midonet.packets.{MAC, IPacket}
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-
 
 @RunWith(classOf[JUnitRunner])
 class ConntrackTestCase extends MidolmanSpec {
@@ -124,16 +119,16 @@ class ConntrackTestCase extends MidolmanSpec {
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (pktCtx, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                pktCtx.state.trackConnection(bridge.id)
+                pktCtx.trackConnection(bridge.id)
                 conntrackTx.commit()
                 conntrackTx.flush()
-                pktCtx.state.isConnectionTracked should be (true)
-                pktCtx.state.isForwardFlow should be (true)
+                pktCtx.isConnectionTracked should be (true)
+                pktCtx.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.state.isConnectionTracked should be (true)
-                retContext.state.isForwardFlow should be (false)
+                retContext.isConnectionTracked should be (true)
+                retContext.isForwardFlow should be (false)
                 retAct should be (ToPortAction(leftPort.getId))
             }
         }
@@ -146,13 +141,13 @@ class ConntrackTestCase extends MidolmanSpec {
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
                 val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
-                fwdContext.state.isConnectionTracked should be (true)
-                fwdContext.state.isForwardFlow should be (true)
+                fwdContext.isConnectionTracked should be (true)
+                fwdContext.isForwardFlow should be (true)
                 fwdAct should be (ToPortAction(rightPort.getId))
 
                 val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
-                retContext.state.isConnectionTracked should be (true)
-                retContext.state.isForwardFlow should be (true)
+                retContext.isConnectionTracked should be (true)
+                retContext.isForwardFlow should be (true)
                 retAct should be (DropAction)
             }
         }
