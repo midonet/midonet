@@ -8,7 +8,8 @@ import java.util.{ArrayList, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
-import akka.actor.{ActorRef, UntypedActorWithStash}
+import akka.actor.{ActorSystem, ActorRef, UntypedActorWithStash}
+import akka.event.LogSource
 
 import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
@@ -102,12 +103,19 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher,
                      val selectLoop: SelectLoop)
-    extends UntypedActorWithStash with ActorLogWithoutPath with FlowTranslator {
+    extends UntypedActorWithStash with FlowTranslator {
 
     import RoutingHandler._
     import DatapathController._
 
     override protected implicit val system = context.system
+
+    implicit val logSource: LogSource[AnyRef] = new LogSource[AnyRef] {
+        def genString(o: AnyRef): String = "BGP:" + bgpIdx
+
+        override def genString(a: AnyRef, s: ActorSystem) = genString(a)
+    }
+    val log = akka.event.Logging(context.system.eventStream, this)
 
     private final val BGP_NETDEV_PORT_NAME: String =
         "mbgp%d".format(bgpIdx)
