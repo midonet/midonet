@@ -3635,4 +3635,12 @@ public class LocalDataClientImpl implements DataClient {
     public Collection<UUID> licenseList() throws StateAccessException {
         return licenseZkManager.list();
     }
+
+    @Override
+    public Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
+        throws StateAccessException {
+        return new Ip4ToMacReplicatedMap(
+            bridgeZkManager.getIP4MacMapDirectory(bridgeId)
+        );
+    }
 }

@@ -1,9 +1,8 @@
 /*
- * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.cluster;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,13 +11,28 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+
 import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.client.*;
-import org.midonet.cluster.data.l4lb.Pool;
+import org.midonet.cluster.client.BGPListBuilder;
+import org.midonet.cluster.client.BridgeBuilder;
+import org.midonet.cluster.client.ChainBuilder;
+import org.midonet.cluster.client.HealthMonitorBuilder;
+import org.midonet.cluster.client.HostBuilder;
+import org.midonet.cluster.client.IPAddrGroupBuilder;
+import org.midonet.cluster.client.LoadBalancerBuilder;
+import org.midonet.cluster.client.PoolBuilder;
+import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
+import org.midonet.cluster.client.PortBuilder;
+import org.midonet.cluster.client.PortGroupBuilder;
+import org.midonet.cluster.client.PortSetBuilder;
+import org.midonet.cluster.client.RouterBuilder;
+import org.midonet.cluster.client.TraceConditionsBuilder;
+import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;

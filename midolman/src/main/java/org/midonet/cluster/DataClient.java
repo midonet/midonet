@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.cluster;
 
@@ -1119,4 +1119,7 @@ public interface DataClient {
     public byte[] licenseSelect(UUID licenseId) throws StateAccessException;
 
     public Collection<UUID> licenseList() throws StateAccessException;
+
+    public Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
+        throws StateAccessException;
 }

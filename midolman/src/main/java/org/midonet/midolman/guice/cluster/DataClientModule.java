@@ -17,6 +17,7 @@ import com.google.inject.name.Names;
 
 import org.apache.curator.framework.CuratorFramework;
 
+import org.midonet.cluster.BridgeBuilderStateFeeder;
 import org.midonet.cluster.ClusterBridgeManager;
 import org.midonet.cluster.ClusterHostManager;
 import org.midonet.cluster.ClusterPortGroupManager;
@@ -98,6 +99,9 @@ public class DataClientModule extends PrivateModule {
         bind(ClusterBridgeManager.class).in(Singleton.class);
 
         bind(ClusterPortsManager.class).in(Singleton.class);
+
+        bind(BridgeBuilderStateFeeder.class)
+            .in(Singleton.class);
 
         bind(ClusterHostManager.class).in(Singleton.class);
 
