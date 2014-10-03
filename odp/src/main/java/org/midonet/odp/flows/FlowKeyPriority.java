@@ -56,6 +56,6 @@ public class FlowKeyPriority implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyPriority{priority=" + priority + '}';
+        return "Priority{" + priority + '}';
     }
 }

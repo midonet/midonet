@@ -154,14 +154,14 @@ public class FlowKeyIPv6 implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyIPv6{" +
-            "ipv6_src=" + Net.convertIPv6BytesToString(ipv6_src) +
-            ", ipv6_dst=" + Net.convertIPv6BytesToString(ipv6_dst) +
-            ", ipv6_label=" + ipv6_label +
-            ", ipv6_proto=" + ipv6_proto +
-            ", ipv6_tclass=" + ipv6_tclass +
-            ", ipv6_hlimit=" + ipv6_hlimit +
-            ", ipv6_frag=" + ipv6_frag +
+        return "IPv6{" +
+              "src=" + Net.convertIPv6BytesToString(ipv6_src) +
+            ", dst=" + Net.convertIPv6BytesToString(ipv6_dst) +
+            ", label=" + ipv6_label +
+            ", proto=" + ipv6_proto +
+            ", tclass=" + ipv6_tclass +
+            ", hlimit=" + ipv6_hlimit +
+            ", frag=" + ipv6_frag +
             '}';
     }
 }

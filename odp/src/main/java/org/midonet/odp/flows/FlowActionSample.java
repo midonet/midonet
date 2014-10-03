@@ -90,7 +90,7 @@ public class FlowActionSample implements FlowAction,
 
     @Override
     public String toString() {
-        return "FlowActionSample{" +
+        return "Sample{" +
             "probability=" + probability +
             ", actions=" + actions +
             '}';

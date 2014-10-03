@@ -54,6 +54,6 @@ public class FlowActionOutput implements FlowAction {
 
     @Override
     public String toString() {
-        return "FlowActionOutput{portNumber=" + portNumber + '}';
+        return "Output{port=" + portNumber + '}';
     }
 }

@@ -73,7 +73,7 @@ public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
 
     @Override
     public String toString() {
-        return "FlowKeyEncap{keys=" + keys + '}';
+        return "Encap{keys=" + keys + '}';
     }
 
     public Iterable<FlowKey> getKeys() {

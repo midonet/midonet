@@ -71,6 +71,6 @@ public class FlowKeyUDP implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyUDP{udp_src=" + udp_src + ", udp_dst=" + udp_dst + "}";
+        return "UDP{src=" + udp_src + ", dst=" + udp_dst + "}";
     }
 }

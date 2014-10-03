@@ -86,7 +86,7 @@ public class FlowKeyTCPFlags implements FlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyTCPFlags{flags='" +
+        return "TCPFlags{'" +
                TCP.Flag.allOfToString(flags) + "'}";
     }
 }

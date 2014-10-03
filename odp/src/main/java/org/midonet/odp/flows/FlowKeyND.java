@@ -81,10 +81,10 @@ public class FlowKeyND implements CachedFlowKey {
 
     @Override
     public String toString() {
-        return "FlowKeyND{" +
-                "nd_target=" + Net.convertIPv6BytesToString(nd_target) +
-                ", nd_sll=" + MAC.bytesToString(nd_sll) +
-                ", nd_tll=" + MAC.bytesToString(nd_tll) +
+        return "ND{" +
+                  "target=" + Net.convertIPv6BytesToString(nd_target) +
+                ", sll=" + MAC.bytesToString(nd_sll) +
+                ", tll=" + MAC.bytesToString(nd_tll) +
                 '}';
     }
 }

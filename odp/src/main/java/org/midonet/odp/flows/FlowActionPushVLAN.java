@@ -71,7 +71,7 @@ public class FlowActionPushVLAN implements FlowAction {
 
     @Override
     public String toString() {
-        return "FlowActionPushVLAN{vlan_tpid=" + vlan_tpid +
-               ", vlan_tci=" + vlan_tci + '}';
+        return "PushVLAN{tpid=" + vlan_tpid +
+                       ", tci=" + vlan_tci + '}';
     }
 }

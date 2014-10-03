@@ -41,9 +41,9 @@ public class FlowKeyICMPError extends FlowKeyICMP
 
     @Override
     public String toString() {
-        return "FlowKeyICMPError{icmp_type=0x" + Integer.toHexString(icmp_type)
-             + ", icmp_code=" + icmp_code
-             + ", icmp_data=" + Arrays.toString(icmp_data) + "}";
+        return "ICMPError{type=0x" + Integer.toHexString(icmp_type)
+             + ", code=" + icmp_code
+             + ", data=" + Arrays.toString(icmp_data) + "}";
     }
 
     public byte[] getIcmpData() {

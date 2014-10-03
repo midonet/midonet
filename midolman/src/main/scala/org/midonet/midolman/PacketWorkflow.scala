@@ -77,7 +77,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
-    val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
+    val log: LoggingAdapter = Logging.getLogger(system, classOf[PacketWorkflow])
 
     override def start(pktCtx: PacketContext): Urgent[PipelinePath] = {
         pktCtx.prepareForSimulation(FlowController.lastInvalidationEvent)
