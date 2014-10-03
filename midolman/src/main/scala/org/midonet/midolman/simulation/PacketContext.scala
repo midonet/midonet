@@ -16,14 +16,12 @@
 
 package org.midonet.midolman.simulation
 
-import java.text.SimpleDateFormat
-import java.util.{Arrays, ArrayList, Date, Set => JSet, UUID}
+import java.util.{Arrays, ArrayList, Set => JSet, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -51,17 +49,20 @@ object PacketContext {
  * context of the same thread, the PacketContext can be safely mutated and
  * used to pass state between different simulation stages, or between virtual
  * devices.
+ *
+ * The PacketContext mixed in the StateContext, which contains fields that are
+ * accessed together. Inheritane ensures those fields will be layed out together
+ * in memory.
  */
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val parentCookie: Option[Int],
-                    val origMatch: WildcardMatch)
-                   (implicit actorSystem: ActorSystem) {
+                    val origMatch: WildcardMatch) extends StateContext {
+
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
 
-    val state = new StateContext(this, log)
     var portGroups: JSet[UUID] = null
 
     var lastInvalidation: Long = _
@@ -74,10 +75,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     val outPorts = new ArrayList[UUID]()
 
     val wcmatch = origMatch.clone()
-
-    private var traceID: UUID = null
-    private var traceStep = 0
-    private var isTraced = false
 
     var inputPort: UUID = _
 
@@ -127,14 +124,14 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         idle = false
         lastInvalidation = lastInvalidationSeen
         flowTags.clear()
-        state.clear()
+        clear()
         runFlowRemovedCallbacks()
     }
 
     def postpone() {
         idle = true
         flowTags.clear()
-        state.clear()
+        clear()
         runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
         inputPort = null
@@ -257,5 +254,5 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
             }
         }
 
-    override def toString = s"PacketContext[$cookieStr]"
+    override def toString = s"PacketContext[$cookieStr, $flowTags]"
 }

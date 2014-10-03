@@ -44,7 +44,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.{ArpTimeoutException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
+import org.midonet.midolman.state._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
@@ -195,6 +195,7 @@ class DeduplicationActor(
         new Reducer[NatKey, NatBinding, Unit]() {
             override def apply(u: Unit, k: NatKey, v: NatBinding): Unit = {
                 FlowController ! InvalidateFlowsByTag(k)
+                NatState.releaseBinding(k, v, natLeaser)
             }
         }
 
@@ -280,7 +281,7 @@ class DeduplicationActor(
 
         val pktCtx = new PacketContext(cookieOrEgressPort, packet,
                                        parentCookie, wcMatch)
-        pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
+        pktCtx.initialize(connTrackTx, natTx, natLeaser)
         pktCtx.log = PacketTracing.loggerFor(wcMatch)
         pktCtx
     }
@@ -309,12 +310,12 @@ class DeduplicationActor(
         var i = 0
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
-            if (!pktCtx.isStateMessage) {
+            if (!pktCtx.isStateMessage) { // Packet now exists outside of WaitingRoom
                 if (pktCtx.idle)
                     drop(pktCtx)
                 else
-                    log.warn("Pending {} was scheduled for cleanup " +
-                                "but was not idle", pktCtx.cookieStr)
+                    log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
+                             "cleanup  but was not idle")
             }
             i += 1
         }

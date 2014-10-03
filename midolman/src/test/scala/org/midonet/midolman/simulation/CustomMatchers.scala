@@ -32,6 +32,12 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait CustomMatchers {
 
+    def taggedWith(expectedTags: FlowTag*) =
+        BePropertyMatcher((pktCtx: PacketContext) =>
+            BePropertyMatchResult(
+                expectedTags forall pktCtx.flowTags .contains,
+                s"a PacketContext containing tags {${expectedTags.toList}"))
+
     def dropped(expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =

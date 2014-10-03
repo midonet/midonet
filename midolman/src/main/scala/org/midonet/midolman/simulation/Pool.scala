@@ -138,7 +138,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                             loadBalancer,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
-        if (context.state.applyIfExists(natKey)) {
+        if (context.applyIfExists(natKey)) {
             val backendIsValid = isValidBackend(context, stickySourceIP)
             context.log.debug(s"Found existing $natKey; backend valid: $backendIsValid")
             if (!backendIsValid) {
@@ -188,6 +188,6 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                             loadBalancer,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
-        context.state.deleteNatBinding(natKey)
+        context.deleteNatBinding(natKey)
     }
 }

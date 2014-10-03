@@ -23,11 +23,11 @@ import java.util.concurrent.ThreadLocalRandom
 import scala.concurrent.duration._
 
 import org.midonet.midolman.rules.NatTarget
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.util.functors.Callback0
 
 object NatState {
     private val WILDCARD_PORT = 0
@@ -158,9 +158,16 @@ object NatState {
     }
 
     case class NatBinding(var networkAddress: IPv4Addr, var transportPort: Int)
+
+    def releaseBinding(key: NatKey, binding: NatBinding, natLeaser: NatLeaser): Unit =
+        if ((key.keyType eq NatState.FWD_SNAT) &&
+            key.networkProtocol != ICMP.PROTOCOL_NUMBER) {
+                    natLeaser.freeNatBinding(key.deviceId, key.networkDst,
+                                             key.transportDst, binding)
+        }
 }
 
-trait NatState extends FlowState {
+trait NatState extends FlowState { this: PacketContext =>
     import org.midonet.midolman.state.NatState._
     import org.midonet.midolman.state.NatState.NatKey._
 
@@ -176,30 +183,30 @@ trait NatState extends FlowState {
     private def applyDnat(deviceId: UUID, natType: KeyType,
                           natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
+            val natKey = NatKey(wcmatch, deviceId, natType)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             dnatTransformation(natKey, binding)
             true
         } else false
 
     private def dnatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
-        pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
-        if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-            pktCtx.wcmatch.setDstPort(binding.transportPort)
+        wcmatch.setNetworkDst(binding.networkAddress)
+        if (!isIcmp)
+            wcmatch.setDstPort(binding.transportPort)
     }
 
     def applySnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, deviceId, FWD_SNAT)
+            val natKey = NatKey(wcmatch, deviceId, FWD_SNAT)
             val binding = getOrAllocateNatBinding(natKey, natTargets)
             snatTransformation(natKey, binding)
             true
         } else false
 
-    def snatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
-        pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
-        if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-            pktCtx.wcmatch.setSrcPort(binding.transportPort)
+    private def snatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
+        wcmatch.setNetworkSrc(binding.networkAddress)
+        if (!isIcmp)
+            wcmatch.setSrcPort(binding.transportPort)
     }
 
     def reverseDnat(deviceId: UUID): Boolean =
@@ -210,12 +217,11 @@ trait NatState extends FlowState {
 
     private def reverseDnat(deviceId: UUID, natType: KeyType): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, deviceId, natType)
+            val natKey = NatKey(wcmatch, deviceId, natType)
+            addFlowTag(natKey)
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseDnatTransformation(natKey, binding)
-            else
-                pktCtx.addFlowTag(natKey)
         }
         false
     }
@@ -227,20 +233,19 @@ trait NatState extends FlowState {
                 reverseNatOnICMPData(binding, isSnat = false)
             else false
         } else {
-            pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
-            pktCtx.wcmatch.setSrcPort(binding.transportPort)
+            wcmatch.setNetworkSrc(binding.networkAddress)
+            wcmatch.setSrcPort(binding.transportPort)
             true
         }
     }
 
     def reverseSnat(deviceId: UUID): Boolean = {
         if (isNatSupported) {
-            val natKey = NatKey(pktCtx.wcmatch, deviceId: UUID, REV_SNAT)
+            val natKey = NatKey(wcmatch, deviceId: UUID, REV_SNAT)
+            addFlowTag(natKey)
             val binding = natTx.get(natKey)
             if (binding ne null)
                 return reverseSnatTransformation(natKey, binding)
-            else
-                pktCtx.addFlowTag(natKey)
         }
         false
     }
@@ -250,8 +255,8 @@ trait NatState extends FlowState {
         if (isIcmp) {
             reverseNatOnICMPData(binding, isSnat = true)
         } else {
-            pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
-            pktCtx.wcmatch.setDstPort(binding.transportPort)
+            wcmatch.setNetworkDst(binding.networkAddress)
+            wcmatch.setDstPort(binding.transportPort)
             true
         }
     }
@@ -259,7 +264,7 @@ trait NatState extends FlowState {
     def applyIfExists(natKey: NatKey): Boolean = {
         val binding = natTx.get(natKey)
         if (binding eq null) {
-            pktCtx.addFlowTag(natKey)
+            addFlowTag(natKey)
             false
         } else natKey.keyType match {
             case NatState.FWD_DNAT | NatState.FWD_STICKY_DNAT =>
@@ -280,32 +285,32 @@ trait NatState extends FlowState {
     def deleteNatBinding(natKey: NatKey): Unit = {
         val binding = natTx.get(natKey)
         if (binding ne null) {
-            pktCtx.addFlowTag(natKey)
+            addFlowTag(natKey)
             natTx.remove(natKey)
             val returnKey = natKey.returnKey(binding)
             natTx.remove(returnKey)
-            pktCtx.addFlowTag(returnKey)
+            addFlowTag(returnKey)
         }
     }
 
     def isNatSupported: Boolean =
-        if (IPv4.ETHERTYPE == pktCtx.wcmatch.getEtherType) {
-            val nwProto = pktCtx.wcmatch.getNetworkProto
+        if (IPv4.ETHERTYPE == wcmatch.getEtherType) {
+            val nwProto = wcmatch.getNetworkProto
             if (nwProto == ICMP.PROTOCOL_NUMBER) {
-                val supported = pktCtx.wcmatch.getSrcPort.byteValue() match {
+                val supported = wcmatch.getSrcPort.byteValue() match {
                     case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
-                        pktCtx.wcmatch.getIcmpIdentifier ne null
+                        wcmatch.getIcmpIdentifier ne null
                     case ICMP.TYPE_PARAMETER_PROBLEM |
                          ICMP.TYPE_TIME_EXCEEDED |
                          ICMP.TYPE_UNREACH =>
-                        pktCtx.wcmatch.getIcmpData ne null
+                        wcmatch.getIcmpData ne null
                     case _ =>
                         false
                 }
 
                 if (!supported) {
                     log.debug("ICMP message not supported in NAT rules {}",
-                              pktCtx.wcmatch)
+                              wcmatch)
                 }
                 supported
             } else {
@@ -314,26 +319,26 @@ trait NatState extends FlowState {
         } else false
 
     private def reverseNatOnICMPData(binding: NatBinding, isSnat: Boolean): Boolean =
-        pktCtx.wcmatch.getSrcPort.byteValue() match {
+        wcmatch.getSrcPort.byteValue() match {
             case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                 if (isSnat)
-                    pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
+                    wcmatch.setNetworkDst(binding.networkAddress)
                 else
-                    pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
+                    wcmatch.setNetworkSrc(binding.networkAddress)
                 true
             case ICMP.TYPE_PARAMETER_PROBLEM | ICMP.TYPE_TIME_EXCEEDED |
-                 ICMP.TYPE_UNREACH if pktCtx.wcmatch.getIcmpData ne null =>
-                val data = pktCtx.wcmatch.getIcmpData
+                 ICMP.TYPE_UNREACH if wcmatch.getIcmpData ne null =>
+                val data = wcmatch.getIcmpData
                 val dataSize = data.length
                 val bb = ByteBuffer.wrap(data)
                 val header = new IPv4
                 header.deserializeHeader(bb)
                 if (isSnat) {
                     header.setSourceAddress(binding.networkAddress)
-                    pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
+                    wcmatch.setNetworkDst(binding.networkAddress)
                 } else {
                     header.setDestinationAddress(binding.networkAddress)
-                    pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
+                    wcmatch.setNetworkSrc(binding.networkAddress)
                 }
                 val ipHeadSize = dataSize - bb.remaining
                 val packet = bb.slice
@@ -352,7 +357,7 @@ trait NatState extends FlowState {
                 natBB.putShort(tpDst)
                 bb.position(bb.position + 4)
                 natBB.put(bb)
-                pktCtx.wcmatch.setIcmpData(natBB.array)
+                wcmatch.setIcmpData(natBB.array)
                 true
             case _ => false
         }
@@ -370,8 +375,8 @@ trait NatState extends FlowState {
             natTx.putAndRef(returnKey, inverseBinding)
             log.debug("With reverse NAT key {}->{}", returnKey, inverseBinding)
 
-            pktCtx.addFlowTag(natKey)
-            pktCtx.addFlowTag(returnKey)
+            addFlowTag(natKey)
+            addFlowTag(returnKey)
         } else {
             log.debug("Found existing mapping for NAT {}->{}", natKey, binding)
             refKey(natKey, binding)
@@ -381,10 +386,10 @@ trait NatState extends FlowState {
 
     private def refKey(natKey: NatKey, binding: NatBinding): Unit = {
         natTx.ref(natKey)
-        pktCtx.addFlowTag(natKey)
+        addFlowTag(natKey)
         val returnKey = natKey.returnKey(binding)
         natTx.ref(returnKey)
-        pktCtx.addFlowTag(returnKey)
+        addFlowTag(returnKey)
     }
 
     private def tryAllocateNatBinding(key: NatKey,
@@ -393,20 +398,14 @@ trait NatState extends FlowState {
             val nat = chooseRandomNatTarget(nats)
             NatBinding(chooseRandomIp(nat), key.transportDst)
         } else if (key.keyType eq FWD_SNAT) {
-            val binding = natLeaser.allocateNatBinding(key.deviceId, key.networkDst,
-                                                       key.transportDst, nats)
-            pktCtx.addFlowRemovedCallback(new Callback0 {
-                override def call(): Unit =
-                    natLeaser.freeNatBinding(key.deviceId, key.networkDst,
-                                             key.transportDst, binding)
-            })
-            binding
+            natLeaser.allocateNatBinding(key.deviceId, key.networkDst,
+                                         key.transportDst, nats)
         } else {
             val nat = chooseRandomNatTarget(nats)
             NatBinding(chooseRandomIp(nat), chooseRandomPort(nat))
         }
 
-    private def isIcmp = pktCtx.wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
+    private def isIcmp = wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
 
     private def chooseRandomNatTarget(nats: Array[NatTarget]): NatTarget =
         nats(ThreadLocalRandom.current().nextInt(nats.size))

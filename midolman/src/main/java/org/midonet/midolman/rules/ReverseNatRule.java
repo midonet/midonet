@@ -47,11 +47,11 @@ public class ReverseNatRule extends NatRule {
     }
 
     protected boolean applyReverseDnat(PacketContext pktCtx, UUID ownerId) {
-        return pktCtx.state().reverseDnat(ownerId);
+        return pktCtx.reverseDnat(ownerId);
     }
 
     protected boolean applyReverseSnat(PacketContext pktCtx, UUID ownerId) {
-        return pktCtx.state().reverseSnat(ownerId);
+        return pktCtx.reverseSnat(ownerId);
     }
 
     @Override

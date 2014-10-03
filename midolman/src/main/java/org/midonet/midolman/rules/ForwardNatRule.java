@@ -79,7 +79,7 @@ public class ForwardNatRule extends NatRule {
             pktCtx.wcmatch().setNetworkDst(floatingIpAddr);
             return true;
         } else {
-            return pktCtx.state().applyDnat(ownerId, targets);
+            return pktCtx.applyDnat(ownerId, targets);
         }
     }
 
@@ -90,7 +90,7 @@ public class ForwardNatRule extends NatRule {
             pktCtx.wcmatch().setNetworkSrc(floatingIpAddr);
             return true;
         } else {
-            return pktCtx.state().applySnat(ownerId, targets);
+            return pktCtx.applySnat(ownerId, targets);
         }
     }
 

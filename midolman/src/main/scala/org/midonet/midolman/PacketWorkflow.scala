@@ -31,15 +31,13 @@ import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge,
-                                             FlowActionOutputToVrnPort}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -247,15 +245,15 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
         if (!actions.isEmpty) {
             context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.state.conntrackTx,
-                                         context.state.natTx,
+            replicator.accumulateNewKeys(context.conntrackTx,
+                                         context.natTx,
                                          context.inputPort,
                                          context.outPorts,
                                          context.flowTags,
                                          context.flowRemovedCallbacks)
             replicator.pushState(datapathConn(context))
-            context.state.conntrackTx.commit()
-            context.state.natTx.commit()
+            context.conntrackTx.commit()
+            context.natTx.commit()
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {

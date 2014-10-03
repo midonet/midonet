@@ -16,17 +16,15 @@
 
 package org.midonet.midolman.simulation
 
-import com.typesafe.scalalogging.Logger
-
 import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.sdn.state.FlowStateTransaction
 
-sealed class StateContext(override val pktCtx: PacketContext,
-                          override val log: Logger) extends FlowState
-                                                   with ConnTrackState
-                                                   with NatState {
+trait StateContext extends FlowState
+                   with ConnTrackState
+                   with NatState { this: PacketContext =>
+
     override def clear(): Unit = {
         super[NatState].clear()
         super[ConnTrackState].clear()

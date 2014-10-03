@@ -83,7 +83,7 @@ public class TestCondition {
         pktMatch.setDstPort(1234);
         rand = new Random();
         pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+                                   null, Option.empty(), pktMatch);
     }
 
     @Test
