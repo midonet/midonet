@@ -21,6 +21,7 @@ import java.util.UUID
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPv4, ICMP, UDP, TCP, IPAddr}
@@ -91,7 +92,7 @@ object ConnTrackState {
  * flow match, which, the source fields swapped with the destination fields,
  * translates to the original flow match when the return flow ingresses.
  */
-trait ConnTrackState extends FlowState {
+trait ConnTrackState extends FlowState { this: PacketContext =>
     import ConnTrackState._
 
     var conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = _
@@ -108,13 +109,13 @@ trait ConnTrackState extends FlowState {
     def isForwardFlow: Boolean =
         if (isConnectionTracked) {
             flowDirection ne RETURN_FLOW
-        } else if (supportsConnectionTracking(pktCtx.wcmatch)) {
-            if (pktCtx.isGenerated) { // We treat generated packets as return flows
+        } else if (supportsConnectionTracking(wcmatch)) {
+            if (isGenerated) { // We treat generated packets as return flows
                 false
             } else {
                 isConnectionTracked = true
-                connKey = ConnTrackKey(pktCtx.origMatch, fetchIngressDevice())
-                pktCtx.addFlowTag(connKey)
+                connKey = ConnTrackKey(origMatch, fetchIngressDevice())
+                addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
                 val res = flowDirection ne RETURN_FLOW
                 log.debug("Connection is forward flow = {}",
@@ -127,13 +128,13 @@ trait ConnTrackState extends FlowState {
 
     def trackConnection(egressDeviceId: UUID): Unit =
         if (isConnectionTracked && (flowDirection ne RETURN_FLOW)) {
-            val returnKey = EgressConnTrackKey(pktCtx.wcmatch, egressDeviceId)
-            pktCtx.addFlowTag(returnKey)
+            val returnKey = EgressConnTrackKey(wcmatch, egressDeviceId)
+            addFlowTag(returnKey)
             if (flowDirection eq null) { // A new forward flow
                 conntrackTx.putAndRef(connKey, FORWARD_FLOW)
                 conntrackTx.putAndRef(returnKey, RETURN_FLOW)
             } else if (flowDirection eq FORWARD_FLOW) {
-                // We don't ref count the return flow key, which is a weak
+                // We don't ref count on the return flow, which holds a weak
                 // reference
                 conntrackTx.ref(connKey)
                 conntrackTx.ref(returnKey)
@@ -142,6 +143,6 @@ trait ConnTrackState extends FlowState {
 
     protected def fetchIngressDevice(): UUID = {
         implicit val actorSystem: ActorSystem = null
-        VirtualTopologyActor.tryAsk[Port](pktCtx.inputPort).deviceID
+        VirtualTopologyActor.tryAsk[Port](inputPort).deviceID
     }
 }

@@ -39,9 +39,9 @@ class PoolMember(val id: UUID, val address: IPv4Addr,
                                         loadBalancer: UUID,
                                         stickySourceIP: Boolean): Unit =
         if (stickySourceIP)
-            pktContext.state.applyStickyDnat(loadBalancer, natTargets)
+            pktContext.applyStickyDnat(loadBalancer, natTargets)
         else
-            pktContext.state.applyDnat(loadBalancer, natTargets)
+            pktContext.applyDnat(loadBalancer, natTargets)
 
     override def toString = s"PoolMember[id=$id, address=$address, " +
                             s"protocolPort=$protocolPort, weight=$weight]"

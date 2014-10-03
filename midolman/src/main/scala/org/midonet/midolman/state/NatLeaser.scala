@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.lang.{Long => JLong}
+import java.lang.{Integer => JInt, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.{TimeoutException, ThreadLocalRandom, ConcurrentHashMap}
 
@@ -76,9 +76,9 @@ object NatLeaser {
      */
     object LeasedBlocks {
         def apply(log: Logger): LeasedBlocks =
-            new TimedExpirationMap[JLong, LeasedBlock](log, _ => BLOCK_EXPIRATION)
+            new TimedExpirationMap[JInt, LeasedBlock](log, _ => BLOCK_EXPIRATION)
     }
-    type LeasedBlocks = TimedExpirationMap[JLong, LeasedBlock]
+    type LeasedBlocks = TimedExpirationMap[JInt, LeasedBlock]
 
     /**
      * This type is a map a NatTarget IP addresses to leased port blocks of
@@ -145,22 +145,31 @@ trait NatLeaser {
     /**
      * Frees the specified NatBinding, scoped by device and pair IP. If this
      * was the last reference to that NatBinding, it becomes eligible for
-     * expiration. Thread-safe for concurrent callers.
+     * expiration. Thread-safe for concurrent callers. We check if we own
+     * the binding.
      */
     def freeNatBinding(deviceId: UUID,
                        destinationIp: IPv4Addr,
                        destinationPort: Int,
                        binding: NatBinding): Unit = {
         val ipLeases = deviceLeases.get(deviceId)
+        if (ipLeases eq null)
+            return
+
         val leasedBlocks = ipLeases.get(binding.networkAddress)
+        if (leasedBlocks eq null)
+            return
+
         val leasedBlock = leasedBlocks.unref(blockOf(binding.transportPort), clock.tick)
-        val portOffset = binding.transportPort - leasedBlock.block.tpPortStart
-        val uniquefier = blend(destinationIp, destinationPort)
-        leasedBlock.leasedPorts(portOffset).remove(uniquefier)
+        if (leasedBlock ne null) {
+            val portOffset = binding.transportPort - leasedBlock.block.tpPortStart
+            val uniquefier = blend(destinationIp, destinationPort)
+            leasedBlock.leasedPorts(portOffset).remove(uniquefier)
+        }
     }
 
-    val blockObliterator = new Reducer[JLong, LeasedBlock, NatBlockAllocator]() {
-        override def apply(acc: NatBlockAllocator, key: JLong,
+    val blockObliterator = new Reducer[JInt, LeasedBlock, NatBlockAllocator]() {
+        override def apply(acc: NatBlockAllocator, key: JInt,
                            value: LeasedBlock): NatBlockAllocator = {
             val block = value.block
             log.debug("Releasing NAT block {}", block)
