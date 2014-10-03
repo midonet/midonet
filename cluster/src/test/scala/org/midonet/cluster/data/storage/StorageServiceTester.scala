@@ -103,9 +103,15 @@ trait StorageServiceTester extends StorageService {
     /**
      * Creates a new port.
      */
-    def createPort() = {
+    def createPort(): Port = {
+        createPort(null, null)
+    }
+
+    def createPort(ops: ListBuffer[PersistenceOp], devices: Devices) = {
         val port = ProtoPort
-        create(port)
+        if (ops != null) ops += CreateOp(port)
+        else create(port)
+        if (devices != null) devices.put(classOf[Port], port.getId)
         port
     }
 
