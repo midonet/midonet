@@ -4,11 +4,9 @@
 
 package org.midonet.midolman
 
-import java.util.UUID
 import java.util.{List => JList}
 import scala.compat.Platform
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration._
 
@@ -27,15 +25,13 @@ import org.midonet.odp.flows._
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 object PacketWorkflowTest {
     case object ExecPacket
     case object FlowCreated
     case object TranslateActions
 
-    def forCookie(testKit: ActorRef, pkt: Packet,
-                  cookie: Int, tagsValid: Boolean = true)
+    def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
         val dpCon = new MockOvsDatapathConnection(null)
         val flowListener = new MockOvsDatapathConnection.FlowListener() {
@@ -73,14 +69,9 @@ object PacketWorkflowTest {
                 testKit ! TranslateActions
                 Ready(flow)
             }
-            override def areTagsValid(pktCtx: PacketContext) =
-                tagsValid
 
             override def applyState(pktCtx: PacketContext,
                                     actions: Seq[FlowAction]): Unit = { }
-
-            override def applyObsoleteState(pktCtx: PacketContext,
-                                            actions: Seq[FlowAction]): Unit = { }
         }
         (pktCtx, wf)
     }
@@ -176,27 +167,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             runChecks(pktCtx, pkfw, checkEmptyActions _)
         }
 
-        scenario("A Simulation returns Drop, tags are invalid") {
-            Given("a PkWf object")
-            val (pktCtx, pkfw) =
-                PacketWorkflowTest.forCookie(self, packet(false), cookie, false)
-
-            When("the simulation layer returns Drop and tags are invalid")
-            pkfw.processSimulationResult(pktCtx, Ready(Drop))
-
-            Then("the DeduplicationActor gets an ApplyFlow request")
-            And("the current packet gets executed (with 0 actions)")
-            And("no wildcard are added.")
-
-            runChecks(pktCtx, pkfw, checkEmptyActions _)
-        }
-
-        scenario("A Simulation returns Drop for userspace only match," +
-                 " tags are valid") {
+        scenario("A Simulation returns Drop for userspace only match") {
             Given("a PkWf object with a userspace only match")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
 
-            When("the simulation layer returns Drop and tags are valid")
+            When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, Ready(Drop))
 
             Then("the FlowController gets an AddWildcardFlow request")
@@ -204,11 +179,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
         }
 
-        scenario("A Simulation returns Drop, tags are valid") {
+        scenario("A Simulation returns Drop") {
             Given("a PkWf object with a match which is not userspace only")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 
-            When("the simulation layer returns Drop and tags are valid")
+            When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx, Ready(Drop))
 
             Then("a FlowCreate request is made and processed by the Dp")
@@ -217,27 +192,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
         }
 
-        scenario("A Simulation returns TemporaryDrop, tags are invalid") {
-            Given("a PkWf object")
-            val (pktCtx, pkfw) =
-                PacketWorkflowTest.forCookie(self, packet(false), cookie, false)
-
-            When("the simulation layer returns Drop and tags are invalid")
-            pkfw.processSimulationResult(pktCtx,
-                Ready(TemporaryDrop))
-
-            Then("the DeduplicationActor gets an ApplyFlow request")
-            And("the current packet gets executed (with 0 actions)")
-            And("no wildcard are added.")
-            runChecks(pktCtx, pkfw, applyEmptyActions)
-        }
-
-        scenario("A Simulation returns TemporaryDrop for userspace only match,"+
-                 " tags are valid") {
+        scenario("A Simulation returns TemporaryDrop for userspace only match") {
             Given("a PkWf object with a userspace only match")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
 
-            When("the simulation layer returns Drop and tags are valid")
+            When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx,
                 Ready(TemporaryDrop))
 
@@ -247,11 +206,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
         }
 
-        scenario("A Simulation returns TemporaryDrop, tags are valid") {
+        scenario("A Simulation returns TemporaryDrop") {
             Given("a PkWf object with a match which is not userspace only")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 
-            When("the simulation layer returns Drop and tags are valid")
+            When("the simulation layer returns Drop")
             pkfw.processSimulationResult(pktCtx,
                 Ready(TemporaryDrop))
 
@@ -261,25 +220,8 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
             runChecks(pktCtx, pkfw, applyNilActionsWithWildcardFlow)
         }
 
-        scenario("A Simulation returns AddVirtualWildcardFlow, " +
-                 "tags are invalid") {
-            Given("a PkWf object")
-            val (pktCtx, pkfw) =
-                PacketWorkflowTest.forCookie(self, packet(false), cookie, false)
-
-            When("the simulation layer returns AddVirtualWildcardFlow")
-            val result = AddVirtualWildcardFlow(wcFlow())
-            pkfw.processSimulationResult(pktCtx, Ready(result))
-
-            Then("action translation is performed")
-            And("the DeduplicationActor gets an ApplyFlow request")
-            And("no wildcard are added.")
-            And("the current packet gets executed")
-            runChecks(pktCtx, pkfw, checkTranslate _ :: applyOutputActions)
-        }
-
         scenario("A Simulation returns AddVirtualWildcardFlow " +
-                 "for userspace only match, tags are valid") {
+                 "for userspace only match") {
             Given("a PkWf object")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(true), cookie)
 
@@ -296,8 +238,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
                 checkTranslate _ :: checkAddWildcard _ :: applyOutputActions)
         }
 
-        scenario("A Simulation returns AddVirtualWildcardFlow, " +
-                 "tags are valid") {
+        scenario("A Simulation returns AddVirtualWildcardFlow") {
             Given("a PkWf object")
             val (pktCtx, pkfw) = PacketWorkflowTest.forCookie(self, packet(false), cookie)
 

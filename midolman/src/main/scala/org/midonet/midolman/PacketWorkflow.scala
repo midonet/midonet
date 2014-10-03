@@ -160,34 +160,18 @@ class PacketWorkflow(protected val dpState: DatapathState,
                                   wildFlow: WildcardFlow): Unit = {
         if (pktCtx.packet.getReason == Packet.Reason.FlowActionUserspace) {
             pktCtx.runFlowRemovedCallbacks()
-        } else if (areTagsValid(pktCtx)) {
+        } else {
             // ApplyState needs to happen before we add the wildcard flow
             // because it adds callbacks to the PacketContext and it can also
             // result in a NotYet exception being thrown.
             applyState(pktCtx, wildFlow.getActions)
-            handleValidFlow(pktCtx, wildFlow)
-        } else {
-            applyObsoleteState(pktCtx, wildFlow.getActions)
-            handleObsoleteFlow(pktCtx, wildFlow)
+            handleFlow(pktCtx, wildFlow)
         }
 
         executePacket(pktCtx, wildFlow.getActions)
     }
 
-    def areTagsValid(pktCtx: PacketContext) =
-        FlowController.isTagSetStillValid(pktCtx.lastInvalidation, pktCtx.flowTags)
-
-    private def handleObsoleteFlow(pktCtx: PacketContext,
-                                   wildFlow: WildcardFlow) {
-        log.debug("Skipping creation of obsolete flow {} for {}",
-                  pktCtx.cookieStr, wildFlow.getMatch)
-        if (pktCtx.ingressed)
-            addToActionsCacheAndInvalidate(pktCtx, wildFlow.getActions)
-        pktCtx.runFlowRemovedCallbacks()
-    }
-
-    private def handleValidFlow(pktCtx: PacketContext,
-                                wildFlow: WildcardFlow) {
+    private def handleFlow(pktCtx: PacketContext, wildFlow: WildcardFlow): Unit = {
         if (pktCtx.isGenerated) {
             log.debug("Only adding wildcard flow {} for {}",
                       wildFlow, pktCtx.cookieStr)
@@ -251,16 +235,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
             pktCtx.state.conntrackTx.commit()
             pktCtx.state.natTx.commit()
     }
-
-    def applyObsoleteState(pktCtx: PacketContext, actions: Seq[FlowAction]): Unit =
-        if (!actions.isEmpty) {
-            // We only add this state to the local tables, which will eventually
-            // idle out. This means we will keep the state a bit longer, allowing
-            // it to be refreshed.
-            log.debug("{} Applying obsolete connection state", pktCtx.cookieStr)
-            pktCtx.state.conntrackTx.commit()
-            pktCtx.state.natTx.commit()
-        }
 
     private def handlePacketWithCookie(pktCtx: PacketContext)
     : Urgent[PipelinePath] = {
