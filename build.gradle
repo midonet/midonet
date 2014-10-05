@@ -172,7 +172,27 @@ allprojects {
         excludeDirs += file("${projectDir}/target")
         excludeDirs -= buildDir
         buildDir.listFiles().findAll{it.name != 'generated'}.each{excludeDirs += it}
-        sourceDirs += file("${buildDir}/generated/java")
+
+        ['java', 'scala'].each() { lang ->
+            def dir = file("${projectDir}/src/main/${lang}")
+            if (dir.exists()) {
+                sourceDirs += dir
+            }
+
+            ['test', 'perf'].each { type ->
+                dir = file("${projectDir}/src/${type}/${lang}")
+                if (dir.exists()) {
+                    testSourceDirs += dir
+                }
+            }
+        }
+
+        def protoDir = file("${projectDir}/src/main/proto")
+        if (protoDir.exists()) {
+            def genDir = file("${buildDir}/generated/java")
+            sourceDirs += genDir
+            idea.module.iml.withXml { p -> addProtobufFacet(p, genDir) }
+        }
     }
 }
 
@@ -309,9 +329,9 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
     targetCompatibility = 1.7
 
     dependencies {
-        compile "com.google.guava:guava:14.0.1",
+        compile "com.google.guava:guava:15.0",
                 "com.google.code.gson:gson:2.1",
-                "com.netflix.rxjava:rxjava-core:0.17.6",
+                "com.netflix.rxjava:rxjava-core:0.19.6",
                 "org.opendaylight.controller:clustering.services:0.5.0",
                 "org.opendaylight.controller:sal.connection:0.1.1",
                 "org.opendaylight.controller:sal.networkconfiguration:0.0.2",
@@ -338,9 +358,13 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 
 // Utility methods start here
 
+def getFacets(iml) {
+    iml.asNode().component.find { it.@name == 'FacetManager' } ?:
+         iml.asNode().appendNode('component', [name: 'FacetManager'])
+}
+
 def addScalaLangLevelToIdea(iml) {
-    def facets = iml.asNode().component.find { it.@name == 'FacetManager' } ?:
-        iml.asNode().appendNode('component', [name: 'FacetManager'])
+    def facets = getFacets(iml)
     def scala = facets.facet.find { it.@type == 'scala' } ?:
         facets.appendNode('facet', [type: 'scala', name: 'Scala'])
     def config = scala.configuration ? scala.configuration[0] :
@@ -348,6 +372,17 @@ def addScalaLangLevelToIdea(iml) {
     config.option.find { it.@name == 'languageLevel' } ?:
         config.appendNode('option', ['name': 'languageLevel',
                                      'value': scalaLangLevel])
+}
+
+def addProtobufFacet(iml, generatedDir) {
+    def facets = getFacets(iml)
+    def protobuf = facets.facet.find { it.@type == 'protobuf' } ?:
+                        facets.appendNode('facet', [type: 'protobuf', name: 'Protobuf Facet'])
+    def config = protobuf.configuration ? protobuf.configuration[0] :
+                 protobuf.appendNode('configuration', [])
+    config.option.find { it.@name == 'COMPILER_OUTPUT_SOURCE_DIRECTORY' } ?:
+    config.appendNode('option', ['name': 'COMPILER_OUTPUT_SOURCE_DIRECTORY',
+                                 'value': generatedDir])
 }
 
 def reorderIdeaJdkBootstrapDependency(iml) {
