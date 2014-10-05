@@ -173,7 +173,7 @@ allprojects {
         excludeDirs -= buildDir
         buildDir.listFiles().findAll{it.name != 'generated'}.each{excludeDirs += it}
 
-        ['java', 'scala'].each() { lang ->
+        ['java', 'scala', 'resources'].each() { lang ->
             def dir = file("${projectDir}/src/main/${lang}")
             if (dir.exists()) {
                 sourceDirs += dir
