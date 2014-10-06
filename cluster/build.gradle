@@ -10,7 +10,7 @@ jar {
 
 sourceSets {
     main {
-        scala { srcDirs = ['target/generated-sources', 'src/main/scala', 'src/main/java'] }
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
         java { srcDirs = [] }
     }
     test {
