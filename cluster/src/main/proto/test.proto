@@ -11,3 +11,73 @@ message FakeDevice {
     // Back references
     repeated string port_ids = 101;
 }
+
+message TestMessage {
+
+    enum Enum {
+        FIRST = 1;
+        SECOND = 2;
+        THIRD = 3;
+    }
+
+    optional double double_field = 1;
+    optional float float_field = 2;
+    optional int32 int32_field = 3;
+    optional int64 int64_field = 4;
+    optional uint32 uint32_field = 5;
+    optional uint64 uint64_field = 6;
+    optional sint32 sint32_field = 7;
+    optional sint64 sint64_field = 8;
+    optional fixed32 fixed32_field = 9;
+    optional fixed64 fixed64_field = 10;
+    optional sfixed32 sfixed32_field = 11;
+    optional sfixed64 sfixed64_field = 12;
+    optional bool bool_field = 13;
+    optional string string_field = 14;
+    optional uint32 byte_field = 15;
+    optional int32 short_field = 16;
+    optional bytes byte_string_field = 17;
+    optional bytes byte_array_field = 18;
+
+    optional int32 base_field = 20;
+
+    repeated int32 int32_primitive_array = 100;
+    repeated int32 int32_instance_array = 101;
+
+    repeated int32 int32_list = 102;
+    repeated string string_list = 103;
+    repeated bool bool_list = 104;
+
+    optional UUID uuid_field = 200;
+    repeated UUID uuid_array = 201;
+    repeated UUID uuid_list = 202;
+
+    optional FakeDevice device_field = 300;
+    repeated FakeDevice device_array = 301;
+    repeated FakeDevice device_list = 302;
+
+    optional Enum enum_field = 400;
+}
+
+message TestFlatMessage {
+    enum Enum {
+        NONE = 0;
+        FIRST = 1;
+        SECOND = 2;
+        THIRD = 3;
+    }
+
+    // Abstract members
+    optional int32 abstract_base_int = 1;
+    optional int32 abstract_derived_int = 2;
+    // Base members
+    optional Enum base_enum = 10;
+    optional int32 base_int = 11;
+    // Derived members
+    optional int32 first_derived_int = 20;
+    optional int32 second_derived_int = 21;
+    optional int32 third_derived_int = 22;
+    optional bool is_top = 23;
+    // Top members
+    optional int32 top_int = 30;
+}
