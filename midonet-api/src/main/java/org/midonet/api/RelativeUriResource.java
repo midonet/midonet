@@ -3,7 +3,12 @@ package org.midonet.api;
 import java.net.URI;
 import javax.xml.bind.annotation.XmlTransient;
 
-public abstract class RelativeUriResource {
+import com.google.protobuf.MessageOrBuilder;
+
+import org.midonet.cluster.data.ZoomObject;
+
+
+public abstract class RelativeUriResource extends ZoomObject {
 
     private URI parentUri = null;
 
@@ -11,6 +16,13 @@ public abstract class RelativeUriResource {
      * Default constructor
      */
     public RelativeUriResource() {
+    }
+
+    /**
+     * Protobuf-conversion constructor.
+     */
+    public RelativeUriResource(MessageOrBuilder proto) {
+        super(proto);
     }
 
     /**
