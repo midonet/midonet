@@ -57,8 +57,8 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
             val simulationVips =
                 vips.map(toSimulationVip)(scala.collection.breakOut(Array.canBuildFrom))
 
-            publishUpdate(new LoadBalancer(id, cfg.adminStateUp, cfg.routerId,
-                simulationVips, context.system.eventStream))
+            publishUpdate(new LoadBalancer(id, cfg.adminStateUp,
+                                           cfg.routerId, simulationVips))
         }
     }
 

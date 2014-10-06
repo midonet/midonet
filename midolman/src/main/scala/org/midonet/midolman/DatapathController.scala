@@ -17,10 +17,10 @@ import scala.reflect._
 
 import akka.actor._
 import akka.pattern.{after, pipe}
-import akka.event.LoggingAdapter
 import akka.event.LoggingReceive
 
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
@@ -252,7 +252,9 @@ class DatapathController extends Actor with ActorLogWithoutPath {
     import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
     import context.system
 
-    implicit val logger: LoggingAdapter = log
+    override def logSource = "org.midonet.datatapath-control"
+
+    implicit val logger: Logger = log
     implicit protected def executor = context.dispatcher
 
     @Inject
@@ -327,7 +329,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
         storage = storageFactory.create()
         context become (DatapathInitializationActor orElse {
             case m =>
-                log.info("Not handling {} (behaving as InitializationActor)", m)
+                log.info(s"Not handling $m (still initializing)")
         })
     }
 
@@ -401,7 +403,8 @@ class DatapathController extends Actor with ActorLogWithoutPath {
     def ensureDeletePort(port: DpPort, conn: OvsConnectionOps): Future[DpPort] =
         conn.delPort(port, datapath) recoverWith {
             case ex: Throwable =>
-                log.warning("retrying deletion of {} because of {}", port, ex)
+                log.warn("retrying deletion of " + port.getName +
+                         " because of {}", ex)
                 after(1 second, system.scheduler)(ensureDeletePort(port, conn))
         }
 
@@ -413,7 +416,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
             case (p, _) => p.asInstanceOf[P]
         } recoverWith {
             case ex: Throwable =>
-                log.warning(tag + " creation failed: {} => retrying", ex)
+                log.warn(tag + " creation failed: => retrying", ex)
                 after(1 second, system.scheduler)(makeTunnelPort(t)(portFact))
         }
 
@@ -424,7 +427,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
         log.info("Initialization complete. Starting to act as a controller.")
         context.become(DatapathControllerActor orElse {
             case m =>
-                log.warning("Unhandled message {}", m)
+                log.warn(s"Unhandled message $m")
         })
 
         Seq[ActorRef](FlowController, PacketsEntryPoint, RoutingManagerActor,
@@ -522,7 +525,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
 
         case opReply: DpPortReply =>
             pendingUpdateCount -= 1
-            log.debug("Pending update(s) {}", pendingUpdateCount)
+            log.debug(s"Pending update(s) $pendingUpdateCount")
             handlePortOperationReply(opReply)
             if(pendingUpdateCount == 0)
                 processNextHost()
@@ -576,14 +579,14 @@ class DatapathController extends Actor with ActorLogWithoutPath {
         val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              null, new ArrayList[Callback0](), tags)
-        log.debug("Added flow for tunnelkey {}", exterior.tunnelKey)
+        log.info(s"Added flow for tunnelkey ${exterior.tunnelKey}")
     }
 
     private def triggerPortInvalidation(dpPort: DpPort, port: Port,
                                         active: Boolean) {
         if (port.isInterior) {
-            log.warning("local port {} active state changed, but it's not " +
-                        "Exterior, don't know what to do with it: {}", dpPort)
+            log.warn("local port {} active state changed, but it's not " +
+                        "Exterior, don't know what to do with it", port)
             return
         }
 
@@ -607,7 +610,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                     case Success(vPort) =>
                         triggerPortInvalidation(port, vPort, active)
                     case Failure(ex) =>
-                        log.error(ex, "failed to install tunnel key flow")
+                        log.error("failed to install tunnel key flow", ex)
                 }
         }
     }
@@ -629,10 +632,10 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                     dpState.dpPortForget(p)
 
             case DpPortError(_: DpPortDelete, _) =>
-                log.warning("Failed DpPortDelete {}", opReply)
+                log.warn("Failed DpPortDelete {}", opReply)
 
             case DpPortError(_, _) =>
-                log.warning("not handling DpPortError reply {}", opReply)
+                log.warn("not handling DpPortError reply {}", opReply)
 
             case _ =>
                 log.debug("not handling port op reply {}", opReply)
@@ -658,7 +661,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                 caller ! DpPortCreateSuccess(request, port, pid)
 
             case Failure(ex) =>
-                log.warning("Request {} failed: {}", request, ex.getMessage)
+                log.warn("Request {} failed: {}", request, ex.getMessage)
                 caller ! DpPortError(request, reifyTimeoutException(ex))
         }
     }
@@ -679,7 +682,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                 caller ! DpPortDeleteSuccess(request, request.port)
 
             case Failure(ex) =>
-                log.error(ex, "Port deletion failed: {}", request)
+                log.warn("Port deletion failed:  " + request, ex)
                 caller ! DpPortError(request, reifyTimeoutException(ex))
         }
     }
@@ -713,7 +716,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
             minMtu = DEFAULT_MTU
 
         if (cachedMinMtu != minMtu) {
-            log.debug("Changing MTU from {} to {}", cachedMinMtu, minMtu)
+            log.info(s"Changing MTU from $cachedMinMtu to $minMtu")
             cachedMinMtu = minMtu
         }
     }
@@ -749,7 +752,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                 queryDatapathPorts(data)
             }
             def onError(ex: NetlinkException) {
-                log.error(ex, "Datapath creation failure")
+                log.error("Datapath creation failure", ex)
                 system.scheduler.scheduleOnce(100 millis, retryTask)
             }
         }
@@ -768,7 +771,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
                         log.error("Timeout while getting the datapath")
                         system.scheduler.scheduleOnce(100 millis, retryTask)
                     case other =>
-                        log.error(ex, "Unexpected error while getting datapath")
+                        log.error("Unexpected error while getting datapath", ex)
                 }
             }
         }
@@ -854,7 +857,7 @@ class VirtualPortManager(
         // Track which dp ports have add/remove in flight because while we wait
         // for a change to complete, the binding may be deleted or re-created.
         var dpPortsInProgress: Set[String] = Set[String]()
-    )(implicit val log: LoggingAdapter) {
+    )(implicit val log: Logger) {
 
     val interfaceEvent = new InterfaceEvent
 
@@ -1163,7 +1166,7 @@ class VirtualPortManager(
 
         interfaceToDpPort.get(itfName) match {
             case None =>
-                log.warning("Unknown DP port removed, interface: {}", itfName)
+                log.warn("Unknown DP port removed, interface: {}", itfName)
             case Some(port) =>
                 interfaceToDpPort -= itfName
                 dpPortNumToInterface -= port.getPortNo
@@ -1192,7 +1195,7 @@ class VirtualPortManager(
  *  the DatapathController. It also exposes the DatapathController managed
  *  data to clients for WilcardFlow translation. */
 class DatapathStateManager(val controller: VirtualPortManager.Controller)(
-                  implicit val log: LoggingAdapter) extends DatapathState {
+                  implicit val log: Logger) extends DatapathState {
 
     import UnderlayResolver.Route
 

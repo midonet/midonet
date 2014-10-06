@@ -456,6 +456,8 @@ abstract class VirtualToPhysicalMapperBase
     import VirtualTopologyActor.PortRequest
     import context.system
 
+    override def logSource = "org.midonet.devices.underlay"
+
     def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit
     def subscribePortSet(psetID: UUID) : Unit
     def unsubscribePortSet(psetID: UUID) : Unit
@@ -566,8 +568,7 @@ abstract class VirtualToPhysicalMapperBase
         case _DevicePortStatus(port, device, active) =>
             val (deviceId: UUID, tunnelKey: Long) = device match {
                 case b: Bridge => (b.id, b.tunnelKey)
-                case b => log.warning("Unexpected device: {}", b)
-                          (null, null)
+                case b => log.warn("Unexpected device: {}", b)
             }
             assert(port.deviceID == deviceId)
             log.debug("Port {} in PortSet {} became {}.", port.id,
@@ -645,7 +646,7 @@ abstract class VirtualToPhysicalMapperBase
                 unsubscribePortSet(psetID)
 
         case value =>
-            log.warning("Unknown message: " + value)
+            log.warn("Unknown message: " + value)
 
     }
 
@@ -684,8 +685,8 @@ abstract class VirtualToPhysicalMapperBase
                 Future.successful(None)
         } recoverWith {
             case _ : TimeoutException if retries > 0 =>
-                log.warning("VTA request timeout for config of port {} -> " +
-                            "retrying", vport)
+                log.warn("VTA request timeout for config of port {} -> retrying",
+                         vport)
                 getPortConfig(vport, retries - 1)
             case ex =>
                 Future.failed(ex)

@@ -28,7 +28,7 @@ trait MockMidolmanActors {
     protected def registerActors(actors: (Referenceable, () => Actor)*) =
         actorsService.register(actors)
 
-    implicit def toActorRef(ref: Referenceable): TestActorRef[Actor] =
+    def toActorRef(ref: Referenceable): TestActorRef[Actor] =
         actorsService.actor(ref)
 
     implicit def toMessageAccumulator(ref: Referenceable): MessageAccumulator =

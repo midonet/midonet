@@ -8,7 +8,6 @@ import java.util.UUID
 
 import akka.event.LoggingBus
 
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
@@ -32,10 +31,7 @@ object Pool {
 
 class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
            val activePoolMembers: Array[PoolMember],
-           val disabledPoolMembers: Array[PoolMember],
-           val loggingBus: LoggingBus) {
-    private val log =
-        LoggerFactory.getSimulationAwareLog(this.getClass)(loggingBus)
+           val disabledPoolMembers: Array[PoolMember]) {
 
     val deviceTag = FlowTagger.tagForDevice(id)
 
@@ -54,18 +50,18 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
      * Return action based on outcome: ACCEPT if loadbalanced successfully,
      * DROP if no active pool member is available.
      */
-    def loadBalance(pktContext: PacketContext,
+    def loadBalance(context: PacketContext,
                     loadBalancer: UUID,
                     stickySourceIP: Boolean): Boolean = {
-        implicit val implicitPacketContext = pktContext
+        implicit val implicitPacketContext = context
 
-        pktContext.addFlowTag(deviceTag)
+        context.addFlowTag(deviceTag)
 
         if (isUp) {
             val member = memberSelector.select()
-            if (log.isDebugEnabled) {
-                log.debug("{} - Selected member {} out of {}", pktContext.cookieStr,
-                          member, activePoolMembers.mkString(", "))
+            if (context.log.underlying.isDebugEnabled) {
+                context.log.debug(s"Selected member $member out of {}",
+                                  activePoolMembers.mkString(", "))
             }
             maintainConnectionOrLoadBalanceTo(member, loadBalancer, stickySourceIP)
             true
@@ -93,10 +89,10 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
     private def maintainConnectionOrLoadBalanceTo(poolMember: PoolMember,
                                                   loadBalancer: UUID,
                                                   stickySourceIP: Boolean)
-                                         (implicit pktContext: PacketContext)
+                                         (implicit context: PacketContext)
     : Unit =
         if (!applyExistingIfValidBackend(loadBalancer, stickySourceIP))
-            poolMember.applyDnat(pktContext, loadBalancer, stickySourceIP)
+            poolMember.applyDnat(context, loadBalancer, stickySourceIP)
 
     /*
      * Apply DNAT to the packetContext to redirect traffic according to the
@@ -106,13 +102,13 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
      * mapping was available.
      */
     def maintainConnectionIfExists(loadBalancer: UUID, stickySourceIP: Boolean)
-                                  (implicit pktContext: PacketContext): Boolean = {
+                                  (implicit context: PacketContext): Boolean = {
         // Even if there are no active pool members, we should keep
         // existing connections alive.
-        val pktMatch = pktContext.wcmatch
+        val pktMatch = context.wcmatch
         if (stickySourceIP || pktMatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER) {
             // If all members are marked down, we stop connections
-            log.debug("{} - Stopping potential connection", pktContext.cookieStr)
+            context.log.debug("Stopping potential connection")
             false
         } else {
             applyExistingIfValidBackend(loadBalancer, stickySourceIP = false)
@@ -122,34 +118,33 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
     // Tries to apply a pre-existing connection if the backend is valid
     private def applyExistingIfValidBackend(loadBalancer: UUID,
                                             stickySourceIP: Boolean)
-                                            (implicit pktContext: PacketContext)
+                                            (implicit context: PacketContext)
     : Boolean = {
-        val vipIp = pktContext.wcmatch.getNetworkDestinationIP
-        val vipPort = pktContext.wcmatch.getTransportDestination
-        val natKey = NatKey(pktContext.wcmatch,
+        val vipIp = context.wcmatch.getNetworkDestinationIP
+        val vipPort = context.wcmatch.getTransportDestination
+        val natKey = NatKey(context.wcmatch,
                             loadBalancer,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
-        if (pktContext.state.applyIfExists(natKey)) {
-            val validBackend = isValidBackend(pktContext, stickySourceIP)
-            log.debug("{} - Found existing {}; backend is valid = {}",
-                      pktContext.cookieStr, natKey, validBackend)
-            if (!validBackend) {
+        if (context.state.applyIfExists(natKey)) {
+            val backendIsValid = isValidBackend(context, stickySourceIP)
+            context.log.debug(s"Found existing $natKey; backend valid: $backendIsValid")
+            if (!backendIsValid) {
                 // Reset the destination IP / port to be VIP IP / port
-                pktContext.wcmatch.setNetworkDestination(vipIp)
-                pktContext.wcmatch.setTransportDestination(vipPort)
+                context.wcmatch.setNetworkDestination(vipIp)
+                context.wcmatch.setTransportDestination(vipPort)
 
                 // Delete the current NAT entry we found
-                deleteNatEntry(pktContext, loadBalancer, stickySourceIP)
+                deleteNatEntry(context, loadBalancer, stickySourceIP)
             }
-            validBackend
+            backendIsValid
         } else false
     }
 
-    private def isValidBackend(pktContext: PacketContext,
+    private def isValidBackend(context: PacketContext,
                                stickySourceIP: Boolean): Boolean =
-        isValidBackend(pktContext.wcmatch.getNetworkDestinationIP,
-                       pktContext.wcmatch.getTransportDestination,
+        isValidBackend(context.wcmatch.getNetworkDestinationIP,
+                       context.wcmatch.getTransportDestination,
                        stickySourceIP)
 
     /*
@@ -174,13 +169,13 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
     private def isDisabledBackend(ip: IPAddr, port: Int) =
         Pool.findPoolMember(ip, port, disabledPoolMembers)
 
-    private def deleteNatEntry(pktContext: PacketContext,
+    private def deleteNatEntry(context: PacketContext,
                                loadBalancer: UUID,
                                stickySourceIP: Boolean): Unit = {
-        val natKey = NatKey(pktContext.wcmatch,
+        val natKey = NatKey(context.wcmatch,
                             loadBalancer,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
                             else NatState.FWD_DNAT)
-        pktContext.state.deleteNatBinding(natKey)
+        context.state.deleteNatBinding(natKey)
     }
 }

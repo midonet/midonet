@@ -52,7 +52,8 @@ import org.midonet.util.io.SelectorInputQueue;
  */
 public class SimpleSelectLoop implements SelectLoop {
 
-    private static final Logger log = LoggerFactory.getLogger(SelectLoop.class);
+    private static final Logger log =
+        LoggerFactory.getLogger("org.midonet.io.select-loop");
 
     protected boolean dontStop;
     protected Selector selector;
@@ -234,7 +235,7 @@ public class SimpleSelectLoop implements SelectLoop {
      * together I believe this is fairly efficient
      */
     public void doLoop() throws IOException {
-        log.debug("doLoop");
+        log.debug("starting");
 
         int nEvents;
 

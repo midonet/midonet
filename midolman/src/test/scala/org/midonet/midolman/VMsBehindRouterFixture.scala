@@ -228,8 +228,8 @@ trait VMsBehindRouterFixture extends SimulationHelper with
         outpkt should be (eth)
         outpkt.getPayload should be (eth.getPayload)
         outpkt.getPayload.getPayload should be (eth.getPayload.getPayload)
-        log.info("Packet received on {} forwarded to {}",
-                 vmPortNames(portIndexA), vmPortNames(portIndexB))
+        log.info(s"Packet received on ${vmPortNames(portIndexA)} " +
+                 s"forwarded to ${vmPortNames(portIndexB)}")
     }
 
     def expectPacketDropped(portIndexA: Int, portIndexB: Int,

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+    </appender>
+
     <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${midolman.log.dir}midolman.log</file>
+        <file>build/midolman.log</file>
         <append>true</append>
         <encoder>
             <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
@@ -10,19 +16,6 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>7</maxHistory>
-        </rollingPolicy>
-
-    </appender>
-
-    <appender name="EVENT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${midolman.log.dir}midolman.event.log</file>
-        <append>true</append>
-        <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} ${HOSTNAME} %-5level %logger - %m%n%rEx </pattern>
-        </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${midolman.log.dir}midolman.event.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
         </rollingPolicy>
 
     </appender>
@@ -35,7 +28,7 @@
     <logger name="org.eclipse.jetty" level="INFO" />
 
     <!-- Adjust this level to set the logging used for all packets processed -->
-    <logger name="org.midonet.packets.default.packet-processor" level="INFO" />
+    <logger name="org.midonet.packets.default.packet-processor" level="TRACE" />
 
     <!-- These are static for internal use, do not touch -->
     <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" />
@@ -51,6 +44,7 @@
 
     <!-- bgp -->
     <!-- <logger name="org.midonet.routing.bgp" level="DEBUG" /> -->
+    <!-- <logger name="org.midonet.routing-manager" level="DEBUG" /> -->
 
     <!-- flow management -->
     <!-- <logger name="org.midonet.flow-management" level="DEBUG" /> -->
@@ -79,16 +73,13 @@
     <!-- <logger name="org.midonet.io.htb" level="DEBUG" /> -->
 
 
-    <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
     <logger name="org.midonet.event" level="INFO">
-         <appender-ref ref="EVENT-FILE"/>
+         <appender-ref ref="STDOUT"/>
     </logger>
 
-    <!-- BEWARE: DEBUG level is meant for developement and/or troubleshooting
-                 it greatly impacts system performance.
-         levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="LOG-FILE" />
+        <appender-ref ref="STDOUT" />
     </root>
 
 </configuration>

@@ -8,7 +8,7 @@ dependencies {
             libraries.hamcrest_integration, libraries.jackson_core,
             libraries.jackson_mapper, libraries.jsch, libraries.netty,
             libraries.rx, libraries.scala, libraries.servlet,
-            libraries.sun_tools
+            libraries.sun_tools, libraries.scala_logging
 }
 
 jar {

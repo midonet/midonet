@@ -25,7 +25,7 @@ public class SelectLoopService extends AbstractService {
     @MidolmanActorsModule.ZEBRA_SERVER_LOOP
     SelectLoop zebraLoop;
 
-    private Thread startLoop(final SelectLoop loop, String name) {
+    private Thread startLoop(final SelectLoop loop, final String name) {
         log.info("Starting select loop thread: {}.", name);
         Thread th = new Thread(new Runnable() {
             @Override

@@ -204,6 +204,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
     import FlowController._
     import DatapathController.DatapathReady
 
+    override def logSource = "org.midonet.flow-management"
+
     implicit val system = this.context.system
 
     var datapath: Datapath = null
@@ -250,7 +252,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         flowManagerHelper = new FlowManagerInfoImpl()
         flowManager = new FlowManager(flowManagerHelper,
             FlowController.wildcardTablesProvider ,maxDpFlows, maxWildcardFlows,
-            idleFlowToleranceInterval, context.system.eventStream)
+            idleFlowToleranceInterval)
 
         wildFlowPool = new ArrayObjectPool[ManagedWildcardFlow](maxWildcardFlows) {
             override def allocate = new ManagedWildcardFlow(this)
@@ -280,7 +282,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     wildFlowPool.take
                 } match {
                     case None =>
-                        log.warning("Failed to add wildcard flow, no capacity")
+                        log.warn("Failed to add wildcard flow, no capacity")
                     case Some(managedFlow) =>
                         wildFlow.getMatch.unsetInputPortUUID() // Not used for flow matching
                         managedFlow.reset(wildFlow)            // the FlowController's ref
@@ -288,7 +290,12 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         if (handleFlowAddedForNewWildcard(managedFlow, dpFlow,
                                                           callbacks, tags)) {
                             context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
-                            log.debug("Added wildcard flow {} with tags {}", wildFlow, tags)
+
+                            log.debug(s"Added wildcard flow ${wildFlow.getMatch} " +
+                                s"with tags $tags " +
+                                s"idleTout=${wildFlow.getIdleExpirationMillis} " +
+                                s"hardTout=${wildFlow.getHardExpirationMillis}")
+
                             metrics.wildFlowsMetric.mark()
                         } else {
                             managedFlow.unref()     // the FlowController's ref
@@ -296,7 +303,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             } else {
-                log.debug("Skipping obsolete wildcard flow {} with tags {}",
+                log.debug("Skipping obsolete wildcard flow with match {} and tags {}",
                           wildFlow.getMatch, tags)
                 if (dpFlow != null) {
                     flowManagerHelper removeFlow dpFlow.getMatch
@@ -319,11 +326,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
         case InvalidateFlowsByTag(tag) =>
             tagToFlows.remove(tag) match {
                 case None =>
-                    log.debug("There are no flows to invalidate for tag {}",
-                        tag)
+                    log.debug(s"There are no flows to invalidate for tag $tag")
                 case Some(flowSet) =>
-                    log.debug("There are {} flows to invalidate for tag {}",
-                        flowSet.size, tag)
+                    log.debug(s"There are ${flowSet.size} flows to invalidate for tag $tag")
                     for (wildFlow <- flowSet)
                         removeWildcardFlow(wildFlow)
             }
@@ -346,7 +351,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
         case GetFlowSucceeded_(flow, callback) =>
-            log.debug("DP confirmed that flow was updated: {}", flow)
+            log.debug("Retrieved flow from datapath: {}", flow.getMatch)
             context.system.eventStream.publish(FlowUpdateCompleted(flow))
             callback.call(flow)
 
@@ -367,10 +372,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
             }
         }
 
-        log.debug("removeWildcardFlow - Removing flow {}", wildFlow)
         if (flowManager.remove(wildFlow)) {
-            log.debug("removeWildcardFlow - cleaning tags and executing {} " +
-                      "callbacks", wildFlow.callbacks.size)
             tagsCleanup(wildFlow.tags)
             wildFlow.unref() // tags ref
             if (wildFlow.callbacks != null)
@@ -424,7 +426,6 @@ class FlowController extends Actor with ActorLogWithoutPath {
         }
 
         if (dpFlow != null) {
-            log.debug("Binding dpFlow {} to wcFlow {}", dpFlow, wildFlow)
             flowManager.add(dpFlow, wildFlow)
             metrics.dpFlowsMetric.mark()
         }
@@ -498,8 +499,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                         case ErrorCode.ENOENT =>
                             self ! FlowMissing_(flowMatch, flowCallback)
                         case other =>
-                            log.error(ex, "Got exception {} when trying to " +
-                                          "flowsGet() for {}", flowMatch)
+                            log.error("Got exception when trying to " +
+                                      "flowsGet() for " + flowMatch, ex)
                             self ! GetFlowFailed_(flowCallback)
                     }
                 }
@@ -507,8 +508,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     val msg = if (data != null) {
                         GetFlowSucceeded_(data, flowCallback)
                     } else {
-                        log.warning("Unexpected getFlow() result: " +
-                                    "success, but a null flow")
+                        log.warn("getFlow() returned a null flow")
                         FlowMissing_(flowMatch, flowCallback)
                     }
                     self ! msg

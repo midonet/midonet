@@ -120,7 +120,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
                .setLoadBalancer(config.loadBalancer);
 
         if (!isUpdate) {
-            builder.setArpCache(new ArpCacheImpl(arpTable));
+            builder.setArpCache(new ArpCacheImpl(arpTable, id));
             arpTable.start();
             // note that the following may trigger a call to builder.build()
             // it should be the last call in the !isUpdate code path.
@@ -480,13 +480,20 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     class ArpCacheImpl implements ArpCache,
             ArpTable.Watcher<IPv4Addr, ArpCacheEntry> {
 
+        public final UUID routerId;
         ArpTable arpTable;
         private final Set<Callback3<IPv4Addr, MAC, MAC>> listeners =
                         new LinkedHashSet<Callback3<IPv4Addr, MAC, MAC>>();
 
-        ArpCacheImpl(ArpTable arpTable) {
+        ArpCacheImpl(ArpTable arpTable, UUID routerId) {
+            this.routerId = routerId;
             this.arpTable = arpTable;
             this.arpTable.addWatcher(this);
+        }
+
+        @Override
+        public UUID getRouterId() {
+            return routerId;
         }
 
         @Override

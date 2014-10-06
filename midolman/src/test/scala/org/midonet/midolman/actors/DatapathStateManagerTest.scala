@@ -6,14 +6,15 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.util.Random
 
+import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.odp.ports.VxLanTunnelPort
 import org.midonet.sdn.flows.FlowTagger
@@ -35,9 +36,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     val gre = TunnelType.gre
     val vxlan = TunnelType.vxlan
 
-    implicit val log = SoloLogger(classOf[DatapathStateManagerTest])
-    log.isInfoEnabled = false
-    log.isDebugEnabled = false
+    implicit val log = Logger(NOPLogger.NOP_LOGGER)
 
     var controller = new VirtualPortManager.Controller {
         override def addToDatapath(itfName: String) = { }

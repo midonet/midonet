@@ -12,13 +12,13 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.client.{ArpCache, RouterPort}
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.{Ready, NotYet, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
 import org.midonet.util.functors.Callback3
@@ -54,8 +54,8 @@ trait SynchronizedMultiMap[A, B] extends mutable.MultiMap[A, B] with
 class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                    val observer: (IPv4Addr, MAC, MAC) => Unit)
                   (implicit system: ActorSystem) extends ArpTable {
-    private val log =
-        LoggerFactory.getActorSystemThreadLog(this.getClass)(system.eventStream)
+    private val log = Logger(org.slf4j.LoggerFactory.getLogger(
+        "org.midonet.devices.arp-table.arp-table-" + arpCache.getRouterId))
     private val ARP_RETRY_MILLIS = cfg.getArpRetryIntervalSeconds * 1000
     private val ARP_TIMEOUT_MILLIS = cfg.getArpTimeoutSeconds * 1000
     private val ARP_STALE_MILLIS = cfg.getArpStaleSeconds * 1000
@@ -79,8 +79,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                     observer(ip, oldMac, newMac)
                 arpWaiters.remove(ip) match {
                     case Some(waiters)  =>
-                        log.debug("ArpCache.notify cb, fwd to {} waiters -- {}",
-                                  waiters.size, newMac)
+                        log.debug(s"notify ${waiters.size} waiters for $ip at $newMac")
                         waiters map { _ success newMac }
                     case _ =>
                 }
@@ -145,7 +144,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     def get(ip: IPv4Addr, port: RouterPort, expiry: Long)
            (implicit ec: ExecutionContext,
                      pktContext: PacketContext): Urgent[MAC] = {
-        log.debug("Resolving MAC for {}", ip)
+        pktContext.log.debug("Resolving MAC for {}", ip)
         /*
          * We used to waitForArpEntry() before requesting the ArpCacheEntry
          * before we had pauseless simulations to avoid a race between the
@@ -173,7 +172,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
             arpCacheEntry.expiry >= Platform.currentTime) {
             Ready(arpCacheEntry.macAddr)
         } else {
-            log.debug("MAC for IP {} unknown, will suspend during ARP", ip)
+            pktContext.log.debug("MAC for IP {} unknown, suspending during ARP", ip)
             NotYet(waitForArpEntry(ip, expiry).future)
         }
     }

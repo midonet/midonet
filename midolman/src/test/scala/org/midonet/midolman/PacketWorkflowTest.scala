@@ -11,11 +11,12 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 import akka.actor._
-import akka.event.NoLogging
 import akka.testkit._
+import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
@@ -30,6 +31,8 @@ object PacketWorkflowTest {
     case object ExecPacket
     case object FlowCreated
     case object TranslateActions
+
+    val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {

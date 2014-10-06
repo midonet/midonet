@@ -180,7 +180,7 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
     override def receive = {
 
         case PoolHealthMonitorMap(mapping) =>
-            log.debug("{} mappings received", mapping.size)
+            log.debug(s"${mapping.size} mappings received")
             handleMappingChange(mapping)
 
         case loadBalancer: LoadBalancer =>
@@ -216,6 +216,6 @@ class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                 manager ! ConfigAdded(kv._1, kv._2,
                     getRouterId(kv._2.loadBalancerId)))
 
-        case m => log.error("unknown message received - {}", m)
+        case m => log.warn(s"unknown message received - $m")
     }
 }

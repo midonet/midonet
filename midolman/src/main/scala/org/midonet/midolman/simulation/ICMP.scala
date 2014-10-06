@@ -4,7 +4,6 @@
 package org.midonet.midolman.simulation
 
 import org.midonet.cluster.client.RouterPort
-import org.midonet.midolman.logging.SimulationAwareBusLogging
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import org.midonet.sdn.flows.WildcardMatch
@@ -25,8 +24,7 @@ object Icmp {
                                  packet: Ethernet,
                                  icmpType: Byte,
                                  icmpCode: Any)
-                                (implicit pktContext: PacketContext,
-                                          log: SimulationAwareBusLogging): Option[Ethernet]
+                                (implicit context: PacketContext): Option[Ethernet]
 
         /**
          * Will be called whenever an ICMP unreachable is needed for the given
@@ -35,8 +33,7 @@ object Icmp {
         def unreachableProhibitedIcmp(inPort: RouterPort,
                                       wMatch: WildcardMatch,
                                       frame: Ethernet)
-                                     (implicit originalPktContex: PacketContext,
-                                               log: SimulationAwareBusLogging) =
+                                     (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_FILTER_PROHIB)
 
@@ -47,8 +44,7 @@ object Icmp {
         def unreachableNetIcmp(inPort: RouterPort,
                                wMatch: WildcardMatch,
                                frame: Ethernet)
-                              (implicit originalPktContex: PacketContext,
-                                        log: SimulationAwareBusLogging) =
+                              (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_NET)
 
@@ -59,16 +55,14 @@ object Icmp {
         def unreachableHostIcmp(inPort: RouterPort,
                                 wMatch: WildcardMatch,
                                 frame: Ethernet)
-                               (implicit originalPktContex: PacketContext,
-                                         log: SimulationAwareBusLogging) =
+                               (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_HOST)
 
         def unreachableFragNeededIcmp(inPort: RouterPort,
                                   wMatch: WildcardMatch,
                                   frame: Ethernet)
-                                 (implicit originalPktContext: PacketContext,
-                                           log: SimulationAwareBusLogging) =
+                                 (implicit originalPktContext: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                        UNREACH_CODE.UNREACH_FRAG_NEEDED)
 
@@ -79,8 +73,7 @@ object Icmp {
         def timeExceededIcmp(inPort: RouterPort,
                              wMatch: WildcardMatch,
                              frame: Ethernet)
-                            (implicit originalPktContex: PacketContext,
-                                      log: SimulationAwareBusLogging) =
+                            (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_TIME_EXCEEDED,
                  EXCEEDED_CODE.EXCEEDED_TTL)
     }
@@ -92,21 +85,20 @@ object Icmp {
                                 packet: Ethernet,
                                 icmpType: Byte,
                                 icmpCode: Any)
-                               (implicit pktContext: PacketContext,
-                                         log: SimulationAwareBusLogging)
+                               (implicit context: PacketContext)
         : Option[Ethernet] = {
-            log.debug("Prepare an ICMP in response to {}", packet)
+            context.log.debug("Prepare an ICMP response")
             // Check whether the original packet is allowed to trigger ICMP.
             if (inPort == null) {
-                log.debug("Don't send ICMP since inPort is null.")
+                context.log.debug("Don't send ICMP since inPort is null.")
                 return None
             }
             if (!canSend(packet, inPort)) {
-                log.debug("ICMP not allowed for this packet.")
+                context.log.debug("ICMP not allowed for this packet.")
                 return None
             }
             // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
-            log.debug("Generating ICMP error {}:{}", icmpType, icmpCode)
+            context.log.debug(s"Generating ICMP error $icmpType:$icmpCode")
             val icmp = buildError(icmpType, icmpCode, ingressMatch, packet)
             if (icmp == null)
                 return None
@@ -176,8 +168,7 @@ object Icmp {
          *         - i.e. it can trigger an ICMP error message.
          */
         private def canSend(ethPkt: Ethernet, outPort: RouterPort)
-                           (implicit pktContext: PacketContext,
-                                log: SimulationAwareBusLogging) : Boolean = {
+                           (implicit context: PacketContext): Boolean = {
             var ipPkt: IPv4 = null
             ethPkt.getPayload match {
                 case ip: IPv4 => ipPkt = ip
@@ -188,8 +179,8 @@ object Icmp {
             if (ipPkt.getProtocol == ICMP.PROTOCOL_NUMBER) {
                 ipPkt.getPayload match {
                     case icmp: ICMP if icmp.isError =>
-                        log.debug("Skipping generation of ICMP error for " +
-                                "ICMP error packet")
+                        context.log.debug(
+                            "Skipping generation of ICMP error for ICMP error packet")
                         return false
                     case _ =>
                 }
@@ -197,8 +188,8 @@ object Icmp {
             // TODO(pino): check the IP packet's validity - RFC1812 sec. 5.2.2
             // Ignore packets to IP mcast addresses.
             if (ipPkt.isMcast) {
-                log.debug("Not generating ICMP Unreachable for packet to an IP "
-                        + "multicast address.")
+                context.log.debug("Not generating ICMP Unreachable for packet "+
+                                  "to an IP multicast address.")
                 return false
             }
             // Ignore packets sent to the local-subnet IP broadcast address of the
@@ -207,28 +198,29 @@ object Icmp {
                     ipPkt.getDestinationIPAddress ==
                             outPort.portAddr.asInstanceOf[IPv4Subnet]
                                     .toBroadcastAddress) {
-                log.debug("Not generating ICMP Unreachable for packet to "
-                        + "the subnet local broadcast address.")
+                context.log.debug("Not generating ICMP Unreachable for packet to "
+                                + "the subnet local broadcast address.")
                 return false
             }
             // Ignore packets to Ethernet broadcast and multicast addresses.
             if (ethPkt.isMcast) {
-                log.debug("Not generating ICMP Unreachable for packet to "
-                        + "Ethernet broadcast or multicast address.")
+                context.log.debug("Not generating ICMP Unreachable for packet to "
+                                + "Ethernet broadcast or multicast address.")
                 return false
             }
             // Ignore packets with source network prefix zero or invalid source.
             // TODO(pino): See RFC 1812 sec. 5.3.7
             if (ipPkt.getSourceAddress == 0xffffffff
                     || ipPkt.getDestinationAddress == 0xffffffff) {
-                log.debug("Not generating ICMP Unreachable for all-hosts broadcast "
-                        + "packet")
+                context.log.debug(
+                    "Not generating ICMP Unreachable for all-hosts broadcast packet")
                 return false
             }
             // TODO(pino): check this fragment offset
             // Ignore datagram fragments other than the first one.
             if (0 != (ipPkt.getFragmentOffset & 0x1fff)) {
-                log.debug("Not generating ICMP Unreachable for IP fragment packet")
+                context.log.debug(
+                    "Not generating ICMP Unreachable for IP fragment packet")
                 return false
             }
 

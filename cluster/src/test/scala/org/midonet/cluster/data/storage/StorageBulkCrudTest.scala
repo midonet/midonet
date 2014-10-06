@@ -85,8 +85,9 @@ trait StorageBulkCrudTest extends FlatSpec
                         counter.incrementAndGet()
                     } catch {
                         case e: Exception =>
-                            log.warn("Error reading a device {} with ID {}",
-                                     clazzEntry.getKey, clazzEntry.getValue)
+                            log.warn(s"Error reading a device " +
+                                     s"${clazzEntry.getKey} with ID " +
+                                     s"${clazzEntry.getValue}")
                     }
                 }
             }

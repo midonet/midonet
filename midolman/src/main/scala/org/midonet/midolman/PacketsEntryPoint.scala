@@ -8,8 +8,10 @@ import scala.collection.immutable
 
 import akka.actor._
 import akka.event.{Logging, BusLogging, LoggingAdapter, LoggingReceive}
+import org.slf4j.LoggerFactory
 import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.config.MidolmanConfig
@@ -103,9 +105,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
         natLeaser = new NatLeaser {
-            val log: LoggingAdapter = new BusLogging(context.system.eventStream,
-                                                     Logging.simpleName(classOf[NatLeaser]),
-                                                     classOf[NatLeaser])
+            val log: Logger = Logger(LoggerFactory.getLogger(classOf[NatLeaser]))
             val allocator = natBlockAllocator
             val clock = PacketsEntryPoint.this.clock
         }
@@ -115,7 +115,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         }
     }
 
-    private def shardLogger(t: AnyRef) = akka.event.Logging(as, t.getClass)
+    private def shardLogger(t: AnyRef) =
+        Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
     protected def startWorker(index: Int): ActorRef = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)

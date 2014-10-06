@@ -31,7 +31,6 @@ object VtyConnection {
     private final val Exit = "exit"
     private final val End = "end"
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
 /**
@@ -42,6 +41,9 @@ abstract class VtyConnection(val addr: String, val port: Int,
                              val holdTime: Int, val connectRetryTime: Int) {
 
     import VtyConnection._
+
+    private final val log =
+        LoggerFactory.getLogger(s"org.midonet.routing.bgp.bgp-vty")
 
     var socket: Socket = _
     var out: PrintWriter = _
@@ -67,20 +69,17 @@ abstract class VtyConnection(val addr: String, val port: Int,
             case e: UnknownHostException =>
                 log.error("Could not open VTP connection: {}", e)
         }
-        log.debug("end")
     }
 
     protected def closeConnection() {
-        log.debug("begin")
-
+        log.debug("closing connection")
         connected = false
         out.close()
         in.close()
-        log.debug("end")
     }
 
     private def sendMessage(command: String) {
-        log.debug("command: {}", command)
+        log.trace("command: {}", command)
 
         if (!connected) {
             log.error("VTY is not connected")
@@ -95,7 +94,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     def recvMessage(minLines: Int): Seq[String] = {
-        log.debug("begin")
+        log.trace("receiving message")
         if (!connected) {
             log.error("VTY is not connected")
             throw new NotConnectedException
@@ -112,23 +111,16 @@ abstract class VtyConnection(val addr: String, val port: Int,
                     val count = in.read(charBuffer)
 
                     if (count > 0) {
-                        //log.debug("received a buffer with {} chars.", count)
-
                         val limitedBuffer = charBuffer.take(count)
-
                         val stringBuffer = limitedBuffer.mkString
-                        //log.debug("stringBuffer: {}", stringBuffer)
 
                         val controlCode : (Char) => Boolean = (c:Char) =>
                             ((c < 32 || c == 127) &&
                             !sys.props("line.separator").contains(c))
                         val filteredStringBuffer = stringBuffer.filterNot(controlCode)
-                        //log.debug("filteredStringBuffer: {}", filteredStringBuffer)
 
                         val strings = filteredStringBuffer.split(sys.props("line.separator"), -1).toList
-                        //log.debug("splitted buffer into {} strings.", strings.size)
 
-                        //strings.foreach(line => log.debug("line {}", line))
                         val fixedLines = lines.take(lines.size - 1)
                         val fixedStrings = strings.takeRight(strings.toList.size - 1)
                         val appendedLine: String = lines.last + strings.head
@@ -146,7 +138,6 @@ abstract class VtyConnection(val addr: String, val port: Int,
                 ((lines.size == minLines) && lineContinues)
             )
 
-            log.debug("end")
             lines.toSeq
         }
 
@@ -162,39 +153,36 @@ abstract class VtyConnection(val addr: String, val port: Int,
         }
 
         val droppedMessage = recvMessage()
-        log.debug("droppedMessage: {}", droppedMessage)
+        log.trace("droppedMessage: {}", droppedMessage)
     }
 
     protected def checkHello() {
-        log.debug("begin")
         val PasswordRegex = ".*Password:.*".r
         var versionMatch = false
         val messages = recvMessage(minLines = 6)
         for(message <- messages) {
             message match {
                 case "" =>
-                    log.debug("empty line")
+                    log.trace("empty line")
                 case "Hello, this is Quagga (version 0.99.21)." =>
-                    log.debug("version match")
+                    log.trace("version match")
                     versionMatch = true
                 case "Copyright 1996-2005 Kunihiro Ishiguro, et al." =>
-                    log.debug("copyright match") // ok, do nothing
+                    log.trace("copyright match") // ok, do nothing
                 case "User Access Verification" =>
-                    log.debug("UAV match")
+                    log.trace("UAV match")
                     sendMessage(password) // don't wait for password message
                 case PasswordRegex() =>
-                    log.debug("password match")
+                    log.trace("password match")
                 case s: String =>
-                    log.error("bgpd hello message doesn't match expected: \"" +
+                    log.warn("bgpd hello message doesn't match expected: \"" +
                         s + "\" size: " + s.size)
             }
         }
 
         if (versionMatch == false)  {
-            log.error("bgpd version didn't match expected.")
+            log.warn("bgpd version didn't match expected.")
         }
-
-        log.debug("end")
 }
 
     protected def doTransaction(messages: Seq[String],
@@ -220,7 +208,7 @@ abstract class VtyConnection(val addr: String, val port: Int,
         exit()
 
         val response = recvMessage(minLines)
-        log.debug("response: {}", response)
+        log.trace("response: {}", response)
         closeConnection()
         response
     }
@@ -230,32 +218,32 @@ abstract class VtyConnection(val addr: String, val port: Int,
     }
 
     protected def enable() {
-        log.debug("begin")
+        log.trace("sending enable")
         sendMessage(Enable)
         dropMessage()
     }
 
     protected def disable() {
-        log.debug("begin")
+        log.trace("sending disable")
         sendMessage(Disable)
         dropMessage()
     }
 
     protected def configureTerminal() {
-        log.debug("begin")
+        log.trace("sending configure-terminal")
 
         sendMessage(ConfigureTerminal)
         dropMessage()
     }
 
     protected def exit() {
-        log.debug("begin")
+        log.trace("sending exit")
 
         sendMessage(Exit)
     }
 
     protected def end() {
-        log.debug("begin")
+        log.trace("sending end")
 
         sendMessage(End)
     }
@@ -288,7 +276,6 @@ object BgpVtyConnection {
     private final val DisableDebug = "no debug bgp"
     private final val ShowGeneric = "show ip bgp %s"
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
 }
 
 /**
@@ -326,10 +313,13 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     extends VtyConnection(addr, port, password, keepAliveTime, holdTime, connectRetryTime)
     with BgpConnection {
 
+    private final val log =
+        LoggerFactory.getLogger(s"org.midonet.routing.bgp.bgp-vty")
+
     import BgpVtyConnection._
 
     override def getAs: Int = {
-        log.debug("begin")
+        log.debug("getting AS")
 
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
@@ -359,7 +349,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def setAs(as: Int) {
-        log.debug("begin")
+        log.debug("setting AS")
 
         val request = new ListBuffer[String]()
         request += SetAs.format(as)
@@ -378,7 +368,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
      * this will delete the entire AS config, including peers and networks
      */
     override def deleteAs(as: Int) {
-        log.debug("begin")
+        log.debug("deleting AS")
 
         val request = new ListBuffer[String]()
         request += DeleteAs.format(as)
@@ -394,7 +384,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def setLocalNw(as: Int, localAddr: IPAddr) {
-        log.debug("begin")
+        log.debug("settign local NW")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
@@ -411,7 +401,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def setPeer(as: Int, peerAddr: IPAddr, peerAs: Int) {
-        log.debug("begin")
+        log.debug("setting peer")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
@@ -433,7 +423,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def deletePeer(as: Int, peerAddr: IPAddr) {
-        log.debug("begin")
+        log.debug("deleting peer")
 
         val request = ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
@@ -450,7 +440,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     def getPeerNetwork: Seq[(String, String, String, String)] = {
-        log.debug("begin")
+        log.debug("getting peer network")
 
         val request = new ListBuffer[String]()
         var response: Seq[String] = null
@@ -493,7 +483,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def getNetwork: Seq[String] = {
-        log.debug("begin")
+        log.debug("getting network")
 
         var networks = new ListBuffer[String]()
         for (peerNetwork <- getPeerNetwork) {
@@ -512,7 +502,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
 
     override def setNetwork(as: Int, nwPrefix: String,
                             prefixLength: Int) {
-        log.debug("begin")
+        log.debug("setting network")
 
         val request = new ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
@@ -530,7 +520,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
 
     override def deleteNetwork(as: Int, nwPrefix: String,
                                prefixLength: Int) {
-        log.debug("begin")
+        log.debug("deleting network")
 
         val request = new ListBuffer[String]()
         request += SetAs.format(as) // this is actually needed
@@ -547,7 +537,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def setLogFile(file: String) {
-        log.debug("begin")
+        log.debug("setting log file to {}", file)
 
         val request = new ListBuffer[String]()
         request += SetLogFile.format(file)
@@ -563,7 +553,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
     }
 
     override def setDebug(isEnabled: Boolean) {
-        log.debug("begin")
+        log.debug("enabling debug mode")
 
         val request = new ListBuffer[String]()
         if (isEnabled)
@@ -583,8 +573,7 @@ class BgpVtyConnection(addr: String, port: Int, password: String, keepAliveTime:
 
     private def doOp(messages: Seq[String], isConfigure: Boolean,
                      minLines : Int) : Option[Seq[String]] = {
-        log.debug("begin {}", messages)
-
+        log.trace("begin {}", messages)
         try {
             Some(doTransaction(messages, isConfigure, minLines))
         } catch {

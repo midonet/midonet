@@ -24,7 +24,7 @@ public class TokenBucket {
     public static final int UNLINKED = -1;
 
     protected static final Logger log = LoggerFactory
-            .getLogger(TokenBucket.class);
+            .getLogger("org.midonet.io.htb");
     protected static final boolean isTraceEnabled = log.isTraceEnabled();
 
     protected final PaddedAtomicInteger numTokens = new PaddedAtomicInteger();

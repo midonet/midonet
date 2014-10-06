@@ -127,8 +127,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
                 bgpListBuilder.addBGP(bgp);
                 requestedBgps.add(bgp.getId());
             }
-
-            log.debug("end");
         }
 
         @Override

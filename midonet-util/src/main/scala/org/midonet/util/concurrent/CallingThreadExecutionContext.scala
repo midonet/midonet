@@ -3,7 +3,7 @@
  */
 package org.midonet.util.concurrent
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContextExecutor, ExecutionContext}
 import java.util.concurrent.ForkJoinWorkerThread
 
 /* TL;DR: Use this when executing small-ish future continuations.
@@ -43,7 +43,7 @@ import java.util.concurrent.ForkJoinWorkerThread
  * 3) A thread without work in its WSQ steals these tasks instead of more meaty
  * ones and soon has to go steal more, which is an expensive operation.
  */
-object CallingThreadExecutionContext extends ExecutionContext {
+object CallingThreadExecutionContext extends ExecutionContextExecutor {
 
     /* We have to be careful with reentrancy, because a runnable may schedule
      * continuations on a future that is already completed and will end up being

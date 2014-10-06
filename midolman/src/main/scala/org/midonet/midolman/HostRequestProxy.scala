@@ -83,7 +83,7 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
                 case Success(stateBatch) =>
                     PacketsEntryPoint ! stateBatch
                 case Failure(e) =>
-                    log.warning("Failed to fetch state from Cassandra: {}", e)
+                    log.warn("Failed to fetch state from Cassandra: {}", e)
             } andThen {
                 case _ => subscriber ! h
             }

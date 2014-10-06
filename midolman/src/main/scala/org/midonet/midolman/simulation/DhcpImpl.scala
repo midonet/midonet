@@ -4,12 +4,11 @@
 package org.midonet.midolman.simulation
 
 import java.nio.ByteBuffer
-import java.util.UUID
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client._
@@ -19,14 +18,14 @@ import org.midonet.packets._
 object DhcpImpl {
 
     def apply(dataClient: DataClient, inPort: Port, request: DHCP,
-              sourceMac: MAC, mtu: Option[Short], log: LoggingAdapter) =
+              sourceMac: MAC, mtu: Option[Short], log: Logger) =
         new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
 
 }
 
 class DhcpImpl(val dataClient: DataClient,
                val request: DHCP, val sourceMac: MAC,
-               val mtu: Option[Short], val log: LoggingAdapter) {
+               val mtu: Option[Short], val log: Logger) {
 
     private var serverAddr: IPv4Addr = null
     private var serverMac: MAC = null
@@ -55,7 +54,7 @@ class DhcpImpl(val dataClient: DataClient,
                 None
             case _ =>
                 // We don't handle this, but don't throw an error.
-                log.error("Don't expect to be invoked for DHCP packets " +
+                log.warn("Don't expect to be invoked for DHCP packets " +
                           "arriving anywhere but bridge/router exterior ports")
                 None
         }
@@ -78,7 +77,7 @@ class DhcpImpl(val dataClient: DataClient,
                                                sourceMac.toString)
                 (host != null) && (host.getIp != null)
             } else {
-                log.warning("Can not create DHCP reply because the subnet" +
+                log.warn("Can not create DHCP reply because the subnet" +
                             " does not have all necessary information.")
                 false
             }
@@ -111,7 +110,7 @@ class DhcpImpl(val dataClient: DataClient,
                         makeDhcpReply(port)
                     case _ =>
                         interfaceMTU = 0
-                        log.warning("Fail to calculate interface MTU")
+                        log.warn("Fail to calculate interface MTU")
                         None
                 }
             case _ =>
@@ -124,18 +123,15 @@ class DhcpImpl(val dataClient: DataClient,
 
         val chaddr = request.getClientHardwareAddress
         if (null == chaddr) {
-            log.warning("handleDhcpRequest dropping bootrequest with null" +
-                        " chaddr")
+            log.warn("dropping bootrequest with null chaddr")
             return None
         }
         if (chaddr.length != 6) {
-            log.warning("handleDhcpRequest dropping bootrequest with chaddr " +
-                        "with length {} greater than 6.", chaddr.length)
+            log.warn(s"dropping bootrequest with chaddr length ${chaddr.length} greater than 6.")
             return None
         }
-        log.debug("handleDhcpRequest: on port {} bootrequest with chaddr {} "
-            + "and ciaddr {}",
-            Array(port.id, MAC.bytesToString(chaddr),
+        log.debug("got bootrequest on port {} with chaddr {} and ciaddr {}",
+                  Array(port.id, MAC.bytesToString(chaddr),
                   IPv4Addr.intToString(request.getClientIPAddress)))
 
         // Extract all the options and put them in a map
@@ -144,30 +140,29 @@ class DhcpImpl(val dataClient: DataClient,
         request.getOptions foreach { opt =>
             val code = opt.getCode
             reqOptions.put(code, opt)
-            log.debug("handleDhcpRequest found option {}:{}", code,
-                DHCPOption.codeToName.get(code))
+            log.debug(s"found option $code:${DHCPOption.codeToName.get(code)}")
             code match {
                 case v if v == DHCPOption.Code.DHCP_TYPE.value =>
                     if (opt.getLength != 1) {
-                        log.warning("handleDhcpRequest dropping bootrequest - "
+                        log.warn("dropping bootrequest - "
                             + "dhcp msg type option has bad length or data.")
                         throw new IllegalArgumentException(
                             "DHCP request with bad dhcp type.")
                     }
                     val msgType = opt.getData()(0)
-                    log.debug("handleDhcpRequest dhcp msg type {}:{}",
-                        msgType, DHCPOption.msgTypeToName.get(msgType))
+                    log.debug("dhcp msg type "+
+                        s"$msgType:${DHCPOption.msgTypeToName.get(msgType)}")
                 case v if v == DHCPOption.Code.PRM_REQ_LIST.value =>
                     if (opt.getLength <= 0) {
-                        log.warning("handleDhcpRequest dropping bootrequest - "
+                        log.warn("dropping bootrequest - "
                             + "param request list has bad length")
                         throw new IllegalArgumentException(
                             "DHCP request with bad param list")
                     }
                     opt.getData foreach { c =>
                         requestedCodes.add(c)
-                        log.debug("handleDhcpRequest client requested option "
-                            + "{}:{}", c, DHCPOption.codeToName.get(c))
+                        log.debug(s"dhcp client requested option "+
+                                  s"$c:${DHCPOption.codeToName.get(c)}")
                     }
                 case _ => // Do nothing
             }
@@ -176,7 +171,7 @@ class DhcpImpl(val dataClient: DataClient,
         val options = mutable.ListBuffer[DHCPOption]()
         val typeOpt = reqOptions.get(DHCPOption.Code.DHCP_TYPE.value)
         if (typeOpt == None) {
-            log.warning("handleDhcpRequest dropping bootrequest - no dhcp" +
+            log.warn("handleDhcpRequest dropping bootrequest - no dhcp" +
                         "msg type found.")
             throw new IllegalArgumentException(
                 "DHCP request with missing dhcp type.")
@@ -205,14 +200,13 @@ class DhcpImpl(val dataClient: DataClient,
                 // and try re-enabling this code.
                 reqOptions.get(DHCPOption.Code.SERVER_ID.value) match {
                     case None =>
-                        log.debug("handleDhcpRequest - no " +
-                            "server id option found.")
+                        log.debug("no dhcp server id option found.")
                         // TODO(pino): return Future.successful(false)?
                     case Some(opt) =>
                         // The server id should correspond to this port's address.
                         val theirServId = IPv4Addr.bytesToInt(opt.getData)
                         if (serverAddr.addr != theirServId) {
-                            log.warning("handleDhcpRequest dropping dhcp REQUEST - client "
+                            log.warn("dropping dhcp REQUEST - client "
                                 + "chose server {} not us {}",
                                 IPv4Addr.intToString(theirServId), serverAddr)
                         }
@@ -220,8 +214,7 @@ class DhcpImpl(val dataClient: DataClient,
                 // The request must contain a requested IP address option.
                 reqOptions.get(DHCPOption.Code.REQUESTED_IP.value) match {
                     case None =>
-                                log.debug("handleDhcpRequest - no "
-                                    + "requested ip option found.")
+                        log.debug("no requested dhcp ip option found.")
                         //return Promise.failed(new Exception(
                         //    "DHCP message with no requested-IP option."))
                     case Some(opt) =>
@@ -230,17 +223,17 @@ class DhcpImpl(val dataClient: DataClient,
                         // TODO(pino): must keep state and remember the offered ip based
                         // on the chaddr or the client id option.
                         if (yiaddr.addr != reqIp) {
-                            log.warning("handleDhcpRequest dropping dhcp REQUEST " +
-                                "- the requested ip {} is not the offered " +
-                                "yiaddr {}", reqIp, yiaddr)
+                            log.warn("dropping dhcp REQUEST " +
+                                s"- the requested ip $reqIp is not the offered " +
+                                s"yiaddr $yiaddr")
                             // TODO(pino): send a dhcp NAK reply.
                             return None
                         }
                 }
             case msgType =>
-                log.warning("handleDhcpRequest dropping bootrequest - we " +
-                            "don't handle msg type {}:{}", msgType,
-                            DHCPOption.msgTypeToName.get(msgType))
+                log.warn("dropping bootrequest - unsuported msg type "+
+                         s"$msgType:${DHCPOption.msgTypeToName.get(msgType)}")
+
                 throw new IllegalArgumentException(
                     "DHCP request with missing dhcp type.")
         }
@@ -313,7 +306,7 @@ class DhcpImpl(val dataClient: DataClient,
                 bytes.appendAll(gwBytes.toList)
             }
             log.debug("Adding Option 121 (classless static routes) with " +
-                      "{} routes", opt121Routes.length)
+                      s"${opt121Routes.length} routes")
             // Finally, construct the classless static routes option
             options.add(new DHCPOption(
                 DHCPOption.Code.CLASSLESS_ROUTES.value(),

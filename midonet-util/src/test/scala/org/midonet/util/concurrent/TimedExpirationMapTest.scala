@@ -8,7 +8,8 @@ import java.util.concurrent.{ThreadLocalRandom, CountDownLatch}
 
 import scala.concurrent.duration._
 
-import akka.event.NoLogging
+import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 
 import org.junit.runner.RunWith
 import org.scalatest.{OneInstancePerTest, Matchers, FeatureSpec}
@@ -21,7 +22,9 @@ class TimedExpirationMapTest extends FeatureSpec
                              with Matchers
                              with OneInstancePerTest {
 
-    val map = new TimedExpirationMap[String, String](NoLogging, _ => 0 millis)
+    val map = new TimedExpirationMap[String, String](
+        Logger(NOPLogger.NOP_LOGGER),
+        _ => 0 millis)
 
     feature("Normal operations") {
         scenario("putAndRef") {

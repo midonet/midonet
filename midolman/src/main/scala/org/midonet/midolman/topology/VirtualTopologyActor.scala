@@ -13,15 +13,15 @@ import scala.reflect._
 import scala.util.Failure
 
 import akka.actor._
-import akka.event.LoggingAdapter
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.logging.{SimulationAwareBusLogging, ActorLogWithoutPath}
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYet
 import org.midonet.midolman.NotYetException
@@ -181,50 +181,49 @@ object VirtualTopologyActor extends Referenceable {
 
     def expiringAsk[D <: AnyRef](id: UUID)
                                 (implicit tag: ClassTag[D], system: ActorSystem) =
-        doExpiringAsk(id, 0L, null, null)(tag, null, system)
+        doExpiringAsk(id, 0L, null)(tag, null, system)
 
     @throws(classOf[NotYetException])
     def tryAsk[D <: AnyRef](id: UUID)
                            (implicit tag: ClassTag[D], system: ActorSystem) =
-        doTryAsk(id, 0L, null, null)(tag, null, system)
+        doTryAsk(id, 0L, null)(tag, null, system)
 
-    def expiringAsk[D <: AnyRef](id: UUID, log: LoggingAdapter)
+    def expiringAsk[D <: AnyRef](id: UUID, logger: Logger)
                                 (implicit tag: ClassTag[D], system: ActorSystem) =
-        doExpiringAsk(id, 0L, log, null)(tag, null, system)
+        doExpiringAsk(id, 0L, logger)(tag, null, system)
 
     @throws(classOf[NotYetException])
-    def tryAsk[D <: AnyRef](id: UUID, log: LoggingAdapter)
+    def tryAsk[D <: AnyRef](id: UUID, log: Logger)
                            (implicit tag: ClassTag[D], system: ActorSystem) =
-        doTryAsk(id, 0L, log, null)(tag, null, system)
+        doTryAsk(id, 0L, log)(tag, null, system)
 
     def expiringAsk[D <: AnyRef](
                        id: UUID,
-                       simLog: SimulationAwareBusLogging,
+                       logger: Logger,
                        expiry: Long = 0L)
                       (implicit tag: ClassTag[D],
                                 system: ActorSystem,
                                 pktContext: PacketContext) =
-        doExpiringAsk(id, expiry, null, simLog)(tag, pktContext, system)
+        doExpiringAsk(id, expiry, logger)(tag, pktContext, system)
 
     @throws(classOf[NotYetException])
     def tryAsk[D <: AnyRef](id: UUID,
-                            simLog: SimulationAwareBusLogging,
+                            logger: Logger,
                             expiry: Long = 0L)
                            (implicit tag: ClassTag[D],
                                      system: ActorSystem,
                                      pktContext: PacketContext) =
-        doTryAsk(id, expiry, null, simLog)(tag, pktContext, system)
+        doTryAsk(id, expiry, logger)(tag, pktContext, system)
 
     private def doExpiringAsk[D <: AnyRef](
                                  id: UUID,
                                  expiry: Long = 0L,
-                                 log: LoggingAdapter,
-                                 simLog: SimulationAwareBusLogging)
+                                 logger: Logger)
                                 (implicit tag: ClassTag[D],
                                           pktContext: PacketContext,
                                           system: ActorSystem): Urgent[D] = {
         try {
-            Ready(doTryAsk(id, expiry, log, simLog))
+            Ready(doTryAsk(id, expiry, logger))
         } catch {
             case NotYetException(future, msg) =>
                 NotYet(future)
@@ -235,8 +234,7 @@ object VirtualTopologyActor extends Referenceable {
     @throws(classOf[NotYetException])
     private def doTryAsk[D <: AnyRef](id: UUID,
                                       expiry: Long = 0L,
-                                      log: LoggingAdapter,
-                                      simLog: SimulationAwareBusLogging)
+                                      logger: Logger)
                                      (implicit tag: ClassTag[D],
                                                pktContext: PacketContext,
                                                system: ActorSystem): D = {
@@ -251,13 +249,10 @@ object VirtualTopologyActor extends Referenceable {
 
         val dev = topology.device[D](id)
         if (dev eq null) {
-            if (log ne null)
-                log.debug("{} {} not found in the virtual topology, " +
+            if (logger ne null)
+                logger.debug("{} {} not found in the virtual topology, " +
                     "will suspend", tag, id)
-            else if (simLog ne null)
-                simLog.debug("{} {} not found in the virtual topology, " +
-                    "will suspend", tag, id)
-            throw NotYetException(requestFuture(id, timeLeft, log, simLog),
+            throw NotYetException(requestFuture(id, timeLeft, logger),
                                   s"Waiting for device: $id")
         }
 
@@ -280,8 +275,7 @@ object VirtualTopologyActor extends Referenceable {
 
     private def requestFuture[D](id: UUID,
                                  timeLeft: Long,
-                                 log: LoggingAdapter,
-                                 simLog: SimulationAwareBusLogging)
+                                 logger: Logger)
                                 (implicit tag: ClassTag[D],
                                           pktContext: PacketContext,
                                           system: ActorSystem): Future[D] =
@@ -289,18 +283,12 @@ object VirtualTopologyActor extends Referenceable {
             .ask(requestsFactory(tag)(id))(timeLeft milliseconds)
             .mapTo[D](tag).andThen {
                 case Failure(ex: ClassCastException) =>
-                    if (log != null)
-                        log.error("VirtualTopologyManager didn't return a {}!",
-                            tag.runtimeClass.getSimpleName)
-                    else if (simLog != null)
-                        simLog.error("VirtualTopologyManager didn't return a {}!",
+                    if (logger != null)
+                        logger.error("VirtualTopologyManager didn't return a {}!",
                             tag.runtimeClass.getSimpleName)
                 case Failure(ex) =>
-                    if (log != null)
-                        log.warning("Failed to get {}: {} - {}",
-                            tag.runtimeClass.getSimpleName, id, ex)
-                    else if (simLog != null)
-                        simLog.warning("Failed to get {}: {} - {}",
+                    if (logger != null)
+                        logger.warn("Failed to get {}: {} - {}",
                             tag.runtimeClass.getSimpleName, id, ex)
             }(ExecutionContext.callingThread)
 
@@ -362,6 +350,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     import VirtualTopologyActor._
     import context.system
 
+    override def logSource = "org.midonet.devices.devices-service"
+
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.
     private val idToSubscribers = mutable.Map[UUID, mutable.Set[ActorRef]]()
@@ -418,14 +408,14 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
     private def updated(id: UUID, device: AnyRef) {
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
-                      client, device)
+                      client, id)
             client ! device
         }
         for (client <- idToUnansweredClients(id)) {
             // Avoid notifying the subscribed clients twice.
             if (!idToSubscribers(id).contains(client)) {
                 log.debug("Send unanswered client {} the device update for {}",
-                          client, device)
+                          client, id)
                 client ! device
             }
         }
@@ -446,7 +436,7 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
 
     def receive = {
         case null =>
-            log.warning("Received null device?")
+            log.warn("Received null device?")
         case r: DeviceRequest =>
             log.debug("Received {}", r)
             manageDevice(r)
@@ -490,7 +480,8 @@ class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
         case invalidation: InvalidateFlowsByTag =>
             log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation
-        case unexpected =>
+        case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
+        case _ =>
     }
 }

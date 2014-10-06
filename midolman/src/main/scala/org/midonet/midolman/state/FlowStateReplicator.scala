@@ -11,6 +11,8 @@ import scala.collection.mutable
 import akka.actor.ActorSystem
 
 import com.google.protobuf.MessageLite
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -91,7 +93,7 @@ abstract class BaseFlowStateReplicator() {
     def storage: FlowStateStorage
     def underlay: UnderlayResolver
     def datapath: Datapath
-    protected def log: akka.event.LoggingAdapter
+    protected def log: Logger
     protected def invalidateFlowsFor: (FlowStateKey) => Unit
     protected def getPort(id: UUID): Port
     protected def getPortSet(id: UUID): PortSet
@@ -291,7 +293,7 @@ abstract class BaseFlowStateReplicator() {
                     dp.packetsExecute(datapath, packet, actions)
             } else {
                 // TODO(guillermo) partition messages
-                log.warning("Skipping state message, too large: {}", message)
+                log.warn(s"Skipping state message, too large: $message")
             }
             i -= 1
         }
@@ -416,7 +418,7 @@ class FlowStateReplicator(
         override val datapath: Datapath)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator {
 
-    override val log = akka.event.Logging(as, this.getClass)
+    override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     @throws(classOf[NotYetException])
     override def getPort(id: UUID) = VTA.tryAsk[Port](id)

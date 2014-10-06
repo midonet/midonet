@@ -179,8 +179,7 @@ class ChainTest extends Suite
         val name = "Chain-" + chainId
         val innerAndOuterChain = new Chain(chainId,
                                            List[Rule](rejectRule).asJava,
-                                           jumpTargetMap, name,
-                                           actorSystem.eventStream)
+                                           jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          acceptRule),
                                     List(innerAndOuterChain))
@@ -206,8 +205,7 @@ class ChainTest extends Suite
         val name = "Chain-" + chainId
         val innerAndOuterChain = new Chain(chainId,
                                            List[Rule](acceptRule).asJava,
-                                           jumpTargetMap, name,
-                                           actorSystem.eventStream)
+                                           jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          rejectRule),
                                     List(innerAndOuterChain))
@@ -228,8 +226,7 @@ class ChainTest extends Suite
         val jumpTargetMap = jumpTargets.map(c => (c.id, c)).toMap
         val name = "Chain-" + chainId.toString
         rules.foreach(_.chainId = chainId)
-        new Chain(chainId, rules.asJava, jumpTargetMap, name,
-                  actorSystem.eventStream)
+        new Chain(chainId, rules.asJava, jumpTargetMap, name)
     }
 
     private def makeJumpRule(target: Chain) =

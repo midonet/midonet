@@ -8,12 +8,14 @@ import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JS
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.{BridgePort, Port}
-import org.midonet.midolman.{UnderlayResolver, SoloLogger}
+import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -371,7 +373,7 @@ class TestableFlowStateReplicator(
 
     val invalidatedKeys = mutable.MutableList[FlowStateTag]()
 
-    override val log = SoloLogger(this.getClass)
+    override val log = Logger(LoggerFactory.getLogger(this.getClass))
 
     override val storage = new MockStateStorage()
 

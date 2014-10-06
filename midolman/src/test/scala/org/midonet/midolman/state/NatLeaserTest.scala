@@ -10,12 +10,12 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 
 import akka.event.{NoLogging, LoggingAdapter}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
-
 import com.yammer.metrics.core.Clock
+import com.typesafe.scalalogging.Logger
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
@@ -33,7 +33,7 @@ class NatLeaserTest extends FeatureSpec
     val clock = new MockClock()
     val allocatedBlocks = mutable.Set[NatBlock]()
     val natLeaser = new NatLeaser {
-        override val log: LoggingAdapter = NoLogging
+        override val log = Logger(NOPLogger.NOP_LOGGER)
         override val allocator: NatBlockAllocator = new NatBlockAllocator {
             override def allocateBlockInRange(natRange: NatRange,
                                               callback: Callback[NatBlock, Exception]): Unit =

@@ -38,11 +38,11 @@ class SupervisorActor extends Actor with ActorLogWithoutPath {
                 context.actorOf(props, name)
             } catch {
                 case t: Throwable =>
-                    log.error(t, "could not start actor {}", name)
+                    log.error(s"could not start actor $name", t)
                     Status.Failure(t)
             }
             sender ! result
-        case unknown =>
-            log.info("received unknown message {}", unknown)
+
+        case unknown => log.info(s"received unknown message $unknown")
     }
 }

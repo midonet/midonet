@@ -14,7 +14,6 @@ import org.midonet.cluster.client._
 import org.midonet.cluster.data
 import org.midonet.midolman.{NotYetException, PacketsEntryPoint, Ready, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.MacFlowCount
 import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
@@ -91,7 +90,6 @@ class Bridge(val id: UUID,
 
     import Coordinator._
 
-    val log = LoggerFactory.getSimulationAwareLog(this.getClass)(actorSystem.eventStream)
     val deviceTag = tagForDevice(id)
 
     /*
@@ -101,123 +99,117 @@ class Bridge(val id: UUID,
      * the unicastAction and multicastAction methods to generate unicast and
      * multicast actions, these will take care of the vlan-id details for you.
      */
-    override def process(packetContext: PacketContext)
+    override def process(context: PacketContext)
                         (implicit ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
-        implicit val pktContext = packetContext
+        implicit val ctx = context
 
-        log.debug("Bridge {} process method called.", id)
-        log.debug("Current vlanPortId {}.", vlanPortId)
-        log.debug("Current vlan-port map {}", vlanToPort)
+        context.log.debug("Current vlanPortId {}.", vlanPortId)
+        context.log.debug("Current vlan-port map {}", vlanToPort)
 
         // Some basic sanity checks
-        if (Ethernet.isMcast(packetContext.wcmatch.getEthernetSource)) {
-            log.info("Packet has multi/broadcast source, DROP")
+        if (Ethernet.isMcast(context.wcmatch.getEthernetSource)) {
+            context.log.info("Packet has multi/broadcast source, DROP")
             Ready(DropAction)
         } else
             normalProcess()
     }
 
     @throws[NotYetException]
-    def normalProcess()(implicit packetContext: PacketContext,
+    def normalProcess()(implicit context: PacketContext,
                                  ec: ExecutionContext,
                                  actorSystem: ActorSystem)
     : Urgent[Coordinator.Action] = {
-
-        log.debug("Processing frame: {}", packetContext.ethernet)
-
-        packetContext.addFlowTag(deviceTag)
+        context.addFlowTag(deviceTag)
 
         if (!adminStateUp) {
-            log.debug("Bridge {} is down, DROP", id)
+            context.log.debug("Bridge {} is down, DROP", id)
             return Ready(DropAction)
         }
-
-        log.debug("Processing frame: {}", packetContext.ethernet)
 
         if (areChainsApplicable()) {
 
             // Call ingress (pre-bridging) chain. InputPort is already set.
-            packetContext.outPortId = null
+            context.outPortId = null
             val preBridgeResult = Chain.apply(
                 inFilterId match {
                     case Some(filterId) => tryAsk[Chain](filterId)
                     case None => null
-                }
-                , packetContext, id, false
-            )
-            log.debug("The ingress chain returned {}", preBridgeResult)
+                },
+                context, id, false)
+            context.log.debug("Ingress chain returned {}", preBridgeResult)
+
             preBridgeResult.action match {
                 case RuleResult.Action.ACCEPT => // pass through
                 case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    val srcDlAddress = packetContext.wcmatch.getEthernetSource
-                    updateFlowCount(srcDlAddress, packetContext)
+                    val srcDlAddress = context.wcmatch.getEthernetSource
+                    updateFlowCount(srcDlAddress, context)
                     // No point in tagging by dst-MAC+Port because the outPort was
                     // not used in deciding to drop the flow.
                     return Ready(DropAction)
                 case other =>
-                    log.error("Pre-bridging for {} returned {} which was not " +
-                              "ACCEPT, DROP or REJECT.", id, other)
+                    context.log.warn(
+                        s"PreBridging for $id returned $other which was not " +
+                        "ACCEPT, DROP or REJECT.")
                     return Ready(ErrorDropAction)
             }
 
-            if (preBridgeResult.pmatch ne packetContext.wcmatch) {
-                log.error("Pre-bridging for {} returned a different match" +
-                          "object", id)
+            if (preBridgeResult.pmatch ne context.wcmatch) {
+                context.log.warn("PreBridging returned a different match object")
                 return Ready(ErrorDropAction)
             }
 
         } else {
-            log.info("Ignoring pre/post chains on vlan tagged traffic")
+            context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
         }
 
         // Learn the entry
-        val srcDlAddress = packetContext.wcmatch.getEthernetSource
-        updateFlowCount(srcDlAddress, packetContext)
+        val srcDlAddress = context.wcmatch.getEthernetSource
+        updateFlowCount(srcDlAddress, context)
 
-        val dstDlAddress = packetContext.wcmatch.getEthernetDestination
+        val dstDlAddress = context.wcmatch.getEthernetDestination
         val action: Urgent[Coordinator.Action] =
              if (isArpBroadcast()) handleARPRequest()
              else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
              else handleL2Unicast() // including ARP replies
 
-        if (areChainsApplicable()) action map doPostBridging(packetContext)
+        if (areChainsApplicable()) action map doPostBridging(context)
         else action
     }
 
-    private def isArpBroadcast()(implicit pktCtx: PacketContext) = {
-        Ethernet.isBroadcast(pktCtx.wcmatch.getEthernetDestination) &&
-                             pktCtx.wcmatch.getEtherType == ARP.ETHERTYPE
+    private def isArpBroadcast()(implicit context: PacketContext) = {
+        Ethernet.isBroadcast(context.wcmatch.getEthernetDestination) &&
+                             context.wcmatch.getEtherType == ARP.ETHERTYPE
     }
 
     /**
      * Tells if chains should be executed for the current frames. So far, all
      * will be, except those with a VLAN tag.
      */
-    private def areChainsApplicable()(implicit pktCtx: PacketContext) = {
-        pktCtx.wcmatch.getVlanIds.isEmpty
+    private def areChainsApplicable()(implicit context: PacketContext) = {
+        context.wcmatch.getVlanIds.isEmpty
     }
 
     /**
       * Used by normalProcess to deal with L2 Unicast frames, this just decides
       * on a port based on MAC
       */
-    private def handleL2Unicast()(implicit pktCtx: PacketContext,
+    private def handleL2Unicast()(implicit context: PacketContext,
                                            ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
-        val dlDst = pktCtx.wcmatch.getEthernetDestination
-        val dlSrc = pktCtx.wcmatch.getEthernetSource
-        log.debug("Handling L2 unicast to {}", dlDst)
+        val dlDst = context.wcmatch.getEthernetDestination
+        val dlSrc = context.wcmatch.getEthernetSource
+        context.log.debug("Handling L2 unicast to {}", dlDst)
         macToLogicalPortId.get(dlDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
-                log.debug("Packet intended for interior port {}", logicalPort)
-                pktCtx.addFlowTag(tagForBridgePort(id, logicalPort))
+                context.log.debug("Packet intended for interior port {}", logicalPort)
+                context.addFlowTag(tagForBridgePort(id, logicalPort))
                 Ready(unicastAction(logicalPort))
             case None => // not a logical port, is the dstMac learned?
-                val vlanId = srcVlanTag(pktCtx)
+                val vlanId = srcVlanTag(context)
                 val portId =
                     if (dlDst == dlSrc) {
-                        pktCtx.inPortId
+                        context.inPortId
                     } else {
                         vlanMacTableMap.get(vlanId) match {
                             case Some(map: MacLearningTable) => map.get(dlDst)
@@ -226,17 +218,18 @@ class Bridge(val id: UUID,
                     }
                 // Tag the flow with the (src-port, src-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
-                pktCtx.addFlowTag(tagForVlanPort(id, dlSrc, vlanId,
-                                                 pktCtx.inPortId))
+                context.addFlowTag(tagForVlanPort(id, dlSrc, vlanId,
+                                                 context.inPortId))
                 if (portId == null) {
-                    log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
+                    context.log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
                         dlDst, vlanId)
-                    pktCtx.addFlowTag(
+                    context.addFlowTag(
                         tagForFloodedFlowsByDstMac(id, vlanId, dlDst))
                     multicastAction()
-                } else if (portId == pktCtx.inPortId) {
-                    log.warning("MAC {} VLAN {} resolves to InPort {}: " +
-                        "DROP (temp)", dlDst, vlanId, portId)
+                } else if (portId == context.inPortId) {
+                    context.log.warn(
+                        "MAC {} VLAN {} resolves to InPort {}: DROP (temp)",
+                        dlDst, vlanId, portId)
                     // No tags because temp flows aren't affected by
                     // invalidations. would get byPort (dlDst, vlan, port)
                     //
@@ -246,9 +239,9 @@ class Bridge(val id: UUID,
                     //
                     Ready(TemporaryDropAction)
                 } else {
-                    log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
+                    context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
                         dlDst, vlanId, portId)
-                    pktCtx.addFlowTag(tagForVlanPort(id, dlDst, vlanId, portId))
+                    context.addFlowTag(tagForVlanPort(id, dlDst, vlanId, portId))
                     Ready(unicastAction(portId))
                 }
         }
@@ -258,11 +251,11 @@ class Bridge(val id: UUID,
       * Used by normalProcess to deal with frames addressed to an L2 multicast
       * addr except for ARPs.
       */
-    private def handleL2Multicast()(implicit packetContext: PacketContext,
+    private def handleL2Multicast()(implicit context: PacketContext,
                                              ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
-        log.debug("Handling L2 multicast {}", id)
-        packetContext.addFlowTag(tagForBroadcast(id, id))
+        context.log.debug("Handling L2 multicast {}", id)
+        context.addFlowTag(tagForBroadcast(id, id))
         multicastAction()
     }
 
@@ -279,36 +272,37 @@ class Bridge(val id: UUID,
       * Note that there is no flow tagging here. You're responsible to set the
       * right tags.
       */
-    private def unicastAction(toPort: UUID)(implicit pktCtx: PacketContext)
+    private def unicastAction(toPort: UUID)(implicit context: PacketContext)
     : Coordinator.Action = {
 
-        val inPortVlan = vlanToPort.getVlan(pktCtx.inPortId)
+        val inPortVlan = vlanToPort.getVlan(context.inPortId)
         if (inPortVlan != null) {
-            log.debug("InPort is interior, vlan tagged {}: PUSH & fwd to " +
-                      "trunk {}", inPortVlan, toPort)
-            pktCtx.wcmatch.addVlanId(inPortVlan)
+            context.log.debug(
+                "InPort is interior, vlan tagged {}: PUSH & fwd to trunk {}",
+                inPortVlan, toPort)
+            context.wcmatch.addVlanId(inPortVlan)
             return ToPortAction(toPort)
         }
 
-        val vlanInFrame: Option[JShort] = pktCtx.ethernet.getVlanIDs match {
+        val vlanInFrame: Option[JShort] = context.ethernet.getVlanIDs match {
             case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
 
         vlanToPort.getVlan(toPort) match {
             case null => // the outbound port has no vlan assigned
-                log.debug("OutPort has no vlan assigned: forward")
+                context.log.debug("OutPort has no vlan assigned: forward")
                 ToPortAction(toPort)
             case vlanId if vlanInFrame == None =>
-                log.info("OutPort has vlan {}, frame had none: DROP", vlanId)
+                context.log.debug("OutPort has vlan {}, frame had none: DROP", vlanId)
                 DropAction
             case vlanId if vlanInFrame.get == vlanId =>
-                log.debug("OutPort tagged with vlan {}, POP & forward", vlanId)
-                pktCtx.wcmatch.removeVlanId(vlanId)
+                context.log.debug("OutPort tagged with vlan {}, POP & forward", vlanId)
+                context.wcmatch.removeVlanId(vlanId)
                 ToPortAction(toPort)
             case vlanId =>
-                log.info("OutPort vlan {} doesn't match frame vlan {}: DROP",
-                            vlanInFrame.get)
+                context.log.debug("OutPort vlan {} doesn't match frame vlan {}: DROP",
+                          vlanId, vlanInFrame.get)
                 DropAction
         }
     }
@@ -335,22 +329,22 @@ class Bridge(val id: UUID,
       *  tagForFloodedFlowsByDstMac. For broadcast flows, you'll want to set
       *  a tagForBroadcast.
       */
-    private def multicastAction()(implicit pktCtx: PacketContext,
+    private def multicastAction()(implicit context: PacketContext,
                                            executor: ExecutionContext)
     : Urgent[Coordinator.Action] =
         vlanPortId match {
-            case Some(vPId) if !pktCtx.inPortId.equals(vPId) =>
+            case Some(vPId) if !context.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
-                log.debug("Add vlan-aware bridge to port set")
+                context.log.debug("Add vlan-aware bridge to port set")
                 Ready(ForkAction(Vector(
                     ToPortSetAction(id),
                     ToPortAction(vPId)
                 )))
             case None if !vlanToPort.isEmpty => // A vlan-aware bridge
-                log.debug("Vlan-aware ToPortSet")
-                getPort(pktCtx.inPortId, pktCtx.expiry) map multicastVlanAware
+                context.log.debug("Vlan-aware ToPortSet")
+                getPort(context.inPortId, context.expiry) map multicastVlanAware
             case _ => // A normal bridge
-                log.debug("Normal ToPortSet")
+                context.log.debug("Normal ToPortSet")
                 Ready(ToPortSetAction(id))
         }
 
@@ -359,21 +353,22 @@ class Bridge(val id: UUID,
       * Refer to multicastAction for details.
       */
     private def multicastVlanAware(inPort: BridgePort)
-                                  (implicit pktCtx: PacketContext)
+                                  (implicit context: PacketContext)
     : Coordinator.Action = inPort match {
 
         case p: BridgePort if p.isExterior =>
             // multicast from trunk, goes only to designated log. port
-            val vlanIds = pktCtx.ethernet.getVlanIDs
+            val vlanIds = context.ethernet.getVlanIDs
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
             vlanToPort.getPort(vlanId) match {
                 case null => // none, ordinary ToPortSet
-                    log.debug("Frame to port set")
+                    context.log.debug("Frame to port set")
                     ToPortSetAction(id)
                 case vlanPort => // vlan is on an interior port
-                    log.info("Frame from trunk on vlan {}, send to other " +
-                             "trunks, POP, send to port {}", vlanId, vlanPort)
+                    context.log.debug(
+                        "Frame from trunk on vlan {}, send to trunks, POP, to port {}",
+                        vlanId, vlanPort)
                     ForkAction(Vector(
                         ToPortSetAction(id),
                         DoFlowAction(popVLAN()),
@@ -381,16 +376,16 @@ class Bridge(val id: UUID,
                     )
             }
         case p: BridgePort if p.isInterior =>
-            vlanToPort.getVlan(pktCtx.inPortId) match {
+            vlanToPort.getVlan(context.inPortId) match {
                 case vlanId: JShort =>
-                    log.debug("Frame from log. br. port: PUSH {}", vlanId)
-                    pktCtx.wcmatch.addVlanId(vlanId)
+                    context.log.debug("Frame from interior bridge port: PUSH {}", vlanId)
+                    context.wcmatch.addVlanId(vlanId)
                 case _ =>
-                    log.debug("Send to port set")
+                    context.log.debug("Send to port set")
             }
             ToPortSetAction(id)
         case _ =>
-            log.warning("Unexpected InPort type!")
+            context.log.warn("Unexpected input port type!")
             ErrorDropAction
     }
 
@@ -399,21 +394,21 @@ class Bridge(val id: UUID,
       */
     private def getPort(portId: UUID, expiry: Long)
                        (implicit actorSystem: ActorSystem,
-                                 pktCtx: PacketContext): Urgent[BridgePort] =
-        expiringAsk[BridgePort](portId, log, expiry)
+                                 context: PacketContext): Urgent[BridgePort] =
+        expiringAsk[BridgePort](portId, context.log, expiry)
 
     /**
       * Used by normalProcess to handle specifically ARP multicast.
       */
-    private def handleARPRequest()(implicit pktContext: PacketContext,
+    private def handleARPRequest()(implicit context: PacketContext,
                                             ec: ExecutionContext)
     : Urgent[Coordinator.Action] = {
-        log.debug("Handling ARP multicast")
-        val pMatch = pktContext.wcmatch
+        context.log.debug("Handling ARP multicast")
+        val pMatch = context.wcmatch
         val nwDst = pMatch.getNetworkDestinationIP
         if (ipToMac.contains(nwDst)) {
             // Forward broadcast ARPs to their devices if we know how.
-            log.debug("The packet is intended for an interior port.")
+            context.log.debug("The packet is intended for an interior port.")
             val portID = macToLogicalPortId.get(ipToMac.get(nwDst).get).get
             Ready(unicastAction(portID))
         } else {
@@ -430,14 +425,14 @@ class Bridge(val id: UUID,
             // TODO: mac, so we can deal with changes in the mac.
             if (mac == null) {
                 // Unknown MAC for this IP, or it's an ARP reply, broadcast
-                log.debug("Flooding ARP to port set {}, source MAC {}", id,
-                    pMatch.getEthernetSource)
-                pktContext.addFlowTag(tagForArpRequests(id))
+                context.log.debug("Flooding ARP to port set {}, source MAC {}",
+                                  id, pMatch.getEthernetSource)
+                context.addFlowTag(tagForArpRequests(id))
                 multicastAction()
             } else {
-                log.debug("Known MAC, {} reply to the ARP req.", mac)
-                processArpRequest(pktContext.ethernet.getPayload.asInstanceOf[ARP],
-                                  mac, pktContext.inPortId)
+                context.log.debug("Known MAC, {} reply to the ARP req.", mac)
+                processArpRequest(context.ethernet.getPayload.asInstanceOf[ARP],
+                                  mac, context.inPortId)
                 Ready(ConsumedAction)
             }
         }
@@ -453,42 +448,41 @@ class Bridge(val id: UUID,
       *   the first action in the fork.
       */
     @throws[NotYetException]
-    private def doPostBridging(packetContext: PacketContext)
-                              (act: Coordinator.Action)
-    : Coordinator.Action = {
+    private def doPostBridging(context: PacketContext)
+                              (act: Coordinator.Action): Coordinator.Action = {
 
-        implicit val pktContext = packetContext
+        implicit val ctx = context
 
-        log.debug("Post-Bridging..")
+        context.log.debug("post bridging phase")
         //XXX: Add to traversed elements list if flooding.
 
         // If the packet's not being forwarded, we're done.
         if (!act.isInstanceOf[Coordinator.ForwardAction]) {
-            log.debug("Dropping the packet after mac-learning.")
+            context.log.debug("Dropping the packet after mac-learning.")
             return act
         }
 
         // Otherwise, apply egress (post-bridging) chain
         act match {
             case ToPortAction(port) =>
-                log.debug("To port: {}", port)
-                packetContext.outPortId = port
+                context.log.debug("To port: {}", port)
+                context.outPortId = port
             case ToPortSetAction(portSet) =>
-                log.debug("To port set: {}", portSet)
-                packetContext.outPortId = portSet
+                context.log.debug("To port set: {}", portSet)
+                context.outPortId = portSet
             case ForkAction(acts) =>
-                log.debug("Fork, to port and port set")
+                context.log.debug("Fork, to port and port set")
                 // TODO (galo) check that we only want to apply to the first
                 // action
                 acts.head match {
                     case ToPortAction(port) =>
-                        packetContext.outPortId = port
+                        context.outPortId = port
                     case ToPortSetAction(portSet) =>
-                        packetContext.outPortId = portSet
+                        context.outPortId = portSet
                     case a =>
-                        log.warning("Unexpected forked action {}", a)
+                        context.log.warn("Unexpected forked action {}", a)
                 }
-            case a => log.warning("Unhandled Coordinator.Action {}", a)
+            case a => context.log.warn("Unhandled Coordinator.Action {}", a)
         }
 
         val postBridgeResult = Chain.apply(
@@ -496,19 +490,20 @@ class Bridge(val id: UUID,
                 case Some(filterId) => tryAsk[Chain](filterId)
                 case None => null
             },
-            packetContext, id, false
+            context, id, false
         )
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
-                log.debug("Forwarding the packet with action {}", act)
+                context.log.debug("Forwarding the packet with action {}", act)
                 // Note that the filter cannot change the output port.
                 act
             case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                log.debug("Dropping the packet due to egress filter.")
+                context.log.debug("Dropping the packet due to egress filter.")
                 DropAction
             case other =>
-                log.warning("Post-bridging for {} returned {} which was " +
-                            "not ACCEPT, DROP, or REJECT.", id, other)
+                context.log.warn(
+                    "PostBridging returned {} which was not ACCEPT, DROP, or REJECT.",
+                    other)
                 // TODO(pino): decrement the mac-port reference count?
                 // TODO(pino): remove the flow tag?
                 ErrorDropAction
@@ -523,11 +518,11 @@ class Bridge(val id: UUID,
       * is the source VLAN
       * - Else it is untagged (None)
       */
-    private def srcVlanTagOption(packetContext: PacketContext) = {
+    private def srcVlanTagOption(context: PacketContext) = {
         val inPortVlan = Option.apply(
-            vlanToPort.getVlan(packetContext.inPortId))
+            vlanToPort.getVlan(context.inPortId))
 
-        def getVlanFromFlowMatch = packetContext.wcmatch.getVlanIds match {
+        def getVlanFromFlowMatch = context.wcmatch.getVlanIds match {
             case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
             case _ => None
         }
@@ -547,9 +542,9 @@ class Bridge(val id: UUID,
       *   is the source VLAN. This will be expected to exist as a tag in one
       *   of the bridge's interior ports.
       */
-    private def srcVlanTag(packetContext: PacketContext): JShort = {
+    private def srcVlanTag(context: PacketContext): JShort = {
         if (vlanMacTableMap.size == 1) data.Bridge.UNTAGGED_VLAN_ID
-        else srcVlanTagOption(packetContext)
+        else srcVlanTagOption(context)
                               .getOrElse(data.Bridge.UNTAGGED_VLAN_ID)
     }
 
@@ -558,24 +553,24 @@ class Bridge(val id: UUID,
       * increasing the reference count for the tuple mac-vlan-port. What vlan is
       * chosen depends on the rules in Bridge::srcVlanTag.
       *
-      * This will also install a flow removed callback in the pktContext so that
+      * This will also install a flow removed callback in the context so that
       * we can decrement the mac-vlan-port flow count accordingly.
       *
       * NOTE: Flow invalidations caused by MACs migrating between ports are
       * done by the BridgeManager's MacTableNotifyCallBack.
       */
     private def updateFlowCount(srcDlAddress: MAC,
-                                packetContext: PacketContext) {
-        implicit val pktContext = packetContext
+                                context: PacketContext) {
+        implicit val ctx = context
         if (!macToLogicalPortId.contains(srcDlAddress)) {
-            val vlanId = short2Short(srcVlanTag(packetContext))
-            val inPortId = packetContext.inPortId
-            log.debug("Increasing ref. count for MAC {}, VLAN {} on port {}",
-                      srcDlAddress, vlanId, inPortId)
+            val vlanId = short2Short(srcVlanTag(context))
+            val inPortId = context.inPortId
+            context.log.debug("Increasing ref. count for MAC {}, VLAN {} on port {}",
+                              srcDlAddress, vlanId, inPortId)
             flowCount.increment(srcDlAddress, vlanId, inPortId)
             val callback = flowRemovedCallbackGen
                            .getCallback(srcDlAddress, vlanId, inPortId)
-            packetContext.addFlowRemovedCallback(callback)
+            context.addFlowRemovedCallback(callback)
         }
     }
 

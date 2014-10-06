@@ -77,6 +77,8 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceWithChains {
     import context.system
 
+    override def logSource = s"org.midonet.devices.router.router-$id"
+
     protected var cfg: RouterConfig = null
     private var changed = false
     private var rTable: RoutingTableWrapper[IPv4Addr] = null
@@ -160,7 +162,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             if (tagToFlowCount contains dstIp) {
                 adjustMapValue(tagToFlowCount, dstIp)(_ + 1)
                 log.debug("Increased count for tag ip {} count {}", dstIp,
-                    tagToFlowCount(dstIp))
+                    tagToFlowCount(dstIp).underlying())
             } else {
                 tagToFlowCount += (dstIp -> 1)
                 dstIpTagTrie.addRoute(createSingleHostRoute(dstIp))
@@ -184,7 +186,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
                 } else {
                     adjustMapValue(tagToFlowCount, dstIp)(_ - 1)
                     log.debug("Decreased count for tag IP {} count {}", dstIp,
-                        tagToFlowCount(dstIp))
+                        tagToFlowCount(dstIp).underlying())
                 }
             }
             context.system.eventStream.publish(

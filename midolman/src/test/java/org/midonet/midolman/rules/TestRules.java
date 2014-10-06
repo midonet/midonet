@@ -4,6 +4,11 @@
 
 package org.midonet.midolman.rules;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.UUID;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -14,6 +19,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.helpers.NOPLogger;
+import com.typesafe.scalalogging.Logger$;
+
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.serialization.Serializer;
@@ -37,11 +45,6 @@ import org.midonet.sdn.state.ShardedFlowStateTable;
 import org.midonet.util.Range;
 import org.midonet.util.eventloop.MockReactor;
 import org.midonet.util.eventloop.Reactor;
-
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
 
 public class TestRules {
 
@@ -169,11 +172,11 @@ public class TestRules {
         ShardedFlowStateTable<ConnTrackState.ConnTrackKey, Boolean> shardedConntrack =
                 ShardedFlowStateTable.create();
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
-                shardedConntrack.addShard(akka.event.NoLogging.getInstance());
+                shardedConntrack.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
                 ShardedFlowStateTable.create();
         FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
-                shardedNat.addShard(akka.event.NoLogging.getInstance());
+                shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
         fwdInfo.state().initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);

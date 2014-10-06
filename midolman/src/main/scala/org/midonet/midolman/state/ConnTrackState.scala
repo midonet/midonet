@@ -106,7 +106,8 @@ trait ConnTrackState extends FlowState {
                 pktCtx.addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
                 val res = flowDirection ne RETURN_FLOW
-                log.debug("Connection is forward flow = {}", res)
+                log.debug("Connection is forward flow = {}",
+                          res.asInstanceOf[java.lang.Boolean])
                 res
             }
         } else {

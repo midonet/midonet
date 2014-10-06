@@ -37,7 +37,7 @@
         <mido.rpm.release>0.0.${maven.build.timestamp}</mido.rpm.release>
 
         <versions.java>1.7</versions.java>
-        <versions.scala.library>2.10.3</versions.scala.library>
+        <versions.scala.library>2.11.2</versions.scala.library>
         <bootstrap.location>../midonet-jdk-bootstrap/target/midonet-jdk-bootstrap-${project.version}.jar</bootstrap.location>
         <bootstrap>-Xbootclasspath/p:${project.basedir}/../midonet-jdk-bootstrap/target/classes:${project.basedir}/${bootstrap.location}</bootstrap>
         <javalib>-Djava.library.path=/lib:/usr/lib</javalib>
@@ -70,7 +70,7 @@
                 use it instead of starting a new sbt process. -->
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
-                <version>3.1.6</version>
+                <version>3.2.0</version>
                 <configuration>
                     <recompileMode>incremental</recompileMode>
                     <useZincServer>true</useZincServer>
@@ -289,15 +289,21 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.10</artifactId>
-            <version>2.2.1</version>
+            <artifactId>scalatest_2.11</artifactId>
+            <version>2.2.2</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.scala-logging</groupId>
+            <artifactId>scala-logging_2.11</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <!-- ScalaCheck -->
         <dependency>
             <groupId>org.scalacheck</groupId>
-            <artifactId>scalacheck_2.10</artifactId>
+            <artifactId>scalacheck_2.11</artifactId>
             <version>1.11.5</version>
             <scope>test</scope>
         </dependency>
@@ -305,20 +311,20 @@
         <!-- akka framework -->
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.10</artifactId>
-            <version>2.2.3</version>
+            <artifactId>akka-actor_2.11</artifactId>
+            <version>2.3.6</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-slf4j_2.10</artifactId>
-            <version>2.2.3</version>
+            <artifactId>akka-slf4j_2.11</artifactId>
+            <version>2.3.6</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-testkit_2.10</artifactId>
-            <version>2.2.3</version>
+            <artifactId>akka-testkit_2.11</artifactId>
+            <version>2.3.6</version>
             <scope>test</scope>
         </dependency>
 

@@ -4,7 +4,7 @@
 
 package org.midonet.midolman.simulation
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
@@ -15,8 +15,8 @@ object FixPortSets extends Exception {
     override def fillInStackTrace(): Throwable = this
 }
 
-sealed class StateContext(val pktCtx: PacketContext,
-                          val log: LoggingAdapter) extends FlowState
+sealed class StateContext(override val pktCtx: PacketContext,
+                          override val log: Logger) extends FlowState
                                                    with ConnTrackState
                                                    with NatState {
     override def clear(): Unit = {

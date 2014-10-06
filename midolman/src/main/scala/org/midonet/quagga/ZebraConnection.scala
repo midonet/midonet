@@ -33,6 +33,8 @@ class ZebraConnection(val dispatcher: ActorRef,
     import ZebraConnection._
     import ZebraProtocol._
 
+    override def logSource = s"org.midonet.routing.bgp.zebra-server-$ifName"
+
     implicit def inputStreamWrapper(in: InputStream) = new DataInputStream(in)
     implicit def outputStreamWrapper(out: OutputStream) = new DataOutputStream(out)
 
@@ -43,87 +45,87 @@ class ZebraConnection(val dispatcher: ActorRef,
         val ifNameBuf = new StringBuffer(ifName)
         ifNameBuf.setLength(InterfaceNameSize)
         out.writeBytes(ifNameBuf.toString)
-        log.debug("ifName: {}", ifName)
+        log.trace("ifName: {}", ifName)
     }
 
     private def sendInterfaceIndex(out: DataOutputStream, ifIndex: Int) {
         out.writeInt(ifIndex)
-        log.debug("ifIndex: {}", ifIndex)
+        log.trace(s"ifIndex: $ifIndex")
     }
 
     private def sendInterfaceStatus(out: DataOutputStream, status: Int) {
         out.writeByte(status.toByte)
-        log.debug("status: {}", status)
+        log.trace(s"status: $status")
     }
 
     private def sendInterfaceFlags(out: DataOutputStream, flags: Int) {
         out.writeLong(flags)
-        log.debug("flags: 0x%x".format(flags))
+        log.trace("flags: 0x%x".format(flags))
     }
 
     private def sendInterfaceMetric(out: DataOutputStream, metric: Int) {
         out.writeInt(metric)
-        log.debug("metric: {}", metric)
+        log.trace(s"metric: $metric")
     }
 
     private def sendInterfaceMtu(out: DataOutputStream, mtu: Int) {
         out.writeInt(mtu)
-        log.debug("MTU: {}", mtu)
+        log.trace(s"MTU: $mtu")
     }
 
     private def sendInterfaceMtu6(out: DataOutputStream, mtu6: Int) {
         out.writeInt(mtu6)
-        log.debug("MTU6: {}", mtu6)
+        log.trace(s"MTU6: $mtu6")
     }
 
     private def sendInterfaceBandwidth(out: DataOutputStream, bandwidth: Int) {
         out.writeInt(bandwidth)
-        log.debug("Bandwidth: {}", bandwidth)
+        log.trace(s"bandwidth: $bandwidth")
     }
 
     private def sendInterfaceHwLen(out: DataOutputStream, hwLen: Int) {
         out.writeInt(hwLen)
-        log.debug("hwLen: {}", hwLen)
+        log.trace(s"hwLen: $hwLen")
     }
 
     private def sendInterfaceHwAddr(out: DataOutputStream) {
         val mac = new Array[Byte](MacAddrLength)
         out.write(mac, 0, MacAddrLength)
-        log.debug("hwAddr; {}", mac.toString)
+        log.trace(s"hwAddr; ${mac.toString}")
     }
 
     private def sendInterfaceAddrIndex(out: DataOutputStream, ifIndex: Int) {
         out.writeInt(ifIndex)
-        log.debug("ifIndex: {}", ifIndex)
+        log.trace(s"ifIndex: $ifIndex")
     }
 
     private def sendInterfaceAddrFlags(out: DataOutputStream, flags: Byte) {
         out.writeByte(flags)
-        log.debug("flags: {}", flags)
+        log.trace(s"flags: $flags")
     }
 
     private def sendInterfaceAddrFamily(out: DataOutputStream, family: Int) {
         out.writeByte(family.toByte)
-        log.debug("family: {}", family)
+        log.trace(s"family: $family")
     }
 
     private def sendInterfaceAddr(out: DataOutputStream, ipv4addr: Int) {
         out.writeInt(ipv4addr)
-        log.debug("addr: %x".format(ipv4addr))
+        log.trace(s"addr: 0x$ipv4addr%x")
     }
 
     private def sendInterfaceAddrLen(out: DataOutputStream, addrLen: Byte) {
         out.writeByte(addrLen)
-        log.debug("addrLen: {}", addrLen)
+        log.trace(s"addrLen: $addrLen")
     }
 
     private def sendInterfaceAddrDstAddr(out: DataOutputStream, ipv4addr: Int) {
         out.writeInt(ipv4addr)
-        log.debug("dstAddr: %x".format(ipv4addr))
+        log.trace(s"dstAddr: 0x$ipv4addr%x")
     }
 
     private def interfaceAdd() {
-        log.debug("begin, clientId: {}", clientId)
+        log.debug(s"adding interface, clientId: $clientId")
 
         val ifAddr4: IPv4Addr = ifAddr match {
             case ia: IPv4Addr => ia
@@ -152,8 +154,6 @@ class ZebraConnection(val dispatcher: ActorRef,
         sendInterfaceAddr(out, ifAddr4.toInt)
         sendInterfaceAddrLen(out, 4)
         sendInterfaceAddrDstAddr(out, 0)
-
-        log.debug("end")
     }
 
     def routerIdUpdate() {
@@ -169,35 +169,32 @@ class ZebraConnection(val dispatcher: ActorRef,
     }
 
     def ipv4RouteAdd() {
-        log.debug("begin")
-        val ribType = in.readByte
-        log.debug("ribType: {}", ribType)
+        log.trace("adding ipv4 route")
 
+        val ribType = in.readByte
         val flags = in.readByte
-        log.debug("flags: 0x%x".format(flags))
+        log.trace(f"ribType:$ribType flags: 0x$flags%x")
 
         val message = in.readByte
-        log.debug("message: {}({})", ZebraMessageTable(message), message)
+        log.trace(s"message: ${ZebraMessageTable(message)}($message)")
 
         val safi = in.readShort
-        log.debug("safi: {}", safi)
-
         val prefixLen = in.readByte
-        log.debug("prefixLen: {}", prefixLen)
+        log.trace(s"safi: $safi prefixLen: $prefixLen")
 
         val prefix = new Array[Byte](Ipv4MaxBytelen)
         // Protocol daemons only send network part.
         in.read(prefix, 0, ((prefixLen + 7) / 8))
-        log.debug("prefix: {}", prefix.map(_.toInt))
+        log.trace("prefix: {}", prefix.map(_.toInt))
 
         if (!ZebraRouteTypeTable.contains(ribType)) {
-            log.error("Wrong RIB type: {}", ribType)
+            log.error(s"Wrong RIB type: $ribType")
             return
         }
 
         val advertised = "%s/%d".format(
             InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
-        log.info("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
+        log.debug("ZebraIpv4RouteAdd: ribType %s flags %d prefix %s".format(
             ZebraRouteTypeTable(ribType), flags, advertised))
 
         if ((message & ZAPIMessageNextHop) != 0) {
@@ -206,9 +203,7 @@ class ZebraConnection(val dispatcher: ActorRef,
                 val nextHopType = in.readByte
                 if (nextHopType == ZebraNextHopIpv4) {
                     val addr = in.readInt
-                    log.info(
-                        "ZebraIpv4RouteAdd: nextHopType %d addr %d".format(
-                            nextHopType, addr))
+                    log.info(s"received route: nextHopType $nextHopType addr $addr")
                     handler.addRoute(RIBType.fromInteger(ribType),
                         new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
                         IPv4Addr.fromInt(addr))
@@ -225,11 +220,10 @@ class ZebraConnection(val dispatcher: ActorRef,
             // droping for now.
             val metric = in.readInt
         }
-        log.debug("end")
     }
 
     def ipv4RouteDelete() {
-        log.debug("begin")
+        log.trace("deleting ipv4 route")
 
         val ribType = in.readByte
         val flags = in.readByte
@@ -244,9 +238,8 @@ class ZebraConnection(val dispatcher: ActorRef,
 
         val advertised = "%s/%d".format(
             InetAddress.getByAddress(prefix).getHostAddress, prefixLen)
-        log.info(
-            "ZebraIpv4RouteDelete: ribType %s flags %d prefix %s".format(
-                ZebraRouteTypeTable(ribType), flags, advertised))
+        log.debug(
+            s"ZebraIpv4RouteDelete: ribType ${ZebraRouteTypeTable(ribType)} flags $flags prefix $advertised")
 
         if ((message & ZAPIMessageNextHop) != 0) {
             val nextHopNum = in.readByte
@@ -254,9 +247,7 @@ class ZebraConnection(val dispatcher: ActorRef,
                 val nextHopType = in.readByte
                 if (nextHopType == ZebraNextHopIpv4) {
                     val addr = in.readInt
-                    log.info(
-                        "ZebraIpv4RouteDelte: nextHopType %d addr %d".format(
-                            nextHopType, addr))
+                    log.info(s"route to delete: nextHopType $nextHopType addr $addr")
 
                     handler.removeRoute(RIBType.fromInteger(ribType),
                         new IPv4Subnet(IPv4Addr.fromBytes(prefix), prefixLen),
@@ -274,24 +265,18 @@ class ZebraConnection(val dispatcher: ActorRef,
             // droping for now.
             val metric = in.readInt
         }
-
-        log.debug("end")
     }
 
     def hello() {
-        log.debug("begin, clientId: {}", clientId)
-
         val proto = in.readByte
-        log.debug("proto: {}", proto)
+        log.debug(s"hello, client: $clientId proto: $proto")
         assert(proto == ZebraRouteBgp)
-
-        log.debug("end")
     }
 
     def handleMessage(message: Short) {
         def unsupported() {
-            val msgStr = ZebraMessageTable.get(message).getOrElse("unrecognized-message")
-            log.error("%s isn't implemented yet".format(msgStr))
+            val msg = ZebraMessageTable.get(message).getOrElse("unrecognized-message")
+            log.error(s"$msg isn't implemented yet")
             throw new RuntimeException("not implemented")
         }
 
@@ -314,22 +299,21 @@ class ZebraConnection(val dispatcher: ActorRef,
     override def receive = LoggingReceive {
         case ProcessMessage =>
             try {
-                log.debug("ProcessMessage")
                 val (message, _) = recvHeader(in)
                 handleMessage(message)
                 self ! ProcessMessage
             } catch {
                 case e: NoStatePathException =>
-                    log.warning("config isn't in the directory")
+                    log.warn("config isn't in the directory")
                     dispatcher ! ConnectionClosed(clientId)
                 case e: EOFException =>
-                    log.warning("connection closed by the peer")
+                    log.warn("connection closed by the peer")
                     dispatcher ! ConnectionClosed(clientId)
                 case e: IOException =>
-                    log.warning("IO error", e)
+                    log.warn("IO error", e)
                     dispatcher ! ConnectionClosed(clientId)
                 case e: Throwable =>
-                    log.warning("unexpected error", e)
+                    log.warn("unexpected error", e)
                     dispatcher ! ConnectionClosed(clientId)
             }
 
