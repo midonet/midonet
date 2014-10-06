@@ -147,7 +147,7 @@ class MidolmanActorsService extends AbstractService {
     }
 
     protected def createActorSystem(): ActorSystem =
-        ActorSystem.create("MidolmanActors", ConfigFactory.load()
+        ActorSystem.create("midolman", ConfigFactory.load()
                 .getConfig("midolman"))
 
     def initProcessing() {

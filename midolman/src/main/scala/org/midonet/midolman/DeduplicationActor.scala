@@ -416,10 +416,10 @@ class DeduplicationActor(
 
     private def handlePacket(packet: Packet): Unit = {
         val flowMatch = packet.getMatch
-        log.debug("Handling packet with match {}", flowMatch)
         val actions = actionsCache.actions.get(flowMatch)
         if (actions != null) {
-            log.debug("Got actions from the cache: {}", actions)
+            log.debug("Got actions from the cache {} for match {}",
+                       actions, flowMatch)
             executePacket(packet, actions)
             packetOut(1)
         } else if (FlowStatePackets.isStateMessage(packet)) {
@@ -435,7 +435,7 @@ class DeduplicationActor(
     private def processPacket(packet: Packet): Unit = {
         val newCookie = cookieGen.next
         val flowMatch = packet.getMatch
-        log.debug("new cookie #{} for new match {}",
+        log.debug("New cookie #{} for new match {}",
             newCookie, flowMatch)
         dpMatchToCookie.put(flowMatch, newCookie)
         cookieToDpMatch.put(newCookie, flowMatch)

@@ -81,7 +81,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
     }
 
     private void requestAdRoute(UUID adRouteId) {
-        log.debug("requesting adRoute");
+        log.debug("requesting advertised route {}", adRouteId);
         if (bgpIdtoAdRouteId.containsValue(adRouteId)) {
             log.error("requestAdRoute is only for creations, not for updates.");
             return;
@@ -120,10 +120,10 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
             BGPListBuilder bgpListBuilder = getBuilder(bgp.getPortId());
             if (requestedBgps.contains(bgp.getId())) {
-                log.debug("bgp object updated");
+                log.debug("bgp object updated {}", bgp.getId());
                 bgpListBuilder.updateBGP(bgp);
             } else {
-                log.debug("bgp object added");
+                log.debug("bgp object added {}", bgp.getId());
                 bgpListBuilder.addBGP(bgp);
                 requestedBgps.add(bgp.getId());
             }
@@ -178,9 +178,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          */
         @Override
         public void onSuccess(Set<UUID> uuids) {
-            log.debug("begin");
             update(uuids);
-            log.debug("end");
         }
 
         /*
@@ -216,8 +214,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          * other methods
          */
         private void update(Set<UUID> bgpIds) {
-            log.debug("begin");
-            log.debug("bgpIds: {}", bgpIds);
+            log.debug("update bgpIds: {}", bgpIds);
             for (UUID bgpId : portIdtoBgpIds.get(bgpPortID)) {
                 if (!bgpIds.contains(bgpId)) {
                     log.debug("removing unused bgp {} from port {}", bgpId, bgpPortID);
@@ -235,7 +232,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
             }
 
             portIdtoBgpIds.replaceValues(bgpPortID, bgpIds);
-            log.debug("end");
         }
     }
 
@@ -260,7 +256,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         */
         @Override
         public void onSuccess(AdRouteZkManager.AdRouteConfig adRouteConfig) {
-            log.debug("AdRouteCallback - begin");
             if (adRouteConfig == null) {
                 log.error("adRouteConfig is null");
                 return;
@@ -283,7 +278,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
         @Override
         public void pathDataChanged(String path) {
             // The AdRoute node has changed, fetch it again asynchronously.
-            log.debug("AdRouteCallback - begin");
+            log.debug("fetching advertised route {}", adRouteId);
             adRouteMgr.getAsync(adRouteId, this, this);
         }
 
@@ -319,7 +314,6 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          */
         @Override
         public void onSuccess(Set<UUID> uuids) {
-            log.debug("AdRoutesCallback - begin");
             update(uuids);
         }
 
@@ -329,7 +323,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
         @Override
         public void pathChildrenUpdated(String path) {
-            log.debug("AdRoutesCallback - begin");
+            log.debug("getting advertised routes list for {}", bgpID);
             adRouteMgr.getAdRouteListAsync(bgpID, this, this);
         }
 
@@ -348,11 +342,10 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
          * other methods
          */
         private void update(Set<UUID> adRouteIds) {
-            log.debug("AdRoutesCallback - begin");
-            log.debug("AdRoutesCallback - Received {} routes", adRouteIds.size());
+            log.debug("Received {} advertised routes", adRouteIds.size());
             for (UUID adRouteId : bgpIdtoAdRouteId.get(bgpID)) {
                 if (!adRouteIds.contains(adRouteId)) {
-                    log.debug("deleting unused route: {}", adRouteId);
+                    log.debug("deleting unused advertised route: {}", adRouteId);
 
                     UUID portId = bgpIdtoPortId.get(bgpID);
                     AdRouteZkManager.AdRouteConfig adRouteConfig =
@@ -364,7 +357,7 @@ public class ClusterBgpManager extends ClusterManager<BGPListBuilder> {
 
             for (UUID adRouteId : adRouteIds) {
                 if (!bgpIdtoAdRouteId.containsValue(adRouteId)) {
-                    log.debug("adding new route: {}", adRouteId);
+                    log.debug("adding new advertised route: {}", adRouteId);
                     requestAdRoute(adRouteId);
                }
             }
