@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ */
+package org.midonet.cluster.util
+
+import java.util.{List => JList}
+import java.util.{UUID => JUUID}
+
+import org.scalatest.FlatSpec
+
+import org.midonet.cluster.data.{ZoomField, ZoomClass, ZoomObject}
+import org.midonet.cluster.models.TestModels.FakeDevice
+import org.midonet.cluster.util.ListUtilTest.Device
+
+class ListUtilTest extends FlatSpec {
+
+    import ListUtil._
+    import UUIDUtil._
+    import scala.collection.JavaConversions._
+
+    "List of Protocol Buffer messages" should "convert to list of objects" in {
+        val listProto: JList[FakeDevice] =
+            List(ListUtilTest.buildDevice,
+                 ListUtilTest.buildDevice,
+                 ListUtilTest.buildDevice)
+
+        val listJava1 = ListUtil.fromProto(listProto, classOf[Device])
+        assertList(listProto, listJava1)
+
+        val listJava2 = listProto.asJava(classOf[Device])
+        assertList(listProto, listJava2)
+    }
+
+    def assertList(listProto: JList[FakeDevice],
+                   listPojo: JList[Device]): Unit = {
+        assert(listProto.size == listPojo.size)
+        for (index <- 0 until listProto.size) {
+            assertDevice(listProto(index), listPojo(index))
+        }
+    }
+
+    def assertDevice(proto: FakeDevice, pojo: Device): Unit = {
+        assert(proto.getId.equals(pojo.id.asProto))
+        assert(proto.getName.equals(pojo.name))
+        assert(proto.getPortIdsCount == pojo.portIds.size)
+        for (index <- 0 until proto.getPortIdsCount) {
+            assert(proto.getPortIds(index).equals(pojo.portIds(index)))
+        }
+    }
+
+}
+
+object ListUtilTest {
+
+    @ZoomClass(clazz = classOf[FakeDevice])
+    class Device extends ZoomObject {
+        @ZoomField(name = "id", converter = classOf[UUIDUtil.Converter])
+        val id: JUUID = null
+        @ZoomField(name = "name")
+        val name: String = null
+        @ZoomField(name = "port_ids")
+        val portIds: JList[String] = null
+    }
+
+    def buildDevice: FakeDevice = FakeDevice.newBuilder()
+        .setId(UUIDUtil.randomUuidProto)
+        .setName(UUIDUtil.randomUuidProto.toString)
+        .addPortIds(UUIDUtil.randomUuidProto.toString)
+        .addPortIds(UUIDUtil.randomUuidProto.toString)
+        .build()
+
+}
