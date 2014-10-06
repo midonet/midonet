@@ -13,7 +13,7 @@ import com.google.protobuf.MessageOrBuilder;
 import org.junit.Test;
 
 import org.midonet.cluster.models.TestModels;
-import org.midonet.cluster.util.UUID;
+import org.midonet.cluster.util.UUIDUtil;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -84,11 +84,11 @@ public class ZoomObjectTest {
             .addStringList(java.util.UUID.randomUUID().toString())
             .addBoolList(random.nextBoolean())
             .addBoolList(random.nextBoolean())
-            .setUuidField(UUID.toProto(java.util.UUID.randomUUID()))
-            .addUuidArray(UUID.toProto(java.util.UUID.randomUUID()))
-            .addUuidArray(UUID.toProto(java.util.UUID.randomUUID()))
-            .addUuidList(UUID.toProto(java.util.UUID.randomUUID()))
-            .addUuidList(UUID.toProto(java.util.UUID.randomUUID()))
+            .setUuidField(UUIDUtil.toProto(java.util.UUID.randomUUID()))
+            .addUuidArray(UUIDUtil.toProto(java.util.UUID.randomUUID()))
+            .addUuidArray(UUIDUtil.toProto(java.util.UUID.randomUUID()))
+            .addUuidList(UUIDUtil.toProto(java.util.UUID.randomUUID()))
+            .addUuidList(UUIDUtil.toProto(java.util.UUID.randomUUID()))
             .setDeviceField(buildDevice())
             .addDeviceArray(buildDevice())
             .addDeviceArray(buildDevice())
@@ -100,10 +100,10 @@ public class ZoomObjectTest {
 
     static FakeDevice buildDevice() {
         return FakeDevice.newBuilder()
-            .setId(UUID.randomUuidProto())
-            .setName(UUID.randomUuidProto().toString())
-            .addPortIds(UUID.randomUuidProto().toString())
-            .addPortIds(UUID.randomUuidProto().toString())
+            .setId(UUIDUtil.randomUuidProto())
+            .setName(UUIDUtil.randomUuidProto().toString())
+            .addPortIds(UUIDUtil.randomUuidProto().toString())
+            .addPortIds(UUIDUtil.randomUuidProto().toString())
             .build();
     }
 
@@ -137,13 +137,13 @@ public class ZoomObjectTest {
         assertEquals(pojo.stringList, message.getStringListList());
         assertEquals(pojo.boolList, message.getBoolListList());
 
-        assertEquals(pojo.uuidField, UUID.fromProto(message.getUuidField()));
+        assertEquals(pojo.uuidField, UUIDUtil.fromProto(message.getUuidField()));
         for (int index = 0; index < message.getUuidArrayCount(); index++) {
-            assertEquals(UUID.toProto(pojo.uuidArray[index]),
+            assertEquals(UUIDUtil.toProto(pojo.uuidArray[index]),
                          message.getUuidArray(index));
         }
         for (int index = 0; index < message.getUuidListCount(); index++) {
-            assertEquals(UUID.toProto(pojo.uuidList.get(index)),
+            assertEquals(UUIDUtil.toProto(pojo.uuidList.get(index)),
                          message.getUuidList(index));
         }
 
@@ -171,7 +171,7 @@ public class ZoomObjectTest {
     }
 
     static void assertDevice(Device pojo, FakeDevice proto) {
-        assertEquals(UUID.toProto(pojo.id), proto.getId());
+        assertEquals(UUIDUtil.toProto(pojo.id), proto.getId());
         assertEquals(pojo.name, proto.getName());
         for (int index = 0; index < proto.getPortIdsCount(); index++) {
             assertEquals(pojo.portIds.get(index), proto.getPortIds(index));
@@ -180,7 +180,7 @@ public class ZoomObjectTest {
 
     @ZoomClass(clazz = TestModels.FakeDevice.class)
     static class Device extends ZoomObject {
-        @ZoomField(name = "id", converter = UUID.Converter.class)
+        @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
         private java.util.UUID id;
         @ZoomField(name = "name")
         private String name;
@@ -258,6 +258,7 @@ public class ZoomObjectTest {
         private int[] int32PrimitiveArray;
         @ZoomField(name = "int32_instance_array")
         private Integer[] int32InstanceArray;
+
         @ZoomField(name = "int32_list")
         private List<Integer> int32List;
         @ZoomField(name = "string_list")
@@ -265,11 +266,11 @@ public class ZoomObjectTest {
         @ZoomField(name = "bool_list")
         private List<Boolean> boolList;
 
-        @ZoomField(name = "uuid_field", converter = UUID.Converter.class)
+        @ZoomField(name = "uuid_field", converter = UUIDUtil.Converter.class)
         private java.util.UUID uuidField;
-        @ZoomField(name = "uuid_array", converter = UUID.Converter.class)
+        @ZoomField(name = "uuid_array", converter = UUIDUtil.Converter.class)
         private java.util.UUID[] uuidArray;
-        @ZoomField(name = "uuid_list", converter = UUID.Converter.class)
+        @ZoomField(name = "uuid_list", converter = UUIDUtil.Converter.class)
         private List<java.util.UUID> uuidList;
 
         @ZoomField(name = "device_field")

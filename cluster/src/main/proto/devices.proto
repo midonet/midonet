@@ -133,8 +133,8 @@ message Rule {
     optional bool nw_tos_inv = 26;
     optional int32 nw_proto = 27;
     optional bool nw_proto_inv = 28;
-    optional IpSubnet nw_src_ip = 29;
-    optional IpSubnet nw_dst_ip = 30;
+    optional IPSubnet nw_src_ip = 29;
+    optional IPSubnet nw_dst_ip = 30;
     optional Int32Range tp_src = 31;
     optional Int32Range tp_dst = 32;
     optional bool nw_src_inv = 33;

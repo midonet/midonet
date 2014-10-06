@@ -7,10 +7,9 @@ import java.lang.reflect.Type
 import java.util.{UUID => JUUID}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{UUID => PUUID}
 
-object UUID {
+object UUIDUtil {
 
     /**
      * Convert a java.util.UUID to a Protocol Buffers message.
@@ -23,17 +22,25 @@ object UUID {
                   .build()
     }
 
-    implicit def fromProto(uuid: Commons.UUID): java.util.UUID = {
+    implicit def fromProto(uuid: PUUID): java.util.UUID = {
         new JUUID(uuid.getMsb, uuid.getLsb)
+    }
+
+    implicit def richJavaUuid(uuid: JUUID) = new {
+        def asProto: PUUID = uuid
+    }
+
+    implicit def richProtoUuid(uuid: PUUID) = new {
+        def asJava: JUUID = uuid
     }
 
     def randomUuidProto: PUUID = JUUID.randomUUID()
 
     sealed class Converter extends ZoomConvert.Converter[JUUID, PUUID] {
         override def toProto(value: JUUID, clazz: Type): PUUID =
-            UUID.toProto(value)
+            UUIDUtil.toProto(value)
 
         override def fromProto(value: PUUID, clazz: Type): JUUID =
-            UUID.fromProto(value)
+            UUIDUtil.fromProto(value)
     }
 }

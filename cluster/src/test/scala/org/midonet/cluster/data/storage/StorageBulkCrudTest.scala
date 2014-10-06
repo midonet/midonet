@@ -14,14 +14,10 @@ import java.util.concurrent.atomic.AtomicLong
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.TreeSet
 
-import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
-import com.google.common.collect.Multimaps
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.FlatSpec
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.StorageEval.BulkUpdateEval
@@ -30,11 +26,9 @@ import org.midonet.cluster.data.storage.StorageEval.EvalResult
 import org.midonet.cluster.data.storage.StorageEval.EvalResult.TestItem
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Devices.Bridge
-import org.midonet.cluster.models.Devices.Chain
 import org.midonet.cluster.models.Devices.Port
-import org.midonet.cluster.models.Devices.Router
 import org.midonet.cluster.models.Devices.Rule
-import org.midonet.cluster.util.UUID.randomUuidProto
+import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
  * Defines tests for bulk CRUD operations with Storage Service. To actually run
@@ -343,7 +337,7 @@ trait StorageBulkCrudTest extends FlatSpec
                                    result: EvalResult.Builder) {
         val testItemName = "One-shot 10K ports-bridge creation"
         val multiSize = 1000
-        val topology = test.getTopologyBuilder()
+        val topology = test.getTopologyBuilder
         topology.setBridgesPerTenant(1)
         topology.setPortsPerBridge(10000)
         topology.setNumRulesPerBridgeChains(10)
@@ -369,12 +363,12 @@ trait StorageBulkCrudTest extends FlatSpec
                                      .setValue(devices.size.toString)
 
             // Update a bridge with 10K port IDs.
-            val bridgeWithPorts = bridge.toBuilder()
+            val bridgeWithPorts = bridge.toBuilder
             for (portId <- devices.get(classOf[Port])) {
                 bridgeWithPorts.addPortIds(portId)
             }
-            bridgeWithPorts.setInboundFilterId(chains(0).getId())
-            bridgeWithPorts.setInboundFilterId(chains(1).getId())
+            bridgeWithPorts.setInboundFilterId(chains(0).getId)
+            bridgeWithPorts.setInboundFilterId(chains(1).getId)
             update(bridgeWithPorts.build())
 
             // Record the results.
@@ -401,10 +395,10 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "Base layout" should "be handled efficiently" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder().setNumTenants(1)
-                                     .setBridgesPerTenant(2)
-                                     .setPortsPerBridge(4)
-                                     .setNumRulesPerBridgeChains(2)
+        testBase.getTopologyBuilder.setNumTenants(1)
+                                   .setBridgesPerTenant(2)
+                                   .setPortsPerBridge(4)
+                                   .setNumRulesPerBridgeChains(2)
         for (numThreads <- Array(1, 2, 4)) {
             if (numThreads != 1) cleanUpDeviceData()
             val test = testBase.clone().setNumThreads(numThreads)
@@ -419,9 +413,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "More threads constructing bridges" should "decrease write latency" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder().setBridgesPerTenant(100)
-                                     .setPortsPerBridge(10)
-                                     .setNumRulesPerBridgeChains(2)
+        testBase.getTopologyBuilder.setBridgesPerTenant(100)
+                                   .setPortsPerBridge(10)
+                                   .setNumRulesPerBridgeChains(2)
         for (numThreads <- Array(1, 2, 4)) {
             if (numThreads != 1) cleanUpDeviceData()
             val test = testBase.clone().setNumThreads(numThreads)
@@ -434,9 +428,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "Multi-operation" can "bulk-create ports & chains" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder().setBridgesPerTenant(1)
-                                     .setPortsPerBridge(1000)
-                                     .setNumRulesPerBridgeChains(1000)
+        testBase.getTopologyBuilder.setBridgesPerTenant(1)
+                                   .setPortsPerBridge(1000)
+                                   .setNumRulesPerBridgeChains(1000)
         for (multiSize <- Array(100, 1000)) {
             if (multiSize != 100) cleanUpDeviceData()
             val test = testBase.clone().setMultiSize(multiSize)
@@ -449,9 +443,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "Max-ports-per-bridge" can "be handled efficiently" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder().setBridgesPerTenant(1)
-                                     .setPortsPerBridge(10000)
-                                     .setNumRulesPerBridgeChains(1000)
+        testBase.getTopologyBuilder.setBridgesPerTenant(1)
+                                   .setPortsPerBridge(10000)
+                                   .setNumRulesPerBridgeChains(1000)
         for (multiSize <- Array(1000, 5000, 7000)) {
             if (multiSize != 5000) cleanUpDeviceData()
             val test = testBase.clone().setMultiSize(multiSize)
@@ -470,9 +464,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "Max-total-ports" should "be handled efficiently" ignore {
         val test = experimentCommonSettings
-        test.getTopologyBuilder().setBridgesPerTenant(100)
-                                 .setPortsPerBridge(10000)
-                                 .setNumRulesPerBridgeChains(1000)
+        test.getTopologyBuilder.setBridgesPerTenant(100)
+                               .setPortsPerBridge(10000)
+                               .setNumRulesPerBridgeChains(1000)
         val result = getResultsBuilder(test)
 
         buildLayoutAndMeasureLatency(test, result)
