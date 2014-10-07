@@ -167,7 +167,6 @@ source_config() {
 assert_dependencies() {
     which vconfig || err_exit "vconfig not installed (apt-get install vlan)"
     which midonet-cli || err_exit "midonet-cli not installed"
-    which midonet-cli || err_exit "midonet-cli not installed"
     which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
     test -f $MIDONET_SRC_DIR/midolman/build.gradle || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
