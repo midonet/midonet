@@ -15,25 +15,23 @@
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
-from mdts.lib.failure.scan_port_failure import ScanPortFailure
 from mdts.tests.utils.asserts import *
+from mdts.tests.utils.load import *
 from mdts.tests.utils import *
+from hamcrest import greater_than_or_equal_to, assert_that
 from nose.tools import with_setup, nottest
 from nose.plugins.attrib import attr
 
 import logging
 import time
-import os
-import pdb
-import random
-import re
-import subprocess
 
 LOG = logging.getLogger(__name__)
 
 PTM = PhysicalTopologyManager('../topologies/mmm_physical_test_htb.yaml')
 VTM = VirtualTopologyManager('../topologies/mmm_virtual_test_htb.yaml')
 BM = BindingManager(PTM, VTM)
+
+RATE = 5000
 
 bindings1 = {
     'description': 'on single MM',
@@ -45,17 +43,11 @@ bindings1 = {
              {'device_name': 'bridge-000-001', 'port_id': 2,
               'host_id': 1, 'interface_id': 2}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 3,
+             {'device_name': 'bridge-000-002', 'port_id': 1,
               'host_id': 1, 'interface_id': 3}},
         {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 4,
-              'host_id': 1, 'interface_id': 4}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 5,
-              'host_id': 1, 'interface_id': 5}},
-        {'binding':
-             {'device_name': 'bridge-000-001', 'port_id': 6,
-              'host_id': 1, 'interface_id': 6}}
+             {'device_name': 'bridge-000-002', 'port_id': 2,
+              'host_id': 1, 'interface_id': 4}}
         ]
     }
 
@@ -116,53 +108,59 @@ def teardown():
     PTM.destroy()
     VTM.destroy()
 
-def check_honest_with_random_udp():
-    sender = BM.get_iface_for_port('bridge-000-001', 2)
-    receiver = BM.get_iface_for_port('bridge-000-001', 1)
+def verify_isolation(flood_source, flood_target, normal_source, normal_target):
+    flood = run_loadgen(flood_source, flood_target)
+    try:
+        packets = start_count_packets(normal_target, 1000,
+                                      'ether dst {0}'.format(normal_target.get_mac_addr()))
+        normal = run_nmap(RATE, normal_source, normal_target)
+        time.sleep(40)
+        try:
+            actual_rate = nmap_rate(normal)
+        except:
+            normal.kill()
+            raise Exception('the scan timed out')
+        LOG.warn(packets.communicate())
+        assert_that(actual_rate, greater_than_or_equal_to(RATE - 500))
+    finally:
+        flood.kill()
 
-    sender.send_arp_request('172.16.1.1', sync=True)
-    f1 = sender.send_udp(receiver.get_mac_addr(), '172.16.1.1', 28,
-                         src_port=random.randint(61000, 65000),
-                         dst_port=random.randint(61000, 65000),
-                         delay=1, count=5)
-    assert_that(receiver, receives('dst host 172.16.1.1 and udp',
-                                   within_sec(5)))
-    wait_on_futures([f1])
+def feed_mac(src_itf, dst_itf):
+    try:
+        src_itf.send_arp_request(dst_itf.get_ip())
+        time.sleep(1)
+    except:
+        LOG.warn('Sending ARP from the receiver VM failed.')
+        raise
 
-@nottest
+def warmup(src_itf, dst_itf):
+    run_nmap(RATE * 2, src_itf, dst_itf).wait()
+
 @attr(version="v1.4", slow=True)
-@bindings(bindings1, bindings2, bindings3)
+@bindings(bindings1)
 def test_single_rogue():
     """
-    Title: Single Malicious Host
+    Title: Single Malicious VM
 
-    Scenario 1:
-    When: Given a bridge with 4 ports (port1-port4)
-    Then: A UDP is reachable
-          from port2 to port1
-          scanning ports
-          from port4 to port3
+    Scenario:
+        Given: Two bridges with 2 ports each
+        When: A network flood is crossing bridge 1
+        Then: An UDP scan crossing bridge 2 is completed in a bounded time
 
     Note: bindings1: no tunnel
           bindings2: port2 -> port1 over tunnel
           bindings3: port4 -> port3 over tunnel
     """
-    rogue1 = BM.get_iface_for_port('bridge-000-001', 4)
-    mc = rogue1._delegate._proxy._concrete
-    scanner1 = ScanPortFailure(mc._get_nsname(),
-                               mc._get_peer_ifname(),
-                               ('172.16.1.4', '1-10000'),
-                               ('172.16.1.3', '1-10000'),
-                               '100')
+    rogue_source = BM.get_iface_for_port('bridge-000-001', 1)
+    rogue_target = BM.get_iface_for_port('bridge-000-001', 2)
+    feed_mac(rogue_source, rogue_target)
+    warmup(rogue_source, rogue_target)
 
-    scanner1.inject()
-    try:
-        time.sleep(30)
+    normal_source = BM.get_iface_for_port('bridge-000-002', 1)
+    normal_target = BM.get_iface_for_port('bridge-000-002', 2)
 
-        check_honest_with_random_udp() # under port scanning
-    finally:
-        scanner1.eject()
-        time.sleep(10)
+    verify_isolation(rogue_source, rogue_target, normal_source, normal_target)
+
 
 @nottest
 @attr(version="v1.4", slow=True)
