@@ -301,10 +301,9 @@ class Netns(object):
         Process object. Contains I/O streams for interaction.
         """
         cmdline = self._process_cmdline(cmdline)
-        cmd_args = shlex.split(cmdline)
 
         LOG.debug('VethNs: Executing command interactively: %s', cmdline)
-        return subprocess.Popen(cmd_args, shell=False, stdin=subprocess.PIPE,
+        return subprocess.Popen(cmdline, shell=True, stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def expect(self, pcap_filter_string, timeout):
