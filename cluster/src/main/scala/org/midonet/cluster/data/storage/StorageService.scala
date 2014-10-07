@@ -113,17 +113,24 @@ trait StorageService {
      * Gets the specified instance of the specified class from the storage.
      */
     @throws[NotFoundException]
-     def get[T](clazz: Class[T], id: ObjId): T
+    def get[T](clazz: Class[T], id: ObjId): T
+
+    /**
+     * Gets the specified instances of the specified class from storage.
+     * Any objects not found are assumed to have been deleted since the ID list
+     * was retrieved, and are silently ignored.
+     */
+    def getAll[T](clazz: Class[T], ids: JList[_ <: ObjId]): JList[T]
 
     /**
      * Gets all the instances of the specified class from the storage.
      */
-     def getAll[T](clazz: Class[T]): JList[T]
+    def getAll[T](clazz: Class[T]): JList[T]
 
     /**
      * Returns true if the specified object exists in the storage.
      */
-     def exists(clazz: Class[_], id: ObjId): Boolean
+    def exists(clazz: Class[_], id: ObjId): Boolean
 
     /**
      * Executes multiple create, update, and/or delete operations atomically.
