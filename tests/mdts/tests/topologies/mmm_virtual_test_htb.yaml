@@ -37,9 +37,19 @@ virtual_topology:
           - port:
               id: 4
               type: exterior
+
+    - bridge:
+        name: bridge-000-002
+        ports:
           - port:
-              id: 5
+              id: 1
               type: exterior
           - port:
-              id: 6
+              id: 2
+              type: exterior
+          - port:
+              id: 3
+              type: exterior
+          - port:
+              id: 4
               type: exterior
