@@ -229,16 +229,26 @@ class ZookeeperObjectMapper(private val basePath: String,
             }
         }
 
-        def update(newThisObj: Obj, validator: UpdateValidator[Obj]): Unit = {
-            val thisClass = newThisObj.getClass
+        def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
+            val thisClass = obj.getClass
             assert(isRegistered(thisClass))
 
-            val thisId = getObjectId(newThisObj)
+            val thisId = getObjectId(obj)
             val oldThisObj = cachedGet(thisClass, thisId).getOrElse(
                 throw new NotFoundException(thisClass, thisId))
 
-            if (validator != null)
-                validator.validate(oldThisObj, newThisObj)
+            // Invoke the validator/update callback if provided. If it returns
+            // a modified object, use that in place of obj for the update.
+            val newThisObj = if (validator == null) obj else {
+                val modified = validator.validate(oldThisObj, obj)
+                val thisObj = if (modified != null) modified else obj
+                if (getObjectId(thisObj) != thisId) {
+                    throw new IllegalArgumentException(
+                        "Modifying newObj.id in UpdateValidator.validate() " +
+                        "is not supported.")
+                }
+                thisObj
+            }
 
             for (bdg <- allBindings.get(thisClass).asScala) {
                 val oldThoseIds = bdg.getFwdReferenceAsList(oldThisObj).asScala
