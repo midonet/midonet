@@ -59,25 +59,6 @@ physical_topology:
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:00:44
               mtu: 1500
-          - interface:
-              id: 5
-              ifname: null
-              type: "netns"
-              ipv4_addr: [172.16.1.5/24]
-              ipv4_gw: 172.16.1.254
-              ipv6_addr: []
-              hw_addr: aa:bb:cc:00:00:55
-              mtu: 1500
-          - interface:
-              id: 6
-              ifname: null
-              type: "netns"
-              ipv4_addr: [172.16.1.6/24]
-              ipv4_gw: 172.16.1.254
-              ipv6_addr: []
-              hw_addr: aa:bb:cc:00:00:66
-              mtu: 1500
-
 
     - host:
         id: 2
