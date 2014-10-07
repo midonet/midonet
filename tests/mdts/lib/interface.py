@@ -59,7 +59,7 @@ class Interface:
 
         :rtype:
         """
-        self._delegate.exec_interactive(cmdline)
+        return self._delegate.exec_interactive(cmdline)
 
     def expect(self, pcap_filter_string, timeout=3, sync=False):
         return self._delegate.expect(pcap_filter_string=pcap_filter_string,
