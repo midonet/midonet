@@ -14,41 +14,40 @@ function pg() {
     cat $PGDEV
 }
 
+START="no"
+
+if [ "$1" == "-s" ] || [ "$1" == "--start" ] ; then
+    START="yes"
+    shift
+fi
+
 ID=$1 # a number between 0 and 7
 DEV=$2
 DST_MAC=$3
 COUNT=$4
-DELAY_NANOS=$5
+PPS=$5
 
 # Thread config (per CPU)
 
 PGDEV="/proc/net/pktgen/kpktgend_$ID"
-echo "Removing all devices"
-pgset "rem_device_all"
 echo "Adding interface on thread kpktgend_$ID"
+pgset "rem_device_all $DEV"
 pgset "add_device $DEV"
 echo "Setting max_before_softirq 10000"
 pgset "max_before_softirq 10000"
 
 # Device config
 
-# We need to do alloc for every skb since we cannot clone here.
-CLONE_SKB="clone_skb 0"
-# NIC adds 4 bytes CRC
-PKT_SIZE="pkt_size 60"
-
-# the number of packets sent. 0 means forever.
-COUNT="count $COUNT"
-
-# ipg is inter packet gap. 0 means maximum speed.
-IPG="delay $DELAY_NANOS"
-
 PGDEV=/proc/net/pktgen/$DEV
 echo "Configuring $PGDEV"
-pgset "$COUNT"
-pgset "$CLONE_SKB"
-pgset "$PKT_SIZE"
-pgset "$IPG"
+# the number of packets sent. 0 means forever.
+pgset "count $COUNT"
+# We need to do alloc for every skb since we cannot clone here.
+pgset "clone_skb 0"
+# NIC adds 4 bytes CRC
+pgset "pkt_size 60"
+# Rate at which to send
+pgset "ratep $PPS"
 # Random address with in the min-max range
 pgset "flag IPDST_RND"
 pgset "dst_min 10.0.0.0"
@@ -62,9 +61,10 @@ pgset "udp_dst_max 65534"
 
 pgset "dst_mac $DST_MAC"
 
-# Time to run
-PGDEV=/proc/net/pktgen/pgctrl
+if [ "$START" == "yes" ] ; then
+    PGDEV=/proc/net/pktgen/pgctrl
+    echo "Running... ctrl^C to stop"
+    pgset "start"
+    pgset "reset"
+fi
 
-echo "Running... ctrl^C to stop"
-pgset "start"
-echo "Done"
