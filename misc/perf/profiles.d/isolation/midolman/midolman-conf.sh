@@ -1,5 +1,4 @@
-#!/bin/bash
-
+# #!/bin/bash
 # Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export LD_LIBRARY_PATH=lib:$LD_LIBRARY_PATH
+# Midolman configuration file
 
-gcc -std=c99 -D_XOPEN_SOURCE -O2 -I lib -o cashew cashew.c -L lib -l hdr_histogram
-
-exec ./cashew $@
+mn-conf set -t default <<EOF
+agent.bridge.mac_port_mapping_expire=90s
+agent.datapath.global_incoming_burst_capacity=128
+agent.datapath.tunnel_incoming_burst_capacity=64
+agent.datapath.vm_incoming_burst_capacity=16
+agent.datapath.vtep_incoming_burst_capacity=64
+EOF
 

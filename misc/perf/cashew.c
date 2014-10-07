@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,14 +15,17 @@
 #include <signal.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <hdr_histogram.h>
 
 #define PKTGEN_MAGIC htonl(0xbe9be955)
 #define UDP 17
+#define MAX_SECONDS (60 * 60 * 24)
 #define BUFFER_SIZE 65536
-#define LOWEST_LAT_US 100
-#define HIGHEST_LAT_US 1000000
+#define NUM_BUFFERS 128
+#define LOWEST_LAT_US 10
+#define HIGHEST_LAT_US (1000 * 500)
 
 #define S1(x) #x
 #define S2(x) S1(x)
@@ -68,10 +72,11 @@ int pktgen_packet(char *buffer, struct timeval *timestamp)
     return 0;
 }
 
-int process_msg(struct msghdr *msg, char *buffer, uint64_t *latency)
+int process_msg(struct msghdr *msg, char *buffer, struct hdr_histogram *hist)
 {
     struct timeval tx_timestamp;
     struct timeval rx_timestamp;
+    int tx_rx = 0;
 
     for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(msg);
          cmsg;
@@ -87,64 +92,88 @@ int process_msg(struct msghdr *msg, char *buffer, uint64_t *latency)
                 struct timespec *stamp = (struct timespec *)CMSG_DATA(cmsg);
                 rx_timestamp.tv_sec = stamp->tv_sec;
                 rx_timestamp.tv_usec = stamp->tv_nsec / 1000;
+                tx_rx += 1;
                 break;
             }
             default:
                 break;
             }
         case IPPROTO_IP:
-            if (pktgen_packet(buffer, &tx_timestamp))
+            if (pktgen_packet(buffer, &tx_timestamp)) {
+                tx_rx += 1;
                 break;
-            else
+            } else {
                 return 0;
+            }
         default:
             break;
         }
     }
 
-    *latency = (rx_timestamp.tv_sec - tx_timestamp.tv_sec) * 1000000;
-    *latency += rx_timestamp.tv_usec - tx_timestamp.tv_usec;
-    return 1;
+    if (tx_rx == 2) {
+        uint64_t latency = ((rx_timestamp.tv_sec - tx_timestamp.tv_sec) / 1000000) +
+                           (rx_timestamp.tv_usec - tx_timestamp.tv_usec);
+        hdr_record_value(hist, latency);
+        return 1;
+    }
+    return 0;
 }
 
-int rcv_packet(int sock_raw, char *buffer, uint64_t *latency)
+int rcv_packet(int sock_raw, char *buffers, struct hdr_histogram *hist)
 {
-    struct msghdr msg;
-    struct iovec entry;
+    struct mmsghdr msgs[NUM_BUFFERS];
+    struct iovec entries[NUM_BUFFERS];
     struct {
         struct cmsghdr cm;
         char control[512];
-    } control;
-    int res;
+    } control[NUM_BUFFERS];
+    struct timespec timeout;
+    int valid_pkts = 0;
+    int npkts = 0;
 
-    memset(&msg, 0, sizeof(msg));
-    msg.msg_iov = &entry;
-    msg.msg_iovlen = 1;
-    entry.iov_base = buffer;
-    entry.iov_len = BUFFER_SIZE;
-    msg.msg_control = &control;
-    msg.msg_controllen = sizeof(control);
+    memset(&timeout, 0, sizeof(timeout));
+    memset(msgs, 0, sizeof(msgs));
+    for (int i = 0; i < NUM_BUFFERS; ++i) {
+        entries[i].iov_base = &buffers[i * BUFFER_SIZE];
+        entries[i].iov_len = BUFFER_SIZE;
+        msgs[i].msg_hdr.msg_iov = &entries[i];
+        msgs[i].msg_hdr.msg_iovlen = 1;
+        msgs[i].msg_hdr.msg_control = &control[i];
+        msgs[i].msg_hdr.msg_controllen = sizeof(control[i]);
+    }
 
-    res = recvmsg(sock_raw, &msg, 0);
-    return res > 0 ? process_msg(&msg, buffer, latency) : 0;
+    npkts = recvmmsg(sock_raw, msgs, NUM_BUFFERS, MSG_WAITFORONE, &timeout);
+    if (npkts < 0) {
+        perror("recvmmsg()");
+        return 0;
+    }
+
+    for (int i = 0; i < npkts; ++i) {
+        if (process_msg(&msgs[i].msg_hdr, &buffers[i * BUFFER_SIZE], hist))
+            valid_pkts += 1;
+    }
+    return valid_pkts;
 }
 
 const char* USAGE =
-"cashew [-p <packets>] [-f <filename>]\n"
+"cashew [-p <packets>] [-t <filename>] [-l <filename>]\n"
 "  packets: <number> Number of packets to capture (default infinite).\n"
-"  filename: <string> Name of the file to log to (default stdout).\n";
+"  filename: <string> Name of the file in which to log throughput in gnuplot \
+                      format and/or latency in HDR format (default stdout).\n";
 
 int handle_opts(
     int argc,
     char **argv,
     uint64_t *expected_packets,
-    char **filename)
+    char **pps_filename,
+    char **lat_filename)
 {
     int c;
 
     *expected_packets = 0;
-    *filename = NULL;
-    while ((c = getopt(argc, argv, "p:f:")) != -1)
+    *pps_filename = NULL;
+    *lat_filename = NULL;
+    while ((c = getopt(argc, argv, "p:t:l:")) != -1)
     {
         switch (c)
         {
@@ -154,8 +183,11 @@ int handle_opts(
             if (sscanf(optarg, "%"PRIu64, expected_packets) < 1)
                 return 0;
             break;
-        case 'f':
-            *filename = optarg;
+        case 't':
+            *pps_filename = optarg;
+            break;
+        case 'l':
+            *lat_filename = optarg;
             break;
         default:
             return 0;
@@ -166,45 +198,113 @@ int handle_opts(
 }
 
 struct hdr_histogram *hist;
-FILE *output;
+FILE *pps_output;
+FILE *lat_output;
 int sock_raw;
+unsigned int *pps;
+time_t start = -1;
+uint64_t received_packets = 0;
 
-void print_histogram(int signum)
+int intcmp(const void *a, const void *b)
 {
-   hdr_percentiles_print(hist, output, 5, 1000.0, CLASSIC);
-   close(sock_raw);
-   exit(1);
+    const unsigned int *i = a, *j = b;
+    return (*i < *j) ? -1 : (*i > *j);
+}
+
+void report()
+{
+    unsigned int current_sec = start > 0 ? time(NULL) - start + 1 : 0;
+    int first_zero = -1;
+    unsigned int valid_cnt = 0;
+    unsigned int valid_pps[MAX_SECONDS];
+
+    fprintf(pps_output, "# seconds \t k packets\n");
+    if (current_sec > MAX_SECONDS)
+        current_sec = MAX_SECONDS;
+    for (int i = 0; i < current_sec; ++i) {
+        // Omit trailing zeros
+        if (pps[i] == 0) {
+            if (first_zero < 0)
+                first_zero = i;
+            continue;
+        }
+        if (first_zero >= 0) {
+            for (int j = first_zero; j < i; ++j) {
+                fprintf(pps_output, "%d \t %d\n", j, 0);
+                valid_pps[valid_cnt++] = 0;
+            }
+            first_zero = -1;
+        }
+        fprintf(pps_output, "%d \t %d\n", i, pps[i]);
+        valid_pps[valid_cnt++] = pps[i];
+    }
+    qsort(valid_pps, valid_cnt, sizeof(unsigned int), intcmp);
+
+    hdr_percentiles_print(hist, lat_output, 5, 1.0, CLASSIC);
+
+    printf("TOTAL_PACKETS=%"PRIu64"\n", received_packets);
+    if (received_packets > 0) {
+        printf("MEDIAN_PPS=%u\n", valid_pps[valid_cnt / 2]);
+        printf("MAX_PPS=%u\n", valid_pps[valid_cnt - 1]);
+        printf("LAT_50=%"PRIu64"\n", hdr_value_at_percentile(hist, 50.0));
+        printf("LAT_75=%"PRIu64"\n", hdr_value_at_percentile(hist, 75.0));
+        printf("LAT_90=%"PRIu64"\n", hdr_value_at_percentile(hist, 90.0));
+        printf("LAT_99=%"PRIu64"\n", hdr_value_at_percentile(hist, 99.0));
+        printf("LAT_99_9=%"PRIu64"\n", hdr_value_at_percentile(hist, 99.9));
+    }
+
+    close(sock_raw);
+}
+
+void on_signal(int signum) {
+    report();
+    exit(1);
 }
 
 int main(int argc, char **argv)
 {
     struct sigaction action;
-    char *filename;
+    char *pps_filename;
+    char *lat_filename;
     uint64_t expected_packets;
-    uint64_t received_packets = 0;
     socklen_t len = 4;
     int enabled = 1;
     int val = 0;
-    unsigned char *buffer = (unsigned char *)malloc(BUFFER_SIZE);
+    unsigned char *buffers = (unsigned char *)malloc(BUFFER_SIZE * NUM_BUFFERS);
 
-    if (!handle_opts(argc, argv, &expected_packets, &filename))
+    pps = (unsigned int *)malloc(sizeof(unsigned int) * MAX_SECONDS);
+
+    memset(pps, 0, sizeof(unsigned int) * MAX_SECONDS);
+
+    if (!handle_opts(argc, argv, &expected_packets, &pps_filename, &lat_filename))
     {
         printf("%s", USAGE);
         return 0;
     }
 
-    if (filename)
+    if (pps_filename)
     {
-        output = fopen(filename, "a+");
-        if (!output)
-            ERROR("Failed to open/create file: %s, %s", filename, strerror(errno));
+        pps_output = fopen(pps_filename, "a+");
+        if (!pps_output)
+            ERROR("Failed to open/create file: %s, %s", pps_filename, strerror(errno));
     }
     else
     {
-        output = stdout;
+        pps_output = stdout;
     }
 
-    if (hdr_init(LOWEST_LAT_US, HIGHEST_LAT_US, 3, &hist) != 0)
+    if (lat_filename)
+    {
+        lat_output = fopen(lat_filename, "a+");
+        if (!lat_output)
+            ERROR("Failed to open/create file: %s, %s", lat_filename, strerror(errno));
+    }
+    else
+    {
+        lat_output = stdout;
+    }
+
+    if (hdr_init(LOWEST_LAT_US, HIGHEST_LAT_US, 4, &hist) != 0)
     {
         ERROR("Failed to init histogram");
         return -1;
@@ -219,33 +319,29 @@ int main(int argc, char **argv)
         getsockopt(sock_raw, SOL_SOCKET, SO_TIMESTAMPNS, &val, &len) < 0 ||
         val == 0)
     {
-            ERROR("Failed to configure rx timestamps: %s", strerror(errno));
+        ERROR("Failed to configure rx timestamps: %s", strerror(errno));
     }
 
     memset(&action, 0, sizeof(struct sigaction));
-    action.sa_handler = print_histogram;
+    action.sa_handler = on_signal;
     sigaction(SIGINT, &action, NULL);
-
-    setbuf(stdout, NULL);
 
     if (expected_packets == 0)
         expected_packets = ~UINT64_C(0);
-    else
-        printf("Expecting %" PRIu64 " packets\n", expected_packets);
 
     while (received_packets < expected_packets)
     {
-        uint64_t latency;
-        if (rcv_packet(sock_raw, buffer, &latency))
-        {
-            received_packets += 1;
-            hdr_record_value(hist, latency);
-            printf("Total packets received: %"PRIu64"\r", received_packets);
-        }
+        int npkts = rcv_packet(sock_raw, buffers, hist);
+        if (npkts == 0)
+            continue;
+        if (start == -1)
+            start = time(NULL);
+        uint64_t second = time(NULL) - start;
+        pps[second] += npkts;
+        received_packets += npkts;
     }
 
-    hdr_percentiles_print(hist, output, 5, 1000.0, CLASSIC);
-    close(sock_raw);
+    report();
     return 0;
 }
 
