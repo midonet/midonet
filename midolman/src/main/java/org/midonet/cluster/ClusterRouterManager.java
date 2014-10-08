@@ -55,24 +55,18 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
     Serializer serializer;
 
     Map<UUID, Set<Route>> mapPortIdToRoutes =
-        new HashMap<UUID, Set<Route>>();
+        new HashMap<>();
 
-    Map<UUID, ReplicatedRouteSet> mapRouterIdToRoutes = new HashMap<UUID, ReplicatedRouteSet>();
+    Map<UUID, ReplicatedRouteSet> mapRouterIdToRoutes = new HashMap<>();
 
-    Map<UUID, PortRoutesCallback> portIdCallback = new HashMap<UUID, PortRoutesCallback>();
-    Map<UUID, PortRoutesWatcher> portIdWatcher = new HashMap<UUID, PortRoutesWatcher>();
+    Map<UUID, PortRoutesCallback> portIdCallback = new HashMap<>();
+    Map<UUID, PortRoutesWatcher> portIdWatcher = new HashMap<>();
 
-    Map<UUID, Set<Route>> routeGraveyard = new HashMap<UUID, Set<Route>>();
+    Map<UUID, Set<Route>> routeGraveyard = new HashMap<>();
 
     private static final Logger log =
          LoggerFactory.getLogger(ClusterRouterManager.class);
 
-    /**
-     * Get the conf for a router.
-     * @param id
-     * @param isUpdate
-     * @return
-     */
     public void getRouterConf(final UUID id, final boolean isUpdate) {
 
         log.debug("Updating configuration for router {}", id);

@@ -9,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.{PacketsEntryPoint, Ready, Urgent}
+import org.midonet.midolman.{NotYetException, PacketsEntryPoint, Ready, Urgent}
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
@@ -21,17 +21,14 @@ import org.midonet.odp.Packet
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
 
-/**
- * The IPv4 specific implementation of a Router.
- */
-class Router(override val id: UUID, override val cfg: RouterConfig,
+/** The IPv4 specific implementation of a Router. */
+class Router(override val id: UUID,
+             override val cfg: RouterConfig,
              override val rTable: RoutingTableWrapper[IPv4Addr],
-             override val inFilter: Chain, override val outFilter: Chain,
-             override val loadBalancer: LoadBalancer,
              override val routerMgrTagger: TagManager,
              val arpTable: ArpTable)
             (implicit system: ActorSystem)
-        extends RouterBase[IPv4Addr] {
+        extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
 
     override val validEthertypes: Set[Short] = Set(IPv4.ETHERTYPE, ARP.ETHERTYPE)
 
@@ -287,6 +284,7 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
      *      + it does not return an action but, instead sends it emits the
      *        packet for simulation if successful.
      */
+    @throws[NotYetException]
     def sendIPPacket(packet: IPv4, expiry: Long)
                     (implicit ec: ExecutionContext,
                               packetContext: PacketContext): Urgent[Boolean] = {
@@ -343,23 +341,28 @@ class Router(override val id: UUID, override val cfg: RouterConfig,
                     val egrPktContext = new PacketContext(
                         Right(outPort.id), Packet.fromEthernet(eth), 0, None, egrMatch)
                     egrPktContext.outPortId = outPort.id
-                    val postRoutingResult = Chain.apply(outFilter, egrPktContext,
-                                                        id, false)
-                    _applyPostActions(eth, postRoutingResult)
 
+                    // Try to apply the outFilter
+                    val outFilter = if (cfg.outboundFilter == null) null
+                                    else tryAsk[Chain](cfg.outboundFilter)
+
+                    val postRoutingResult =
+                        Chain.apply(outFilter, egrPktContext, id, false)
+
+                    _applyPostActions(eth, postRoutingResult)
                     postRoutingResult.action match {
                         case RuleResult.Action.ACCEPT =>
                             val cookie = if (packetContext == null) None
-                                else packetContext.flowCookie
+                                         else packetContext.flowCookie
                             PacketsEntryPoint !
-                                EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
+                            EmitGeneratedPacket(rt.nextHopPort, eth, cookie)
                         case RuleResult.Action.DROP =>
                         case RuleResult.Action.REJECT =>
                         case other =>
-                            log.error("Post-routing for {} returned {}, not " +
-                                      "ACCEPT, DROP or REJECT.", id, other)
+                            log.error("Post-routing for {} returned {}, not"
+                                      + " ACCEPT, DROP or REJECT.", id, other)
                     }
-                true
+                    true
             }
         }
 
