@@ -46,9 +46,13 @@ object ZoomConvert {
      */
     def toProto[T <: ZoomObject, U <: MessageOrBuilder](
         pojo: T, protoClass: Class[U]): U = {
+        toProtoBuilder(pojo, protoClass).build().asInstanceOf[U]
+    }
+
+    def toProtoBuilder[T <: ZoomObject, U <: MessageOrBuilder](
+        pojo: T, protoClass: Class[U]): Builder[_] = {
         to(pojo, newBuilder(protoClass),
            pojo.getClass.asInstanceOf[Class[T]], protoClass)
-            .build().asInstanceOf[U]
     }
 
     /**

@@ -5,6 +5,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.Field
 
+import com.google.protobuf.GeneratedMessage.Builder
 import com.google.protobuf.MessageOrBuilder
 
 /**
@@ -19,6 +20,10 @@ abstract class ZoomObject {
 
     def toProto[T <: MessageOrBuilder](clazz: Class[T]): T = {
         ZoomConvert.toProto(this, clazz)
+    }
+
+    def toProtoBuilder[T <: MessageOrBuilder](clazz: Class[T]): Builder[_] = {
+        ZoomConvert.toProtoBuilder(this, clazz)
     }
 
     protected[data] def getField(field: Field): Any = {

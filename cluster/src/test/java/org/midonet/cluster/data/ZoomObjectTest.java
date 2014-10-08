@@ -17,6 +17,7 @@ import org.midonet.cluster.util.UUIDUtil;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.midonet.cluster.models.TestModels.FakeDevice;
 import static org.midonet.cluster.models.TestModels.TestMessage;
 
@@ -47,6 +48,26 @@ public class ZoomObjectTest {
         TestMessage proto = pojo.toProto(TestMessage.class);
 
         assertProto(message, proto);
+    }
+
+    @Test
+    public void testConversionToBuilder() {
+        // Build the prototype message and convert to POJO.
+        TestMessage proto = buildMessage();
+        TestableZoomObject pojo = new TestableZoomObject(proto);
+
+        // Convert pojo back to proto builder, and use builder to alter id.
+        java.util.UUID uuid2 = java.util.UUID.randomUUID();
+        TestMessage.Builder builder =
+            (TestMessage.Builder)pojo.toProtoBuilder(TestMessage.class);
+        builder.setUuidField(UUIDUtil.toProto(uuid2));
+        TestMessage message = builder.build();
+
+        // Check that message is equal to proto other than the id change.
+        assertNotEquals(message, proto);
+        assertProto(message,
+                    TestMessage.newBuilder(proto)
+                        .setUuidField(UUIDUtil.toProto(uuid2)).build());
     }
 
     static TestMessage buildMessage() {
@@ -178,6 +199,7 @@ public class ZoomObjectTest {
         }
     }
 
+    @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
     @ZoomClass(clazz = TestModels.FakeDevice.class)
     static class Device extends ZoomObject {
         @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -205,6 +227,8 @@ public class ZoomObjectTest {
         }
     }
 
+    @SuppressWarnings({"unused", "MismatchedReadAndWriteOfArray",
+                       "MismatchedQueryAndUpdateOfCollection"})
     static class TestableZoomObject extends BaseZoomObject {
 
         @ZoomEnum(clazz = TestMessage.Enum.class)
