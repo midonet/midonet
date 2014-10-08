@@ -18,7 +18,7 @@ import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.THIRD_V
 /**
  * This tests the conversion between POJOs and Protobufs, when using
  * inheritance. The tested classes are the following, where the classes with (*)
- * are abstract classes (hence cannot be instantiated directly are require
+ * are abstract classes (hence cannot be instantiated directly and require
  * a ZoomClass annotation specifying a factory class)
  *
  *  +-----------------+
@@ -107,10 +107,10 @@ public class ZoomConvertTest {
 
     /**
      * Conversion of a Base object to Protobufs and back to FirstDerived class
-     * should fail, because the message does not contain the corresponding
-     * fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testBaseClassToFirstDerivedClass() {
         Base obj = new Base();
 
@@ -119,15 +119,16 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, FirstDerived.class);
     }
 
     /**
      * Conversion of a Base object to Protobufs and back to SecondDerived class
-     * should fail, because the message does not contain the corresponding
-     * fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testBaseClassToSecondDerivedClass() {
         Base obj = new Base();
 
@@ -136,15 +137,16 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, SecondDerived.class);
     }
 
     /**
      * Conversion of a Base object to Protobufs and back to ThirdDerived class
-     * should fail, because the message does not contain the corresponding
-     * fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testBaseClassToThirdDerivedClass() {
         Base obj = new Base();
 
@@ -153,14 +155,16 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, ThirdDerived.class);
     }
 
     /**
      * Conversion of a Base object to Protobufs and back to Top class should
-     * fail, because the message does not contain the corresponding fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testBaseClassToTopClass() {
         Base obj = new Base();
 
@@ -169,6 +173,7 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, Top.class);
     }
 
@@ -247,10 +252,10 @@ public class ZoomConvertTest {
 
     /**
      * Conversion of a FirstDerived object to Protobufs and back to
-     * SecondDerived class should fail, because the Protobufs message does not
-     * contain the corresponding fields.
+     * SecondDerived class should convert null fields in the original POJO back
+     * to uninitialized (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testFirstDerivedClassToSecondDerivedClass() {
         FirstDerived obj = new FirstDerived();
 
@@ -259,15 +264,16 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be just ignored.
         ZoomConvert.fromProto(proto, SecondDerived.class);
     }
 
     /**
      * Conversion of a FirstDerived object to Protobufs and back to
-     * ThirdDerived class should fail, because the Protobufs message does not
-     * contain the corresponding fields.
+     * ThirdDerived class should convert null fields in the original POJO back
+     * to uninitialized (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testFirstDerivedClassToThirdDerivedClass() {
         FirstDerived obj = new FirstDerived();
 
@@ -276,15 +282,16 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, ThirdDerived.class);
     }
 
     /**
      * Conversion of a FirstDerived object to Protobufs and back to Top class
-     * should fail, because the Protobufs message does not contain the
-     * corresponding fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testFirstDerivedClassToTopClass() {
         FirstDerived obj = new FirstDerived();
 
@@ -293,6 +300,7 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields will be ignored.
         ZoomConvert.fromProto(proto, Top.class);
     }
 
@@ -320,10 +328,10 @@ public class ZoomConvertTest {
 
     /**
      * Conversion of a Top object to Protobufs and back to SecondDerived class
-     * should fail, because the Protobufs message does not contain the
-     * corresponding fields.
+     * should convert null fields in the original POJO back to uninitialized
+     * (null) fields.
      */
-    @Test(expected = ZoomConvert.ConvertException.class)
+    @Test
     public void testTopClassToSecondDerivedClass() {
         Top obj = new Top();
 
@@ -332,6 +340,7 @@ public class ZoomConvertTest {
 
         assertTrue(obj.compare(proto));
 
+        // Unset fields in proto will be ignored.
         ZoomConvert.fromProto(proto, SecondDerived.class);
     }
 
@@ -521,6 +530,7 @@ public class ZoomConvertTest {
                    message.getTopInt() == topInt;
         }
 
+        @Override
         public boolean equals(Object obj) {
             if (null == obj || !(obj instanceof Top)) return false;
             Top o = (Top)obj;

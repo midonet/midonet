@@ -197,28 +197,29 @@ object ZoomConvert {
                     throw new ConvertException(
                         s"Message ${descriptor.getName} does not have a " +
                         s"field ${zoomField.name}")
-                } else if (!(protoField.isRepeated ||
-                             proto.hasField(protoField))) {
-                    throw new ConvertException(
-                        s"Message ${descriptor.getName} does not set field " +
-                        s"${zoomField.name}")
-                } else try {
-                    val protoValue = protoThis.getField(protoField)
-                    val converter = getConverter(pojoField, protoField,
-                                                 zoomField)
-                    val pojoValue = converter.from(protoValue,
-                                                   pojoField.getGenericType)
-                    pojo.setField(pojoField, pojoValue)
-                } catch {
-                    case e @ (_ : InstantiationException |
-                              _ : IllegalAccessException |
-                              _ : IllegalArgumentException |
-                              _ : NullPointerException) =>
-                        throw new ConvertException(
-                            s"Class $pojoClass failed to convert field " +
-                            s"${zoomField.name} from Protocol Buffers type " +
-                            s"${protoField.getType} to Java type " +
-                            s"${pojoField.getType}", e)
+                } else if (protoField.isRepeated ||
+                           proto.hasField(protoField)) {
+                    // We simply ignore an unset Protobuf field, and the
+                    // corresponding POJO field would be set to null or
+                    // otherwise an appropriate type-default value.
+                    try {
+                        val protoValue = protoThis.getField(protoField)
+                        val converter = getConverter(pojoField, protoField,
+                                                     zoomField)
+                        val pojoValue = converter.from(protoValue,
+                                                       pojoField.getGenericType)
+                        pojo.setField(pojoField, pojoValue)
+                    } catch {
+                        case e @ (_ : InstantiationException |
+                                  _ : IllegalAccessException |
+                                  _ : IllegalArgumentException |
+                                  _ : NullPointerException) =>
+                            throw new ConvertException(
+                                s"Class $pojoClass failed to convert field " +
+                                s"${zoomField.name} from Protocol Buffers type " +
+                                s"${protoField.getType} to Java type " +
+                                s"${pojoField.getType}", e)
+                    }
                 }
             }
         }
