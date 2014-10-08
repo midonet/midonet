@@ -4,8 +4,10 @@
 package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -118,20 +120,38 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
                     rtConfig.nextHopPort, PortDirectory.RouterPortConfig.class);
             }
             if(portConfig.isInterior()){
-                ret.add(getRouteInRoutingTable(rtConfig));
+                ret.add(getExistingOrNewRoutePath(rtConfig));
             }
         } else {
             ret.add(paths.getRouterRoutePath(rtConfig.routerId, id));
             // Add the route to the routing table.
-            ret.add(getRouteInRoutingTable(rtConfig));
+            ret.add(getExistingOrNewRoutePath(rtConfig));
         }
         return ret;
+    }
+
+    private String getExistingOrNewRoutePath(Route rt)
+        throws StateAccessException, SerializationException {
+        String path = getExistingPath(rt);
+        if (path != null) {
+            return path;
+        }
+
+        String rtStr = new String(serializer.serialize(rt));
+        return getRouteInRoutingTable(rt.routerId, rtStr);
     }
 
     public String getRouteInRoutingTable(Route rt)
             throws StateAccessException, SerializationException {
         String rtStr = new String(serializer.serialize(rt));
         String rtable = paths.getRouterRoutingTablePath(rt.routerId);
+        StringBuilder sb = new StringBuilder(rtable).append("/").append(rtStr);
+        return sb.toString();
+    }
+
+    public String getRouteInRoutingTable(UUID routerId, String rtStr)
+        throws StateAccessException, SerializationException {
+        String rtable = paths.getRouterRoutingTablePath(routerId);
         StringBuilder sb = new StringBuilder(rtable).append("/").append(rtStr);
         return sb.toString();
     }
@@ -243,6 +263,36 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
         ops.addAll(prepareRouteCreate(id,r, true, rpCfg));
     }
 
+    private String getExistingPath(Route rt)
+            throws StateAccessException, SerializationException {
+        String routingTablePath =
+            paths.getRouterRoutingTablePath(rt.routerId);
+
+        // The router doesn't exist, and so the path definitely doesn't.
+        if (!zk.exists(routingTablePath)) return null;
+
+        Set<String> serializedRoutes = zk.getChildren(routingTablePath);
+        for (String rtStr : serializedRoutes) {
+            Route otherRt = serializer.deserialize(rtStr.getBytes(),
+                                                   Route.class);
+            if (rt.isEquivalentRoute(otherRt)) {
+                return getRouteInRoutingTable(rt.routerId, rtStr);
+            }
+        }
+        return null;
+    }
+
+    private Set<String> convertRouteSetToPathSet(Set<String> routeIds)
+            throws StateAccessException, SerializationException {
+        Set<String> pathSet = new HashSet<>();
+
+        for (String routeId : routeIds) {
+            Route route = get(UUID.fromString(routeId));
+            pathSet.add(getExistingPath(route));
+        }
+        return pathSet;
+    }
+
     private Set<String> getRoutingTablePaths(UUID portId)
             throws StateAccessException, SerializationException {
         Set<String> routePaths = new HashSet<String>();
@@ -270,7 +320,7 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
     public List<Op> prepareCreatePortRoutesInTable(UUID portId)
             throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         Set<String> routePaths = getRoutingTablePaths(portId);
         for (String routePath : routePaths) {
             // Assume only persistent routes are processed
@@ -308,10 +358,13 @@ public class RouteZkManager extends AbstractZkManager<UUID, Route> {
      * @throws StateAccessException
      */
     public List<Op> prepareDeletePortRoutesFromTable(UUID portId)
-        throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
-        Set<String> routePaths = getRoutingTablePaths(portId);
+        List<Op> ops = new ArrayList<>();
+        String portRoutesPath = paths.getPortRoutesPath(portId);
+        Set<String> routeIds = zk.getChildren(portRoutesPath);
+        Set<String> routePaths = convertRouteSetToPathSet(routeIds);
+
         for (String routePath : routePaths) {
             ops.add(Op.delete(routePath, -1));
         }
