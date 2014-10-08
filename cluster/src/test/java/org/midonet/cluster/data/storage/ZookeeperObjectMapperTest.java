@@ -696,9 +696,10 @@ public class ZookeeperObjectMapperTest {
         rule.name = "updated";
         zom.update(rule, new UpdateValidator<PojoRule>() {
             @Override
-            public void validate(PojoRule oldObj, PojoRule newObj) {
+            public PojoRule validate(PojoRule oldObj, PojoRule newObj) {
                 if (!oldObj.name.equals(newObj.name))
                     throw new IllegalStateException("Expected");
+                return newObj;
             }
         });
     }
@@ -710,13 +711,45 @@ public class ZookeeperObjectMapperTest {
 
         zom.update(rule, new UpdateValidator<PojoRule>() {
             @Override
-            public void validate(PojoRule oldObj, PojoRule newObj) {
+            public PojoRule validate(PojoRule oldObj, PojoRule newObj) {
                 newObj.name = "renamed";
+                return null;
             }
         });
 
         PojoRule renamed = zom.get(PojoRule.class, rule.id);
         assertEquals("renamed", renamed.name);
+    }
+
+    @Test
+    public void testUpdateWithValidatorReturningModifiedObj() throws Exception {
+        final PojoRule rule = new PojoRule("rule", null);
+        zom.create(rule);
+
+        zom.update(rule, new UpdateValidator<PojoRule>() {
+            @Override
+            public PojoRule validate(PojoRule oldObj, PojoRule newObj) {
+                PojoRule replacement = new PojoRule("replacement", null);
+                replacement.id = rule.id;
+                return replacement;
+            }
+        });
+
+        PojoRule replacement = zom.get(PojoRule.class, rule.id);
+        assertEquals("replacement", replacement.name);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testUpdateWithValidatorModifyingId() throws Exception {
+        PojoRule rule = new PojoRule("rule", null);
+        zom.create(rule);
+
+        zom.update(rule, new UpdateValidator<PojoRule>() {
+            @Override
+            public PojoRule validate(PojoRule oldObj, PojoRule newObj) {
+                return new PojoRule("rule", null);
+            }
+        });
     }
 
     @Test(expected = AssertionError.class)

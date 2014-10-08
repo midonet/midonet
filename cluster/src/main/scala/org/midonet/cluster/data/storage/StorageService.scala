@@ -39,7 +39,7 @@ case class DeleteOp(clazz: Class[_], id: ObjId) extends PersistenceOp
  * the object's current state from the data store. Using an UpdateValidator
  * solves both these problems.
  */
-trait UpdateValidator[-T <: Obj] {
+trait UpdateValidator[T <: Obj] {
     /**
      * Called at the beginning of the update operation after fetching the
      * current state of the object from the data store but before doing anything
@@ -50,7 +50,8 @@ trait UpdateValidator[-T <: Obj] {
      *    exposed via the API, and will thus be null in instances received from
      *    the API. In such cases, validate() should update newObj to set the
      *    values of thees fields to their values in oldObj so that the update
-     *    does not set them to null in the data store.
+     *    does not set them to null in the data store. If newObj is immutable,
+     *    you can return an object to be committed in place of newObj.
      *
      * Do not modify oldObj, as this can lead to errors and data corruption.
      *
@@ -62,8 +63,12 @@ trait UpdateValidator[-T <: Obj] {
      * @param newObj
      *     The state to which the object is to be updated. This is the same
      *     object passed to update() or UpdateOp().
+     *
+     * @return
+     *     Object to commit in place of newObj. If null, newObj will be
+     *     committed.
      */
-    def validate(oldObj: T, newObj: T)
+    def validate(oldObj: T, newObj: T): T
 }
 
 /**
