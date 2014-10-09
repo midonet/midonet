@@ -32,7 +32,8 @@ dependencies {
             libraries.commons_codec, libraries.hamcrest_core,
             libraries.hamcrest_lib, libraries.validation,
             libraries.hibernate_validator, libraries.guice_multibind,
-            libraries.vmware_midoapi, libraries.jcabi, libraries.scala
+            libraries.vmware_midoapi, libraries.jcabi, libraries.scala,
+            libraries.protobuf
 
     runtime libraries.aspectj
 
