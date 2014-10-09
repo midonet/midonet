@@ -178,14 +178,13 @@ debian.doFirst {
         '--after-install', "${project.projectDir}/src/deb/control/postinst"])
 }
 
-// TODO - the RPM package uses a different init.d script. Move it to pkgDestDir
-// in doFirst, and remove in doLast.
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-        '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+        '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
+        '--depends', 'java7'])
 }
 
 debian.doLast {

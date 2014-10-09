@@ -132,7 +132,7 @@ class PackagingTask extends DefaultTask {
         if (conf.iteration)
             fpmArgs.addAll(["--iteration", conf.iteration])
         if (conf.maintainer)
-            fpmArgs.addAll(["--vendor", conf.maintainer])
+            fpmArgs.addAll(["--maintainer", conf.maintainer])
         if (conf.url)
             fpmArgs.addAll(["--url", conf.url])
         conf.dependencies.each() {

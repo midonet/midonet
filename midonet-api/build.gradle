@@ -60,15 +60,16 @@ task preparePkg(type: Copy, dependsOn: installDist) {
         into "${webapp}/WEB-INF/classes/"
         include "**/*"
     }
-    from("conf/midonet-api.xml") {
-        into "etc/tomcat7/Catalina/localhost/"
+    from("${buildDir}/resources/main") {
+        into "${webapp}/WEB-INF/classes/"
+        include "**/*"
     }
     from("CHANGE-LOG.txt") {
         into "usr/share/doc/midonet-api/"
     }
-    from("src/main/webapp/WEB-INF/web.xml.sample") {
+    from("src/main/webapp/WEB-INF/web.xml.prod") {
         into "${webapp}/WEB-INF"
-        rename ('web.xml.sample', 'web.xml')
+        rename ('web.xml.prod', 'web.xml')
     }
     from("conf/logback.xml.sample") {
         into "${webapp}/WEB-INF/classes"
@@ -92,7 +93,6 @@ packaging {
     vendor = project.vendor
     url = project.url
     description = 'Midonet-API is the REST API for Midolman, a virtual network controller'
-    dependencies = [ 'tomcat7' ]
     confFiles = ['/usr/share/midonet-api/WEB-INF/web.xml',
                  '/usr/share/midonet-api/WEB-INF/classes/logback.xml']
     fpmOpts = ['-a', 'all']
@@ -111,4 +111,11 @@ debian.doFirst {
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
+}
+
+debian.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
+}
+rpm.doLast {
+    new File("${buildDir}/install/${project.name}").deleteDir()
 }
