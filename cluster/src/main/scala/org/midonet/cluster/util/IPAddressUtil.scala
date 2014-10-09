@@ -21,7 +21,8 @@ import java.net.{Inet6Address, Inet4Address, InetAddress}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Commons
-import org.midonet.packets.IPv4Addr
+import org.midonet.cluster.models.Commons.IPVersion
+import org.midonet.packets.{IPAddr, IPv6Addr, IPv4Addr}
 
 /**
  * Utility methods and converters for the IPAddress message.
@@ -29,21 +30,31 @@ import org.midonet.packets.IPv4Addr
 object IPAddressUtil {
 
     private val ADDRESS_STRING = classOf[String]
+    private val IPADDR = classOf[IPAddr]
     private val IPV4ADDR = classOf[IPv4Addr]
+    private val IPV6ADDR = classOf[IPv6Addr]
     private val INETADDRESS = classOf[InetAddress]
 
     implicit def toProto(addr: String): Commons.IPAddress =
-        Commons.IPAddress.newBuilder
-            .setVersion(Commons.IPAddress.Version.IPV4)
-            .setAddress(addr)
-            .build()
+        IPAddr.fromString(addr)
 
-    implicit def toProto(addr: IPv4Addr): Commons.IPAddress = addr.toString
-
-    implicit def toProto(addr: InetAddress): Commons.IPAddress = {
+    implicit def toProto(addr: IPAddr): Commons.IPAddress = {
         val version = addr match {
-            case ipv4: Inet4Address => Commons.IPAddress.Version.IPV4
-            case ipv6: Inet6Address => Commons.IPAddress.Version.IPV6
+            case _: IPv4Addr => Commons.IPVersion.V4
+            case _: IPv6Addr => Commons.IPVersion.V6
+            case _ =>
+                throw new IllegalArgumentException("Unsupported address type")
+        }
+        Commons.IPAddress.newBuilder
+            .setVersion(version)
+            .setAddress(addr.toString)
+            .build()
+    }
+
+    def toProto(addr: InetAddress): Commons.IPAddress = {
+        val version = addr match {
+            case ipv4: Inet4Address => Commons.IPVersion.V4
+            case ipv6: Inet6Address => Commons.IPVersion.V6
             case _ =>
                 throw new IllegalArgumentException("Unsupported address type")
         }
@@ -53,31 +64,43 @@ object IPAddressUtil {
             .build()
     }
 
-    implicit def toAddressString(addr: Commons.IPAddress): String =
-        addr.getAddress
+    def toIPAddr(addr: Commons.IPAddress): IPAddr =
+        IPAddr.fromString(addr.getAddress)
 
-    implicit def toIPv4Addr(addr: Commons.IPAddress): IPv4Addr =
-        IPv4Addr.apply(addr.getAddress)
+    def toIPv4Addr(addr: Commons.IPAddress): IPv4Addr = {
+        if (IPVersion.V4 == addr.getVersion)
+            IPv4Addr(addr.getAddress)
+        else
+            throw new IllegalArgumentException("Not IP version 4")
+    }
 
-    implicit def toInetAddress(addr: Commons.IPAddress): InetAddress =
+    def toIPv6Addr(addr: Commons.IPAddress): IPv6Addr = {
+        if (IPVersion.V6 == addr.getVersion)
+            IPv6Addr(addr.getAddress)
+        else
+            throw new IllegalArgumentException("Not IP version 6")
+    }
+
+    def toInetAddress(addr: Commons.IPAddress): InetAddress =
         InetAddress.getByName(addr.getAddress)
 
     implicit def richString(str: String) = new {
         def asProtoIPAddress: Commons.IPAddress = str
     }
 
-    implicit def richIPv4Address(addr: IPv4Addr) = new {
+    implicit def richIPAddress(addr: IPAddr) = new {
         def asProto: Commons.IPAddress = addr
     }
 
     implicit def richInetAddress(addr: InetAddress) = new {
-        def asProto: Commons.IPAddress = addr
+        def asProto: Commons.IPAddress = IPAddressUtil.toProto(addr)
     }
 
     implicit def richProtoIPAddress(addr: Commons.IPAddress) = new {
-        def asString: String = addr
-        def asIPv4Address: IPv4Addr = addr
-        def asInetAddress: InetAddress = addr
+        def asString: String = addr.getAddress
+        def asIPv4Address: IPv4Addr = IPAddressUtil.toIPv4Addr(addr)
+        def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
+        def asInetAddress: InetAddress = IPAddressUtil.toInetAddress(addr)
     }
 
     sealed class Converter
@@ -86,7 +109,7 @@ object IPAddressUtil {
         override def toProto(value: Any, clazz: Type): Commons.IPAddress = {
             value match {
                 case addr: String => IPAddressUtil.toProto(addr)
-                case addr: IPv4Addr => IPAddressUtil.toProto(addr)
+                case addr: IPAddr => IPAddressUtil.toProto(addr)
                 case addr: InetAddress => IPAddressUtil.toProto(addr)
                 case _ =>
                     throw new ConvertException(s"Unsupported value $value")
@@ -95,8 +118,10 @@ object IPAddressUtil {
 
         override def fromProto(value: Commons.IPAddress, clazz: Type): Any = {
             clazz match {
-                case ADDRESS_STRING => IPAddressUtil.toAddressString(value)
+                case ADDRESS_STRING => value.getAddress
+                case IPADDR => IPAddressUtil.toIPAddr(value)
                 case IPV4ADDR => IPAddressUtil.toIPv4Addr(value)
+                case IPV6ADDR => IPAddressUtil.toIPv6Addr(value)
                 case INETADDRESS => IPAddressUtil.toInetAddress(value)
                 case _ =>
                     throw new ConvertException(s"Unsupported class $clazz")
