@@ -13,25 +13,55 @@ import com.google.protobuf.MessageOrBuilder
  */
 abstract class ZoomObject {
 
+    /**
+     * Initializes the objects fields annotated with the [[ZoomField]]
+     * annotation from the specified Protocol Buffers message.
+     */
     def this(proto: MessageOrBuilder) {
         this()
         ZoomConvert.fromProto(this, proto)
     }
 
-    def toProto[T <: MessageOrBuilder](clazz: Class[T]): T = {
+    /**
+     * Converts the current instance to a Protocol Buffers message of the
+     * specified type.
+     * @param clazz The message class.
+     * @return The object instance.
+     */
+    final def toProto[T <: MessageOrBuilder](clazz: Class[T]): T = {
         ZoomConvert.toProto(this, clazz)
     }
 
-    def toProtoBuilder[T <: MessageOrBuilder](clazz: Class[T]): Builder[_] = {
+    /**
+     * Converts the current instance to a Protocol Buffers message builder of
+     * the specified type.
+     * @param clazz The message class.
+     * @return The builder.
+     */
+    final def toProtoBuilder[T <: MessageOrBuilder](clazz: Class[T]): Builder[_] = {
         ZoomConvert.toProtoBuilder(this, clazz)
     }
 
-    protected[data] def getField(field: Field): Any = {
+    /**
+     * When overridden in a derived class, allows the execution of custom tasks
+     * after the conversion of the object from a Protocol Buffers message.
+     */
+    protected[data] def afterFromProto(): Unit = {
+    }
+
+    /**
+     * When overridden in a derived class, allows the execution of custom tasks
+     * before the conversion of the object to a Protocol Buffers message.
+     */
+    protected[data] def beforeToProto(): Unit = {
+    }
+
+    final protected[data] def getField(field: Field): Any = {
         field setAccessible true
         field get this
     }
 
-    protected[data] def setField(field: Field, value: Any): Unit = {
+    final protected[data] def setField(field: Field, value: Any): Unit = {
         field setAccessible true
         field.set(this, value)
     }

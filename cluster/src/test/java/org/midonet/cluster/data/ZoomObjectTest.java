@@ -30,10 +30,18 @@ public class ZoomObjectTest {
         TestableZoomObject pojo = new TestableZoomObject(message);
 
         assertPojo(message, pojo);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, 0);
+        assertEquals(pojo.baseBefore, 0);
 
         TestMessage proto = pojo.toProto(TestMessage.class);
 
         assertProto(message, proto);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, pojo.int32Field);
+        assertEquals(pojo.baseBefore, pojo.baseField);
     }
 
     @Test
@@ -44,10 +52,18 @@ public class ZoomObjectTest {
             ZoomConvert.fromProto(message, TestableZoomObject.class);
 
         assertPojo(message, pojo);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, 0);
+        assertEquals(pojo.baseBefore, 0);
 
         TestMessage proto = pojo.toProto(TestMessage.class);
 
         assertProto(message, proto);
+        assertEquals(pojo.after, pojo.int32Field);
+        assertEquals(pojo.baseAfter, pojo.baseField);
+        assertEquals(pojo.before, pojo.int32Field);
+        assertEquals(pojo.baseBefore, pojo.baseField);
     }
 
     @Test
@@ -220,10 +236,22 @@ public class ZoomObjectTest {
         @ZoomField(name = "base_field")
         protected int baseField;
 
+        protected int baseAfter;
+        protected int baseBefore;
+
         public BaseZoomObject() { }
 
         public BaseZoomObject(MessageOrBuilder proto) {
             super(proto);
+        }
+
+        @Override
+        public void afterFromProto() {
+            baseAfter = baseField;
+        }
+        @Override
+        public void beforeToProto() {
+            baseBefore = baseField;
         }
     }
 
@@ -307,10 +335,24 @@ public class ZoomObjectTest {
         @ZoomField(name = "enum_field")
         private Enum enumField;
 
+        private int before;
+        private int after;
+
         public TestableZoomObject() { }
 
         public TestableZoomObject(TestMessage proto) {
             super(proto);
+        }
+
+        @Override
+        public void afterFromProto() {
+            super.afterFromProto();
+            after = int32Field;
+        }
+        @Override
+        public void beforeToProto() {
+            super.beforeToProto();
+            before = int32Field;
         }
     }
 }

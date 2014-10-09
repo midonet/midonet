@@ -50,7 +50,9 @@ object ZoomConvert {
     }
 
     def toProtoBuilder[T <: ZoomObject, U <: MessageOrBuilder](
-        pojo: T, protoClass: Class[U]): Builder[_] = {
+            pojo: T, protoClass: Class[U]): Builder[_] = {
+        pojo.beforeToProto()
+
         to(pojo, newBuilder(protoClass),
            pojo.getClass.asInstanceOf[Class[T]], protoClass)
     }
@@ -64,6 +66,7 @@ object ZoomConvert {
     def fromProto[T <: ZoomObject, U <: MessageOrBuilder](
             pojo: T, proto: U): Unit = {
         from(proto, pojo, pojo.getClass)
+        pojo.afterFromProto()
     }
 
     /**
@@ -82,11 +85,10 @@ object ZoomConvert {
         }
 
         val clazz = newFactory(proto, pojoClass)
-
         val pojo = clazz.newInstance().asInstanceOf[T]
 
         from(proto, pojo, clazz)
-
+        pojo.afterFromProto()
         pojo
     }
 
@@ -399,7 +401,7 @@ object ZoomConvert {
      * - list of primitive types and strings
      */
     protected[data] class DefaultConverter extends Converter[Any, Any] {
-        override def toProto(pojoValue: Any, clazz: Type) = clazz match {
+        override def toProto(pojoValue: Any, clazz: Type): Any = clazz match {
             case BYTE => pojoValue.asInstanceOf[Byte].toInt
             case SHORT => pojoValue.asInstanceOf[Short].toInt
             case BYTE_ARRAY =>
@@ -441,7 +443,7 @@ object ZoomConvert {
             case _ => pojoValue
         }
 
-        override def fromProto(protoValue: Any, clazz: Type) = clazz match {
+        override def fromProto(protoValue: Any, clazz: Type): Any = clazz match {
             case BYTE => protoValue.asInstanceOf[Int].toByte
             case SHORT => protoValue.asInstanceOf[Int].toShort
             case BYTE_ARRAY => protoValue.asInstanceOf[ByteString].toByteArray
