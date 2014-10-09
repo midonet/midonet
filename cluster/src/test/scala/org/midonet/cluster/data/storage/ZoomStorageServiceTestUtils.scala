@@ -87,6 +87,11 @@ trait ZoomStorageServiceTester extends StorageServiceTester
         zoom.get(clazz, id)
     }
 
+    override def getAll[T](clazz: Class[T],
+                           ids: JList[_ <: ObjId]): JList[T] = {
+        zoom.getAll(clazz, ids)
+    }
+
     override def getAll[T](clazz: Class[T]): JList[T] = {
         zoom.getAll(clazz)
     }

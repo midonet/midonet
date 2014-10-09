@@ -540,6 +540,28 @@ class ZookeeperObjectMapper(private val basePath: String,
         deserialize(data, clazz)
     }
 
+
+    /**
+     * Gets the specified instances of the specified class from storage.
+     * Any objects not found are assumed to have been deleted since the ID list
+     * was retrieved, and are silently ignored.
+     */
+    override def getAll[T](clazz: Class[T], ids: JList[_ <: ObjId]): JList[T] = {
+        assertBuilt()
+        assert(isRegistered(clazz))
+
+        val ts = ListBuffer[T]()
+        for (id <- ids.asScala) {
+            try ts += get(clazz, id) catch {
+                case nne: NotFoundException =>
+                // Must have been deleted since fetching IDs. Ignore.
+                case ex: Exception =>
+                    throw new InternalObjectMapperException(ex)
+            }
+        }
+        ts.toList.asJava
+    }
+
     /**
      * Gets all instances of the specified class from Zookeeper.
      */
@@ -553,16 +575,7 @@ class ZookeeperObjectMapper(private val basePath: String,
                     s"Node ${getPath(clazz)} does not exist in Zookeeper.", ex)
         }
 
-        val ts = ListBuffer[T]()
-        ids.asScala.foreach { id =>
-            try ts += get(clazz, id) catch {
-                case nne: NotFoundException =>
-                    // Must have been deleted since fetching IDs. Ignore.
-                case ex: Exception =>
-                    throw new InternalObjectMapperException(ex)
-            }
-        }
-        ts.toList.asJava
+        getAll(clazz, ids.asInstanceOf[JList[ObjId]])
     }
 
     /**

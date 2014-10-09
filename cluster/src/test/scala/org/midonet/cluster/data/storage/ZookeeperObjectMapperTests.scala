@@ -3,7 +3,7 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
@@ -158,6 +158,14 @@ class ZookeeperObjectMapperTests extends Suite
                 nfe.clazz should be(classOf[PojoRule])
                 nfe.id should equal(rule.id)
         }
+    }
+
+    def testMultiIdGet() {
+        val chains = List("chain0", "chain1", "chain2").map(PojoChain)
+        zom.multi(chains.map(CreateOp))
+        val twoIds = chains.take(2).map(_.id).asJava
+        val twoChains = zom.getAll(classOf[PojoChain], twoIds)
+        twoChains.asScala.map(_.name) should equal(List("chain0", "chain1"))
     }
 }
 
