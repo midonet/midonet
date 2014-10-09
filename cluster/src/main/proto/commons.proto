@@ -18,6 +18,10 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "Commons";
 
+enum IPVersion {
+    V4 = 1;
+    V6 = 2;
+}
 
 message UUID {
     required int64 msb = 1;
@@ -25,18 +29,14 @@ message UUID {
 }
 
 message IPAddress {
-    enum Version {
-        IPV4 = 1;
-        IPV6 = 2;
-    }
-
-    required Version version = 1;
+    required IPVersion version = 1;
     required string address = 2;
 }
 
 message IPSubnet {
-    optional string address = 1;
-    optional int32 prefix_length = 2;
+    required IPVersion version = 1;
+    optional string address = 2;
+    optional int32 prefix_length = 3;
 }
 
 message Int32Range {
