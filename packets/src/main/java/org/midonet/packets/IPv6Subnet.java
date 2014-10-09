@@ -33,6 +33,10 @@ public final class IPv6Subnet implements IPSubnet<IPv6Addr> {
         prefixLen = prefixLen_;
     }
 
+    public IPv6Subnet(String addr_, int prefixLen_) {
+        this(IPv6Addr.fromString(addr_), prefixLen_);
+    }
+
     @Override
     public IPv6Addr getAddress() {
         return address;
