@@ -47,8 +47,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     private val flowCount: MacFlowCount = new MockMacFlowCount
     private val vlanBridgePortId = None
     private val vlanToPort = new VlanPortMapImpl()
-    val inFilter: Chain = null
-    val outFilter: Chain = null
+    val inFilterId: UUID = null
+    val outFilterId: UUID = null
     val flowRemovedCallbackGen = new RemoveFlowCallbackGenerator {
         def getCallback(mac: MAC, vlanId: JShort, port: UUID) = new Callback0 {
             def call() {}
@@ -70,9 +70,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
         bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
-                            flowCount, inFilter, outFilter, vlanBridgePortId,
-                            None, flowRemovedCallbackGen, rtrMacToLogicalPortId,
-                            rtrIpToMac, vlanToPort)
+                            flowCount, Option(inFilterId), Option(outFilterId),
+                            vlanBridgePortId, None, flowRemovedCallbackGen,
+                            rtrMacToLogicalPortId, rtrIpToMac, vlanToPort)
 
         brPort.id = UUID.randomUUID()
         brPort.setHostID(UUID.randomUUID())

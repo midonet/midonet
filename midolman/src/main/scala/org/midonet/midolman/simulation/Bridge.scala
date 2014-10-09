@@ -12,8 +12,7 @@ import scala.concurrent.ExecutionContext
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
-import org.midonet.midolman.PacketsEntryPoint
-import org.midonet.midolman.{Ready, Urgent}
+import org.midonet.midolman.{NotYetException, PacketsEntryPoint, Ready, Urgent}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
@@ -53,8 +52,8 @@ import FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForD
   * @param vlanMacTableMap
   * @param ip4MacMap
   * @param flowCount
-  * @param inFilter
-  * @param outFilter
+  * @param inFilterId
+  * @param outFilterId
   * @param vlanPortId this field is the id of the interior port of a peer Bridge
   *                    connected to this device. This means that this Bridge is
   *                    considered to be on VLAN X, Note that a vlan-unaware
@@ -79,8 +78,9 @@ class Bridge(val id: UUID,
              val tunnelKey: Long,
              val vlanMacTableMap: ROMap[JShort, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
-             val flowCount: MacFlowCount, val inFilter: Chain,
-             val outFilter: Chain,
+             val flowCount: MacFlowCount,
+             val inFilterId: Option[UUID],
+             val outFilterId: Option[UUID],
              val vlanPortId: Option[UUID],
              val vxlanPortId: Option[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
@@ -118,6 +118,7 @@ class Bridge(val id: UUID,
             normalProcess()
     }
 
+    @throws[NotYetException]
     def normalProcess()(implicit packetContext: PacketContext,
                                  ec: ExecutionContext,
                                  actorSystem: ActorSystem)
@@ -138,9 +139,14 @@ class Bridge(val id: UUID,
 
             // Call ingress (pre-bridging) chain. InputPort is already set.
             packetContext.outPortId = null
-            val preBridgeResult = Chain.apply(inFilter, packetContext, id, false)
+            val preBridgeResult = Chain.apply(
+                inFilterId match {
+                    case Some(filterId) => tryAsk[Chain](filterId)
+                    case None => null
+                }
+                , packetContext, id, false
+            )
             log.debug("The ingress chain returned {}", preBridgeResult)
-
             preBridgeResult.action match {
                 case RuleResult.Action.ACCEPT => // pass through
                 case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
@@ -157,9 +163,10 @@ class Bridge(val id: UUID,
 
             if (preBridgeResult.pmatch ne packetContext.wcmatch) {
                 log.error("Pre-bridging for {} returned a different match" +
-                        "object", id)
+                          "object", id)
                 return Ready(ErrorDropAction)
             }
+
         } else {
             log.info("Ignoring pre/post chains on vlan tagged traffic")
         }
@@ -445,8 +452,11 @@ class Bridge(val id: UUID,
       * - If the simulation resulted in a Fork action, set the output port to
       *   the first action in the fork.
       */
+    @throws[NotYetException]
     private def doPostBridging(packetContext: PacketContext)
-                              (act: Coordinator.Action): Coordinator.Action = {
+                              (act: Coordinator.Action)
+    : Coordinator.Action = {
+
         implicit val pktContext = packetContext
 
         log.debug("Post-Bridging..")
@@ -481,7 +491,13 @@ class Bridge(val id: UUID,
             case a => log.warning("Unhandled Coordinator.Action {}", a)
         }
 
-        val postBridgeResult = Chain.apply(outFilter, packetContext, id, false)
+        val postBridgeResult = Chain.apply(
+            outFilterId match {
+                case Some(filterId) => tryAsk[Chain](filterId)
+                case None => null
+            },
+            packetContext, id, false
+        )
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
                 log.debug("Forwarding the packet with action {}", act)
@@ -491,8 +507,8 @@ class Bridge(val id: UUID,
                 log.debug("Dropping the packet due to egress filter.")
                 DropAction
             case other =>
-                log.warning("Post-bridging for {} returned {} which was not " +
-                            "ACCEPT, DROP, or REJECT.", id, other)
+                log.warning("Post-bridging for {} returned {} which was " +
+                            "not ACCEPT, DROP, or REJECT.", id, other)
                 // TODO(pino): decrement the mac-port reference count?
                 // TODO(pino): remove the flow tag?
                 ErrorDropAction
