@@ -18,8 +18,7 @@ repositories {
 dependencies {
     compile project(':packets'), project(':cluster'), project(':midolman'),
             project(':midonet-client'), project(':brain:odl-ovsdb:ovsdb'),
-            project(':brain:midonet-brain'), project(':tools:keylib'),
-            project(':odp')
+            project(':brain:midonet-brain'), project(':odp')
     compile(project(':midonet-util')) {
         exclude group: 'com.sun', module: 'tools'
     }
@@ -34,12 +33,11 @@ dependencies {
             libraries.jersey_json, libraries.jersey_guice,
             libraries.jersey_core, libraries.jersey_bundle,
             libraries.commons_lang, libraries.commons_lang3,
-            libraries.truelicense, libraries.curator_framework,
-            libraries.commons_codec, libraries.hamcrest_core,
-            libraries.hamcrest_lib, libraries.validation,
-            libraries.hibernate_validator, libraries.guice_multibind,
-            libraries.vmware_midoapi, libraries.jcabi, libraries.scala,
-            libraries.protobuf
+            libraries.curator_framework, libraries.commons_codec,
+            libraries.hamcrest_core, libraries.hamcrest_lib,
+            libraries.validation, libraries.hibernate_validator,
+            libraries.guice_multibind, libraries.vmware_midoapi,
+            libraries.jcabi, libraries.scala, libraries.protobuf
 
     runtime libraries.aspectj
 

@@ -102,7 +102,6 @@ import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.ConfigGetter;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
-import org.midonet.midolman.state.zkManagers.LicenseZkManager;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig;
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.HealthMonitorConfigWithId;
@@ -225,9 +224,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private VtepZkManager vtepZkManager;
-
-    @Inject
-    private LicenseZkManager licenseZkManager;
 
     @Inject
     @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
@@ -3612,28 +3608,6 @@ public class LocalDataClientImpl implements DataClient {
                                      Directory.TypedWatcher watcher)
             throws StateAccessException {
         portZkManager.getVxLanPortIdsAsync(callback, watcher);
-    }
-
-    @Override
-    public void licenseCreate(UUID licenseId, byte[] licenseData)
-            throws StateAccessException {
-        licenseZkManager.create(new LicenseZkManager.LicenseConfig(licenseId,
-                                                                   licenseData));
-    }
-
-    @Override
-    public void licenseDelete(UUID licenseId) throws StateAccessException {
-        licenseZkManager.delete(licenseId);
-    }
-
-    @Override
-    public byte[] licenseSelect(UUID licenseId) throws StateAccessException {
-        return licenseZkManager.select(licenseId);
-    }
-
-    @Override
-    public Collection<UUID> licenseList() throws StateAccessException {
-        return licenseZkManager.list();
     }
 
     @Override

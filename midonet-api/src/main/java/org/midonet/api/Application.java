@@ -464,37 +464,34 @@ public class Application extends UriResource {
 
     /**
      * @return Licenses URI
+     * @deprecated
      */
     @Since("5")
     public URI getLicenses() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getLicenses(getBaseUri());
-        } else {
-            return null;
-        }
+        // TODO (ernest): by now, returning null instead of removing
+        // (to be removed in next release)
+        return null;
     }
 
     /**
      * @return License URI template
+     * @deprecated
      */
     @Since("5")
     public String getLicenseTemplate() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getLicenseTemplate(getBaseUri());
-        } else {
-            return null;
-        }
+        // TODO (ernest): by now, returning null instead of removing
+        // (to be removed in next release)
+        return null;
     }
 
     /**
      * @return License status URI
+     * @deprecated
      */
     @Since("5")
     public URI getLicenseStatus() {
-        if (getBaseUri() != null) {
-            return ResourceUriBuilder.getLicenseStatus(getBaseUri());
-        } else {
-            return null;
-        }
+        // TODO (ernest): by now, returning null instead of removing
+        // (to be removed in next release)
+        return null;
     }
 }

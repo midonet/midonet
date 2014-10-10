@@ -10,8 +10,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.license.LicenseManager;
-import org.midonet.api.license.LicenseService;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
@@ -37,9 +35,7 @@ public class RestApiModule extends AbstractModule {
         bind(ApplicationResource.class);
         install(new FactoryModuleBuilder().build(ResourceFactory.class));
 
-        bind(LicenseManager.class).asEagerSingleton();
         bind(RestApiService.class).asEagerSingleton();
-        bind(LicenseService.class).asEagerSingleton();
         bind(VxLanGatewayService.class).asEagerSingleton();
 
         log.debug("configure: exiting.");

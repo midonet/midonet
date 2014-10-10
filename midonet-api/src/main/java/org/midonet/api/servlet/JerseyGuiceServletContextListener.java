@@ -13,7 +13,6 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.license.LicenseService;
 import org.midonet.api.rest_api.RestApiService;
 import org.midonet.brain.configuration.MidoBrainConfig;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
@@ -59,8 +58,6 @@ public class JerseyGuiceServletContextListener extends
 
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
 
-        injector.getInstance(LicenseService.class).startAsync().awaitRunning();
-
         if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
             log.info("initializeApplication: starting VxLAN gateway");
             injector.getInstance(VxLanGatewayService.class)
@@ -83,9 +80,6 @@ public class JerseyGuiceServletContextListener extends
                 .stopAsync()
                 .awaitTerminated();
         }
-        injector.getInstance(LicenseService.class)
-            .stopAsync()
-            .awaitTerminated();
         injector.getInstance(RestApiService.class)
             .stopAsync()
             .awaitTerminated();
