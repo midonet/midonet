@@ -35,6 +35,8 @@ object RoutingManagerActor extends Referenceable {
 class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     import context.system
 
+    override def logSource = "org.midonet.routing.bgp"
+
     @Inject
     override val supervisorStrategy: SupervisorStrategy = null
 
@@ -67,22 +69,18 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
     }
 
     override def preStart() {
-        log.debug("RoutingManager - preStart - begin")
-
         super.preStart()
         if (config.getMidolmanBGPEnabled) {
             dataClient.subscribeToLocalActivePorts(localPortsCB)
             bgpPortIdx = config.getMidolmanBGPPortStartIndex
         }
-
-        log.debug("RoutingManager - preStart - end")
     }
 
     override def receive = {
         case DatapathReady(_, state) =>
             dpState = state
         case LocalPortActive(portID, true) =>
-            log.debug("RoutingManager - LocalPortActive(true)" + portID)
+            log.debug(s"port $portID became active")
             if (!activePorts.contains(portID)) {
                 activePorts.add(portID)
                 // Request the port configuration
@@ -94,7 +92,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
             }
 
         case LocalPortActive(portID, false) =>
-            log.debug("RoutingManager - LocalPortActive(false)" + portID)
+            log.debug(s"port $portID became inactive")
             if (!activePorts.contains(portID)) {
                 log.error("we should have had information about port {}",
                     portID)
@@ -122,15 +120,13 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
             }
 
         case port: RouterPort if !port.isInterior =>
-            log.debug("RoutingManager - ExteriorRouterPort: " + port.id)
             // Only exterior virtual router ports support BGP.
             // Create a handler if there isn't one and the port is active
             if (activePorts.contains(port.id))
                 log.debug("RoutingManager - port is active: " + port.id)
 
             if (portHandlers.get(port.id) == None)
-                log.debug("RoutingManager - no RoutingHandler actor is " +
-                    "registered with port: " + port.id)
+                log.debug(s"no RoutingHandler is registered with port: ${port.id}")
 
             if (activePorts.contains(port.id)
                 && portHandlers.get(port.id) == None) {
@@ -144,13 +140,10 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath {
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )
-                log.debug("RoutingManager - ExteriorRouterPort - " +
-                    "RoutingHandler actor creation requested")
+                log.debug(s"RoutingHandler creation requested for port ${port.id}")
             }
-            log.debug("RoutingManager - ExteriorRouterPort - end")
 
-        case port: Port =>
-            log.warning("Port type {} not supported to handle routing protocols.", port.getClass)
+        case port: Port => // do nothing
 
         case ShowBgp(portID : UUID, cmd : String) =>
             portHandlers.get(portID) match {

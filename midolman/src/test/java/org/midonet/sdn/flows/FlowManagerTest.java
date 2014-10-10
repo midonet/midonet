@@ -73,7 +73,6 @@ public class FlowManagerTest {
         flowManager = new FlowManager(flowManagerHelper,
                 wildtablesProvider,
                 maxDpFlowSize, maxWildcardFlowSize, idleFlowToleranceInterval,
-                actorSystem.eventStream(),
                 dpFlowRemoveBatchSize);
     }
 
@@ -462,7 +461,7 @@ public class FlowManagerTest {
     }
 
     private List<FlowAction>actionsAsJava(WildcardFlow wflow) {
-        return JavaConversions.asJavaList(wflow.actions());
+        return JavaConversions.seqAsJavaList(wflow.actions());
     }
 
     // Implementation of the FlowManagerHelper for this test

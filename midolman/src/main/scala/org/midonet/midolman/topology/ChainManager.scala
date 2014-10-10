@@ -50,6 +50,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     import VirtualTopologyActor.Unsubscribe
     import VirtualTopologyActor.ChainRequest
 
+    override def logSource = s"org.midonet.devices.chain.chain-$id"
+
     override def preStart() {
         clusterClient.getChain(id, new ChainBuilderImpl(self))
     }
@@ -97,14 +99,12 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                                      reqFactory: UUID => DeviceRequest): Unit = {
         idToRefCount.get(id) match {
             case Some(refCount) =>
-                log.debug("Increment {}'s refcount for {} {} to {}",
-                    this, resourceType, id, refCount + 1)
+                log.debug(s"Increment refcount for $resourceType ${id} to ${refCount+1}")
                 idToRefCount.put(id, refCount + 1)
             case None =>
                 waitingForResources += 1
-                log.debug(
-                    "{} now tracking IPAddrGroup {}, waiting for {} resources.",
-                    this, id, waitingForResources)
+                log.debug(s"now tracking ip address group $id, waiting "+
+                          s"for $waitingForResources resources.")
                 VirtualTopologyActor ! reqFactory(id)
                 idToRefCount.put(id, 1)
         }
@@ -133,10 +133,9 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                                    idToResource: mutable.Map[UUID, _]): Unit = {
         idToRefCount.get(refId) match {
             case Some(refCount) if refCount > 1 =>
-                val newRefCount = refCount - 1
-                log.debug("Decrementing {}'s refcount for {} {} to {}",
-                    this, refType, refId, newRefCount)
-                idToRefCount.put(refId, newRefCount)
+                val newCount = refCount - 1
+                log.debug(s"Decrementing refcount for $refType $refId to $newCount")
+                idToRefCount.put(refId, newCount)
 
             case Some(refCount) if refCount == 1 =>
                 // That was the last reference, so stop tracking this resource.
@@ -147,9 +146,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                     case None => waitingForResources -= 1
                     case _ =>  // do nothing
                 }
-                log.debug(
-                    "{} no longer tracking {} {}, waiting for {} resources.",
-                    this, refType, refId, waitingForResources)
+                log.debug(s"no longer tracking $refType $refId, waiting "+
+                          s"for $waitingForResources resources.")
 
             case unexpected =>
                 log.error("Attempted to decrement {}'s refcount for ID: {}. " +
@@ -169,7 +167,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         if (r.isInstanceOf[JumpRule]) {
             val targetId = r.asInstanceOf[JumpRule].jumpToChainID
             if (targetId == null)
-                log.warning("New jump rule with null target {}", r)
+                log.warn("New jump rule with null target {}", r)
             else
                 incrChainRefCount(targetId)
         }
@@ -195,7 +193,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         if (r.isInstanceOf[JumpRule]) {
             val targetId = r.asInstanceOf[JumpRule].jumpToChainID
             if (targetId == null)
-                log.warning("Old jump rule with null target {}", r)
+                log.warn("Old jump rule with null target {}", r)
             else
                 decrChainRefCount(targetId)
         }
@@ -211,9 +209,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     }
 
     private def updateRules(newRules: util.List[Rule]): Unit = {
-        if (log.isDebugEnabled)
-            log.debug("{} received updated rules: {}",
-                      this, newRules.mkString(", "));
+        if (log.underlying.isDebugEnabled)
+            log.debug("received updated rules: {}", newRules.mkString(", "))
 
         // Increment refcounts for rules being added.
         newRules.filterNot(rules.contains).foreach(incrRefCountsForRule)
@@ -254,8 +251,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
             VirtualTopologyActor ! createChain()
             sendInvalidationIfNeeded()
         } else {
-            log.debug("Not publishing Chain {}. Still waiting for {} resources",
-                      id, waitingForResources)
+            log.debug("Not publishing Chain yet. Still " +
+                      s"waiting for $waitingForResources resources")
         }
     }
 
@@ -275,7 +272,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     private def createChain() = {
         val eventStream = context.system.eventStream
         val name = chainName getOrElse "unknown"
-        new Chain(id, rules.toList, idToChain.toMap, name, eventStream)
+        new Chain(id, rules.toList, idToChain.toMap, name)
     }
 
     private def updateJumpChain(chain: Chain): Unit = {
@@ -288,8 +285,8 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         idToChain.put(chain.id, chain) match {
             case None =>
                 waitingForResources -= 1
-                log.debug("{} received new Chain {}. Now waiting for {} " +
-                          "resources", this, chain.id, waitingForResources)
+                log.debug(s"received new Chain ${chain.id}. Now " +
+                          s"waiting for $waitingForResources resources")
             case Some(_) =>
                 log.debug("{} received updated Chain {}", this, chain.id)
         }
@@ -332,6 +329,6 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         case ipAddrGroup: IPAddrGroup =>
             withInvalidation { updateIpAddrGroup(ipAddrGroup) }
         case unexpected =>
-            log.error("{} received an unexpected message: {}", this, unexpected)
+            log.error(s"received an unexpected message: $unexpected")
     }
 }

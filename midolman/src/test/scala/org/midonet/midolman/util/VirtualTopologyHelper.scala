@@ -92,6 +92,7 @@ trait VirtualTopologyHelper {
                     Await.result(f, 1 second)
                 case Failure(NotYetException(f, _)) =>
                     Await.result(f, 1 second)
+                case Failure(e) => throw e
             }
             flushTransactions(conntrackTx, natTx)
             ctx.state.clear()

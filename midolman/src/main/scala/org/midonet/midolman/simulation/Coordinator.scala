@@ -14,7 +14,6 @@ import org.midonet.cluster.client._
 import org.midonet.midolman.{NotYet, Ready, Urgent, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.state.FlowState
@@ -87,15 +86,14 @@ object Coordinator {
 /**
  * Coordinator object to simulate one packet traversing the virtual network.
  */
-class Coordinator(pktCtx: PacketContext)
+class Coordinator(context: PacketContext)
                  (implicit val ec: ExecutionContext,
                            val actorSystem: ActorSystem) {
 
     import Coordinator._
 
-    implicit val logPktCtx: PacketContext = pktCtx
-    implicit val log = LoggerFactory.getSimulationAwareLog(
-        this.getClass)(actorSystem.eventStream)
+    implicit val logPktCtx: PacketContext = context
+    implicit val log = context.log
     private val MAX_DEVICES_TRAVERSED = 12
 
     // Used to detect loops: devices simulated (with duplicates).
@@ -131,10 +129,10 @@ class Coordinator(pktCtx: PacketContext)
      * The resulting future is never in a failed state.
      */
     def simulate(): Urgent[SimulationResult] = {
-        log.debug("Simulate a packet {}", pktCtx.ethernet)
-        pktCtx.cookieOrEgressPort match {
+        log.debug("Simulating a packet")
+        context.cookieOrEgressPort match {
             case Left(_) => // This is a packet from the datapath
-                val inPortId = pktCtx.inputPort
+                val inPortId = context.inputPort
                 packetIngressesPort(inPortId, getPortGroups = true)
             case Right(egressID) =>
                 packetEgressesPort(egressID)
@@ -144,15 +142,14 @@ class Coordinator(pktCtx: PacketContext)
     private def packetIngressesDevice(port: Port)
     : Urgent[SimulationResult] =
         (port match {
-            case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, pktCtx.expiry)
-            case _: VxLanPort => expiringAsk[Bridge](port.deviceID, log, pktCtx.expiry)
-            case _: RouterPort => expiringAsk[Router](port.deviceID, log, pktCtx.expiry)
+            case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, context.expiry)
+            case _: VxLanPort => expiringAsk[Bridge](port.deviceID, log, context.expiry)
+            case _: RouterPort => expiringAsk[Router](port.deviceID, log, context.expiry)
         }) flatMap { case deviceReply =>
             numDevicesSimulated += 1
-            log.debug("Simulating packet with match {}, device {}",
-                pktCtx.wcmatch, port.deviceID)
-            pktCtx.traceMessage(port.deviceID, "Entering device")
-            deviceReply.process(pktCtx) flatMap { handleAction }
+            log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceID}")
+            context.traceMessage(port.deviceID, "Entering device")
+            deviceReply.process(context) flatMap { handleAction }
         }
 
     private def mergeSimulationResults(first: SimulationResult,
@@ -174,7 +171,7 @@ class Coordinator(pktCtx: PacketContext)
                     log.error("Matching actions of different types {} & {}!",
                         clazz1, clazz2)
                 } else {
-                    log.debug("Receive unrecognized action {}", firstAction)
+                    log.debug("unrecognized action {}", firstAction)
                 }
                 TemporaryDrop
         }
@@ -186,10 +183,10 @@ class Coordinator(pktCtx: PacketContext)
             case DoFlowAction(act) => act match {
                 case b: FlowActionPopVLAN =>
                     val flow = WildcardFlow(
-                        wcmatch = pktCtx.origMatch,
+                        wcmatch = context.origMatch,
                         actions = List(b))
-                    val vlanId = pktCtx.wcmatch.getVlanIds.get(0)
-                    pktCtx.wcmatch.removeVlanId(vlanId)
+                    val vlanId = context.wcmatch.getVlanIds.get(0)
+                    context.wcmatch.removeVlanId(vlanId)
                     Ready(virtualWildcardFlowResult(flow))
                 case _ => Ready(NoOp)
             }
@@ -201,7 +198,7 @@ class Coordinator(pktCtx: PacketContext)
                 // Will fail if run in parallel because of side-effects
 
                 var stopsAt: Urgent[SimulationResult] = null
-                val originalMatch = pktCtx.origMatch.clone()
+                val originalMatch = context.origMatch.clone()
                 // TODO: maybe replace with some other alternative that spares
                 //       iterating the entire if we find the break cond
                 val results = acts map handleAction map {
@@ -209,11 +206,11 @@ class Coordinator(pktCtx: PacketContext)
                         stopsAt = if (stopsAt == null) n else stopsAt
                         null
                     case Ready(simRes) =>
-                        pktCtx.origMatch.reset(pktCtx.wcmatch)
+                        context.origMatch.reset(context.wcmatch)
                         simRes
                 }
 
-                pktCtx.origMatch.reset(originalMatch)
+                context.origMatch.reset(originalMatch)
 
                 if (stopsAt ne null) {
                     stopsAt
@@ -225,53 +222,53 @@ class Coordinator(pktCtx: PacketContext)
                 }
 
             case ToPortSetAction(portSetID) =>
-                pktCtx.traceMessage(portSetID, "Flooded to port set")
+                context.traceMessage(portSetID, "Flooded to port set")
                 Ready(emit(portSetID, isPortSet = true, null))
 
             case ToPortAction(outPortID) =>
-                pktCtx.traceMessage(outPortID, "Forwarded to port")
+                context.traceMessage(outPortID, "Forwarded to port")
                 packetEgressesPort(outPortID)
 
             case ConsumedAction =>
-                pktCtx.traceMessage(null, "Consumed")
+                context.traceMessage(null, "Consumed")
                 Ready(NoOp)
 
             case ErrorDropAction =>
-                pktCtx.traceMessage(null, "Encountered error")
+                context.traceMessage(null, "Encountered error")
                 Ready(TemporaryDrop)
 
             case TemporaryDropAction =>
-                log.debug("Device returned TemporaryDropAction for {}", pktCtx.origMatch)
+                log.debug("Device returned TemporaryDropAction")
                 Ready(TemporaryDrop)
 
             case DropAction =>
-                log.debug("Device returned DropAction for {}", pktCtx.origMatch)
+                log.debug("Device returned DropAction")
                 Ready(Drop)
 
             case NotIPv4Action =>
-                pktCtx.traceMessage(null, "Unsupported protocol")
-                log.debug("Device returned NotIPv4Action for {}", pktCtx.origMatch)
+                context.traceMessage(null, "Unsupported protocol")
+                log.debug("Device returned NotIPv4Action")
                 Ready(
-                    if (pktCtx.isGenerated) {
+                    if (context.isGenerated) {
                         NoOp
                     } else {
                         val notIPv4Match =
                             new WildcardMatch()
                                 .setInputPortUUID(
-                                        pktCtx.origMatch.getInputPortUUID)
+                                        context.origMatch.getInputPortUUID)
                                 .setEthernetSource(
-                                        pktCtx.origMatch.getEthernetSource)
+                                        context.origMatch.getEthernetSource)
                                 .setEthernetDestination(
-                                        pktCtx.origMatch.getEthernetDestination)
+                                        context.origMatch.getEthernetDestination)
                                 .setEtherType(
-                                        pktCtx.origMatch.getEtherType)
+                                        context.origMatch.getEtherType)
                         virtualWildcardFlowResult(
                             WildcardFlow(wcmatch = notIPv4Match))
                         // TODO(pino): Connection-tracking blob?
                     })
 
             case _ =>
-                pktCtx.traceMessage(null,
+                context.traceMessage(null,
                                     "ERROR Unexpected action returned")
                 log.error("Device returned unexpected action!")
                 Ready(TemporaryDrop)
@@ -285,15 +282,15 @@ class Coordinator(pktCtx: PacketContext)
             Ready(TemporaryDrop)
         } else {
             expiringAsk[Port](portID, log) flatMap { port =>
-                pktCtx.addFlowTag(port.deviceTag)
+                context.addFlowTag(port.deviceTag)
                 port match {
                     case p if !p.adminStateUp =>
                         processAdminStateDown(p, isIngress = true)
                     case p =>
                         if (getPortGroups && p.isExterior) {
-                            pktCtx.portGroups = p.portGroups
+                            context.portGroups = p.portGroups
                         }
-                        pktCtx.inPortId = p
+                        context.inPortId = p
                         applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
                 }
             }
@@ -305,8 +302,8 @@ class Coordinator(pktCtx: PacketContext)
         if (filterID == null)
             return thunk(port)
 
-        expiringAsk[Chain](filterID, log, pktCtx.expiry) flatMap { chain =>
-            val result = Chain.apply(chain, pktCtx, port.id, true)
+        expiringAsk[Chain](filterID, log, context.expiry) flatMap { chain =>
+            val result = Chain.apply(chain, context, port.id, true)
             result.action match {
                 case RuleResult.Action.ACCEPT =>
                     thunk(port)
@@ -326,20 +323,20 @@ class Coordinator(pktCtx: PacketContext)
      */
     private def packetEgressesPort(portID: UUID): Urgent[SimulationResult] =
         expiringAsk[Port](portID, log) flatMap { port =>
-            pktCtx.addFlowTag(port.deviceTag)
+            context.addFlowTag(port.deviceTag)
 
             port match {
                 case p if !p.adminStateUp =>
                     processAdminStateDown(p, isIngress = false)
                 case p =>
-                    pktCtx.outPortId = p.id
+                    context.outPortId = p.id
                     applyPortFilter(p, p.outboundFilter, {
                         case p: Port if p.isExterior =>
                             Ready(emit(p.id, isPortSet = false, p))
                         case p: Port if p.isInterior =>
                             packetIngressesPort(p.peerID, getPortGroups = false)
                         case _ =>
-                            log.warning("Port {} is unplugged", portID)
+                            log.warn("Port {} is unplugged", portID)
                             Ready(TemporaryDrop)
                     })
             }
@@ -355,7 +352,7 @@ class Coordinator(pktCtx: PacketContext)
      */
     private def emit(outputID: UUID, isPortSet: Boolean,
                      port: Port) : SimulationResult = {
-        val actions = pktCtx.actionsFromMatchDiff()
+        val actions = context.actionsFromMatchDiff()
         isPortSet match {
             case false =>
                 log.debug("Emitting packet from vport {}", outputID)
@@ -364,26 +361,26 @@ class Coordinator(pktCtx: PacketContext)
                 log.debug("Emitting packet from port set {}", outputID)
                 actions.append(FlowActionOutputToVrnPortSet(outputID))
         }
-        pktCtx.toPortSet = isPortSet
+        context.toPortSet = isPortSet
 
-        if (pktCtx.isGenerated) {
+        if (context.isGenerated) {
             log.debug("SendPacket with actions {}", actions)
             SendPacket(actions.toList)
         } else {
             log.debug("Add a flow with actions {}", actions)
             // TODO(guillermo,pino) don't assume that portset id == bridge id
             val dev = if (isPortSet) outputID else port.deviceID
-            pktCtx.state.trackConnection(dev)
+            context.state.trackConnection(dev)
 
             var hardExp = 0
             var idleExp = 0
-            if (pktCtx.state.containsForwardStateKeys)
+            if (context.state.containsForwardStateKeys)
                 hardExp = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
             else
                 idleExp = IDLE_EXPIRATION_MILLIS
 
             virtualWildcardFlowResult(WildcardFlow(
-                wcmatch = pktCtx.origMatch,
+                wcmatch = context.origMatch,
                 actions = actions.toList,
                 idleExpirationMillis = idleExp,
                 hardExpirationMillis = hardExp))
@@ -395,8 +392,8 @@ class Coordinator(pktCtx: PacketContext)
         port match {
             case p: RouterPort if isIngress =>
                 sendIcmpProhibited(p)
-            case p: RouterPort if pktCtx.inPortId != null =>
-                expiringAsk[Port](pktCtx.inPortId, log, pktCtx.expiry) map {
+            case p: RouterPort if context.inPortId != null =>
+                expiringAsk[Port](context.inPortId, log, context.expiry) map {
                     case p: RouterPort =>
                         sendIcmpProhibited(p)
                     case _ =>
@@ -408,15 +405,15 @@ class Coordinator(pktCtx: PacketContext)
     }
 
     private def sendIcmpProhibited(port: RouterPort) {
-        val ethOpt = unreachableProhibitedIcmp(port, pktCtx.wcmatch, pktCtx.ethernet)
+        val ethOpt = unreachableProhibitedIcmp(port, context.wcmatch, context.ethernet)
         if (ethOpt.nonEmpty)
             PacketsEntryPoint !
-                EmitGeneratedPacket(port.id, ethOpt.get, pktCtx.flowCookie)
+                EmitGeneratedPacket(port.id, ethOpt.get, context.flowCookie)
     }
 
     /** Generates a final AddVirtualWildcardFlow simulation result */
     private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
-        wcFlow.wcmatch.propagateUserspaceFieldsOf(pktCtx.wcmatch)
+        wcFlow.wcmatch.propagateUserspaceFieldsOf(context.wcmatch)
         AddVirtualWildcardFlow(wcFlow)
     }
 }

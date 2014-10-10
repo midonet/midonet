@@ -32,7 +32,7 @@ import org.midonet.util.io.SelectorInputQueue;
 public abstract class AbstractNetlinkConnection {
 
     private static final Logger log = LoggerFactory
-        .getLogger(AbstractNetlinkConnection.class);
+        .getLogger("org.midonet.netlink.connection");
 
     private static final int DEFAULT_MAX_BATCH_IO_OPS = 200;
     private static final int NETLINK_HEADER_LEN = 20;

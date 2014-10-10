@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 object ZebraProtocol {
 
-    private final val log = LoggerFactory.getLogger(this.getClass)
+    private final val log = LoggerFactory.getLogger("org.midonet.routing.bgp.zebra")
 
     object RIBType extends Enumeration {
         type RIBType = Value
@@ -181,11 +181,11 @@ object ZebraProtocol {
      * look at zserv.c from quagga (zserv_create_header)
      */
     final def sendHeader(out: DataOutputStream, message: Short, length: Int) {
-        log.debug("length: {}/{}", ZebraHeaderSize + length, ZebraMaxPayloadSize)
-        log.debug("headerMarker: {}", ZebraHeaderMarker)
-        log.debug("version: {}", ZebraHeaderVersion)
-        log.debug("message: {}/{}", message, ZebraMessageMax)
-        log.debug("message: {}", ZebraMessageTable(message))
+        log.trace("length: {}/{}", ZebraHeaderSize + length, ZebraMaxPayloadSize)
+        log.trace("headerMarker: {}", ZebraHeaderMarker)
+        log.trace("version: {}", ZebraHeaderVersion)
+        log.trace("message: {}/{}", message, ZebraMessageMax)
+        log.trace("message: {}", ZebraMessageTable(message))
 
         out.writeShort(ZebraHeaderSize + length)
         out.writeByte(ZebraHeaderMarker)
@@ -196,17 +196,17 @@ object ZebraProtocol {
     final def recvHeader(in: DataInputStream): (Short, Int) = {
         // this is blocking
         val length = in.readUnsignedShort
-        log.debug("length: {}/{}", length, ZebraMaxPayloadSize)
+        log.trace("length: {}/{}", length, ZebraMaxPayloadSize)
 
         val headerMarker = in.readUnsignedByte
-        log.debug("headerMarker: {}/{}", headerMarker, ZebraHeaderMarker)
+        log.trace("headerMarker: {}/{}", headerMarker, ZebraHeaderMarker)
 
         val version = in.readByte
-        log.debug("version: {}/{}", version, ZebraHeaderVersion)
+        log.trace("version: {}/{}", version, ZebraHeaderVersion)
 
         val message = in.readUnsignedShort.toShort
-        log.debug("message: {}/{}", message, ZebraMessageMax)
-        log.debug("message: {}", ZebraMessageTable(message))
+        log.trace("message: {}/{}", message, ZebraMessageMax)
+        log.trace("message: {}", ZebraMessageTable(message))
 
         (message, length - ZebraHeaderSize)
     }

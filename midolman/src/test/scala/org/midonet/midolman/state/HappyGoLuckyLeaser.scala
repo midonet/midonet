@@ -4,13 +4,15 @@
 
 package org.midonet.midolman.state
 
-import akka.event.{NoLogging, LoggingAdapter}
+import com.typesafe.scalalogging.Logger
 import com.yammer.metrics.core.Clock
+import org.slf4j.helpers.NOPLogger
+
 import org.midonet.util.MockClock
 
 object HappyGoLuckyLeaser extends NatLeaser {
 
-    override val log: LoggingAdapter = NoLogging
+    override val log = Logger(NOPLogger.NOP_LOGGER)
     override val allocator: NatBlockAllocator = new MockNatBlockAllocator
     override val clock: Clock = new MockClock
 }

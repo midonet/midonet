@@ -24,7 +24,7 @@ class TokenBucketPolicy(config: MidolmanConfig,
                         tbRate: TokenBucketFillRate,
                         multiplier: Int,
                         factory: TokenBucket => Bucket) {
-    private val log: Logger = LoggerFactory.getLogger(classOf[TokenBucketPolicy])
+    private val log: Logger = LoggerFactory.getLogger("org.midonet.io.htb")
 
     private val root = TokenBucket.create(adjust(config.getGlobalIncomingBurstCapacity),
                                           "midolman-root",

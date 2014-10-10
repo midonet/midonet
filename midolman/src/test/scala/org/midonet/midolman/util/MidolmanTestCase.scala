@@ -16,15 +16,16 @@ import scala.compat.Platform
 import language.implicitConversions
 
 import akka.actor._
-import akka.event.{NoLogging, LoggingAdapter, EventStream}
+import akka.event.EventStream
 import akka.testkit._
 import akka.pattern.ask
 import akka.util.Timeout
 import com.google.inject._
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.scalatest._
 import org.scalatest.matchers.{BePropertyMatcher, BePropertyMatchResult}
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
@@ -83,7 +84,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     case class FlowAdded(flow: Flow)
     case class FlowRemoved(flow: Flow)
 
-    private val log: Logger = LoggerFactory.getLogger(classOf[MidolmanTestCase])
+    private val log = Logger(LoggerFactory.getLogger(classOf[MidolmanTestCase]))
 
     var injector: Injector = null
     var interfaceScanner: MockInterfaceScanner = null
@@ -508,7 +509,6 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
                                action: FlowAction): Unit = {
         val flowTranslator = new FlowTranslator {
             override implicit protected def system: ActorSystem = actors
-            override val log: LoggingAdapter = NoLogging
             override protected val dpState: DatapathState = self.dpState
         }
         val pktCtx = new PacketContext(Left(-1), null, 0L, None, wcMatch)

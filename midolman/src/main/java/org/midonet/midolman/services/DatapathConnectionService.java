@@ -29,7 +29,7 @@ public class DatapathConnectionService extends AbstractService {
             requestsConnPool.start();
             notifyStarted();
         } catch (Exception e) {
-            log.error("failed to start DatapathConnectionService: {}", e);
+            log.error("failed to start DatapathConnectionService", e);
             notifyFailed(e);
         }
     }

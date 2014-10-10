@@ -36,7 +36,8 @@ dependencies {
             libraries.jetty, libraries.jackson_scala, libraries.cassandra,
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
-            libraries.jsonpath, libraries.curator_recipes
+            libraries.jsonpath, libraries.curator_recipes,
+            libraries.scala_logging
 
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,

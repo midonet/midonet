@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import akka.event.LoggingAdapter;
 import akka.event.LoggingBus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.flows.WildcardTablesProvider;
-import org.midonet.midolman.logging.LoggerFactory;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
 import org.midonet.util.functors.Callback1;
@@ -51,7 +51,7 @@ import org.midonet.util.functors.Callback1;
 // delete the oldest one.
 public class FlowManager {
 
-    private LoggingAdapter log;
+    private Logger log = LoggerFactory.getLogger("org.midonet.flow-management");
     private static final int NO_LIMIT = 0;
 
     private FlowManagerHelper flowManagerHelper;
@@ -65,8 +65,7 @@ public class FlowManager {
     public FlowManager(
             FlowManagerHelper flowManagerHelper,
             WildcardTablesProvider wildcardTables,
-            long maxDpFlows, long maxWildcardFlows, long idleFlowToleranceInterval,
-            LoggingBus loggingBus) {
+            long maxDpFlows, long maxWildcardFlows, long idleFlowToleranceInterval) {
         this.maxDpFlows = maxDpFlows;
         this.wildcardTables = wildcardTables;
         this.maxWildcardFlows = maxWildcardFlows;
@@ -74,17 +73,15 @@ public class FlowManager {
         this.flowManagerHelper = flowManagerHelper;
         if (dpFlowRemoveBatchSize > maxDpFlows)
             dpFlowRemoveBatchSize = 1;
-        this.log = LoggerFactory.getActorSystemThreadLog(
-            this.getClass(), loggingBus);
     }
 
-    public FlowManager(FlowManagerHelper flowManagerHelper,
+    public FlowManager(
+            FlowManagerHelper flowManagerHelper,
             WildcardTablesProvider wildcardTables,
             long maxDpFlows, long maxWildcardFlows, long idleFlowToleranceInterval,
-            LoggingBus loggingBus,
             int dpFlowRemoveBatchSize) {
-        this(flowManagerHelper, wildcardTables, maxDpFlows, maxWildcardFlows,idleFlowToleranceInterval,
-             loggingBus);
+        this(flowManagerHelper, wildcardTables, maxDpFlows, maxWildcardFlows,
+             idleFlowToleranceInterval);
         this.dpFlowRemoveBatchSize = dpFlowRemoveBatchSize;
     }
 
@@ -187,20 +184,15 @@ public class FlowManager {
                 // timeout queue ref
                 wildFlow.ref();
                 hardTimeOutQueue.add(wildFlow);
-                log.debug("Wildcard flow {} has hard time out set {}", wildFlow,
-                          wildFlow.getHardExpirationMillis());
             } else if (wildFlow.getIdleExpirationMillis() > 0){
                 // timeout queue ref
                 wildFlow.ref();
                 idleTimeOutQueue.add(wildFlow);
-                log.debug("Wildcard flow {} has idle time out set {}", wildFlow,
-                          wildFlow.getIdleExpirationMillis());
             }
-            log.debug("Added wildcard flow {}", wildFlow.getMatch());
             return true;
         }
-        log.warning("Can't add wildFlow, there is already a matching flow in " +
-                    "the table: {}", wildTable.get(wildFlow.wcmatch()));
+        log.warn("Can't add wildFlow, there is already a matching flow in " +
+                 "the table: {}", wildTable.get(wildFlow.wcmatch()));
         return false;
     }
 
@@ -225,7 +217,7 @@ public class FlowManager {
         dpFlowTable.put(match, wildFlow);
 
         log.debug("Added flow with match {} that matches wildcard flow {}",
-                  flow.getMatch(), wildFlow);
+                  flow.getMatch(), wildFlow.getMatch());
 
         if (wildFlow.getIdleExpirationMillis() > 0) {
             // TODO(pino): check with Rossella. Newly created flows will
@@ -234,7 +226,6 @@ public class FlowManager {
                 wildFlow.setLastUsedTimeMillis(System.currentTimeMillis());
             else if (flow.getLastUsedTime() > wildFlow.getLastUsedTimeMillis())
                 wildFlow.setLastUsedTimeMillis(flow.getLastUsedTime());
-            //log.trace("LastUsedTime updated for wildcard flow {}", wcFlow);
         }
 
         return true;
@@ -247,7 +238,7 @@ public class FlowManager {
      * @return true if the flow was alive, false otherwise
      */
     public boolean remove(ManagedWildcardFlow wildFlow) {
-        log.debug("remove(WildcardFlow wildFlow) - Removing flow {}", wildFlow.getMatch());
+        log.debug("Removing wildcard flow {}", wildFlow.getMatch());
 
         Set<FlowMatch> dpFlowsToRemove = wildFlow.dpFlows();
         int removed = 0;
@@ -311,7 +302,8 @@ public class FlowManager {
             if (timeLived >= flowToExpire.getHardExpirationMillis()) {
                 hardTimeOutQueue.poll();
                 flowManagerHelper.removeWildcardFlow(flowToExpire);
-                log.debug("Removing flow {} for hard expiration, expired {} ms ago", flowToExpire,
+                log.debug("Removing flow {} for hard expiration, expired {} ms ago",
+                          flowToExpire.getMatch(),
                           timeLived - flowToExpire.getHardExpirationMillis());
                 // timeout queue ref
                 flowToExpire.unref();
@@ -419,7 +411,7 @@ public class FlowManager {
         ManagedWildcardFlow wildcardFlow = dpFlowTable.remove(flowMatch);
         if (wildcardFlow != null) {
             wildcardFlow.dpFlows().remove(flowMatch);
-            log.warning("DP flow was lost, forgetting: {}", flowMatch);
+            log.warn("DP flow was lost, forgetting: {}", flowMatch);
         }
     }
 
@@ -494,7 +486,7 @@ public class FlowManager {
                 // update the lastUsedTime
                 if (flowGotFromKernel.getLastUsedTime() > wcFlow.getLastUsedTimeMillis()) {
                     wcFlow.setLastUsedTimeMillis(flowGotFromKernel.getLastUsedTime());
-                    log.debug("update lastUsedTime {}", flowGotFromKernel.getLastUsedTime());
+                    log.trace("update lastUsedTime {}", flowGotFromKernel.getLastUsedTime());
                 }
             }
 
@@ -514,7 +506,7 @@ public class FlowManager {
                     flowManagerHelper.removeWildcardFlow(wcFlow);
                     log.debug(
                         "Removing flow {} for idle expiration, expired {} ms ago",
-                        wcFlow,
+                        wcFlow.getMatch(),
                         System.currentTimeMillis() - (wcFlow.getLastUsedTimeMillis()
                             + wcFlow.getIdleExpirationMillis()));
                 }

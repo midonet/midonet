@@ -1,28 +1,28 @@
 /*
  * Copyright 2012 Midokura Europe SARL
  */
+
 import java.util.UUID
 import java.lang.{Short => JShort}
-
 import collection.mutable
-
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
 import akka.event.Logging
-
-import org.midonet.midolman.topology.BridgeManager.MacPortMapping
+import com.typesafe.scalalogging.Logger
 import org.scalatest.{FunSuite, Matchers}
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.topology.MacLearningManager
+import org.midonet.midolman.topology.BridgeManager.MacPortMapping
 import org.midonet.packets.MAC
 import org.midonet.util.functors.Callback3
 
 class TestMacLearningManager  extends FunSuite with Matchers {
     implicit val system = ActorSystem.create("TestMacLearningManager")
-    val log = Logging(system, getClass)
+    val log = Logger(LoggerFactory.getLogger(getClass))
     val mac1 = MAC.fromString("02:bb:aa:dd:dd:ee")
     val mac2 = MAC.fromString("02:ff:aa:bb:ee:dd")
     val mac3 = MAC.fromString("02:dd:aa:ff:ee:ee")

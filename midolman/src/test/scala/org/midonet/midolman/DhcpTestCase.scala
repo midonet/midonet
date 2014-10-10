@@ -78,7 +78,7 @@ class DhcpTestCase extends MidolmanTestCase
                     + "| egrep -o '((1?[0-9]{1,2}|2([0-5]){2})\\.?){4}'"
                     + "| sed -n 1p" )
         val sIp = Seq("sh", "-c", cmd).!!.trim
-        log.debug("looking for ip address with command {} yields {}", cmd, sIp)
+        log.debug(s"looking for ip address with command $cmd yields $sIp")
         sIp
     }
 
@@ -90,7 +90,7 @@ class DhcpTestCase extends MidolmanTestCase
                             + "| cut -c 5-" )
 
         val sMtu = Seq("sh", "-c", cmd).!!.trim
-        log.debug("Looking for MTU with command {} yields {}", cmd, sMtu)
+        log.debug(s"Looking for MTU with command $cmd yields $sMtu")
         sMtu
     }
 
@@ -288,7 +288,7 @@ class DhcpTestCase extends MidolmanTestCase
                         fail("DHCP option interface mtu value invalid length")
                     }
                     mtu = ByteBuffer.wrap(opt.getData).getShort
-                    log.info("extractInterfaceMtuDhcpReply got data {} and value {}", opt.getData, mtu)
+                    log.info(s"extractInterfaceMtuDhcpReply got data ${opt.getData} and value $mtu")
                 case b if (b == DHCPOption.Code.DNS.value) =>
                     var len : Int = (opt.getLength).toInt
                     var offset : Int = 0

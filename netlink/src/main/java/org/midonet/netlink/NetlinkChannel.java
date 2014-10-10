@@ -22,7 +22,7 @@ import org.midonet.netlink.hacks.IOUtil;
 public class NetlinkChannel extends UnixChannel<Netlink.Address> {
 
     private static final Logger log =
-        LoggerFactory.getLogger(NetlinkChannel.class);
+        LoggerFactory.getLogger("org.midonet.netlink.channel");
 
     /* Set the RCVBUF size to 2MB.
      *
@@ -68,8 +68,8 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
             log.error("SETSOCKOPT failed: {}",
                 cLibrary.lib.strerror(Native.getLastError()));
         } else {
-            log.info("Successfully set netlink channel RCVBUFF size to {}",
-                     RCVBUF_SIZE);
+            log.debug("Successfully set netlink channel RCVBUFF size to {}",
+                      RCVBUF_SIZE);
         }
 
         /* Set NETLINK_BROADCAST_ERROR to 1.

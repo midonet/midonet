@@ -49,7 +49,7 @@ object HealthMonitor extends Referenceable {
         } catch {
             case ioe: IOException => return false
         }
-        cmdLine = cmdLine.replace('\0', ' ')
+        cmdLine = cmdLine.replace('\u0000', ' ')
         if (!cmdLine.startsWith("haproxy "))
             return false
         if (!cmdLine.contains(pidFilePath))

@@ -10,13 +10,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import akka.event.LoggingBus;
 import scala.Option;
 import scala.collection.Map;
 
 import org.midonet.sdn.flows.WildcardMatch;
-import org.midonet.midolman.logging.LoggerFactory;
-import org.midonet.midolman.logging.SimulationAwareBusLogging;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
@@ -24,8 +21,6 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.sdn.flows.FlowTagger;
 
 public class Chain {
-    private SimulationAwareBusLogging log;
-
     public final UUID id;
     private final List<Rule> rules;
     private final Map<UUID, Chain> jumpTargets;
@@ -33,14 +28,12 @@ public class Chain {
     public final FlowTagger.FlowTag flowInvTag;
 
     public Chain(UUID id, List<Rule> rules, Map<UUID, Chain> jumpTargets,
-                 String name, LoggingBus loggingBus) {
+                 String name) {
         this.id = id;
         this.rules = new ArrayList<>(rules);
         this.jumpTargets = jumpTargets;
         this.name = name;
         flowInvTag = FlowTagger.tagForDevice(id);
-        log = LoggerFactory.getSimulationAwareLog(this.getClass(),
-                                                  loggingBus);
     }
 
     public int hashCode() {
@@ -76,17 +69,17 @@ public class Chain {
      *     Keeps track of chains that have been visited to prevent
      *     infinite recursion in the event of a cycle.
      */
-    private void apply(PacketContext pktCtx, UUID ownerId,
+    private void apply(PacketContext context, UUID ownerId,
                        boolean isPortFilter, RuleResult res,
                        int depth, List<UUID> traversedChains) {
 
-        log.debug("Processing chain with name {} and ID {}", name, id, pktCtx);
+        context.jlog().debug("Processing chain with name {} and ID {}", name, id);
         if (depth > 10) {
             throw new IllegalStateException("Deep recursion when processing " +
                                             "chain " + traversedChains.get(0));
         }
 
-        pktCtx.addFlowTag(flowInvTag);
+        context.addFlowTag(flowInvTag);
         traversedChains.add(id);
 
         Iterator<Rule> iter = rules.iterator();
@@ -94,23 +87,23 @@ public class Chain {
         while (iter.hasNext() && res.action == Action.CONTINUE) {
 
             Rule r = iter.next();
-            r.process(pktCtx, res, ownerId, isPortFilter);
+            r.process(context, res, ownerId, isPortFilter);
 
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);
                 if (null == jumpChain) {
-                    log.error("ignoring jump to chain {} -- not found.",
-                              res.jumpToChain, pktCtx);
+                    context.jlog().error("ignoring jump to chain {} : not found.",
+                                        res.jumpToChain, context);
                     res.action = Action.CONTINUE;
                 } else if (traversedChains.contains(jumpChain.id)) {
-                    log.warning("Chain.apply cannot jump from chain " +
-                                "{} to chain {} -- already visited",
-                                this, jumpChain, pktCtx);
+                    context.jlog().warn(
+                        "cannot jump from chain {} to chain {} -- already visited",
+                        this, jumpChain, context);
                     res.action = Action.CONTINUE;
                 } else {
                     // Apply the jump chain and return if it produces a
                     // decisive action. If not, on to the next rule.
-                    jumpChain.apply(pktCtx, ownerId, isPortFilter,
+                    jumpChain.apply(context, ownerId, isPortFilter,
                                     res, depth + 1, traversedChains);
                     if (res.action == Action.RETURN)
                         res.action = Action.CONTINUE;
@@ -124,7 +117,7 @@ public class Chain {
     /**
      * @param chain
      *            The chain where processing starts.
-     * @param pktCtx
+     * @param context
      *            The packet's PacketContext.
      * @param ownerId
      *            UUID of the element using chainId.
@@ -132,17 +125,17 @@ public class Chain {
      *            whether the chain is being processed in a port filter context
      */
     public static RuleResult apply(
-            Chain chain, PacketContext pktCtx,
+            Chain chain, PacketContext context,
             UUID ownerId, boolean isPortFilter) {
 
-        WildcardMatch pktMatch = pktCtx.wcmatch();
+        WildcardMatch pktMatch = context.wcmatch();
         if (null == chain) {
             return new RuleResult(Action.ACCEPT, null, pktMatch);
         }
 
-        if (chain.log.isDebugEnabled()) {
-            chain.log.debug("Testing {} against Chain:\n{}",
-                    pktMatch, chain.asTree(4), pktCtx);
+        if (context.jlog().isDebugEnabled()) {
+            context.jlog().debug("Testing {} against Chain:\n{}",
+                                pktMatch, chain.asList(4, false), context);
         }
 
         // Use ArrayList rather than HashSet because the list will be
@@ -154,7 +147,7 @@ public class Chain {
         // determine how big a list to allocate.
         List<UUID> traversedChains = new ArrayList<>();
         RuleResult res = new RuleResult(Action.CONTINUE, null, pktMatch);
-        chain.apply(pktCtx, ownerId, isPortFilter, res, 0, traversedChains);
+        chain.apply(context, ownerId, isPortFilter, res, 0, traversedChains);
 
         // Accept if the chain didn't make an explicit decision.
         if (!res.action.isDecisive())
@@ -163,8 +156,8 @@ public class Chain {
         if (traversedChains.size() > 25) {
             // It's unlikely that this will come up a lot, but if it does,
             // consider using a different structure for traversedChains.
-            chain.log.warning("Traversed {} chains when applying chain {}.",
-                              traversedChains.size(), chain.id, pktCtx);
+            context.jlog().warn("Traversed {} chains when applying chain {}.",
+                               traversedChains.size(), chain.id, context);
         }
 
         return res;
@@ -181,6 +174,10 @@ public class Chain {
      * @param indent Number of spaces to indent.
      */
     public String asTree(int indent) {
+        return asList(indent, true);
+    }
+
+    public String asList(int indent, boolean recursive) {
         char[] indentBuf = new char[indent];
         Arrays.fill(indentBuf, ' ');
         StringBuilder bld = new StringBuilder();
@@ -191,7 +188,7 @@ public class Chain {
         for (Rule rule : rules) {
             bld.append(indentBuf).append("    ");
             bld.append(rule).append('\n');
-            if (rule instanceof JumpRule) {
+            if (recursive && rule instanceof JumpRule) {
                 JumpRule jr = (JumpRule)rule;
                 Chain jumpTarget = jumpTargets.get(jr.jumpToChainID).get();
                 bld.append(jumpTarget.asTree(indent + 8));

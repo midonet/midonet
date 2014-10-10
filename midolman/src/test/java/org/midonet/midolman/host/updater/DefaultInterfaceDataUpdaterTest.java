@@ -97,8 +97,8 @@ public class DefaultInterfaceDataUpdaterTest {
             new ClusterClientModule(),
             new MockMidolmanModule(),
             new TestableMidolmanActorsModule(
-                JavaConversions.asScalaMap(new HashMap<String, TestKit>()),
-                JavaConversions.asScalaMap(new HashMap<String, TestActorRef<Actor>>()),
+                JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
+                JavaConversions.mapAsScalaMap(new HashMap<String, TestActorRef<Actor>>()),
                 Clock.defaultClock()),
             new ResourceProtectionModule(),
             new InterfaceScannerModule());

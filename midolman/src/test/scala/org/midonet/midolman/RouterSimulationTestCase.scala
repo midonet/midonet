@@ -12,11 +12,13 @@ import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 
 import akka.util.Timeout
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.data.{Ports, Router => ClusterRouter}
 import org.midonet.cluster.data.host.Host
@@ -187,7 +189,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
         @tailrec
         def matchAllResults(resultPool: List[String]) {
-            val rt = rb.lookup(wmatch)
+            val rt = rb.lookup(wmatch, Logger(NOPLogger.NOP_LOGGER))
             rt should not be null
             val gw = rt.getNextHopGateway
             gw should not be null

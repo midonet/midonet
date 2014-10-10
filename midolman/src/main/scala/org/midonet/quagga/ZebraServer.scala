@@ -52,6 +52,8 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
     var lastRequestId = 0
     val server = makeServer
 
+    override def logSource = s"org.midonet.routing.bgp.zebra-server-$ifName"
+
     val zebraConnections = mutable.Set[ActorRef]()
     val zebraConnMap = mutable.Map[ActorRef, ByteChannel]()
 
@@ -95,7 +97,7 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
     }
 
     override def postStop() {
-        log.info("Stopping zebra server with {} connections", zebraConnections.size)
+        log.info(s"Stopping zebra server with ${zebraConnections.size} connections")
         selectLoop.unregister(server, SelectionKey.OP_ACCEPT | SelectionKey.OP_READ)
         server.close()
         for ((actor, sock) <- zebraConnMap) {
@@ -109,7 +111,7 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
     }
 
     private def addZebraConn(requestId: Int, channel: ByteChannel): ActorRef = {
-        log.debug("creating a ZebraConnection for id: {}", requestId)
+        log.debug(s"creating a ZebraConnection for id: $requestId")
 
         val connName = "zebra-conn-" + ifName + "-" + requestId
         val zebraConn = context.actorOf(
@@ -125,16 +127,16 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
     override def receive = LoggingReceive {
         case SpawnConnection(channel) =>
             lastRequestId += 1
-            log.debug("new client with id {}", lastRequestId)
+            log.debug(s"new client with id $lastRequestId")
             val zebraConn = addZebraConn(lastRequestId, channel)
             zebraConn ! ProcessMessage
 
         case ConnectionClosed(requestId) =>
-            log.debug("client with id {} disconnected", requestId)
+            log.debug(s"client with id $requestId disconnected")
             zebraConnections -= sender
             zebraConnMap -= sender
             context.system.stop(sender)
 
-        case m => log.error("Unknown message received - {}", m)
+        case m: AnyRef => log.error("Unknown message received - {}", m)
     }
 }

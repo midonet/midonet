@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.tailrec
 import scala.concurrent.duration.Duration
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.util.PaddedAtomicInteger
 import org.midonet.util.collection.Reducer
@@ -69,7 +69,7 @@ import org.midonet.util.collection.Reducer
  *            removing the key from the map. Only afterwards can a ref() succeed,
  *            guaranteeing the happens-before relationship described above.
  */
-final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
+final class TimedExpirationMap[K <: AnyRef, V >: Null](log: Logger,
                                              expirationFor: K => Duration) {
 
     case class Metadata(var value: V, refCount: AtomicInteger, var expiration: Long)
@@ -109,7 +109,7 @@ final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
         val metadata = Metadata(v, new PaddedAtomicInteger(1), Long.MaxValue)
         val old = refCountMap.putIfAbsent(key, metadata)
         if (old eq null)
-            log.debug("Incrementing reference count of {} to 1", key)
+            log.debug(s"Incrementing reference count of $key to 1")
         old
     }
 
@@ -171,9 +171,9 @@ final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
                 if (newCount == -1) {
                     null
                 } else {
-                    log.debug("Incrementing ref count of {} to {}", key, newCount)
+                    log.debug(s"Incrementing ref count of $key to $newCount")
                     if (newCount == 1)
-                        log.debug("Unscheduling removal of {}", key)
+                        log.debug(s"Unscheduling removal of $key")
                     oldValue
                 }
 
@@ -193,20 +193,20 @@ final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
                 null
 
             case m@Metadata(value, count, _) if count.get <= 0 =>
-                log.error("Decrement a ref count past {} for {}", count.get, key)
+                log.error(s"Decrement a ref count past 0 for $key")
                 value
 
             case m@Metadata(value, count, _) =>
                 val newVal = count.decrementAndGet()
-                log.debug("Decrementing reference count of {} to {}", key, newVal)
+                log.debug(s"Decrementing reference count of $key to $newVal")
 
                 if (newVal == 0) {
-                    log.debug("Scheduling removal of {} ", key)
+                    log.debug(s"Scheduling removal of $key")
                     val expiration = expirationFor(key).toMillis
                     m.expiration = currentTimeMillis + expiration
                     expiring.offer((key, m.expiration))
                 } else if (newVal < 0) {
-                    log.error("Decrement a ref count past {} for {}", count.get, key)
+                    log.warn(s"Decrement a ref count past 0 for $key")
                     count.incrementAndGet()
                 }
 
@@ -230,8 +230,6 @@ final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
 
     def obliterateIdleEntries[U](currentTimeMillis: Long, seed: U,
                                  reducer: Reducer[K, V, U]): U = {
-        log.debug("Found expiring={}, currentTime={}", expiring, currentTimeMillis)
-
         var acc = seed
         while (true) {
             val pair = expiring.peek()
@@ -244,7 +242,7 @@ final class TimedExpirationMap[K, V >: Null](log: LoggingAdapter,
                 metadata.expiration <= currentTimeMillis &&
                 metadata.refCount.compareAndSet(0, -1)) {
 
-                log.debug("Forgetting entry {} ", pair._1)
+                log.debug(s"Forgetting entry ${pair._1}")
                 /* The following operations are precisely ordered as explained
                  * in the header. */
                 acc = reducer(acc, pair._1, metadata.value)

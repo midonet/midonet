@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import java.util.UUID
 import scala.concurrent.duration._
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
@@ -67,7 +67,7 @@ object BridgeManager {
  * the required happens-before relationship because all zookeeper requests
  * are served by a single threaded reactor.
  */
-class MacLearningManager(log: LoggingAdapter, ttlMillis: Duration) {
+class MacLearningManager(log: Logger, ttlMillis: Duration) {
 
     val map = new TimedExpirationMap[BridgeManager.MacPortMapping, AnyRef](log, _ => ttlMillis)
 
@@ -81,7 +81,7 @@ class MacLearningManager(log: LoggingAdapter, ttlMillis: Duration) {
     private def vlanMacTableOperation(vlanId: JShort, fun: MacLearningTable => Unit) {
         vlanMacTableMap.get(vlanId) match {
             case Some(macLearningTable) => fun(macLearningTable)
-            case None => log.error("Mac learning table not found for VLAN {}", vlanId)
+            case None => log.warn(s"Mac learning table not found for VLAN $vlanId")
         }
     }
 
@@ -101,6 +101,8 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                     val config: MidolmanConfig) extends DeviceWithChains {
     import BridgeManager._
     import context.system
+
+    override def logSource = s"org.midonet.devices.bridge.bridge-$id"
 
     protected var cfg: BridgeConfig = null
     private var changed = false
@@ -122,7 +124,6 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private var vlanToPort: VlanPortMap = null
 
     def topologyReady() {
-        log.debug("Sending a Bridge to the VTA")
         val bridge = new Bridge(id, cfg.adminStateUp, cfg.tunnelKey,
             learningMgr.vlanMacTableMap,
             if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,

@@ -12,9 +12,10 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.logging.LoggerFactory
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
@@ -25,6 +26,15 @@ import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.functors.Callback0
 
+object PacketContext {
+    val defaultLog =
+        Logger(LoggerFactory.getLogger("org.midonet.packets.default.packet-processor"))
+    val debugLog =
+        Logger(LoggerFactory.getLogger("org.midonet.packets.debug.packet-processor"))
+    val traceLog =
+        Logger(LoggerFactory.getLogger("org.midonet.packets.trace.packet-processor"))
+}
+
 /**
  * The PacketContext represents the simulation of a packet traversing the
  * virtual topology. Since a simulation runs-to-completion, always in the
@@ -32,15 +42,15 @@ import org.midonet.util.functors.Callback0
  * used to pass state between different simulation stages, or between virtual
  * devices.
  */
-/* TODO(Diyari release): Move inPortID & outPortID out of PacketContext. */
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val expiry: Long,
                     val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem) {
-    private val log =
-        LoggerFactory.getActorSystemThreadLog(this.getClass)(actorSystem.eventStream)
+    var log = PacketContext.defaultLog
+
+    def jlog = log.underlying
 
     val state = new StateContext(this, log)
     var portGroups: JSet[UUID] = null
@@ -95,8 +105,8 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     def flowCookie = cookieOrEgressPort.left.toOption
 
-    val cookieStr = (if (isGenerated) "[genPkt:" else "[cookie:") +
-                 flowCookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
+    def cookieStr = (if (isGenerated) "[genPkt:" else "[cookie:") +
+                    flowCookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
 
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.

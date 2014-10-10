@@ -64,6 +64,8 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
 
     implicit val as = context.system
 
+    override def logSource = "org.midonet.netlink.callbacks"
+
     @Inject
     var datapathConnPool: DatapathConnectionPool = null
 
@@ -81,7 +83,7 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
             try {
                 batch(i).run()
             } catch {
-                case e: Throwable => log.error(e, "Callback failed")
+                case e: Throwable => log.warn("Callback failed", e)
             }
             i += 1
         }
@@ -92,11 +94,9 @@ class NetlinkCallbackDispatcher extends Actor with ActorLogWithoutPath {
             log.debug("Received an empty callback batch")
 
         case ProcessCallbacks(List(head)) =>
-            log.debug("Processing 1 netlink callback batch")
             runBatch(head)
 
         case ProcessCallbacks(head :: tail) =>
-            log.debug("Processing {} netlink callback batches", tail.size + 1)
             tail foreach { batch =>
                 context.dispatcher.execute(new Runnable() {
                     override def run() { runBatch(batch) }

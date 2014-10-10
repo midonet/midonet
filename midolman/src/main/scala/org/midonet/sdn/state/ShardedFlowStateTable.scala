@@ -6,11 +6,12 @@ package org.midonet.sdn.state
 
 import java.util.ArrayList
 
-import akka.event.{NoLogging, LoggingAdapter}
+import com.typesafe.scalalogging.Logger
 import com.yammer.metrics.core.Clock
 
 import org.midonet.util.concurrent.TimedExpirationMap
 import org.midonet.util.collection.Reducer
+import org.slf4j.LoggerFactory
 
 object ShardedFlowStateTable {
     def create[K <: IdleExpiration, V >: Null](): ShardedFlowStateTable[K, V] =
@@ -46,8 +47,10 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
     private val shards = new ArrayList[FlowStateShard]()
     private val SHARD_NONE: Int = -1
 
+    private val defaultLogger =
+        Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
-    def addShard(log: LoggingAdapter = NoLogging) = {
+    def addShard(log: Logger = defaultLogger) = {
         val s: FlowStateShard = new FlowStateShard(shards.size, log)
         shards.add(s)
         s
@@ -150,7 +153,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
      * It stores entries locally but forwards queries to the parent table for
      * aggregation. Reference counting is also delegated on the parent.
      */
-    class FlowStateShard(workerId: Int, log: LoggingAdapter) extends FlowStateTable[K, V] {
+    class FlowStateShard(workerId: Int, log: Logger) extends FlowStateTable[K, V] {
         private val map = new TimedExpirationMap[K, V](log, _.expiresAfter)
 
         override def putAndRef(key: K, value: V): V =

@@ -6,12 +6,13 @@ package org.midonet.sdn.state;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.helpers.NOPLogger;
+import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.util.MockClock;
 import org.midonet.util.collection.Reducer;
@@ -68,8 +69,10 @@ public class FlowStateTableTest {
     @SuppressWarnings("unchecked")
     public void before() {
         global = new ShardedFlowStateTable<>(clock);
-        for (int i = 0; i < SHARDS; i++)
-            shards.add((FlowStateTable) global.addShard(akka.event.NoLogging.getInstance()));
+        for (int i = 0; i < SHARDS; i++) {
+            shards.add((FlowStateTable)
+                    global.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER)));
+        }
     }
 
     @Test

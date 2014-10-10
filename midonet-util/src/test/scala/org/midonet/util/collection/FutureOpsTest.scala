@@ -8,7 +8,7 @@ import java.util.concurrent.Semaphore
 import scala.concurrent._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
-import scala.util.Failure
+import scala.util.{Try, Failure}
 
 import org.scalatest.{Matchers, FeatureSpec}
 import org.junit.runner.RunWith
@@ -68,10 +68,10 @@ class FutureOpsTest extends FeatureSpec with Matchers {
         scenario("The result of the future is reflected in continue") {
             val sem = new Semaphore(0)
             val f1 = future { sem.acquire(); throw new Exception with TestError }
-            val f2 = f1 continue {
+            val f2 = f1 continue { t: Try[_] => t match {
                 case Failure(t: Exception with TestError) =>
                 case _ => fail()
-            }
+            }}
 
             intercept[TimeoutException] {
                 Await.result(f2, 500 millis)

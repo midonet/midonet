@@ -18,4 +18,5 @@ public interface ArpCache {
     void remove(IPv4Addr ipAddr);
     void notify(Callback3<IPv4Addr, MAC, MAC> cb);
     void unsubscribe(Callback3<IPv4Addr, MAC, MAC> cb);
+    java.util.UUID getRouterId();
 }

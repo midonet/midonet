@@ -6,7 +6,7 @@ package org.midonet.midolman.state
 
 import scala.concurrent.duration._
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
@@ -30,7 +30,7 @@ trait FlowState {
      */
     val pktCtx: PacketContext
 
-    val log: LoggingAdapter
+    val log: Logger
 
     /**
      * Eventually reset any state associated with this instance for

@@ -6,11 +6,12 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.JavaConversions.asJavaCollection
 
-import akka.event.LoggingAdapter
+import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.ShouldMatchers
+import org.slf4j.helpers.NOPLogger
 
 import org.midonet.midolman.VirtualPortManager.Controller
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -21,6 +22,8 @@ import org.midonet.odp.ports._
 class VirtualPortManagerTest extends FeatureSpec with Matchers {
 
     import VirtualPortManager.Controller
+
+    implicit val logger = Logger(NOPLogger.NOP_LOGGER)
 
     class MockController extends Controller {
         var vportStatus = List[(NetDevPort, UUID, Boolean)]()
@@ -96,8 +99,6 @@ class VirtualPortManagerTest extends FeatureSpec with Matchers {
         vpm.dpPortsInProgress.contains(itf) should be(progress)
         vpm.dpPortsWeAdded.contains(itf) should be(weAdded)
     }
-
-    implicit val log = SoloLogger(classOf[VirtualPortManagerTest])
 
     feature("smoke test") {
         scenario("does nothing when created") {

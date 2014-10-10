@@ -4,14 +4,14 @@
 
 package org.midonet.midolman.state
 
+import java.lang.{Long => JLong}
 import java.util.UUID
 import java.util.concurrent.{TimeoutException, ThreadLocalRandom, ConcurrentHashMap}
 
 import scala.concurrent.{Promise, Future}
 import scala.concurrent.duration._
 
-import akka.event.LoggingAdapter
-
+import com.typesafe.scalalogging.Logger
 import com.yammer.metrics.core.Clock
 
 import org.midonet.midolman.NotYetException
@@ -45,13 +45,13 @@ object NatLeaser {
      * of the ports in the block.
      */
     sealed class LeasedBlock(val block: NatBlock) {
-        val leasedPorts = new Array[ConcurrentHashMap[Long, AnyRef]](BLOCK_SIZE)
+        val leasedPorts = new Array[ConcurrentHashMap[JLong, AnyRef]](BLOCK_SIZE)
         var portIndex = ThreadLocalRandom.current().nextLong()
 
         {
             var i = 0
             while (i < BLOCK_SIZE) {
-                leasedPorts(i) = new ConcurrentHashMap[Long, AnyRef]
+                leasedPorts(i) = new ConcurrentHashMap[JLong, AnyRef]
                 i += 1
             }
         }
@@ -64,10 +64,10 @@ object NatLeaser {
      * of 64.
      */
     object LeasedBlocks {
-        def apply(log: LoggingAdapter): LeasedBlocks =
-            new TimedExpirationMap[Long, LeasedBlock](log, _ => BLOCK_EXPIRATION)
+        def apply(log: Logger): LeasedBlocks =
+            new TimedExpirationMap[JLong, LeasedBlock](log, _ => BLOCK_EXPIRATION)
     }
-    type LeasedBlocks = TimedExpirationMap[Long, LeasedBlock]
+    type LeasedBlocks = TimedExpirationMap[JLong, LeasedBlock]
 
     /**
      * This type is a map a NatTarget IP addresses to leased port blocks of
@@ -94,7 +94,7 @@ object NatLeaser {
 trait NatLeaser {
     import NatLeaser._
 
-    val log: LoggingAdapter
+    val log: Logger
     val allocator: NatBlockAllocator
     val clock: Clock
     private val deviceLeases = new DeviceLeases
@@ -148,8 +148,8 @@ trait NatLeaser {
         leasedBlock.leasedPorts(portOffset).remove(uniquefier)
     }
 
-    val blockObliterator = new Reducer[Long, LeasedBlock, NatBlockAllocator]() {
-        override def apply(acc: NatBlockAllocator, key: Long,
+    val blockObliterator = new Reducer[JLong, LeasedBlock, NatBlockAllocator]() {
+        override def apply(acc: NatBlockAllocator, key: JLong,
                            value: LeasedBlock): NatBlockAllocator = {
             val block = value.block
             log.debug("Releasing NAT block {}", block)
