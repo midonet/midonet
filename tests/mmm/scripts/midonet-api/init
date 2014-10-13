@@ -11,6 +11,11 @@ else
         -i /usr/share/midonet-api/WEB-INF/web.xml
 fi
 
+if ! grep -q "zookeeper-curator_enabled" /usr/share/midonet-api/WEB-INF/web.xml; then
+    sed "s/<param-name>zookeeper-zookeeper_hosts<\/param-name>/<param-name>zookeeper-curator_enabled<\/param-name>\n    <param-value>true<\/param-value>\n  <\/context-param>\n  <context-param>\n    <param-name>zookeeper-zookeeper_hosts<\/param-name>/" \
+        -i /usr/share/midonet-api/WEB-INF/web.xml
+fi
+
 sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
 
 # Copy the configuration file template for Tomcat7
@@ -18,6 +23,6 @@ sudo cp ../../../../midonet-api/conf/midonet-api.xml \
     /etc/tomcat7/Catalina/localhost/midonet-api.xml
 
 # Add a workaround for tomcat7 to start slowly: MN-2723
-if ! grep -q 'java.security.egd' /etc/default/tomcat7; then  
+if ! grep -q 'java.security.egd' /etc/default/tomcat7; then
   echo 'JAVA_OPTS="$JAVA_OPTS -Djava.security.egd=file:/dev/./urandom"' >> /etc/default/tomcat7
 fi
