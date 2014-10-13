@@ -41,7 +41,7 @@ class ChainTest extends Suite
         pktMatch.setEthernetDestination("01:02:03:04:05:06")
         pktMatch.setNetworkDestination(IPAddr.fromString("1.2.3.4"))
 
-        pktCtx = new PacketContext(Left(1), null, 0, None, pktMatch)
+        pktCtx = new PacketContext(Left(1), null, None, pktMatch)
     }
 
     def testNullChain() {

@@ -33,8 +33,7 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory,
-                                   ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.util.concurrent._
 import org.midonet.sdn.flows.FlowTagger
@@ -67,7 +66,7 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     val log = LoggerFactory.getLogger(classOf[VirtualToPhysicalMapper])
 
-    val timeout = 2000L
+    implicit val timeout: Timeout = 2000 millis
 
     override val Name = "VirtualToPhysicalMapper"
 
@@ -107,54 +106,48 @@ object VirtualToPhysicalMapper extends Referenceable {
         )
     }
 
+    @throws(classOf[NotYetException])
+    def tryAsk[D](req: VTPMRequest[D])
+                 (implicit system: ActorSystem): D = {
+        req.getCached match {
+            case Some(d) => d
+            case None =>
+                throw NotYetException(makeRequest(req), "Device not found in cache")
+        }
+    }
+
     /**
      * Looks for the port set id associated to that tunnel key, then does a
      * request of that port set. If the id search misses, it'll send a msg to
      * the VTPM actor and compose the future to provide the final port set.
      */
-    def expiringAsk(req: PortSetForTunnelKeyRequest)
-                   (implicit system: ActorSystem): Urgent[rcu.PortSet] = {
-        log.debug("Expiring ask for port set {}", req)
-        DeviceCaches.portSetId(req.tunnelKey) match {
+    @throws(classOf[NotYetException])
+    def tryGetPortSetForTunnelKey(tunnelKey: Long)
+                                 (implicit system: ActorSystem): rcu.PortSet = {
+        DeviceCaches.portSetId(tunnelKey) match {
             case Some(id) =>
-                expiringAsk[rcu.PortSet](new PortSetRequest(id, update = false))
+                tryAsk[rcu.PortSet](new PortSetRequest(id))
             case None =>
-                log.debug("PortSet for tunnel key {} not local", req.tunnelKey)
-                implicit val ec = ExecutionContext.callingThread
-                val f = VirtualToPhysicalMapper
-                    .ask(req)(timeout milliseconds)
+                val f = (VirtualToPhysicalMapper ? new PortSetForTunnelKeyRequest(tunnelKey))
                     .mapTo[UUID]
                     .flatMap { id =>
-                        val psReq = new PortSetRequest(id, update = false)
-                        VirtualToPhysicalMapper.ask(psReq)(timeout milliseconds)
-                    }
-                    .mapTo[rcu.PortSet]
-                NotYet(f)
+                        makeRequest(new PortSetRequest(id))
+                     }(ExecutionContext.callingThread)
+                throw NotYetException(f, s"PortSet for tunnel key $tunnelKey not local")
         }
     }
 
-    @throws(classOf[NotYetException])
-    def tryAsk[D](req: VTPMRequest[D])
-                 (implicit system: ActorSystem): D = {
-        log.debug("Expiring ask for device {}", req)
-        req.getCached match {
-            case Some(d) => d
-            case None =>
-                log.debug("Device {} not cached, requesting..", req)
-                throw NotYetException(
-                    VirtualToPhysicalMapper.ask(req)(timeout milliseconds)
-                        .mapTo[D](req.tag)
-                        .andThen {
-                        case Failure(ex: ClassCastException) =>
-                            log.error("Returning wrong type for request of " +
-                                req.tag.runtimeClass.getSimpleName, ex)
-                        case Failure(ex) =>
-                            log.error("Failed to get: " +
-                                req.tag.runtimeClass.getSimpleName, ex)
-                    }(ExecutionContext.callingThread),
-                    "Device not found in cache")
-        }
-    }
+    private def makeRequest[D](req: VTPMRequest[D])
+                              (implicit system: ActorSystem): Future[D] =
+        (VirtualToPhysicalMapper ? req).mapTo[D](req.tag).andThen {
+                case Failure(ex: ClassCastException) =>
+                    log.error("Returning wrong type for request of " +
+                              req.tag.runtimeClass.getSimpleName, ex)
+                case Failure(ex) =>
+                    log.error("Failed to get: " +
+                              req.tag.runtimeClass.getSimpleName, ex)
+        }(ExecutionContext.callingThread)
+
 
     /**
      * Performs a lookup in the local cache trying to find the requested device

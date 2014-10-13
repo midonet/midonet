@@ -4,7 +4,6 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
-import scala.compat.Platform
 import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
 
@@ -17,18 +16,17 @@ import org.scalatest.Assertions
 
 import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
-import org.midonet.midolman.{NotYetException, NotYet, Ready}
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.simulation.Coordinator.{Device, Action}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.state.NatState.NatKey
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.odp.Packet
-import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction, ShardedFlowStateTable}
+import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
@@ -37,6 +35,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import scala.util.{Failure, Success, Try}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
+import scala.reflect.ClassTag
 
 trait VirtualTopologyHelper {
 
@@ -44,6 +43,14 @@ trait VirtualTopologyHelper {
     implicit def executionContext: ExecutionContext
 
     private implicit val timeout: Timeout = 3 seconds
+
+    def force[T](block: => T)(implicit tag: ClassTag[T]): T =
+        try {
+            block
+        } catch { case NotYetException(f, _) =>
+            Await.result(f, 3 seconds)
+            force(block)
+        }
 
     def fetchDevice[T](device: Entity.Base[_,_,_]) =
         Await.result(
@@ -66,7 +73,6 @@ trait VirtualTopologyHelper {
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
         val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
-                                        Platform.currentTime + 3000,
                                         None, WildcardMatch.fromEthernetPacket(frame))
         context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
@@ -81,23 +87,12 @@ trait VirtualTopologyHelper {
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (PacketContext, Action) = {
-        var triesLeft = 64
-        do {
-            triesLeft -= 1
-            val ctx = packetContextFor(frame, inPort)
-            Try(device.process(ctx)) match {
-                case Success(Ready(action)) =>
-                    return (ctx, action)
-                case Success(NotYet(f)) =>
-                    Await.result(f, 1 second)
-                case Failure(NotYetException(f, _)) =>
-                    Await.result(f, 1 second)
-                case Failure(e) => throw e
-            }
+        val ctx = packetContextFor(frame, inPort)
+        force {
             flushTransactions(conntrackTx, natTx)
             ctx.state.clear()
-        } while (triesLeft > 0)
-        Assertions.fail("Failed to complete simulation")
+            (ctx, device.process(ctx))
+        }
     }
 
     def sendPacket(t: (Port[_,_], Ethernet))
@@ -115,25 +110,15 @@ trait VirtualTopologyHelper {
                           natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (SimulationResult, PacketContext) = {
         pktCtx.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
-        def await(f: Future[_]) = {
-            Await.result(f, 3 seconds)
+        val r = force {
             flushTransactions(conntrackTx, natTx)
             pktCtx.state.clear()
-            simulate(pktCtx)
+            new Coordinator(pktCtx) simulate()
         }
-        Try(new Coordinator(pktCtx) simulate()) match {
-            case Success(Ready(r)) =>
-                commitTransactions(conntrackTx, natTx)
-                flushTransactions(conntrackTx, natTx)
-                pktCtx.state.clear()
-                (r, pktCtx)
-            case Success(NotYet(f)) =>
-                await(f)
-            case Failure(NotYetException(f, _)) =>
-                await(f)
-            case Failure(e) =>
-                throw e
-        }
+        commitTransactions(conntrackTx, natTx)
+        flushTransactions(conntrackTx, natTx)
+        pktCtx.state.clear()
+        (r, pktCtx)
     }
 
     def commitTransactions(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],

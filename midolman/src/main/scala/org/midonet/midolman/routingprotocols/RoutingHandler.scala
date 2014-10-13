@@ -7,35 +7,34 @@ import java.io.File
 import java.util.{ArrayList, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.util.{Failure, Success}
 
-import akka.actor.{Stash, Actor, ActorSystem, ActorRef}
-import akka.event.LogSource
+import akka.actor.{Stash, Actor, ActorRef}
 
 import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.{NotYet, Ready, FlowTranslator, DatapathState, DatapathController, FlowController}
+import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman._
 import org.midonet.netlink.AfUnix
+import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.util.eventloop.SelectLoop
-import org.midonet.util.process.ProcessHelper
-import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.util.functors.Callback0
-import scala.util.{Failure, Success}
-import org.midonet.odp.flows.FlowAction
-import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.util.process.ProcessHelper
 
 object RoutingHandler {
 
@@ -866,22 +865,23 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         def addVirtualWildcardFlow(wcMatch: WildcardMatch,
                                    actions: List[FlowAction]): Unit = {
-            val pktCtx = new PacketContext(Left(-1), null, 0L, None, wcMatch)
+            val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
             pktCtx.addFlowTag(FlowTagger.tagForBgp(bgp.getId))
             pktCtx.inputPort = wcMatch.getInputPortUUID
-            translateActions(pktCtx, actions) match {
-                case Ready(translatedActions) =>
-                    val flow = WildcardFlow(wcMatch, translatedActions.toList)
-                    log.debug("({}) Installing: {}", phase, flow)
-                    FlowController ! AddWildcardFlow(flow, null,
-                                                     new ArrayList[Callback0],
-                                                     pktCtx.flowTags)
-                case NotYet(f) => f onComplete {
+            try {
+                val translated = translateActions(pktCtx, actions)
+                val flow = WildcardFlow(wcMatch, translated.toList)
+                log.debug("({}) Installing: {}", phase, flow)
+                FlowController ! AddWildcardFlow(flow, null,
+                                                 new ArrayList[Callback0],
+                                                 pktCtx.flowTags)
+            } catch { case NotYetException(f, _) =>
+                f.onComplete {
                     case Success(_) =>
                         addVirtualWildcardFlow(wcMatch, actions) // Thread-safe
                     case Failure(ex) =>
                         log.error(s"({$phase}) AddVirtualWildcardFlow failed to complete", ex)
-                }
+                    }
             }
         }
 

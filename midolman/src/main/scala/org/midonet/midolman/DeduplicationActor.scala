@@ -7,12 +7,10 @@ package org.midonet.midolman
 import java.util.UUID
 import java.util.{HashMap => JHashMap, List => JList}
 import scala.collection.mutable
-import scala.compat.Platform
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-import org.apache.commons.lang.exception.ExceptionUtils
 import akka.actor._
 import akka.event.LoggingReceive
 import com.typesafe.scalalogging.Logger
@@ -268,8 +266,7 @@ class DeduplicationActor(
             packet.generateFlowKeysFromPayload()
         val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
 
-        val expiry = Platform.currentTime + simulationExpireMillis
-        val pktCtx = new PacketContext(cookieOrEgressPort, packet, expiry,
+        val pktCtx = new PacketContext(cookieOrEgressPort, packet,
                                        parentCookie, wcMatch)
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
 
@@ -287,7 +284,6 @@ class DeduplicationActor(
      * a NotYet on the way.
      */
     private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
-        log.debug("Packet postponed")
         pktCtx.postpone()
         f.onComplete {
             case Success(_) =>
@@ -403,12 +399,11 @@ class DeduplicationActor(
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
         try {
-            workflow.start(pktCtx) match {
-                case Ready(path) => complete(pktCtx, path)
-                case NotYet(f) => postponeOn(pktCtx, f)
-            }
+            complete(pktCtx, workflow.start(pktCtx))
         } catch {
-            case NotYetException(f, _) => postponeOn(pktCtx, f)
+            case NotYetException(f, msg) =>
+                log.debug(s"Postponing simulation because: $msg")
+                postponeOn(pktCtx, f)
             case org.midonet.midolman.simulation.FixPortSets => drop(pktCtx)
             case ex: Exception => handleErrorOn(pktCtx, ex)
         } finally {

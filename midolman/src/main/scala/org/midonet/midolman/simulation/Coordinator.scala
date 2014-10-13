@@ -8,10 +8,9 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import akka.actor.ActorSystem
-import scala.concurrent.ExecutionContext
 
 import org.midonet.cluster.client._
-import org.midonet.midolman.{NotYet, Ready, Urgent, PacketsEntryPoint}
+import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
@@ -78,8 +77,7 @@ object Coordinator {
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
-        def process(pktContext: PacketContext)
-                   (implicit ec: ExecutionContext): Urgent[Action]
+        def process(pktContext: PacketContext): Action
     }
 }
 
@@ -87,8 +85,7 @@ object Coordinator {
  * Coordinator object to simulate one packet traversing the virtual network.
  */
 class Coordinator(context: PacketContext)
-                 (implicit val ec: ExecutionContext,
-                           val actorSystem: ActorSystem) {
+                 (implicit val actorSystem: ActorSystem) {
 
     import Coordinator._
 
@@ -128,7 +125,7 @@ class Coordinator(context: PacketContext)
      *
      * The resulting future is never in a failed state.
      */
-    def simulate(): Urgent[SimulationResult] = {
+    def simulate(): SimulationResult = {
         log.debug("Simulating a packet")
         context.cookieOrEgressPort match {
             case Left(_) => // This is a packet from the datapath
@@ -139,18 +136,18 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def packetIngressesDevice(port: Port)
-    : Urgent[SimulationResult] =
-        (port match {
-            case _: BridgePort => expiringAsk[Bridge](port.deviceID, log, context.expiry)
-            case _: VxLanPort => expiringAsk[Bridge](port.deviceID, log, context.expiry)
-            case _: RouterPort => expiringAsk[Router](port.deviceID, log, context.expiry)
-        }) flatMap { case deviceReply =>
-            numDevicesSimulated += 1
-            log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceID}")
-            context.traceMessage(port.deviceID, "Entering device")
-            deviceReply.process(context) flatMap { handleAction }
+    private def packetIngressesDevice(port: Port): SimulationResult = {
+        val device = port match {
+            case _: BridgePort => tryAsk[Bridge](port.deviceID)
+            case _: VxLanPort => tryAsk[Bridge](port.deviceID)
+            case _: RouterPort => tryAsk[Router](port.deviceID)
         }
+        numDevicesSimulated += 1
+        log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceID}")
+        context.traceMessage(port.deviceID, "Entering device")
+        handleAction(device.process(context))
+    }
+
 
     private def mergeSimulationResults(first: SimulationResult,
                                        second: SimulationResult)
@@ -177,7 +174,7 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def handleAction(action: Action): Urgent[SimulationResult] = {
+    private def handleAction(action: Action): SimulationResult = {
         log.debug("Received action: {}", action)
         action match {
             case DoFlowAction(act) => act match {
@@ -187,8 +184,8 @@ class Coordinator(context: PacketContext)
                         actions = List(b))
                     val vlanId = context.wcmatch.getVlanIds.get(0)
                     context.wcmatch.removeVlanId(vlanId)
-                    Ready(virtualWildcardFlowResult(flow))
-                case _ => Ready(NoOp)
+                    virtualWildcardFlowResult(flow)
+                case _ => NoOp
             }
 
             case ForkAction(acts) =>
@@ -197,33 +194,24 @@ class Coordinator(context: PacketContext)
                 // original WMatch at that point in time
                 // Will fail if run in parallel because of side-effects
 
-                var stopsAt: Urgent[SimulationResult] = null
                 val originalMatch = context.origMatch.clone()
                 // TODO: maybe replace with some other alternative that spares
                 //       iterating the entire if we find the break cond
-                val results = acts map handleAction map {
-                    case n@NotYet(_) => // the simulation didn't complete
-                        stopsAt = if (stopsAt == null) n else stopsAt
-                        null
-                    case Ready(simRes) =>
-                        context.origMatch.reset(context.wcmatch)
-                        simRes
+                val results = acts map { a =>
+                    context.origMatch.reset(context.wcmatch)
+                    handleAction(a)
                 }
 
                 context.origMatch.reset(originalMatch)
 
-                if (stopsAt ne null) {
-                    stopsAt
-                } else {
-                    // Merge the completed results of the simulations. The
-                    // resulting pair (SimulationResult, WildcardMatch) contains
-                    // the merge action resulting from the other partial ones
-                    Ready(results reduceLeft mergeSimulationResults)
-                }
+                // Merge the completed results of the simulations. The
+                // resulting pair (SimulationResult, WildcardMatch) contains
+                // the merge action resulting from the other partial ones
+                results reduceLeft mergeSimulationResults
 
             case ToPortSetAction(portSetID) =>
                 context.traceMessage(portSetID, "Flooded to port set")
-                Ready(emit(portSetID, isPortSet = true, null))
+                emit(portSetID, isPortSet = true, null)
 
             case ToPortAction(outPortID) =>
                 context.traceMessage(outPortID, "Forwarded to port")
@@ -231,24 +219,23 @@ class Coordinator(context: PacketContext)
 
             case ConsumedAction =>
                 context.traceMessage(null, "Consumed")
-                Ready(NoOp)
+                NoOp
 
             case ErrorDropAction =>
                 context.traceMessage(null, "Encountered error")
-                Ready(TemporaryDrop)
+                TemporaryDrop
 
             case TemporaryDropAction =>
                 log.debug("Device returned TemporaryDropAction")
-                Ready(TemporaryDrop)
+                TemporaryDrop
 
             case DropAction =>
                 log.debug("Device returned DropAction")
-                Ready(Drop)
+                Drop
 
             case NotIPv4Action =>
                 context.traceMessage(null, "Unsupported protocol")
                 log.debug("Device returned NotIPv4Action")
-                Ready(
                     if (context.isGenerated) {
                         NoOp
                     } else {
@@ -264,56 +251,53 @@ class Coordinator(context: PacketContext)
                                         context.origMatch.getEtherType)
                         virtualWildcardFlowResult(
                             WildcardFlow(wcmatch = notIPv4Match))
-                        // TODO(pino): Connection-tracking blob?
-                    })
+                    }
 
             case _ =>
                 context.traceMessage(null,
                                     "ERROR Unexpected action returned")
                 log.error("Device returned unexpected action!")
-                Ready(TemporaryDrop)
+                TemporaryDrop
         } // end action match
     }
 
     private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
-    : Urgent[SimulationResult] =
+    : SimulationResult =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            Ready(TemporaryDrop)
+            TemporaryDrop
         } else {
-            expiringAsk[Port](portID, log) flatMap { port =>
-                context.addFlowTag(port.deviceTag)
-                port match {
-                    case p if !p.adminStateUp =>
-                        processAdminStateDown(p, isIngress = true)
-                    case p =>
-                        if (getPortGroups && p.isExterior) {
-                            context.portGroups = p.portGroups
-                        }
-                        context.inPortId = p
-                        applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
-                }
+            val port = tryAsk[Port](portID)
+            context.addFlowTag(port.deviceTag)
+            port match {
+                case p if !p.adminStateUp =>
+                    processAdminStateDown(p, isIngress = true)
+                case p =>
+                    if (getPortGroups && p.isExterior) {
+                        context.portGroups = p.portGroups
+                    }
+                    context.inPortId = p
+                    applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
             }
         }
 
     private def applyPortFilter(port: Port, filterID: UUID,
-                                thunk: (Port) => Urgent[SimulationResult])
-    : Urgent[SimulationResult] = {
+                                thunk: (Port) => SimulationResult)
+    : SimulationResult = {
         if (filterID == null)
             return thunk(port)
 
-        expiringAsk[Chain](filterID, log, context.expiry) flatMap { chain =>
-            val result = Chain.apply(chain, context, port.id, true)
-            result.action match {
-                case RuleResult.Action.ACCEPT =>
-                    thunk(port)
-                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    Ready(Drop)
-                case other =>
-                    log.error("Port filter {} returned {} which was " +
-                            "not ACCEPT, DROP or REJECT.", filterID, other)
-                    Ready(TemporaryDrop)
-            }
+        val chain = tryAsk[Chain](filterID)
+        val result = Chain.apply(chain, context, port.id, true)
+        result.action match {
+            case RuleResult.Action.ACCEPT =>
+                thunk(port)
+            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                Drop
+            case other =>
+                log.error("Port filter {} returned {} which was " +
+                        "not ACCEPT, DROP or REJECT.", filterID, other)
+                TemporaryDrop
         }
     }
 
@@ -321,26 +305,26 @@ class Coordinator(context: PacketContext)
      * Simulate the packet egressing a virtual port. This is NOT intended
      * for output-ing to PortSets.
      */
-    private def packetEgressesPort(portID: UUID): Urgent[SimulationResult] =
-        expiringAsk[Port](portID, log) flatMap { port =>
-            context.addFlowTag(port.deviceTag)
+    private def packetEgressesPort(portID: UUID): SimulationResult = {
+        val port = tryAsk[Port](portID)
+        context.addFlowTag(port.deviceTag)
 
-            port match {
-                case p if !p.adminStateUp =>
-                    processAdminStateDown(p, isIngress = false)
-                case p =>
-                    context.outPortId = p.id
-                    applyPortFilter(p, p.outboundFilter, {
-                        case p: Port if p.isExterior =>
-                            Ready(emit(p.id, isPortSet = false, p))
-                        case p: Port if p.isInterior =>
-                            packetIngressesPort(p.peerID, getPortGroups = false)
-                        case _ =>
-                            log.warn("Port {} is unplugged", portID)
-                            Ready(TemporaryDrop)
-                    })
-            }
+        port match {
+            case p if !p.adminStateUp =>
+                processAdminStateDown(p, isIngress = false)
+            case p =>
+                context.outPortId = p.id
+                applyPortFilter(p, p.outboundFilter, {
+                    case p: Port if p.isExterior =>
+                        emit(p.id, isPortSet = false, p)
+                    case p: Port if p.isInterior =>
+                        packetIngressesPort(p.peerID, getPortGroups = false)
+                    case _ =>
+                        log.warn("Port {} is unplugged", portID)
+                        TemporaryDrop
+                })
         }
+    }
 
     /**
      * Complete the simulation by emitting the packet from the specified
@@ -388,12 +372,12 @@ class Coordinator(context: PacketContext)
     }
 
     private[this] def processAdminStateDown(port: Port, isIngress: Boolean)
-    : Urgent[SimulationResult] = {
+    : SimulationResult = {
         port match {
             case p: RouterPort if isIngress =>
                 sendIcmpProhibited(p)
             case p: RouterPort if context.inPortId != null =>
-                expiringAsk[Port](context.inPortId, log, context.expiry) map {
+                tryAsk[Port](context.inPortId) match {
                     case p: RouterPort =>
                         sendIcmpProhibited(p)
                     case _ =>
@@ -401,7 +385,7 @@ class Coordinator(context: PacketContext)
             case _ =>
         }
 
-        Ready(Drop)
+        Drop
     }
 
     private def sendIcmpProhibited(port: RouterPort) {

@@ -3,10 +3,8 @@
  */
 package org.midonet.midolman.topology
 
-import java.util.concurrent.TimeoutException
 import java.util.UUID
 import scala.collection.mutable
-import scala.compat.Platform
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.reflect._
@@ -15,13 +13,13 @@ import scala.util.Failure
 import akka.actor._
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.{RouterPort, BridgePort, Port}
 import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYet
 import org.midonet.midolman.NotYetException
@@ -41,6 +39,9 @@ import org.midonet.util.concurrent._
  * virtual network devices.
  */
 object VirtualTopologyActor extends Referenceable {
+    val deviceRequestTimeout = 5 seconds
+    val log = Logger(LoggerFactory.getLogger("org.midonet.devices.devices-service"))
+
     override val Name: String = "VirtualTopologyActor"
 
     sealed trait DeviceRequest {
@@ -179,84 +180,26 @@ object VirtualTopologyActor extends Referenceable {
     // WARNING!! This code is meant to be called from outside the actor.
     // it should only access the volatile variable 'everything'
 
-    def expiringAsk[D <: AnyRef](id: UUID)
-                                (implicit tag: ClassTag[D], system: ActorSystem) =
-        doExpiringAsk(id, 0L, null)(tag, null, system)
-
     @throws(classOf[NotYetException])
     def tryAsk[D <: AnyRef](id: UUID)
-                           (implicit tag: ClassTag[D], system: ActorSystem) =
-        doTryAsk(id, 0L, null)(tag, null, system)
-
-    def expiringAsk[D <: AnyRef](id: UUID, logger: Logger)
-                                (implicit tag: ClassTag[D], system: ActorSystem) =
-        doExpiringAsk(id, 0L, logger)(tag, null, system)
-
-    @throws(classOf[NotYetException])
-    def tryAsk[D <: AnyRef](id: UUID, log: Logger)
-                           (implicit tag: ClassTag[D], system: ActorSystem) =
-        doTryAsk(id, 0L, log)(tag, null, system)
-
-    def expiringAsk[D <: AnyRef](
-                       id: UUID,
-                       logger: Logger,
-                       expiry: Long = 0L)
-                      (implicit tag: ClassTag[D],
-                                system: ActorSystem,
-                                pktContext: PacketContext) =
-        doExpiringAsk(id, expiry, logger)(tag, pktContext, system)
-
-    @throws(classOf[NotYetException])
-    def tryAsk[D <: AnyRef](id: UUID,
-                            logger: Logger,
-                            expiry: Long = 0L)
                            (implicit tag: ClassTag[D],
-                                     system: ActorSystem,
-                                     pktContext: PacketContext) =
-        doTryAsk(id, expiry, logger)(tag, pktContext, system)
-
-    private def doExpiringAsk[D <: AnyRef](
-                                 id: UUID,
-                                 expiry: Long = 0L,
-                                 logger: Logger)
-                                (implicit tag: ClassTag[D],
-                                          pktContext: PacketContext,
-                                          system: ActorSystem): Urgent[D] = {
-        try {
-            Ready(doTryAsk(id, expiry, logger))
-        } catch {
-            case NotYetException(future, msg) =>
-                NotYet(future)
-        }
-    }
-
-    // Note that the expiry is the exact expiration time, not a timeout.
-    @throws(classOf[NotYetException])
-    private def doTryAsk[D <: AnyRef](id: UUID,
-                                      expiry: Long = 0L,
-                                      logger: Logger)
-                                     (implicit tag: ClassTag[D],
-                                               pktContext: PacketContext,
-                                               system: ActorSystem): D = {
-
-        val timeLeft = if (expiry == 0L) 3000L
-        else expiry - Platform.currentTime
-
-        // TODO this case is absurd, we'll remove the expire (unused) in a
-        // separate patch
-        if (timeLeft <= 0)
-            throw new TimeoutException
-
+                                     system: ActorSystem): D = {
         val dev = topology.device[D](id)
         if (dev eq null) {
-            if (logger ne null)
-                logger.debug("{} {} not found in the virtual topology, " +
-                    "will suspend", tag, id)
-            throw NotYetException(requestFuture(id, timeLeft, logger),
-                                  s"Waiting for device: $id")
+            throw NotYetException(requestFuture(id), s"Waiting for device: $id")
         }
-
         dev
+    }
+
+    def expiringAsk[D <: AnyRef](id: UUID)
+                                (implicit tag: ClassTag[D],
+                                          system: ActorSystem): Urgent[D] = {
+        val dev = topology.device[D](id)
+        if (dev eq null) {
+            NotYet(requestFuture(id))
+        } else {
+            Ready(dev)
+        }
     }
 
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
@@ -273,23 +216,18 @@ object VirtualTopologyActor extends Referenceable {
         classTag[PortGroup]         -> (new PortGroupRequest(_))
     )
 
-    private def requestFuture[D](id: UUID,
-                                 timeLeft: Long,
-                                 logger: Logger)
+    private def requestFuture[D](id: UUID)
                                 (implicit tag: ClassTag[D],
-                                          pktContext: PacketContext,
                                           system: ActorSystem): Future[D] =
         VirtualTopologyActor
-            .ask(requestsFactory(tag)(id))(timeLeft milliseconds)
+            .ask(requestsFactory(tag)(id))(deviceRequestTimeout)
             .mapTo[D](tag).andThen {
                 case Failure(ex: ClassCastException) =>
-                    if (logger != null)
-                        logger.error("VirtualTopologyManager didn't return a {}!",
-                            tag.runtimeClass.getSimpleName)
+                    log.error("VirtualTopologyManager didn't return a {}!",
+                              tag.runtimeClass.getSimpleName)
                 case Failure(ex) =>
-                    if (logger != null)
-                        logger.warn("Failed to get {}: {} - {}",
-                            tag.runtimeClass.getSimpleName, id, ex)
+                    log.warn("Failed to get {}: {} - {}",
+                             tag.runtimeClass.getSimpleName, id, ex)
             }(ExecutionContext.callingThread)
 
     def bridgeManagerName(bridgeId: UUID) = "BridgeManager-" + bridgeId
@@ -346,11 +284,9 @@ object VirtualTopologyActor extends Referenceable {
         getDeviceManagerPath(parentActorName, conditionListManagerName(deviceId))
 }
 
-class VirtualTopologyActor extends Actor with ActorLogWithoutPath {
+class VirtualTopologyActor extends Actor {
     import VirtualTopologyActor._
     import context.system
-
-    override def logSource = "org.midonet.devices.devices-service"
 
     // TODO(pino): unload devices with no subscribers that haven't been used
     // TODO:       in a while.

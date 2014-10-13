@@ -4,7 +4,6 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import scala.compat.Platform
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
@@ -190,13 +189,12 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
                 .setNetworkSource(IPv4Addr.fromString("1.1.1.1"))
                 .setTransportSource(1)
                 .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
-            val pktContextIngress = new PacketContext(Left(1), null,
-                Platform.currentTime + 10000, None,
-                ingressMatch)(actorSystem)
+            val pktContextIngress = new PacketContext(Left(1), null, None,
+                                                      ingressMatch)(actorSystem)
 
-            try {
-                lb.processInbound(pktContextIngress)(executionContext, actorSystem)
-            } catch { case _: NotYetException => }
+            intercept[NotYetException] {
+                lb.processInbound(pktContextIngress)(actorSystem)
+            }
 
             Then("the VTA should receive a pool request")
             val vtaMessages = vta.getAndClear()

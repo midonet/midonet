@@ -486,7 +486,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         override def translateVirtualWildcardFlow(
                             pktCtx: PacketContext,
-                            flow: WildcardFlow) : Urgent[WildcardFlow] = {
+                            flow: WildcardFlow) : WildcardFlow = {
             if (flow.getMatch.getInputPortUUID == null)
                 fail("NULL in forwarded call")
             super.translateVirtualWildcardFlow(pktCtx, flow)
@@ -494,7 +494,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         override def translateActions(
                             pktCtx: PacketContext,
-                            actions: Seq[FlowAction]) : Urgent[Seq[FlowAction]] =
+                            actions: Seq[FlowAction]) : Seq[FlowAction] =
             super.translateActions(pktCtx, actions)
     }
 
@@ -545,13 +545,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                         pktCtx = packetContext(ethernet, inPortUUID)
                         val id = UUID.randomUUID()
                         pktCtx.outPortId = id
-                        new TestFlowTranslator(dpState)
-                                .translateActions(pktCtx, actions) match {
-                            case Ready(v) =>
-                                translatedActions = v
-                            case NotYet(f) =>
-                                Await.result(f, 200 millis)
-                        }
+                        val ft = new TestFlowTranslator(dpState)
+                        translatedActions = force(ft.translateActions(pktCtx, actions))
                         pktCtx.outPortId should be (id)
                     } while (translatedActions == null)
                 }
@@ -586,13 +581,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                     val id = UUID.randomUUID()
                     pktCtx.outPortId = id
                     val wildFlow = WildcardFlow(pktCtx.wcmatch, actions)
-                    new TestFlowTranslator(dpState)
-                            .translateVirtualWildcardFlow(pktCtx, wildFlow) match {
-                        case Ready(v) =>
-                            translation = v
-                        case NotYet(f) =>
-                            Await.result(f, 200 millis)
-                    }
+                    val ft = new TestFlowTranslator(dpState)
+                    translation = force(ft.translateVirtualWildcardFlow(pktCtx, wildFlow))
                     pktCtx.outPortId should be (id)
                 } while (translation == null)
             }
@@ -613,8 +603,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                       else
                         WildcardMatch.fromEthernetPacket(ethernet)
 
-        val pktCtx = new PacketContext(Left(0), new Packet(ethernet), 0,
-                                       None, wcmatch)
+        val pktCtx = new PacketContext(Left(0), new Packet(ethernet), None, wcmatch)
 
         if (inputPortId.isDefined)
             pktCtx.inputPort = inputPortId.get

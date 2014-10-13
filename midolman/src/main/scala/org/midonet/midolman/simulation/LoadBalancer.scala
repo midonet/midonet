@@ -35,8 +35,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
 
-    def processInbound(context: PacketContext)(implicit ec: ExecutionContext,
-                       actorSystem: ActorSystem)
+    def processInbound(context: PacketContext)(implicit actorSystem: ActorSystem)
     : RuleResult = {
 
         implicit val packetContext = context
@@ -68,8 +67,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     }
 
     def processOutbound(context: PacketContext)
-                       (implicit ec: ExecutionContext,
-                                 actorSystem: ActorSystem): RuleResult = {
+                       (implicit actorSystem: ActorSystem): RuleResult = {
         implicit val packetContext = context
 
         context.log.debug("Load balancer {} applying outbound rules", id)
