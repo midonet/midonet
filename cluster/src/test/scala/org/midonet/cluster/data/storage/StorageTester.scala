@@ -23,7 +23,7 @@ import scala.collection.mutable.ListBuffer
 import com.google.common.collect.{ArrayListMultimap, Multimap, Multimaps}
 
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.{Chain, Network, Port, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
