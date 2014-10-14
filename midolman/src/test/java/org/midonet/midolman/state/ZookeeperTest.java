@@ -33,9 +33,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.cluster.services.StorageService;
 import org.midonet.midolman.guice.cluster.DataClientModule;
-import org.midonet.midolman.guice.cluster.MidostoreModule;
+import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
@@ -52,8 +52,8 @@ public abstract class ZookeeperTest {
     protected Injector injector;
     private String zkRoot;
 
-    private MidostoreSetupService getMidostoreService() {
-        return injector.getInstance(MidostoreSetupService.class);
+    private StorageService getMidostoreService() {
+        return injector.getInstance(StorageService.class);
     }
 
     private static HierarchicalConfiguration getConfig(String zkRoot) {
@@ -99,7 +99,7 @@ public abstract class ZookeeperTest {
                 new SerializationModule(),
                 new ConfigProviderModule(getConfig(zkRoot)),
                 new ZookeeperConnectionModule(),
-                new MidostoreModule(),
+                new StorageModule(),
                 new DataClientModule())
         );
 
