@@ -61,6 +61,7 @@ public class VipZkManager
         }
 
         public VipConfig(VIP vip, UUID loadBalancerId) {
+            this.id = vip.id;
             this.loadBalancerId = loadBalancerId;
             this.poolId = vip.poolId;
             this.address = vip.address;
