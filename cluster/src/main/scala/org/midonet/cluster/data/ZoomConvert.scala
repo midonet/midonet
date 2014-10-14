@@ -290,9 +290,8 @@ object ZoomConvert {
     }
 
     /**
-     * Gets a converter instance for a pair of ZoomField and ZoomClass
-     * annotations. When both annotations are specified, the field annotation
-     * takes precedence over the class annotation.
+     * Gets a converter instance for a field with the given ZoomField
+     * annotation.
      *
      * @param pojoField The field.
      * @param protoField The message field descriptor.
@@ -302,31 +301,29 @@ object ZoomConvert {
     private def getConverter(pojoField: Field,
                              protoField: Descriptors.FieldDescriptor,
                              zoomField: ZoomField): Converter[_,_] = {
-
-        if (protoField.isRepeated) {
-            if (pojoField.getType.isArray) {
-                return new ArrayConverter(
-                    getScalarConverter(pojoField.getType.getComponentType,
-                                       zoomField))
-            } else pojoField.getGenericType match {
-                case generic: ParameterizedType
-                    if generic.getRawType.equals(classOf[JList[_]]) =>
-                    val elClass = generic.getActualTypeArguments()(0)
-                    elClass match {
-                        case c: Class[_] =>
-                            return new ListConverter(
-                                getScalarConverter(c, zoomField))
-                        case _ => throw new ConvertException(
-                            s"Unsupported argument type $elClass for list " +
-                            s"conversion")
-                    }
-                case _ => throw new ConvertException(
-                    s"Unsupported type ${pojoField.getGenericType} for " +
-                    s"repeated field")
-            }
+        if (!protoField.isRepeated) {
+            return getScalarConverter(pojoField.getType, zoomField)
         }
 
-        getScalarConverter(pojoField.getType, zoomField)
+        pojoField.getGenericType match {
+            case c: Class[_] if c.isArray =>
+                new ArrayConverter(
+                    getScalarConverter(pojoField.getType.getComponentType,
+                                       zoomField))
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[JList[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                new ListConverter(getScalarConverter(elClass, zoomField))
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                new SetConverter(getScalarConverter(elClass, zoomField))
+            case _ => throw new ConvertException(
+                s"Unsupported type ${pojoField.getGenericType} for repeated " +
+                s"field")
+        }
     }
 
     /**
@@ -557,8 +554,7 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
-                bufferAsJavaList(list.map(el => converter.to(el, elClass)))
+                bufferAsJavaList(value.map(el => converter.to(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
@@ -567,13 +563,38 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
                 bufferAsJavaList(
-                    list.map(el => converter.from(el, elClass)))
+                    value.map(el => converter.from(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
 
+    }
+
+    /**
+     * Converter class for set.
+     * @param converter The converter for the list component type.
+     */
+    protected[data] class SetConverter(converter: Converter[_,_])
+            extends Converter[Set[_], JList[_]] {
+
+        override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                value.map(el => converter.to(el, elClass)).toSeq
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): Set[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                Set(value.map(el => converter.from(el, elClass)).toArray: _*)
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
     }
 
     /**
