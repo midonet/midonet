@@ -144,7 +144,6 @@ trait Storage {
      */
     def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]]
 
-
     /**
      * Asynchronous method that indicated if the specified object exists in the
      * storage.
