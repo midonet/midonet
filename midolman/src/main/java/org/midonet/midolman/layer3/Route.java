@@ -4,6 +4,7 @@
 
 package org.midonet.midolman.layer3;
 
+import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -98,8 +99,7 @@ public class Route implements Serializable {
         this.nextHopGateway = IPv4Addr.stringToInt(addr);
     }
 
-    @Override
-    public boolean equals(Object other) {
+    public boolean isEquivalentRoute(Object other) {
         if (other == null)
             return false;
         if (other == this)
@@ -107,53 +107,38 @@ public class Route implements Serializable {
         if (!(other instanceof Route))
             return false;
         Route rt = (Route) other;
-        if (null == nextHop || null == rt.nextHop) {
-            if (nextHop != rt.nextHop)
-                return false;
-        } else if (!nextHop.equals(rt.nextHop))
-            return false;
-        if (null == nextHopPort || null == rt.nextHopPort) {
-            if (nextHopPort != rt.nextHopPort)
-                return false;
-        } else if (!nextHopPort.equals(rt.nextHopPort))
-            return false;
-        if (null == attributes || null == rt.attributes) {
-            if (attributes != rt.attributes)
-                return false;
-        } else if (!attributes.equals(rt.attributes))
-            return false;
-        if (null == routerId || null == rt.routerId) {
-            if (routerId != rt.routerId)
-                return false;
-        } else if (!routerId.equals(rt.routerId))
-            return false;
+        return (Objects.equal(this.srcNetworkAddr, rt.srcNetworkAddr) &&
+                Objects.equal(this.srcNetworkLength, rt.srcNetworkLength) &&
+                Objects.equal(this.dstNetworkAddr, rt.dstNetworkAddr) &&
+                Objects.equal(this.dstNetworkLength, rt.dstNetworkLength) &&
+                Objects.equal(this.nextHopPort, rt.nextHopPort) &&
+                Objects.equal(this.routerId, rt.routerId));
+    }
 
-        return dstNetworkAddr == rt.dstNetworkAddr
-                && dstNetworkLength == rt.dstNetworkLength
-                && srcNetworkAddr == rt.srcNetworkAddr
-                && srcNetworkLength == rt.srcNetworkLength
-                && nextHopGateway == rt.nextHopGateway && weight == rt.weight;
+    @Override
+    public final boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null) return false;
+        if (!(obj instanceof Route)) return false;
+        final Route rt = (Route) obj;
+        return (Objects.equal(this.srcNetworkAddr, rt.srcNetworkAddr)
+                && Objects.equal(this.srcNetworkLength, rt.srcNetworkLength)
+                && Objects.equal(this.dstNetworkAddr, rt.dstNetworkAddr)
+                && Objects.equal(this.dstNetworkLength, rt.dstNetworkLength)
+                && Objects.equal(this.nextHop, rt.nextHop)
+                && Objects.equal(this.nextHopPort, rt.nextHopPort)
+                && Objects.equal(this.nextHopGateway, rt.nextHopGateway)
+                && Objects.equal(this.weight, rt.weight)
+                && Objects.equal(this.attributes, rt.attributes)
+                && Objects.equal(this.routerId, rt.routerId));
     }
 
     @Override
     public int hashCode() {
-        int hash = 1;
-        hash = 13 * hash + srcNetworkAddr;
-        hash = 17 * hash + srcNetworkLength;
-        hash = 31 * hash + dstNetworkAddr;
-        hash = 23 * hash + dstNetworkLength;
-        hash = 37 * hash + nextHopGateway;
-        hash = 11 * hash + weight;
-
-        if (null != routerId)
-            hash = 47 * hash + routerId.hashCode();
-        if (null != nextHop)
-            hash = 29 * hash + nextHop.hashCode();
-        if (null != nextHopPort)
-            hash = 43 * hash + nextHopPort.hashCode();
-        if (null != attributes)
-            hash = 5 * hash + attributes.hashCode();
-        return hash;
+        return Objects.hashCode(srcNetworkAddr, srcNetworkLength,
+                                dstNetworkAddr, dstNetworkLength, nextHop,
+                                nextHopPort, nextHopGateway, weight, attributes,
+                                routerId);
     }
 
     @Override
