@@ -46,7 +46,7 @@ class FutureOpsTest extends FeatureSpec with Matchers {
         scenario("after a failure, remaining futures are not executed") {
             var i = 0
             val f = Future.sequentially(1 to 3) { x =>
-                future {
+                Future {
                     if (x == 2) throw new Exception with TestError
                     i += x
                     x
@@ -63,7 +63,7 @@ class FutureOpsTest extends FeatureSpec with Matchers {
     feature("FutureOps::continueWith executes after a future is completed") {
         scenario("The same future is passed into continueWith") {
             val sem = new Semaphore(0)
-            val f1 = future { sem.acquire() }
+            val f1 = Future { sem.acquire() }
             val f2 = f1 continueWith { f =>
                 f should be (f1)
                 f.isCompleted should be (true)
@@ -79,7 +79,7 @@ class FutureOpsTest extends FeatureSpec with Matchers {
 
         scenario("The result of the future is reflected in continue") {
             val sem = new Semaphore(0)
-            val f1 = future { sem.acquire(); throw new Exception with TestError }
+            val f1 = Future { sem.acquire(); throw new Exception with TestError }
             val f2 = f1 continue { t: Try[_] => t match {
                 case Failure(t: Exception with TestError) =>
                 case _ => fail()
