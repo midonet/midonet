@@ -21,7 +21,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.cluster.services.StorageService;
 
 /**
  * Manages all the services for Midolman REST API.
@@ -31,10 +31,10 @@ public class RestApiService  extends AbstractService {
     private static final Logger log = LoggerFactory.getLogger(
             RestApiService.class);
 
-    private final MidostoreSetupService midoStoreSetupService;
+    private final StorageService midoStoreSetupService;
 
     @Inject
-    public RestApiService(MidostoreSetupService midoStoreSetupService) {
+    public RestApiService(StorageService midoStoreSetupService) {
         this.midoStoreSetupService = midoStoreSetupService;
     }
 
