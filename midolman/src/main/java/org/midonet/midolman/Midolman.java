@@ -29,11 +29,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.midonet.midolman.guice.cluster.MidostoreModule;
+import org.midonet.midolman.guice.StorageModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.cluster.services.StorageService;
 import org.midonet.event.agent.ServiceEvent;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanActorsModule;
@@ -122,7 +122,7 @@ public class Midolman {
             new VersionModule(),
             new HostModule(),
             new ConfigProviderModule(configFilePath),
-            new MidostoreModule(),
+            new StorageModule(),
             new DatapathModule(),
             new ClusterClientModule(),
             new SerializationModule(),
@@ -134,7 +134,7 @@ public class Midolman {
         );
 
         // start the services
-        injector.getInstance(MidostoreSetupService.class)
+        injector.getInstance(StorageService.class)
             .startAsync()
             .awaitRunning();
         injector.getInstance(MidolmanService.class)
