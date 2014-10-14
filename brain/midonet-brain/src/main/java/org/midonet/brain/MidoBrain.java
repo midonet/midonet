@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.brain.guice.BrainModule;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.cluster.services.StorageService;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -63,7 +63,7 @@ public class MidoBrain {
             new SerializationModule()
         );
 
-        injector.getInstance(MidostoreSetupService.class)
+        injector.getInstance(StorageService.class)
             .startAsync()
             .awaitRunning();
         injector.getInstance(VxLanGatewayService.class)
