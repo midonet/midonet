@@ -18,7 +18,24 @@ import "commons.proto";
 
 package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
-option java_outer_classname = "Devices";
+option java_outer_classname = "Topology";
+
+// One per type
+enum Type {
+    NETWORK = 1;
+    ROUTER = 2;
+    PORT = 3;
+    PORT_GROUP = 4;
+    PORT_SET = 5;
+    IP_ADDR_GROUP = 6;
+    CHAIN = 7;
+    ROUTE = 8;
+    TUNNEL_ZONE = 9;
+    VTEP = 10;
+    VTEP_BINDING = 11;
+    HOST = 12;
+    HOST_INTERFACE_PORT = 13;
+}
 
 message Network {
     // Neutron / MidoNet common attributes
