@@ -16,7 +16,21 @@
 package org.midonet.util.concurrent
 
 import scala.concurrent._
+import scala.concurrent.duration.Duration
 import scala.util.Try
+
+object FutureOps {
+
+    class RichFuture[T](future: Future[T]) {
+        def await(duration: Duration): Future[T] = {
+            Await.result(future, duration)
+            future
+        }
+    }
+
+    implicit def richFuture[T](future: Future[T]): RichFuture[T] =
+        new RichFuture(future)
+}
 
 class FutureOps[+T](val f: Future[T]) extends AnyVal {
 
@@ -29,7 +43,7 @@ class FutureOps[+T](val f: Future[T]) extends AnyVal {
       */
     def continueWith[S](cont: Future[T] => S)
                        (implicit executor: ExecutionContext): Future[S] = {
-        val p = promise[S]()
+        val p = Promise[S]()
         f.onComplete { _ =>
             p complete Try(cont(f))
         }(CallingThreadExecutionContext)
@@ -45,7 +59,7 @@ class FutureOps[+T](val f: Future[T]) extends AnyVal {
       */
     def continue[S](cont: Try[T] => S)
                    (implicit executor: ExecutionContext): Future[S] = {
-        val p = promise[S]()
+        val p = Promise[S]()
         f.onComplete { x =>
             p complete Try(cont(x))
         }(CallingThreadExecutionContext)
