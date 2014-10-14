@@ -320,6 +320,17 @@ object ZoomConvert {
                             s"Unsupported argument type $elClass for list " +
                             s"conversion")
                     }
+                case generic: ParameterizedType
+                    if generic.getRawType.equals(classOf[Set[_]]) =>
+                    val elClass = generic.getActualTypeArguments()(0)
+                    elClass match {
+                        case c: Class[_] =>
+                            return new SetConverter(
+                                getScalarConverter(c, zoomField))
+                        case _ => throw new ConvertException(
+                            s"Unsupported argument type $elClass for set " +
+                            s"conversion")
+                    }
                 case _ => throw new ConvertException(
                     s"Unsupported type ${pojoField.getGenericType} for " +
                     s"repeated field")
@@ -557,8 +568,7 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
-                bufferAsJavaList(list.map(el => converter.to(el, elClass)))
+                bufferAsJavaList(value.map(el => converter.to(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
@@ -567,13 +577,38 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
                 bufferAsJavaList(
-                    list.map(el => converter.from(el, elClass)))
+                    value.map(el => converter.from(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
 
+    }
+
+    /**
+     * Converter class for set.
+     * @param converter The converter for the list component type.
+     */
+    protected[data] class SetConverter(converter: Converter[_,_])
+            extends Converter[Set[_], JList[_]] {
+
+        override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                value.map(el => converter.to(el, elClass)).toSeq
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): Set[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                Set(value.map(el => converter.from(el, elClass)).toArray: _*)
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
     }
 
     /**

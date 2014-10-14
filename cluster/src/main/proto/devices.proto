@@ -56,28 +56,28 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    optional int32 tunnel_key = 6;
+    optional int64 tunnel_key = 6;
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
     optional string interface_name = 10;
     optional bool admin_state_up = 11 [default = true];
 
-    repeated UUID port_group_id = 12;
+    repeated UUID port_group_ids = 12;
 
-    // interior bridge port specific
+    // Interior bridge port specific
     optional uint32 vlan_id = 13;
 
-    // router port specific
-    optional string network_address = 14;
-    optional uint32 network_length = 15;
-    optional string port_address = 16;
-    optional string port_mac = 17;
+    // Router port specific
+    optional IPSubnet port_subnet = 14;
+    optional IPAddress port_address = 15;
+    optional string port_mac = 16;
 
-    // vxlan port specific - TODO: should we nest instead?
-    optional string vxlan_mgmt_ip = 18;
-    optional uint32 vxlan_mgmt_port = 19;
-    optional uint32 vxlan_vni = 20;
+    // VXLAN port specific
+    optional IPAddress vxlan_mgmt_ip = 17;
+    optional uint32 vxlan_mgmt_port = 18;
+    optional uint32 vxlan_vni = 19;
+    optional IPAddress vxlan_tunnel_ip = 20;
     optional UUID vxlan_tunnel_zone_id = 21;
 
     // Back references

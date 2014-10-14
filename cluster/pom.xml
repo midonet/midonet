@@ -115,6 +115,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.netflix.rxjava</groupId>
+            <artifactId>rxjava-async-util</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
         </dependency>
