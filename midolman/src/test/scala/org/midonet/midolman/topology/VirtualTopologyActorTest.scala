@@ -22,6 +22,9 @@ import akka.actor.{Actor, Props}
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
@@ -34,6 +37,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 /**
  * Test case for the Virtual Topology Actor requests
  */
+@RunWith(classOf[JUnitRunner])
 class VirtualTopologyActorTest extends MidolmanSpec {
 
     def registerActors = List(VirtualTopologyActor -> (() =>

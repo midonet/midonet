@@ -59,7 +59,7 @@ dependencies {
             libraries.rx,
             libraries.zookeeper
 
-    testCompile libraries.hamcrest_lib, libraries.scalatest
+    testCompile libraries.hamcrest_lib, libraries.scalatest, libraries.mockit
 }
 
 cobertura {
