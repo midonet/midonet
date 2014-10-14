@@ -24,18 +24,18 @@ import com.codahale.metrics.{Clock, MetricRegistry}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
-import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.cluster.services.StorageService
 import org.midonet.cluster.Client
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.services.{DatapathConnectionService, DashboardService,
         SelectLoopService, MidolmanActorsService, HostIdProviderService, MidolmanService}
 import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.guice.{MidolmanModule, ResourceProtectionModule, MidolmanActorsModule}
+import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
+import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.util.mock.{MockMidolmanActors, MockInterfaceScanner}
 import org.midonet.midolman.simulation.Chain
@@ -55,14 +55,14 @@ trait MidolmanBenchmark extends MockMidolmanActors
     def midolmanBenchmarkSetup(): Unit = {
         val config = fillConfig(new HierarchicalConfiguration)
         injector = Guice.createInjector(getModules(config))
-        injector.getInstance(classOf[MidostoreSetupService]).startAndWait()
+        injector.getInstance(classOf[StorageService]).startAndWait()
         injector.getInstance(classOf[MidolmanService]).startAndWait()
     }
 
     @TearDown
     def midolmanBenchmarkTeardown(): Unit = {
         injector.getInstance(classOf[MidolmanService]).stopAndWait()
-        injector.getInstance(classOf[MidostoreSetupService]).stopAndWait()
+        injector.getInstance(classOf[StorageService]).stopAndWait()
     }
 
     protected def fillConfig(config: HierarchicalConfiguration)
@@ -78,7 +78,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
-            new MidostoreModule(),
+            new StorageModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {

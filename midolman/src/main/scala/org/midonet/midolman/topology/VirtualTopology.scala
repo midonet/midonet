@@ -33,50 +33,6 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
 
 /**
- * Manages the devices of the virtual topology by supporting get and subscribe
- * requests for virtual devices.
- *
- * The virtual topology uses a set of device observables (1 per device) to
- * receive topology updates for the storage layer, and emitting simulation
- * devices as notifications. A device observable is an [[rx.Observable]] that
- * receives a [[DeviceMapper]] as [[rx.Observable.OnSubscribe]] handler, to
- * manager subscription for virtual devices.
- *
- * A [[DeviceMapper]] is an abstract class, providing common support for
- * on-subscribe event handling, and processing per-device specific notifications
- * such as tag invalidation. Sub-classes must implement the observable() method,
- * which exposes an [[rx.Observable]] with specific virtual devices. An
- * implementation example is the [[PortMapper]], which maps the port topology
- * objects received as an observable from the storage layer to the corresponding
- * virtual device.
- *
- * It is recommended that any class implementing [[DeviceMapper]] connects to
- * storage only when the observable() method is called for the first time.
- * This ensures that connections to storage are only created when the
- * enclosing observable receives at least one subscriber. For more information
- * on the [[DeviceMapper]], see its ScalaDoc.
- *
- * To improve lookup performance, simulation devices are cached by the device
- * observables in a complementary map. Cached copies are updated for every
- * device notification from storage, and cleared when the device stream
- * completes (normally when the device is deleted) or issues an error.
- *
- *                         |
- *   get() + cache hit     | get() + cache miss / observable()
- *         +---------------+--------------+
- *         | device map                   | observable map
- * +----------------+                     |
- * |  Device cache  | (1 per VT)          |
- * +----------------+                     |
- *         | updates                      | .asFuture / .observable()
- * +------------------------------------------------+
- * |      rx.Observable(? extends DeviceMapper)     | (1 per device)
- * +------------------------------------------------+
- *                         | observable()
- * +------------------------------------------------+
- * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
- * +------------------------------------------------+
- *
  * This is a companion object of the
  * [[org.midonet.midolman.topology.VirtualTopology]] class, allowing the
  * callers to query the topology using a static method call. The agent should
@@ -114,7 +70,7 @@ object VirtualTopology extends MidolmanLogging {
     }
 
     /**
-     * Gets the topology device with the specified identifier.
+     * Gets the virtual device with the specified identifier.
      * @return A future for the topology device. If the topology device is
      *         available in the local cache, the future completes synchronously.
      */
@@ -129,7 +85,7 @@ object VirtualTopology extends MidolmanLogging {
     }
 
     /**
-     * Returns an observable for the topology device with the specified
+     * Returns an observable for the virtual device with the specified
      * identifier. Upon subscription to this observable, which may complete
      * asynchronously, the subscriber will receive updates with the current
      * state of the device.
@@ -140,13 +96,58 @@ object VirtualTopology extends MidolmanLogging {
     }
 
     /**
-     * Registers a virtual topology instance for this companion object.
+     * Registers a virtual topology instance to this companion object.
      */
     private def register(vt: VirtualTopology): Unit = {
         self = vt
     }
 }
 
+/**
+ * Manages the devices of the virtual topology by supporting get and subscribe
+ * requests for virtual devices.
+ *
+ * The virtual topology uses a set of device observables (1 per device) to
+ * receive topology updates for the storage layer, and emitting simulation
+ * devices as notifications. A device observable is an [[rx.Observable]] that
+ * receives a [[DeviceMapper]] as [[rx.Observable.OnSubscribe]] handler, to
+ * manage subscription for virtual devices.
+ *
+ * A [[DeviceMapper]] is an abstract class, providing common support for
+ * on-subscribe event handling, and processing per-device specific notifications
+ * such as tag invalidation. Sub-classes must implement the observable() method,
+ * which exposes an [[rx.Observable]] for a specific virtual device. An
+ * implementation example is the [[PortMapper]], which maps the port topology
+ * objects received as an observable from the storage layer to the corresponding
+ * virtual device.
+ *
+ * It is recommended that any class implementing [[DeviceMapper]] connects to
+ * storage only when the observable() method is called for the first time.
+ * This ensures that connections to storage are only created when the
+ * enclosing observable receives at least one subscriber. For more information
+ * on the [[DeviceMapper]], see its ScalaDoc.
+ *
+ * To improve lookup performance, simulation devices are cached by the device
+ * observables in a complementary map. Cached copies are updated for every
+ * device notification from storage, and cleared when the device stream
+ * completes (normally when the device is deleted) or issues an error.
+ *
+ *                         |
+ *   get() + cache hit     | get() + cache miss / observable()
+ *         +---------------+--------------+
+ *         | device map                   | observable map
+ * +----------------+                     |
+ * |  Device cache  | (1 per VT)          |
+ * +----------------+                     |
+ *         | updates                      | .asFuture / .observable()
+ * +------------------------------------------------+
+ * |      rx.Observable(? extends DeviceMapper)     | (1 per device)
+ * +------------------------------------------------+
+ *                         | observable()
+ * +------------------------------------------------+
+ * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
+ * +------------------------------------------------+
+ */
 class VirtualTopology @Inject() (store: Storage,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
