@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
  */
 
 package org.midonet.cluster;
@@ -15,42 +15,30 @@ import javax.inject.Inject;
 
 import scala.Option;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.BridgeBuilder;
-import org.midonet.cluster.client.IpMacMap;
-import org.midonet.cluster.client.MacLearningTable;
-import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.data.Bridge;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.midolman.state.MacPortMap;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
-import org.midonet.midolman.state.ReplicatedMap;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.ZkPathManager;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback3;
+
+import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
 
+    private static final Logger log = LoggerFactory
+        .getLogger(ClusterBridgeManager.class);
+
     @Inject
     BridgeZkManager bridgeMgr;
-
-    @Inject
-    ZookeeperConfig zkConfig;
-
-    @Inject
-    Directory dir;
 
     @Inject
     PortZkManager portMgr;
@@ -58,8 +46,8 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
     @Inject
     ClusterPortsManager portsMgr;
 
-    private static final Logger log = LoggerFactory
-        .getLogger(ClusterBridgeManager.class);
+    @Inject
+    BridgeBuilderStateFeeder stateFeeder;
 
     @Override
     protected void getConfig(UUID id) {
@@ -75,22 +63,13 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         }
 
         BridgeZkManager.BridgeConfig config = null;
-        Ip4ToMacReplicatedMap ip4MacMap = null;
         try {
             // we don't need to get the macPortMap again if it's an
             // update nor to create the logical port table.
             // For detecting changes to these maps we did set watchers.
             if (!isUpdate) {
-                ZkPathManager pathManager = new ZkPathManager(
-                        zkConfig.getZkRootPath());
-                setMacLearningTable(
-                        pathManager, id, Bridge.UNTAGGED_VLAN_ID, builder);
-
-                ip4MacMap = new Ip4ToMacReplicatedMap(
-                    bridgeMgr.getIP4MacMapDirectory(id));
-                ip4MacMap.setConnectionWatcher(connectionWatcher);
-                ip4MacMap.start();
-                builder.setIp4MacMap(new IpMacMapImpl(id, ip4MacMap));
+                stateFeeder.feedLearningTable(builder, id, UNTAGGED_VLAN_ID);
+                stateFeeder.feedIpToMacMap(builder, id);
                 updateLogicalPorts(builder, id, false);
             }
 
@@ -104,15 +83,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         } catch (StateAccessException e) {
             log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
             connectionWatcher.handleError(
-                    id.toString(), watchBridge(id, isUpdate), e);
+                id.toString(), watchBridge(id, isUpdate), e);
             return;
         } catch (SerializationException e) {
             log.error("Could not deserialize bridge config: {} - {}", id, e);
-            return;
-        } catch (KeeperException e) {
-            log.warn("Cannot retrieve the configuration for bridge {} - {}", id, e);
-            connectionWatcher.handleError(
-                    id.toString(), watchBridge(id, isUpdate), e);
             return;
         }
 
@@ -135,8 +109,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         return new Runnable() {
             @Override
             public void run() {
-                // return fast and update later
-                getBridgeConf(id, isUpdate);
+                getBridgeConf(id, isUpdate); // return fast, update later
             }
         };
     }
@@ -154,7 +127,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         UUID vlanBridgePeerPortId = null;
         Collection<UUID> logicalPortIDs;
         Set<Short> currentVlans = new HashSet<>();
-        currentVlans.add(Bridge.UNTAGGED_VLAN_ID);
+        currentVlans.add(UNTAGGED_VLAN_ID);
 
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
@@ -180,10 +153,9 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 continue;
             }
 
-            // Ignore dangling ports.
             if (null == bridgePort.getPeerId()) {
                 log.error("There shouldn't be a dangling " +
-                    "port in the 'logical-ports/' subfolder.");
+                          "port in the 'logical-ports/' subfolder.");
                 continue;
             }
 
@@ -202,7 +174,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 IPv4Addr rtrPortIp = IPv4Addr.fromInt(routerPort.portAddr);
                 rtrIpToMac.put(rtrPortIp, routerPort.getHwAddr());
                 log.debug("Add bridge port {} linked to router port, MAC:{}, IP:{}",
-                          new Object[]{id, routerPort.getHwAddr(), rtrPortIp});
+                          id, routerPort.getHwAddr(), rtrPortIp);
             } else if (peerPortCfg instanceof PortDirectory.BridgePortConfig) {
                log.debug("Bridge peer is another Bridge's interior port");
                 // Let's see who of the two is acting as vlan-aware bridge
@@ -239,21 +211,15 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         Set<Short> createdVlans = new HashSet<>(currentVlans);
         createdVlans.removeAll(oldVlans);
 
-        ZkPathManager pathManager = new ZkPathManager(
-                zkConfig.getZkRootPath());
-
-        for(Short createdVlanId: createdVlans) {
+        for(Short newVlan: createdVlans) {
             try {
                 // Create a MAC learning table for VLAN we hadn't seen before.
-                setMacLearningTable(
-                        pathManager, bridgeId, createdVlanId, builder);
-            } catch (KeeperException e) {
+                stateFeeder.feedLearningTable(builder, bridgeId, newVlan);
+            } catch (StateAccessException e) {
                 log.warn("Error retrieving mac-ports for VLAN ID" +
-                        " {}, bridge {}",
-                        new Object[]{createdVlanId, bridgeId}, e);
-                connectionWatcher.handleError(
-                        bridgeId.toString(),
-                        watchBridge(bridgeId, isUpdate), e);
+                        " {}, bridge {}", newVlan, bridgeId, e);
+                Runnable retrier = watchBridge(bridgeId, isUpdate);
+                connectionWatcher.handleError(bridgeId.toString(), retrier, e);
             }
         }
 
@@ -266,126 +232,10 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         builder.setVlanPortMap(vlanIdPortMap);
     }
 
-    /**
-     * Creates a MAC learning table for the bridge with the specified VLAN or
-     * no VLAN ID, and sets it to the BridgeBuilder.
-     *
-     * @param pathManager ZkPathManager for the ZK MAC/ports table dir path.
-     * @param bridgeId A bridge UUID.
-     * @param vlanId A VLAN ID or UNTAGGED_VLAN_ID.
-     * @param builder A BridgeBuilder instance.
-     * @throws KeeperException If failed to create a MacPortMap for the bridge /
-     * the VLAN ID.
-     */
-    void setMacLearningTable(ZkPathManager pathManager, UUID bridgeId, short vlanId,
-                             BridgeBuilder builder) throws KeeperException {
-        MacPortMap macPortMap = new MacPortMap(dir.getSubDirectory(
-                pathManager.getBridgeMacPortsPath(bridgeId, vlanId)));
-        macPortMap.setConnectionWatcher(connectionWatcher);
-        macPortMap.start();
-        MacLearningTable table = new MacLearningTableImpl(
-                bridgeId, macPortMap, vlanId);
-        builder.setMacLearningTable(vlanId, table);
-        table.notify(new MacTableNotifyCallBack(vlanId, builder));
-    }
-
     void buildLogicalPortUpdates(BridgeBuilder builder, UUID bridgeId)
             throws StateAccessException {
         updateLogicalPorts(builder, bridgeId, true);
         builder.build();
-    }
-
-    class MacLearningTableImpl implements MacLearningTable {
-
-        final MacPortMap map;
-        final UUID bridgeID;
-        final short vlanId;
-
-        MacLearningTableImpl(UUID bridgeID, MacPortMap map, short vlanId) {
-            this.bridgeID = bridgeID;
-            this.map = map;
-            this.vlanId = vlanId;
-        }
-
-        /* It's ok to do a synchronous get on the map because it only queries
-         * local state (doesn't go remote like the other calls.
-         */
-        @Override
-        public UUID get(final MAC mac) {
-            return map.get(mac);
-        }
-
-        @Override
-        public void add(final MAC mac, final UUID portID) {
-            reactorLoop.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        map.put(mac, portID);
-                    } catch (Exception e) {
-                        log.error("Failed adding mac {}, VLAN {} to port {}",
-                                  new Object[]{mac, vlanId, portID, e});
-                    }
-                    log.info("Added mac {}, VLAN {} to port {} for bridge {}",
-                             new Object[]{mac, vlanId, portID, bridgeID});
-                }
-            });
-        }
-
-        @Override
-        public void remove(final MAC mac, final UUID portID) {
-            reactorLoop.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        map.removeIfOwnerAndValue(mac, portID);
-                    } catch (Exception e) {
-                        log.error("Failed removing mac {}, VLAN {} from port {}",
-                                  new Object[]{mac, vlanId, portID, e});
-                    }
-                }
-            });
-        }
-
-        // This notify() registers its callback directly with the underlying
-        // MacPortMap map, so the callbacks are called from MacPortMap context
-        // and should perform ActorRef::tell or such to switch to the context
-        // appropriate for the callback's work.
-        @Override
-        public void notify(final Callback3<MAC, UUID, UUID> cb) {
-            reactorLoop.submit(new Runnable() {
-
-                @Override
-                public void run() {
-                    map.addWatcher(new ReplicatedMap.Watcher<MAC, UUID>() {
-                        @Override
-                        public void processChange(MAC key, UUID oldValue,
-                                                  UUID newValue) {
-                            cb.call(key, oldValue, newValue);
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    class IpMacMapImpl implements IpMacMap<IPv4Addr> {
-
-        Ip4ToMacReplicatedMap map;
-        UUID bridgeID;
-
-        IpMacMapImpl(UUID bridgeID, Ip4ToMacReplicatedMap map) {
-            this.bridgeID = bridgeID;
-            this.map = map;
-        }
-
-        /* It's ok to do a synchronous get on the map because it only queries
-         * local state (doesn't go remote like the other calls.
-         */
-        @Override
-        public MAC get(final IPv4Addr ip) {
-            return map.get(ip);
-        }
     }
 
     class LogicalPortWatcher implements Runnable {
@@ -407,21 +257,6 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
             } catch (StateAccessException e) {
                 connectionWatcher.handleError(describe(), this, e);
             }
-        }
-    }
-
-    private class MacTableNotifyCallBack implements Callback3<MAC, UUID, UUID> {
-        private short vlanId;
-        private BridgeBuilder builder = null;
-        public MacTableNotifyCallBack(short vlanId,
-                                      BridgeBuilder builder) {
-            this.vlanId = vlanId;
-            this.builder = builder;
-        }
-
-        @Override
-        public void call(MAC mac, UUID oldPort, UUID newPort) {
-            builder.updateMacEntry(vlanId, mac, oldPort, newPort);
         }
     }
 

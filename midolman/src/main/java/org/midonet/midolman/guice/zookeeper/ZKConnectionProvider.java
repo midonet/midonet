@@ -18,8 +18,9 @@ import org.midonet.util.eventloop.Reactor;
  */
 public class ZKConnectionProvider implements Provider<ZkConnection> {
 
+    // WARN: should this string change, also replace it in
+    // BridgeBuilderStateFeeder
     public static final String DIRECTORY_REACTOR_TAG = "directoryReactor";
-
 
     @Inject
     ZookeeperConfig config;
@@ -39,10 +40,10 @@ public class ZKConnectionProvider implements Provider<ZkConnection> {
                     config.getZkHosts(),
                     config.getZkSessionTimeout(), watcher, reactorLoop);
 
-            if (watcher != null)
+            if (watcher != null) {
                 watcher.setZkConnection(zkConnection);
+            }
             zkConnection.open();
-
             return zkConnection;
         } catch (Exception e) {
             throw new RuntimeException(e);
