@@ -79,6 +79,7 @@
                                     <arg value="--java_out=../../../target/generated-sources"/>
                                     <!-- Need to enumerate all the input protocol buffer definitions. -->
                                     <!-- Maven Antrun plugin does not expand file globs. -->
+                                    <arg value="api.proto"/>
                                     <arg value="commons.proto"/>
                                     <arg value="devices.proto"/>
                                     <arg value="storage_evaluation.proto"/>

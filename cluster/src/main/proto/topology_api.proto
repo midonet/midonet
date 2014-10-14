@@ -1,0 +1,96 @@
+// This file requests that any client of the Midonet cluster may issue
+// to gain access to objects stored in the internal Midonet storage
+import "commons.proto";
+import "topology.proto";
+
+package org.midonet.cluster.models;
+
+option java_package = "org.midonet.cluster.rpc";
+option java_outer_classname = "Commands";
+
+// ------------------ MIDONET STORAGE API -----------------------------
+
+// Used by clients to communicate commands to the cluster serving the
+// Midonet topology. The first message after opening the connection must
+// be a HANDSHAKE, followed by any number of GET, SUB, or UNSUB
+// requests. A BYE message should be sent to the cluster to signal that
+// the client is no longer interested in keeping the connection alive
+// and its subscritions can be ignored. If this message is not sent, the
+// cluster will assume a partition and try to remember the subscriptions
+// from this client.
+message Request {
+    message Handshake {
+        required UUID req_id = 1;         // Request id (used in replies)
+        optional string last_tx_id = 2;   // Last heard from the cluster,
+                                          // if set, the cluster will
+                                          // try to resend missed
+                                          // updates
+    }
+    message Get { // Ask the cluster to provide the given entities
+        required UUID req_id = 1;               // Request id
+        required Type device_type = 2;          // Entities of this type..
+        repeated UUID ids = 3;                  // .. and id
+        optional bool subscribe = 4;            // .. and subscribe
+    }
+    message Unsubscribe { // Tell cluster to NOT send updates about it
+        required UUID req_id = 1;        // Request id
+        required Type type = 2;          // Type of the entity
+        optional UUID id = 3;            // Id of the entity, if not
+                                         // set, all the objects of type
+    }
+    message Bye {   // Tell the cluster we're dropping the cnxn
+        required UUID cnxn_id = 1;    // as provided in the ACK msg
+    }
+    oneof request {
+        string name = 1;
+        Handshake handshake = 2;      // Connect to the cluster
+        Get       get = 3;            // Subscribe to some entities
+        Unsubscribe unsubscribe = 4;  // Unsubscribe from some entities
+        Bye bye = 5;                  // Disconnect from the cluster
+    }
+}
+
+// Sent from the cluster to clients in response to Request messages:
+// - Handshake: will be replied with an ACK/REJECT. If ACK, it will
+//              include an identifier of the connection.
+// - Data: will be replied with the latest known copy of the requested
+//         entities for the cluster node that the client is connected to.
+//         If the request was a subscription, it'll be followed by a new
+//         copy of the data every time that the cluster becomes aware of
+//         a change in the entity (including deletions).
+// - Bye: not replied, the client can consider it a fire-and-forget
+message Response {
+    message Ack {      // acknowledge request req_id
+        required UUID req_id = 1; // Id of the request we're ack'ing
+    }
+    message NAck {      // don't acknowledge request req_id
+        required UUID req_id = 1; // Id of the request we're ack'ing
+    }
+    message Deletion { // entity with the given id/type is no more
+        required UUID id = 1;
+        required Type type = 2;
+    }
+    message Update {          // the latest known state of an entity
+        oneof update {        // Field id MUST match Topology.Type ids.
+            Network network = 1;
+            Router router = 2;
+            Port port = 3;
+            PortGroup port_group = 4;
+            PortSet port_set = 5;
+            Route route = 6;
+            Rule rule = 7;
+            TunnelZone tunnel_zone = 8;
+            Vtep vtep = 9;
+            VtepBinding vtep_binding = 10;
+            Host host = 11;
+            HostInterfacePort host_interface_port = 12;
+        }
+    }
+    oneof response {
+        string name = 1;
+        Ack ack = 2;
+        NAck nack = 3;
+        Deletion deletion = 4;
+        Update update = 5;
+    }
+}
