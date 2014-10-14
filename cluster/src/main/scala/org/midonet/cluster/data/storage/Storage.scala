@@ -17,13 +17,12 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
-import org.midonet.cluster.data.{ObjId, Obj}
-
 import scala.concurrent.Future
 
 import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.{Obj, ObjId}
 
 /* Op classes for ZookeeperObjectMapper.multi */
 sealed trait PersistenceOp
@@ -111,7 +110,6 @@ trait ReadOnlyStorage {
      * object has been retrived from storage.
      */
     def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]]
-
 
     /**
      * Asynchronous method that indicated if the specified object exists in the
