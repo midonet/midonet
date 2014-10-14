@@ -46,6 +46,8 @@ object UUIDUtil {
         def asJava: JUUID = uuid
     }
 
+    def toString(id: PUUID) = if (id == null) "null" else fromProto(id).toString
+
     def randomUuidProto: PUUID = JUUID.randomUUID()
 
     sealed class Converter extends ZoomConvert.Converter[JUUID, PUUID] {

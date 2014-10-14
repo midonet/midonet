@@ -26,7 +26,7 @@ import org.scalatest.Suite
 import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.models.Devices.{Chain, Network, Port, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
 
 /**

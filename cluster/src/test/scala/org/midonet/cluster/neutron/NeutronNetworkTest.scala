@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Devices.Network
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.models.Neutron
 import org.midonet.cluster.util.UUIDUtil
 
