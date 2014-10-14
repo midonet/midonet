@@ -21,7 +21,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.services.MidostoreSetupService;
+import org.midonet.cluster.services.StorageService;
 
 /**
  * Manages all the services for Midolman REST API.
@@ -31,11 +31,11 @@ public class RestApiService  extends AbstractService {
     private static final Logger log = LoggerFactory.getLogger(
             RestApiService.class);
 
-    private final MidostoreSetupService midoStoreSetupService;
+    private final StorageService storageService;
 
     @Inject
-    public RestApiService(MidostoreSetupService midoStoreSetupService) {
-        this.midoStoreSetupService = midoStoreSetupService;
+    public RestApiService(StorageService storageService) {
+        this.storageService = storageService;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class RestApiService  extends AbstractService {
         log.info("doStart: entered");
 
         try {
-            midoStoreSetupService.startAsync().awaitRunning();
+            storageService.startAsync().awaitRunning();
             notifyStarted();
         } catch (Exception e) {
             log.error("Exception while starting service", e);
@@ -58,7 +58,7 @@ public class RestApiService  extends AbstractService {
         log.info("doStop: entered");
 
         try {
-            midoStoreSetupService.stopAsync().awaitTerminated();
+            storageService.stopAsync().awaitTerminated();
             notifyStopped();
         } catch (Exception e) {
             log.error("Exception while stopping service", e);
