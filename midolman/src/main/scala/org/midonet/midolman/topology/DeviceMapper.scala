@@ -87,7 +87,7 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
 
     override final def onCompleted() = {
         log.debug("Device {}/{} deleted", tag, id)
-        val device = vt.devices.remove(id)
+        val device = vt.devices.remove(id).asInstanceOf[D]
         vt.observables.remove(id)
         onDeviceChanged(device)
     }
@@ -95,7 +95,7 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
     override final def onError(e: Throwable) = {
         log.error("Device {}/{} error", tag, id, e)
         error.set(e)
-        val device = vt.devices.remove(id)
+        val device = vt.devices.remove(id).asInstanceOf[D]
         vt.observables.remove(id)
         onDeviceChanged(device)
     }
@@ -106,5 +106,5 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
         onDeviceChanged(device)
     }
 
-    protected def onDeviceChanged(device: Device): Unit = {}
+    protected def onDeviceChanged(device: D): Unit = {}
 }
