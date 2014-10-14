@@ -19,7 +19,7 @@ apply plugin: 'scala'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Midonet cluster library',
+        attributes 'Implementation-Title': 'Midonet Cluster library',
         'Implementation-Version': version
     }
 }
