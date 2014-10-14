@@ -25,12 +25,87 @@ import com.google.inject.Inject
 import rx.Observable
 
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.midolman.NotYetException
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.devices._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
+
+/**
+ * This is a companion object of the
+ * [[org.midonet.midolman.topology.VirtualTopology]] class, allowing the
+ * callers to query the topology using a static method call. The agent should
+ * create a single instance of the class, with references to the cluster/storage
+ * and the agent actor system.
+ */
+object VirtualTopology extends MidolmanLogging {
+
+    trait Device
+
+    trait VirtualDevice extends Device {
+        def deviceTag: FlowTag
+    }
+
+    type DeviceFactory = UUID => DeviceMapper[_]
+    type Invalidate = (FlowTag) => Unit
+
+    private var self: VirtualTopology = null
+
+    /**
+     * Tries to get the virtual device with the specified identifier.
+     * @return The topology device if it is found in the cache of the virtual
+     *         topology manager. The method throws a
+     *         [[org.midonet.midolman.NotYetException]] if the device is not yet
+     *         available in the cache, or an [[java.lang.Exception]] if
+     *         retrieving the device failed.
+     */
+    @throws[NotYetException]
+    @throws[Exception]
+    def tryGet[D <: Device](id: UUID)
+                           (implicit m: Manifest[D]): D = {
+        val device = self.devices.get(id).asInstanceOf[D]
+        if (device eq null) {
+            throw new NotYetException(self.observableOf(id, m).asFuture,
+                                      s"Device $id not yet available")
+        }
+        device
+    }
+
+    /**
+     * Gets the virtual device with the specified identifier.
+     * @return A future for the topology device. If the topology device is
+     *         available in the local cache, the future completes synchronously.
+     */
+    def get[D <: Device](id: UUID)
+                        (implicit m: Manifest[D]): Future[D] = {
+        val device = self.devices.get(id).asInstanceOf[D]
+        if (device eq null) {
+            self.observableOf(id, m).asFuture
+        } else {
+            Promise[D]().success(device).future
+        }
+    }
+
+    /**
+     * Returns an observable for the virtual device with the specified
+     * identifier. Upon subscription to this observable, which may complete
+     * asynchronously, the subscriber will receive updates with the current
+     * state of the device.
+     */
+    def observable[D <: Device](id: UUID)
+                               (implicit m: Manifest[D]): Observable[D] = {
+        self.observableOf(id, m)
+    }
+
+    /**
+     * Registers a virtual topology instance to this companion object.
+     */
+    private def register(vt: VirtualTopology): Unit = {
+        self = vt
+    }
+}
 
 /**
  * Manages the devices of the virtual topology by supporting get and subscribe
@@ -40,18 +115,15 @@ import org.midonet.util.reactivex._
  * receive topology updates for the storage layer, and emitting simulation
  * devices as notifications. A device observable is an [[rx.Observable]] that
  * receives a [[DeviceMapper]] as [[rx.Observable.OnSubscribe]] handler, to
- * manager subscription for virtual devices.
+ * manage subscription for virtual devices.
  *
  * A [[DeviceMapper]] is an abstract class, providing common support for
- * on-subscribe event handling, and processing per-device specific notifications.
- * The [[VirtualDeviceMapper]] abstract class subclasses [[DeviceMapper]] and
- * performs tag invalidation upon receiving notifications from the
- * underlying observable.
- * Sub-classes of [[DeviceMapper]] and [[VirtualDeviceMapper]] must implement
- * the observable() method, which exposes an [[rx.Observable]] with specific
- * virtual devices. An implementation example is the [[PortMapper]], which maps
- * the port topology objects received as an observable from the storage layer to
- * the corresponding virtual device.
+ * on-subscribe event handling, and processing per-device specific notifications
+ * such as tag invalidation. Sub-classes must implement the observable() method,
+ * which exposes an [[rx.Observable]] for a specific virtual device. An
+ * implementation example is the [[PortMapper]], which maps the port topology
+ * objects received as an observable from the storage layer to the corresponding
+ * virtual device.
  *
  * It is recommended that any class implementing [[DeviceMapper]] connects to
  * storage only when the observable() method is called for the first time.
@@ -79,86 +151,17 @@ import org.midonet.util.reactivex._
  * +------------------------------------------------+
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
- *
- * This is a companion object of the
- * [[org.midonet.midolman.topology.VirtualTopology]] class, allowing the
- * callers to query the topology using a static method call. The agent should
- * create a single instance of the class, with references to the cluster/storage
- * and the agent actor system.
  */
-object VirtualTopology extends MidolmanLogging {
-
-    trait Device
-
-    trait VirtualDevice extends Device {
-        def deviceTag: FlowTag
-    }
-
-    type DeviceFactory = UUID => DeviceMapper[_]
-
-    private var self: VirtualTopology = null
-
-    /**
-     * Tries to get the virtual device with the specified identifier.
-     * @return The topology device if it is found in the cache of the virtual
-     *         topology manager. The method throws a
-     *         [[org.midonet.midolman.NotYetException]] if the device is not yet
-     *         available in the cache, or an [[java.lang.Exception]] if
-     *         retrieving the device failed.
-     */
-    @throws[NotYetException]
-    @throws[Exception]
-    def tryGet[D <: Device](id: UUID)
-                           (implicit m: Manifest[D]): D = {
-        val device = self.devices.get(id).asInstanceOf[D]
-        if (device eq null) {
-            throw new NotYetException(self.observableOf(id, m).asFuture,
-                                      s"Device $id not yet available")
-        }
-        device
-    }
-
-    /**
-     * Gets the topology device with the specified identifier.
-     * @return A future for the topology device. If the topology device is
-     *         available in the local cache, the future completes synchronously.
-     */
-    def get[D <: Device](id: UUID)
-                        (implicit m: Manifest[D]): Future[D] = {
-        val device = self.devices.get(id).asInstanceOf[D]
-        if (device eq null) {
-            self.observableOf(id, m).asFuture
-        } else {
-            Promise[D]().success(device).future
-        }
-    }
-
-    /**
-     * Returns an observable for the topology device with the specified
-     * identifier. Upon subscription to this observable, which may complete
-     * asynchronously, the subscriber will receive updates with the current
-     * state of the device.
-     */
-    def observable[D <: Device](id: UUID)
-                               (implicit m: Manifest[D]): Observable[D] = {
-        self.observableOf(id, m)
-    }
-
-    /**
-     * Registers a virtual topology instance for this companion object.
-     */
-    private def register(vt: VirtualTopology): Unit = {
-        self = vt
-    }
-}
-
-class VirtualTopology @Inject() (store: Storage,
+class VirtualTopology @Inject() (val store: Storage,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
     import org.midonet.midolman.topology.VirtualTopology._
 
-    implicit val actorSystem = actorsService.system
+    private implicit val actorSystem = actorsService.system
+    private implicit val invalidate: Invalidate = (tag: FlowTag) => {
+        FlowController.getRef ! InvalidateFlowsByTag(tag)
+    }
 
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
@@ -166,10 +169,10 @@ class VirtualTopology @Inject() (store: Storage,
         new ConcurrentHashMap[UUID, Observable[_]]()
 
     private val factories = Map[Manifest[_], DeviceFactory](
-        manifest[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
+        manifest[Port] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, this))
     )
 
     register(this)

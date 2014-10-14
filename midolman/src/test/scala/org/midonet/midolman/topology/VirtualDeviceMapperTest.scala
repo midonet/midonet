@@ -18,24 +18,23 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
+import mockit.Mocked
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.sdn.flows.FlowTagger.DeviceTag
-import org.midonet.util.reactivex._
-
-import mockit.Mocked
 
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.midolman.FlowController
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.topology.VirtualTopology.{Invalidate, VirtualDevice}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.sdn.flows.FlowTagger.{DeviceTag, FlowTag}
 import org.midonet.util.functors._
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class VirtualDeviceMapperTest extends MidolmanSpec {
@@ -61,8 +60,8 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     }
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
-                        (implicit vt: VirtualTopology)
-        extends VirtualDeviceMapper[TestableDevice](id, vt) {
+                        (implicit vt: VirtualTopology, invalidate: Invalidate)
+        extends VirtualDeviceMapper[TestableDevice](id, vt, invalidate) {
 
         private val subscribed = new AtomicBoolean(false)
         private val stream = BehaviorSubject.create[TestableDevice]()
@@ -85,6 +84,9 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     @Mocked
     var storage: Storage = _
     implicit var vt: VirtualTopology = _
+    implicit val invalidate: Invalidate = (tag: FlowTag) => {
+        FlowController.getRef ! InvalidateFlowsByTag(tag)
+    }
 
     registerActors(FlowController -> (() => new FlowController
                                                 with MessageAccumulator))
