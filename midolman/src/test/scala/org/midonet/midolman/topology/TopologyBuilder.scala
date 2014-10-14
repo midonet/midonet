@@ -30,34 +30,38 @@ import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.devices.PortInterfaceConverter
 import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
+
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets._
 
 trait TopologyBuilder {
 
-    import org.midonet.midolman.topology.TopologyBuilder._
+    import TopologyBuilder._
 
-    protected def createNetworkPort(id: UUID = UUID.randomUUID,
-                                    networkId: UUID = UUID.randomUUID,
-                                    inboundFilterId: UUID = UUID.randomUUID,
-                                    outboundFilterId: UUID = UUID.randomUUID,
-                                    tunnelKey: Long = -1L,
-                                    peerId: UUID = UUID.randomUUID,
-                                    vifId: UUID = UUID.randomUUID,
-                                    hostId: UUID = UUID.randomUUID,
-                                    interfaceName: String = "",
-                                    adminStateUp: Boolean = true,
-                                    portGroupIds: Set[UUID] = Set.empty,
-                                    vlanId: Int = 0): Port = {
-        createPortBuilder(id, networkId, inboundFilterId,
-                                        outboundFilterId, tunnelKey, peerId,
-                                        vifId, hostId, interfaceName,
-                                        adminStateUp, portGroupIds)
+    protected def createBridgePort(id: UUID = UUID.randomUUID,
+                                   bridgeId: UUID = UUID.randomUUID,
+                                   inboundFilterId: UUID = UUID.randomUUID,
+                                   outboundFilterId: UUID = UUID.randomUUID,
+                                   tunnelKey: Long = -1L,
+                                   peerId: UUID = UUID.randomUUID,
+                                   vifId: UUID = UUID.randomUUID,
+                                   hostId: UUID = UUID.randomUUID,
+                                   interfaceName: String = "",
+                                   adminStateUp: Boolean = true,
+                                   portGroupIds: Set[UUID] = Set.empty,
+                                   vlanId: Int = 0): Port = {
+        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
+                          tunnelKey, peerId, vifId, hostId, interfaceName,
+                          adminStateUp, portGroupIds)
             .setVlanId(vlanId)
             .build
     }
 
     protected def createRouterPort(id: UUID = UUID.randomUUID,
-                                   networkId: UUID = UUID.randomUUID,
+                                   bridgeId: UUID = UUID.randomUUID,
                                    inboundFilterId: UUID = UUID.randomUUID,
                                    outboundFilterId: UUID = UUID.randomUUID,
                                    tunnelKey: Long = -1L,
@@ -70,10 +74,9 @@ trait TopologyBuilder {
                                    portSubnet: IPSubnet[_] = randomIPv4Subnet,
                                    portAddress: IPAddr = IPv4Addr.random,
                                    portMac: MAC = MAC.random): Port = {
-        createPortBuilder(id, networkId, inboundFilterId,
-                                        outboundFilterId, tunnelKey, peerId,
-                                        vifId, hostId, interfaceName,
-                                        adminStateUp, portGroupIds)
+        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
+                          tunnelKey, peerId, vifId, hostId, interfaceName,
+                          adminStateUp, portGroupIds)
             .setPortSubnet(portSubnet.asProto)
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
@@ -81,7 +84,7 @@ trait TopologyBuilder {
     }
 
     protected def createVxLanPort(id: UUID = UUID.randomUUID,
-                                  networkId: UUID = UUID.randomUUID,
+                                  bridgeId: UUID = UUID.randomUUID,
                                   inboundFilterId: UUID = UUID.randomUUID,
                                   outboundFilterId: UUID = UUID.randomUUID,
                                   tunnelKey: Long = -1L,
@@ -96,10 +99,9 @@ trait TopologyBuilder {
                                   vxLanVni: Int = random.nextInt(),
                                   vxLanTunnelIp: IPAddr = IPv4Addr.random,
                                   vxLanTunnelZoneId: UUID = UUID.randomUUID): Port = {
-        createPortBuilder(id, networkId, inboundFilterId,
-                                        outboundFilterId, tunnelKey, peerId,
-                                        vifId, hostId, interfaceName,
-                                        adminStateUp, portGroupIds)
+        createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
+                          tunnelKey, peerId, vifId, hostId, interfaceName,
+                          adminStateUp, portGroupIds)
             .setVxlanMgmtIp(vxLanMgmtIp.asProto)
             .setVxlanMgmtPort(vxLanMgmtPort)
             .setVxlanVni(vxLanVni)
@@ -109,7 +111,7 @@ trait TopologyBuilder {
     }
 
     private def createPortBuilder(id: UUID,
-                                  networkId: UUID,
+                                  bridgeId: UUID,
                                   inboundFilterId: UUID,
                                   outboundFilterId: UUID,
                                   tunnelKey: Long,
@@ -121,7 +123,7 @@ trait TopologyBuilder {
                                   portGroupIds: Set[UUID]): Port.Builder = {
         val builder = Port.newBuilder
             .setId(id.asProto)
-            .setNetworkId(networkId.asProto)
+            .setNetworkId(bridgeId.asProto)
             .setInboundFilterId(inboundFilterId.asProto)
             .setOutboundFilterId(outboundFilterId.asProto)
             .setTunnelKey(tunnelKey)

@@ -28,14 +28,14 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
-import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
+import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{MidolmanActorsService, HostIdProviderService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
@@ -78,7 +78,7 @@ trait MidolmanSpec extends FeatureSpecLike
             val config = fillConfig(new HierarchicalConfiguration)
             injector = Guice.createInjector(getModules(config))
 
-            injector.getInstance(classOf[MidostoreSetupService])
+            injector.getInstance(classOf[StorageService])
                 .startAsync()
                 .awaitRunning()
             injector.getInstance(classOf[MidolmanService])
@@ -96,7 +96,7 @@ trait MidolmanSpec extends FeatureSpecLike
         injector.getInstance(classOf[MidolmanService])
             .stopAsync()
             .awaitTerminated()
-        injector.getInstance(classOf[MidostoreSetupService])
+        injector.getInstance(classOf[StorageService])
             .stopAsync()
             .awaitTerminated()
     }
@@ -113,10 +113,10 @@ trait MidolmanSpec extends FeatureSpecLike
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
-            new MidostoreModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
+            new InMemoryStorageModule(),
             new StateStorageModule(),
             new AbstractModule {
                 def configure() {
