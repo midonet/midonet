@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.StorageEval.EvalResult.TestItem
 import org.midonet.cluster.data.storage.StorageEval.{BulkUpdateEval, BulkUpdateEvalOrBuilder, EvalResult}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.{Network, Port, Rule}
+import org.midonet.cluster.models.Topology.{Network, Port, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**

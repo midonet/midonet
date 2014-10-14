@@ -22,11 +22,11 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import scala.None$;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import scala.None$;
 import scala.util.Failure;
 import scala.util.Try;
 
@@ -57,10 +57,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.midonet.cluster.models.Topology.Chain;
+import static org.midonet.cluster.models.Topology.Network;
+import static org.midonet.cluster.models.Topology.Router;
 import static scala.concurrent.Await.ready;
-import static org.midonet.cluster.models.Devices.Chain;
-import static org.midonet.cluster.models.Devices.Network;
-import static org.midonet.cluster.models.Devices.Router;
 
 public class ZookeeperObjectMapperTest {
 

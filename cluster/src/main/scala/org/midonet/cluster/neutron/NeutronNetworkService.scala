@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.Network
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.models.Neutron
 
 /**

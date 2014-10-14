@@ -20,12 +20,16 @@ import java.util.List;
 import java.util.UUID;
 
 import com.google.common.collect.ListMultimap;
+
 import org.junit.Test;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
-import org.midonet.cluster.models.Devices;
 import org.midonet.cluster.models.TestModels;
+import org.midonet.cluster.models.Topology.Chain;
+import org.midonet.cluster.models.Topology.Network;
+import org.midonet.cluster.models.Topology.Port;
+import org.midonet.cluster.models.Topology.VtepBinding;
 
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
@@ -33,8 +37,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.models.Devices.Chain;
-import static org.midonet.cluster.models.Devices.Network;
 
 /**
  * Tests ProtoFieldBindngTest class.
@@ -103,7 +105,7 @@ public class ProtoFieldBindingTest {
         ProtoFieldBinding.createBindings(Network.class,
                                          null,
                                          DeleteAction.CASCADE,
-                                         Devices.VtepBinding.class,
+                                         VtepBinding.class,
                                          "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding of class with no id field.");
@@ -114,7 +116,7 @@ public class ProtoFieldBindingTest {
         ProtoFieldBinding.createBindings(Network.class,
                                          "no_such_field",
                                          DeleteAction.CLEAR,
-                                         Devices.Port.class,
+                                         Port.class,
                                          "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding with unrecognized field name.");
@@ -125,7 +127,7 @@ public class ProtoFieldBindingTest {
         ProtoFieldBinding.createBindings(Network.class,
                                          "name",
                                          DeleteAction.CLEAR,
-                                         Devices.Port.class,
+                                         Port.class,
                                          "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow ref from String to UUID.");
@@ -133,7 +135,7 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithWrongListRefType() throws Exception {
-        ProtoFieldBinding.createBindings(Devices.Port.class,
+        ProtoFieldBinding.createBindings(Port.class,
                                          null,
                                          DeleteAction.CLEAR,
                                          TestModels.FakeDevice.class,
