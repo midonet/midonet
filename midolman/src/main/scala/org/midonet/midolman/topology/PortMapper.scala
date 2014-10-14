@@ -18,19 +18,17 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
-import akka.actor.ActorSystem
-
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.midolman.topology.VirtualTopology.Invalidate
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.util.functors._
 
-sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
-                       (implicit actorSystem: ActorSystem)
-        extends VirtualDeviceMapper[SimulationPort](id, vt) {
+sealed class PortMapper(id: UUID, vt: VirtualTopology)
+                       (implicit invalidate: Invalidate)
+        extends VirtualDeviceMapper[SimulationPort](id, vt, invalidate) {
 
     override def logSource = s"org.midonet.midolman.topology.port-$id"
 
@@ -41,7 +39,7 @@ sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
 
     protected override def observable = {
         if (subscribed.compareAndSet(false, true)) {
-            store.subscribe(classOf[TopologyPort], id, inStream)
+            vt.store.subscribe(classOf[TopologyPort], id, inStream)
         }
         outStream
     }

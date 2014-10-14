@@ -23,10 +23,10 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.midolman.topology.VirtualTopology.{Invalidate, VirtualDevice}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.sdn.flows.FlowTagger.DeviceTag
+import org.midonet.sdn.flows.FlowTagger.{FlowTag, DeviceTag}
 import org.midonet.util.reactivex._
 
 import mockit.Mocked
@@ -61,8 +61,8 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     }
 
     class TestableMapper(id: UUID, obs: Observable[TestableDevice])
-                        (implicit vt: VirtualTopology)
-        extends VirtualDeviceMapper[TestableDevice](id, vt) {
+                        (implicit vt: VirtualTopology, invalidate: Invalidate)
+        extends VirtualDeviceMapper[TestableDevice](id, vt, invalidate) {
 
         private val subscribed = new AtomicBoolean(false)
         private val stream = BehaviorSubject.create[TestableDevice]()
@@ -85,6 +85,9 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     @Mocked
     var storage: Storage = _
     implicit var vt: VirtualTopology = _
+    implicit val invalidate: Invalidate = (tag: FlowTag) => {
+        FlowController.getRef ! InvalidateFlowsByTag(tag)
+    }
 
     registerActors(FlowController -> (() => new FlowController
                                                 with MessageAccumulator))
