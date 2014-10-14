@@ -46,14 +46,14 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.{Port => VPort}
-import org.midonet.cluster.services.MidostoreSetupService
+import org.midonet.cluster.services.StorageService
 import org.midonet.midolman.DatapathController.{DatapathReady, Initialize}
 import org.midonet.midolman.DeduplicationActor.{DiscardPacket, EmitGeneratedPacket, HandlePackets}
 import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowUpdateCompleted, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman._
 import org.midonet.midolman.guice._
-import org.midonet.midolman.guice.cluster.{ClusterClientModule, MidostoreModule}
+import org.midonet.midolman.guice.cluster.ClusterClientModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.serialization.SerializationModule
@@ -163,7 +163,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             val config = fillConfig(new HierarchicalConfiguration())
             injector = Guice.createInjector(getModulesAsJavaIterable(config))
 
-            injector.getInstance(classOf[MidostoreSetupService])
+            injector.getInstance(classOf[StorageService])
                 .startAsync()
                 .awaitRunning()
             injector.getInstance(classOf[MidolmanService])
@@ -232,7 +232,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             new VersionModule(),
             new SerializationModule(),
             new ConfigProviderModule(config),
-            new MidostoreModule(),
+            new InMemoryStorageModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
