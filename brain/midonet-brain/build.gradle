@@ -57,6 +57,7 @@ dependencies {
             libraries.metrics,
             libraries.commons_conf,
             libraries.curator_recipes,
+            libraries.curator_framework,
             libraries.guava,
             libraries.guice,
             libraries.mockit,
@@ -64,6 +65,7 @@ dependencies {
             libraries.mysql_jdbc,
             libraries.protobuf,
             libraries.rx,
+            libraries.scala,
             libraries.zookeeper
 
     testCompile libraries.hamcrest_lib,
