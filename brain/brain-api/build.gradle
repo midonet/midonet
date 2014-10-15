@@ -1,0 +1,37 @@
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'application'
+
+mainClassName = 'org.midonet.brain.api.TopologyApi'
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Midonet Topology',
+                   'Implementation-Version': version,
+                   'Main-Class': mainClassName
+    }
+    from {configurations.compile.collect {it.isDirectory()? it: zipTree(it)}}
+}
+
+dependencies {
+    compile project(':cluster')
+    compile 'io.netty:netty-all:4.0.23.Final'
+    compile libraries.guava
+    compile libraries.protobuf
+    compile libraries.rx
+    compile libraries.scala
+
+    testCompile libraries.scalatest
+    testCompile libraries.test_frameworks
+}
