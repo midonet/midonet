@@ -15,15 +15,20 @@
  */
 package org.midonet.cluster.data.storage
 
-import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.cache.ChildData
-import org.midonet.cluster.util.{ObservablePathChildrenCache, ObservableNodeCache}
-import org.midonet.util.functors.makeFunc1
-import rx.subjects.PublishSubject
-import rx.{Subscription, Observer, Observable}
-import rx.functions.Func1
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.concurrent.TrieMap
+
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.recipes.cache.ChildData
+
+import rx.functions.Func1
+import rx.internal.operators.OperatorDoOnUnsubscribe
+import rx.subjects.{BehaviorSubject, PublishSubject}
+import rx.{Observable, Observer, Subscription}
+
+import org.midonet.cluster.util.{ObservableNodeCache, ObservablePathChildrenCache}
+import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
  * Watches the specified Zookeeper node's data and deserializes updates to
@@ -46,14 +51,33 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
                                    path: String,
                                    curator: CuratorFramework) {
     private val nodeCache = new ObservableNodeCache(curator)
-    nodeCache.connect(path)
+    private val stream = BehaviorSubject.create[T]()
 
-    val observable =
-        nodeCache.observable.map[T](DeserializerCache.deserializer(clazz))
+    private val refCount = new AtomicInteger(0)
+    private val unsubscribeObservable = stream.doOnUnsubscribe(makeAction0 {
+        refCount.decrementAndGet()
+    })
 
-    def subscribe(observer: Observer[_ >: T]) = observable.subscribe(observer)
+    def connect(): Unit = {
+        nodeCache.connect(path)
+        nodeCache.observable
+            .map[T](DeserializerCache.deserializer(clazz))
+            .subscribe(stream)
+    }
 
-    def close() = nodeCache.close()
+    def current: T =
+        DeserializerCache.deserializer(clazz).call(nodeCache.current)
+
+    def subscribe(observer: Observer[_ >: T]): Subscription = {
+        refCount.incrementAndGet()
+        unsubscribeObservable.subscribe(observer)
+    }
+
+    def close(): Unit = {
+        if (refCount.compareAndSet(0, -1)) {
+            nodeCache.close()
+        }
+    }
 }
 
 /**
@@ -70,16 +94,29 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
                                 curator: CuratorFramework) {
     private val pathCache = new ObservablePathChildrenCache(curator)
-    pathCache.connect(path)
+    private val refCount = new AtomicInteger(0)
+    private val unsubscribeAction =
+        new OperatorDoOnUnsubscribe[Observable[ChildData]](makeAction0 {
+            refCount.decrementAndGet()
+        })
+
+    def connect() = {
+        pathCache.connect(path)
+    }
 
     def subscribe(observer: Observer[_ >: Observable[T]]): Subscription = {
+        refCount.incrementAndGet()
         val subj = PublishSubject.create[Observable[ChildData]]()
         val mapped = subj.map[Observable[T]](instanceObservableConverter)
         mapped.subscribe(observer)
-        pathCache.subscribe(subj)
+        pathCache.subscribe(subj, unsubscribeAction)
     }
 
-    def close() = pathCache.close()
+    def close(): Unit = {
+        if (refCount.compareAndSet(0, -1)) {
+            pathCache.close()
+        }
+    }
 
     private val instanceObservableConverter =
         makeFunc1 { obs: Observable[ChildData] =>
@@ -91,7 +128,7 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
  * Caches deserializer objects on a per-class basis.
  */
 private object DeserializerCache {
-    import ZookeeperObjectMapper.deserialize
+    import org.midonet.cluster.data.storage.ZookeeperObjectMapper.deserialize
 
     private val deserializers = new TrieMap[Class[_], Func1[ChildData, _]]
 

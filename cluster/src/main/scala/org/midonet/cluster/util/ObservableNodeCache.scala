@@ -15,16 +15,14 @@
  */
 package org.midonet.cluster.util
 
+import java.io.IOException
+
 import com.google.inject.Inject
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.recipes.cache.ChildData
-import org.apache.curator.framework.recipes.cache.NodeCache
-import org.apache.curator.framework.recipes.cache.NodeCacheListener
+import org.apache.curator.framework.recipes.cache.{ChildData, NodeCache, NodeCacheListener}
 
-import rx.subjects.BehaviorSubject
-import rx.subjects.Subject
-import java.io.IOException
+import rx.subjects.{BehaviorSubject, Subject}
 
 /** A wrapper around Curator's NodeCache that exposes updates as observables. */
 @Inject

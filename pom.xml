@@ -298,6 +298,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-async_2.11</artifactId>
+            <version>0.9.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.11</artifactId>
             <version>2.2.2</version>
@@ -633,9 +639,9 @@
 
         <!-- rx -->
         <dependency>
-            <groupId>com.netflix.rxjava</groupId>
-            <artifactId>rxjava-core</artifactId>
-            <version>0.19.6</version>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>1.0.0-rc.7</version>
         </dependency>
 
    </dependencies> </dependencyManagement>

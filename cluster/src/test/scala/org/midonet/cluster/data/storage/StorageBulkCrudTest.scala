@@ -16,30 +16,24 @@
 package org.midonet.cluster.data.storage
 
 import java.lang.Long
-import java.util.ArrayList
-import java.util.Collections
-import java.util.Date
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.{Executors, TimeUnit}
+import java.util.{ArrayList, Collections, Date}
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.concurrent.Await.result
+import scala.concurrent.duration.Duration
 
 import com.google.common.collect.Multimap
-import org.scalatest.BeforeAndAfterAll
-import org.scalatest.FlatSpec
+
+import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.StorageEval.BulkUpdateEval
-import org.midonet.cluster.data.storage.StorageEval.BulkUpdateEvalOrBuilder
-import org.midonet.cluster.data.storage.StorageEval.EvalResult
 import org.midonet.cluster.data.storage.StorageEval.EvalResult.TestItem
+import org.midonet.cluster.data.storage.StorageEval.{BulkUpdateEval, BulkUpdateEvalOrBuilder, EvalResult}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.Bridge
-import org.midonet.cluster.models.Devices.Port
-import org.midonet.cluster.models.Devices.Rule
+import org.midonet.cluster.models.Devices.{Bridge, Port, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
@@ -47,11 +41,13 @@ import org.midonet.cluster.util.UUIDUtil.randomUuidProto
  * the tests, one must extend this trait and set up appropriate storage backend.
  */
 trait StorageBulkCrudTest extends FlatSpec
-                          with StorageServiceTester
+                          with StorageTester
                           with BeforeAndAfterAll {
     val log = LoggerFactory.getLogger(classOf[StorageBulkCrudTest])
     val TRIAL_SIZE = 1000
     val testResults = ArrayBuffer[BulkUpdateEval]()
+
+    val timeout = Duration.create(1, TimeUnit.SECONDS)
 
     def experimentCommonSettings =
         BulkUpdateEval.newBuilder()
@@ -512,8 +508,8 @@ trait StorageBulkCrudTest extends FlatSpec
 
         assert(peers.size() === 1, "Failed to handle conflicting writes.")
 
-        val portInZk = get(classOf[Port], port.getId)
-        val peerInZk = get(classOf[Port], peers(0).getId)
+        val portInZk: Port = result(get(classOf[Port], port.getId), timeout)
+        val peerInZk: Port = result(get(classOf[Port], peers(0).getId), timeout)
         assert(portInZk.getPeerId === peers(0).getId,
                "The port in ZK has a corrupted peer port ID.")
         assert(peerInZk.getPeerId === port.getId,

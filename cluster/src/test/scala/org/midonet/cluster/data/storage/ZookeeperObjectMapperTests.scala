@@ -15,22 +15,26 @@
  */
 package org.midonet.cluster.data.storage
 
-import java.util.{List => JList, UUID}
+import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
-import org.scalatest.{Suite, Matchers}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{Matchers, Suite}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.Await
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
                                  with CuratorTestFramework
                                  with Matchers {
-    import ZookeeperObjectMapperTests._
+    import org.midonet.cluster.data.storage.ZookeeperObjectMapperTests._
 
     private var zom: ZookeeperObjectMapper = _
 
@@ -72,12 +76,15 @@ class ZookeeperObjectMapperTests extends Suite
         zom.build()
     }
 
+    def await[T](f: Future[T]) =
+        Await.result(f, Duration.create(1, TimeUnit.SECONDS))
+
     def testMultiCreate() {
         val bridge = PojoBridge()
         val port = PojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
 
-        val updatedBridge = zom.get(classOf[PojoBridge], bridge.id)
+        val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
 
@@ -101,19 +108,19 @@ class ZookeeperObjectMapperTests extends Suite
                        UpdateOp(routerUpdate),
                        DeleteOp(classOf[PojoChain], chain.id)))
 
-        val updatedChain2 = zom.get(classOf[PojoChain], chain2.id)
+        val updatedChain2 = await(zom.get(classOf[PojoChain], chain2.id))
         updatedChain2.bridgeIds.asScala should equal(List(bridge.id))
         updatedChain2.routerIds.asScala should equal(List(router.id))
 
-        val updatedBridge = zom.get(classOf[PojoBridge], bridge.id)
+        val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.inChainId shouldBe null
         updatedBridge.outChainId should equal(chain2.id)
 
-        val updatedRouter = zom.get(classOf[PojoRouter], router.id)
+        val updatedRouter = await(zom.get(classOf[PojoRouter], router.id))
         updatedRouter.inChainId should equal(chain2.id)
         updatedRouter.outChainId shouldBe null
 
-        zom.exists(classOf[PojoChain], chain.id) shouldBe false
+        await(zom.exists(classOf[PojoChain], chain.id)) shouldBe false
     }
 
     def testMultiUpdateAndCascadingDelete() {
@@ -129,14 +136,14 @@ class ZookeeperObjectMapperTests extends Suite
         zom.multi(List(CreateOp(chain2), UpdateOp(rule3),
                        DeleteOp(classOf[PojoChain], chain1.id)))
 
-        zom.exists(classOf[PojoChain], chain1.id) shouldBe false
-        zom.exists(classOf[PojoRule], rule1.id) shouldBe false
-        zom.exists(classOf[PojoRule], rule2.id) shouldBe false
+        await(zom.exists(classOf[PojoChain], chain1.id)) shouldBe false
+        await(zom.exists(classOf[PojoRule], rule1.id)) shouldBe false
+        await(zom.exists(classOf[PojoRule], rule2.id)) shouldBe false
 
-        val updatedChain2 = zom.get(classOf[PojoChain], chain2.id)
+        val updatedChain2 = await(zom.get(classOf[PojoChain], chain2.id))
         updatedChain2.ruleIds.asScala should equal(List(rule3.id))
 
-        val updatedRule3 = zom.get(classOf[PojoRule], rule3.id)
+        val updatedRule3 = await(zom.get(classOf[PojoRule], rule3.id))
         updatedRule3.chainId should equal(chain2.id)
     }
 
@@ -173,11 +180,14 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiIdGet() {
+        implicit val es = ExecutionContext.global
         val chains = List("chain0", "chain1", "chain2").map(PojoChain)
         zom.multi(chains.map(CreateOp))
         val twoIds = chains.take(2).map(_.id).asJava
-        val twoChains = zom.getAll(classOf[PojoChain], twoIds)
-        twoChains.asScala.map(_.name) should equal(List("chain0", "chain1"))
+        val twoChains = await(
+            Future.sequence(zom.getAll(classOf[PojoChain], twoIds.asScala))
+        )
+        twoChains.map(_.name) should equal(List("chain0", "chain1"))
     }
 }
 

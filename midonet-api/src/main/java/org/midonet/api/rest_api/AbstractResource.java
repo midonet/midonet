@@ -28,7 +28,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.storage.StorageService;
+import org.midonet.cluster.data.storage.Storage;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -47,7 +47,7 @@ public abstract class AbstractResource {
     protected final UriInfo uriInfo;
     protected final SecurityContext context;
     protected final Validator validator;
-    protected final StorageService store;
+    protected final Storage store;
     protected final DataClient dataClient;
 
     // TODO: Remove the overloads that use DataClient once migration to ZOOM
@@ -64,14 +64,14 @@ public abstract class AbstractResource {
     }
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context, StorageService store,
+                            SecurityContext context, Storage store,
                             Validator validator) {
         this(config, uriInfo, context, null, store, validator);
     }
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
                             SecurityContext context, DataClient dataClient,
-                            StorageService store, Validator validator) {
+                            Storage store, Validator validator) {
         this.config = config;
         this.uriInfo = uriInfo;
         this.context = context;

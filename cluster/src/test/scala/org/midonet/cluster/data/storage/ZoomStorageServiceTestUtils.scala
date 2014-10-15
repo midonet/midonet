@@ -17,6 +17,8 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
+import scala.concurrent.Future
+
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
@@ -41,7 +43,7 @@ class ZoomBinding(val leftClass: Class[_],
 /**
  * A trait implementing the common API for testing ZOOM-based Storage Service.
  */
-trait ZoomStorageServiceTester extends StorageServiceTester
+trait ZoomStorageTester extends StorageTester
                                with CuratorTestFramework { this: Suite =>
     var zoom: ZookeeperObjectMapper = null
     val deviceClasses: Array[Class[_]] =
@@ -95,20 +97,20 @@ trait ZoomStorageServiceTester extends StorageServiceTester
     }
 
     @throws(classOf[NotFoundException])
-    override def get[T](clazz: Class[T], id: ObjId): T = {
+    override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         zoom.get(clazz, id)
     }
 
     override def getAll[T](clazz: Class[T],
-                           ids: JList[_ <: ObjId]): JList[T] = {
+                           ids: Seq[_ <: ObjId]): Seq[Future[T]] = {
         zoom.getAll(clazz, ids)
     }
 
-    override def getAll[T](clazz: Class[T]): JList[T] = {
+    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = {
         zoom.getAll(clazz)
     }
 
-    override def exists(clazz: Class[_], id: ObjId): Boolean = {
+    override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         zoom.exists(clazz, id)
     }
 

@@ -26,6 +26,6 @@ import org.midonet.cluster.util.CuratorTestFramework
  */
 @RunWith(classOf[JUnitRunner])
 class InMemoryZoomBulkCrudTest extends StorageBulkCrudTest
-                               with ZoomStorageServiceTester
+                               with ZoomStorageTester
                                with CuratorTestFramework {
 }
