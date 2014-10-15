@@ -53,7 +53,8 @@ project.ext {
 
         scallop: "org.rogach:scallop_2.11:0.9.5",
 
-        netty: "io.netty:netty:3.7.0.Final",
+        netty: "io.netty:netty-all:4.0.24.Final",
+        netty_old: "io.netty:netty:3.7.0.Final",
         guava: "com.google.guava:guava:15.0",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
@@ -68,6 +69,7 @@ project.ext {
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_io: "commons-io:commons-io:2.3",
+        protobuf: 'com.google.protobuf:protobuf-java:2.6.1',
         guice: ["com.google.inject:guice:${versions.guice}",
                 "com.google.inject.extensions:guice-assistedinject:${versions.guice}"],
         guice_servlet: "com.google.inject.extensions:guice-servlet:${versions.guice}",
@@ -147,8 +149,6 @@ project.ext {
         vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
-
-        protobuf: "com.google.protobuf:protobuf-java:2.6.1"
     ]
 
     timestamp = new Date().format("YYYYMMddHHmm")
