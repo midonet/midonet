@@ -54,11 +54,14 @@ dependencies {
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             libraries.metrics,
             libraries.commons_conf,
+            libraries.curator_framework,
             libraries.guava,
             libraries.guice,
             libraries.mockit,
             libraries.netty,
+            libraries.protobuf,
             libraries.rx,
+            libraries.scala,
             libraries.zookeeper
 
     testCompile libraries.hamcrest_lib, libraries.scalatest, libraries.mockit
