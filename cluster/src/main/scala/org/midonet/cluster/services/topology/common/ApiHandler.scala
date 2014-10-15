@@ -68,6 +68,12 @@ class ApiHandler[Expected <: Message](private val observer: Observer[CommEvent])
     }
 }
 
+class ApiServerHandler(observer: Observer[CommEvent])
+    extends ApiHandler[Commands.Request](observer)
+class ApiClientHandler(observer: Observer[CommEvent])
+    extends ApiHandler[Commands.Response](observer)
+
+
 /**
  * Communication events from netty
  */
