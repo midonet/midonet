@@ -57,9 +57,11 @@ dependencies {
             libraries.commons_conf,
             libraries.guava,
             libraries.guice,
+            libraries.netty,
+            libraries.protobuf,
             libraries.rx,
-            libraries.zookeeper,
-            libraries.protobufs
+            libraries.scala,
+            libraries.zookeeper
 
     testCompile libraries.test_frameworks, libraries.hamcrest,
                 libraries.scalatest

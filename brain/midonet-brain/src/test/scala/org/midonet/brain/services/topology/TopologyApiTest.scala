@@ -22,8 +22,11 @@ import org.mockito.Mockito
 import org.scalatest._
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.services.topology.State.SessionFactory
+import org.midonet.brain.services.topology.common.{TopologyApi, Interruption, State}
+import org.midonet.brain.services.topology.server.ServerState.SessionFactory
+import org.midonet.brain.services.topology.server._
 import org.midonet.cluster.models.{Commons, Topology}
+import org.midonet.cluster.rpc.Commands.{Request, Response, ID}
 import org.midonet.cluster.rpc.Commands.Request._
 import org.midonet.cluster.rpc.Commands.Response._
 import org.midonet.cluster.util.UUIDUtil
@@ -34,33 +37,41 @@ import scala.collection.JavaConversions._
 class TopologyApiTest extends FlatSpec with Matchers {
 
     val log = LoggerFactory.getLogger(classOf[TopologyApiTest])
+    val resp = Response.newBuilder()
+    val req = Request.newBuilder()
 
-    def randId = UUIDUtil.toProto(UUID.randomUUID())
+    def randUuid = UUIDUtil.toProto(UUID.randomUUID())
+    def randId = ID.newBuilder()
+        .setUuid(UUIDUtil.toProto(UUID.randomUUID()))
+        .build()
 
-    def genHandshake(reqId: Commons.UUID = randId) = Handshake.newBuilder()
-                                                     .setCnxnId(randId)
-                                                     .setReqId(reqId).build()
-    def genBye(reqId: Commons.UUID = randId) = Bye.newBuilder()
-                                                  .setReqId(reqId)
-                                                  .build()
-    def genAck(reqId: Commons.UUID) = Ack.newBuilder().setReqId(reqId).build()
-    def genNAck(reqId: Commons.UUID) = NAck.newBuilder().setReqId(reqId).build()
+    def genHandshake(reqId: Commons.UUID = randId) = req.setHandshake(
+        Handshake.newBuilder().setCnxnId(randUuid).setReqId(reqId).build())
+        .build()
+    def genBye(reqId: Commons.UUID = randId) = req.setBye(
+        Bye.newBuilder().setReqId(reqId).build())
+        .build()
+    def genAck(reqId: Commons.UUID) = resp.setAck(
+        Ack.newBuilder().setReqId(reqId).build())
+        .build()
+    def genNAck(reqId: Commons.UUID) = resp.setNack(
+        NAck.newBuilder().setReqId(reqId).build())
+        .build()
     def genGet(reqId: Commons.UUID = randId, subscribe: Boolean = false) =
-        Get.newBuilder().setReqId(reqId)
+        req.setGet(Get.newBuilder().setReqId(reqId)
                         .setSubscribe(subscribe)
-                        .addIds(randId)
-                        .addIds(randId)
+                        .setId(randId)
                         .setType(Topology.Type.NETWORK)
-                        .build()
+                        .build()).build()
     def genSub(reqId: Commons.UUID = randId) = genGet(reqId, subscribe = true)
     def genUnsub(reqId: Commons.UUID = randId) =
-        Unsubscribe.newBuilder().setReqId(reqId)
+        req.setUnsubscribe(Unsubscribe.newBuilder().setReqId(reqId)
                                 .setType(Topology.Type.NETWORK)
                                 .setId(randId)
-                                .build()
+                                .build()).build()
 
     val someId = randId
-    val cnxnId = randId
+    val cnxnId = randUuid
     val handshake = genHandshake(cnxnId)
 
     implicit def inMatcher[T <: State](s: T) = new StateMatcher(s)
@@ -116,34 +127,38 @@ class TopologyApiTest extends FlatSpec with Matchers {
         Active(session).after(1).remains
         Mockito.verifyZeroInteractions(lastSession)
     }
-    it should "closes on interrupt" in {
+    it should "ignore interrupt" in {
         Active(session) after Interruption becomes Closed
-        Mockito.verify(lastSession).suspend()
+        Mockito.verifyZeroInteractions(lastSession)
     }
     it should "process get" in {
         val get = genGet()
         Active(session).after(get).remains
-        Mockito.verify(lastSession).get(get.getIdsList, get.getType,
-                                        genAck(get.getReqId),
-                                        genNAck(get.getReqId))
+        Mockito.verify(lastSession).get(
+            Id.fromProto(get.getGet.getId),
+            TopologyApi.klassOf(get.getGet.getType).get,
+            genAck(get.getGet.getReqId))
     }
     it should "process subscribe" in {
         val sub = genSub()
         Active(session).after(sub).remains
-        Mockito.verify(lastSession).watch(sub.getIdsList, sub.getType,
-                                          genAck(sub.getReqId),
-                                          genNAck(sub.getReqId))
+        Mockito.verify(lastSession).watch(
+            Id.fromProto(sub.getGet.getId),
+            TopologyApi.klassOf(sub.getGet.getType).get,
+            genAck(sub.getGet.getReqId))
     }
     it should "process unsubscribe" in {
         val unsub = genUnsub()
         Active(session).after(unsub).remains
-        Mockito.verify(lastSession).unwatch(unsub.getId, unsub.getType,
-                                            genAck(unsub.getReqId),
-                                            genNAck(unsub.getReqId))
+        Mockito.verify(lastSession).unwatch(
+            Id.fromProto(unsub.getUnsubscribe.getId),
+            TopologyApi.klassOf(unsub.getUnsubscribe.getType).get,
+            genAck(unsub.getUnsubscribe.getReqId),
+            genNAck(unsub.getUnsubscribe.getReqId))
     }
     it should "process bye " in {
         val bye = genBye()
         Active(session).after(bye).becomes(Closed)
-        Mockito.verify(lastSession).terminate(genAck(bye.getReqId))
+        Mockito.verify(lastSession).terminate(genAck(bye.getBye.getReqId))
     }
 }
