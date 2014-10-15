@@ -111,7 +111,9 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         def get(id: ObjId): Future[T] = {
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.get
-                case None => throw new NotFoundException(clazz, id)
+                case None => Promise[T]()
+                    .failure(new NotFoundException(clazz, id))
+                    .future
             }
         }
 
