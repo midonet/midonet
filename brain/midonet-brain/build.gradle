@@ -58,6 +58,7 @@ dependencies {
             libraries.commons_conf,
             libraries.commons_dbcp2,
             libraries.curator_recipes,
+            libraries.curator_framework,
             libraries.guava,
             libraries.guice,
             libraries.mockit,
@@ -65,6 +66,7 @@ dependencies {
             libraries.mysql_jdbc,
             libraries.protobuf,
             libraries.rx,
+            libraries.scala,
             libraries.zookeeper
 
     testCompile libraries.curator_test,
