@@ -52,12 +52,15 @@ dependencies {
             "org.opendaylight.controller:clustering.services:0.5.0",
             "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
-            "io.netty:netty-all:4.0.10.Final",
             libraries.mockit,
             libraries.commons_conf,
+            libraries.curator_framework,
             libraries.guava,
             libraries.guice,
+            libraries.netty,
+            libraries.protobuf,
             libraries.rx,
+            libraries.scala,
             libraries.zookeeper
 
     testCompile libraries.hamcrest_lib, libraries.scalatest
