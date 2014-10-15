@@ -18,12 +18,17 @@ package org.midonet.brain
 
 import java.nio.file.{Files, Paths}
 
-import com.google.inject.{AbstractModule, Guice}
+import com.google.inject.{Provides, AbstractModule, Guice}
 
+import org.apache.curator.framework.CuratorFramework
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
+import org.midonet.brain.services.topology.TopologyApiServiceConfig
+import org.midonet.cluster.config.ZookeeperConfig
+import org.midonet.cluster.data.storage.{ZookeeperObjectMapper, Storage}
 import org.midonet.config.ConfigProvider
+import org.midonet.midolman.guice.zookeeper.ZookeeperConnectionModule.CuratorFrameworkProvider
 
 /**
  * Base exception for all MidoNet Cluster errors.
@@ -53,12 +58,15 @@ object ClusterNode extends App {
     private val cfg = ConfigProvider fromConfigFile configFile
 
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
+    private val zkCfg = cfgProvider.getConfig(classOf[ZookeeperConfig])
 
     // Load configurations for all supported Minions
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
+    private val topologyCfg = cfgProvider.getConfig(classOf[TopologyApiServiceConfig])
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", heartbeatCfg))
+        List (new MinionDef("heartbeat", heartbeatCfg),
+              new MinionDef("topology", topologyCfg))
 
     log.info("Initialising MidoNet Cluster..")
     // Expose the known minions to the Daemon, without starting them
@@ -66,13 +74,23 @@ object ClusterNode extends App {
     protected[brain] val injector = Guice.createInjector(new AbstractModule {
         override def configure(): Unit = {
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            bind(classOf[ZookeeperConfig]).toInstance(zkCfg)
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
+            bind(classOf[TopologyApiServiceConfig]).toInstance(topologyCfg)
             minionDefs foreach { m =>
                 log.info(s"Register minion: ${m.name}")
                 install(MinionConfig.module(m.cfg))
             }
             bind(classOf[Daemon]).toInstance(daemon)
+            // storage
+            bind(classOf[Storage]).to(classOf[ZookeeperObjectMapper])
+            bind(classOf[CuratorFramework])
+                .toProvider(classOf[CuratorFrameworkProvider])
         }
+
+        @Provides
+        def zomProvider(curator: CuratorFramework): ZookeeperObjectMapper =
+            new ZookeeperObjectMapper("/zoom", curator)
     })
 
     log info "Registering shutdown hook"
