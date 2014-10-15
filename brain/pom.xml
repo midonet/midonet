@@ -36,6 +36,7 @@
     <modules>
         <module>odl-ovsdb</module>
         <module>midonet-brain</module>
+        <module>brain-api</module>
     </modules>
 
 </project>
