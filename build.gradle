@@ -48,6 +48,8 @@ project.ext {
             exclude group: 'org.hamcrest', module: 'hamcrest-all'
             exclude group: 'org.hamcrest', module: 'hamcrest-integration'},
 
+        scallop: "org.rogach:scallop_2.11:0.9.5",
+
         netty: "io.netty:netty:3.7.0.Final",
         guava: "com.google.guava:guava:15.0",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
