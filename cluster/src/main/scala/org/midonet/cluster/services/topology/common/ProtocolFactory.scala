@@ -24,12 +24,18 @@ import rx.{Observer, Subscription}
 
 /**
  * A factory generating the first state of a protocol
+ * This is used to obtain the first state and a potential subscription to a
+ * backend provider. If completed, this subscription must be unsubscribed by
+ * the caller if the protocol is dropped for any reason.
  */
 trait ProtocolFactory {
+    type ProtocolStart = (State, Future[Option[Subscription]])
     /**
-     * Get the initial state of the protocol and connect to the outgoing stream
+     * Provide an observer for any outgoing messages, and return the
+     * initial state of the protocol and a potential subscription to a
+     * backend provider.
      */
-    def start(output: Observer[Message]): (State, Future[Option[Subscription]])
+    def start(output: Observer[Message]): ProtocolStart
 }
 
 /**
