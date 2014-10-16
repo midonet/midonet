@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
+    <jmxConfigurator/>
 
     <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${midolman.log.dir}midolman.log</file>
