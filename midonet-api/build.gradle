@@ -9,6 +9,11 @@ jar {
     }
 }
 
+repositories {
+    maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+    maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
+}
+
 dependencies {
     compile project(':packets'), project(':cluster'), project(':midolman'),
             project(':midonet-client'), project(':brain:odl-ovsdb:ovsdb'),
