@@ -8,7 +8,6 @@ package org.midonet.odp;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.util.concurrent.TimeUnit;
 
 import org.midonet.util.Bucket;
 import org.slf4j.Logger;
@@ -32,6 +31,8 @@ public abstract class DatapathClient {
         final OvsDatapathConnection ovsConnection =
             OvsDatapathConnection.create(new Netlink.Address(0));
 
+        ovsConnection.bypassSendQueue(true);
+
         log.info("Setting the channel to non blocking");
         ovsConnection.getChannel().configureBlocking(false);
 
@@ -44,19 +45,6 @@ public abstract class DatapathClient {
                         ovsConnection.handleReadEvent(Bucket.BOTTOMLESS);
                     }
                 });
-
-
-        loop.registerForInputQueue(
-            ovsConnection.getSendQueue(),
-            ovsConnection.getChannel(),
-            SelectionKey.OP_WRITE,
-            new SelectListener() {
-                @Override
-                public void handleEvent(SelectionKey key)
-                    throws IOException {
-                        ovsConnection.handleWriteEvent();
-                    }
-            });
 
         Thread loopThread = new Thread(new Runnable() {
             @Override
@@ -75,14 +63,8 @@ public abstract class DatapathClient {
         loopThread.start();
 
         log.info("Initializing ovs connection");
-        ovsConnection.futures.initialize();
-
-        while (!ovsConnection.isInitialized()) {
-            Thread.sleep(TimeUnit.MILLISECONDS.toMillis(50));
-        }
+        ovsConnection.futures.initialize().get();
 
         return ovsConnection;
     }
-
-
 }

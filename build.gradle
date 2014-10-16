@@ -288,6 +288,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task generateBenchmarks(type: JavaExec) {
         main = 'org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator'
         classpath = sourceSets.perf.compileClasspath
+
         args += sourceSets.perf.output.classesDir // compiled-bytecode-dir
         args += benchOutput  // output-source-dir
         args += benchOutput // output-resource-dir
@@ -307,6 +308,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task benchmarks(type: JavaExec) {
         main = 'org.openjdk.jmh.Main'
         classpath = sourceSets.perf.runtimeClasspath + files(benchOutput)
+        bootstrapClasspath(file(project.jdkBootstrap))
         maxHeapSize = "1024m"
         description 'Executes the specified benchmarks. By default runs all. ' +
                     'Example command: ./gradlew :midonet-util:benchmarks \'-Pjmh=.*Statistical.*\''
