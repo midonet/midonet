@@ -74,10 +74,12 @@ public class CassandraClient {
 
     private void _connect(int retries) {
         Cluster cluster = CLUSTERS.get(serversStr);
+        boolean firstSession = false;
 
         Map<String, Session> sessions = null;
         try {
             if (cluster == null) {
+                firstSession = true;
                 LoadBalancingPolicy rr = new RoundRobinPolicy();
                 LoadBalancingPolicy latencyAware = LatencyAwarePolicy.builder(rr).build();
                 QueryOptions queryOpts = new QueryOptions().
@@ -96,7 +98,6 @@ public class CassandraClient {
                         withClusterName(clusterName).
                         withSocketOptions(sockOpts).build();
 
-                CLUSTERS.put(serversStr, cluster);
                 SESSIONS.put(serversStr, new HashMap<String, Session>());
             }
 
@@ -113,11 +114,17 @@ public class CassandraClient {
                 sessions.put(keyspaceName, this.session);
                 log.info("Connection to Cassandra key space {} ESTABLISHED", keyspaceName);
             }
+
+            if (firstSession)
+                CLUSTERS.put(serversStr, cluster);
+
         } catch (Exception e) {
             log.error("Connection to Cassandra key space " + keyspaceName + " FAILED", e);
             if (this.session != null) {
                 this.session.close();
                 this.session = null;
+                if (sessions != null)
+                    sessions.remove(keyspaceName);
             }
             scheduleReconnect(retries);
         }
