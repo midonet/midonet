@@ -33,7 +33,7 @@ class InternalObjectMapperException private[storage](val message: String,
 class ServiceUnavailableException(val message: String)
     extends RuntimeException(message)
 
-class NotFoundException private[storage](val clazz: Class[_], val id: ObjId)
+class NotFoundException private[cluster](val clazz: Class[_], val id: ObjId)
     extends RuntimeException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")

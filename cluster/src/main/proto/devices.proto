@@ -21,10 +21,13 @@ option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "Devices";
 
 message Bridge {
+    // Neutron / MidoNet common attributes
     optional UUID id = 1;
-    optional string tenant_id = 2; //  legacy: BridgeResource::list(tenant)
+    optional string tenant_id = 2;
     optional string name = 3;
     optional bool admin_state_up = 4;
+
+    // MidoNet-specific fields
     optional uint32 tunnel_key = 5;
     optional UUID inbound_filter_id = 6;
     optional UUID outbound_filter_id = 7;

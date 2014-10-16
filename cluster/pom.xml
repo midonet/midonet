@@ -83,6 +83,7 @@
                                     <arg value="devices.proto"/>
                                     <arg value="storage_evaluation.proto"/>
                                     <arg value="test.proto"/>
+                                    <arg value="neutron.proto"/>
                                 </exec>
                                 <delete dir="build/tmp/proto"/>
                             </tasks>
@@ -194,6 +195,11 @@
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.11</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
         </dependency>
     </dependencies>
 
