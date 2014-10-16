@@ -36,7 +36,9 @@
     <logger name="org.eclipse.jetty" level="INFO" />
 
     <!-- Adjust this level to set the logging used for all packets processed -->
+    <!--
     <logger name="org.midonet.packets.default.packet-processor" level="INFO" />
+    -->
 
     <!-- These are static for internal use, do not touch -->
     <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" />
