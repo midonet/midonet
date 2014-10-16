@@ -17,10 +17,6 @@ package org.midonet.cluster.data.neutron;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.ICMPv6;
-import org.midonet.packets.TCP;
-import org.midonet.packets.UDP;
 
 public enum RuleProtocol {
 

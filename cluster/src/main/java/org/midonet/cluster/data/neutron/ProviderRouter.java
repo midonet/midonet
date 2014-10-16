@@ -16,8 +16,6 @@
 package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 

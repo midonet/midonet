@@ -17,9 +17,6 @@ package org.midonet.cluster.data.neutron;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
-import org.midonet.packets.ARP;
-import org.midonet.packets.IPv4;
-import org.midonet.packets.IPv6;
 
 public enum RuleEthertype {
 
