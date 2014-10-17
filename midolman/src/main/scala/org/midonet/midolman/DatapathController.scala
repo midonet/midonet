@@ -252,7 +252,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
     import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
     import context.system
 
-    override def logSource = "org.midonet.datatapath-control"
+    override def logSource = "org.midonet.datapath-control"
 
     implicit val logger: Logger = log
     implicit protected def executor = context.dispatcher
