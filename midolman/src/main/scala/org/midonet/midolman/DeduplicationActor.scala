@@ -291,7 +291,7 @@ class DeduplicationActor(
             case Success(_) =>
                 self ! RestartWorkflow(pktCtx)
             case Failure(ex) =>
-                log.info("Failure on waiting for suspended packet's future", ex)
+                handleErrorOn(pktCtx, ex)
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
         giveUpWorkflows(waitingRoom enter pktCtx)
@@ -377,7 +377,7 @@ class DeduplicationActor(
     /**
      * Handles an error in a workflow execution.
      */
-    private def handleErrorOn(pktCtx: PacketContext, ex: Exception): Unit = {
+    private def handleErrorOn(pktCtx: PacketContext, ex: Throwable): Unit = {
         log.warn("Exception while processing packet", ex)
         drop(pktCtx)
     }
