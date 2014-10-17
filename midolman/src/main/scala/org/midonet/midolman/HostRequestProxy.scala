@@ -7,8 +7,7 @@ import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-import akka.actor.{Actor, ActorRef}
-import akka.event.LoggingReceive
+import akka.actor.{Stash, Actor, ActorRef}
 
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.logging.ActorLogWithoutPath
@@ -46,7 +45,7 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
-        val subscriber: ActorRef) extends Actor with ActorLogWithoutPath {
+        val subscriber: ActorRef) extends Actor with ActorLogWithoutPath with Stash {
 
     import HostRequestProxy._
     import context.system
@@ -77,17 +76,34 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
-    override def receive = LoggingReceive {
+    case object Continue
+
+    val ready: Receive = {
         case h: Host =>
+            context.become(busy)
             stateForPorts(newLocalPorts(h, lastPorts)) andThen {
                 case Success(stateBatch) =>
                     PacketsEntryPoint ! stateBatch
                 case Failure(e) =>
                     log.warn("Failed to fetch state from Cassandra: {}", e)
             } andThen {
-                case _ => subscriber ! h
+                case _ =>
+                    subscriber ! h
+                    self ! Continue
             }
 
             lastPorts = h.ports.keySet
+
+        case _ => // not reached
     }
+
+    val busy: Receive = {
+        case Continue =>
+            context.become(ready)
+            unstashAll()
+        case _ =>
+            stash()
+    }
+
+    override def receive = ready
 }
