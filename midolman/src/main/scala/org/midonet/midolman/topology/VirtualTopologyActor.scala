@@ -21,12 +21,9 @@ import org.midonet.cluster.data.l4lb.{Pool => PoolConfig}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.FlowController
-import org.midonet.midolman.NotYet
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketsEntryPoint
-import org.midonet.midolman.Ready
 import org.midonet.midolman.Referenceable
-import org.midonet.midolman.Urgent
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
@@ -189,17 +186,6 @@ object VirtualTopologyActor extends Referenceable {
             throw NotYetException(requestFuture(id), s"Waiting for device: $id")
         }
         dev
-    }
-
-    def expiringAsk[D <: AnyRef](id: UUID)
-                                (implicit tag: ClassTag[D],
-                                          system: ActorSystem): Urgent[D] = {
-        val dev = topology.device[D](id)
-        if (dev eq null) {
-            NotYet(requestFuture(id))
-        } else {
-            Ready(dev)
-        }
     }
 
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](

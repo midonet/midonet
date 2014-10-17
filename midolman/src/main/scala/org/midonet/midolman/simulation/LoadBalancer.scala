@@ -7,9 +7,6 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 
-import scala.concurrent.ExecutionContext
-
-import org.midonet.midolman.{Ready, Urgent}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.sdn.flows.FlowTagger
