@@ -336,9 +336,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                                        bgp.getPeerAS)
                     }
 
-                case Stopping =>
-                    stash()
-                case Disabled =>
+                case _ =>
                     stash()
             }
 
@@ -375,9 +373,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     }
                 case Started =>
                     log.warn("({}) RemoveBgpSession({}) unknown id", phase, bgpID)
-                case Stopping =>
-                    stash()
-                case Disabled =>
+
+                case _ =>
                     stash()
             }
 
@@ -476,11 +473,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                             log.debug("({}) Advertise: unknown BGP {}",
                                       phase, rt.getBgpId)
                     }
-                case Stopping =>
-                    log.debug("({}) Advertise: stashing", phase)
-                    //TODO(abel) do we need to stash the message when stopping?
-                    stash()
-                case Disabled =>
+
+                case _ =>
                     log.debug("({}) Advertise: stashing", phase)
                     stash()
             }
@@ -501,11 +495,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                                              rt.getNwPrefix.getHostAddress,
                                              rt.getPrefixLength)
                     }
-                case Stopping =>
-                    //TODO(abel) do we need to stash the message when stopping?
-                    log.debug("({}) StopAdvertising: stashing", phase)
-                    stash()
-                case Disabled =>
+
+                case _ =>
                     log.debug("({}) StopAdvertising: stashing", phase)
                     stash()
             }
@@ -543,10 +534,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.debug("({}) announcing we've added a peer route", phase)
                     context.system.eventStream.publish(
                         new PEER_ROUTE_ADDED(rport.deviceID, route))
-                case Stopping =>
-                    log.debug("({}) AddPeerRoute: ignoring", phase)
-                    // ignore
-                case Disabled =>
+
+                case _ =>
                     log.debug("({}) AddPeerRoute: ignoring", phase)
                     // ignore
             }
