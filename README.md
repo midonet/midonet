@@ -65,6 +65,15 @@ for communicating with the OS kernel.
 Code for interacting (receiving notifications and sending commands) to
 the kernel's Open Datapath module.
 
+## Build dependencies
+
+Most dependencies are pulled in by the gradle build scripts, however
+there are some prerequisites:
+
+* java 7 jdk
+* protobufs compiler
+* fpm (ruby gem) to build debian/rpm packages
+* rpm
 
 ## Building the project
 
@@ -77,61 +86,34 @@ right version of odl-ovsdb by executing:
 
 ### Complete build
 
-    ~/midonet$ mvn
+    ~/midonet$ ./gradlew
 
 This will build all the modules while running all the tests from all the modules.
 To skip the tests, you can run the command:
 
-    ~/midonet$ mvn -DskipTests
+    ~/midonet$ ./gradlew -x test
 
 ### Distro packages
 
-By default, the mvn build will only generate debian packages for midolman and
-midonet, which can be found respectively in midolman/target and
-midonet-api/target directories. To build rpm packages you should run
+The build script provides targets to build debian and rpm packages. In all cases
+packages will be found in midolman/build/packages/ and midonet-api/build/packages.
 
-    ~/midonet$ mvn -Drpm -DskipTests
+Building debian packages:
 
-For a systemd-based system (e.g. RHEL 7),
+    ~/midonet$ ./gradlew debian -x test
 
-    ~/midonet$ mvn -Drpm-sysd -DskipTests
+RPM packages targeted for RHEL 6.5:
+
+    ~/midonet$ ./gradlew rpm -x test
+
+RHEL 7 packages:
+
+    ~/midonet$ ./gradlew rpm -x test -PrhelTarget=7
 
 On ubuntu this requires the rpm tools which you can install with
 
     # apt-get install rpm
 
-rpm packages for midolman and midonet will be found in
-target/rpm/midolman/RPMS/noarch directories of midolman/ and midonet-api/
-subprojects respectively.
-
-### Versioning
-
-To change the version number consistently across pom files in all subprojects,
-you can run the command
-
-    $ mvn versions:set -DnewVersion=x.y.z-whatever_tag
-
-This will create backup pom files. If you are happy with the change, you can
-remove these backup files with
-
-    $ mvn versions:commit
-
-or if you want to revert your changes
-
-    $ mvn versions:revert
-
 ### Build all & Run tests
 
-    ~/midonet$ mvn clean test
-
-This will build all the modules and run all the test (but it will skip all the
-functional tests)
-
-
-## Intellij Tips
-
-If you use Intellij the following variables can be useful
-* $PROJECT_DIR$
-* $APPLICATION_HOME_DIR$
-* $MODULE_DIR$
-* $USER_HOME$
+    ~/midonet$ ./gradlew test

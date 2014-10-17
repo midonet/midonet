@@ -136,15 +136,27 @@ task preparePkg(type: Copy, dependsOn: installDist) {
     }
 }
 
+task rhel7Prepare(type: Copy, dependsOn: installDist) {
+    from("src/rhel7/systemd/midolman.service") {
+        into "usr/lib/systemd/system"
+    }
+    into "${pkgDestDir}"
+}
+
+task rhel6Prepare(type: Copy, dependsOn: installDist) {
+    from("src/rhel6/init.d/midolman") {
+        into "etc/init.d"
+    }
+    into "${pkgDestDir}"
+}
+
 packaging {
     version = project.debVersion
     maintainer = project.maintainer
     vendor = project.vendor
     url = project.url
     description = 'Midolman is a virtual network controller'
-    dependencies = [ 'quagga (>= 0.99.21)', 'bridge-utils',
-      'java7-runtime-headless', 'haproxy', 'iproute (>= 20111117-1ubuntu2.1)',
-      'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0)']
+    dependencies = [ 'bridge-utils', 'haproxy']
     confFiles = ['/etc/midolman/midolman-akka.conf',
                  '/etc/midolman/midolman-akka.conf.compute',
                  '/etc/midolman/midolman-akka.conf.gateway',
@@ -158,24 +170,36 @@ packaging {
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://midokura.com',
-               '--before-install', "${project.projectDir}/src/deb/control/preinst",
-               '--after-remove', "${project.projectDir}/src/deb/control/postrm",
-               '--before-remove', "${project.projectDir}/src/deb/control/prerm" ]
+               '--epoch', '0']
 }
 
 preparePkg.dependsOn cleanPkg
 debian.dependsOn preparePkg
-rpm.dependsOn preparePkg
+
+if (project.rhelTarget == "7") {
+    rpm.dependsOn rhel7Prepare
+    rhel7Prepare.dependsOn preparePkg
+} else {
+    rpm.dependsOn rhel6Prepare
+    rhel6Prepare.dependsOn preparePkg
+}
 
 debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
+        '-d', 'quagga (>= 0.99.21)',
+        '-d', 'java7-runtime-headless',
+        '-d', 'iproute (>= 20111117-1ubuntu2.1)',
+        '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0)',
         '--conflicts', 'openvswitch-switch',
         '--conflicts', 'openvswitch-datapath-source (>= 1.11)',
         '--conflicts', 'openvswitch-datapath-dkms (>= 1.11)',
         '--deb-recommends', 'java7-runtime-headless | java7-runtime',
-        '--after-install', "${project.projectDir}/src/deb/control/postinst"])
+        '--after-install', "${project.projectDir}/src/deb/control/postinst",
+        '--before-install', "${project.projectDir}/src/deb/control/preinst",
+        '--after-remove', "${project.projectDir}/src/deb/control/postrm",
+        '--before-remove', "${project.projectDir}/src/deb/control/prerm" ])
 }
 
 rpm.doFirst {
@@ -183,8 +207,23 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-        '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
-        '--depends', 'java7'])
+        '-d', 'quagga >= 0.99.21',
+        '-d', 'iproute',
+        '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
+    if (project.rhelTarget == "7") {
+        project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'java'])
+    } else {
+        project.packaging.fpmOpts.addAll([
+            '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
+            '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
+            '--depends', 'java7'])
+    }
 }
 
 debian.doLast {
@@ -193,3 +232,4 @@ debian.doLast {
 rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
+

@@ -20,6 +20,8 @@ project.ext {
     maintainer = "MidoNet Team <info@midokura.com>"
     url = "http://midokura.com"
 
+    rhelTarget = "6"
+
     jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
     scalaLangLevel = 'Scala 2.11.2'
