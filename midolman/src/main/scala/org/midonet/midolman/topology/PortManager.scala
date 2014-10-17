@@ -19,11 +19,12 @@ class PortManager(id: UUID, val clusterClient: Client)
         extends DeviceWithChains {
     import context.system
 
+    override def logSource = s"org.midonet.devices.port.port-$id"
+
     protected var cfg: Port = _
     private var changed = false
 
     def topologyReady() {
-        log.debug("Sending a Port to the VTA")
         // TODO(ross) better cloning this port before passing it
         VirtualTopologyActor ! cfg
 
@@ -34,7 +35,6 @@ class PortManager(id: UUID, val clusterClient: Client)
     }
 
     override def preStart() {
-        log.info("preStart, port id {}", id)
         clusterClient.getPort(id, new PortBuilderImpl(self))
     }
 
