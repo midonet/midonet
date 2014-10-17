@@ -1,5 +1,6 @@
 apply plugin: 'war'
 apply plugin: 'java-library-distribution'
+apply plugin: 'jetty'
 apply from: "${rootProject.projectDir}/fpm.gradle"
 
 jar {
@@ -123,4 +124,12 @@ debian.doLast {
 }
 rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
+}
+
+// You can specify a specific port (8080 by default) with -Pport= option as follows:
+// ./gradlew :midonet-api:jettyRun -Pport=8888
+jettyRun {
+    if (project.hasProperty('port')) {
+        httpPort = port.toInteger()
+    }
 }
