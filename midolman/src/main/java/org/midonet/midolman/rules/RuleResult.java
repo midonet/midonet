@@ -61,7 +61,9 @@ public class RuleResult {
 
     @Override
     public String toString() {
-        return "RuleResult [action=" + action + ", jumpToChain=" + jumpToChain +
-               ", pmatch=" + pmatch + "]";
+        if (action == Action.JUMP)
+            return action + "(jump=" + jumpToChain + ")";
+        else
+            return action.toString();
     }
 }
