@@ -44,7 +44,6 @@ object PacketContext {
  */
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
-                    val expiry: Long,
                     val parentCookie: Option[Int],
                     val origMatch: WildcardMatch)
                    (implicit actorSystem: ActorSystem) {

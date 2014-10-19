@@ -4,12 +4,12 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import java.util.concurrent.TimeoutException
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compat.Platform
-import scala.concurrent.{Future, Await}
+import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.{Failure, Success, Try}
 
 import akka.util.Timeout
 import com.typesafe.scalalogging.Logger
@@ -25,7 +25,6 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.FlowController._
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
@@ -44,7 +43,6 @@ import org.midonet.odp.flows.FlowKeyEthernet
 import org.midonet.odp.flows.FlowKeyIPv4
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
-
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -170,8 +168,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         new IPv4Addr(portNumToSegmentAddr(portNum) + 1)
 
     implicit private def dummyPacketContext =
-        new PacketContext(Left(0), null, Platform.currentTime+5000,
-                          None, new WildcardMatch())(actors)
+        new PacketContext(Left(0), null, None, new WildcardMatch())(actors)
 
     def testBalancesRoutes() {
         val routeDst = "21.31.41.51"
@@ -180,7 +177,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             newRoute(clusterRouter, "0.0.0.0", 0, routeDst, 32,
                      NextHop.PORT, uplinkPort.getId, gw, 1)
         }
-        val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
+        val (router, _) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val rb = new RouteBalancer(router.rTable)
 
         val wmatch = new WildcardMatch().
@@ -204,7 +201,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
 
     def testDropsIPv6() {
         val onPort = 12
-        val eth = (new Ethernet()).setEtherType(IPv6_ETHERTYPE).
+        val eth = new Ethernet().setEtherType(IPv6_ETHERTYPE).
             setDestinationMACAddress(portNumToMac(onPort)).
             setSourceMACAddress(MAC.fromString("01:02:03:04:05:06")).
             setPad(true)
@@ -357,22 +354,22 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
     def testArpRequestFulfilledLocally() {
         val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val mac = MAC.fromString("aa:bb:aa:cc:dd:cc")
-        val expiry = Platform.currentTime + 1000
-        val arpUrgent = router.arpTable.get(
-            IPv4Addr.fromString(uplinkGatewayAddr), port, expiry)
+        val arpTry = Try(router.arpTable.get(
+            IPv4Addr.fromString(uplinkGatewayAddr), port))
         fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
 
         feedArpCache("uplinkPort",
             IPv4Addr.stringToInt(uplinkGatewayAddr), mac,
             IPv4Addr.fromString(uplinkPortAddr).addr,
             uplinkMacAddr)
-        extractMac(arpUrgent) should be (mac)
+        extractMac(arpTry) should be (mac)
     }
 
-    private def extractMac(macUrgent: Urgent[MAC])(implicit timeout: Duration = 3 seconds): MAC =
-        macUrgent match {
-            case Ready(v) => v
-            case NotYet(f) => Await.result(f.mapTo[MAC], timeout)
+    private def extractMac(macTry: Try[MAC])(implicit timeout: Duration = 3 seconds): MAC =
+        macTry match {
+            case Success(mac) => mac
+            case Failure(NotYetException(f, _)) => Await.result(f.mapTo[MAC], timeout)
+            case Failure(e) => throw e
         }
 
     def testArpRequestFulfilledRemotely() {
@@ -384,31 +381,29 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val arpTable = router.arpTable.asInstanceOf[ArpTableImpl]
         val arpCache = arpTable.arpCache.asInstanceOf[Watcher[IPv4Addr,
                                                               ArpCacheEntry]]
-        val macUrgent: Urgent[MAC] = router.arpTable
-                              .get(ip, port, Platform.currentTime + 30*1000)
+        val macTry = Try(router.arpTable.get(ip, port))
         fishForRequestOfType[EmitGeneratedPacket](dedupProbe())
 
         val now = Platform.currentTime
         arpCache.processChange(ip, null,
             new ArpCacheEntry(mac, now + 60*1000, now + 30*1000, 0))
-        extractMac(macUrgent) should be (mac)
+        extractMac(macTry) should be (mac)
     }
 
     def testArpRequestGeneration() {
         val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
-        val expiry = Platform.currentTime + 1000
         val fromIp = IPv4Addr.fromString(uplinkPortAddr)
         val toIp = IPv4Addr.fromString(uplinkGatewayAddr)
 
-        val arpUrgent = router.arpTable.get(toIp, port, expiry)
+        val macTry = Try(router.arpTable.get(toIp, port))
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, fromIp, toIp)
-        arpUrgent.isReady should be (false)
+        macTry.isSuccess should be (false)
 
         // let's generate a reply
         val mac = MAC.fromString("aa:dd:dd:dd:dd:ff")
         feedArpCache("uplinkPort", toIp.toInt, mac, fromIp.toInt, uplinkMacAddr)
 
-        extractMac(arpUrgent)(500 millis) shouldEqual mac
+        extractMac(macTry)(500 millis) shouldEqual mac
     }
 
     def testUnicastArpReceivedRequestProcessing() {
@@ -454,9 +449,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         IPv4Addr.fromBytes(arp.getTargetProtocolAddress) should be (hisIp)
         arp.getTargetHardwareAddress should be (hisMac)
 
-        val expiry = Platform.currentTime + 1000
-        val arpUrgent = router.arpTable.get(hisIp, port, expiry)
-        extractMac(arpUrgent)(1 second) should be (hisMac)
+        val macTry = Try(router.arpTable.get(hisIp, port))
+        extractMac(macTry)(1 second) should be (hisMac)
     }
 
     def testIcmpEchoNearPort() {
@@ -630,7 +624,6 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val portAddr = "13.13.13.1"
         val nwAddr = "13.0.0.0"
         val nwLen = 8
-        val hwAddr = MAC.fromString("34:12:34:12:34:12")
         var logicalPort = Ports.routerPort(clusterRouter).
             setPortAddr(portAddr).
             setNwAddr(nwAddr).
@@ -668,15 +661,14 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val (router, port) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val myIp = IPv4Addr.fromString(uplinkPortAddr)
         val hisIp = IPv4Addr.fromString(uplinkGatewayAddr)
-        val expiry = Platform.currentTime + ARP_TIMEOUT_SECS * 1000 + 1000
-        val arpUrgent = router.arpTable.get(hisIp, port, expiry)
+        val macTry = Try(router.arpTable.get(hisIp, port))
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         packetInProbe.expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
 
         try {
-            extractMac(arpUrgent)(100 milliseconds)
+            extractMac(macTry)(100 milliseconds)
             fail("MAC should not be known, ARP goes unreplied")
         } catch {
             case e: java.util.concurrent.TimeoutException =>
@@ -690,13 +682,12 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val myIp = IPv4Addr.fromString(uplinkPortAddr)
         val hisMac = MAC.fromString("77:aa:66:bb:55:cc")
         val hisIp = IPv4Addr.fromString(uplinkGatewayAddr)
-        val expiry = Platform.currentTime + ARP_TIMEOUT_SECS * 1000 + 1000
-        val arpUrgent = router.arpTable.get(hisIp, port, expiry)
+        val macTry = Try(router.arpTable.get(hisIp, port))
 
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         feedArpCache("uplinkPort", hisIp.addr, hisMac, myIp.addr, myMac)
-        extractMac(arpUrgent)(1 second) should be (hisMac)
+        extractMac(macTry)(1 second) should be (hisMac)
         dedupProbe().expectNoMsg(Timeout((ARP_TIMEOUT_SECS*2) seconds).duration)
     }
 
@@ -706,32 +697,29 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val myIp = IPv4Addr.fromString(uplinkPortAddr)
         val hisIp = IPv4Addr.fromString(uplinkGatewayAddr)
 
-        var expiry = Platform.currentTime + 1000
-        var arpUrgent = router.arpTable.get(hisIp, port, expiry)
+        var macTry = Try(router.arpTable.get(hisIp, port))
 
         feedArpCache("uplinkPort", hisIp.addr, mac, myIp.addr, uplinkMacAddr)
-        extractMac(arpUrgent)(1 second) should be (mac)
+        extractMac(macTry)(1 second) should be (mac)
 
         dilatedSleep((ARP_STALE_SECS/2) * 1000)
 
         feedArpCache("uplinkPort", hisIp.addr, mac, myIp.addr, uplinkMacAddr)
         fishForRequestOfType[DiscardPacket](discardPacketProbe)
         drainProbes()
-        expiry = Platform.currentTime + 1000
-        arpUrgent = router.arpTable.get(hisIp, port, expiry)
-        extractMac(arpUrgent)(1 second) should be (mac)
+        macTry = Try(router.arpTable.get(hisIp, port))
+        extractMac(macTry)(1 second) should be (mac)
 
         dilatedSleep((ARP_EXPIRATION_SECS - ARP_STALE_SECS/2 + 1) * 1000)
 
         drainProbes()
-        expiry = Platform.currentTime + 1000
-        arpUrgent = router.arpTable.get(hisIp, port, expiry)
+        macTry = Try(router.arpTable.get(hisIp, port))
         expectEmitArpRequest(uplinkPort.getId, uplinkMacAddr, myIp, hisIp)
         try {
             // No one replies to the ARP request, so the get should return
             // null. We have to wait long enough to give it a chance to time
             // out and complete the promise with null.
-            extractMac(arpUrgent)(2 seconds)
+            extractMac(macTry)(2 seconds)
             fail("Future should timeout since ARP is not replied")
         } catch {
             case e: java.util.concurrent.TimeoutException =>

@@ -4,7 +4,6 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -34,7 +33,6 @@ import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @RunWith(classOf[JUnitRunner])
 class AdminStateTest extends MidolmanSpec {
@@ -401,13 +399,7 @@ class AdminStateTest extends MidolmanSpec {
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
             val actions = simRes._1.asInstanceOf[AddVirtualWildcardFlow]
                                 .flow.actions
-            val tags = mutable.Set[FlowTag]()
-            translateActions(simRes._2, actions) match {
-                case Ready(r) => r
-                case NotYet(f) =>
-                    Await.result(f, 3 seconds)
-                    translate(simRes)
-            }
+            force(translateActions(simRes._2, actions))
         }
 
         def receive = emptyBehavior

@@ -16,7 +16,7 @@ import akka.util.Timeout
 import org.midonet.cluster.client.{VxLanPort, Port}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain}
-import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
+import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import FlowTagger.FlowTag
@@ -42,14 +42,13 @@ trait FlowTranslator {
 
     protected def translateVirtualWildcardFlow(context: PacketContext,
                                                flow: WildcardFlow)
-    : Urgent[WildcardFlow] = {
-        translateActions(context, flow.getActions) map { translated =>
-            WildcardFlow(wcmatch = flow.getMatch,
-                         actions = translated.toList,
-                         priority = flow.priority,
-                         hardExpirationMillis = flow.hardExpirationMillis,
-                         idleExpirationMillis = flow.idleExpirationMillis)
-        }
+    : WildcardFlow = {
+        val translated = translateActions(context, flow.getActions)
+        WildcardFlow(wcmatch = flow.getMatch,
+                     actions = translated.toList,
+                     priority = flow.priority,
+                     hardExpirationMillis = flow.hardExpirationMillis,
+                     idleExpirationMillis = flow.idleExpirationMillis)
     }
 
 
@@ -58,7 +57,7 @@ trait FlowTranslator {
      *  index numbers for passing chains, or -1 otherwise for non passing chains
      *  and unknown datapath ports. */
     protected def applyOutboundFilters(localPorts: Seq[Port],
-                                       context: PacketContext) = {
+                                       context: PacketContext): Seq[Integer] = {
         def applyChainOn(chain: Chain, port: Port): JInteger = {
             context.outPortId = port.id
             Chain.apply(chain, context, port.id, true).action match {
@@ -76,29 +75,28 @@ trait FlowTranslator {
         }
 
         val outPortSet = context.outPortId
-        val result = Urgent flatten localPorts.map {
-            port =>
+        val result = localPorts map { port =>
                 val filterId = port.outboundFilter
                 if (filterId == null) {
                     val portNo = dpState.getDpPortNumberForVport(port.id)
                                         .getOrElse(NotADpPort)
-                    Ready(portNo)
+                    portNo
                 } else {
-                    expiringAsk[Chain](filterId) map { applyChainOn(_, port) }
+                    applyChainOn(tryAsk[Chain](filterId), port)
                 }
         }
         context.outPortId = outPortSet
         result
     }
 
-    /** translates a Seq of FlowActions expressed in virtual references into a
-     *  Seq of FlowActions expressed in physical references. Returns the
-     *  results as an Urgent. */
+    /**
+     * Translates a Seq of FlowActions expressed in virtual references into a
+     * Seq of FlowActions expressed in physical references.
+     */
     def translateActions(context: PacketContext, actions: Seq[FlowAction])
-    : Urgent[Seq[FlowAction]] = {
+    : Seq[FlowAction] = {
 
-        val translatedActs = Urgent.flatten (
-            actions map {
+        val translatedActs = actions map {
                 case s: FlowActionOutputToVrnPortSet =>
                     // expandPortSetAction
                     epsa(s.portSetId, context)
@@ -108,25 +106,18 @@ trait FlowTranslator {
                     a.getFlowKey match {
                         case k: FlowKeyICMPError =>
                             mangleIcmp(context.ethernet, k.getIcmpData)
-                            Ready(Nil)
+                            Nil
                         case k: FlowKeyICMPEcho =>
-                            Ready(Nil)
+                            Nil
                         case _ =>
-                            Ready(Seq[FlowAction](a))
+                            Seq[FlowAction](a)
                     }
                 case a =>
-                    Ready(Seq[FlowAction](a))
+                    Seq[FlowAction](a)
             }
-        )
 
-        translatedActs match {
-            case NotYet(_) =>
-                context.log.debug("Won't translate actions: required data is not local")
-            case Ready(r) =>
-                context.log.debug("Translated actions to: {}", r)
-        }
-
-        translatedActs map { acts => acts.flatten }
+        context.log.debug("Translated actions to: {}", translatedActs)
+        translatedActs.flatten
     }
 
     // This is very limited but we don't really need more
@@ -191,7 +182,7 @@ trait FlowTranslator {
     private def outputActionsToVtep(vni: Int, vtepIp: Int, tzId: UUID,
                                     actions: ListBuffer[FlowAction],
                                     dpTags: mutable.Set[FlowTag],
-                                    context: PacketContext) {
+                                    context: PacketContext): Unit = {
         val tzMembership = dpState.host.zones.get(tzId)
         if (tzMembership eq None) {
             context.log.warn(s"Can't output to VTEP with tunnel IP: $vtepIp, host not in "
@@ -207,19 +198,15 @@ trait FlowTranslator {
     // expandPortSetAction, name shortened to avoid an ENAMETOOLONG on ecryptfs
     // from a triply nested anonfun.
     private def epsa(portSetId: UUID,
-                     context: PacketContext): Urgent[Seq[FlowAction]] = {
+                     context: PacketContext): Seq[FlowAction] = {
         def addLocalActions(localPorts: Set[UUID],
-                            actions: ListBuffer[FlowAction]) = {
+                            actions: ListBuffer[FlowAction]): Unit = {
             val outputPorts = localPorts - context.inputPort
-            activePorts(outputPorts, context.flowTags, context) flatMap {
-                ports =>
-                    applyOutboundFilters(ports, context)
-            } map {
-                ports =>
-                    outputActionsForLocalPorts(ports, actions, context.flowTags)
-                    actions
-            }
+            val ports = activePorts(outputPorts, context.flowTags, context)
+            val filteredPorts = applyOutboundFilters(ports, context)
+            outputActionsForLocalPorts(filteredPorts, actions, context.flowTags)
         }
+
         def addRemoteActions(br: Bridge, peerIds: Set[UUID],
                              actions: ListBuffer[FlowAction]) {
             // add flow invalidation tag because if the packet
@@ -238,41 +225,31 @@ trait FlowTranslator {
          *   through the dpPort dedicated to vxLan tunnels to VTEPs, and inject
          *   this action in the result set
          */
-        def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction])
-        : Urgent[Seq[FlowAction]] = {
-            if (br.vxlanPortId.isEmpty || br.vxlanPortId.get == context.inputPort) {
-                Ready(actions)
-            } else {
+        def addVtepActions(br: Bridge, actions: ListBuffer[FlowAction]): Unit =
+            if (br.vxlanPortId.isDefined && br.vxlanPortId.get != context.inputPort) {
                 val vxlanPortId = br.vxlanPortId.get
-                expiringAsk[Port](vxlanPortId, context.log) map {
+                tryAsk[Port](vxlanPortId) match {
                     case p: VxLanPort =>
                         outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
                                             p.tunnelZoneId, actions,
                                             context.flowTags, context)
-                        actions
                     case _ =>
                         context.log.warn("could not find VxLanPort {} of bridge {}",
                                          vxlanPortId, br)
-                        actions
                 }
             }
-        }
+
         val req = PortSetRequest(portSetId, update = false)
-        VirtualToPhysicalMapper.expiringAsk(req) flatMap {
-            portSet =>
-                val actions = ListBuffer[FlowAction]()
-                addLocalActions(portSet.localPorts, actions) flatMap {
-                    actions =>
-                        expiringAsk[Bridge](portSetId, context.log) flatMap {
-                            br =>
-                                addRemoteActions(br, portSet.hosts, actions)
-                                // FIXME: at the moment (v1.5), this is need for
-                                // flooding traffic from a bridge. With mac
-                                // syncing, it will become unnecessary.
-                                addVtepActions(br, actions)
-                        }
-                }
-        }
+        val portSet = VirtualToPhysicalMapper.tryAsk(req)
+        val actions = ListBuffer[FlowAction]()
+        addLocalActions(portSet.localPorts, actions)
+        val br = tryAsk[Bridge](portSetId)
+        addRemoteActions(br, portSet.hosts, actions)
+        // FIXME: at the moment (v1.5), this is need for
+        // flooding traffic from a bridge. With mac
+        // syncing, it will become unnecessary.
+        addVtepActions(br, actions)
+        actions
     }
 
     /**
@@ -288,36 +265,27 @@ trait FlowTranslator {
      */
     protected def activePorts(portIds: Set[UUID],
                               dpTags: mutable.Set[FlowTag],
-                              context: PacketContext): Urgent[Seq[Port]] = {
-        portIds map {
-            id => expiringAsk[Port](id, context.log)
-        } partition { _.isReady } match {   // partition by Ready / NonYet
-            case (ready, nonReady) if nonReady.isEmpty =>
-                val active = ready filter {
-                    case Ready(p) if p != null =>
-                        dpTags += FlowTagger.tagForDevice(p.id)
-                        p.adminStateUp
-                    case _ => false // should not happen
-                }
-                Urgent.flatten(active.toSeq)
-            case (_, nonReady) =>              // Some ports not cached, ensure
-                Urgent.flatten(nonReady.toSeq) // we report all missing futures
+                              context: PacketContext): Seq[Port] =
+        portIds.foldLeft(ListBuffer[Port]()) { (buf, id) =>
+            val port = tryAsk[Port](id)
+            dpTags += FlowTagger.tagForDevice(id)
+            if (port.adminStateUp) {
+                buf += port
+            }
+            buf
         }
-    }
 
     private def expandPortAction(port: UUID, context: PacketContext)
-    : Urgent[Seq[FlowAction]] =
+    : Seq[FlowAction] =
         dpState.getDpPortNumberForVport(port) map { portNum =>
             // If the DPC has a local DP port for this UUID, translate
-            Urgent(
-                towardsLocalDpPorts(List(portNum.shortValue()),
-                                    context.flowTags, context)
-            )
+            towardsLocalDpPorts(List(portNum.shortValue()),
+                                context.flowTags, context)
         } getOrElse {
             // Otherwise we translate to a remote port or a vtep peer
             // VxLanPort is a subtype of exterior port,
             // therefore it needs to be matched first.
-            expiringAsk[Port](port, context.log) map {
+            tryAsk[Port](port) match {
                 case p: VxLanPort =>
                     towardsVtepPeer(p.vni, p.vtepTunAddr, p.tunnelZoneId,
                                     context.flowTags, context)

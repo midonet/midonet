@@ -76,6 +76,7 @@ trait TagManager {
 class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
         extends DeviceWithChains {
     import context.system
+    import context.dispatcher
 
     override def logSource = s"org.midonet.devices.router.router-$id"
 

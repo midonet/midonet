@@ -4,12 +4,13 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
-import org.midonet.midolman.{NotYetException, PacketsEntryPoint, Ready, Urgent}
+import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
@@ -20,6 +21,7 @@ import org.midonet.midolman.topology._
 import org.midonet.odp.Packet
 import org.midonet.packets._
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.util.concurrent._
 
 /** The IPv4 specific implementation of a Router. */
 class Router(override val id: UUID,
@@ -35,8 +37,7 @@ class Router(override val id: UUID,
     override def unsupportedPacketAction = NotIPv4Action
 
     private def processArp(pkt: IPacket, inPort: RouterPort)
-                          (implicit ec: ExecutionContext,
-                                    context: PacketContext): Action =
+                          (implicit context: PacketContext): Action =
         pkt match {
             case arp: ARP => arp.getOpCode match {
                 case ARP.OP_REQUEST =>
@@ -54,8 +55,7 @@ class Router(override val id: UUID,
         }
 
     override protected def handleL2Broadcast(inPort: RouterPort)
-                                            (implicit ec: ExecutionContext,
-                                                      context: PacketContext)
+                                            (implicit context: PacketContext)
     : Action = {
 
         // Broadcast packet:  Handle if ARP, drop otherwise.
@@ -67,8 +67,7 @@ class Router(override val id: UUID,
     }
 
     override def handleNeighbouring(inPort: RouterPort)
-                                   (implicit ec: ExecutionContext,
-                                             context: PacketContext)
+                                   (implicit context: PacketContext)
     : Option[Action] = {
         if (context.wcmatch.getEtherType == ARP.ETHERTYPE) {
             // Non-broadcast ARP.  Handle reply, drop rest.
@@ -79,8 +78,7 @@ class Router(override val id: UUID,
     }
 
     private def processArpRequest(pkt: ARP, inPort: RouterPort)
-                                 (implicit ec: ExecutionContext,
-                                           context: PacketContext) {
+                                 (implicit context: PacketContext) {
         if (pkt.getProtocolType != ARP.PROTO_TYPE_IP)
             return
 
@@ -109,10 +107,7 @@ class Router(override val id: UUID,
         }
 
         // Attempt to refresh the router's arp table.
-        arpTable.setAndGet(spa,
-                           pkt.getSenderHardwareAddress,
-                           inPort,
-                           context.expiry) onSuccess { case _ =>
+        arpTable.setAndGet(spa, pkt.getSenderHardwareAddress, inPort).onSuccess { case _ =>
             context.log.debug("replying to ARP request from {} for {} with own mac {}",
                 Array[Object](spa, tpa, inPort.portMac))
 
@@ -122,12 +117,11 @@ class Router(override val id: UUID,
             PacketsEntryPoint ! EmitGeneratedPacket(
                 inPort.id, eth,
                 if (context != null) context.flowCookie else None)
-        }
+        }(ExecutionContext.callingThread)
     }
 
     private def processArpReply(pkt: ARP, port: RouterPort)
-                               (implicit ec: ExecutionContext,
-                                         context: PacketContext) {
+                               (implicit context: PacketContext) {
 
         // Verify the reply:  It's addressed to our MAC & IP, and is about
         // the MAC for an IPv4 address.
@@ -175,10 +169,8 @@ class Router(override val id: UUID,
     }
 
     override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
-                                             packet: Ethernet, expiry: Long)
-                                   (implicit ec: ExecutionContext,
-                                             context: PacketContext)
-    : Urgent[Boolean] = {
+                                             packet: Ethernet)
+                                   (implicit context: PacketContext): Boolean = {
 
         val echo = packet.getPayload match {
             case ip: IPv4 => ip.getPayload match {
@@ -189,7 +181,7 @@ class Router(override val id: UUID,
         }
 
         if (echo == null)
-            return Ready(true)
+            return true
 
         val reply = new ICMP()
         reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
@@ -199,67 +191,57 @@ class Router(override val id: UUID,
         ip.setSourceAddress(ingressMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
         ip.setPayload(reply)
 
-        sendIPPacket(ip, expiry)
+        sendIPPacket(ip)
     }
 
-    private def getPeerMac(rtrPort: RouterPort, expiry: Long)
-                          (implicit ec: ExecutionContext,
-                                    context: PacketContext)
-    : Urgent[MAC] = {
-        expiringAsk[Port](rtrPort.peerID, context.log, expiry) map {
-            case rp: RouterPort => rp.portMac
-            case _ => null
+    private def getPeerMac(rtrPort: RouterPort): MAC =
+        tryAsk[Port](rtrPort.peerID) match {
+           case rtPort: RouterPort => rtPort.portMac
+           case _ => null
         }
-    }
 
-    private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
-                            expiry: Long)
-                           (implicit ec: ExecutionContext,
-                                     context: PacketContext)
-    : Urgent[MAC] = {
+    private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr)
+                           (implicit context: PacketContext): MAC = {
 
         if (port.isInterior) {
-            return arpTable.get(nextHopIP, port, expiry)
+            return arpTable.get(nextHopIP, port)
         }
 
         port.nwSubnet match {
             case extAddr: IPv4Subnet if extAddr.containsAddress(nextHopIP) =>
-                arpTable.get(nextHopIP, port, expiry)
+                arpTable.get(nextHopIP, port)
             case extAddr: IPv4Subnet =>
                 context.log.warn("cannot get MAC for {} - address not" +
                             "in network segment of port {} ({})",
                             nextHopIP, port.id, extAddr)
-                Ready(null)
+                null
             case _ =>
                 throw new IllegalArgumentException("Arping for non-IPv4 addr")
         }
     }
 
-    override protected def getNextHopMac(outPort: RouterPort, rt: Route,
-                                         ipDest: IPv4Addr, expiry: Long)
-                                        (implicit ec: ExecutionContext,
-                                                  context: PacketContext)
-    : Urgent[MAC] = {
+    override protected def getNextHopMac(outPort: RouterPort, rt: Route, ipDest: IPv4Addr)
+                                        (implicit context: PacketContext): MAC = {
         if (outPort == null)
-            return Ready(null)
+            return null
 
         if (outPort.isInterior && outPort.peerID == null) {
             context.log.warn("Packet sent to dangling interior port {}",
                         rt.nextHopPort)
-            return Ready(null)
+            return null
         }
 
         (outPort match {
-            case p: Port if p.isInterior => getPeerMac(p, expiry)
-            case _ => Ready(null) // Fall through to ARP'ing below.
-        }) flatMap {
+            case p: Port if p.isInterior => getPeerMac(p)
+            case _ => null // Fall through to ARP'ing below.
+        }) match {
             case null =>
                 val nextHopInt = rt.nextHopGateway
                 val nextHopIP =
                     if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
                     else IPv4Addr(nextHopInt)
-                getMacForIP(outPort, nextHopIP, expiry)
-            case mac => Ready(mac)
+                getMacForIP(outPort, nextHopIP)
+            case mac => mac
         }
     }
 
@@ -285,9 +267,8 @@ class Router(override val id: UUID,
      *        packet for simulation if successful.
      */
     @throws[NotYetException]
-    def sendIPPacket(packet: IPv4, expiry: Long)
-                    (implicit ec: ExecutionContext,
-                              context: PacketContext): Urgent[Boolean] = {
+    def sendIPPacket(packet: IPv4)
+                    (implicit context: PacketContext): Boolean = {
 
         /**
          * Applies some post-chain transformations that might be necessary on
@@ -314,7 +295,7 @@ class Router(override val id: UUID,
             eth.setPayload(packet)
         }
 
-        def _sendIPPacket(outPort: RouterPort, rt: Route): Urgent[Boolean] = {
+        def _sendIPPacket(outPort: RouterPort, rt: Route): Boolean = {
             if (packet.getDestinationIPAddress == outPort.portAddr.getAddress) {
                 /* should never happen: it means we are trying to send a packet
                  * to ourselves, probably means that somebody sent an IP packet
@@ -322,12 +303,10 @@ class Router(override val id: UUID,
                  */
                 context.log.warn("Router {} trying to send a packet {} to itself.",
                           id, packet)
-                return Ready(false)
+                return false
             }
 
-            getNextHopMac(
-                outPort, rt, packet.getDestinationIPAddress, expiry
-            ) map {
+            getNextHopMac(outPort, rt, packet.getDestinationIPAddress) match {
                 case null =>
                     context.log.warn("Failed to get MAC to emit local packet")
                     false
@@ -339,7 +318,7 @@ class Router(override val id: UUID,
                     // Apply post-routing (egress) chain.
                     val egrMatch = WildcardMatch.fromEthernetPacket(eth)
                     val egrPktContext = new PacketContext(
-                        Right(outPort.id), Packet.fromEthernet(eth), 0, None, egrMatch)
+                        Right(outPort.id), Packet.fromEthernet(eth), None, egrMatch)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
@@ -371,12 +350,10 @@ class Router(override val id: UUID,
                       .setNetworkSource(packet.getSourceIPAddress)
         val rt: Route = routeBalancer.lookup(ipMatch, context.log)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
-            return Ready(false)
+            return false
         if (rt.nextHopPort == null)
-            return Ready(false)
+            return false
 
-        getRouterPort(rt.nextHopPort, expiry) flatMap {
-            p => _sendIPPacket(p, rt)
-        }
+        _sendIPPacket(tryAsk[RouterPort](rt.nextHopPort), rt)
     }
 }

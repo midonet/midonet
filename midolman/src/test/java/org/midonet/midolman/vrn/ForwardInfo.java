@@ -74,7 +74,7 @@ public class ForwardInfo extends PacketContext {
 
     public ForwardInfo(boolean internallyGenerated, WildcardMatch wcMatch, UUID ingressFE) {
         super(internallyGenerated ? new Right<>(UUID.randomUUID()) : new Left<Object, UUID>(1),
-              null, 0L, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
+              null, Option.empty(), wcMatch, ActorSystem$.MODULE$.create());
         flowMatch = wcMatch;
         this.ingressFE = ingressFE;
         this.internallyGenerated = internallyGenerated;

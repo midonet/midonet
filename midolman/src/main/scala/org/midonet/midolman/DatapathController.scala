@@ -603,7 +603,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
     }
 
     private def installTunnelKeyFlow(port: DpPort, vif: UUID, active: Boolean) {
-        VirtualTopologyActor.expiringAsk[Port](vif, log) match {
+        VirtualTopologyActor.expiringAsk[Port](vif) match {
             case Ready(vPort) =>
                 triggerPortInvalidation(port, vPort, active)
             case NotYet(f) => f.mapTo[Port] onComplete {

@@ -6,7 +6,7 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.collection.immutable
-import scala.concurrent.promise
+import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -260,15 +260,15 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     }
 
     class MockPacketHandler(actionsCache: ActionsCache) extends PacketHandler {
-        var p = promise[Any]
+        var p = Promise[Any]()
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
             if (pktCtx.runs == 1) {
                 packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookieOrEgressPort)
-                NotYet(p.future)
+                throw new NotYetException(p.future)
             } else {
-                Ready(Simulation)
+                Simulation
             }
         }
 

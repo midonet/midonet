@@ -30,14 +30,9 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.{Port => VPort}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.services.MidostoreSetupService
-import org.midonet.midolman.{NotYet, Ready, FlowTranslator, DatapathController, DatapathState, FlowController, PacketsEntryPoint}
+import org.midonet.midolman._
 import org.midonet.midolman.DatapathController.{DatapathReady, DpPortCreate, Initialize}
-import org.midonet.midolman.DeduplicationActor.{HandlePackets, DiscardPacket, EmitGeneratedPacket}
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.FlowController.FlowUpdateCompleted
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
 import org.midonet.midolman.guice._
 import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.guice.config.ConfigProviderModule
@@ -53,11 +48,10 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.services.MidolmanService
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.util.guice.{MockMidolmanModule, OutgoingMessage, TestableMidolmanActorsModule}
+import org.midonet.midolman.util.guice.{MockMidolmanModule, TestableMidolmanActorsModule}
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.odp._
 import org.midonet.odp.flows.FlowAction
@@ -69,6 +63,17 @@ import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.MockClock
 import org.midonet.util.functors.{Callback0, Callback2}
+import org.midonet.midolman.DatapathController.DatapathReady
+import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.util.guice.OutgoingMessage
+import org.midonet.midolman.FlowController.WildcardFlowRemoved
+import org.midonet.midolman.DeduplicationActor.DiscardPacket
+import org.midonet.midolman.topology.LocalPortActive
+import org.midonet.midolman.FlowController.WildcardFlowAdded
+import org.midonet.midolman.FlowController.FlowUpdateCompleted
+import org.midonet.midolman.PacketWorkflow.PacketIn
+import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.DeduplicationActor.HandlePackets
 
 object MidolmanTestCaseLock {
     val sequential: ReentrantLock = new ReentrantLock()
@@ -511,7 +516,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             override implicit protected def system: ActorSystem = actors
             override protected val dpState: DatapathState = self.dpState
         }
-        val pktCtx = new PacketContext(Left(-1), null, 0L, None, wcMatch)
+        val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
         pktCtx.inputPort = wcMatch.getInputPortUUID
         dpState.getDpPortNumberForVport(pktCtx.inputPort) map { port =>
             wcMatch.setInputPortNumber(port.toShort)
@@ -519,16 +524,16 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
         var retries = 10
         while (retries >= 0) {
-            flowTranslator.translateActions(pktCtx, List(action)) match {
-                case Ready(actions) =>
-                    val flow = WildcardFlow(pktCtx.origMatch, actions.toList)
-                    flowProbe().testActor ! AddWildcardFlow(flow, null,
-                        new ArrayList[Callback0],
-                        pktCtx.flowTags)
-                    return
-                case NotYet(f) =>
-                    Await.result(f, 3 seconds)
-                    retries -= 1
+            try {
+                val actions = flowTranslator.translateActions(pktCtx, List(action))
+                val flow = WildcardFlow(pktCtx.origMatch, actions.toList)
+                flowProbe().testActor ! AddWildcardFlow(flow, null,
+                                                        new ArrayList[Callback0],
+                                                        pktCtx.flowTags)
+                return
+            } catch { case NotYetException(f, _) =>
+                Await.result(f, 3 seconds)
+                retries -= 1
             }
         }
     }
