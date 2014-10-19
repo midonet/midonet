@@ -3,11 +3,8 @@
 package org.midonet.midolman.simulation
 
 import akka.actor.ActorSystem
-import scala.concurrent.Await
 import akka.event.Logging
-import scala.concurrent.duration._
 import collection.mutable.{Map, Queue}
-import compat.Platform
 import java.lang.{Short => JShort}
 import java.util.UUID
 
@@ -22,7 +19,6 @@ import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cluster.VlanPortMapImpl
-import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.odp.Packet
 
 

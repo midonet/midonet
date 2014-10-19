@@ -35,8 +35,8 @@ import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.util.concurrent._
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.concurrent._
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -147,20 +147,6 @@ object VirtualToPhysicalMapper extends Referenceable {
                     log.error("Failed to get: " +
                               req.tag.runtimeClass.getSimpleName, ex)
         }(ExecutionContext.callingThread)
-
-
-    /**
-     * Performs a lookup in the local cache trying to find the requested device
-     * in case of a miss, it will ask the VTPM actor.
-     */
-    def expiringAsk[D](req: VTPMRequest[D])
-                      (implicit system: ActorSystem): Urgent[D] = {
-        try {
-            Ready(tryAsk(req))
-        } catch {
-            case NotYetException(f, _) => NotYet(f)
-        }
-    }
 
     /**
      * A bunch of caches that are maintained by the VTPM actor but also exposed

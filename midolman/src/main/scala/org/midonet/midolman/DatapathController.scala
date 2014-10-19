@@ -602,18 +602,18 @@ class DatapathController extends Actor with ActorLogWithoutPath {
             installTunnelKeyFlow(dpPort, port)
     }
 
-    private def installTunnelKeyFlow(port: DpPort, vif: UUID, active: Boolean) {
-        VirtualTopologyActor.expiringAsk[Port](vif) match {
-            case Ready(vPort) =>
-                triggerPortInvalidation(port, vPort, active)
-            case NotYet(f) => f.mapTo[Port] onComplete {
-                    case Success(vPort) =>
-                        triggerPortInvalidation(port, vPort, active)
-                    case Failure(ex) =>
-                        log.error("failed to install tunnel key flow", ex)
-                }
+    private def installTunnelKeyFlow(port: DpPort, vif: UUID, active: Boolean): Unit =
+        try {
+            val vPort = VirtualTopologyActor.tryAsk[Port](vif)
+            triggerPortInvalidation(port, vPort, active)
+        } catch { case NotYetException(f, _) =>
+            f.mapTo[Port] onComplete {
+                case Success(vPort) =>
+                    triggerPortInvalidation(port, vPort, active)
+                case Failure(ex) =>
+                    log.error("failed to install tunnel key flow", ex)
+            }
         }
-    }
 
     def handlePortOperationReply(opReply: DpPortReply) {
         log.debug("Port operation reply: {}", opReply)

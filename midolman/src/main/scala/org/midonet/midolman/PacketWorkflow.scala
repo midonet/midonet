@@ -27,7 +27,6 @@ import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import com.typesafe.scalalogging.Logger
 
-
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
     def drop(context: PacketContext): Unit

@@ -10,11 +10,10 @@ import scala.concurrent.Await
 
 import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
-import org.midonet.midolman.FlowController.AddWildcardFlow
-import org.midonet.midolman.{NotYet, Ready}
 import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.topology.VirtualTopologyActor.expiringAsk
+import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.packets._
+import org.midonet.midolman.NotYetException
 
 trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
 
@@ -64,13 +63,15 @@ trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
 
     def fetchRouterAndPort(portName: String,
                            portId: UUID) : (SimRouter, RouterPort) = {
-        val port = expiringAsk[RouterPort](portId) match {
-            case Ready(p) => p
-            case NotYet(f) => Await.result(f.mapTo[RouterPort], 1 second)
+        val port = try {
+            tryAsk[RouterPort](portId)
+        } catch { case NotYetException(f, _) =>
+            Await.result(f.mapTo[RouterPort], 1 second)
         }
-        val router = expiringAsk[SimRouter](port.deviceID) match {
-            case Ready(r) => r
-            case NotYet(f) => Await.result(f.mapTo[SimRouter], 1 second)
+        val router = try {
+            tryAsk[SimRouter](port.deviceID)
+        } catch { case NotYetException(f, _) =>
+            Await.result(f.mapTo[SimRouter], 1 second)
         }
         drainProbes()
         (router, port)
