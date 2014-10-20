@@ -93,10 +93,10 @@ public class MidolmanService extends AbstractService {
         ArrayList<AbstractService> services = new ArrayList<>(6);
         services.add(datapathConnectionService);
         services.add(selectLoopService);
-        services.add(actorsService);
-        services.add(dashboardService);
         if (hostService != null)
             services.add(hostService);
+        services.add(dashboardService);
+        services.add(actorsService);
         return services;
     }
 }

@@ -39,6 +39,7 @@ public class SelectLoopService extends AbstractService {
         });
 
         th.setName(name);
+        th.setDaemon(true);
         th.start();
         return th;
     }

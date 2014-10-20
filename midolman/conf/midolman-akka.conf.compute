@@ -13,12 +13,11 @@ midolman {
     }
 
     akka {
+        daemonic = on
+
         remote.netty.port = 2552
         event-handlers = ["akka.event.slf4j.Slf4jEventHandler"]
 
-        # BEWARE: debug level is meant for developement and/or troubleshooting
-        #         it greatly impacts system performance.
-        # levels: ERROR, WARNING, INFO, DEBUG
         loglevel = "INFO"
         test {
             timefactor = 1
@@ -45,6 +44,8 @@ midolman {
                 # in a batch before the thread is returned to the pool. Set to 1
                 # for as fair as possible.
                 throughput = 1
+
+                shutdown-timeout = 1ms
             }
         }
     }
