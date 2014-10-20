@@ -163,9 +163,9 @@ class Router(override val id: UUID,
     }
 
     override protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {
-        mmatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER &&
-            (mmatch.getTransportSource & 0xff) == ICMP.TYPE_ECHO_REQUEST &&
-            (mmatch.getTransportDestination & 0xff) == ICMP.CODE_NONE
+        mmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER &&
+            (mmatch.getSrcPort & 0xff) == ICMP.TYPE_ECHO_REQUEST &&
+            (mmatch.getDstPort & 0xff) == ICMP.CODE_NONE
     }
 
     override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
@@ -277,16 +277,16 @@ class Router(override val id: UUID,
          * further motivation.
          */
         def _applyPostActions(eth: Ethernet, postRoutingResult: RuleResult) = {
-            val tpSrc = postRoutingResult.pmatch.getTransportSource
+            val srcPort = postRoutingResult.pmatch.getSrcPort
             packet.getProtocol match {
                 case UDP.PROTOCOL_NUMBER =>
-                    val tp = packet.getPayload.asInstanceOf[UDP]
-                    tp.setSourcePort(tpSrc)
-                    packet.setPayload(tp)
+                    val l4 = packet.getPayload.asInstanceOf[UDP]
+                    l4.setSourcePort(srcPort)
+                    packet.setPayload(l4)
                 case TCP.PROTOCOL_NUMBER =>
-                    val tp = packet.getPayload.asInstanceOf[TCP]
-                    tp.setSourcePort(tpSrc)
-                    packet.setPayload(tp)
+                    val l4 = packet.getPayload.asInstanceOf[TCP]
+                    l4.setSourcePort(srcPort)
+                    packet.setPayload(l4)
                 case _ =>
             }
 
@@ -346,8 +346,8 @@ class Router(override val id: UUID,
         }
 
         val ipMatch = new WildcardMatch()
-                      .setNetworkDestination(packet.getDestinationIPAddress)
-                      .setNetworkSource(packet.getSourceIPAddress)
+                      .setNetworkDst(packet.getDestinationIPAddress)
+                      .setNetworkSrc(packet.getSourceIPAddress)
         val rt: Route = routeBalancer.lookup(ipMatch, context.log)
         if (rt == null || rt.nextHop != Route.NextHop.PORT)
             return false

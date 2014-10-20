@@ -57,15 +57,15 @@ public class TestCondition {
     public void setUp() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPortNumber((short) 5);
-        pktMatch.setEthernetSource("02:11:33:00:11:01");
-        pktMatch.setEthernetDestination("02:11:aa:ee:22:05");
+        pktMatch.setEthSrc("02:11:33:00:11:01");
+        pktMatch.setEthDst("02:11:aa:ee:22:05");
         pktMatch.setEtherType(IPv4.ETHERTYPE);
-        pktMatch.setNetworkSource(srcIpAddr);
-        pktMatch.setNetworkDestination(dstIpAddr);
-        pktMatch.setNetworkProtocol((byte) 6);
+        pktMatch.setNetworkSrc(srcIpAddr);
+        pktMatch.setNetworkDst(dstIpAddr);
+        pktMatch.setNetworkProto((byte) 6);
         pktMatch.setNetworkTOS((byte) 34);
-        pktMatch.setTransportSource(4321);
-        pktMatch.setTransportDestination(1234);
+        pktMatch.setSrcPort(4321);
+        pktMatch.setDstPort(1234);
         rand = new Random();
 
         fwdInfo = new ForwardInfo(false, pktMatch, UUID.randomUUID());
@@ -142,16 +142,16 @@ public class TestCondition {
     public void testDlSrc() {
         Condition cond = new Condition();
 
-        // InvDlSrc shouldn't matter when dlSrc is null.
+        // InvDlSrc shouldn't matter when ethSrc is null.
         cond.invDlSrc = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
-        cond.dlSrc = pktMatch.getEthernetSource();
+        cond.ethSrc = pktMatch.getEthSrc();
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlSrc = false;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
-        cond.dlSrc = MAC.random();
+        cond.ethSrc = MAC.random();
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlSrc = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
@@ -161,16 +161,16 @@ public class TestCondition {
     public void testDlDst() {
         Condition cond = new Condition();
 
-        // InvDlDst shouldn't matter when dlDst is null.
+        // InvDlDst shouldn't matter when ethDst is null.
         cond.invDlDst = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
-        cond.dlDst = pktMatch.getEthernetDestination();
+        cond.ethDst = pktMatch.getEthDst();
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlDst = false;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
-        cond.dlDst = MAC.random();
+        cond.ethDst = MAC.random();
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlDst = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
@@ -181,26 +181,26 @@ public class TestCondition {
         Condition cond = new Condition();
 
         // Everything should match with zero mask.
-        cond.dlSrcMask = 0L;
-        cond.dlSrc = MAC.random();
+        cond.ethSrcMask = 0L;
+        cond.ethSrc = MAC.random();
         cond.invDlSrc = true;
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlSrc = false;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
         // Ignore lower 32 bits.
-        cond.dlSrcMask = 0xffffL << 32;
+        cond.ethSrcMask = 0xffffL << 32;
 
         // Flip lower 32 bits and match should still succeed.
-        long macLong = pktMatch.getEthernetSource().asLong();
-        cond.dlSrc = new MAC(macLong ^ 0xffffffffL);
+        long macLong = pktMatch.getEthSrc().asLong();
+        cond.ethSrc = new MAC(macLong ^ 0xffffffffL);
         cond.invDlSrc = true;
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlSrc = false;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
 
         // Flip one more bit and match should fail.
-        cond.dlSrc = new MAC(macLong ^ 0x1ffffffffL);
+        cond.ethSrc = new MAC(macLong ^ 0x1ffffffffL);
         cond.invDlSrc = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlSrc = false;
@@ -213,7 +213,7 @@ public class TestCondition {
 
         // Everything should match with zero mask.
         cond.dlDstMask = 0L;
-        cond.dlDst = MAC.random();
+        cond.ethDst = MAC.random();
         cond.invDlDst = true;
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlDst = false;
@@ -223,8 +223,8 @@ public class TestCondition {
         cond.dlDstMask = 0xffffL << 32;
 
         // Flip lower 32 bits and match should still succeed.
-        long macLong = pktMatch.getEthernetDestination().asLong();
-        cond.dlDst = new MAC(macLong ^ 0xffffffffL);
+        long macLong = pktMatch.getEthDst().asLong();
+        cond.ethDst = new MAC(macLong ^ 0xffffffffL);
         cond.invDlDst = true;
         assertFalse(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlDst = false;
@@ -232,7 +232,7 @@ public class TestCondition {
 
 
         // Flip one more bit and match should fail.
-        cond.dlDst = new MAC(macLong ^ 0x1ffffffffL);
+        cond.ethDst = new MAC(macLong ^ 0x1ffffffffL);
         cond.invDlDst = true;
         assertTrue(cond.matches(fwdInfo, pktMatch, false));
         cond.invDlDst = false;
@@ -381,7 +381,7 @@ public class TestCondition {
 
     @Test
     public void testTpSrc_upperPorts() {
-        pktMatch.setTransportSource(40000);
+        pktMatch.setSrcPort(40000);
 
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
@@ -436,7 +436,7 @@ public class TestCondition {
 
     @Test
     public void testTpDst_upperPorts() {
-        pktMatch.setTransportDestination(50000);
+        pktMatch.setDstPort(50000);
 
         Condition cond = new Condition();
         fwdInfo.inPortId = UUID.randomUUID();
@@ -581,7 +581,7 @@ public class TestCondition {
     @Test
     public void testIpv6() {
         Condition cond = new Condition();
-        cond.dlType = 0x86DD;
+        cond.etherType = 0x86DD;
         fwdInfo.inPortId = UUID.randomUUID();
 
         WildcardMatch pktMatch6 = new WildcardMatch();
@@ -602,7 +602,7 @@ public class TestCondition {
         cond.tpSrcInv = false;
         cond.tpDst = new Range<Integer>(42000, 43000);
         cond.tpDstInv = true;
-        cond.dlType = 0x86DD;
+        cond.etherType = 0x86DD;
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         OutputStream out = new BufferedOutputStream(bos);

@@ -242,9 +242,9 @@ class Coordinator(context: PacketContext)
                         val notIPv4Match =
                             new WildcardMatch()
                                 .setEthernetSource(
-                                        context.origMatch.getEthernetSource)
+                                        context.origMatch.getEthSrc)
                                 .setEthernetDestination(
-                                        context.origMatch.getEthernetDestination)
+                                        context.origMatch.getEthDst)
                                 .setEtherType(
                                         context.origMatch.getEtherType)
                         virtualWildcardFlowResult(

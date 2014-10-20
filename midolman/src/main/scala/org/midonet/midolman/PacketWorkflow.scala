@@ -299,7 +299,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             } else if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
                 handlePacketToPortSet(context)
             } else {
-                val portIdOpt = VxLanPortMapper uuidOf wcMatch.getTunnelID.toInt
+                val portIdOpt = VxLanPortMapper uuidOf wcMatch.getTunnelKey.toInt
                 context.inputPort = portIdOpt.orNull
                 processSimulationResult(context, simulatePacketIn(context))
             }
@@ -342,7 +342,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         // packet. So we really only handle cases where the tunnel key exists
         // and corresponds to a port set.
 
-        val tunnelKey = context.origMatch.getTunnelID
+        val tunnelKey = context.origMatch.getTunnelKey
         val portSet = VirtualToPhysicalMapper.tryGetPortSetForTunnelKey(tunnelKey)
         portSet match {
             case null =>

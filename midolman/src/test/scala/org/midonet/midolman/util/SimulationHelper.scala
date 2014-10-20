@@ -203,23 +203,23 @@ trait SimulationHelper { this: MidolmanTestCase =>
     }
 
     def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
-        wmatch.getEthernetDestination should be (pkt.getDestinationMACAddress)
-        wmatch.getEthernetSource should be (pkt.getSourceMACAddress)
+        wmatch.getEthDst should be (pkt.getDestinationMACAddress)
+        wmatch.getEthSrc should be (pkt.getSourceMACAddress)
         wmatch.getEtherType should be (pkt.getEtherType)
         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
         wmatch.getNetworkDestinationIP should be (ipPkt.getDestinationIPAddress)
         wmatch.getNetworkSourceIP should be (ipPkt.getSourceIPAddress)
-        wmatch.getNetworkProtocol should be (ipPkt.getProtocol)
+        wmatch.getNetworkProto should be (ipPkt.getProtocol)
 
         ipPkt.getProtocol match {
             case UDP.PROTOCOL_NUMBER =>
                 val udpPkt = ipPkt.getPayload.asInstanceOf[UDP]
-                wmatch.getTransportDestination should be (udpPkt.getDestinationPort)
-                wmatch.getTransportSource should be (udpPkt.getSourcePort)
+                wmatch.getDstPort should be (udpPkt.getDestinationPort)
+                wmatch.getSrcPort should be (udpPkt.getSourcePort)
             case TCP.PROTOCOL_NUMBER =>
                 val tcpPkt = ipPkt.getPayload.asInstanceOf[TCP]
-                wmatch.getTransportDestination should be (tcpPkt.getDestinationPort)
-                wmatch.getTransportSource should be (tcpPkt.getSourcePort)
+                wmatch.getDstPort should be (tcpPkt.getDestinationPort)
+                wmatch.getSrcPort should be (tcpPkt.getSourcePort)
             case _ =>
         }
     }

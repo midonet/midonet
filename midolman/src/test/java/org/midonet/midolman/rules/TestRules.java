@@ -66,24 +66,24 @@ public class TestRules {
     public static void setupOnce() {
         pktMatch = new WildcardMatch();
         pktMatch.setInputPortNumber((short) 5);
-        pktMatch.setEthernetSource("02:11:33:00:11:01");
-        pktMatch.setEthernetDestination("02:11:aa:ee:22:05");
-        pktMatch.setNetworkSource(IPv4Addr.fromInt(0x0a001406));
-        pktMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a000b22));
-        pktMatch.setNetworkProtocol((byte) 6); // TCP
+        pktMatch.setEthSrc("02:11:33:00:11:01");
+        pktMatch.setEthDst("02:11:aa:ee:22:05");
+        pktMatch.setNetworkSrc(IPv4Addr.fromInt(0x0a001406));
+        pktMatch.setNetworkDst(IPv4Addr.fromInt(0x0a000b22));
+        pktMatch.setNetworkProto((byte) 6); // TCP
         pktMatch.setNetworkTOS((byte) 34);
-        pktMatch.setTransportSource(4321);
-        pktMatch.setTransportDestination(1234);
+        pktMatch.setSrcPort(4321);
+        pktMatch.setDstPort(1234);
         pktResponseMatch = new WildcardMatch();
         pktResponseMatch.setInputPortNumber((short) 5);
-        pktResponseMatch.setEthernetDestination("02:11:33:00:11:01");
-        pktResponseMatch.setEthernetSource("02:11:aa:ee:22:05");
-        pktResponseMatch.setNetworkDestination(IPv4Addr.fromInt(0x0a001406));
-        pktResponseMatch.setNetworkSource(IPv4Addr.fromInt(0x0a000b22));
-        pktResponseMatch.setNetworkProtocol((byte) 6); // TCP
+        pktResponseMatch.setEthDst("02:11:33:00:11:01");
+        pktResponseMatch.setEthSrc("02:11:aa:ee:22:05");
+        pktResponseMatch.setNetworkDst(IPv4Addr.fromInt(0x0a001406));
+        pktResponseMatch.setNetworkSrc(IPv4Addr.fromInt(0x0a000b22));
+        pktResponseMatch.setNetworkProto((byte) 6); // TCP
         pktResponseMatch.setNetworkTOS((byte) 34);
-        pktResponseMatch.setTransportDestination(4321);
-        pktResponseMatch.setTransportSource(1234);
+        pktResponseMatch.setDstPort(4321);
+        pktResponseMatch.setSrcPort(1234);
         rand = new Random();
         inPort = new UUID(rand.nextLong(), rand.nextLong());
         ownerId = new UUID(rand.nextLong(), rand.nextLong());
@@ -294,12 +294,12 @@ public class TestRules {
         IPv4Addr newNwSrc = (IPv4Addr)(argRes.pmatch.getNetworkSourceIP());
         Assert.assertTrue(0x0b000102 <= newNwSrc.toInt());
         Assert.assertTrue(newNwSrc.toInt() <= 0x0b00010a);
-        int newTpSrc = argRes.pmatch.getTransportSource();
+        int newTpSrc = argRes.pmatch.getSrcPort();
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkSource(newNwSrc);
-        expRes.pmatch.setTransportSource(newTpSrc);
+        expRes.pmatch.setNetworkSrc(newNwSrc);
+        expRes.pmatch.setSrcPort(newTpSrc);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
@@ -310,10 +310,10 @@ public class TestRules {
         argRes.pmatch = pktResponseMatch.clone();
         Assert.assertNotSame(pktResponseMatch.getNetworkDestinationIP(),
                              newNwSrc);
-        argRes.pmatch.setNetworkDestination(newNwSrc);
-        Assert.assertNotSame(pktResponseMatch.getTransportDestination(),
+        argRes.pmatch.setNetworkDst(newNwSrc);
+        Assert.assertNotSame(pktResponseMatch.getDstPort(),
                              newTpSrc);
-        argRes.pmatch.setTransportDestination(newTpSrc);
+        argRes.pmatch.setDstPort(newTpSrc);
         argRes.action = null;
         revRule.process(fwdInfo, argRes, natMapping, false);
         Assert.assertEquals(Action.RETURN, argRes.action);
@@ -343,12 +343,12 @@ public class TestRules {
         int newNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
-        int newTpDst = argRes.pmatch.getTransportDestination();
+        int newTpDst = argRes.pmatch.getDstPort();
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkDestination(IPv4Addr.fromInt(newNwDst));
-        expRes.pmatch.setTransportDestination(newTpDst);
+        expRes.pmatch.setNetworkDst(IPv4Addr.fromInt(newNwDst));
+        expRes.pmatch.setDstPort(newTpDst);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
         // Verify we get the same mapping if we re-process the original match.
         expRes = argRes;
@@ -361,9 +361,9 @@ public class TestRules {
                           pktResponseMatch.getNetworkSourceIP()));
         Assert.assertFalse(IPv4Addr.fromInt(newNwDst).equals(
                            pktResponseMatch.getNetworkSourceIP()));
-        argRes.pmatch.setNetworkSource(IPv4Addr.fromInt(newNwDst));
-        Assert.assertNotSame(pktResponseMatch.getTransportSource(), newTpDst);
-        argRes.pmatch.setTransportSource(newTpDst);
+        argRes.pmatch.setNetworkSrc(IPv4Addr.fromInt(newNwDst));
+        Assert.assertNotSame(pktResponseMatch.getSrcPort(), newTpDst);
+        argRes.pmatch.setSrcPort(newTpDst);
         argRes.action = null;
         fwdInfo.inPortId = null;
         revRule.process(fwdInfo, argRes, natMapping, false);
@@ -388,13 +388,13 @@ public class TestRules {
         int firstNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
         Assert.assertTrue(0x0c000102 <= firstNwDst);
         Assert.assertTrue(firstNwDst <= 0x0c00010a);
-        int firstTpDst = argRes.pmatch.getTransportDestination();
+        int firstTpDst = argRes.pmatch.getDstPort();
         Assert.assertTrue(1030 <= firstTpDst);
         Assert.assertTrue(firstTpDst <= 1050);
 
         // Now verify that the rest of the packet hasn't changed.
-        expRes.pmatch.setNetworkDestination(IPv4Addr.fromInt(firstNwDst));
-        expRes.pmatch.setTransportDestination(firstTpDst);
+        expRes.pmatch.setNetworkDst(IPv4Addr.fromInt(firstNwDst));
+        expRes.pmatch.setDstPort(firstTpDst);
         Assert.assertTrue(expRes.pmatch.equals(argRes.pmatch));
 
         // Verify we get the same mapping if we re-process the original match.
@@ -402,17 +402,17 @@ public class TestRules {
         argRes = new RuleResult(null, null, pktMatch.clone());
         rule.process(fwdInfo, argRes, natMapping, false);
         int secondNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
-        int secondTpDst = argRes.pmatch.getTransportDestination();
+        int secondTpDst = argRes.pmatch.getDstPort();
         Assert.assertTrue(expRes.equals(argRes));
         Assert.assertEquals(firstNwDst, secondNwDst);
         Assert.assertEquals(firstTpDst, secondTpDst);
 
         // Delete the DNAT entry
-        natMapping.deleteDnatEntry(pktMatch.getNetworkProtocol(),
+        natMapping.deleteDnatEntry(pktMatch.getNetworkProto(),
                                    pktMatch.getNetworkSourceIP(),
-                                   pktMatch.getTransportSource(),
+                                   pktMatch.getSrcPort(),
                                    pktMatch.getNetworkDestinationIP(),
-                                   pktMatch.getTransportDestination(),
+                                   pktMatch.getDstPort(),
                                    new IPv4Addr(firstNwDst),
                                    firstTpDst);
 
@@ -421,7 +421,7 @@ public class TestRules {
         argRes = new RuleResult(null, null, pktMatch.clone());
         rule.process(fwdInfo, argRes, natMapping, false);
         int thirdNwDst = ((IPv4Addr)argRes.pmatch.getNetworkDestinationIP()).toInt();
-        int thirdTpDst = argRes.pmatch.getTransportDestination();
+        int thirdTpDst = argRes.pmatch.getDstPort();
         Assert.assertFalse(expRes.equals(argRes));
         Assert.assertNotSame(firstNwDst, thirdNwDst);
         Assert.assertNotSame(firstTpDst, thirdTpDst);

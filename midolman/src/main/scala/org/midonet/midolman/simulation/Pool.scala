@@ -106,7 +106,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
         // Even if there are no active pool members, we should keep
         // existing connections alive.
         val pktMatch = context.wcmatch
-        if (stickySourceIP || pktMatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER) {
+        if (stickySourceIP || pktMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER) {
             // If all members are marked down, we stop connections
             context.log.debug("Stopping potential connection")
             false
@@ -121,7 +121,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                                             (implicit context: PacketContext)
     : Boolean = {
         val vipIp = context.wcmatch.getNetworkDestinationIP
-        val vipPort = context.wcmatch.getTransportDestination
+        val vipPort = context.wcmatch.getDstPort
         val natKey = NatKey(context.wcmatch,
                             loadBalancer,
                             if (stickySourceIP) NatState.FWD_STICKY_DNAT
@@ -131,8 +131,8 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
             context.log.debug(s"Found existing $natKey; backend valid: $backendIsValid")
             if (!backendIsValid) {
                 // Reset the destination IP / port to be VIP IP / port
-                context.wcmatch.setNetworkDestination(vipIp)
-                context.wcmatch.setTransportDestination(vipPort)
+                context.wcmatch.setNetworkDst(vipIp)
+                context.wcmatch.setDstPort(vipPort)
 
                 // Delete the current NAT entry we found
                 deleteNatEntry(context, loadBalancer, stickySourceIP)
@@ -144,7 +144,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
     private def isValidBackend(context: PacketContext,
                                stickySourceIP: Boolean): Boolean =
         isValidBackend(context.wcmatch.getNetworkDestinationIP,
-                       context.wcmatch.getTransportDestination,
+                       context.wcmatch.getDstPort,
                        stickySourceIP)
 
     /*

@@ -24,10 +24,10 @@ object ConnTrackState {
     object ConnTrackKey {
         def apply(wcMatch: WildcardMatch, deviceId: UUID): ConnTrackKey =
             ConnTrackKey(wcMatch.getNetworkSourceIP,
-                         icmpIdOr(wcMatch, wcMatch.getTransportSource),
+                         icmpIdOr(wcMatch, wcMatch.getSrcPort),
                          wcMatch.getNetworkDestinationIP,
-                         icmpIdOr(wcMatch, wcMatch.getTransportDestination),
-                         wcMatch.getNetworkProtocol.byteValue(),
+                         icmpIdOr(wcMatch, wcMatch.getDstPort),
+                         wcMatch.getNetworkProto.byteValue(),
                          deviceId)
     }
 
@@ -44,14 +44,14 @@ object ConnTrackState {
 
     def EgressConnTrackKey(wcMatch: WildcardMatch, egressDeviceId: UUID): ConnTrackKey =
         ConnTrackKey(wcMatch.getNetworkDestinationIP,
-                     icmpIdOr(wcMatch, wcMatch.getTransportDestination),
+                     icmpIdOr(wcMatch, wcMatch.getDstPort),
                      wcMatch.getNetworkSourceIP,
-                     icmpIdOr(wcMatch, wcMatch.getTransportSource),
-                     wcMatch.getNetworkProtocol.byteValue(),
+                     icmpIdOr(wcMatch, wcMatch.getSrcPort),
+                     wcMatch.getNetworkProto.byteValue(),
                      egressDeviceId)
 
     def supportsConnectionTracking(wcMatch: WildcardMatch): Boolean = {
-        val proto = wcMatch.getNetworkProtocol
+        val proto = wcMatch.getNetworkProto
         IPv4.ETHERTYPE == wcMatch.getEtherType &&
                 (TCP.PROTOCOL_NUMBER == proto ||
                  UDP.PROTOCOL_NUMBER == proto ||
@@ -59,7 +59,7 @@ object ConnTrackState {
     }
 
     private def icmpIdOr(wcMatch: WildcardMatch, or: Integer): Int = {
-        if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProtocol) {
+        if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProto) {
             val icmpId: java.lang.Short = wcMatch.getIcmpIdentifier
             if (icmpId ne null)
                 return icmpId.intValue()

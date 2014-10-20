@@ -74,7 +74,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // is no longer applicable.
 
         val backendIp = packetContext.wcmatch.getNetworkSourceIP
-        val backendPort = packetContext.wcmatch.getTransportSource
+        val backendPort = packetContext.wcmatch.getSrcPort
 
         // The order we test for the reverse NAT is important. First we
         // check if there's an entry that matches the client's source port,

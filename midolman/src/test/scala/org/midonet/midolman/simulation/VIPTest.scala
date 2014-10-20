@@ -27,14 +27,14 @@ class VIPTest extends MidolmanTestCase {
         val port2 = 44
 
         val tcpIngressMatch = new WildcardMatch()
-                .setNetworkDestination(addr1)
-                .setTransportDestination(port1)
-                .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+                .setNetworkDst(addr1)
+                .setDstPort(port1)
+                .setNetworkProto(TCP.PROTOCOL_NUMBER)
 
         val tcpContext = new PacketContext(Left(1), null, None,
                                            tcpIngressMatch)(actors)
 
-        val udpIngressMatch = tcpIngressMatch.clone().setNetworkProtocol(UDP.PROTOCOL_NUMBER)
+        val udpIngressMatch = tcpIngressMatch.clone().setNetworkProto(UDP.PROTOCOL_NUMBER)
         val udpContext = new PacketContext(Left(1), null, None,
                                            udpIngressMatch)(actors)
 
