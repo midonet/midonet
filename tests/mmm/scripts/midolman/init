@@ -47,6 +47,9 @@ EOF
     fi
 
     sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
+    # Disable rotation by removing policy setting to fix MN-3009
+    sed -i '/<rollingPolicy/, /<\/rollingPolicy/d' /etc/midolman.$n/logback.xml
+    sed -i 's/rolling.RollingFileAppender/FileAppender/g' /etc/midolman.$n/logback.xml
 
     if test ! -d /var/lib/midolman.$n; then
         mkdir -p /var/lib/midolman.$n
