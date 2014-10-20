@@ -323,11 +323,11 @@ stop_jmxtrans() {
 }
 
 stop_service() {
-    if [ -z $1 ] ; then
-        err_exit "Usage: stop_service NAME"
+    status="0"
+    /etc/init.d/$1 status || status="$?"
+    if [ "$status" -ne 3 ] ; then
+        /etc/init.d/$1 stop
     fi
-    test_phase "Stopping $1"
-    /etc/init.d/$1 stop
 }
 
 start_service() {
