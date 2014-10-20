@@ -134,8 +134,7 @@ public class Chain {
         }
 
         if (context.jlog().isDebugEnabled()) {
-            context.jlog().debug("Testing {} against Chain:\n{}",
-                                pktMatch, chain.asList(4, false), context);
+            context.jlog().debug("Testing against Chain:\n{}", chain.asList(4, false));
         }
 
         // Use ArrayList rather than HashSet because the list will be
