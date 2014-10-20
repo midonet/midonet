@@ -184,7 +184,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         pktInMsg should not be null
         pktInMsg.eth should not be null
         pktInMsg.wMatch should not be null
-        pktInMsg.wMatch.getInputPortUUID should be (port)
+        pktInMsg.inputPort should be (port)
         pktInMsg
     }
 

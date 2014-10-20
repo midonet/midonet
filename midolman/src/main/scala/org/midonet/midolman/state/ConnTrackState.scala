@@ -101,8 +101,7 @@ trait ConnTrackState extends FlowState {
                 false
             } else {
                 isConnectionTracked = true
-                connKey = ConnTrackKey(pktCtx.origMatch,
-                                       fetchIngressDevice(pktCtx.wcmatch))
+                connKey = ConnTrackKey(pktCtx.origMatch, fetchIngressDevice())
                 pktCtx.addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
                 val res = flowDirection ne RETURN_FLOW
@@ -129,10 +128,10 @@ trait ConnTrackState extends FlowState {
             }
         }
 
-    protected def fetchIngressDevice(wcMatch: WildcardMatch): UUID = {
+    protected def fetchIngressDevice(): UUID = {
         implicit val actorSystem: ActorSystem = null
         try {
-            VirtualTopologyActor.tryAsk[Port](wcMatch.getInputPortUUID).deviceID
+            VirtualTopologyActor.tryAsk[Port](pktCtx.inputPort).deviceID
         } catch {
             case ignored: NullPointerException =>
                 throw org.midonet.midolman.simulation.FixPortSets

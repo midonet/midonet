@@ -864,10 +864,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         log.debug("({}) setting up wildcard flows for bgpd", phase)
 
         def addVirtualWildcardFlow(wcMatch: WildcardMatch,
-                                   actions: List[FlowAction]): Unit = {
+                                   actions: List[FlowAction],
+                                   inputPort: UUID = null): Unit = {
             val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
             pktCtx.addFlowTag(FlowTagger.tagForBgp(bgp.getId))
-            pktCtx.inputPort = wcMatch.getInputPortUUID
+            pktCtx.inputPort = inputPort
             try {
                 val translated = translateActions(pktCtx, actions)
                 val flow = WildcardFlow(wcMatch, translated.toList)
@@ -907,23 +908,21 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // TCP4:->179 link->bgpd
         wildcardMatch = new WildcardMatch()
-            .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportDestination(BGP_TCP_PORT)
-        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)))
+        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
 
         // TCP4:179-> link->bgpd
         wildcardMatch = new WildcardMatch()
-            .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
             .setTransportSource(BGP_TCP_PORT)
-        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)))
+        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
 
         // ARP bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -935,7 +934,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // Both MM and bgpd need to know the peer's MAC address, so we install
         // a wildcard flow that sends the ARP replies to both MM and bgpd.
         wildcardMatch = new WildcardMatch()
-            .setInputPortUUID(bgpPort.id)
             .setEtherType(ARP.ETHERTYPE)
             .setEthernetDestination(bgpPort.portMac)
             // nwProto is overloaded in WildcardMatch to store the arp op type.
@@ -943,7 +941,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             // nwSrc/nwDst are overloaded to store the arp sip and tip.
             .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
-        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum), userspace(uplinkPid)))
+        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum),
+                                                   userspace(uplinkPid)), bgpPort.id)
 
         // ICMP4 bgpd->link
         wildcardMatch = new WildcardMatch()
@@ -956,12 +955,11 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // ICMP4 link->bgpd
         wildcardMatch = new WildcardMatch()
-            .setInputPortUUID(bgpPort.id)
             .setEtherType(IPv4.ETHERTYPE)
             .setNetworkProtocol(ICMP.PROTOCOL_NUMBER)
             .setNetworkSource(bgp.getPeerAddr)
             .setNetworkDestination(bgpPort.portAddr.getAddress)
-        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)))
+        addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
     }
 
 }

@@ -6,8 +6,7 @@ package org.midonet.midolman
 import java.util.UUID
 import scala.collection.{Set => ROSet, mutable}
 import scala.collection.immutable.List
-import scala.concurrent.{ExecutionContext, Await}
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
@@ -487,7 +486,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         override def translateVirtualWildcardFlow(
                             pktCtx: PacketContext,
                             flow: WildcardFlow) : WildcardFlow = {
-            if (flow.getMatch.getInputPortUUID == null)
+            if (pktCtx.inputPort eq null)
                 fail("NULL in forwarded call")
             super.translateVirtualWildcardFlow(pktCtx, flow)
         }

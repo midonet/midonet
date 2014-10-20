@@ -137,10 +137,6 @@ trait VirtualTopologyHelper {
             natTx.flush()
     }
 
-    def makeWildcardMatch(port: Port[_,_], pkt: Ethernet) =
-        WildcardMatch.fromEthernetPacket(pkt)
-                .setInputPortUUID(port.getId)
-
     @inline
     private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {
         case p: Port[_, _] => PortRequest(p.getId, update = true)
