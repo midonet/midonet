@@ -99,8 +99,9 @@ public class BlockingTransactorDatapathConnection implements ManagedDatapathConn
         });
 
         log.info("Starting datapath transactor thread: {}", threadName);
-        th.start();
         th.setName(threadName);
+        th.setDaemon(true);
+        th.start();
         return th;
     }
 }

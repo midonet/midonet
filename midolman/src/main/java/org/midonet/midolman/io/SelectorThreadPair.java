@@ -185,8 +185,9 @@ public class SelectorThreadPair {
         });
 
         log.info("Starting datapath select loop thread: {}", threadName);
-        th.start();
         th.setName(threadName);
+        th.setDaemon(true);
+        th.start();
         return th;
     }
 }
