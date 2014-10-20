@@ -111,7 +111,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
             routerPortOutFilter)
 
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort.getId)
-        router.arpTable.set(vmIp, vmMac)(spec.executionContext)
+        router.arpTable.set(vmIp, vmMac)
     }
 }
 
