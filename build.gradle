@@ -305,6 +305,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         destinationDir = file(benchOutput)
 
         dependsOn(generateBenchmarks)
+        onlyIf {
+            def sourceFiles = file(source).listFiles()
+            sourceFiles != null && sourceFiles.length > 0
+        }
     }
 
     task benchmarks(type: JavaExec) {
