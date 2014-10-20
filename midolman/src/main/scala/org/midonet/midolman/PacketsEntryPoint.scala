@@ -7,7 +7,7 @@ package org.midonet.midolman
 import scala.collection.immutable
 
 import akka.actor._
-import akka.event.{Logging, BusLogging, LoggingAdapter, LoggingReceive}
+import akka.event.LoggingReceive
 import org.slf4j.LoggerFactory
 import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import com.google.inject.Inject

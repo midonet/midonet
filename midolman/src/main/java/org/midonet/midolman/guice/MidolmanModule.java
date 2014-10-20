@@ -12,6 +12,7 @@ import com.yammer.metrics.core.MetricsRegistry;
 import org.midonet.cluster.Client;
 import org.midonet.config.ConfigProvider;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.management.PacketTracing;
 import org.midonet.midolman.services.DashboardService;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -19,7 +20,6 @@ import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
-import org.midonet.midolman.state.ZkConnection;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
 
 /**

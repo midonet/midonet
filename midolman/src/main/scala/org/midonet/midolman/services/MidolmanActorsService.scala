@@ -23,6 +23,7 @@ import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.SupervisorActor
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
+import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -71,8 +72,8 @@ class MidolmanActorsService extends AbstractService {
         try {
             log.info("Booting up actors service")
 
+            PacketTracing.registerAsMXBean()
             _system = createActorSystem()
-
             supervisorActor = startTopActor(
                                 propsFor(classOf[SupervisorActor]),
                                 SupervisorActor.Name)

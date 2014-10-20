@@ -22,6 +22,7 @@ import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.PacketContext
@@ -269,6 +270,7 @@ class DeduplicationActor(
         val pktCtx = new PacketContext(cookieOrEgressPort, packet,
                                        parentCookie, wcMatch)
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
+        pktCtx.log = PacketTracing.loggerFor(wcMatch)
 
         def matchTraceConditions(): Boolean = {
             traceConditions exists { _.matches(pktCtx, wcMatch, false) }

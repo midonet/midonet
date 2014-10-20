@@ -40,7 +40,7 @@ dependencies {
             libraries.zookeeper, libraries.jetty_server,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
             libraries.jsonpath, libraries.curator_recipes,
-            libraries.scala_logging
+            libraries.scala_logging, libraries.scallop
 
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,
@@ -101,6 +101,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
         into "etc/quagga"
     }
     from("src/deb/bin/mm-dpctl") {
+        into "usr/bin"
+    }
+    from("src/deb/bin/mm-trace") {
         into "usr/bin"
     }
     from("src/deb/bin/mm-ctl") {
