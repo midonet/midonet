@@ -1,6 +1,8 @@
 apply plugin: 'scala'
-apply plugin: 'java-library-distribution'
+apply plugin: 'application'
 apply from: "${rootProject.projectDir}/fpm.gradle"
+
+mainClassName = "org.midonet.midolman.Midolman"
 
 jar {
     manifest {
@@ -79,15 +81,10 @@ cobertura {
     ]
 }
 
-distributions {
-    main {
-        baseName = project.name
-    }
-}
-
-task preparePkg(type: Copy, dependsOn: installDist) {
+task preparePkg(type: Copy, dependsOn: installApp) {
     from("${buildDir}/install/${project.name}") {
         include "**/*"
+        exclude "bin"
         into "usr/share/midolman"
     }
     from("CHANGE-LOG.txt") {
@@ -126,24 +123,21 @@ task preparePkg(type: Copy, dependsOn: installDist) {
     into "${pkgDestDir}"
 
     doLast {
+        new File("${pkgDestDir}/usr/share/midolman/lib/${project.name}-${midonetVersion}.jar").
+                renameTo("${pkgDestDir}/usr/share/midolman/${project.name}-${midonetVersion}.jar")
         new File("${pkgDestDir}/usr/share/midolman/lib").
                 renameTo("${pkgDestDir}/usr/share/midolman/dep")
     }
-    // XXX - guillermo: create a main output dir for installDist because
-    // otherwise installDist will fail to run the second time.
-    doFirst {
-        new File("${buildDir}/install/${project.name}/main").mkdirs()
-    }
 }
 
-task rhel7Prepare(type: Copy, dependsOn: installDist) {
+task rhel7Prepare(type: Copy, dependsOn: installApp) {
     from("src/rhel7/systemd/midolman.service") {
         into "usr/lib/systemd/system"
     }
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installDist) {
+task rhel6Prepare(type: Copy, dependsOn: installApp) {
     from("src/rhel6/init.d/midolman") {
         into "etc/init.d"
     }
@@ -166,7 +160,7 @@ packaging {
                  '/etc/midolman/midolman.conf',
                  '/etc/midolman/midolman.conf.compute',
                  '/etc/midolman/midolman.conf.gateway',
-                 '/etc/midolman/logback.xml' ] 
+                 '/etc/midolman/logback.xml' ]
     fpmOpts = ['-a', 'all',
                '--category', 'network',
                '--url', 'http://midokura.com',
