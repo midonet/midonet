@@ -309,7 +309,7 @@ public class TestRules {
         pktCtx.inPortId_$eq(inPort);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(Action.ACCEPT, res.action);
-        IPv4Addr newNwSrc = (IPv4Addr)(pktCtx.wcmatch().getNetworkSourceIP());
+        IPv4Addr newNwSrc = (IPv4Addr)(pktCtx.wcmatch().getNetworkSrcIP());
         Assert.assertTrue(0x0b000102 <= newNwSrc.toInt());
         Assert.assertTrue(newNwSrc.toInt() <= 0x0b00010a);
         int newTpSrc = pktCtx.wcmatch().getSrcPort();
@@ -327,7 +327,7 @@ public class TestRules {
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Now use the new ip/port in the return packet.
         pktCtx.wcmatch().reset(pktResponseMatch);
-        Assert.assertNotSame(pktResponseMatch.getNetworkDestinationIP(),
+        Assert.assertNotSame(pktResponseMatch.getNetworkDstIP(),
                              newNwSrc);
         pktCtx.wcmatch().setNetworkDst(newNwSrc);
         Assert.assertNotSame(pktResponseMatch.getDstPort(), newTpSrc);
@@ -359,7 +359,7 @@ public class TestRules {
         pktCtx.inPortId_$eq(inPort);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(Action.CONTINUE, res.action);
-        int newNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int newNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
         Assert.assertTrue(newNwDst <= 0x0c00010a);
         int newTpDst = pktCtx.wcmatch().getDstPort();
@@ -378,9 +378,9 @@ public class TestRules {
         // Now use the new ip/port in the return packet.
         pktCtx.wcmatch().reset(pktResponseMatch.clone());
         Assert.assertTrue(IPv4Addr.fromInt(newNwDst).canEqual(
-                          pktResponseMatch.getNetworkSourceIP()));
+                          pktResponseMatch.getNetworkSrcIP()));
         Assert.assertFalse(IPv4Addr.fromInt(newNwDst).equals(
-                           pktResponseMatch.getNetworkSourceIP()));
+                           pktResponseMatch.getNetworkSrcIP()));
 
         pktCtx.wcmatch().setNetworkSrc(IPv4Addr.fromInt(newNwDst));
         Assert.assertNotSame(pktResponseMatch.getSrcPort(), newTpDst);
@@ -406,7 +406,7 @@ public class TestRules {
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(Action.CONTINUE, res.action);
-        int firstNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int firstNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= firstNwDst);
         Assert.assertTrue(firstNwDst <= 0x0c00010a);
         int firstTpDst = pktCtx.wcmatch().getDstPort();
@@ -423,7 +423,7 @@ public class TestRules {
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
         rule.process(pktCtx, res, ownerId, false);
-        int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int secondTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertEquals(expected, pktCtx.wcmatch());
         Assert.assertEquals(Action.CONTINUE, res.action);
@@ -437,7 +437,7 @@ public class TestRules {
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
         rule.process(pktCtx, res, ownerId, false);
-        int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDestinationIP()).toInt();
+        int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int thirdTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertNotEquals(expected, pktCtx.wcmatch());
         Assert.assertNotSame(firstNwDst, thirdNwDst);

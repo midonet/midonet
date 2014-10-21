@@ -60,10 +60,10 @@ object NatState {
 
         def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: KeyType): NatKey = {
             val key = NatKey(keyType,
-                             wcMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr],
+                             wcMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
                              else wcMatch.getSrcPort,
-                             wcMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
+                             wcMatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
                              if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
                              else wcMatch.getDstPort,
                              wcMatch.getNetworkProto.byteValue(),

@@ -199,8 +199,8 @@ class Router(override val id: UUID,
         reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
         val ip = new IPv4()
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
-        ip.setDestinationAddress(ingressMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr])
-        ip.setSourceAddress(ingressMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr])
+        ip.setDestinationAddress(ingressMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr])
+        ip.setSourceAddress(ingressMatch.getNetworkDstIP.asInstanceOf[IPv4Addr])
         ip.setPayload(reply)
 
         sendIPPacket(ip)
@@ -304,7 +304,7 @@ class Router(override val id: UUID,
             }
 
             packet.setSourceAddress(pktCtx.wcmatch
-                                    .getNetworkSourceIP.asInstanceOf[IPv4Addr])
+                                    .getNetworkSrcIP.asInstanceOf[IPv4Addr])
             eth.setPayload(packet)
         }
 

@@ -132,7 +132,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
                                             stickySourceIP: Boolean)
                                             (implicit context: PacketContext)
     : Boolean = {
-        val vipIp = context.wcmatch.getNetworkDestinationIP
+        val vipIp = context.wcmatch.getNetworkDstIP
         val vipPort = context.wcmatch.getDstPort
         val natKey = NatKey(context.wcmatch,
                             loadBalancer,
@@ -155,7 +155,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
 
     private def isValidBackend(context: PacketContext,
                                stickySourceIP: Boolean): Boolean =
-        isValidBackend(context.wcmatch.getNetworkDestinationIP,
+        isValidBackend(context.wcmatch.getNetworkDstIP,
                        context.wcmatch.getDstPort,
                        stickySourceIP)
 

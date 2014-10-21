@@ -120,8 +120,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
         val ingressMatch = new WildcardMatch()
-                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
+                .setEthSrc(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthDst(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
                                         Packet.fromEthernet(Ethernet.random()),
@@ -147,8 +147,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
             .setSourceMACAddress(srcMac)
             .setDestinationMACAddress(learnedMac)
         val ingressMatch = new WildcardMatch()
-                               .setEthernetSource(srcMac)
-                               .setEthernetDestination(learnedMac)
+                               .setEthSrc(srcMac)
+                               .setEthDst(learnedMac)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(rtr2port),
                                         Packet.fromEthernet(frame),
@@ -171,8 +171,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
     def testBroadcast() {
         val ingressMatch = new WildcardMatch()
-                .setEthernetSource(MAC.fromString("0a:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("ff:ff:ff:ff:ff:ff"))
+                .setEthSrc(MAC.fromString("0a:54:ce:50:44:ce"))
+                .setEthDst(MAC.fromString("ff:ff:ff:ff:ff:ff"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
                                         Packet.fromEthernet(Ethernet.random()),
@@ -199,8 +199,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                         .setSourceMACAddress(srcMac)
                         .setDestinationMACAddress(dstMac)
         val ingressMatch = new WildcardMatch()
-                               .setEthernetSource(srcMac)
-                               .setEthernetDestination(dstMac)
+                               .setEthSrc(srcMac)
+                               .setEthDst(dstMac)
                                .setNetworkDst(rtr1ipaddr)
                                .setEtherType(ARP.ETHERTYPE)
         val origMatch = ingressMatch.clone
@@ -221,8 +221,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
     def testMcastSrc() {
         val ingressMatch = new WildcardMatch()
-                .setEthernetSource(MAC.fromString("ff:54:ce:50:44:ce"))
-                .setEthernetDestination(MAC.fromString("0a:de:57:16:a3:06"))
+                .setEthSrc(MAC.fromString("ff:54:ce:50:44:ce"))
+                .setEthDst(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()), null,
                                         None, ingressMatch)

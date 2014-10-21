@@ -40,10 +40,10 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     setSrcPort(source.getSrcPort());
                     break;
                 case NetworkDst:
-                    setNetworkDst(source.getNetworkDestinationIP());
+                    setNetworkDst(source.getNetworkDstIP());
                     break;
                 case NetworkSrc:
-                    setNetworkSrc(source.getNetworkSourceIP());
+                    setNetworkSrc(source.getNetworkSrcIP());
                     break;
                 case NetworkProto:
                     setNetworkProto(source.getNetworkProto());
@@ -52,10 +52,10 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                     setNetworkTTL(source.getNetworkTTL());
                     break;
                 case EthDst:
-                    setEthernetDestination(source.getEthDst());
+                    setEthDst(source.getEthDst());
                     break;
                 case EthSrc:
-                    setEthernetSource(source.getEthSrc());
+                    setEthSrc(source.getEthSrc());
                     break;
                 case EtherType:
                     setEtherType(source.getEtherType());

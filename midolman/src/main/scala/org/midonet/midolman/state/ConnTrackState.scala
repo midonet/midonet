@@ -35,9 +35,9 @@ object ConnTrackState {
 
     object ConnTrackKey {
         def apply(wcMatch: WildcardMatch, deviceId: UUID): ConnTrackKey =
-            ConnTrackKey(wcMatch.getNetworkSourceIP,
+            ConnTrackKey(wcMatch.getNetworkSrcIP,
                          icmpIdOr(wcMatch, wcMatch.getSrcPort),
-                         wcMatch.getNetworkDestinationIP,
+                         wcMatch.getNetworkDstIP,
                          icmpIdOr(wcMatch, wcMatch.getDstPort),
                          wcMatch.getNetworkProto.byteValue(),
                          deviceId)
@@ -55,9 +55,9 @@ object ConnTrackState {
     }
 
     def EgressConnTrackKey(wcMatch: WildcardMatch, egressDeviceId: UUID): ConnTrackKey =
-        ConnTrackKey(wcMatch.getNetworkDestinationIP,
+        ConnTrackKey(wcMatch.getNetworkDstIP,
                      icmpIdOr(wcMatch, wcMatch.getDstPort),
-                     wcMatch.getNetworkSourceIP,
+                     wcMatch.getNetworkSrcIP,
                      icmpIdOr(wcMatch, wcMatch.getSrcPort),
                      wcMatch.getNetworkProto.byteValue(),
                      egressDeviceId)

@@ -128,7 +128,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         val localPortNumber2 = getPortNumber("port1b")
         val localPortNumber3 = getPortNumber("port1c")
 
-        addVirtualWildcardFlow(new WildcardMatch().setEthernetSource(srcMAC),
+        addVirtualWildcardFlow(new WildcardMatch().setEthSrc(srcMAC),
                                port1OnHost1.getId,
                                FlowActionOutputToVrnPortSet(bridge.getId))
 

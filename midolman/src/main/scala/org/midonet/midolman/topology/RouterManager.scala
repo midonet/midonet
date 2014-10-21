@@ -39,8 +39,8 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
     def lookup(wmatch: WildcardMatch): Iterable[Route] =
     // TODO (ipv6) de facto implementation for ipv4, that explains
     // the casts at this point.
-        rTable.lookup(wmatch.getNetworkSourceIP.asInstanceOf[IP],
-                      wmatch.getNetworkDestinationIP.asInstanceOf[IP])
+        rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],
+                      wmatch.getNetworkDstIP.asInstanceOf[IP])
 }
 
 object RouterManager {

@@ -186,7 +186,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                        (implicit context: PacketContext): Action = {
         val frame = context.ethernet
         val wcmatch = context.wcmatch
-        val dstIP = context.wcmatch.getNetworkDestinationIP
+        val dstIP = context.wcmatch.getNetworkDstIP
 
         def applyTimeToLive: Option[Action] = {
             /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
@@ -229,14 +229,14 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
                 case Route.NextHop.BLACKHOLE =>
                     context.log.debug("Dropping packet, BLACKHOLE route (dst:{})",
-                        wcmatch.getNetworkDestinationIP)
+                        wcmatch.getNetworkDstIP)
                     TemporaryDropAction
 
                 case Route.NextHop.REJECT =>
                     sendAnswer(inPort.id, icmpErrors.unreachableProhibitedIcmp(
                         inPort, wcmatch, frame))
                     context.log.debug("Dropping packet, REJECT route (dst:{})",
-                        wcmatch.getNetworkDestinationIP)
+                        wcmatch.getNetworkDstIP)
                     DropAction
 
                 case Route.NextHop.PORT if rt.nextHopPort == null =>
@@ -333,13 +333,13 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 return DropAction
         }
 
-        if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
+        if (pMatch.getNetworkDstIP == outPort.portAddr.getAddress) {
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
             return DropAction
         }
 
         getNextHopMac(outPort, rt,
-                      pMatch.getNetworkDestinationIP.asInstanceOf[IP]) match {
+                      pMatch.getNetworkDstIP.asInstanceOf[IP]) match {
             case null if rt.nextHopGateway == 0 || rt.nextHopGateway == -1 =>
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(inPort.id, icmpErrors.unreachableHostIcmp(
@@ -352,8 +352,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 ErrorDropAction
             case nextHopMac =>
                 context.log.debug("routing packet to {}", nextHopMac)
-                pMatch.setEthernetSource(outPort.portMac)
-                pMatch.setEthernetDestination(nextHopMac)
+                pMatch.setEthSrc(outPort.portMac)
+                pMatch.setEthDst(nextHopMac)
                 new ToPortAction(rt.nextHopPort)
         }
 
