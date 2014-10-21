@@ -118,11 +118,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 return Some(ErrorDropAction)
         }
 
-        if (preRoutingResult.pmatch ne context.wcmatch) {
-            context.log.warn("Pre-routing for {} returned a different match obj.", id)
-            return Some(ErrorDropAction)
-        }
-
         None
     }
 
@@ -176,11 +171,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      *
      * Currently just does load balancing.
      */
+
     @throws[NotYetException]
     protected def applyServicesInbound()(implicit context: PacketContext)
     : RuleResult = {
         if (cfg.loadBalancer == null)
-            new RuleResult(RuleResult.Action.CONTINUE, null, context.wcmatch)
+            new RuleResult(RuleResult.Action.CONTINUE, null)
         else
             tryAsk[LoadBalancer](cfg.loadBalancer).processInbound(context)
     }
@@ -188,7 +184,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
     private def routing(inPort: RouterPort)
                        (implicit context: PacketContext): Action = {
-
         val frame = context.ethernet
         val wcmatch = context.wcmatch
         val dstIP = context.wcmatch.getNetworkDestinationIP
@@ -338,10 +333,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 return DropAction
         }
 
-        if (postRoutingResult.pmatch ne pMatch) {
-            context.log.warn("PostRouting for returned a different match obj")
-            return ErrorDropAction
-        }
         if (pMatch.getNetworkDestinationIP == outPort.portAddr.getAddress) {
             context.log.warn("Got a packet addressed to a port without a LOCAL route")
             return DropAction
@@ -384,7 +375,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     protected def applyServicesOutbound()(implicit context: PacketContext)
     : RuleResult =
         if (cfg.loadBalancer == null) {
-            new RuleResult(RuleResult.Action.CONTINUE, null, context.wcmatch)
+            new RuleResult(RuleResult.Action.CONTINUE, null)
         } else {
             tryAsk[LoadBalancer](cfg.loadBalancer).processOutbound(context)
         }

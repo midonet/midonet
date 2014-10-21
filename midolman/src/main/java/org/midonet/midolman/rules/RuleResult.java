@@ -19,9 +19,6 @@ package org.midonet.midolman.rules;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.midonet.sdn.flows.WildcardMatch;
-
-
 public class RuleResult {
 
     public enum Action {
@@ -46,17 +43,15 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
-    public WildcardMatch pmatch;
 
-    public RuleResult(Action action, UUID jumpToChain, WildcardMatch match) {
+    public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
         this.jumpToChain = jumpToChain;
-        this.pmatch = match;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, jumpToChain, pmatch);
+        return Objects.hash(action, jumpToChain);
     }
 
     @Override
@@ -67,7 +62,6 @@ public class RuleResult {
         RuleResult res = (RuleResult)other;
         if (action != res.action) return false;
         if (!Objects.equals(jumpToChain, res.jumpToChain)) return false;
-        if (!Objects.equals(pmatch, res.pmatch)) return false;
         return true;
     }
 

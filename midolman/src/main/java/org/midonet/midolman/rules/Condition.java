@@ -97,8 +97,7 @@ public class Condition extends BaseConfig {
         private final boolean matches;
 
         @Override
-        public boolean matches(PacketContext fwdInfo, WildcardMatch pktMatch,
-                               boolean isPortFilter) {
+        public boolean matches(PacketContext fwdInfo, boolean isPortFilter) {
             return matches;
         }
 
@@ -147,8 +146,8 @@ public class Condition extends BaseConfig {
         return outPortIds != null && outPortIds.contains(portId);
     }
 
-    public boolean matches(PacketContext pktCtx, WildcardMatch pktMatch,
-                           boolean isPortFilter) {
+    public boolean matches(PacketContext pktCtx, boolean isPortFilter) {
+        WildcardMatch pktMatch = pktCtx.wcmatch();
         // Matching on fragmentPolicy is unaffected by conjunctionInv,
         // so that gets tested separately.
         if (!fragmentPolicy.accepts(pktMatch.getIpFragmentType()))

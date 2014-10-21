@@ -142,7 +142,7 @@ public class Chain {
 
         WildcardMatch pktMatch = context.wcmatch();
         if (null == chain) {
-            return new RuleResult(Action.ACCEPT, null, pktMatch);
+            return new RuleResult(Action.ACCEPT, null);
         }
 
         if (context.jlog().isDebugEnabled()) {
@@ -157,7 +157,7 @@ public class Chain {
         // given root chain in the constructor and then use that to
         // determine how big a list to allocate.
         List<UUID> traversedChains = new ArrayList<>();
-        RuleResult res = new RuleResult(Action.CONTINUE, null, pktMatch);
+        RuleResult res = new RuleResult(Action.CONTINUE, null);
         chain.apply(context, ownerId, isPortFilter, res, 0, traversedChains);
 
         // Accept if the chain didn't make an explicit decision.

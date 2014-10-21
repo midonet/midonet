@@ -127,7 +127,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                         Packet.fromEthernet(Ethernet.random()),
                                         None, ingressMatch)
         context.prepareForSimulation(0)
-        context.inPortId = brPort
+        context.inPortId = brPort.id
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)
@@ -155,7 +155,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                                         None, ingressMatch)
         context.inputPort = rtr2port
         context.prepareForSimulation(0)
-        context.inPortId = new RouterPort().setID(rtr2port)
+        context.inPortId = rtr2port
         val result = bridge.process(context)
 
         ingressMatch should be (origMatch)

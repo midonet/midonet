@@ -162,12 +162,6 @@ class Bridge(val id: UUID,
                         "ACCEPT, DROP or REJECT.")
                     return ErrorDropAction
             }
-
-            if (preBridgeResult.pmatch ne context.wcmatch) {
-                context.log.warn("PreBridging returned a different match object")
-                return ErrorDropAction
-            }
-
         } else {
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
         }
