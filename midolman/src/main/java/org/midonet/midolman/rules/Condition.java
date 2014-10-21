@@ -173,8 +173,8 @@ public class Condition extends BaseConfig {
 
         UUID inPortId = isPortFilter ? null : pktCtx.inPortId();
         UUID outPortId = isPortFilter ? null : pktCtx.outPortId();
-        IPAddr pmSrcIP = pktMatch.getNetworkSourceIP();
-        IPAddr pmDstIP = pktMatch.getNetworkDestinationIP();
+        IPAddr pmSrcIP = pktMatch.getNetworkSrcIP();
+        IPAddr pmDstIP = pktMatch.getNetworkDstIP();
         if (!matchPortGroup(pktCtx.portGroups(), portGroup, invPortGroup))
             return conjunctionInv;
         if (!matchPort(this.inPortIds, inPortId, this.inPortInv))

@@ -53,8 +53,8 @@ case class PacketTracer @ConstructorProperties(
         srcMacMatch(wmatch.getEthSrc) &&
         dstMacMatch(wmatch.getEthDst) &&
         ipProtoMatch(wmatch.getNetworkProto) &&
-        ipSrcMatch(wmatch.getNetworkSourceIP) &&
-        ipDstMatch(wmatch.getNetworkDestinationIP) &&
+        ipSrcMatch(wmatch.getNetworkSrcIP) &&
+        ipDstMatch(wmatch.getNetworkDstIP) &&
         srcPortMatch(wmatch.getSrcPort) &&
         dstPortMatch(wmatch.getDstPort)
     }

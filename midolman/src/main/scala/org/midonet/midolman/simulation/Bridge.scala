@@ -399,7 +399,7 @@ class Bridge(val id: UUID,
     : Coordinator.Action = {
         context.log.debug("Handling ARP multicast")
         val pMatch = context.wcmatch
-        val nwDst = pMatch.getNetworkDestinationIP
+        val nwDst = pMatch.getNetworkDstIP
         if (ipToMac.contains(nwDst)) {
             // Forward broadcast ARPs to their devices if we know how.
             context.log.debug("The packet is intended for an interior port.")
@@ -410,7 +410,7 @@ class Bridge(val id: UUID,
             val mac = pMatch.getNetworkProto.shortValue() match {
                 case ARP.OP_REQUEST if ip4MacMap != null =>
                     ip4MacMap get
-                        pMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]
+                        pMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
                 case _ =>
                     null
             }

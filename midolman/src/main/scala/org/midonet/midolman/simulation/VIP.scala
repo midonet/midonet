@@ -27,7 +27,7 @@ class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
     def matches(pktContext: PacketContext) = {
         val pktMatch = pktContext.wcmatch
 
-        adminStateUp && pktMatch.getNetworkDestinationIP == address &&
+        adminStateUp && pktMatch.getNetworkDstIP == address &&
             pktMatch.getDstPort.toInt == protocolPort &&
             pktMatch.getNetworkProto == TCP.PROTOCOL_NUMBER
     }
@@ -35,7 +35,7 @@ class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
     def matchesReturn(pktContext: PacketContext) = {
         val pktMatch = pktContext.wcmatch
 
-        adminStateUp && pktMatch.getNetworkSourceIP == address &&
+        adminStateUp && pktMatch.getNetworkSrcIP == address &&
                 pktMatch.getSrcPort.toInt == protocolPort &&
                 pktMatch.getNetworkProto == TCP.PROTOCOL_NUMBER
     }

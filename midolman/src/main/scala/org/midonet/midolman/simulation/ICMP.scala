@@ -119,7 +119,7 @@ object Icmp {
             ip.setPayload(icmp)
             ip.setProtocol(ICMP.PROTOCOL_NUMBER)
             // The nwDst is the source of triggering IPv4 as seen by this router.
-            ip.setDestinationAddress(ingressMatch.getNetworkSourceIP
+            ip.setDestinationAddress(ingressMatch.getNetworkSrcIP
                     .asInstanceOf[IPv4Addr])
             // The nwSrc is the address of the ingress port.
             ip.setSourceAddress(inPort.portAddr.getAddress)

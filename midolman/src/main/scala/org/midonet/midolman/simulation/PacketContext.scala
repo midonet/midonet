@@ -197,24 +197,24 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         }
 
     private def diffIp(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!matchObjectsSame(origMatch.getNetworkSourceIP,
-                              wcmatch.getNetworkSourceIP) ||
-            !matchObjectsSame(origMatch.getNetworkDestinationIP,
-                              wcmatch.getNetworkDestinationIP) ||
+        if (!matchObjectsSame(origMatch.getNetworkSrcIP,
+                              wcmatch.getNetworkSrcIP) ||
+            !matchObjectsSame(origMatch.getNetworkDstIP,
+                              wcmatch.getNetworkDstIP) ||
             !matchObjectsSame(origMatch.getNetworkTTL,
                               wcmatch.getNetworkTTL)) {
             actions.append(setKey(
-                wcmatch.getNetworkSourceIP match {
+                wcmatch.getNetworkSrcIP match {
                     case srcIP: IPv4Addr =>
                         FlowKeys.ipv4(srcIP,
-                            wcmatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
+                            wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
                             wcmatch.getNetworkProto,
                             wcmatch.getNetworkTOS,
                             wcmatch.getNetworkTTL,
                             wcmatch.getIpFragmentType)
                     case srcIP: IPv6Addr =>
                         FlowKeys.ipv6(srcIP,
-                            wcmatch.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
+                            wcmatch.getNetworkDstIP.asInstanceOf[IPv6Addr],
                             wcmatch.getNetworkProto,
                             wcmatch.getNetworkTTL,
                             wcmatch.getIpFragmentType)

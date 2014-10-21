@@ -947,7 +947,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         // a wildcard flow that sends the ARP replies to both MM and bgpd.
         wildcardMatch = new WildcardMatch()
             .setEtherType(ARP.ETHERTYPE)
-            .setEthernetDestination(bgpPort.portMac)
+            .setEthDst(bgpPort.portMac)
             // nwProto is overloaded in WildcardMatch to store the arp op type.
             .setNetworkProto(ARP.OP_REPLY.toByte)
             // nwSrc/nwDst are overloaded to store the arp sip and tip.

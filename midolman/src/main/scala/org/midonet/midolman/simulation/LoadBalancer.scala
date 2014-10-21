@@ -78,7 +78,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         // with a sticky source. That means we must drop the flow as the key
         // is no longer applicable.
 
-        val backendIp = packetContext.wcmatch.getNetworkSourceIP
+        val backendIp = packetContext.wcmatch.getNetworkSrcIP
         val backendPort = packetContext.wcmatch.getSrcPort
 
         // The order we test for the reverse NAT is important. First we

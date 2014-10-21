@@ -176,7 +176,7 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
         wmatch.setNetworkDst(IPv4Addr.fromInt(nwDest));
-        IPAddr ipDst = wmatch.getNetworkDestinationIP();
+        IPAddr ipDst = wmatch.getNetworkDstIP();
         assertThat(ipDst, notNullValue());
         assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
@@ -190,7 +190,7 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
         wmatch.setNetworkDst(IPv4Addr.fromInt(nwDest));
-        IPAddr ipDst = wmatch.getNetworkDestinationIP();
+        IPAddr ipDst = wmatch.getNetworkDstIP();
         assertThat(ipDst, notNullValue());
         assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
@@ -204,7 +204,7 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
         wmatch.setNetworkSrc(IPv4Addr.fromInt(nwSource));
-        IPAddr ipSrc = wmatch.getNetworkSourceIP();
+        IPAddr ipSrc = wmatch.getNetworkSrcIP();
         assertThat(ipSrc, notNullValue());
         assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
@@ -218,7 +218,7 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
         wmatch.setNetworkSrc(IPv4Addr.fromInt(nwSource));
-        IPAddr ipSrc = wmatch.getNetworkSourceIP();
+        IPAddr ipSrc = wmatch.getNetworkSrcIP();
         assertThat(ipSrc, notNullValue());
         assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
@@ -261,8 +261,8 @@ public class WildcardMatchTest {
 
         // make a simple wildcard that is a copy of the projection
         WildcardMatch copy = new WildcardMatch();
-        copy.setEthernetDestination(projection.getEthDst());
-        copy.setEthernetSource(projection.getEthSrc());
+        copy.setEthDst(projection.getEthDst());
+        copy.setEthSrc(projection.getEthSrc());
 
         Map<WildcardMatch, Boolean> map = new HashMap<WildcardMatch, Boolean>();
         map.put(copy, Boolean.TRUE);
@@ -296,15 +296,15 @@ public class WildcardMatchTest {
         WildcardMatch m2 = new WildcardMatch();
 
         m1.setInputPortNumber((short) 1);
-        m1.setEthernetSource(MAC.fromString("aa:ff:bb:dd:ee:dd"));
-        m1.setEthernetDestination(MAC.fromString("bb:ff:bb:ff:ff:dd"));
+        m1.setEthSrc(MAC.fromString("aa:ff:bb:dd:ee:dd"));
+        m1.setEthDst(MAC.fromString("bb:ff:bb:ff:ff:dd"));
         m1.setEtherType(ARP.ETHERTYPE);
         m1.setNetworkSrc(IPv4Addr.fromString("10.0.0.1"));
         m1.setNetworkDst(IPv4Addr.fromString("10.0.0.2"));
 
         m2.setInputPortNumber((short) 1);
-        m2.setEthernetSource(MAC.fromString("ee:ee:bb:dd:ee:dd"));
-        m2.setEthernetDestination(MAC.fromString("ee:ff:ee:ff:ff:dd"));
+        m2.setEthSrc(MAC.fromString("ee:ee:bb:dd:ee:dd"));
+        m2.setEthDst(MAC.fromString("ee:ff:ee:ff:ff:dd"));
         m2.setEtherType(IPv4.ETHERTYPE);
         m2.setNetworkSrc(IPv4Addr.fromString("10.0.0.1"));
 
@@ -328,7 +328,7 @@ public class WildcardMatchTest {
         assertEquals(m.highestLayerSeen(), 2);
         m.getDstPort();
         assertEquals(m.highestLayerSeen(), 4);
-        m.getNetworkSourceIP();
+        m.getNetworkSrcIP();
         m.getNetworkTTL();
         assertEquals(m.highestLayerSeen(), 4);
     }

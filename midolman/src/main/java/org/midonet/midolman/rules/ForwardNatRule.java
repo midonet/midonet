@@ -75,7 +75,7 @@ public class ForwardNatRule extends NatRule {
     protected boolean applyDnat(PacketContext pktCtx, UUID ownerId) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                      pktCtx.wcmatch().getNetworkDestinationIP(), floatingIpAddr);
+                      pktCtx.wcmatch().getNetworkDstIP(), floatingIpAddr);
             pktCtx.wcmatch().setNetworkDst(floatingIpAddr);
             return true;
         } else {
@@ -86,7 +86,7 @@ public class ForwardNatRule extends NatRule {
     protected boolean applySnat(PacketContext pktCtx, UUID ownerId) {
         if (floatingIp) {
             log.debug("DNAT mapping floating ip {} to internal ip {}",
-                    pktCtx.wcmatch().getNetworkSourceIP(), floatingIpAddr);
+                    pktCtx.wcmatch().getNetworkSrcIP(), floatingIpAddr);
             pktCtx.wcmatch().setNetworkSrc(floatingIpAddr);
             return true;
         } else {

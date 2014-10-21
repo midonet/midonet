@@ -271,13 +271,12 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetTunnelID() {
+    public WildcardMatch unsetTunnelKey() {
         usedFields.remove(Field.TunnelKey);
         this.tunnelKey = 0L;
         return this;
     }
 
-    @Nullable
     public long getTunnelKey() {
         return tunnelKey;
     }
@@ -288,18 +287,18 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setEthSrc(@Nonnull String addr) {
-        return setEthernetSource(MAC.fromString(addr));
+        return setEthSrc(MAC.fromString(addr));
     }
 
     @Nonnull
-    public WildcardMatch setEthernetSource(@Nonnull MAC addr) {
+    public WildcardMatch setEthSrc(@Nonnull MAC addr) {
         usedFields.add(Field.EthSrc);
         this.ethSrc = addr;
         return this;
     }
 
     @Nonnull
-    public WildcardMatch unsetEthernetSource() {
+    public WildcardMatch unsetEthSrc() {
         usedFields.remove(Field.EthSrc);
         this.ethSrc = null;
         return this;
@@ -313,18 +312,18 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setEthDst(@Nonnull String addr) {
-        return setEthernetDestination(MAC.fromString(addr));
+        return setEthDst(MAC.fromString(addr));
     }
 
     @Nonnull
-    public WildcardMatch setEthernetDestination(@Nonnull MAC addr) {
+    public WildcardMatch setEthDst(@Nonnull MAC addr) {
         usedFields.add(Field.EthDst);
         this.ethDst = addr;
         return this;
     }
 
     @Nonnull
-    public WildcardMatch unsetEthernetDestination() {
+    public WildcardMatch unsetEthDest() {
         usedFields.remove(Field.EthDst);
         this.ethDst = null;
         return this;
@@ -364,14 +363,14 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetNetworkSource() {
+    public WildcardMatch unsetNetworkSrc() {
         usedFields.remove(Field.NetworkSrc);
         this.networkSrc = null;
         return this;
     }
 
     @Nullable
-    public IPAddr getNetworkSourceIP() {
+    public IPAddr getNetworkSrcIP() {
         fieldSeen(Field.NetworkSrc);
         return networkSrc;
     }
@@ -388,14 +387,14 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetNetworkDestination() {
+    public WildcardMatch unsetNetworkDst() {
         usedFields.remove(Field.NetworkDst);
         this.networkDst = null;
         return this;
     }
 
     @Nullable
-    public IPAddr getNetworkDestinationIP() {
+    public IPAddr getNetworkDstIP() {
         fieldSeen(Field.NetworkDst);
         return networkDst;
     }
@@ -408,7 +407,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetNetworkProtocol() {
+    public WildcardMatch unsetNetworkProto() {
         usedFields.remove(Field.NetworkProto);
         this.networkProto = 0;
         return this;
@@ -487,7 +486,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetTransportSource() {
+    public WildcardMatch unsetSrcPort() {
         usedFields.remove(Field.SrcPort);
         this.srcPort = 0;
         return this;
@@ -508,7 +507,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch unsetTransportDestination() {
+    public WildcardMatch unsetDstPort() {
         usedFields.remove(Field.DstPort);
         this.dstPort = 0;
         return this;
@@ -1018,8 +1017,8 @@ public class WildcardMatch implements Cloneable {
                 case OpenVSwitch.FlowKey.Attr.Ethernet:
                     FlowKeyEthernet ethernet = as(flowKey,
                                                   FlowKeyEthernet.class);
-                    setEthernetSource(MAC.fromAddress(ethernet.getSrc()));
-                    setEthernetDestination(MAC.fromAddress(ethernet.getDst()));
+                    setEthSrc(MAC.fromAddress(ethernet.getSrc()));
+                    setEthDst(MAC.fromAddress(ethernet.getDst()));
                     break;
 
                 case OpenVSwitch.FlowKey.Attr.VLan:
@@ -1036,9 +1035,9 @@ public class WildcardMatch implements Cloneable {
                 case OpenVSwitch.FlowKey.Attr.IPv4:
                     FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
                     setNetworkSrc(
-                            IPv4Addr.fromInt(ipv4.getSrc()));
+                        IPv4Addr.fromInt(ipv4.getSrc()));
                     setNetworkDst(
-                            IPv4Addr.fromInt(ipv4.getDst()));
+                        IPv4Addr.fromInt(ipv4.getDst()));
                     setNetworkProto(ipv4.getProto());
                     setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()));
                     setNetworkTTL(ipv4.getTtl());
@@ -1049,11 +1048,11 @@ public class WildcardMatch implements Cloneable {
                     int[] intSrc = ipv6.getSrc();
                     int[] intDst = ipv6.getDst();
                     setNetworkSrc(new IPv6Addr(
-                            (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
-                            (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
+                        (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
+                        (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
                     setNetworkDst(new IPv6Addr(
-                            (((long) intDst[0]) << 32) | (intDst[1] & 0xFFFFFFFFL),
-                            (((long) intDst[2]) << 32) | (intDst[3] & 0xFFFFFFFFL)));
+                        (((long) intDst[0]) << 32) | (intDst[1] & 0xFFFFFFFFL),
+                        (((long) intDst[2]) << 32) | (intDst[3] & 0xFFFFFFFFL)));
                     setNetworkProto(ipv6.getProto());
                     setIpFragmentType(ipv6.getFrag());
                     setNetworkTTL(ipv6.getHLimit());

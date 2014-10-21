@@ -253,9 +253,9 @@ class Coordinator(context: PacketContext)
                     } else {
                         val notIPv4Match =
                             new WildcardMatch()
-                                .setEthernetSource(
+                                .setEthSrc(
                                         context.origMatch.getEthSrc)
-                                .setEthernetDestination(
+                                .setEthDst(
                                         context.origMatch.getEthDst)
                                 .setEtherType(
                                         context.origMatch.getEtherType)
