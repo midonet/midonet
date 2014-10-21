@@ -573,15 +573,15 @@ public abstract class Condition extends UriResource {
         }
         c.inPortInv = this.isInvInPorts();
         if (dlType != null)
-            c.dlType = this.dlType;
+            c.etherType = this.dlType;
         c.invDlType = this.isInvDlType();
         if (this.dlSrc != null)
-            c.dlSrc = MAC.fromString(this.dlSrc);
+            c.ethSrc = MAC.fromString(this.dlSrc);
         if (this.dlSrcMask != null)
-            c.dlSrcMask = MAC.parseMask(this.dlSrcMask);
+            c.ethSrcMask = MAC.parseMask(this.dlSrcMask);
         c.invDlSrc = this.invDlSrc;
         if (this.dlDst != null)
-            c.dlDst = MAC.fromString(this.dlDst);
+            c.ethDst = MAC.fromString(this.dlDst);
         if (this.dlDstMask != null)
             c.dlDstMask = MAC.parseMask(this.dlDstMask);
         c.invDlDst = this.invDlDst;
@@ -656,13 +656,13 @@ public abstract class Condition extends UriResource {
         this.setPortGroup(c.portGroup);
         this.setIpAddrGroupDst(c.ipAddrGroupIdDst);
         this.setIpAddrGroupSrc(c.ipAddrGroupIdSrc);
-        this.setDlType(c.dlType);
-        if (null != c.dlSrc)
-            this.setDlSrc(c.dlSrc.toString());
-        if (NO_MASK != c.dlSrcMask)
-            this.setDlSrcMask(MAC.maskToString(c.dlSrcMask));
-        if (null != c.dlDst)
-            this.setDlDst(c.dlDst.toString());
+        this.setDlType(c.etherType);
+        if (null != c.ethSrc)
+            this.setDlSrc(c.ethSrc.toString());
+        if (NO_MASK != c.ethSrcMask)
+            this.setDlSrcMask(MAC.maskToString(c.ethSrcMask));
+        if (null != c.ethDst)
+            this.setDlDst(c.ethDst.toString());
         if (NO_MASK != c.dlDstMask)
             this.setDlDstMask(MAC.maskToString(c.dlDstMask));
         if (null != c.nwDstIp) {

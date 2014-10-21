@@ -118,7 +118,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     private def preRouting(inPort: RouterPort)
                           (implicit context: PacketContext): Action = {
 
-        val hwDst = context.wcmatch.getEthernetDestination
+        val hwDst = context.wcmatch.getEthDst
         if (Ethernet.isBroadcast(hwDst)) {
             context.log.debug("Received an L2 broadcast packet.")
             return handleL2Broadcast(inPort)

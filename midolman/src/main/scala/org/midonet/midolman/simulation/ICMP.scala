@@ -115,7 +115,7 @@ object Icmp {
             eth.setPayload(ip)
             eth.setEtherType(IPv4.ETHERTYPE)
             eth.setSourceMACAddress(inPort.portMac)
-            eth.setDestinationMACAddress(ingressMatch.getEthernetSource)
+            eth.setDestinationMACAddress(ingressMatch.getEthSrc)
 
             // TODO(pino): check with Guillermo about match's vs.
             // device's inPort. ingressMatch.getInputPortUUID, eth)

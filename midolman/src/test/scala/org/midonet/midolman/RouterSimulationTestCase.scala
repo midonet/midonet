@@ -181,8 +181,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val rb = new RouteBalancer(router.rTable)
 
         val wmatch = new WildcardMatch().
-            setNetworkSource(IPv4Addr.fromString(uplinkPortAddr)).
-            setNetworkDestination(IPv4Addr.fromString(routeDst))
+            setNetworkSrc(IPv4Addr.fromString(uplinkPortAddr)).
+            setNetworkDst(IPv4Addr.fromString(routeDst))
 
         @tailrec
         def matchAllResults(resultPool: List[String]) {
@@ -208,8 +208,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         triggerPacketIn(portNumToName(onPort), eth)
         expectPacketOnPort(portNumToId(onPort))
         val flow = expectFlowAddedMessage()
-        flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
-        flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
+        flow.getMatch.getEthDst should equal(portNumToMac(onPort))
+        flow.getMatch.getEthSrc should equal(MAC.fromString("01:02:03:04:05:06"))
         flow.getMatch.getEtherType should equal(IPv6_ETHERTYPE)
         // A flow with no actions drops matching packets
         flow.actions.size should equal(0)
@@ -737,8 +737,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         triggerPacketIn(portNumToName(onPort), eth)
         expectPacketOnPort(portNumToId(onPort))
         val flow = expectFlowAddedMessage()
-        flow.getMatch.getEthernetDestination should equal(portNumToMac(onPort))
-        flow.getMatch.getEthernetSource should equal(MAC.fromString("01:02:03:04:05:06"))
+        flow.getMatch.getEthDst should equal(portNumToMac(onPort))
+        flow.getMatch.getEthSrc should equal(MAC.fromString("01:02:03:04:05:06"))
         flow.getMatch.getVlanIds.size() should equal(1)
         flow.getMatch.getVlanIds.get(0) should equal(10)
         // A flow with no actions drops matching packets

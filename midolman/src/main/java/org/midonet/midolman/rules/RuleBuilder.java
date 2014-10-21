@@ -117,13 +117,13 @@ public class RuleBuilder {
     }
 
     public RuleBuilder notARP() {
-        c.dlType = (int) ARP.ETHERTYPE;
+        c.etherType = (int) ARP.ETHERTYPE;
         c.invDlType = true;
         return this;
     }
 
     public RuleBuilder notFromMac(MAC macAddr) {
-        c.dlSrc = macAddr;
+        c.ethSrc = macAddr;
         c.invDlSrc = true;
         return this;
     }
@@ -131,7 +131,7 @@ public class RuleBuilder {
     public RuleBuilder notFromSubnet(IPSubnet sub) {
         c.nwSrcIp = sub;
         c.nwSrcInv = true;
-        c.dlType = (int) sub.ethertype();
+        c.etherType = (int) sub.ethertype();
         return this;
     }
 
@@ -142,7 +142,7 @@ public class RuleBuilder {
 
     public RuleBuilder securityGroupRule(SecurityGroupRule sgRule) {
         c.nwProto = sgRule.protocolNumber();
-        c.dlType = sgRule.ethertype();
+        c.etherType = sgRule.ethertype();
         c.matchForwardFlow = sgRule.isEgress();
         c.tpDst = sgRule.portRange();
         c.id = sgRule.id;

@@ -88,8 +88,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         // dummy source MAC
         val dummyMac = MAC.fromString("0a:fe:88:70:33:ab")
         val verifyMatch = ((new WildcardMatch)
-                .setEthernetSource(dummyMac)
-                .setEthernetDestination(verifyMac))
+                .setEthSrc(dummyMac)
+                .setEthDst(verifyMac))
         val verifyContext = new PacketContext(None, null,
                                               Platform.currentTime + 10000, null)
         verifyContext.setMatch(verifyMatch)
@@ -187,7 +187,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val ingressMatch = new WildcardMatch()
                                .setEthernetSource(srcMac)
                                .setEthernetDestination(dstMac)
-                               .setNetworkDestination(rtr1ipaddr)
+                               .setNetworkDst(rtr1ipaddr)
                                .setEtherType(ARP.ETHERTYPE)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),

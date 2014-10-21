@@ -184,11 +184,11 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             And("traffic is sent through the loadbalancer")
             // Ingress match for packet destined to VIP
             val ingressMatch = new WildcardMatch()
-                .setNetworkDestination(IPv4Addr.fromString(firstVip.getAddress))
-                .setTransportDestination(firstVip.getProtocolPort)
-                .setNetworkSource(IPv4Addr.fromString("1.1.1.1"))
-                .setTransportSource(1)
-                .setNetworkProtocol(TCP.PROTOCOL_NUMBER)
+                .setNetworkDst(IPv4Addr.fromString(firstVip.getAddress))
+                .setDstPort(firstVip.getProtocolPort)
+                .setNetworkSrc(IPv4Addr.fromString("1.1.1.1"))
+                .setSrcPort(1)
+                .setNetworkProto(TCP.PROTOCOL_NUMBER)
             val pktContextIngress = new PacketContext(Left(1), null, None,
                                                       ingressMatch)(actorSystem)
 

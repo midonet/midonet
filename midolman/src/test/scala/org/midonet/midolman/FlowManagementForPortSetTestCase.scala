@@ -87,7 +87,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         val srcMAC = MAC.fromString("00:11:22:33:44:55")
         val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         val condition = new Condition
-        condition.dlSrc = srcMAC
+        condition.ethSrc = srcMAC
         val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
                 RuleResult.Action.DROP)
 
@@ -167,7 +167,7 @@ class FlowManagementForPortSetTestCase extends MidolmanTestCase {
         val dstMAC = MAC.fromString("ff:ff:ff:ff:ff:ff")
         val chain1 = newOutboundChainOnPort("chain1", port2OnHost1)
         val condition = new Condition
-        condition.dlSrc = srcMAC
+        condition.ethSrc = srcMAC
         val rule1 = newLiteralRuleOnChain(chain1, 1, condition,
                 RuleResult.Action.DROP)
 

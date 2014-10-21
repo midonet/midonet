@@ -32,12 +32,12 @@ public class Condition extends BaseConfig {
     public boolean invIpAddrGroupIdSrc;
     public UUID ipAddrGroupIdDst;
     public boolean invIpAddrGroupIdDst;
-    public Integer dlType; // Ethernet frame type.
+    public Integer etherType; // Ethernet frame type.
     public boolean invDlType;
-    public MAC dlSrc; // Source MAC address.
-    public long dlSrcMask = NO_MASK; // Top 16 bits ignored.
+    public MAC ethSrc; // Source MAC address.
+    public long ethSrcMask = NO_MASK; // Top 16 bits ignored.
     public boolean invDlSrc;
-    public MAC dlDst; // Destination MAC address.
+    public MAC ethDst; // Destination MAC address.
     public long dlDstMask = NO_MASK; // Top 16 bits ignored.
     public boolean invDlDst;
     public Byte nwTos;
@@ -105,7 +105,7 @@ public class Condition extends BaseConfig {
 
     public Condition(SecurityGroupRule sgRule) {
         nwProto = sgRule.protocolNumber();
-        dlType = sgRule.ethertype();
+        etherType = sgRule.ethertype();
         matchForwardFlow = sgRule.isEgress();
         tpDst = sgRule.portRange();
 
@@ -119,12 +119,12 @@ public class Condition extends BaseConfig {
     }
 
     public Condition(MAC macAddress) {
-        dlSrc = macAddress;
+        ethSrc = macAddress;
     }
 
     public Condition(IPSubnet<?> subnet) {
         nwSrcIp = subnet;
-        dlType = (int) subnet.ethertype();
+        etherType = (int) subnet.ethertype();
     }
 
     public boolean containsInPort(UUID portId) {
@@ -170,27 +170,27 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(dlType, pktMatch.getEtherType() != null ?
+        if (!matchField(etherType, pktMatch.getEtherType() != null ?
                 Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType))
             return conjunctionInv;
-        if (!matchMAC(dlSrc, pktMatch.getEthernetSource(), dlSrcMask, invDlSrc))
+        if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
             return conjunctionInv;
-        if (!matchMAC(dlDst, pktMatch.getEthernetDestination(),
+        if (!matchMAC(ethDst, pktMatch.getEthDst(),
                       dlDstMask, invDlDst))
             return conjunctionInv;
         if (!matchField(nwTos, pktMatch.getNetworkTOS(), nwTosInv))
             return conjunctionInv;
         if (!matchField(
-                nwProto, pktMatch.getNetworkProtocol(), nwProtoInv))
+                nwProto, pktMatch.getNetworkProto(), nwProtoInv))
             return conjunctionInv;
         if (!matchIP(nwSrcIp, pmSrcIP, nwSrcInv))
             return conjunctionInv;
         if (!matchIP(nwDstIp, pmDstIP, nwDstInv))
             return conjunctionInv;
-        if (!matchRange(tpSrc, pktMatch.getTransportSource(), tpSrcInv))
+        if (!matchRange(tpSrc, pktMatch.getSrcPort(), tpSrcInv))
             return conjunctionInv;
         if (!matchRange(
-                tpDst, pktMatch.getTransportDestination(), tpDstInv))
+                tpDst, pktMatch.getDstPort(), tpDstInv))
             return conjunctionInv;
         if (!matchIpToGroup(ipAddrGroupSrc, pmSrcIP, invIpAddrGroupIdSrc))
             return conjunctionInv;
@@ -300,21 +300,21 @@ public class Condition extends BaseConfig {
             if (invIpAddrGroupIdSrc)
                 sb.append("invIpAddrGroupIdSrc=true, ");
         }
-        if (null != dlType) {
-            sb.append("dlType=").append(dlType.intValue()).append(", ");
+        if (null != etherType) {
+            sb.append("etherType=").append(etherType.intValue()).append(", ");
             if(invDlType)
                 sb.append("invDlType").append(invDlType).append(", ");
         }
-        if (null != dlSrc) {
-            sb.append("dlSrc=").append(dlSrc).append(", ");
-            if (dlSrcMask != NO_MASK)
-                sb.append("dlSrcMask=").append(MAC.maskToString(dlSrcMask))
+        if (null != ethSrc) {
+            sb.append("ethSrc=").append(ethSrc).append(", ");
+            if (ethSrcMask != NO_MASK)
+                sb.append("ethSrcMask=").append(MAC.maskToString(ethSrcMask))
                         .append(", ");
             if(invDlSrc)
                 sb.append("invDlSrc").append(invDlSrc).append(", ");
         }
-        if (null != dlDst) {
-            sb.append("dlDst=").append(dlDst).append(", ");
+        if (null != ethDst) {
+            sb.append("ethDst=").append(ethDst).append(", ");
             if(invDlDst)
                 sb.append("invDlDst").append(invDlDst).append(", ");
         }
@@ -368,7 +368,7 @@ public class Condition extends BaseConfig {
                 invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
                 invDlType == c.invDlType &&
                 invDlSrc == c.invDlSrc && invDlDst == c.invDlDst &&
-                dlSrcMask == c.dlSrcMask && dlDstMask == c.dlDstMask &&
+                ethSrcMask == c.ethSrcMask && dlDstMask == c.dlDstMask &&
                 nwTosInv == c.nwTosInv && nwProtoInv == c.nwProtoInv &&
                 nwSrcInv == c.nwSrcInv && nwDstInv == c.nwDstInv &&
                 tpSrcInv == c.tpSrcInv && tpDstInv == c.tpDstInv &&
@@ -377,9 +377,9 @@ public class Condition extends BaseConfig {
                 Objects.equals(portGroup, c.portGroup) &&
                 Objects.equals(ipAddrGroupIdDst, c.ipAddrGroupIdDst) &&
                 Objects.equals(ipAddrGroupIdSrc, c.ipAddrGroupIdSrc) &&
-                Objects.equals(dlType, c.dlType) &&
-                Objects.equals(dlSrc, c.dlSrc) &&
-                Objects.equals(dlDst, c.dlDst) &&
+                Objects.equals(etherType, c.etherType) &&
+                Objects.equals(ethSrc, c.ethSrc) &&
+                Objects.equals(ethDst, c.ethDst) &&
                 Objects.equals(nwTos, c.nwTos) &&
                 Objects.equals(nwProto, c.nwProto) &&
                 Objects.equals(nwSrcIp, c.nwSrcIp) &&
@@ -394,10 +394,10 @@ public class Condition extends BaseConfig {
                 conjunctionInv, matchForwardFlow, matchReturnFlow,
                 inPortInv, outPortInv, invPortGroup,
                 invIpAddrGroupIdDst, invIpAddrGroupIdSrc,
-                invDlType, invDlSrc, invDlDst, dlSrcMask, dlDstMask,
+                invDlType, invDlSrc, invDlDst, ethSrcMask, dlDstMask,
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
                 inPortIds, outPortIds, portGroup,
-                ipAddrGroupIdDst, ipAddrGroupIdSrc, dlType, dlSrc, dlDst,
+                ipAddrGroupIdDst, ipAddrGroupIdSrc, etherType, ethSrc, ethDst,
                 nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst);
     }
 }

@@ -50,21 +50,21 @@ object NatState {
             val key = NatKey(keyType,
                              wcMatch.getNetworkSourceIP.asInstanceOf[IPv4Addr],
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
-                             else wcMatch.getTransportSource,
+                             else wcMatch.getSrcPort,
                              wcMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
                              if (keyType eq REV_STICKY_DNAT) WILDCARD_PORT
-                             else wcMatch.getTransportDestination,
-                             wcMatch.getNetworkProtocol.byteValue(),
+                             else wcMatch.getDstPort,
+                             wcMatch.getNetworkProto.byteValue(),
                              deviceId)
 
-            if (wcMatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER)
+            if (wcMatch.getNetworkProto == ICMP.PROTOCOL_NUMBER)
                 processIcmp(key, wcMatch)
 
             key
         }
 
         private def processIcmp(natKey: NatKey, wcMatch: WildcardMatch): Unit =
-            wcMatch.getTransportSource.byteValue() match {
+            wcMatch.getSrcPort.byteValue() match {
                 case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                     val port = wcMatch.getIcmpIdentifier.intValue() & USHORT
                     natKey.transportSrc = port
@@ -171,9 +171,9 @@ trait NatState extends FlowState {
         } else false
 
     private def dnatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
-        pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
+        pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
         if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-            pktCtx.wcmatch.setTransportDestination(binding.transportPort)
+            pktCtx.wcmatch.setDstPort(binding.transportPort)
     }
 
     def applySnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
@@ -185,9 +185,9 @@ trait NatState extends FlowState {
         } else false
 
     def snatTransformation(natKey: NatKey, binding: NatBinding): Unit = {
-        pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
+        pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
         if (natKey.networkProtocol != ICMP.PROTOCOL_NUMBER)
-            pktCtx.wcmatch.setTransportSource(binding.transportPort)
+            pktCtx.wcmatch.setSrcPort(binding.transportPort)
     }
 
     def reverseDnat(deviceId: UUID): Boolean =
@@ -215,8 +215,8 @@ trait NatState extends FlowState {
                 reverseNatOnICMPData(binding, isSnat = false)
             else false
         } else {
-            pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
-            pktCtx.wcmatch.setTransportSource(binding.transportPort)
+            pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
+            pktCtx.wcmatch.setSrcPort(binding.transportPort)
             true
         }
     }
@@ -238,8 +238,8 @@ trait NatState extends FlowState {
         if (isIcmp) {
             reverseNatOnICMPData(binding, isSnat = true)
         } else {
-            pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
-            pktCtx.wcmatch.setTransportDestination(binding.transportPort)
+            pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
+            pktCtx.wcmatch.setDstPort(binding.transportPort)
             true
         }
     }
@@ -278,9 +278,9 @@ trait NatState extends FlowState {
 
     def isNatSupported: Boolean =
         if (IPv4.ETHERTYPE == pktCtx.wcmatch.getEtherType) {
-            val nwProto = pktCtx.wcmatch.getNetworkProtocol
+            val nwProto = pktCtx.wcmatch.getNetworkProto
             if (nwProto == ICMP.PROTOCOL_NUMBER) {
-                val supported = pktCtx.wcmatch.getTransportSource.byteValue() match {
+                val supported = pktCtx.wcmatch.getSrcPort.byteValue() match {
                     case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                         pktCtx.wcmatch.getIcmpIdentifier ne null
                     case ICMP.TYPE_PARAMETER_PROBLEM |
@@ -302,12 +302,12 @@ trait NatState extends FlowState {
         } else false
 
     private def reverseNatOnICMPData(binding: NatBinding, isSnat: Boolean): Boolean =
-        pktCtx.wcmatch.getTransportSource.byteValue() match {
+        pktCtx.wcmatch.getSrcPort.byteValue() match {
             case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                 if (isSnat)
-                    pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
+                    pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
                 else
-                    pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
+                    pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
                 true
             case ICMP.TYPE_PARAMETER_PROBLEM | ICMP.TYPE_TIME_EXCEEDED |
                  ICMP.TYPE_UNREACH if pktCtx.wcmatch.getIcmpData ne null =>
@@ -318,10 +318,10 @@ trait NatState extends FlowState {
                 header.deserializeHeader(bb)
                 if (isSnat) {
                     header.setSourceAddress(binding.networkAddress)
-                    pktCtx.wcmatch.setNetworkDestination(binding.networkAddress)
+                    pktCtx.wcmatch.setNetworkDst(binding.networkAddress)
                 } else {
                     header.setDestinationAddress(binding.networkAddress)
-                    pktCtx.wcmatch.setNetworkSource(binding.networkAddress)
+                    pktCtx.wcmatch.setNetworkSrc(binding.networkAddress)
                 }
                 val ipHeadSize = dataSize - bb.remaining
                 val packet = bb.slice
@@ -394,7 +394,7 @@ trait NatState extends FlowState {
             NatBinding(chooseRandomIp(nat), chooseRandomPort(nat))
         }
 
-    private def isIcmp = pktCtx.wcmatch.getNetworkProtocol == ICMP.PROTOCOL_NUMBER
+    private def isIcmp = pktCtx.wcmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER
 
     private def chooseRandomNatTarget(nats: Array[NatTarget]): NatTarget =
         nats(ThreadLocalRandom.current().nextInt(nats.size))

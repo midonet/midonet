@@ -38,8 +38,8 @@ class ChainTest extends Suite
 
     before {
         pktMatch = new WildcardMatch()
-        pktMatch.setEthernetDestination("01:02:03:04:05:06")
-        pktMatch.setNetworkDestination(IPAddr.fromString("1.2.3.4"))
+        pktMatch.setEthDst("01:02:03:04:05:06")
+        pktMatch.setNetworkDst(IPAddr.fromString("1.2.3.4"))
 
         pktCtx = new PacketContext(Left(1), null, None, pktMatch)
     }

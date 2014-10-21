@@ -81,7 +81,7 @@ public class DataCheckPointTest {
         if (cond == null) {
             return false;
         }
-        if (!cond.dlType.equals(new Integer(ARP.ETHERTYPE))) {
+        if (!cond.etherType.equals(new Integer(ARP.ETHERTYPE))) {
             return false;
         }
         if (!(cond.invDlType)) {
@@ -106,7 +106,7 @@ public class DataCheckPointTest {
             return false;
         }
 
-        if (!Objects.equal(cond.dlSrc.toString(), macAddress)) {
+        if (!Objects.equal(cond.ethSrc.toString(), macAddress)) {
             return false;
         }
         if (!Objects.equal(rule.getAction(), RuleResult.Action.DROP)) {

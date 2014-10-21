@@ -94,7 +94,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     def isGenerated = cookieOrEgressPort.isRight
     def ingressed = cookieOrEgressPort.isLeft
-    def isStateMessage = origMatch.getTunnelID == FlowStatePackets.TUNNEL_KEY
+    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
     def flowCookie = cookieOrEgressPort.left.toOption
 
@@ -182,11 +182,11 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         (modif eq null) || orig == modif
 
     private def diffEthernet(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!origMatch.getEthernetSource.equals(wcmatch.getEthernetSource) ||
-            !origMatch.getEthernetDestination.equals(wcmatch.getEthernetDestination)) {
+        if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
+            !origMatch.getEthDst.equals(wcmatch.getEthDst)) {
             actions.append(setKey(FlowKeys.ethernet(
-                wcmatch.getEthernetSource.getAddress,
-                wcmatch.getEthernetDestination.getAddress)))
+                wcmatch.getEthSrc.getAddress,
+                wcmatch.getEthDst.getAddress)))
         }
 
     private def diffIp(actions: ArrayBuffer[FlowAction]): Unit =
@@ -201,14 +201,14 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     case srcIP: IPv4Addr =>
                         FlowKeys.ipv4(srcIP,
                             wcmatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr],
-                            wcmatch.getNetworkProtocol,
+                            wcmatch.getNetworkProto,
                             wcmatch.getNetworkTOS,
                             wcmatch.getNetworkTTL,
                             wcmatch.getIpFragmentType)
                     case srcIP: IPv6Addr =>
                         FlowKeys.ipv6(srcIP,
                             wcmatch.getNetworkDestinationIP.asInstanceOf[IPv6Addr],
-                            wcmatch.getNetworkProtocol,
+                            wcmatch.getNetworkProto,
                             wcmatch.getNetworkTTL,
                             wcmatch.getIpFragmentType)
                 }
@@ -240,14 +240,14 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         if ((icmpData ne null) &&
             !Arrays.equals(icmpData, origMatch.getIcmpData)) {
 
-            val icmpType = wcmatch.getTransportSource
+            val icmpType = wcmatch.getSrcPort
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
                     icmpType == ICMP.TYPE_UNREACH ||
                     icmpType == ICMP.TYPE_TIME_EXCEEDED) {
 
                 actions.append(setKey(FlowKeys.icmpError(
-                    wcmatch.getTransportSource.byteValue(),
-                    wcmatch.getTransportDestination.byteValue(),
+                    wcmatch.getSrcPort.byteValue(),
+                    wcmatch.getDstPort.byteValue(),
                     wcmatch.getIcmpData
                 )))
             }
@@ -255,20 +255,20 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     }
 
     private def diffL4(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!matchObjectsSame(origMatch.getTransportSource,
-            wcmatch.getTransportSource) ||
-                !matchObjectsSame(origMatch.getTransportDestination,
-                    wcmatch.getTransportDestination)) {
+        if (!matchObjectsSame(origMatch.getSrcPort,
+            wcmatch.getSrcPort) ||
+                !matchObjectsSame(origMatch.getDstPort,
+                    wcmatch.getDstPort)) {
 
-            wcmatch.getNetworkProtocol.byteValue() match {
+            wcmatch.getNetworkProto.byteValue() match {
                 case TCP.PROTOCOL_NUMBER =>
                     actions.append(setKey(FlowKeys.tcp(
-                        wcmatch.getTransportSource,
-                        wcmatch.getTransportDestination)))
+                        wcmatch.getSrcPort,
+                        wcmatch.getDstPort)))
                 case UDP.PROTOCOL_NUMBER =>
                     actions.append(setKey(FlowKeys.udp(
-                        wcmatch.getTransportSource,
-                        wcmatch.getTransportDestination)))
+                        wcmatch.getSrcPort,
+                        wcmatch.getDstPort)))
                 case ICMP.PROTOCOL_NUMBER =>
                 // this case would only happen if icmp id in ECHO req/reply
                 // were translated, which is not the case, so leave alone

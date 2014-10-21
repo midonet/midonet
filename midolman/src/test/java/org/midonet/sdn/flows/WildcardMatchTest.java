@@ -43,11 +43,11 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         byte[] dlDest = { 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
         String dlDestStr = "0a:0b:0c:0d:0e:0f";
-        wmatch.setEthernetDestination(dlDestStr);
-        assertArrayEquals(dlDest, wmatch.getEthernetDestination().getAddress());
+        wmatch.setEthDst(dlDestStr);
+        assertArrayEquals(dlDest, wmatch.getEthDst().getAddress());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.EthernetDestination));
+                   contains(WildcardMatch.Field.EthDst));
         assertEquals(wmatch.highestLayerSeen(), 2);
     }
 
@@ -56,11 +56,11 @@ public class WildcardMatchTest {
         WildcardMatch wmatch = new WildcardMatch();
         byte[] dlSource = { 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
         String dlSourceStr = "0a:0b:0c:0d:0e:0f";
-        wmatch.setEthernetSource(dlSourceStr);
-        assertArrayEquals(dlSource, wmatch.getEthernetSource().getAddress());
+        wmatch.setEthSrc(dlSourceStr);
+        assertArrayEquals(dlSource, wmatch.getEthSrc().getAddress());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.EthernetSource));
+                   contains(WildcardMatch.Field.EthSrc));
         assertEquals(wmatch.highestLayerSeen(), 2);
     }
 
@@ -91,11 +91,11 @@ public class WildcardMatchTest {
     public void testSetNwProto() {
         WildcardMatch wmatch = new WildcardMatch();
         Byte nwProto = 0x11;
-        wmatch.setNetworkProtocol(nwProto);
-        assertEquals(nwProto, wmatch.getNetworkProtocol());
+        wmatch.setNetworkProto(nwProto);
+        assertEquals(nwProto, wmatch.getNetworkProto());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.NetworkProtocol));
+                   contains(WildcardMatch.Field.NetworkProto));
     }
 
     @Test
@@ -115,11 +115,11 @@ public class WildcardMatchTest {
     public void testSetTpDest() {
         WildcardMatch wmatch = new WildcardMatch();
         Integer tpDest = 0x11ee;
-        wmatch.setTransportDestination(tpDest);
-        assertEquals(tpDest, wmatch.getTransportDestination());
+        wmatch.setDstPort(tpDest);
+        assertEquals(tpDest, wmatch.getDstPort());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.TransportDestination));
+                   contains(WildcardMatch.Field.DstPort));
         assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
@@ -127,11 +127,11 @@ public class WildcardMatchTest {
     public void testSetTpDestHigh() {
         WildcardMatch wmatch = new WildcardMatch();
         Integer tpDest = 0xA8CA;
-        wmatch.setTransportDestination(tpDest);
-        assertEquals(tpDest, wmatch.getTransportDestination());
+        wmatch.setDstPort(tpDest);
+        assertEquals(tpDest, wmatch.getDstPort());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.TransportDestination));
+                   contains(WildcardMatch.Field.DstPort));
         assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
@@ -139,11 +139,11 @@ public class WildcardMatchTest {
     public void testSetTpSource() {
         WildcardMatch wmatch = new WildcardMatch();
         Integer tpSource = 0x11ee;
-        wmatch.setTransportSource(tpSource);
-        assertEquals(tpSource, wmatch.getTransportSource());
+        wmatch.setSrcPort(tpSource);
+        assertEquals(tpSource, wmatch.getSrcPort());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.TransportSource));
+                   contains(WildcardMatch.Field.SrcPort));
         assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
@@ -151,11 +151,11 @@ public class WildcardMatchTest {
     public void testSetTpSourceHigh() {
         WildcardMatch wmatch = new WildcardMatch();
         Integer tpSource = 0xA8CA;
-        wmatch.setTransportSource(tpSource);
-        assertEquals(tpSource, wmatch.getTransportSource());
+        wmatch.setSrcPort(tpSource);
+        assertEquals(tpSource, wmatch.getSrcPort());
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.TransportSource));
+                   contains(WildcardMatch.Field.SrcPort));
         assertEquals(wmatch.highestLayerSeen(), 4);
     }
 
@@ -163,13 +163,13 @@ public class WildcardMatchTest {
     public void testSetNwDst_networkRange() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(IPv4Addr.fromInt(nwDest));
+        wmatch.setNetworkDst(IPv4Addr.fromInt(nwDest));
         IPAddr ipDst = wmatch.getNetworkDestinationIP();
         assertThat(ipDst, notNullValue());
         assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.NetworkDestination));
+                   contains(WildcardMatch.Field.NetworkDst));
         assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
@@ -177,13 +177,13 @@ public class WildcardMatchTest {
     public void testSetNwDst_unicastAddress() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwDest = 0x12345678;
-        wmatch.setNetworkDestination(IPv4Addr.fromInt(nwDest));
+        wmatch.setNetworkDst(IPv4Addr.fromInt(nwDest));
         IPAddr ipDst = wmatch.getNetworkDestinationIP();
         assertThat(ipDst, notNullValue());
         assertEquals(ipDst, IPv4Addr.fromInt(nwDest));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.NetworkDestination));
+                   contains(WildcardMatch.Field.NetworkDst));
         assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
@@ -191,13 +191,13 @@ public class WildcardMatchTest {
     public void testSetNwSrc_networkRange() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(IPv4Addr.fromInt(nwSource));
+        wmatch.setNetworkSrc(IPv4Addr.fromInt(nwSource));
         IPAddr ipSrc = wmatch.getNetworkSourceIP();
         assertThat(ipSrc, notNullValue());
         assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.NetworkSource));
+                   contains(WildcardMatch.Field.NetworkSrc));
         assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
@@ -205,13 +205,13 @@ public class WildcardMatchTest {
     public void testSetNwSrc_unicastAddress() {
         WildcardMatch wmatch = new WildcardMatch();
         int nwSource = 0x12345678;
-        wmatch.setNetworkSource(IPv4Addr.fromInt(nwSource));
+        wmatch.setNetworkSrc(IPv4Addr.fromInt(nwSource));
         IPAddr ipSrc = wmatch.getNetworkSourceIP();
         assertThat(ipSrc, notNullValue());
         assertEquals(ipSrc, IPv4Addr.fromInt(nwSource));
         assertThat(wmatch.getUsedFields(), hasSize(1));
         assertThat(wmatch.getUsedFields(),
-                   contains(WildcardMatch.Field.NetworkSource));
+                   contains(WildcardMatch.Field.NetworkSrc));
         assertEquals(wmatch.highestLayerSeen(), 3);
     }
 
@@ -225,8 +225,8 @@ public class WildcardMatchTest {
                         8096, 1025, 0));
 
         WildcardMatch projection = wildcard.project(EnumSet.of(
-                WildcardMatch.Field.EthernetSource,
-                WildcardMatch.Field.EthernetDestination));
+                WildcardMatch.Field.EthSrc,
+                WildcardMatch.Field.EthDst));
 
         assertThat("A wildcard should not match a projection smaller than it",
                    wildcard, not(equalTo(projection)));
@@ -244,13 +244,13 @@ public class WildcardMatchTest {
                         8096, 1025, 0));
 
         WildcardMatch projection = wildcard.project(EnumSet.of(
-            WildcardMatch.Field.EthernetSource,
-            WildcardMatch.Field.EthernetDestination));
+            WildcardMatch.Field.EthSrc,
+            WildcardMatch.Field.EthDst));
 
         // make a simple wildcard that is a copy of the projection
         WildcardMatch copy = new WildcardMatch();
-        copy.setEthernetDestination(projection.getEthernetDestination());
-        copy.setEthernetSource(projection.getEthernetSource());
+        copy.setEthernetDestination(projection.getEthDst());
+        copy.setEthernetSource(projection.getEthSrc());
 
         Map<WildcardMatch, Boolean> map = new HashMap<WildcardMatch, Boolean>();
         map.put(copy, Boolean.TRUE);
@@ -271,9 +271,9 @@ public class WildcardMatchTest {
             "192.168.100.2", "192.168.100.3",
             40000, 50000, 0);
         WildcardMatch wcm = WildcardMatch.fromFlowMatch(fm);
-        assertThat(wcm.getTransportSource(),
+        assertThat(wcm.getSrcPort(),
                    equalTo(40000));
-        assertThat(wcm.getTransportDestination(),
+        assertThat(wcm.getDstPort(),
                    equalTo(50000));
 
     }
@@ -287,14 +287,14 @@ public class WildcardMatchTest {
         m1.setEthernetSource(MAC.fromString("aa:ff:bb:dd:ee:dd"));
         m1.setEthernetDestination(MAC.fromString("bb:ff:bb:ff:ff:dd"));
         m1.setEtherType(ARP.ETHERTYPE);
-        m1.setNetworkSource(IPv4Addr.fromString("10.0.0.1"));
-        m1.setNetworkDestination(IPv4Addr.fromString("10.0.0.2"));
+        m1.setNetworkSrc(IPv4Addr.fromString("10.0.0.1"));
+        m1.setNetworkDst(IPv4Addr.fromString("10.0.0.2"));
 
         m2.setInputPortNumber((short) 1);
         m2.setEthernetSource(MAC.fromString("ee:ee:bb:dd:ee:dd"));
         m2.setEthernetDestination(MAC.fromString("ee:ff:ee:ff:ff:dd"));
         m2.setEtherType(IPv4.ETHERTYPE);
-        m2.setNetworkSource(IPv4Addr.fromString("10.0.0.1"));
+        m2.setNetworkSrc(IPv4Addr.fromString("10.0.0.1"));
 
         Assert.assertNotSame(m1.getUsedFields(), m2.getUsedFields());
         Map<Set<WildcardMatch.Field>, Object> m = new
@@ -302,7 +302,7 @@ public class WildcardMatchTest {
         m.put(m1.getUsedFields(), new Object());
         Assert.assertFalse(m.containsKey(m2.getUsedFields()));
 
-        m2.setNetworkDestination(IPv4Addr.fromString("10.0.0.2"));
+        m2.setNetworkDst(IPv4Addr.fromString("10.0.0.2"));
 
         assertEquals(m1.getUsedFields(), m2.getUsedFields());
         Assert.assertTrue(m.containsKey(m2.getUsedFields()));
@@ -312,9 +312,9 @@ public class WildcardMatchTest {
     public void testHighestLayerUsed() {
         WildcardMatch m = new WildcardMatch();
         assertEquals(m.highestLayerSeen(), 0);
-        m.getEthernetSource();
+        m.getEthSrc();
         assertEquals(m.highestLayerSeen(), 2);
-        m.getTransportDestination();
+        m.getDstPort();
         assertEquals(m.highestLayerSeen(), 4);
         m.getNetworkSourceIP();
         m.getNetworkTTL();

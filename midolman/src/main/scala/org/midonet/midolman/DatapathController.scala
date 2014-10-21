@@ -574,7 +574,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
         fc ! FlowController.InvalidateFlowsByTag(
                 FlowTagger.tagForTunnelKey(exterior.tunnelKey))
 
-        val wMatch = new WildcardMatch().setTunnelID(exterior.tunnelKey)
+        val wMatch = new WildcardMatch().setTunnelKey(exterior.tunnelKey)
         val actions = List[FlowAction](port.toOutputAction)
         val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
@@ -582,8 +582,7 @@ class DatapathController extends Actor with ActorLogWithoutPath {
         log.info(s"Added flow for tunnelkey ${exterior.tunnelKey}")
     }
 
-    private def triggerPortInvalidation(dpPort: DpPort, port: Port,
-                                        active: Boolean) {
+    private def updateTunnelKeyFlow(dpPort: DpPort, port: Port, active: Boolean) {
         if (port.isInterior) {
             log.warn("local port {} active state changed, but it's not " +
                         "Exterior, don't know what to do with it", port)
@@ -605,11 +604,11 @@ class DatapathController extends Actor with ActorLogWithoutPath {
     private def installTunnelKeyFlow(port: DpPort, vif: UUID, active: Boolean): Unit =
         try {
             val vPort = VirtualTopologyActor.tryAsk[Port](vif)
-            triggerPortInvalidation(port, vPort, active)
+            updateTunnelKeyFlow(port, vPort, active)
         } catch { case NotYetException(f, _) =>
             f.mapTo[Port] onComplete {
                 case Success(vPort) =>
-                    triggerPortInvalidation(port, vPort, active)
+                    updateTunnelKeyFlow(port, vPort, active)
                 case Failure(ex) =>
                     log.error("failed to install tunnel key flow", ex)
             }

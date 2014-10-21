@@ -105,7 +105,7 @@ class Bridge(val id: UUID,
         context.log.debug("Current vlan-port map {}", vlanToPort)
 
         // Some basic sanity checks
-        if (Ethernet.isMcast(context.wcmatch.getEthernetSource)) {
+        if (Ethernet.isMcast(context.wcmatch.getEthSrc)) {
             context.log.info("Packet has multi/broadcast source, DROP")
             DropAction
         } else {
@@ -139,7 +139,7 @@ class Bridge(val id: UUID,
             preBridgeResult.action match {
                 case RuleResult.Action.ACCEPT => // pass through
                 case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                    val srcDlAddress = context.wcmatch.getEthernetSource
+                    val srcDlAddress = context.wcmatch.getEthSrc
                     updateFlowCount(srcDlAddress, context)
                     // No point in tagging by dst-MAC+Port because the outPort was
                     // not used in deciding to drop the flow.
@@ -161,10 +161,10 @@ class Bridge(val id: UUID,
         }
 
         // Learn the entry
-        val srcDlAddress = context.wcmatch.getEthernetSource
+        val srcDlAddress = context.wcmatch.getEthSrc
         updateFlowCount(srcDlAddress, context)
 
-        val dstDlAddress = context.wcmatch.getEthernetDestination
+        val dstDlAddress = context.wcmatch.getEthDst
         val action =
              if (isArpBroadcast()) handleARPRequest()
              else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
@@ -178,7 +178,7 @@ class Bridge(val id: UUID,
     }
 
     private def isArpBroadcast()(implicit context: PacketContext) = {
-        Ethernet.isBroadcast(context.wcmatch.getEthernetDestination) &&
+        Ethernet.isBroadcast(context.wcmatch.getEthDst) &&
                              context.wcmatch.getEtherType == ARP.ETHERTYPE
     }
 
@@ -196,10 +196,10 @@ class Bridge(val id: UUID,
       */
     private def handleL2Unicast()(implicit context: PacketContext)
     : Coordinator.Action = {
-        val dlDst = context.wcmatch.getEthernetDestination
-        val dlSrc = context.wcmatch.getEthernetSource
-        context.log.debug("Handling L2 unicast to {}", dlDst)
-        macToLogicalPortId.get(dlDst) match {
+        val ethDst = context.wcmatch.getEthDst
+        val ethSrc = context.wcmatch.getEthSrc
+        context.log.debug("Handling L2 unicast to {}", ethDst)
+        macToLogicalPortId.get(ethDst) match {
             case Some(logicalPort: UUID) => // some device (router|vab-bridge)
                 context.log.debug("Packet intended for interior port {}", logicalPort)
                 context.addFlowTag(tagForBridgePort(id, logicalPort))
@@ -207,30 +207,30 @@ class Bridge(val id: UUID,
             case None => // not a logical port, is the dstMac learned?
                 val vlanId = srcVlanTag(context)
                 val portId =
-                    if (dlDst == dlSrc) {
+                    if (ethDst == ethSrc) {
                         context.inPortId
                     } else {
                         vlanMacTableMap.get(vlanId) match {
-                            case Some(map: MacLearningTable) => map.get(dlDst)
+                            case Some(map: MacLearningTable) => map.get(ethDst)
                             case _ => null
                         }
                     }
                 // Tag the flow with the (src-port, src-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
-                context.addFlowTag(tagForVlanPort(id, dlSrc, vlanId,
+                context.addFlowTag(tagForVlanPort(id, ethSrc, vlanId,
                                                  context.inPortId))
                 if (portId == null) {
                     context.log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
-                        dlDst, vlanId)
+                        ethDst, vlanId)
                     context.addFlowTag(
-                        tagForFloodedFlowsByDstMac(id, vlanId, dlDst))
+                        tagForFloodedFlowsByDstMac(id, vlanId, ethDst))
                     multicastAction()
                 } else if (portId == context.inPortId) {
                     context.log.warn(
                         "MAC {} VLAN {} resolves to InPort {}: DROP (temp)",
-                        dlDst, vlanId, portId)
+                        ethDst, vlanId, portId)
                     // No tags because temp flows aren't affected by
-                    // invalidations. would get byPort (dlDst, vlan, port)
+                    // invalidations. would get byPort (ethDst, vlan, port)
                     //
                     // TODO: we may have to send it to InPort, instead of
                     // dropping it. Some hardware vendors use L2 ping-pong
@@ -239,8 +239,8 @@ class Bridge(val id: UUID,
                     TemporaryDropAction
                 } else {
                     context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
-                        dlDst, vlanId, portId)
-                    context.addFlowTag(tagForVlanPort(id, dlDst, vlanId, portId))
+                        ethDst, vlanId, portId)
+                    context.addFlowTag(tagForVlanPort(id, ethDst, vlanId, portId))
                     unicastAction(portId)
                 }
         }
@@ -401,7 +401,7 @@ class Bridge(val id: UUID,
             unicastAction(portID)
         } else {
             // If it's an ARP request, can we answer from the Bridge's IpMacMap?
-            val mac = pMatch.getNetworkProtocol.shortValue() match {
+            val mac = pMatch.getNetworkProto.shortValue() match {
                 case ARP.OP_REQUEST if ip4MacMap != null =>
                     ip4MacMap get
                         pMatch.getNetworkDestinationIP.asInstanceOf[IPv4Addr]
@@ -414,7 +414,7 @@ class Bridge(val id: UUID,
             if (mac == null) {
                 // Unknown MAC for this IP, or it's an ARP reply, broadcast
                 context.log.debug("Flooding ARP to port set {}, source MAC {}",
-                                  id, pMatch.getEthernetSource)
+                                  id, pMatch.getEthSrc)
                 context.addFlowTag(tagForArpRequests(id))
                 multicastAction()
             } else {

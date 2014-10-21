@@ -20,30 +20,30 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case InputPortNumber:
                     setInputPortNumber(source.getInputPortNumber());
                     break;
-                case TransportDestination:
-                    setTransportDestination(
-                        source.getTransportDestination());
+                case DstPort:
+                    setDstPort(
+                            source.getDstPort());
                     break;
-                case TransportSource:
-                    setTransportSource(source.getTransportSource());
+                case SrcPort:
+                    setSrcPort(source.getSrcPort());
                     break;
-                case NetworkDestination:
-                    setNetworkDestination(source.getNetworkDestinationIP());
+                case NetworkDst:
+                    setNetworkDst(source.getNetworkDestinationIP());
                     break;
-                case NetworkSource:
-                    setNetworkSource(source.getNetworkSourceIP());
+                case NetworkSrc:
+                    setNetworkSrc(source.getNetworkSourceIP());
                     break;
-                case NetworkProtocol:
-                    setNetworkProtocol(source.getNetworkProtocol());
+                case NetworkProto:
+                    setNetworkProto(source.getNetworkProto());
                     break;
                 case NetworkTTL:
                     setNetworkTTL(source.getNetworkTTL());
                     break;
-                case EthernetDestination:
-                    setEthernetDestination(source.getEthernetDestination());
+                case EthDst:
+                    setEthernetDestination(source.getEthDst());
                     break;
-                case EthernetSource:
-                    setEthernetSource(source.getEthernetSource());
+                case EthSrc:
+                    setEthernetSource(source.getEthSrc());
                     break;
                 case EtherType:
                     setEtherType(source.getEtherType());
@@ -51,8 +51,8 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case FragmentType:
                     setIpFragmentType(source.getIpFragmentType());
                     break;
-                case TunnelID:
-                    setTunnelID(source.getTunnelID());
+                case TunnelKey:
+                    setTunnelKey(source.getTunnelKey());
                     break;
                 case IcmpData:
                     setIcmpData(source.getIcmpData());
