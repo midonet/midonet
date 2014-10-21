@@ -218,12 +218,4 @@ public class VendorMediaType {
             "application/vnd.org.midonet.IpAddrGroupAddr-v1+json";
     public static final String APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.IpAddrGroupAddr-v1+json";
-
-    // License
-    public static final String APPLICATION_LICENSE_COLLECTION_JSON_V1 =
-            "application/vnd.org.midonet.collection.License-v1+json";
-    public static final String APPLICATION_LICENSE_JSON_V1 =
-            "application/vnd.org.midonet.License-v1+json";
-    public static final String APPLICATION_LICENSE_STATUS_JSON_V1 =
-            "application/vnd.org.midonet.LicenseStatus-v1+json";
 }

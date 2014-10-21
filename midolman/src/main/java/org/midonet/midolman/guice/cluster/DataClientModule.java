@@ -44,7 +44,6 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
 import org.midonet.midolman.state.zkManagers.HealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.IpAddrGroupZkManager;
-import org.midonet.midolman.state.zkManagers.LicenseZkManager;
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager;
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
@@ -158,7 +157,6 @@ public class DataClientModule extends PrivateModule {
         managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(VtepZkManager.class);
-        managers.add(LicenseZkManager.class);
         /*
          * The Cluster.*Managers managers still the L4LB zkmanagers.
          */

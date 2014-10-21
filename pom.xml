@@ -290,12 +290,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>keylib</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- scala and scalatest -->
         <dependency>
             <groupId>org.scala-lang</groupId>
@@ -635,13 +629,6 @@
             <artifactId>equalsverifier</artifactId>
             <version>1.4.1</version>
             <scope>test</scope>
-        </dependency>
-
-        <!-- licensing -->
-        <dependency>
-            <groupId>net.java.truelicense</groupId>
-            <artifactId>truelicense-json</artifactId>
-            <version>2.3.3</version>
         </dependency>
 
         <!-- rx -->

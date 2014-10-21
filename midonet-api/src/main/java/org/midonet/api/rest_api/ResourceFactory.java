@@ -25,7 +25,6 @@ import org.midonet.api.l4lb.rest_api.LoadBalancerResource;
 import org.midonet.api.l4lb.rest_api.PoolMemberResource;
 import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
-import org.midonet.api.license.LicenseResource;
 import org.midonet.api.network.rest_api.BridgeResource;
 import org.midonet.api.network.rest_api.PortGroupResource;
 import org.midonet.api.network.rest_api.PortResource;
@@ -140,6 +139,4 @@ public interface ResourceFactory {
     VtepBindingResource getVtepBindingResource(String ipAddrStr);
 
     VxLanPortBindingResource getVxLanPortBindingResource(UUID vxLanPortId);
-
-    LicenseResource getLicenseResource();
 }

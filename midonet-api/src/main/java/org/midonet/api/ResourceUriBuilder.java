@@ -785,42 +785,4 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(getVips(baseUri))
                 .path(vipId.toString()).build();
     }
-
-    /**
-     * Generates the licenses URI.
-     * @param baseUri The base URI.
-     * @return The licenses URI.
-     */
-    public static URI getLicenses(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSES).build();
-    }
-
-    /**
-     * Generates the URI for the license with the specified identifier.
-     * @param baseUri The base URI.
-     * @param id The license identifier.
-     * @return The license URI.
-     */
-    public static URI getLicense(URI baseUri, String id) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSES)
-                         .path(id.toString()).build();
-    }
-
-    /**
-     * Generates the license status URI.
-     * @param baseUri The base URI.
-     * @return The license status URI.
-     */
-    public static URI getLicenseStatus(URI baseUri) {
-        return UriBuilder.fromUri(getRoot(baseUri)).path(LICENSE_STATUS).build();
-    }
-
-    /**
-     * Generates the license URI template.
-     * @param baseUri The base URI.
-     * @return The license URI template.
-     */
-    public static String getLicenseTemplate(URI baseUri) {
-        return buildIdTemplateUri(getLicenses(baseUri));
-    }
 }
