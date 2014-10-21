@@ -50,13 +50,13 @@ case class PacketTracer @ConstructorProperties(
 
     def matches(wmatch: WildcardMatch): Boolean = {
         etherTypeMatch(wmatch.getEtherType) &&
-        srcMacMatch(wmatch.getEthernetSource) &&
-        dstMacMatch(wmatch.getEthernetDestination) &&
-        ipProtoMatch(wmatch.getNetworkProtocol) &&
+        srcMacMatch(wmatch.getEthSrc) &&
+        dstMacMatch(wmatch.getEthDst) &&
+        ipProtoMatch(wmatch.getNetworkProto) &&
         ipSrcMatch(wmatch.getNetworkSourceIP) &&
         ipDstMatch(wmatch.getNetworkDestinationIP) &&
-        srcPortMatch(wmatch.getTransportSource) &&
-        dstPortMatch(wmatch.getTransportDestination)
+        srcPortMatch(wmatch.getSrcPort) &&
+        dstPortMatch(wmatch.getDstPort)
     }
 
 
