@@ -5,6 +5,10 @@ apply from: "${rootProject.projectDir}/git.gradle"
 
 mainClassName = "org.midonet.midolman.Midolman"
 
+run {
+    bootstrapClasspath(file(project.jdkBootstrap))
+}
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Midolman Java daemon',
