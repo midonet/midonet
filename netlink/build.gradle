@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+apply plugin: 'scala'
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'MidoNet packets library',
@@ -25,6 +27,8 @@ dependencies {
     compile project(":packets"), project(":midonet-util"),
             project(":midonet-jdk-bootstrap")
     compile libraries.jna, libraries.commons_io, libraries.guava
+
+    testCompile libraries.scala, libraries.scalatest
 }
 
 compileJava {
