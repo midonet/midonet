@@ -43,8 +43,7 @@ import org.midonet.util.io.SelectorInputQueue;
  */
 public abstract class AbstractNetlinkConnection {
 
-    private static final Logger log = LoggerFactory
-        .getLogger("org.midonet.netlink.connection");
+    private final Logger log;
 
     private static final int DEFAULT_MAX_BATCH_IO_OPS = 200;
     private static final int NETLINK_HEADER_LEN = 20;
@@ -90,6 +89,8 @@ public abstract class AbstractNetlinkConnection {
         this.channel = channel;
         this.requestPool = sendPool;
         expirationQueue = new PriorityQueue<>(512, NetlinkRequest.comparator);
+
+        log = LoggerFactory.getLogger("org.midonet.netlink.netlink-conn-" + pid());
 
         // default implementation runs callbacks out of the calling thread one by one
         this.dispatcher = new BatchCollector<Runnable>() {
@@ -157,8 +158,7 @@ public abstract class AbstractNetlinkConnection {
                 continue;
             }
 
-            log.debug("[pid:{}] Signalling timeout to the callback: {}",
-                      pid(), req.seq);
+            log.debug("Signalling timeout to the callback: {}", req.seq);
             requestPool.release(req.releaseRequestPayload());
             dispatcher.submit(req.expired());
         }
@@ -337,7 +337,7 @@ public abstract class AbstractNetlinkConnection {
             pendingRequests.put(seq, request);
         }
 
-        log.trace("[pid:{}] Sending message for id {}", pid(), seq);
+        log.trace("Sending message for id {}", seq);
 
         int bytes = 0;
         try {
@@ -497,8 +497,8 @@ public abstract class AbstractNetlinkConnection {
     private NetlinkRequest removeRequest(int seq) {
         NetlinkRequest request = pendingRequests.remove(seq);
         if (request == null) {
-            log.debug("[pid:{}] Reply handler for netlink request with id {} " +
-                      "not found.", pid(), seq);
+            log.debug("Reply handler for netlink request with id {} " +
+                      "not found.", seq);
         }
         return request;
     }
