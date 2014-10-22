@@ -16,7 +16,7 @@
 package org.midonet.cluster.data;
 
 /**
- * // TODO: mtoader ! Please explain yourself.
+ * A common interface representing an entity in the cluster data model.
  */
 public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
 
@@ -66,7 +66,6 @@ public interface Entity<Id, Data, Self extends Entity<Id, Data, Self>> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            @SuppressWarnings("unchecked")
             Base<?,?,?> base = (Base<?,?,?>) o;
 
             if (id != null ? !id.equals(base.id) : base.id != null)

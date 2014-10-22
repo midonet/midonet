@@ -237,7 +237,7 @@ trait StorageBulkCrudTest extends FlatSpec
                 val dataBuilder = testItem.addDataBuilder()
                 dataBuilder.setProperty("exception")
                 if (ex.getMessage != null) dataBuilder.setValue(ex.getMessage)
-                else dataBuilder.setValue(ex.getStackTraceString)
+                else dataBuilder.setValue(ex.getStackTrace.toString)
         }
     }
 
@@ -337,7 +337,7 @@ trait StorageBulkCrudTest extends FlatSpec
                 val dataBuilder = testItem.addDataBuilder()
                 dataBuilder.setProperty("exception")
                 if (ex.getMessage != null) dataBuilder.setValue(ex.getMessage)
-                else dataBuilder.setValue(ex.getStackTraceString)
+                else dataBuilder.setValue(ex.getStackTrace.toString)
         }
     }
 
@@ -393,7 +393,7 @@ trait StorageBulkCrudTest extends FlatSpec
                 val failureData = testItem.addDataBuilder()
                 failureData.setProperty("exception")
                 if (ex.getMessage != null) failureData.setValue(ex.getMessage)
-                else failureData.setValue(ex.getStackTraceString)
+                else failureData.setValue(ex.getStackTrace.toString)
         }
     }
 
