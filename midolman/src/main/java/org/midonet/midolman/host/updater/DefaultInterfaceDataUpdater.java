@@ -91,10 +91,10 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
 
             log.trace("Input: " + curMapByName);
             if (!updatedInterfaces.isEmpty()) {
-                log.info("Updated: " + updatedInterfaces);
+                log.debug("Updated: " + updatedInterfaces);
             }
             if (!interfacesToRemove.isEmpty()) {
-                log.info("Removed: " + interfacesToRemove);
+                log.debug("Removed: " + interfacesToRemove);
             }
 
             hostZkManager.updateHostInterfaces(hostId,

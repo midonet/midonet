@@ -19,7 +19,9 @@ public interface PacketTracingMXBean {
     static String NAME = "org.midonet.midolman:type=PacketTracing";
 
     PacketTracer[] getTracers();
+    PacketTracer[] getLiveTracers();
     void addTracer(PacketTracer tracer);
     int removeTracer(PacketTracer tracer);
     int flush();
+    int flushDeadTracers();
 }

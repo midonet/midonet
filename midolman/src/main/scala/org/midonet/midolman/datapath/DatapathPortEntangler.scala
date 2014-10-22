@@ -165,7 +165,7 @@ trait DatapathPortEntangler {
 
     private def newInterface(itf: InterfaceDescription, port: String): Future[_] = {
         val isUp = itf.isUp
-        log.info(s"Found new interface $itf which is ${if (isUp) "up" else "down"}")
+        log.info(s"Found new interface ${itf.logString} which is ${if (isUp) "up" else "down"}")
         interfaceToStatus += port -> isUp
         tryCreateDpPort(port)
     }

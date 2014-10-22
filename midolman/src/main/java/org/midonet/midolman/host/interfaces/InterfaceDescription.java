@@ -171,4 +171,17 @@ public class InterfaceDescription {
             ", properties=" + properties +
             '}';
     }
+
+    public String logString() {
+        return name + "(" +
+                type +
+                " mac " + mac +
+                " inet " + inetAddresses +
+                " mtu=" + mtu +
+                " " + ((isUp) ? "UP" : "DOWN") +
+                "," + ((hasLink) ? "LINK" : "NOLINK") +
+                "," + endpoint +
+                "," + portType +
+                ')';
+    }
 }

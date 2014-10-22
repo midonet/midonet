@@ -17,7 +17,9 @@ package org.midonet.midolman.management
 
 import java.lang.{Byte => JByte, Short => JShort}
 import java.beans.ConstructorProperties
+import java.util.concurrent.atomic.AtomicInteger
 import scala.beans.BeanProperty
+
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.packets.{IPAddr, MAC}
 
@@ -39,7 +41,7 @@ case object UnsetMatch extends FieldMatch[Nothing] {
 
 case class PacketTracer @ConstructorProperties(
         Array("etherType", "srcMac", "dstMac", "ipProto",
-              "ipSrc", "ipDst", "srcPort", "dstPort", "level")) (
+              "ipSrc", "ipDst", "srcPort", "dstPort", "level", "limit")) (
         @BeanProperty etherType: JShort,
         @BeanProperty srcMac: String,
         @BeanProperty dstMac: String,
@@ -48,7 +50,8 @@ case class PacketTracer @ConstructorProperties(
         @BeanProperty ipDst: String,
         @BeanProperty srcPort: Integer,
         @BeanProperty dstPort: Integer,
-        @BeanProperty level: LogLevel = LogLevel.DEBUG) {
+        @BeanProperty level: LogLevel = LogLevel.DEBUG,
+        @BeanProperty limit: Int = 1) {
 
     val etherTypeMatch = FieldMatch(etherType)
     val srcMacMatch = FieldMatch(if (srcMac ne null) MAC.fromString(srcMac) else null)
@@ -59,7 +62,14 @@ case class PacketTracer @ConstructorProperties(
     val srcPortMatch = FieldMatch(srcPort)
     val dstPortMatch = FieldMatch(dstPort)
 
+    private val matches = new AtomicInteger(0)
+
+    def matched() = matches.incrementAndGet()
+
+    def isAlive: Boolean = matches.get() > 0
+
     def matches(wmatch: WildcardMatch): Boolean = {
+        (matches.get() < limit) &&
         etherTypeMatch(wmatch.getEtherType) &&
         srcMacMatch(wmatch.getEthSrc) &&
         dstMacMatch(wmatch.getEthDst) &&
@@ -74,7 +84,8 @@ case class PacketTracer @ConstructorProperties(
     override def toString: String = {
         val buf: StringBuffer = new StringBuffer()
 
-        buf.append(s"tracer: --${level.toString.toLowerCase}")
+        buf.append(s"mm-trace --${level.toString.toLowerCase}")
+        buf.append(s" --limit $limit")
 
         if (etherType ne null)
             buf.append(s" --ethertype $etherType")

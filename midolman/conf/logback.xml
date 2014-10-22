@@ -28,7 +28,14 @@
                 <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>7</maxHistory>
         </rollingPolicy>
+    </appender>
 
+    <appender name="TRACE-FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${midolman.log.dir}mm-trace.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level %X{cookie} %m%n%rEx</pattern>
+        </encoder>
     </appender>
 
     <appender name="EVENT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -57,8 +64,12 @@
     -->
 
     <!-- These are static for internal use, do not touch -->
-    <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" />
-    <logger name="org.midonet.packets.trace.packet-processor" level="TRACE" />
+    <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" >
+        <appender-ref ref="TRACE-FILE" />
+    </logger>
+    <logger name="org.midonet.packets.trace.packet-processor" level="TRACE" >
+        <appender-ref ref="TRACE-FILE" />
+    </logger>
 
     <!-- packet processing worker threads, when outside the context of a packet  -->
     <!-- <logger name="org.midonet.packet-worker" level="DEBUG" /> -->
@@ -99,7 +110,7 @@
 
 
     <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
-    <logger name="org.midonet.event" level="INFO">
+    <logger name="org.midonet.event" level="INFO" additivity="false">
          <appender-ref ref="EVENT-FILE"/>
     </logger>
 

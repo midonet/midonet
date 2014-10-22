@@ -30,6 +30,8 @@ object PacketTracing extends PacketTracingMXBean {
 
     var tracers: List[PacketTracer] = List.empty
 
+    override def getLiveTracers = tracers.filter(_.isAlive).toArray
+
     override def getTracers = tracers.toArray
 
     override def addTracer(tracer: PacketTracer) {
@@ -48,13 +50,19 @@ object PacketTracing extends PacketTracingMXBean {
         num
     }
 
+    override def flushDeadTracers() = {
+        val oldSize = tracers.size
+        tracers = tracers filter { _.isAlive }
+        oldSize - tracers.size
+    }
+
     def loggerFor(wcmatch: WildcardMatch): Logger = {
-        val entries = tracers
         val it = tracers.iterator
         while (it.hasNext) {
-            val logger = it.next()
-            if (logger.matches(wcmatch)) {
-                return logger.level match {
+            val tracer = it.next()
+            if (tracer.matches(wcmatch)) {
+                tracer.matched()
+                return tracer.level match {
                     case LogLevel.DEBUG => PacketContext.debugLog
                     case LogLevel.TRACE => PacketContext.traceLog
                 }

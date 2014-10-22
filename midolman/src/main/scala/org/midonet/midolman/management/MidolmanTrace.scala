@@ -43,33 +43,39 @@ abstract class Matcher(name: String) extends Subcommand(name) {
     implicit def scallopStringToNaked(opt: ScallopOption[String]): String =
         opt.get.orNull
 
+    implicit def scallopIntToNaked(opt: ScallopOption[Int]): Int =
+        opt.get.orElse(Some(1)).get
+
     val debug = opt[Boolean]("debug", short = 'd',
-                            descr = "logs at debug level")
+            descr = "logs at debug level")
     val trace = opt[Boolean]("trace", short = 't',
-                            descr = "logs at trace level")
+            descr = "logs at trace level")
     val etherType = opt[Short]("ethertype", noshort = true,
-                            descr = "match on ethertype")
+            descr = "match on ethertype")
     val macSrc = opt[String]("mac-src", noshort = true,
-                            descr = "match on source MAC address")
+            descr = "match on source MAC address")
     val macDst = opt[String]("mac-dst", noshort = true,
-                            descr = "match on destination MAC address")
+            descr = "match on destination MAC address")
     val ipProto = opt[Byte]("ip-protocol", noshort = true,
-                            descr = "match on ip protocol field")
+            descr = "match on ip protocol field")
     val ipSrc = opt[String]("ip-src", noshort = true,
-                            descr = "match on ip source address")
+            descr = "match on ip source address")
     val ipDst = opt[String]("ip-dst", noshort = true,
-                            descr = "match on ip destination address")
+            descr = "match on ip destination address")
     val srcPort = opt[Int]("src-port", noshort = true,
-                            descr = "match on TCP/UDP source port")
+            descr = "match on TCP/UDP source port")
     val dstPort = opt[Int]("dst-port", noshort = true,
-                            descr = "match on TCP/UDP destination port")
+            descr = "match on TCP/UDP destination port")
+    val limit = opt[Int]("dst-port", short = 'l',
+            descr = "number of packets to match before disabling this trace")
     requireOne(debug, trace)
     mutuallyExclusive(debug, trace)
 
     def makeTracer: PacketTracer =
         PacketTracer(etherType, macSrc, macDst, ipProto,
                      ipSrc, ipDst, srcPort, dstPort,
-                     if (debug.get.isDefined) LogLevel.DEBUG else LogLevel.TRACE)
+                     if (debug.get.isDefined) LogLevel.DEBUG else LogLevel.TRACE,
+                     limit)
 }
 
 object AddTrace extends Matcher("add") with TraceCommand {
@@ -94,8 +100,14 @@ object RemoveTrace extends Matcher("remove") with TraceCommand {
 object FlushTraces extends Subcommand("flush") with TraceCommand {
     descr("clear the list of tracing matches")
 
+    val deadOnly = opt[Boolean]("dead-only", short = 'D',
+        descr = "flush expired tracers only")
+
     override def run(tracingProxy: PacketTracingMXBean) = {
-        val num = tracingProxy.flush()
+        val num = if (deadOnly.isDefined)
+                      tracingProxy.flushDeadTracers()
+                  else
+                      tracingProxy.flush()
         System.out.println(s"Removed $num tracer(s)")
         TraceCommand.SUCCESS
     }
@@ -104,8 +116,15 @@ object FlushTraces extends Subcommand("flush") with TraceCommand {
 object ListTraces extends Subcommand("list") with TraceCommand {
     descr("list all active tracing matches")
 
+    val liveOnly = opt[Boolean]("live-only", short = 'L',
+        descr = "list active tracers only")
+
     override def run(tracingProxy: PacketTracingMXBean) = {
-        val tracers = tracingProxy.getTracers
+        val tracers = if (liveOnly.isDefined)
+                          tracingProxy.getLiveTracers
+                      else
+                          tracingProxy.getTracers
+
         for (l <- tracers) {
             System.out.println(l)
         }
