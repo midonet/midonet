@@ -19,13 +19,6 @@ apply plugin: 'application'
 apply from: "${rootProject.projectDir}/fpm.gradle"
 apply from: "${rootProject.projectDir}/git.gradle"
 
-mainClassName = "org.midonet.midolman.Midolman"
-applicationDefaultJvmArgs = ["-Djava.library.path=/lib:/usr/lib"]
-
-run {
-    bootstrapClasspath(file(project.jdkBootstrap))
-}
-
 jar {
     manifest {
         attributes 'Implementation-Title': 'Midolman Java daemon',
@@ -252,3 +245,12 @@ rpm.doLast {
     new File("${buildDir}/install/${project.name}").deleteDir()
 }
 
+mainClassName = "org.midonet.midolman.Midolman"
+
+task runWithSudo(type:Exec, dependsOn: installApp) {
+    commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+    commandLine += '-Xbootclasspath:' + file(project.jdkBootstrap)
+    commandLine += '-cp'
+    commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
+    commandLine += mainClassName
+}
