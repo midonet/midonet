@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration scan="true">
+    <jmxConfigurator/>
+
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${midolman.log.dir}midolman.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+    </appender>
+
+    <appender name="EVENT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${midolman.log.dir}midolman.event.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} ${HOSTNAME} %-5level %logger - %m%n%rEx </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${midolman.log.dir}midolman.event.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+    </appender>
+
+    <!-- Fine grained settings for specific classes -->
+    <!-- Third party libraries -->
+    <logger name="org.apache.zookeeper" level="INFO" />
+    <logger name="org.apache.cassandra" level="INFO" />
+    <logger name="me.prettyprint.cassandra" level="INFO" />
+    <logger name="org.eclipse.jetty" level="INFO" />
+
+    <!-- Adjust this level to set the logging used for all packets processed -->
+    <logger name="org.midonet.packets.default.packet-processor" level="OFF" />
+
+    <!-- These are static for internal use, do not touch -->
+    <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" />
+    <logger name="org.midonet.packets.trace.packet-processor" level="TRACE" />
+
+    <!-- packet processing worker threads, when outside the context of a packet  -->
+    <!-- <logger name="org.midonet.packet-worker" level="DEBUG" /> -->
+
+    <!-- catch-all for arp table messages -->
+    <!-- <logger name="org.midonet.devices.arp-table" level="DEBUG" /> -->
+    <!-- arp table messages for a specific router -->
+    <!-- <logger name="org.midonet.devices.arp-table.arp-table-THE_ROUTER_UUID" level="DEBUG" /> -->
+
+    <!-- bgp -->
+    <!-- <logger name="org.midonet.routing.bgp" level="DEBUG" /> -->
+
+    <!-- flow management -->
+    <!-- <logger name="org.midonet.flow-management" level="DEBUG" /> -->
+
+    <!-- datapath management -->
+    <!-- <logger name="org.midonet.datapath-control" level="DEBUG" /> -->
+
+    <!-- virtual network topology management -->
+    <!-- <logger name="org.midonet.devices.devices-service" level="DEBUG" /> -->
+
+    <!-- virtual topology to underlay mapping management -->
+    <!-- <logger name="org.midonet.devices.underlay" level="DEBUG" /> -->
+
+    <!-- flow state management -->
+    <!-- <logger name="org.midonet.state.table" level="DEBUG" /> -->
+    <!-- <logger name="org.midonet.state.replication" level="DEBUG" /> -->
+
+    <!-- all bridges and their mac learning tables -->
+    <!-- <logger name="org.midonet.devices.bridge" level="DEBUG" /> -->
+    <!-- a particular bridge and its mac learning tables -->
+    <!-- <logger name="org.midonet.devices.bridge.bridge-THE_BRIDGE_UUID" level="DEBUG" /> -->
+
+    <!-- communications with the datapath -->
+    <!-- <logger name="org.midonet.netlink" level="DEBUG" /> -->
+    <!-- <logger name="org.midonet.io.select-loop" level="DEBUG" /> -->
+    <!-- <logger name="org.midonet.io.htb" level="DEBUG" /> -->
+
+
+    <!-- logs under "org.midonet.event" logger also goes to EVENT-FILE appender as well as those defined in <root> -->
+    <logger name="org.midonet.event" level="INFO">
+        <appender-ref ref="EVENT-FILE"/>
+    </logger>
+
+    <!-- BEWARE: DEBUG level is meant for developement and/or troubleshooting
+                 it greatly impacts system performance.
+         levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
+    <root level="WARN">
+        <appender-ref ref="LOG-FILE" />
+    </root>
+
+</configuration>

@@ -221,6 +221,7 @@ allprojects {
 idea.project {
     languageLevel = versions.java
     outputFile = file("${rootDir}/idea/midonet.ipr")
+    ipr.withXml { p -> addCopyrightHeader(p) }
 }
 
 configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
@@ -268,13 +269,13 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         compile libraries.findbugs
         testCompile libraries.test_frameworks
         runtime libraries.logback
-        perfCompile 'org.openjdk.jmh:jmh-core:0.9'
-        perfCompile 'org.openjdk.jmh:jmh-generator-bytecode:0.9'
+        perfCompile 'org.openjdk.jmh:jmh-core:1.1.1'
+        perfCompile 'org.openjdk.jmh:jmh-generator-bytecode:1.1.1'
     }
 
     idea.module {
-        scopes.PROVIDED.plus += configurations.perfCompile
-        scopes.PROVIDED.plus += configurations.provided
+        scopes.PROVIDED.plus += [configurations.perfCompile]
+        scopes.PROVIDED.plus += [configurations.provided]
         inheritOutputDirs = false
         outputDir = file("${rootDir}/idea/out/${project.name}")
         testOutputDir = file("${rootDir}/idea/test/${project.name}")
@@ -307,8 +308,10 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
         dependsOn(generateBenchmarks)
         onlyIf {
-            def sourceFiles = file(source).listFiles()
-            sourceFiles != null && sourceFiles.length > 0
+            !source.filter({f ->
+                def n = f.getName()
+                n.endsWith(".java") || n.endsWith(".scala")
+            }).isEmpty()
         }
     }
 
@@ -386,13 +389,13 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 
 // Utility methods start here
 
-def getFacets(iml) {
-    iml.asNode().component.find { it.@name == 'FacetManager' } ?:
-         iml.asNode().appendNode('component', [name: 'FacetManager'])
+def getOrAddComponent(iml, name) {
+    iml.asNode().component.find { it.@name == name } ?:
+         iml.asNode().appendNode('component', [name: name])
 }
 
 def addScalaLangLevelToIdea(iml) {
-    def facets = getFacets(iml)
+    def facets = getOrAddComponent(iml, 'FacetManager')
     def scala = facets.facet.find { it.@type == 'scala' } ?:
         facets.appendNode('facet', [type: 'scala', name: 'Scala'])
     def config = scala.configuration ? scala.configuration[0] :
@@ -403,7 +406,7 @@ def addScalaLangLevelToIdea(iml) {
 }
 
 def addProtobufFacet(iml, generatedDir) {
-    def facets = getFacets(iml)
+    def facets = getOrAddComponent(iml, 'FacetManager')
     def protobuf = facets.facet.find { it.@type == 'protobuf' } ?:
                         facets.appendNode('facet', [type: 'protobuf', name: 'Protobuf Facet'])
     def config = protobuf.configuration ? protobuf.configuration[0] :
@@ -437,8 +440,35 @@ def reorderIdeaJdkBootstrapDependency(iml) {
     }
 }
 
+def addCopyrightHeader(ipr) {
+    def copyright = getOrAddComponent(ipr, 'CopyrightManager')
+    copyright.attributes().put('default', 'midokura')
+
+    def mido = copyright.appendNode('copyright')
+    mido.appendNode('option', [name: 'notice', value: """\
+Copyright 2014 Midokura SARL
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License."""])
+    mido.appendNode('option', [name: 'keyword', value: 'Copyright'])
+    mido.appendNode('option', [name: 'allowReplaceKeyword', value: ''])
+    mido.appendNode('option', [name: 'myName', value: 'midokura'])
+    mido.appendNode('option', [name: 'myLocal', value: 'true'])
+
+    copyright.appendNode('module2copyright')
+             .appendNode('element', [module: 'All', copyright: 'midokura'])
+}
+
 task wrapper(type: Wrapper) {
     description 'Generate wrapper, which is distributed as part of source to alleviate the need of installing gradle'
-    gradleVersion = '1.12'
-    distributionUrl = "https://github.com/10QueensRoad/gradle/releases/download/REL_${gradleVersion}-java8/gradle-${gradleVersion}-bin.zip"
+    gradleVersion = '2.1'
 }

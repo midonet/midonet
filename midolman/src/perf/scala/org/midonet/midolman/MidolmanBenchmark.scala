@@ -35,13 +35,14 @@ import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.cluster.ClusterClientModule
+import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.util.mock.{MockMidolmanActors, MockInterfaceScanner}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.util.MockClock
 import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
+import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
@@ -77,6 +78,8 @@ trait MidolmanBenchmark extends MockMidolmanActors
             new SerializationModule(),
             new ConfigProviderModule(config),
             new MockDatapathModule(),
+            new MidostoreModule(),
+            new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
