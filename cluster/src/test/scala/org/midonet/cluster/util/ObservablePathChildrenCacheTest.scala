@@ -17,6 +17,10 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.{Callable, ExecutorService, ForkJoinPool, Future, TimeUnit}
 
+import rx.internal.operators.OperatorDoOnUnsubscribe
+
+import org.midonet.util.functors._
+
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.junit.runner.RunWith
@@ -99,7 +103,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val opcc = new ObservablePathChildrenCache(curator)
 
         makePaths(nItems)         // preseed
-        opcc connect ZK_ROOT         // connect
+        opcc connect ZK_ROOT      // connect
         opcc subscribe collector  // subscribe
 
         Thread sleep 1000
@@ -277,7 +281,7 @@ class ObservablePathChildrenCacheTest extends Suite
             val subscriber = new Callable[List[String]]() {
                     override def call() = {
                         val acc = new ChildDataAccumulator()
-                        opcc.subscribe(acc)
+                        opcc subscribe acc
                         // Wait until the ObservablePathChildrenCache is closed
                         while (acc.getOnCompletedEvents.isEmpty) {
                             Thread.`yield`()

@@ -29,8 +29,8 @@ import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 /**
  * Provides utility methods for testing Storage Service.
  */
-trait StorageServiceTester extends StorageService {
-    import org.midonet.cluster.data.storage.StorageServiceTester._
+trait StorageTester extends Storage {
+    import org.midonet.cluster.data.storage.StorageTester._
 
     private[storage] type Devices = Multimap[Class[_], Commons.UUID]
 
@@ -239,7 +239,7 @@ trait StorageServiceTester extends StorageService {
     }
 }
 
-private object StorageServiceTester {
+private object StorageTester {
     def ProtoPort(): Port = {
         ProtoPort(null, null)
     }

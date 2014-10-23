@@ -61,8 +61,8 @@
             <artifactId>midolman</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.netflix.rxjava</groupId>
-            <artifactId>rxjava-core</artifactId>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

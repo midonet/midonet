@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
  */
 @RunWith(classOf[JUnitRunner])
 class ZoomBulkCrudTest extends StorageBulkCrudTest
-                       with ZoomStorageServiceTester {
+                       with ZoomStorageTester {
     protected val ZK_PORT = 2181
     protected val ZK_CONNECT_STRING = "127.0.0.1:" + ZK_PORT
 

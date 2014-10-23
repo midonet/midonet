@@ -40,10 +40,11 @@ dependencies {
 
     compile libraries.collections4, libraries.commons_lang3,
             libraries.curator_recipes, libraries.guava, libraries.guice,
-            libraries.jackson_mapper, libraries.rx, libraries.scala
+            libraries.jackson_mapper, libraries.rx, libraries.scala,
+            libraries.scala_async
 
     testCompile libraries.curator_test, libraries.hamcrest,
-                libraries.logback, libraries.scalatest,
+                libraries.logback, libraries.scalatest, libraries.scala_async
                 libraries.test_frameworks
 }
 

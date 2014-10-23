@@ -19,17 +19,23 @@ import java.util
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 
+import scala.collection.mutable
+
 import com.google.inject.Inject
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.PathChildrenCache.StartMode
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent.Type._
 import org.apache.curator.framework.recipes.cache.{ChildData, PathChildrenCache, PathChildrenCacheEvent, PathChildrenCacheListener}
-import org.midonet.util.concurrent.Locks._
-import org.slf4j.LoggerFactory
-import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
-import rx.{Observer, Observable}
 
-import scala.collection.mutable
+import org.slf4j.LoggerFactory
+
+import rx.internal.operators.OperatorDoOnUnsubscribe
+import rx.{Observer, Observable}
+import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
+
+import org.midonet.util.concurrent.Locks._
+import org.midonet.util.functors._
 
 /**
  * The ObservablePathChildrenCache provides a wrapper around a ordinary
@@ -47,6 +53,7 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
 
     private type PathSub = Subject[Observable[ChildData], Observable[ChildData]]
     private type ChildMap = mutable.Map[String, Subject[ChildData, ChildData]]
+    private type UnsubscribeOp = OperatorDoOnUnsubscribe[Observable[ChildData]]
 
     /* The path we're watching */
     private var path: String = _
@@ -79,6 +86,8 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
             }
         }
     }
+
+    private val defaultUnsubscribe = new UnsubscribeOp(makeAction0 { })
 
     /** Connects to ZK, starts monitoring the node at the given absolute path */
     def connect(toPath: String) {
@@ -117,11 +126,14 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
       *   removals are in progress (this will typically be very little time
       *   unless many children are added at once).
       */
-    def subscribe(subscriber: Observer[_ >: Observable[ChildData]]) = {
+    def subscribe(subscriber: Observer[_ >: Observable[ChildData]],
+                  unsubscribe: UnsubscribeOp = defaultUnsubscribe) = {
         val funnel: PathSub = PublishSubject.create()
         withReadLock(childrenLock) {
             log.info("Subscribe: {}, curr. size {}", path, children.values.size)
-            val subscription = funnel subscribe subscriber
+            val subscription = funnel
+                .lift[Observable[ChildData]](unsubscribe)
+                .subscribe(subscriber)
 
             // Dump all known children
             children.values.foreach { childSubject =>

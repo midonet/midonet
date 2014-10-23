@@ -15,10 +15,13 @@
  */
 package org.midonet.util
 
-import rx.functions.Func1
+import rx.functions.{Action0, Func1}
 
 package object functors {
     def makeFunc1[T1, R](fn: T1 => R) = new Func1[T1, R] {
         override def call(t1: T1): R = fn(t1)
+    }
+    def makeAction0(fn: => Unit) = new Action0 {
+        override def call(): Unit = fn
     }
 }

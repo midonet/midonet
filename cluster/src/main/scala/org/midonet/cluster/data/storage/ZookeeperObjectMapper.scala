@@ -16,12 +16,21 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
+import java.util.concurrent.Executors
 import java.util.{ConcurrentModificationException, List => JList}
+
+import scala.async.Async.async
+import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
+import scala.collection.{Set, mutable}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{Message, TextFormat}
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
+import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException.{BadVersionException, NoNodeException, NodeExistsException}
 import org.apache.zookeeper.OpResult.ErrorResult
@@ -29,19 +38,17 @@ import org.apache.zookeeper.data.Stat
 import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.slf4j.LoggerFactory
+
 import rx.{Observable, Observer, Subscription}
 
-import scala.collection.JavaConverters._
-import scala.collection.concurrent.TrieMap
-import scala.collection.{Set, mutable}
-import scala.collection.mutable.ListBuffer
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
  * integrity through the use of field bindings, which must be declared
  * prior to any CRUD operations through the use of declareBinding().
+ *
  * For example:
  *
  * declareBinding(Port.class, "bridgeId", CLEAR,
@@ -70,10 +77,6 @@ import scala.collection.mutable.ListBuffer
  * error to attempt to delete a bridge while its portIds field contains
  * references (i.e., while it has ports).
  *
- * Note that the Midonet API does not actually allow a Bridge's portIds
- * to be set directly. However, this restriction is not enforced by the
- * ObjectMapper.
- *
  * Furthermore, if an object has a single-reference (non-list) field with
  * a non-null value, it is an error to create or update a third object in
  * a way that would cause that reference to be overwritten. For example, if
@@ -89,14 +92,17 @@ import scala.collection.mutable.ListBuffer
  */
 class ZookeeperObjectMapper(private val basePath: String,
                             private val curator: CuratorFramework)
-                            extends StorageService {
+                            extends Storage {
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
-
     @volatile private var built = false
 
     private val locksPath = basePath + "/zoomlocks/lock"
 
     private val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
+
+    private val executor = Executors.newCachedThreadPool()
+    private implicit val executionContext =
+        ExecutionContext.fromExecutorService(executor)
 
     private val classToIdGetter =
         new mutable.HashMap[Class[_], IdGetter]()
@@ -104,7 +110,7 @@ class ZookeeperObjectMapper(private val basePath: String,
         new mutable.HashMap[String, Class[_]]()
 
     private val instanceCaches = new mutable.HashMap[
-        Class[_], TrieMap[ObjId, InstanceSubscriptionCache[_]]]
+        Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
 
     /**
@@ -422,7 +428,8 @@ class ZookeeperObjectMapper(private val basePath: String,
 
         // Add the instance cache map last, since we use this to verify
         // registration.
-        instanceCaches(clazz) = new TrieMap[ObjId, InstanceSubscriptionCache[_]]
+        instanceCaches(clazz) =
+            new TrieMap[String, InstanceSubscriptionCache[_]]
     }
 
     def isRegistered(clazz: Class[_]) = {
@@ -537,70 +544,91 @@ class ZookeeperObjectMapper(private val basePath: String,
     override def delete(clazz: Class[_], id: ObjId) =
         multi(List(DeleteOp(clazz, id)))
 
-    /**
-     * Gets the specified instance of the specified class from Zookeeper.
-     */
     @throws[NotFoundException]
-    override def get[T](clazz: Class[T], id: ObjId): T = {
+    override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
-        val data = try curator.getData.forPath(getPath(clazz, id)) catch {
-            case nne: NoNodeException => throw new NotFoundException(clazz, id)
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
 
-        deserialize(data, clazz)
+        instanceCaches(clazz).get(id.toString) match {
+            case Some(cache) =>
+                Promise.successful(cache.current.asInstanceOf[T]).future
+            case None =>
+                val p = Promise[T]()
+                val cb = new BackgroundCallback {
+                    override def processResult(client: CuratorFramework,
+                                               e: CuratorEvent): Unit = {
+                        if (e.getStat == null) {
+                            p.failure(new NotFoundException(clazz, id))
+                        } else {
+                            try {
+                                p.success(deserialize(e.getData, clazz))
+                            } catch {
+                                case t: Throwable => p.failure(t)
+                            }
+                        }
+                    }
+                }
+                curator.getData
+                    .inBackground(cb)
+                    .forPath(getPath(clazz, id))
+                p.future
+        }
     }
 
-
-    /**
-     * Gets the specified instances of the specified class from storage.
-     * Any objects not found are assumed to have been deleted since the ID list
-     * was retrieved, and are silently ignored.
-     */
-    override def getAll[T](clazz: Class[T], ids: JList[_ <: ObjId]): JList[T] = {
+    override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]):
+            Seq[Future[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-
-        val ts = ListBuffer[T]()
-        for (id <- ids.asScala) {
-            try ts += get(clazz, id) catch {
-                case nne: NotFoundException =>
-                // Must have been deleted since fetching IDs. Ignore.
-                case ex: Exception =>
-                    throw new InternalObjectMapperException(ex)
-            }
-        }
-        ts.toList.asJava
+        ids.map { id => get(clazz, id) }
     }
 
     /**
      * Gets all instances of the specified class from Zookeeper.
      */
-    override def getAll[T](clazz: Class[T]): JList[T] = {
+    override def getAll[T](clazz: Class[T]): Future[Seq[Future[T]]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-        val ids = try curator.getChildren.forPath(getPath(clazz)) catch {
+
+        val p = Promise[Seq[Future[T]]]()
+        val cb = new BackgroundCallback {
+            override def processResult(client: CuratorFramework,
+                                       evt: CuratorEvent): Unit = {
+                assert(CuratorEventType.CHILDREN == evt.getType)
+                p.success(getAll(clazz, evt.getChildren.asScala))
+            }
+        }
+
+        try {
+            curator.getChildren.inBackground(cb).forPath(getPath(clazz))
+        } catch {
             case ex: Exception =>
                 // Should have created this during class registration.
                 throw new InternalObjectMapperException(
                     s"Node ${getPath(clazz)} does not exist in Zookeeper.", ex)
         }
-
-        getAll(clazz, ids.asInstanceOf[JList[ObjId]])
+        p.future
     }
 
     /**
      * Returns true if the specified object exists in Zookeeper.
      */
-    override def exists(clazz: Class[_], id: ObjId): Boolean = {
+    override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         assertBuilt()
         assert(isRegistered(clazz))
+        val p = Promise[Boolean]()
+        val cb = new BackgroundCallback {
+            override def processResult(client: CuratorFramework,
+                                       evt: CuratorEvent): Unit = {
+                assert(CuratorEventType.EXISTS == evt.getType)
+                p.success(evt.getStat != null)
+            }
+        }
         try {
-            curator.checkExists().forPath(getPath(clazz, id)) != null
+            curator.checkExists().inBackground(cb).forPath(getPath(clazz, id))
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
+        p.future
     }
 
     /**
@@ -678,16 +706,17 @@ class ZookeeperObjectMapper(private val basePath: String,
                               obs: Observer[_ >: T]): Subscription = {
         assertBuilt()
         assert(isRegistered(clazz))
-        val cache = instanceCaches(clazz).getOrElse(id, {
+        instanceCaches(clazz).getOrElse(id.toString, {
             val path = getPath(clazz, id)
-            val nw = new InstanceSubscriptionCache(clazz, path, curator)
-            instanceCaches(clazz).putIfAbsent(id, nw) match {
-                case Some(cur) => nw.close(); cur
-                case None => nw
-            }
-        }).asInstanceOf[InstanceSubscriptionCache[T]]
-        cache.subscribe(obs)
-    }
+            val newCache = new InstanceSubscriptionCache(clazz, path, curator)
+            instanceCaches(clazz)
+                .putIfAbsent(id.toString, newCache)
+                .getOrElse {
+                    async { newCache.connect() }
+                    newCache
+                }
+        }).asInstanceOf[InstanceSubscriptionCache[T]].subscribe(obs)
+     }
 
     /**
      * Subscribes to the specified class. Upon subscription at time t0,
@@ -706,14 +735,16 @@ class ZookeeperObjectMapper(private val basePath: String,
             obs: Observer[_ >: Observable[T]]): Subscription = {
         assertBuilt()
         assert(isRegistered(clazz))
-        val cache = classCaches.getOrElse(clazz, {
-            val nw = new ClassSubscriptionCache(clazz, getPath(clazz), curator)
-            classCaches.putIfAbsent(clazz, nw) match {
-                case Some(cur) => nw.close(); cur
-                case None => nw
-            }
-        }).asInstanceOf[ClassSubscriptionCache[T]]
-        cache.subscribe(obs)
+        classCaches.getOrElse(clazz, {
+            val path = getPath(clazz)
+            val newCache = new ClassSubscriptionCache(clazz, path, curator)
+            classCaches
+                .putIfAbsent(clazz, newCache)
+                .getOrElse {
+                    async { newCache.connect() }
+                    newCache
+                }
+        }).asInstanceOf[ClassSubscriptionCache[T]].subscribe(obs)
     }
 
     private def assertBuilt() {

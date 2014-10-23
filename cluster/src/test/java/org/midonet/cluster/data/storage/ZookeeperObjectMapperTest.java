@@ -19,8 +19,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import scala.collection.Iterator;
+import scala.collection.Seq;
+import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 import scala.None$;
+import scala.util.Failure;
+import scala.util.Try;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -50,6 +58,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static scala.concurrent.Await.ready;
 
 public class ZookeeperObjectMapperTest {
 
@@ -176,6 +185,35 @@ public class ZookeeperObjectMapperTest {
         return Commons.UUID.newBuilder().setMsb(uuid.getMostSignificantBits())
                                         .setLsb(uuid.getLeastSignificantBits())
                                         .build();
+    }
+
+    public static <T> T sync(Future<T> f) throws Exception {
+        ready(f, Duration.create(10, TimeUnit.SECONDS));
+        Try<T> tryValue = f.value().get();
+        if (tryValue.isFailure()) {
+            Throwable problem = ((Failure<T>)tryValue).exception();
+            if (problem instanceof Exception) {
+                throw (Exception)problem;
+            } else {
+                throw new RuntimeException(problem);
+            }
+        } else {
+            return tryValue.get();
+        }
+    }
+
+    private static <T> List<T> syncAll(Seq<Future<T>> fs) throws Exception {
+        List<T> _fs = new ArrayList<>(fs.size());
+        Iterator<Future<T>> it = fs.iterator();
+        while(it.hasNext()) {
+            _fs.add(sync(it.next()));
+        }
+        return _fs;
+    }
+
+    private static <T> List<T> syncAll(Future<Seq<Future<T>>> f)
+            throws Exception {
+        return syncAll(sync(f));
     }
 
     @BeforeClass
@@ -324,17 +362,17 @@ public class ZookeeperObjectMapperTest {
         zom.create(bridge);
 
         // Chains should have backrefs to the bridge.
-        assertThat(zom.get(PojoChain.class, chain1.id).bridgeIds,
-                contains(bridge.id));
-        assertThat(zom.get(PojoChain.class, chain2.id).bridgeIds,
-                contains(bridge.id));
+        assertThat(sync(zom.get(PojoChain.class, chain1.id)).bridgeIds,
+                   contains(bridge.id));
+        assertThat(sync(zom.get(PojoChain.class, chain2.id)).bridgeIds,
+                   contains(bridge.id));
 
         // Add a router referencing chain1 twice.
         PojoRouter router = new PojoRouter("router1", chain1.id, chain1.id);
         zom.create(router);
 
         // Chain1 should have two references to the router.
-        assertThat(zom.get(PojoChain.class, chain1.id).routerIds,
+        assertThat(sync(zom.get(PojoChain.class, chain1.id)).routerIds,
                    contains(router.id, router.id));
 
         // Add two ports each to bridge and router, linking two of them.
@@ -347,11 +385,12 @@ public class ZookeeperObjectMapperTest {
 
         // The ports' IDs should show up in their parents' portIds lists,
         // and bPort2 should have its peerId set.
-        assertThat(zom.get(PojoBridge.class, bridge.id).portIds,
+        assertThat(sync(zom.get(PojoBridge.class, bridge.id)).portIds,
                    contains(bPort1.id, bPort2.id));
-        assertThat(zom.get(PojoRouter.class, router.id).portIds,
+        assertThat(sync(zom.get(PojoRouter.class, router.id)).portIds,
                    contains(rPort1.id, rPort2.id));
-        assertEquals(rPort2.id, zom.get(PojoPort.class, bPort2.id).peerId);
+        assertEquals(rPort2.id,
+                     sync(zom.get(PojoPort.class, bPort2.id)).peerId);
 
         // Should not be able to link bPort1 to rPort2 because rPort2 is
         // already linked.
@@ -364,7 +403,8 @@ public class ZookeeperObjectMapperTest {
         // Link bPort1 and rPort1 with an update.
         bPort1.peerId = rPort1.id;
         zom.update(bPort1);
-        assertEquals(bPort1.id, zom.get(PojoPort.class, rPort1.id).peerId);
+        assertEquals(bPort1.id,
+                     sync(zom.get(PojoPort.class, rPort1.id)).peerId);
 
         // Add some rules to the chains.
         PojoRule c1Rule1 = new PojoRule("chain1-rule1", chain1.id,
@@ -375,10 +415,10 @@ public class ZookeeperObjectMapperTest {
                                 rPort1.id, bPort1.id);
         createObjects(c1Rule1, c1Rule2, c2Rule1);
 
-        assertThat(zom.get(PojoChain.class, chain1.id).ruleIds,
-                contains(c1Rule1.id, c1Rule2.id));
-        assertThat(zom.get(PojoChain.class, chain2.id).ruleIds,
-                contains(c2Rule1.id));
+        assertThat(sync(zom.get(PojoChain.class, chain1.id)).ruleIds,
+                   contains(c1Rule1.id, c1Rule2.id));
+        assertThat(sync(zom.get(PojoChain.class, chain2.id)).ruleIds,
+                   contains(c2Rule1.id));
 
         assertPortsRuleIds(bPort1, c1Rule1.id, c2Rule1.id);
         assertPortsRuleIds(bPort2, c1Rule1.id, c1Rule2.id);
@@ -397,7 +437,7 @@ public class ZookeeperObjectMapperTest {
         assertPortsRuleIds(bPort1, c1Rule1.id, c2Rule1.id);
         assertPortsRuleIds(bPort2, c1Rule1.id, c1Rule2.id);
         assertPortsRuleIds(rPort1, c1Rule2.id, c2Rule1.id);
-        assertThat(zom.get(PojoPort.class, rPort2.id).ruleIds, empty());
+        assertThat(sync(zom.get(PojoPort.class, rPort2.id)).ruleIds, empty());
 
         // Should not be able to delete the bridge while it has ports.
         try {
@@ -408,33 +448,33 @@ public class ZookeeperObjectMapperTest {
 
         // Delete a bridge port and verify that references to it are cleared.
         zom.delete(PojoPort.class, bPort1.id);
-        assertFalse(zom.exists(PojoPort.class, bPort1.id));
-        assertThat(zom.get(PojoBridge.class, bridge.id).portIds,
+        assertFalse((Boolean)sync(zom.exists(PojoPort.class, bPort1.id)));
+        assertThat(sync(zom.get(PojoBridge.class, bridge.id)).portIds,
                 contains(bPort2.id));
-        assertThat(zom.get(PojoRule.class, c1Rule1.id).portIds,
+        assertThat(sync(zom.get(PojoRule.class, c1Rule1.id)).portIds,
                 contains(bPort2.id));
-        assertThat(zom.get(PojoRule.class, c2Rule1.id).portIds,
+        assertThat(sync(zom.get(PojoRule.class, c2Rule1.id)).portIds,
                 contains(rPort1.id));
 
         // Delete the other bridge port.
         zom.delete(PojoPort.class, bPort2.id);
-        assertFalse(zom.exists(PojoPort.class, bPort2.id));
-        assertThat(zom.get(PojoBridge.class, bridge.id).portIds, empty());
-        assertNull(zom.get(PojoPort.class, rPort2.id).peerId);
-        assertThat(zom.get(PojoRule.class, c1Rule1.id).portIds, empty());
-        assertThat(zom.get(PojoRule.class, c1Rule2.id).portIds,
-                contains(rPort1.id));
+        assertFalse((Boolean)sync(zom.exists(PojoPort.class, bPort2.id)));
+        assertThat(sync(zom.get(PojoBridge.class, bridge.id)).portIds, empty());
+        assertNull(sync(zom.get(PojoPort.class, rPort2.id)).peerId);
+        assertThat(sync(zom.get(PojoRule.class, c1Rule1.id)).portIds, empty());
+        assertThat(sync(zom.get(PojoRule.class, c1Rule2.id)).portIds,
+                   contains(rPort1.id));
 
         // Delete the bridge and verify references to it are cleared.
         zom.delete(PojoBridge.class, bridge.id);
-        assertThat(zom.get(PojoChain.class, chain1.id).bridgeIds, empty());
-        assertThat(zom.get(PojoChain.class, chain2.id).bridgeIds, empty());
+        assertThat(sync(zom.get(PojoChain.class, chain1.id)).bridgeIds, empty());
+        assertThat(sync(zom.get(PojoChain.class, chain2.id)).bridgeIds, empty());
 
         // Delete a chain and verify that the delete cascades to rules.
         zom.delete(PojoChain.class, chain1.id);
-        assertFalse(zom.exists(PojoChain.class, chain1.id));
-        assertFalse(zom.exists(PojoRule.class, c1Rule1.id));
-        assertFalse(zom.exists(PojoRule.class, c1Rule2.id));
+        assertFalse((Boolean)sync(zom.exists(PojoChain.class, chain1.id)));
+        assertFalse((Boolean)sync(zom.exists(PojoRule.class, c1Rule1.id)));
+        assertFalse((Boolean)sync(zom.exists(PojoRule.class, c1Rule2.id)));
 
         // Additionally, the cascading delete of c1Rule2 should have cleared
         // rPort1's reference to it.
@@ -502,7 +542,7 @@ public class ZookeeperObjectMapperTest {
     public void testGetNonExistingItem() throws Exception {
         UUID id = UUID.randomUUID();
         try {
-            zom.get(PojoBridge.class, id);
+            sync(zom.get(PojoBridge.class, id));
             fail("Should not be able to get non-existing object.");
         } catch (NotFoundException ex) {
             assertEquals(PojoBridge.class, ex.clazz());
@@ -546,7 +586,8 @@ public class ZookeeperObjectMapperTest {
                 this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
         zom.create(bridge);
 
-        Devices.Bridge bridgeOut = zom.get(Devices.Bridge.class, bridgeUuid);
+        Devices.Bridge bridgeOut =
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
         assertEquals("The retrieved proto object is equal to the original.",
                      bridge, bridgeOut);
     }
@@ -578,12 +619,13 @@ public class ZookeeperObjectMapperTest {
                 this.createProtoBridge(bridgeUuid, "bridge", chainUuid, null);
         zom.create(bridge);
 
-        Devices.Bridge bridgeOut = zom.get(Devices.Bridge.class, bridgeUuid);
+        Devices.Bridge bridgeOut =
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
         assertEquals("The retrieved proto object is equal to the original.",
                      bridge, bridgeOut);
 
         // Chains should have backrefs to the bridge.
-        Devices.Chain in = zom.get(Devices.Chain.class, chainUuid);
+        Devices.Chain in = sync(zom.get(Devices.Chain.class, chainUuid));
         assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
     }
 
@@ -606,7 +648,8 @@ public class ZookeeperObjectMapperTest {
         // Update the bridge data in ZooKeeper.
         zom.update(updatedBridge);
 
-        Devices.Bridge retrieved = zom.get(Devices.Bridge.class, bridgeUuid);
+        Devices.Bridge retrieved =
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
         assertEquals("The retrieved proto object is equal to the updated "
                      + "bridge.",
                      updatedBridge, retrieved);
@@ -618,21 +661,25 @@ public class ZookeeperObjectMapperTest {
                 this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
         zom.create(bridge);
 
-        Devices.Chain inChain =
-                this.createProtoChain(chainUuid, "in_chain");
+        Devices.Chain inChain = this.createProtoChain(chainUuid, "in_chain");
         zom.create(inChain);
+
+        // make sure they are created
+        sync(zom.get(Devices.Chain.class, inChain.getId()));
 
         // Update the bridge with an in-bound chain.
         Devices.Bridge updatedBridge =
                 bridge.toBuilder().setInboundFilterId(chainUuid).build();
         zom.update(updatedBridge);
 
-        Devices.Bridge bridgeOut = zom.get(Devices.Bridge.class, bridgeUuid);
+        Devices.Bridge bridgeOut =
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
         assertEquals("The retrieved bridge is updated with the chain.",
                      chainUuid, bridgeOut.getInboundFilterId());
 
         // Chains should have back refs to the bridge.
-        Devices.Chain in = zom.get(Devices.Chain.class, chainUuid);
+        Devices.Chain in =
+            sync(zom.get(Devices.Chain.class, chainUuid));
         assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
     }
 
@@ -721,6 +768,9 @@ public class ZookeeperObjectMapperTest {
         PojoRule rule = new PojoRule("rule", null);
         zom.create(rule);
 
+        // ensure that the bridge is created
+        sync(zom.get(PojoRule.class, rule.id));
+
         zom.update(rule, new UpdateValidator<PojoRule>() {
             @Override
             public PojoRule validate(PojoRule oldObj, PojoRule newObj) {
@@ -729,7 +779,7 @@ public class ZookeeperObjectMapperTest {
             }
         });
 
-        PojoRule renamed = zom.get(PojoRule.class, rule.id);
+        PojoRule renamed = sync(zom.get(PojoRule.class, rule.id));
         assertEquals("renamed", renamed.name);
     }
 
@@ -737,6 +787,9 @@ public class ZookeeperObjectMapperTest {
     public void testUpdateWithValidatorReturningModifiedObj() throws Exception {
         final PojoRule rule = new PojoRule("rule", null);
         zom.create(rule);
+
+        // ensure that the bridge is created
+        sync(zom.get(PojoRule.class, rule.id));
 
         zom.update(rule, new UpdateValidator<PojoRule>() {
             @Override
@@ -747,7 +800,7 @@ public class ZookeeperObjectMapperTest {
             }
         });
 
-        PojoRule replacement = zom.get(PojoRule.class, rule.id);
+        PojoRule replacement = sync(zom.get(PojoRule.class, rule.id));
         assertEquals("replacement", replacement.name);
     }
 
@@ -781,7 +834,7 @@ public class ZookeeperObjectMapperTest {
 
         // Get on the bridge should throw a NotFoundException.
         try {
-            zom.get(Devices.Bridge.class, bridgeUuid);
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
             fail("The deleted bridge is returned.");
         } catch (NotFoundException nfe) {
             // The bridge has been properly deleted.
@@ -802,14 +855,14 @@ public class ZookeeperObjectMapperTest {
         zom.delete(Devices.Bridge.class, bridgeUuid);
         // Get on the bridge should throw a NotFoundException.
         try {
-            zom.get(Devices.Bridge.class, bridgeUuid);
+            sync(zom.get(Devices.Bridge.class, bridgeUuid));
             fail("The deleted bridge is returned.");
         } catch (NotFoundException nfe) {
             // The bridge has been properly deleted.
         }
 
         // Chains should not have the backrefs to the bridge.
-        Devices.Chain in = zom.get(Devices.Chain.class, chainUuid);
+        Devices.Chain in = sync(zom.get(Devices.Chain.class, chainUuid));
         assertTrue(in.getBridgeIdsList().isEmpty());
     }
 
@@ -826,19 +879,18 @@ public class ZookeeperObjectMapperTest {
 
     @Test
     public void testGetAllWithEmptyResult() throws Exception {
-        List<PojoChain> chains = zom.getAll(PojoChain.class);
-        assertTrue(chains.isEmpty());
+        assertTrue(syncAll(zom.getAll(PojoChain.class)).isEmpty());
     }
 
     @Test
     public void testGetAllWithMultipleObjects() throws Exception {
-        zom.getAll(PojoChain.class);
+        syncAll(zom.getAll(PojoChain.class));
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         zom.create(chain1);
-        zom.getAll(PojoChain.class);
+        syncAll(zom.getAll(PojoChain.class));
         zom.create(chain2);
-        List<PojoChain> chains = zom.getAll(PojoChain.class);
+        List<PojoChain> chains = syncAll(zom.getAll(PojoChain.class));
         assertEquals(2, chains.size());
     }
 
@@ -847,7 +899,9 @@ public class ZookeeperObjectMapperTest {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
 
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
+                                                      chain.id, 1);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub.updates);
         assertNotNull(sub.t);
         assertEquals(chain.name, sub.t.name);
@@ -857,10 +911,13 @@ public class ZookeeperObjectMapperTest {
     public void testSubscriberGetsUpdates() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
-
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
+                                                      chain.id, 1);
+        sub.await(1, TimeUnit.SECONDS);
+        sub.reset(1);
         chain.name = "renamedChain";
-        updateAndWait(chain, sub);
+        zom.update(chain);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub.updates);
         assertEquals(chain.name, sub.t.name);
     }
@@ -869,16 +926,20 @@ public class ZookeeperObjectMapperTest {
     public void testSubscriberGetsDelete() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, chain.id);
-        deleteAndWait(PojoChain.class, chain.id, sub);
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
+                                                      chain.id, 1);
+        sub.await(1, TimeUnit.SECONDS);
+        sub.reset(1);
+        zom.delete(PojoChain.class, chain.id);
+        sub.await(1, TimeUnit.SECONDS);
         assertNull(sub.t);
     }
 
     @Test
     public void testSubscribeToNonexistentObject() throws Throwable {
         UUID id = UUID.randomUUID();
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id);
-        Thread.sleep(100);
+        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id, 1);
+        sub.await(1, TimeUnit.SECONDS);
         assertThat(sub.ex, instanceOf(NotFoundException.class));
         NotFoundException ex = (NotFoundException)sub.ex;
         assertEquals(ex.clazz(), PojoChain.class);
@@ -889,12 +950,18 @@ public class ZookeeperObjectMapperTest {
     public void testSecondSubscriberGetsLatestVersion() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub1 = subscribe(PojoChain.class, chain.id);
+        ObjectSubscription<PojoChain> sub1 = subscribe(PojoChain.class,
+                                                       chain.id, 1);
 
+        sub1.await(1, TimeUnit.SECONDS);
+        sub1.reset(1);
         chain.name = "renamedChain";
-        updateAndWait(chain, sub1);
+        zom.update(chain);
+        sub1.await(1, TimeUnit.SECONDS);
 
-        ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class, chain.id);
+        ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class,
+                                                       chain.id, 1);
+        sub2.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub2.updates);
         assertNotNull(sub2.t);
         assertEquals("renamedChain", sub2.t.name);
@@ -905,8 +972,8 @@ public class ZookeeperObjectMapperTest {
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         createObjects(chain1, chain2);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
-        Thread.sleep(100);
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 2);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub.subs.size());
     }
 
@@ -914,13 +981,15 @@ public class ZookeeperObjectMapperTest {
     public void testClassSubscriberGetsNewObject() throws Exception {
         PojoChain chain1 = new PojoChain("chain1");
         zom.create(chain1);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
-        Thread.sleep(100);
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub.subs.size());
         assertEquals("chain1", sub.subs.get(0).t.name);
 
         PojoChain chain2 = new PojoChain("chain2");
-        createAndWait(chain2, sub);
+        sub.reset(1);
+        zom.create(chain2);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub.subs.size());
     }
 
@@ -928,48 +997,42 @@ public class ZookeeperObjectMapperTest {
     public void testSecondClassSubscriberGetsCurrentList() throws Exception {
         PojoChain chain1 = new PojoChain("chain1");
         zom.create(chain1);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class);
-        Thread.sleep(100);
+        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
+        sub.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub.subs.size());
 
         PojoChain chain2 = new PojoChain("chain2");
-        createAndWait(chain2, sub);
-        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class);
+        sub.reset(1);
+        zom.create(chain2);
+        sub.await(1, TimeUnit.SECONDS);
+
+        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 2);
+        sub2.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub2.subs.size());
     }
 
     @Test
     public void testClassObservableIgnoresDeletedInstances() throws Exception {
-        ClassSubscription<PojoChain> sub1 = subscribe(PojoChain.class);
+        ClassSubscription<PojoChain> sub1 = subscribe(PojoChain.class, 2);
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
-        createAndWait(chain1, sub1);
-        createAndWait(chain2, sub1);
+        zom.create(chain1);
+        zom.create(chain2);
+        sub1.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub1.subs.size());
 
         ObjectSubscription<PojoChain> chain1Sub =
             (sub1.subs.get(0).t.id.equals(chain1.id)) ?
             sub1.subs.get(0) : sub1.subs.get(1);
-        deleteAndWait(PojoChain.class, chain1.id, chain1Sub);
+        chain1Sub.reset(1);
+        zom.delete(PojoChain.class, chain1.id);
+        chain1Sub.await(1, TimeUnit.SECONDS);
         assertNull(chain1Sub.t);
 
-        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class);
+        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 1);
+        sub2.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub2.subs.size());
         assertEquals("chain2", sub2.subs.get(0).t.name);
-    }
-
-    private <T> ObjectSubscription<T> subscribe(
-        Class<T> clazz, Object id) throws Exception{
-
-        ObjectSubscription<T> sub = new ObjectSubscription<>();
-        zom.subscribe(clazz, id, sub);
-        return sub;
-    }
-
-    private <T> ClassSubscription<T> subscribe(Class<T> clazz) {
-        ClassSubscription<T> sub = new ClassSubscription<>();
-        zom.subscribeAll(clazz, sub);
-        return sub;
     }
 
     private class ObjectSubscription<T> implements Observer<T> {
@@ -977,76 +1040,98 @@ public class ZookeeperObjectMapperTest {
         public int updates = 0;
         public T t = null;
         public Throwable ex = null;
+        private volatile CountDownLatch counter;
+
+        public ObjectSubscription(int counter) {
+            this.counter = new CountDownLatch(counter);
+        }
 
         @Override
-        public synchronized void onCompleted() {
+        public void onCompleted() {
             t = null;
-            this.notifyAll();
+            counter.countDown();
         }
 
         @Override
-        public synchronized void onError(Throwable e) {
+        public void onError(Throwable e) {
             ex = e;
-            this.notifyAll();
+            counter.countDown();
         }
 
         @Override
-        public synchronized void onNext(T t) {
+        public void onNext(T t) {
             updates++;
             this.t = t;
-            this.notifyAll();
+            counter.countDown();
+        }
+
+        public void await(long timeout, TimeUnit unit)
+                throws InterruptedException {
+            assertTrue(counter.await(timeout, unit));
+        }
+
+        public void reset(int counter) {
+            this.counter = new CountDownLatch(counter);
         }
     }
 
     private class ClassSubscription<T> implements Observer<Observable<T>> {
 
-        List<ObjectSubscription<T>> subs = new ArrayList<>();
+        public final List<ObjectSubscription<T>> subs = new ArrayList<>();
+        private volatile CountDownLatch counter;
+
+        public ClassSubscription(int counter) {
+            this.counter = new CountDownLatch(counter);
+        }
 
         @Override
-        public synchronized void onCompleted() {
+        public void onCompleted() {
             fail("Class subscription should not complete.");
         }
 
         @Override
-        public synchronized void onError(Throwable e) {
+        public void onError(Throwable e) {
             throw new RuntimeException(
                 "Got exception from class subscription", e);
         }
 
         @Override
-        public synchronized void onNext(Observable<T> tObservable) {
-            ObjectSubscription<T> sub = new ObjectSubscription<>();
+        public void onNext(Observable<T> tObservable) {
+            ObjectSubscription<T> sub = new ObjectSubscription<>(1);
             tObservable.subscribe(sub);
             subs.add(sub);
-            this.notifyAll();
+            counter.countDown();
+        }
+
+        public void await(long timeout, TimeUnit unit)
+                throws InterruptedException {
+            assertTrue(counter.await(timeout, unit));
+        }
+
+        public void reset(int counter) {
+            this.counter = new CountDownLatch(counter);
         }
     }
 
-    private void createAndWait(Object o, Object lock) throws Exception {
-        synchronized (lock) {
-            zom.create(o);
-            lock.wait();
-        }
+    private <T> ObjectSubscription<T> subscribe(
+        Class<T> clazz, Object id, int counter) throws Exception{
+
+        ObjectSubscription<T> sub = new ObjectSubscription<>(counter);
+        zom.subscribe(clazz, id, sub);
+        return sub;
     }
 
-    private void updateAndWait(Object o, Object lock) throws Exception {
-        synchronized (lock) {
-            zom.update(o);
-            lock.wait();
-        }
-    }
-
-    private void deleteAndWait(Class<?> clazz, Object id, Object lock)
-        throws Exception {
-        synchronized (lock) {
-            zom.delete(clazz, id);
-            lock.wait();
-        }
+    private <T> ClassSubscription<T> subscribe(Class<T> clazz, int counter)
+            throws Exception {
+        ClassSubscription<T> sub = new ClassSubscription<>(counter);
+        zom.subscribeAll(clazz, sub);
+        return sub;
     }
 
     private void assertPortsRuleIds(PojoPort port, UUID... ruleIds)
             throws Exception {
-        assertThat(zom.get(PojoPort.class, port.id).ruleIds, contains(ruleIds));
+        assertThat(sync(zom.get(PojoPort.class, port.id)).ruleIds,
+                   contains(ruleIds));
     }
 
     private void createObjects(Object... objects) throws Exception {

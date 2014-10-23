@@ -21,7 +21,7 @@ import com.google.inject.Provider;
 import org.apache.curator.framework.CuratorFramework;
 
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.data.storage.StorageService;
+import org.midonet.cluster.data.storage.Storage;
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
 
 /**
@@ -33,12 +33,12 @@ import org.midonet.cluster.data.storage.ZookeeperObjectMapper;
 public class MidostoreModule extends PrivateModule {
 
     private static class StorageServiceProvider
-        implements Provider<StorageService> {
+        implements Provider<Storage> {
         @Inject
         ZookeeperConfig cfg;
         @Inject
         CuratorFramework curator;
-        @Override public StorageService get() {
+        @Override public Storage get() {
             return new ZookeeperObjectMapper(cfg.getZkRootPath() + "/zoom",
                                              curator);
         }
@@ -46,9 +46,9 @@ public class MidostoreModule extends PrivateModule {
 
     @Override
     protected void configure() {
-        bind(StorageService.class)
+        bind(Storage.class)
             .toProvider(StorageServiceProvider.class)
             .asEagerSingleton();
-        expose(StorageService.class);
+        expose(Storage.class);
     }
 }

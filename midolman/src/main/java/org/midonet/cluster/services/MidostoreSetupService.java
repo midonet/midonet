@@ -15,18 +15,18 @@
  */
 package org.midonet.cluster.services;
 
+import javax.inject.Inject;
+
 import com.google.common.util.concurrent.AbstractService;
+
 import org.apache.curator.framework.CuratorFramework;
+
 import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.cluster.data.storage.StorageService;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.DataWriteVersion;
-
-import javax.inject.Inject;
-
 
 /**
  * The MidostoreSetupService is in charge of ensuring that the topology storage
@@ -46,9 +46,6 @@ public class MidostoreSetupService extends AbstractService {
 
     @Inject
     protected CuratorFramework curator;
-
-    @Inject
-    protected StorageService store;
 
     @Override
     protected void doStart() {
