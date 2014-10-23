@@ -43,3 +43,21 @@ message Int32Range {
     optional int32 start = 1;
     optional int32 end = 2;
 }
+
+enum RuleDirection {
+    EGRESS = 0;
+    INGRESS = 1;
+}
+
+enum EtherType {
+    ARP = 2054;    // 0x0806
+    IPv4 = 2048;   // 0x0800
+    IPv6 = 34525;  // 0x86dd
+}
+
+enum Protocol {
+    TCP = 6;      // 0x6
+    UDP = 17;     // 0x11
+    ICMP = 1;     // 0x1
+    ICMPv6 = 58;  // 0x3a
+}

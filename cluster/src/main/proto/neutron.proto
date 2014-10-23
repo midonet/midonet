@@ -22,9 +22,195 @@ option java_outer_classname = "Neutron";
 
 message NeutronNetwork {
     optional UUID id = 1;
-    optional string tenant_id = 2; //  legacy: BridgeResource::list(tenant)
+    optional string tenant_id = 2;
     optional string name = 3;
     optional bool shared = 4;
     optional bool admin_state_up = 5;
-    optional bool external = 6;
+    optional string status = 6;
+    optional bool external = 7;
+}
+
+message NeutronSubnet {
+    optional UUID id = 1;
+    optional UUID network_id = 2;
+    optional string tenant_id = 3;
+    optional string name = 4;
+    optional string cidr = 5;
+    optional uint32 ip_version = 6;
+    optional IPAddress gateway_ip = 7;
+
+    message IPAllocationPool {
+        optional IPAddress first_ip = 1;
+        optional IPAddress last_ip = 2;
+    }
+    repeated IPAllocationPool allocation_pools = 8;
+    repeated string dns_nameservers = 9;
+    repeated NeutronRoute host_routes = 10;
+    optional bool enable_dhcp = 11;
+    optional bool shared = 12;
+}
+
+message NeutronRoute {
+    optional string destination = 1;
+    optional string nexthop = 2;
+}
+
+message NeutronPort {
+    optional UUID id = 1;
+    optional UUID network_id = 2;
+    optional string tenant_id = 3;
+    optional string name = 4;
+
+    optional string mac_address = 5;
+    optional bool admin_state_up = 6;
+
+    message IPAllocation {
+        optional IPAddress ip_address = 1;
+        optional UUID subnet_id = 2;
+    }
+    repeated IPAllocation fixed_ips = 7;
+
+    enum DeviceOwner {
+        DHCP = 0;
+        FLOATINGIP = 1;
+        ROUTER_GW = 2;
+        ROUTER_INTF = 3;
+    }
+    optional string device_owner = 8;
+    optional string device_id = 9;
+    optional string status = 10;
+
+    repeated UUID security_groups = 11;
+}
+
+message NeutronRouter {
+    optional UUID id = 1;
+    optional string name = 2;
+    optional string status = 3;
+    optional string tenant_id = 4;
+    optional UUID gw_port_id = 5;
+
+    message ExternalGatewayInfo {
+        optional UUID network_id = 1;
+        optional bool enable_snat = 2;
+    }
+    optional ExternalGatewayInfo external_gateway_info = 6;
+    optional bool admin_state_up = 7;
+}
+
+message NeutronRouterInterface {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID port_id = 3;
+    optional UUID subnet_id = 4;
+}
+
+message FloatingIp {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID router_id = 3;
+    optional UUID port_id = 4;
+    optional IPAddress floating_ip_address = 5;
+    optional IPAddress fixed_ip_address = 6;
+    optional UUID floating_network_id = 7;
+}
+
+message SecurityGroup {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    repeated SecurityGroupRule security_group_rules = 5;
+}
+
+message SecurityGroupRule {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID security_group_id = 3;
+    optional RuleDirection direction = 4;
+    optional EtherType ethertype = 5;
+    optional Protocol protocol = 6;
+    optional int32 port_range_min = 7;
+    optional int32 port_range_max = 8;
+    optional UUID remote_group_id = 9;
+    optional string remote_ip_prefix = 10;
+}
+
+message NeutronLoadBalancerPool {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional bool admin_state_up = 5;
+    optional string lb_method = 6;
+    repeated UUID members = 7;
+    optional UUID subnet_id = 8;
+    optional UUID vip_id = 9;
+    repeated UUID health_monitors = 10;
+    optional string protocol = 11;
+    optional string provider = 12;
+    optional UUID router_id = 13;
+    optional string status = 14;
+    optional string status_description = 15;
+}
+
+message NeutronLoadBalancerPoolMember {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID pool_id = 3;
+    optional IPAddress address = 4;
+    optional bool admin_state_up = 5;
+    optional int32 protocol_port = 6;
+    optional int32 weight = 7;
+    optional string status = 8;
+    optional string status_description = 9;
+}
+
+message NeutronLoadBalancerPoolHealthMonitor {
+    optional UUID id = 1;
+}
+
+message VIP {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional UUID subnet_id = 3;
+    optional string name = 4;
+    optional IPAddress address = 5;
+    optional UUID pool_id = 6;
+    optional UUID port_id = 7;
+    optional string description = 8;
+    optional bool admin_state_up = 9;
+    optional string protocol = 10;
+    optional int32 protocol_port = 11;
+    optional int32 connection_limit = 12;
+    message SessionPersistence {
+        enum Type {
+            SOURCE_IP = 0;
+            HTTP_COOKIE = 1;
+            APP_COOKIE = 2;
+        }
+        optional Type type = 1;
+        optional string cookie_name = 2;
+    }
+    optional SessionPersistence session_persistence = 13;
+    optional string status = 14;
+    optional string status_description = 15;
+}
+
+message NeutronHealthMonitor {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional bool admin_state_up = 3;
+
+    message Pool {
+        optional UUID pool_id = 1;
+        optional string status = 2;
+        optional string status_description = 3;
+    }
+    repeated Pool pools = 4;
+
+    optional int32 delay = 5;
+    optional int32 max_retries = 6;
+    optional int32 timeout = 7;
+    optional string type = 8;
 }
