@@ -274,7 +274,7 @@ public class Ethernet extends BasePacket {
         }
         this.etherType = etherType;
 
-        int start= bb.position();
+        int start = bb.position();
         int end = bb.limit();
         if (Ethernet.etherTypeClassMap.containsKey(this.etherType)) {
             Class<? extends IPacket> clazz = Ethernet.etherTypeClassMap.get(this.etherType);
@@ -286,8 +286,8 @@ public class Ethernet extends BasePacket {
         } else {
             this.payload = (new Data()).deserialize(bb);
         }
-        bb.position(start);
         bb.limit(end);
+        bb.position(start);
         this.payload.setParent(this);
         return this;
     }
