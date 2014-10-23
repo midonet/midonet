@@ -34,8 +34,8 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
-import org.midonet.odp.protos.MockOvsDatapathConnection
-import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
@@ -99,7 +99,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     val senderUnderlay = new MockUnderlayResolver(ingressHostId, senderIp, peers)
     val recipientUnderlay = new MockUnderlayResolver(egressHost1, senderIp, peers)
-    val dpConn = new MockOvsDatapathConnection(null)
+    val dpConn = OvsDatapathConnection.createMock().asInstanceOf[MockOvsDatapathConnection]
     var packetsSeen = List[(Packet, List[FlowAction])]()
 
     var connTrackTx: ConnTrackTx = _

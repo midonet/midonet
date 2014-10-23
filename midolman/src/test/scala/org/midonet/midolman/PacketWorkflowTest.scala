@@ -47,7 +47,8 @@ object PacketWorkflowTest {
 
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
-        val dpCon = new MockOvsDatapathConnection(null)
+        val dpCon = OvsDatapathConnection.
+                createMock().asInstanceOf[MockOvsDatapathConnection]
         val flowListener = new MockOvsDatapathConnection.FlowListener() {
             override def flowDeleted(flow: Flow) {}
             override def flowCreated(flow: Flow) {}
