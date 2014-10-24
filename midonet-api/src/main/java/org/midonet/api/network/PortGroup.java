@@ -15,24 +15,23 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.api.network.validation.IsUniquePortGroupName;
-import org.midonet.cluster.data.PortGroup.Property;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.cluster.data.PortGroup.Property;
 
 
 /**
  * Class representing a port group.
  */
-@IsUniquePortGroupName(groups = PortGroup.PortGroupExtended.class)
 @XmlRootElement
 public class PortGroup extends UriResource {
 

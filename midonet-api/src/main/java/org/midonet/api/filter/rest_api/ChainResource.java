@@ -175,39 +175,6 @@ public class ChainResource extends AbstractResource {
                 .build();
     }
 
-    @GET
-    @Path("/name")
-    @PermitAll
-    @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
-            MediaType.APPLICATION_JSON })
-    public Chain getByName(@QueryParam("tenant_id") String tenantId,
-                           @QueryParam("name") String name)
-            throws StateAccessException,
-            SerializationException {
-        if (tenantId == null || name == null) {
-            throw new BadRequestHttpException(
-                    "Currently tenant_id and name are required for search.");
-        }
-
-        org.midonet.cluster.data.Chain chainData =
-                dataClient.chainsGetByName(tenantId, name);
-        if (chainData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
-        }
-
-        if (!authorizer.authorize(
-                context, AuthAction.READ, chainData.getId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this chain.");
-        }
-
-        // Convert to the REST API DTO
-        Chain chain = new Chain(chainData);
-        chain.setBaseUri(getBaseUri());
-        return chain;
-    }
-
     /**
      * Handler to getting a collection of chains.
      *

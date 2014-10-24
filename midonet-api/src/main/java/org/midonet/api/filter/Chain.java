@@ -15,24 +15,22 @@
  */
 package org.midonet.api.filter;
 
-import org.midonet.api.UriResource;
-import org.midonet.api.filter.Chain.ChainExtended;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.filter.validation.IsUniqueChainName;
-import org.midonet.cluster.data.Chain.Property;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.cluster.data.Chain.Property;
 
 /**
  * Class representing chain.
  */
-@IsUniqueChainName(groups = ChainExtended.class)
 @XmlRootElement
 public class Chain extends UriResource {
 

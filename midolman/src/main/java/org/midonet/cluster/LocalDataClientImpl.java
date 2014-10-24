@@ -34,6 +34,8 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.google.common.base.Strings;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -48,13 +50,11 @@ import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Chain;
-import org.midonet.cluster.data.ChainName;
 import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.HostVersion;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.PortGroup;
-import org.midonet.cluster.data.PortGroupName;
 import org.midonet.cluster.data.Route;
 import org.midonet.cluster.data.Router;
 import org.midonet.cluster.data.Rule;
@@ -542,8 +542,9 @@ public class LocalDataClientImpl implements DataClient {
 
         // Create the top level directories for
         String tenantId = bridge.getProperty(Bridge.Property.tenant_id);
-        ops.addAll(tenantZkManager.prepareCreate(tenantId));
-
+        if (!Strings.isNullOrEmpty(tenantId)) {
+            ops.addAll(tenantZkManager.prepareCreate(tenantId));
+        }
         zkManager.multi(ops);
 
         log.debug("bridgesCreate exiting: bridge={}", bridge);
@@ -651,18 +652,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = bridgeZkManager.prepareBridgeDelete(id);
-
-        String name = bridge.getData().name;
-        if (StringUtils.isNotEmpty(name)) {
-            String path = pathBuilder.getTenantBridgeNamePath(
-                    bridge.getProperty(Bridge.Property.tenant_id), name);
-
-            // For backward compatibility, delete only if it exists
-            if (zkManager.exists(path)) {
-                ops.add(zkManager.getDeleteOp(path));
-            }
-        }
-
         zkManager.multi(ops);
     }
 
@@ -712,11 +701,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = chainZkManager.prepareDelete(id);
-        String path = pathBuilder.getTenantChainNamePath(
-                chain.getProperty(Chain.Property.tenant_id),
-                chain.getData().name);
-        ops.add(zkManager.getDeleteOp(path));
-
         zkManager.multi(ops);
     }
 
@@ -737,21 +721,9 @@ public class LocalDataClientImpl implements DataClient {
 
         // Create the top level directories for
         String tenantId = chain.getProperty(Chain.Property.tenant_id);
-        ops.addAll(tenantZkManager.prepareCreate(tenantId));
-
-        // Create the chain names directory if it does not exist
-        String chainNamesPath = pathBuilder.getTenantChainNamesPath(tenantId);
-        if (!zkManager.exists(chainNamesPath)) {
-            ops.add(zkManager.getPersistentCreateOp(
-                    chainNamesPath, null));
+        if (!Strings.isNullOrEmpty(tenantId)) {
+            ops.addAll(tenantZkManager.prepareCreate(tenantId));
         }
-
-        // Index the name
-        String chainNamePath = pathBuilder.getTenantChainNamePath(tenantId,
-                chainConfig.name);
-        byte[] data = serializer.serialize(
-                (new ChainName(chain)).getData());
-        ops.add(zkManager.getPersistentCreateOp(chainNamePath, data));
 
         zkManager.multi(ops);
 
@@ -942,46 +914,20 @@ public class LocalDataClientImpl implements DataClient {
         });
     }
 
-    public @CheckForNull Chain chainsGetByName(@Nonnull String tenantId,
-                                               String name)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered: tenantId={}, name={}", tenantId, name);
-
-        Chain chain = null;
-        String path = pathBuilder.getTenantChainNamePath(tenantId, name);
-
-        if (zkManager.exists(path)) {
-            byte[] data = zkManager.get(path);
-            ChainName.Data chainNameData =
-                    serializer.deserialize(data,
-                            ChainName.Data.class);
-            chain = chainsGet(chainNameData.id);
-        }
-
-        log.debug("Exiting: chain={}", chain);
-        return chain;
-    }
-
     @Override
     public List<Chain> chainsFindByTenant(String tenantId)
             throws StateAccessException, SerializationException {
         log.debug("chainsFindByTenant entered: tenantId={}", tenantId);
 
-        List<Chain> chains = new ArrayList<>();
-
-        String path = pathBuilder.getTenantChainNamesPath(tenantId);
-        if (zkManager.exists(path)) {
-            Set<String> chainNames = zkManager.getChildren(path);
-            for (String name : chainNames) {
-                Chain chain = chainsGetByName(tenantId, name);
-                if (chain != null) {
-                    chains.add(chain);
-                }
+        List<Chain> chains = chainsGetAll();
+        for (Iterator<Chain> it = chains.iterator(); it.hasNext();) {
+            if (!it.next().hasTenantId(tenantId)) {
+                it.remove();
             }
         }
 
         log.debug("chainsFindByTenant exiting: {} chains found",
-                chains.size());
+                  chains.size());
         return chains;
     }
 
@@ -1646,44 +1592,19 @@ public class LocalDataClientImpl implements DataClient {
     }
 
     @Override
-    public PortGroup portGroupsGetByName(String tenantId, String name)
-            throws StateAccessException, SerializationException {
-        log.debug("Entered: tenantId={}, name={}", tenantId, name);
-
-        PortGroup portGroup = null;
-        String path = pathBuilder.getTenantPortGroupNamePath(tenantId, name);
-
-        if (zkManager.exists(path)) {
-            byte[] data = zkManager.get(path);
-            PortGroupName.Data portGroupNameData =
-                    serializer.deserialize(data, PortGroupName.Data.class);
-            portGroup = portGroupsGet(portGroupNameData.id);
-        }
-
-        log.debug("Exiting: portGroup={}", portGroup);
-        return portGroup;
-    }
-
-    @Override
     public List<PortGroup> portGroupsFindByTenant(String tenantId)
             throws StateAccessException, SerializationException {
         log.debug("portGroupsFindByTenant entered: tenantId={}", tenantId);
 
-        List<PortGroup> portGroups = new ArrayList<>();
-
-        String path = pathBuilder.getTenantPortGroupNamesPath(tenantId);
-        if (zkManager.exists(path)) {
-            Set<String> portGroupNames = zkManager.getChildren(path);
-            for (String name : portGroupNames) {
-                PortGroup portGroup = portGroupsGetByName(tenantId, name);
-                if (portGroup != null) {
-                    portGroups.add(portGroup);
-                }
+        List<PortGroup> portGroups = portGroupsGetAll();
+        for (Iterator<PortGroup> it = portGroups.iterator(); it.hasNext();) {
+            if (!it.next().hasTenantId(tenantId)) {
+                it.remove();
             }
         }
 
         log.debug("portGroupsFindByTenant exiting: {} portGroups found",
-                portGroups.size());
+                  portGroups.size());
         return portGroups;
     }
 
@@ -1744,25 +1665,10 @@ public class LocalDataClientImpl implements DataClient {
                 portGroupZkManager.prepareCreate(portGroup.getId(),
                         portGroupConfig);
 
-        // Create the top level directories for
         String tenantId = portGroup.getProperty(PortGroup.Property.tenant_id);
-        ops.addAll(tenantZkManager.prepareCreate(tenantId));
-
-        // Create the portGroup names directory if it does not exist
-        String portGroupNamesPath = pathBuilder.getTenantPortGroupNamesPath(
-                tenantId);
-        if (!zkManager.exists(portGroupNamesPath)) {
-            ops.add(zkManager.getPersistentCreateOp(
-                    portGroupNamesPath, null));
+        if (!Strings.isNullOrEmpty(tenantId)) {
+            ops.addAll(tenantZkManager.prepareCreate(tenantId));
         }
-
-        // Index the name
-        String portGroupNamePath = pathBuilder.getTenantPortGroupNamePath(
-                tenantId, portGroupConfig.name);
-        byte[] data = serializer.serialize(
-                (new PortGroupName(portGroup)).getData());
-        ops.add(zkManager.getPersistentCreateOp(portGroupNamePath,
-                data));
 
         zkManager.multi(ops);
 
@@ -1839,11 +1745,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = portGroupZkManager.prepareDelete(id);
-        String path = pathBuilder.getTenantPortGroupNamePath(
-                portGroup.getProperty(PortGroup.Property.tenant_id),
-                portGroup.getData().name);
-        ops.add(zkManager.getDeleteOp(path));
-
         zkManager.multi(ops);
     }
 
@@ -3027,19 +2928,6 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         List<Op> ops = routerZkManager.prepareRouterDelete(id);
-
-        String name = router.getData().name;
-        if (StringUtils.isNotEmpty(name)) {
-
-            String path = pathBuilder.getTenantRouterNamePath(
-                    router.getProperty(Router.Property.tenant_id), name);
-
-            // For backward compatibility, delete only if it exists
-            if (zkManager.exists(path)) {
-                ops.add(zkManager.getDeleteOp(path));
-            }
-        }
-
         zkManager.multi(ops);
     }
 
@@ -3061,8 +2949,9 @@ public class LocalDataClientImpl implements DataClient {
 
         // Create the top level directories
         String tenantId = router.getProperty(Router.Property.tenant_id);
-        ops.addAll(tenantZkManager.prepareCreate(tenantId));
-
+        if (!Strings.isNullOrEmpty(tenantId)) {
+            ops.addAll(tenantZkManager.prepareCreate(tenantId));
+        }
         zkManager.multi(ops);
 
         log.debug("routersCreate ex.ing: router={}", router);
