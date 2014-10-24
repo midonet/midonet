@@ -273,7 +273,7 @@ public class UDP extends BasePacket implements Transport {
 
         this.sourcePort = Unsigned.unsign(bb.getShort());
         this.destinationPort = Unsigned.unsign(bb.getShort());
-        this.length = bb.getShort();
+        this.length = Unsigned.unsign(bb.getShort());
         this.checksum = bb.getShort();
 
         if (UDP.decodeMap.containsKey(this.destinationPort)) {
@@ -292,21 +292,20 @@ public class UDP extends BasePacket implements Transport {
             payload = new Data();
         }
 
-        int len = this.length & 0xffff;
-        int payloadLen = len - HEADER_LEN;
+        int payloadLen = length - HEADER_LEN;
         if (bb.remaining() > payloadLen) {
-            bb.limit(len);
+            bb.limit(bb.position() + payloadLen);
         }
 
-        int start= bb.position();
+        int start = bb.position();
         int end = bb.limit();
         try {
             payload.deserialize(bb);
         } catch (Exception e) {
             payload = (new Data()).deserialize(bb);
         }
-        bb.position(start);
         bb.limit(end);
+        bb.position(start);
         payload.setParent(this);
         return this;
     }
