@@ -80,43 +80,9 @@ trait UpdateValidator[T <: Obj] {
 }
 
 /**
- * A trait defining the cluster persistence service API.
+ * A trait defining the read-only storage service API.
  */
-trait Storage {
-    /**
-     * Synchronous method that persists the specified object to the storage. The
-     * object must have a field named "id", and an appropriate unique ID must
-     * already be assigned to the object before the call.
-     */
-    @throws[NotFoundException]
-    @throws[ObjectExistsException]
-    @throws[ReferenceConflictException]
-    def create(obj: Obj): Unit
-
-    /**
-     * Synchronous method that updates the specified object in the storage.
-     */
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    def update(obj: Obj): Unit
-
-    /**
-     * Synchronous method that updates the specified object in the storage. It
-     * takes an optional UpdateValidator callback which can be used to validate
-     * the new version of obj against the current version in storage and/or to
-     * copy data from the current version to the new version.
-     */
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit
-
-    /**
-     * Synchronous method that deletes the specified object from the storage.
-     */
-    @throws[NotFoundException]
-    @throws[ObjectReferencedException]
-    def delete(clazz: Class[_], id: ObjId): Unit
-
+trait ReadOnlyStorage {
     /**
      * Asynchronous method that gets the specified instance of the specified
      * class from storage. If the value is available in the internal cache,
@@ -150,6 +116,46 @@ trait Storage {
      * storage.
      */
     def exists(clazz: Class[_], id: ObjId): Future[Boolean]
+}
+
+/**
+ * A trait that extends the read-only storage service API and provides storage
+ * write service API.
+ */
+trait Storage extends ReadOnlyStorage {
+    /**
+     * Synchronous method that persists the specified object to the storage. The
+     * object must have a field named "id", and an appropriate unique ID must
+     * already be assigned to the object before the call.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ReferenceConflictException]
+    def create(obj: Obj): Unit
+
+    /**
+     * Synchronous method that updates the specified object in the storage.
+     */
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    def update(obj: Obj): Unit
+
+    /**
+     * Synchronous method that updates the specified object in the storage. It
+     * takes an optional UpdateValidator callback which can be used to validate
+     * the new version of obj against the current version in storage and/or to
+     * copy data from the current version to the new version.
+     */
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit
+
+    /**
+     * Synchronous method that deletes the specified object from the storage.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectReferencedException]
+    def delete(clazz: Class[_], id: ObjId): Unit
 
     /**
      * Synchronous method that executes multiple create, update, and/or delete
