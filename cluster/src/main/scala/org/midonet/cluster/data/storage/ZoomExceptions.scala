@@ -38,7 +38,7 @@ class NotFoundException private[cluster](val clazz: Class[_], val id: ObjId)
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
-class ObjectExistsException private[storage](val clazz: Class[_],
+class ObjectExistsException private[cluster](val clazz: Class[_],
                                              val id: ObjId)
     extends RuntimeException(
         s"A(n) ${clazz.getSimpleName} with ID $id already exists.")
