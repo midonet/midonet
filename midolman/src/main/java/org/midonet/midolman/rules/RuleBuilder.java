@@ -117,6 +117,12 @@ public class RuleBuilder {
         return this;
     }
 
+    public RuleBuilder notSrcIp(IPv4Addr ip) {
+        c.nwSrcIp = new IPv4Subnet(ip, 32);
+        c.nwSrcInv = true;
+        return this;
+    }
+
     public RuleBuilder isAnyFragmentState() {
         c.fragmentPolicy = FragmentPolicy.ANY;
         return this;

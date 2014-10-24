@@ -695,10 +695,12 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             RuleIndexOutOfBoundsException {
         Rule sourceNat = new RuleBuilder(outboundChainId)
             .goingOutPort(portId)
+            .notSrcIp(addr)
             .sourceNat(new NatTarget(addr));
         Rule dropUnmatched = new RuleBuilder(outboundChainId)
             .isAnyFragmentState()
             .goingOutPort(portId)
+            .notSrcIp(addr)
             .drop();
 
         Rule reverseSourceNat = new RuleBuilder(inboundChainId)
