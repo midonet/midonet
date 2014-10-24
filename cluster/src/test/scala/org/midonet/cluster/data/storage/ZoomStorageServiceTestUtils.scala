@@ -26,7 +26,7 @@ import org.scalatest.Suite
 import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.models.Devices.{Bridge, Chain, Port, Router, Rule}
+import org.midonet.cluster.models.Devices.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
 
 /**
@@ -47,22 +47,22 @@ trait ZoomStorageTester extends StorageTester
                                with CuratorTestFramework { this: Suite =>
     var zoom: ZookeeperObjectMapper = null
     val deviceClasses: Array[Class[_]] =
-        Array(classOf[Bridge], classOf[Chain], classOf[Port], classOf[Router],
+        Array(classOf[Network], classOf[Chain], classOf[Port], classOf[Router],
               classOf[Rule])
 
     val bindings = Array(
             new ZoomBinding(
-                    classOf[Bridge], "inbound_filter_id", DeleteAction.CLEAR,
-                    classOf[Chain], "bridge_ids", DeleteAction.CLEAR),
+                    classOf[Network], "inbound_filter_id", DeleteAction.CLEAR,
+                    classOf[Chain], "network_ids", DeleteAction.CLEAR),
             new ZoomBinding(
-                    classOf[Bridge], "outbound_filter_id", DeleteAction.CLEAR,
-                    classOf[Chain], "bridge_ids", DeleteAction.CLEAR),
+                    classOf[Network], "outbound_filter_id", DeleteAction.CLEAR,
+                    classOf[Chain], "network_ids", DeleteAction.CLEAR),
             new ZoomBinding(
                     classOf[Router], "port_ids", DeleteAction.CASCADE,
                     classOf[Port], "router_id", DeleteAction.CLEAR),
             new ZoomBinding(
-                    classOf[Bridge], "port_ids", DeleteAction.CASCADE,
-                    classOf[Port], "bridge_id", DeleteAction.CLEAR),
+                    classOf[Network], "port_ids", DeleteAction.CASCADE,
+                    classOf[Port], "network_id", DeleteAction.CLEAR),
             new ZoomBinding(
                     classOf[Port], "peer_uuid", DeleteAction.CLEAR,
                     classOf[Port], "peer_uuid", DeleteAction.CLEAR),

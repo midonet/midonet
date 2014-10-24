@@ -51,9 +51,9 @@ message BulkUpdateEval {
 
     message Topology {
         optional int32 num_tenants = 1;
-        optional int32 bridges_per_tenant = 2;
-        optional int32 ports_per_bridge = 3;
-        optional int32 num_rules_per_bridge_chains = 4;
+        optional int32 networks_per_tenant = 2;
+        optional int32 ports_per_network = 3;
+        optional int32 num_rules_per_network_chains = 4;
     }
     optional Topology topology = 7;
 

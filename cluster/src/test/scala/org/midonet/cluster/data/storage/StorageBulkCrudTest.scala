@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.StorageEval.EvalResult.TestItem
 import org.midonet.cluster.data.storage.StorageEval.{BulkUpdateEval, BulkUpdateEvalOrBuilder, EvalResult}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.{Bridge, Port, Rule}
+import org.midonet.cluster.models.Devices.{Network, Port, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
@@ -116,11 +116,11 @@ trait StorageBulkCrudTest extends FlatSpec
      * SIZE threads in millisecond.
      */
     def readLatency(test: BulkUpdateEvalOrBuilder) = {
-        val bridge = createBridge("read latency test bridge")
+        val network = createNetwork("read latency test network")
         val latency = taskExecLatency(test.getNumThreads,
                                       test.getTrialSize,
-                                      () => get(classOf[Bridge], bridge.getId))
-        delete(classOf[Bridge], bridge.getId)
+                                      () => get(classOf[Network], network.getId))
+        delete(classOf[Network], network.getId)
         latency
     }
 
@@ -135,14 +135,14 @@ trait StorageBulkCrudTest extends FlatSpec
      * THREAD SIZE threads in millisecond.
      */
     def writeLatency(test: BulkUpdateEvalOrBuilder): Long = {
-        val bridge = Bridge.newBuilder
-                           .setId(randomUuidProto)
-                           .setName("write latency test bridge")
-                           .build()
+        val network = Network.newBuilder
+                            .setId(randomUuidProto)
+                            .setName("write latency test network")
+                            .build()
         taskExecLatency(test.getNumThreads,
                         test.getTrialSize,
-                        {() => create(bridge)
-                               delete(bridge.getClass, bridge.getId)})
+                        {() => create(network)
+                               delete(network.getClass, network.getId)})
     }
 
     /**
@@ -171,7 +171,7 @@ trait StorageBulkCrudTest extends FlatSpec
      * Builds a single-tenant test layout according to the topology
      * specifications, where there's a single provider router, under which
      * exists a single tenant router, which in turn has a specified number of
-     * bridges and a specified number of ports per each bridge. As it builds the
+     * networks and a specified number of ports per each network. As it builds the
      * specified topology, it records how much time it took to build it in the
      * given test results builder.
      *
@@ -185,9 +185,9 @@ trait StorageBulkCrudTest extends FlatSpec
         testItem.setItemName(testItemName)
         try {
             val topology = test.getTopology
-            val bridgesPerTenant = topology.getBridgesPerTenant
-            val portsPerBridge = topology.getPortsPerBridge
-            val numRules = topology.getNumRulesPerBridgeChains
+            val networksPerTenant = topology.getNetworksPerTenant
+            val portsPerNetwork = topology.getPortsPerNetwork
+            val numRules = topology.getNumRulesPerNetworkChains
             val devices = emptyDeviceCollection
 
             val start = System.currentTimeMillis()
@@ -197,21 +197,21 @@ trait StorageBulkCrudTest extends FlatSpec
 
             val pool = getThreadPool(test.getNumThreads)
             val successfulTasks = new AtomicLong()
-            for (bridge_i <- 1 to bridgesPerTenant) {
-                val bridge = createBridge(s"bridge$bridge_i", devices)
-                connect(tenantRouter, bridge)
+            for (network_i <- 1 to networksPerTenant) {
+                val network = createNetwork(s"network$network_i", devices)
+                connect(tenantRouter, network)
 
                 // Dispatch port / chain creations to separate threads.
                 pool.execute(addPortsAndChainsRunnable(
-                        bridge, portsPerBridge, numRules,
+                        network, portsPerNetwork, numRules,
                         test.getMultiSize, devices, successfulTasks))
             }
 
             pool.shutdown()
             pool.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
             val end = System.currentTimeMillis()
-            assert(successfulTasks.get === bridgesPerTenant,
-                   s"Executed $bridgesPerTenant writes, but succeeded only " +
+            assert(successfulTasks.get === networksPerTenant,
+                   s"Executed $networksPerTenant writes, but succeeded only " +
                    s"$successfulTasks writes.")
 
             val layoutWrite = end - start
@@ -237,19 +237,19 @@ trait StorageBulkCrudTest extends FlatSpec
         }
     }
 
-    /* Adds ports and chains to a given bridge either with either normal CRUD
+    /* Adds ports and chains to a given network either with either normal CRUD
      * operations or with "multi" operations of the specified operation size.
      *
-     * @param bridge A bridge to which ports and chains are attached. The bridge
-     * must already exist.
-     * @param numPorts A number of ports to be attached to the bridge.
+     * @param network A network to which ports and chains are attached. The
+     * network must already exist.
+     * @param numPorts A number of ports to be attached to the network.
      * @param numRules A number of rules that inbound and outbound chains of the
-     * bridge have.
+     * network have.
      * @param devices A collection of devices created by this call.
      * @param taskSuccessCounter A successful task counter to be incremented
      * when the whole operation operations are successful.
      */
-    private def addPortsAndChainsRunnable(bridge: Bridge,
+    private def addPortsAndChainsRunnable(network: Network,
                                           numPorts: Int,
                                           numRules: Int,
                                           multiSize: Int,
@@ -261,7 +261,7 @@ trait StorageBulkCrudTest extends FlatSpec
                     val multis =
                         if (multiSize > 1) ListBuffer[PersistenceOp]() else null
                     for (_ <- 1 to numPorts)
-                        attachPortTo(bridge, multis, devices)
+                        attachPortTo(network, multis, devices)
 
                     val chains = (1 to 2).map(_ => {
                         val chain = createChain(multis, devices)
@@ -269,7 +269,7 @@ trait StorageBulkCrudTest extends FlatSpec
                             addRule(chain, Rule.Action.ACCEPT, multis, devices)
                         chain
                     })
-                    attachChains(bridge, chains(0), chains(1), multis)
+                    attachChains(network, chains(0), chains(1), multis)
 
                     if (multis != null)  // Performs multi operations
                         multis.grouped(multiSize).foreach(multi)
@@ -277,14 +277,15 @@ trait StorageBulkCrudTest extends FlatSpec
                     taskSuccessCounter.incrementAndGet()
                 } catch {
                     case e: Exception =>
-                        log.warn("Error constructing a bridge.", e)
+                        log.warn("Error constructing a network.", e)
                 }
             }
         }
     }
+
     /**
-     * Measure the read latency of reading the specified devices with the
-     * number of threads specified in the test spec.
+     * Measure the read latency of reading the specified devices with the number
+     * of threads specified in the test spec.
      */
     def testReadDevices(numThreads: Int, devices: Devices) = {
         // Split the reads into NUM-THREADS batches.
@@ -338,32 +339,32 @@ trait StorageBulkCrudTest extends FlatSpec
     }
 
     /**
-     * Tests whether the storage service can update a plain bridge without any
+     * Tests whether the storage service can update a plain network without any
      * ports or chains with 10k port IDs (and in/out-bound filter IDs) in a
      * single update request.
      */
-    def build10KPortsBridgeOneShot(test: BulkUpdateEval.Builder,
-                                   result: EvalResult.Builder) {
-        val testItemName = "One-shot 10K ports-bridge creation"
+    def build10KPortsNetworkOneShot(test: BulkUpdateEval.Builder,
+                                    result: EvalResult.Builder) {
+        val testItemName = "One-shot 10K ports-network creation"
         val multiSize = 1000
         val topology = test.getTopologyBuilder
-        topology.setBridgesPerTenant(1)
-        topology.setPortsPerBridge(10000)
-        topology.setNumRulesPerBridgeChains(10)
+        topology.setNetworksPerTenant(1)
+        topology.setPortsPerNetwork(10000)
+        topology.setNumRulesPerNetworkChains(10)
 
         val testItem = result.addTestItemBuilder()
         testItem.setItemName(testItemName)
         try {
             val devices = emptyDeviceCollection
-            val bridge = createBridge("bridge1", devices)
+            val network = createNetwork("network1", devices)
             val chains = (1 to 2).map(_ => {
                 val chain = createChain(null, devices)
-                for (_ <- 1 to topology.getNumRulesPerBridgeChains)
+                for (_ <- 1 to topology.getNumRulesPerNetworkChains)
                     addRule(chain, Rule.Action.ACCEPT, null, devices)
                 chain
             })
             val multis = ListBuffer[PersistenceOp]()
-            for (_ <- 1 to topology.getPortsPerBridge)
+            for (_ <- 1 to topology.getPortsPerNetwork)
                 createPort(multis, devices)
             multis.grouped(multiSize).foreach(multi)
 
@@ -371,14 +372,14 @@ trait StorageBulkCrudTest extends FlatSpec
             testItem.addDataBuilder().setProperty("topology size")
                                      .setValue(devices.size.toString)
 
-            // Update a bridge with 10K port IDs.
-            val bridgeWithPorts = bridge.toBuilder
+            // Update a network with 10K port IDs.
+            val networkWithPorts = network.toBuilder
             for (portId <- devices.get(classOf[Port])) {
-                bridgeWithPorts.addPortIds(portId)
+                networkWithPorts.addPortIds(portId)
             }
-            bridgeWithPorts.setInboundFilterId(chains(0).getId)
-            bridgeWithPorts.setInboundFilterId(chains(1).getId)
-            update(bridgeWithPorts.build())
+            networkWithPorts.setInboundFilterId(chains(0).getId)
+            networkWithPorts.setInboundFilterId(chains(1).getId)
+            update(networkWithPorts.build())
 
             // Record the results.
             testItem.setTestStatus(TestItem.TestStatus.SUCCESS)
@@ -405,9 +406,9 @@ trait StorageBulkCrudTest extends FlatSpec
     "Base layout" should "be handled efficiently" ignore {
         val testBase = experimentCommonSettings
         testBase.getTopologyBuilder.setNumTenants(1)
-                                   .setBridgesPerTenant(2)
-                                   .setPortsPerBridge(4)
-                                   .setNumRulesPerBridgeChains(2)
+                                   .setNetworksPerTenant(2)
+                                   .setPortsPerNetwork(4)
+                                   .setNumRulesPerNetworkChains(2)
         for (numThreads <- Array(1, 2, 4)) {
             if (numThreads != 1) cleanUpDeviceData()
             val test = testBase.clone().setNumThreads(numThreads)
@@ -420,11 +421,11 @@ trait StorageBulkCrudTest extends FlatSpec
         }
     }
 
-    "More threads constructing bridges" should "decrease write latency" ignore {
+    "More threads constructing networks" should "decrease write latency" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder.setBridgesPerTenant(100)
-                                   .setPortsPerBridge(10)
-                                   .setNumRulesPerBridgeChains(2)
+        testBase.getTopologyBuilder.setNetworksPerTenant(100)
+                                   .setPortsPerNetwork(10)
+                                   .setNumRulesPerNetworkChains(2)
         for (numThreads <- Array(1, 2, 4)) {
             if (numThreads != 1) cleanUpDeviceData()
             val test = testBase.clone().setNumThreads(numThreads)
@@ -437,9 +438,9 @@ trait StorageBulkCrudTest extends FlatSpec
 
     "Multi-operation" can "bulk-create ports & chains" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder.setBridgesPerTenant(1)
-                                   .setPortsPerBridge(1000)
-                                   .setNumRulesPerBridgeChains(1000)
+        testBase.getTopologyBuilder.setNetworksPerTenant(1)
+                                   .setPortsPerNetwork(1000)
+                                   .setNumRulesPerNetworkChains(1000)
         for (multiSize <- Array(100, 1000)) {
             if (multiSize != 100) cleanUpDeviceData()
             val test = testBase.clone().setMultiSize(multiSize)
@@ -450,11 +451,11 @@ trait StorageBulkCrudTest extends FlatSpec
         }
     }
 
-    "Max-ports-per-bridge" can "be handled efficiently" ignore {
+    "Max-ports-per-network" can "be handled efficiently" ignore {
         val testBase = experimentCommonSettings
-        testBase.getTopologyBuilder.setBridgesPerTenant(1)
-                                   .setPortsPerBridge(10000)
-                                   .setNumRulesPerBridgeChains(1000)
+        testBase.getTopologyBuilder.setNetworksPerTenant(1)
+                                   .setPortsPerNetwork(10000)
+                                   .setNumRulesPerNetworkChains(1000)
         for (multiSize <- Array(1000, 5000, 7000)) {
             if (multiSize != 5000) cleanUpDeviceData()
             val test = testBase.clone().setMultiSize(multiSize)
@@ -467,15 +468,15 @@ trait StorageBulkCrudTest extends FlatSpec
 
     it can "be created in a single update request" ignore {
         val test = experimentCommonSettings
-        build10KPortsBridgeOneShot(test, getResultsBuilder(test))
+        build10KPortsNetworkOneShot(test, getResultsBuilder(test))
         collectTest(test)
     }
 
     "Max-total-ports" should "be handled efficiently" ignore {
         val test = experimentCommonSettings
-        test.getTopologyBuilder.setBridgesPerTenant(100)
-                               .setPortsPerBridge(10000)
-                               .setNumRulesPerBridgeChains(1000)
+        test.getTopologyBuilder.setNetworksPerTenant(100)
+                               .setPortsPerNetwork(10000)
+                               .setNumRulesPerNetworkChains(1000)
         val result = getResultsBuilder(test)
 
         buildLayoutAndMeasureLatency(test, result)

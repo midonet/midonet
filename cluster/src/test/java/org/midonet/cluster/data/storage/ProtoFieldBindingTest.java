@@ -33,22 +33,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.midonet.cluster.models.Devices.Bridge;
 import static org.midonet.cluster.models.Devices.Chain;
+import static org.midonet.cluster.models.Devices.Network;
 
 /**
  * Tests ProtoFieldBindngTest class.
  */
 public class ProtoFieldBindingTest {
-    private static final FieldBinding bridgeToChainBinding;
-    private static final FieldBinding chainToBridgeBinding;
+    private static final FieldBinding networkToChainBinding;
+    private static final FieldBinding chainToNetworkBinding;
     static {
         ListMultimap<Class<?>, FieldBinding> bindings =
             ProtoFieldBinding.createBindings(
-            Bridge.class, "inbound_filter_id", DeleteAction.CLEAR,
-            Chain.class, "bridge_ids", DeleteAction.CLEAR);
-        bridgeToChainBinding = bindings.get(Bridge.class).get(0);
-        chainToBridgeBinding = bindings.get(Chain.class).get(0);
+            Network.class, "inbound_filter_id", DeleteAction.CLEAR,
+            Chain.class, "network_ids", DeleteAction.CLEAR);
+        networkToChainBinding = bindings.get(Network.class).get(0);
+        chainToNetworkBinding = bindings.get(Chain.class).get(0);
     }
 
     private static final Commons.UUID uuid = createRandomUuidproto();
@@ -57,6 +57,9 @@ public class ProtoFieldBindingTest {
     private static final Commons.UUID otherUuid1 = createRandomUuidproto();
     private static final Commons.UUID otherUuid2 = createRandomUuidproto();
     private static final Commons.UUID otherUuid3 = createRandomUuidproto();
+
+    private static final String CHAIN_NAME = "test_chain";
+    private static final String NETWORK_NAME = "test_network";
 
     private static Commons.UUID createRandomUuidproto() {
         UUID uuid = UUID.randomUUID();
@@ -68,16 +71,16 @@ public class ProtoFieldBindingTest {
     @Test
     public void testProtoBindingWithScalarRefType() {
         ListMultimap<Class<?>, FieldBinding> bindings =
-                ProtoFieldBinding.createBindings(Bridge.class,
+                ProtoFieldBinding.createBindings(Network.class,
                                                  "inbound_filter_id",
                                                  DeleteAction.CLEAR,
                                                  Chain.class,
-                                                 "bridge_ids",
+                                                 "network_ids",
                                                  DeleteAction.CASCADE);
-        Collection<FieldBinding> bridgeBindings = bindings.get(Bridge.class);
-        assertEquals(1, bridgeBindings.size());
-        FieldBinding bridgeBinding = bridgeBindings.iterator().next();
-        assertEquals(DeleteAction.CLEAR, bridgeBinding.onDeleteThis());
+        Collection<FieldBinding> networkBindings = bindings.get(Network.class);
+        assertEquals(1, networkBindings.size());
+        FieldBinding networkBinding = networkBindings.iterator().next();
+        assertEquals(DeleteAction.CLEAR, networkBinding.onDeleteThis());
 
         Collection<FieldBinding> chainBindings = bindings.get(Chain.class);
         assertEquals(1, chainBindings.size());
@@ -87,7 +90,7 @@ public class ProtoFieldBindingTest {
 
     @Test
     public void testCreateBindingWithNoBackRef() {
-        ProtoFieldBinding.createBindings(Bridge.class,
+        ProtoFieldBinding.createBindings(Network.class,
                                          "inbound_filter_id",
                                          DeleteAction.CLEAR,
                                          Chain.class,
@@ -97,7 +100,7 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingForClassWithNoId() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.class,
+        ProtoFieldBinding.createBindings(Network.class,
                                          null,
                                          DeleteAction.CASCADE,
                                          Devices.VtepBinding.class,
@@ -108,22 +111,22 @@ public class ProtoFieldBindingTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithUnrecognizedFieldName() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.class,
+        ProtoFieldBinding.createBindings(Network.class,
                                          "no_such_field",
                                          DeleteAction.CLEAR,
                                          Devices.Port.class,
-                                         "bridge_id",
+                                         "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow binding with unrecognized field name.");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testProtoBindingWithWrongScalarRefType() throws Exception {
-        ProtoFieldBinding.createBindings(Bridge.class,
+        ProtoFieldBinding.createBindings(Network.class,
                                          "name",
                                          DeleteAction.CLEAR,
                                          Devices.Port.class,
-                                         "bridge_id",
+                                         "network_id",
                                          DeleteAction.CLEAR);
         fail("Should not allow ref from String to UUID.");
     }
@@ -140,146 +143,148 @@ public class ProtoFieldBindingTest {
     }
 
     @Test
-    public void testAddBackRefFromChainToBridge() throws Exception {
-        Chain chain = Chain.newBuilder().setName("test_chain").build();
-        Chain updatedChain = bridgeToChainBinding.addBackReference(
+    public void testAddBackRefFromChainToNetwork() throws Exception {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME).build();
+        Chain updatedChain = networkToChainBinding.addBackReference(
                 chain, chain.getId(), uuid);
-        assertEquals("test_chain", updatedChain.getName());
-        assertThat(updatedChain.getBridgeIdsList(), contains(uuid));
+        assertEquals(CHAIN_NAME, updatedChain.getName());
+        assertThat(updatedChain.getNetworkIdsList(), contains(uuid));
     }
 
     @Test
     public void testAddBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge").build();
-        Bridge updatedBridge = chainToBridgeBinding.addBackReference(
-                bridge, bridge.getId(), uuid);
-        assertEquals("test_bridge", updatedBridge.getName());
-        assertEquals(uuid, updatedBridge.getInboundFilterId());
+        Network network = Network.newBuilder().setName(NETWORK_NAME).build();
+        Network updatedNetwork = chainToNetworkBinding.addBackReference(
+                network, network.getId(), uuid);
+        assertEquals(NETWORK_NAME, updatedNetwork.getName());
+        assertEquals(uuid, updatedNetwork.getInboundFilterId());
     }
 
     @Test(expected = ReferenceConflictException.class)
     /* Even if the referring ID is the same, we don't allow it.*/
     public void testAddOverwritingBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge")
-                                           .setInboundFilterId(uuid)
-                                           .build();
-        chainToBridgeBinding.addBackReference(bridge, bridge.getId(), uuid);
+        Network network = Network.newBuilder().setName(NETWORK_NAME)
+                                              .setInboundFilterId(uuid)
+                                              .build();
+        chainToNetworkBinding.addBackReference(network, network.getId(), uuid);
     }
 
     @Test(expected = ReferenceConflictException.class)
     public void testAddConflictingBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge")
-                                           .setInboundFilterId(conflictingUuid)
-                                           .build();
-        chainToBridgeBinding.addBackReference(bridge, bridge.getId(),  uuid);
+        Network network = Network.newBuilder()
+                                 .setName(NETWORK_NAME)
+                                 .setInboundFilterId(conflictingUuid)
+                                 .build();
+        chainToNetworkBinding.addBackReference(network, network.getId(), uuid);
     }
 
     @Test
-    public void testClearBackRefToBridge() throws Exception {
-        Chain chain = Chain.newBuilder().setName("test_chain")
-                                        .addBridgeIds(uuid)
+    public void testClearBackRefToNetwork() throws Exception {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
+                                        .addNetworkIds(uuid)
                                         .build();
         Chain updatedChain =
-                bridgeToChainBinding.clearBackReference(chain, uuid);
-        assertEquals("test_chain", updatedChain.getName());
-        assertTrue(updatedChain.getBridgeIdsList().isEmpty());
+                networkToChainBinding.clearBackReference(chain, uuid);
+        assertEquals(CHAIN_NAME, updatedChain.getName());
+        assertTrue(updatedChain.getNetworkIdsList().isEmpty());
     }
 
     @Test
-    public void testClearOnlySingleBackRefToBridge() throws Exception {
-        Chain chain = Chain.newBuilder().setName("test_chain")
-                                        .addBridgeIds(uuid)
-                                        .addBridgeIds(otherUuid1)
-                                        .addBridgeIds(otherUuid2)
-                                        .addBridgeIds(uuid)
-                                        .addBridgeIds(otherUuid3)
+    public void testClearOnlySingleBackRefToNetwork() throws Exception {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
+                                        .addNetworkIds(uuid)
+                                        .addNetworkIds(otherUuid1)
+                                        .addNetworkIds(otherUuid2)
+                                        .addNetworkIds(uuid)
+                                        .addNetworkIds(otherUuid3)
                                         .build();
         Chain updatedChain =
-                bridgeToChainBinding.clearBackReference(chain, uuid);
-        assertEquals("test_chain", updatedChain.getName());
+                networkToChainBinding.clearBackReference(chain, uuid);
+        assertEquals(CHAIN_NAME, updatedChain.getName());
         // Should delete only the first occurrence of the ID.
-        assertEquals(4, updatedChain.getBridgeIdsList().size());
+        assertEquals(4, updatedChain.getNetworkIdsList().size());
     }
 
     @Test
     public void testClearBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge")
-                                           .setInboundFilterId(uuid)
-                                           .build();
-        Bridge updatedBridge =
-                chainToBridgeBinding.clearBackReference(bridge, uuid);
-        assertEquals("test_bridge", updatedBridge.getName());
-        assertFalse(updatedBridge.hasInboundFilterId());
+        Network network = Network.newBuilder().setName(NETWORK_NAME)
+                                              .setInboundFilterId(uuid)
+                                              .build();
+        Network updatedNetwork =
+                chainToNetworkBinding.clearBackReference(network, uuid);
+        assertEquals(NETWORK_NAME, updatedNetwork.getName());
+        assertFalse(updatedNetwork.hasInboundFilterId());
     }
 
     @Test
-    public void testClearMissingBackRefToBridge() throws Exception {
-        Chain chain = Chain.newBuilder().setName("test_chain")
-                                        .addBridgeIds(otherUuid1)
-                                        .addBridgeIds(otherUuid2)
-                                        .addBridgeIds(otherUuid3)
+    public void testClearMissingBackRefToNetwork() throws Exception {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
+                                        .addNetworkIds(otherUuid1)
+                                        .addNetworkIds(otherUuid2)
+                                        .addNetworkIds(otherUuid3)
                                         .build();
         Chain updatedChain =
-            bridgeToChainBinding.clearBackReference(chain, uuid);
+            networkToChainBinding.clearBackReference(chain, uuid);
         assertEquals(chain, updatedChain);
     }
 
     @Test
     public void testClearConflictingBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge")
-                                           .setInboundFilterId(conflictingUuid)
-                                           .build();
-        Bridge updatedBridge =
-                chainToBridgeBinding.clearBackReference(bridge, uuid);
-        assertEquals("test_bridge", updatedBridge.getName());
-        assertEquals(conflictingUuid, updatedBridge.getInboundFilterId());
+        Network network = Network.newBuilder()
+                                 .setName(NETWORK_NAME)
+                                 .setInboundFilterId(conflictingUuid)
+                                 .build();
+        Network updatedNetwork =
+                chainToNetworkBinding.clearBackReference(network, uuid);
+        assertEquals(NETWORK_NAME, updatedNetwork.getName());
+        assertEquals(conflictingUuid, updatedNetwork.getInboundFilterId());
     }
 
     @Test
     public void testClearMissingBackRefToChain() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge").build();
-        Bridge updatedBridge =
-                chainToBridgeBinding.clearBackReference(bridge, uuid);
-        assertEquals("test_bridge", updatedBridge.getName());
-        assertFalse(updatedBridge.hasInboundFilterId());
+        Network network = Network.newBuilder().setName(NETWORK_NAME).build();
+        Network updatedNetwork =
+                chainToNetworkBinding.clearBackReference(network, uuid);
+        assertEquals(NETWORK_NAME, updatedNetwork.getName());
+        assertFalse(updatedNetwork.hasInboundFilterId());
     }
 
     @Test
     public void testEmptyScalarFwdReferenceToChainAsEmptyList() {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge").build();
+        Network network = Network.newBuilder().setName(NETWORK_NAME).build();
         List<Object> fwdRefs =
-                bridgeToChainBinding.getFwdReferenceAsList(bridge);
+                networkToChainBinding.getFwdReferenceAsList(network);
         assertTrue(fwdRefs.isEmpty());
     }
 
     @Test
     public void testFwdReferenceToChainAsList() throws Exception {
-        Bridge bridge = Bridge.newBuilder().setName("test_bridge")
-                                           .setInboundFilterId(uuid)
-                                           .build();
+        Network network = Network.newBuilder().setName(NETWORK_NAME)
+                                              .setInboundFilterId(uuid)
+                                              .build();
         List<Object> fwdRefs =
-                bridgeToChainBinding.getFwdReferenceAsList(bridge);
+                networkToChainBinding.getFwdReferenceAsList(network);
         assertEquals(1, fwdRefs.size());
         assertTrue(fwdRefs.contains(uuid));
     }
 
     @Test
-    public void testEmptyFwdReferenceToBridgesAsEmptyList() {
-        Chain chain = Chain.newBuilder().setName("test_chain").build();
+    public void testEmptyFwdReferenceToNetworksAsEmptyList() {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME).build();
         List<Object> fwdRefs =
-                chainToBridgeBinding.getFwdReferenceAsList(chain);
+                chainToNetworkBinding.getFwdReferenceAsList(chain);
         assertTrue(fwdRefs.isEmpty());
     }
 
     @Test
-    public void testFwdReferenceToBridgesAsList() throws Exception {
-        Chain chain = Chain.newBuilder().setName("test_chain")
-                                        .addBridgeIds(otherUuid1)
-                                        .addBridgeIds(otherUuid2)
-                                        .addBridgeIds(otherUuid3)
+    public void testFwdReferenceToNetworksAsList() throws Exception {
+        Chain chain = Chain.newBuilder().setName(CHAIN_NAME)
+                                        .addNetworkIds(otherUuid1)
+                                        .addNetworkIds(otherUuid2)
+                                        .addNetworkIds(otherUuid3)
                                         .build();
         List<Object> fwdRefs =
-                chainToBridgeBinding.getFwdReferenceAsList(chain);
+                chainToNetworkBinding.getFwdReferenceAsList(chain);
         assertEquals(3, fwdRefs.size());
         assertTrue(fwdRefs.contains(otherUuid1));
         assertTrue(fwdRefs.contains(otherUuid2));

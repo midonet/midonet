@@ -23,7 +23,7 @@ import scala.collection.mutable.ListBuffer
 import com.google.common.collect.{ArrayListMultimap, Multimap, Multimaps}
 
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.{Bridge, Chain, Port, Router, Rule}
+import org.midonet.cluster.models.Devices.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 
 /**
@@ -67,23 +67,23 @@ trait StorageTester extends Storage {
     def cleanUpDeviceData(): Unit
 
     /**
-     * Creates a bridge with a given name.
+     * Creates a network with a given name.
      */
-    def createBridge(bridgeName: String): Bridge = {
-        createBridge(bridgeName, null)
+    def createNetwork(networkName: String): Network = {
+        createNetwork(networkName, null)
     }
 
     /**
-     * Creates a bridge with a given name and add the device ID to devices.
+     * Creates a network with a given name and add the device ID to devices.
      */
-    def createBridge(bridgeName: String, devices: Devices) = {
-        val bridge = Bridge.newBuilder
-                           .setId(randomUuidProto)
-                           .setName(bridgeName)
-                           .build()
-        create(bridge)
-        if (devices != null) devices.put(classOf[Bridge], bridge.getId)
-        bridge
+    def createNetwork(networkName: String, devices: Devices) = {
+        val network = Network.newBuilder
+                             .setId(randomUuidProto)
+                             .setName(networkName)
+                             .build()
+        create(network)
+        if (devices != null) devices.put(classOf[Network], network.getId)
+        network
     }
 
     /**
@@ -131,21 +131,21 @@ trait StorageTester extends Storage {
     }
 
     /**
-     * Creates a new port that's attached to the bridge.
+     * Creates a new port that's attached to the network.
      */
-    def attachPortTo(bridge: Bridge): Port = {
-        attachPortTo(bridge, null, null)
+    def attachPortTo(network: Network): Port = {
+        attachPortTo(network, null, null)
     }
 
     /**
-     * Creates a new port that's attached to the bridge. If "ops" is given,
+     * Creates a new port that's attached to the network. If "ops" is given,
      * a CreateOp is created and stored in ops. Otherwise the port is
      * created in normal operation.
      */
-    def attachPortTo(bridge: Bridge,
+    def attachPortTo(network: Network,
                      ops: ListBuffer[PersistenceOp],
                      devices: Devices): Port = {
-        val port = ProtoPort(bridge)
+        val port = ProtoPort(network)
         if (ops != null) ops += CreateOp(port)
         else create(port)
         if (devices != null) devices.put(classOf[Port], port.getId)
@@ -153,11 +153,11 @@ trait StorageTester extends Storage {
     }
 
     /**
-     * Attaches the given port to the given bridge.
+     * Attaches the given port to the given network.
      */
-    def attachPortTo(bridge: Bridge, port: Port) = {
+    def attachPortTo(network: Network, port: Port) = {
         val attachedPort = port.toBuilder
-                               .setBridgeId(bridge.getId)
+                               .setNetworkId(network.getId)
                                .build()
         update(port)
         attachedPort
@@ -183,13 +183,13 @@ trait StorageTester extends Storage {
     }
 
     /**
-     * Connects the given router and bridge by creating internal ports for each
+     * Connects the given router and network by creating internal ports for each
      * and linking them.
      */
-    def connect(router: Router, bridge: Bridge) {
+    def connect(router: Router, network: Network) {
         val routerPort = attachPortTo(router)
-        val bridgePort = attachPortTo(bridge)
-        linkPorts(routerPort, bridgePort)
+        val networkPort = attachPortTo(network)
+        linkPorts(routerPort, networkPort)
     }
 
     /**
@@ -221,21 +221,21 @@ trait StorageTester extends Storage {
     }
 
     /**
-     * Attaches the given in/out-bound chains to the bridge. If "ops" is given,
-     * an UpdateOP is created and stored in ops. Otherwise the bridge is updated
-     * in a normal operation.
+     * Attaches the given in/out-bound chains to the network. If "ops" is given,
+     * an UpdateOP is created and stored in ops. Otherwise the network is
+     * updated in a normal operation.
      */
-    def attachChains(bridge: Bridge,
+    def attachChains(network: Network,
                      inbound: Chain,
                      outbound: Chain,
                      ops: ListBuffer[PersistenceOp]) = {
-        val bridgeWithChains = bridge.toBuilder
-                                     .setInboundFilterId(inbound.getId)
-                                     .setOutboundFilterId(outbound.getId)
-                                     .build()
-        if (ops != null) ops += UpdateOp(bridgeWithChains)
-        else update(bridgeWithChains)
-        bridgeWithChains
+        val networkWithChains = network.toBuilder
+                                       .setInboundFilterId(inbound.getId)
+                                       .setOutboundFilterId(outbound.getId)
+                                       .build()
+        if (ops != null) ops += UpdateOp(networkWithChains)
+        else update(networkWithChains)
+        networkWithChains
     }
 }
 
@@ -244,17 +244,17 @@ private object StorageTester {
         ProtoPort(null, null)
     }
 
-    def ProtoPort(bridge: Bridge): Port = {
-        ProtoPort(bridge.getId, null)
+    def ProtoPort(network: Network): Port = {
+        ProtoPort(network.getId, null)
     }
 
     def ProtoPort(router: Router): Port = {
         ProtoPort(null, router.getId)
     }
 
-    def ProtoPort(bridgeId: Commons.UUID, routerId: Commons.UUID): Port = {
+    def ProtoPort(networkId: Commons.UUID, routerId: Commons.UUID): Port = {
         val portBuilder = Port.newBuilder.setId(randomUuidProto)
-        if (bridgeId != null) portBuilder.setBridgeId(bridgeId)
+        if (networkId != null) portBuilder.setNetworkId(networkId)
         if (routerId != null) portBuilder.setRouterId(routerId)
 
         portBuilder.build
