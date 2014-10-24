@@ -39,7 +39,6 @@ import org.midonet.api.auth.cors.CrossOriginResourceSharingFilter;
 import org.midonet.api.config.ConfigurationModule;
 import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
-import org.midonet.api.filter.FilterModule;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
@@ -109,7 +108,6 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new NeutronRestApiModule());
 
         install(new NetworkModule());
-        install(new FilterModule());
         install(new MidoBrainModule());
 
         // Register filters - the order matters here.  Make sure that CORS

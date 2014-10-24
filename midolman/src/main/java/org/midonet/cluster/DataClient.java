@@ -278,9 +278,6 @@ public interface DataClient {
     UUID chainsCreate(@Nonnull Chain chain)
             throws StateAccessException, SerializationException;
 
-    @CheckForNull Chain chainsGetByName(String tenantId, String name)
-            throws StateAccessException, SerializationException;
-
     List<Chain> chainsGetAll() throws StateAccessException,
             SerializationException;
 
@@ -797,9 +794,6 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     boolean portGroupsExists(UUID id) throws StateAccessException;
-
-    @CheckForNull PortGroup portGroupsGetByName(String tenantId, String name)
-            throws StateAccessException, SerializationException;
 
     List<PortGroup> portGroupsGetAll() throws StateAccessException,
             SerializationException;

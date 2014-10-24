@@ -17,6 +17,7 @@ package org.midonet.cluster.data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
@@ -80,6 +81,10 @@ public class PortGroup extends Entity.Base<UUID, PortGroup.Data, PortGroup> {
 
     public Map<String, String> getProperties() {
         return getData().properties;
+    }
+
+    public boolean hasTenantId(String tenantId) {
+        return Objects.equals(getProperty(Property.tenant_id), tenantId);
     }
 
     public static class Data {

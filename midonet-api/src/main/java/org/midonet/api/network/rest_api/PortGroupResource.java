@@ -159,38 +159,6 @@ public class PortGroupResource extends AbstractResource {
                 .build();
     }
 
-    @GET
-    @Path("/name")
-    @PermitAll
-    @Produces({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
-            MediaType.APPLICATION_JSON })
-    public PortGroup getByName(@QueryParam("tenant_id") String tenantId,
-                               @QueryParam("name") String name)
-            throws StateAccessException, SerializationException {
-        if (tenantId == null || name == null) {
-            throw new BadRequestHttpException(
-                    "Currently tenant_id and name are required for search.");
-        }
-
-        org.midonet.cluster.data.PortGroup portGroupData =
-                dataClient.portGroupsGetByName(tenantId, name);
-        if (portGroupData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
-        }
-
-        if (!authorizer.authorize(
-                context, AuthAction.READ, portGroupData.getId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this chain.");
-        }
-
-        // Convert to the REST API DTO
-        PortGroup portGroup = new PortGroup(portGroupData);
-        portGroup.setBaseUri(getBaseUri());
-        return portGroup;
-    }
-
     /**
      * Handler to getting a collection of PortGroups.
      *
@@ -215,7 +183,7 @@ public class PortGroupResource extends AbstractResource {
             portGroupDataList = dataClient.portGroupsGetAll();
         }
 
-        List<PortGroup> portGroups = new ArrayList<PortGroup>();
+        List<PortGroup> portGroups = new ArrayList<>();
         if (portGroupDataList != null) {
             for (org.midonet.cluster.data.PortGroup portGroupData :
                     portGroupDataList) {
