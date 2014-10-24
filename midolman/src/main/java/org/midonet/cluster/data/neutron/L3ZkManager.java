@@ -345,18 +345,18 @@ public class L3ZkManager extends BaseZkManager {
     private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, Port gwPort)
             throws SerializationException, StateAccessException {
         return prepareLinkToGwRouter(ops, rId, gwPort.id,
-                gwPort.firstIpv4Subnet());
+                gwPort.firstIpv4Subnet(), gwPort.firstIpv4Addr());
     }
 
     private UUID prepareLinkToGwRouter(List<Op> ops, UUID rId, UUID portId,
-                                       IPv4Subnet cidr)
+                                       IPv4Subnet cidr, IPv4Addr addr)
             throws SerializationException, StateAccessException {
 
         UUID prId = providerRouterZkManager.getId();
 
         // Create a port on the tenant router
         RouterPortConfig rpCfgPeer = new RouterPortConfig(rId,
-                ProviderRouter.LL_CIDR, ProviderRouter.LL_GW_IP_2, true);
+                ProviderRouter.LL_CIDR, addr, true);
         rpCfgPeer.id = UUID.randomUUID();
         ops.addAll(portZkManager.prepareCreate(rpCfgPeer.id, rpCfgPeer));
 
