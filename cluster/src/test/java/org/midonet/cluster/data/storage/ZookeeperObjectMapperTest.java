@@ -46,7 +46,6 @@ import rx.Observer;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
-import org.midonet.cluster.models.Devices;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -59,6 +58,9 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static scala.concurrent.Await.ready;
+import static org.midonet.cluster.models.Devices.Chain;
+import static org.midonet.cluster.models.Devices.Network;
+import static org.midonet.cluster.models.Devices.Router;
 
 public class ZookeeperObjectMapperTest {
 
@@ -173,12 +175,13 @@ public class ZookeeperObjectMapperTest {
     private ZookeeperObjectMapper zom;
     private static TestingServer testingServer;
 
-    private static final int zkPort = 12181; // Avoid conflicting with real ZK.
-    private static final String zkConnectionString = "127.0.0.1:" + zkPort;
-    private static final String zkRootDir = "/zkomtest";
+    private static final int ZK_PORT = 12181; // Avoid conflicting with real ZK.
+    private static final String ZK_CONNECTION_STRING = "127.0.0.1:" + ZK_PORT;
+    private static final String ZK_ROOT_DIR = "/zkomtest";
 
-    private static final Commons.UUID bridgeUuid = createRandomUuidproto();
-    private static final Commons.UUID chainUuid = createRandomUuidproto();
+    private static final Commons.UUID NETWORK_UUID = createRandomUuidproto();
+    private static final Commons.UUID CHAIN_UUID = createRandomUuidproto();
+    private static final String NETWORK_NAME = "test_network";
 
     private static Commons.UUID createRandomUuidproto() {
         UUID uuid = UUID.randomUUID();
@@ -218,7 +221,7 @@ public class ZookeeperObjectMapperTest {
 
     @BeforeClass
     public static void classSetup() throws Exception {
-        testingServer = new TestingServer(zkPort);
+        testingServer = new TestingServer(ZK_PORT);
     }
 
     @AfterClass
@@ -232,7 +235,7 @@ public class ZookeeperObjectMapperTest {
 
         for (Class<?> clazz : new Class<?>[]{
             PojoBridge.class, PojoRouter.class, PojoPort.class, PojoChain.class,
-            PojoRule.class, Devices.Bridge.class, Devices.Chain.class}) {
+            PojoRule.class, Network.class, Chain.class}) {
             zom.registerClass(clazz);
         }
 
@@ -273,78 +276,78 @@ public class ZookeeperObjectMapperTest {
 
         // Bindings for proto-backed objects.
         zom.declareBinding(
-            Devices.Bridge.class, "inbound_filter_id", DeleteAction.CLEAR,
-            Devices.Chain.class, "bridge_ids", DeleteAction.CLEAR);
+            Network.class, "inbound_filter_id", DeleteAction.CLEAR,
+            Chain.class, "network_ids", DeleteAction.CLEAR);
         zom.declareBinding(
-            Devices.Bridge.class, "outbound_filter_id", DeleteAction.CLEAR,
-            Devices.Chain.class, "bridge_ids", DeleteAction.CLEAR);
+            Network.class, "outbound_filter_id", DeleteAction.CLEAR,
+            Chain.class, "network_ids", DeleteAction.CLEAR);
     }
 
     private ZookeeperObjectMapper createZoom() throws Exception {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         CuratorFramework client =
-            CuratorFrameworkFactory.newClient(zkConnectionString, retryPolicy);
+            CuratorFrameworkFactory.newClient(ZK_CONNECTION_STRING, retryPolicy);
         client.start();
 
         // Clear ZK data from last test.
         try {
-            client.delete().deletingChildrenIfNeeded().forPath(zkRootDir);
+            client.delete().deletingChildrenIfNeeded().forPath(ZK_ROOT_DIR);
         } catch (KeeperException.NoNodeException ex) {
             // Won't exist for first test.
         }
 
-        return new ZookeeperObjectMapper(zkRootDir, client);
+        return new ZookeeperObjectMapper(ZK_ROOT_DIR, client);
     }
 
-    /* A helper method for creating a proto Bridge. */
-    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
-                                             String name,
-                                             boolean adminStateUp,
-                                             int tunnelKey,
-                                             Commons.UUID inFilterId,
-                                             Commons.UUID outFilterId,
-                                             Commons.UUID vxLanPortId) {
-        Devices.Bridge.Builder bridgeBuilder = Devices.Bridge.newBuilder();
-        bridgeBuilder.setId(bridgeId);
-        bridgeBuilder.setName(name);
-        bridgeBuilder.setAdminStateUp(adminStateUp);
-        bridgeBuilder.setTunnelKey(tunnelKey);
+    /* A helper method for creating a proto Network. */
+    private Network createProtoNetwork(Commons.UUID networkId,
+                                       String name,
+                                       boolean adminStateUp,
+                                       int tunnelKey,
+                                       Commons.UUID inFilterId,
+                                       Commons.UUID outFilterId,
+                                       Commons.UUID vxLanPortId) {
+        Network.Builder networkBuilder = Network.newBuilder();
+        networkBuilder.setId(networkId);
+        networkBuilder.setName(name);
+        networkBuilder.setAdminStateUp(adminStateUp);
+        networkBuilder.setTunnelKey(tunnelKey);
         if (inFilterId != null)
-            bridgeBuilder.setInboundFilterId(inFilterId);
+            networkBuilder.setInboundFilterId(inFilterId);
         if (outFilterId != null)
-            bridgeBuilder.setOutboundFilterId(outFilterId);
+            networkBuilder.setOutboundFilterId(outFilterId);
         if (vxLanPortId != null)
-            bridgeBuilder.setVxlanPortId(vxLanPortId);
+            networkBuilder.setVxlanPortId(vxLanPortId);
 
-        return bridgeBuilder.build();
+        return networkBuilder.build();
     }
 
-    /* A helper method for creating a proto Bridge. */
-    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
-                                             String name,
-                                             boolean adminStateUp,
-                                             int tunnelKey) {
-        return this.createProtoBridge(bridgeId, name, adminStateUp, tunnelKey,
-                                      null, null, null);
+    /* A helper method for creating a proto Network. */
+    private Network createProtoNetwork(Commons.UUID networkId,
+                                       String name,
+                                       boolean adminStateUp,
+                                       int tunnelKey) {
+        return this.createProtoNetwork(networkId, name, adminStateUp, tunnelKey,
+                                       null, null, null);
     }
 
-    /* A helper method for creating a proto Bridge. */
-    private Devices.Bridge createProtoBridge(Commons.UUID bridgeId,
-                                             String name,
-                                             Commons.UUID inFilterId,
-                                             Commons.UUID outFilterId) {
-        return this.createProtoBridge(bridgeId,
-                                      name,
-                                      true,  // Admin state default true
-                                      -1,    // fake tunnel key
-                                      inFilterId,
-                                      outFilterId,
-                                      null);  // A fake VxLanPort ID.
+    /* A helper method for creating a proto Network. */
+    private Network createProtoNetwork(Commons.UUID networkId,
+                                       String name,
+                                       Commons.UUID inFilterId,
+                                       Commons.UUID outFilterId) {
+        return this.createProtoNetwork(networkId,
+                                       name,
+                                       true,  // Admin state default true
+                                       -1,    // fake tunnel key
+                                       inFilterId,
+                                       outFilterId,
+                                       null);  // A fake VxLanPort ID.
     }
 
     /* A helper method for creating a proto Chain. */
-    private Devices.Chain createProtoChain(Commons.UUID chainId, String name) {
-        Devices.Chain.Builder chainBuilder = Devices.Chain.newBuilder();
+    private Chain createProtoChain(Commons.UUID chainId, String name) {
+        Chain.Builder chainBuilder = Chain.newBuilder();
         chainBuilder.setId(chainId);
         chainBuilder.setName(name);
         return chainBuilder.build();
@@ -467,8 +470,10 @@ public class ZookeeperObjectMapperTest {
 
         // Delete the bridge and verify references to it are cleared.
         zom.delete(PojoBridge.class, bridge.id);
-        assertThat(sync(zom.get(PojoChain.class, chain1.id)).bridgeIds, empty());
-        assertThat(sync(zom.get(PojoChain.class, chain2.id)).bridgeIds, empty());
+        assertThat(sync(zom.get(PojoChain.class, chain1.id)).bridgeIds,
+                   empty());
+        assertThat(sync(zom.get(PojoChain.class, chain2.id)).bridgeIds,
+                   empty());
 
         // Delete a chain and verify that the delete cascades to rules.
         zom.delete(PojoChain.class, chain1.id);
@@ -502,20 +507,20 @@ public class ZookeeperObjectMapperTest {
     @Test(expected = AssertionError.class)
     public void testBindUnregisteredClass() throws Exception {
         ZookeeperObjectMapper zom2 = createZoom();
-        zom2.registerClass(Devices.Router.class);
+        zom2.registerClass(Router.class);
         zom2.declareBinding(
-            Devices.Router.class, "inbound_filter_id", DeleteAction.CLEAR,
-            Devices.Chain.class, "router_ids", DeleteAction.CLEAR);
+            Router.class, "inbound_filter_id", DeleteAction.CLEAR,
+            Chain.class, "router_ids", DeleteAction.CLEAR);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBindPojoToProtobufClass() throws Exception {
         ZookeeperObjectMapper zom2 = createZoom();
         zom2.registerClass(PojoBridge.class);
-        zom2.registerClass(Devices.Chain.class);
+        zom2.registerClass(Chain.class);
         zom2.declareBinding(
             PojoBridge.class, "inChainId", DeleteAction.CLEAR,
-            Devices.Chain.class, "bridge_ids", DeleteAction.CLEAR);
+            Chain.class, "bridge_ids", DeleteAction.CLEAR);
     }
 
     @Test(expected = ObjectReferencedException.class)
@@ -552,7 +557,7 @@ public class ZookeeperObjectMapperTest {
 
     @Test(expected = AssertionError.class)
     public void testCreateForUnregisteredClass() throws Exception {
-        zom.create(Devices.Router.getDefaultInstance());
+        zom.create(Router.getDefaultInstance());
     }
 
     @Test
@@ -581,106 +586,99 @@ public class ZookeeperObjectMapperTest {
     }
 
     @Test
-    public void testCreateProtoBridge() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
-        zom.create(bridge);
+    public void testCreateProtoNetwork() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
+        zom.create(network);
 
-        Devices.Bridge bridgeOut =
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
+        Network networkOut = sync(zom.get(Network.class, NETWORK_UUID));
         assertEquals("The retrieved proto object is equal to the original.",
-                     bridge, bridgeOut);
+                     network, networkOut);
     }
 
     @Test
-    public void testCreateProtoBridgeWithExistingId() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
-        zom.create(bridge);
+    public void testCreateProtoNetworkWithExistingId() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
+        zom.create(network);
         try {
-            zom.create(bridge);
+            zom.create(network);
             fail("Should not be able to create object with in-use ID.");
         } catch (ObjectExistsException ex) {
-            assertEquals(Devices.Bridge.class, ex.clazz());
-            assertEquals(bridgeUuid, ex.id());
+            assertEquals(Network.class, ex.clazz());
+            assertEquals(NETWORK_UUID, ex.id());
         }
     }
 
     @Test
-    public void testCreateProtoBridgeWithInChains()
+    public void testCreateProtoNetworkWithInChains()
             throws Exception {
-
-        Devices.Chain inChain =
-                this.createProtoChain(chainUuid, "in_chain");
+        Chain inChain = this.createProtoChain(CHAIN_UUID, "in_chain");
         zom.create(inChain);
 
-        // Add bridge referencing an in-bound chain.
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "bridge", chainUuid, null);
-        zom.create(bridge);
+        // Add a network referencing an in-bound chain.
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, "bridge", CHAIN_UUID, null);
+        zom.create(network);
 
-        Devices.Bridge bridgeOut =
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
+        Network networkOut = sync(zom.get(Network.class, NETWORK_UUID));
         assertEquals("The retrieved proto object is equal to the original.",
-                     bridge, bridgeOut);
+                     network, networkOut);
 
-        // Chains should have backrefs to the bridge.
-        Devices.Chain in = sync(zom.get(Devices.Chain.class, chainUuid));
-        assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
+        // Chains should have backrefs to the network.
+        Chain in = sync(zom.get(Chain.class, CHAIN_UUID));
+        assertThat(in.getNetworkIdsList(), contains(NETWORK_UUID));
     }
 
     @Test(expected = AssertionError.class)
     public void testUpdateForUnregisteredClass() throws Exception {
-        zom.update(Devices.Router.getDefaultInstance());
+        zom.update(Router.getDefaultInstance());
     }
 
     @Test
-    public void testUpdateProtoBridge() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
-        zom.create(bridge);
+    public void testUpdateProtoNetwork() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
+        zom.create(network);
 
         // Changes the tunnel key value.
-        Devices.Bridge.Builder updateBldr = Devices.Bridge.newBuilder(bridge);
+        Network.Builder updateBldr = Network.newBuilder(network);
         updateBldr.setTunnelKey(20);
-        Devices.Bridge updatedBridge = updateBldr.build();
+        Network updatedNetwork = updateBldr.build();
 
-        // Update the bridge data in ZooKeeper.
-        zom.update(updatedBridge);
+        // Update the network data in ZooKeeper.
+        zom.update(updatedNetwork);
 
-        Devices.Bridge retrieved =
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
+        Network retrieved = sync(zom.get(Network.class, NETWORK_UUID));
         assertEquals("The retrieved proto object is equal to the updated "
-                     + "bridge.",
-                     updatedBridge, retrieved);
+                     + "network.",
+                     updatedNetwork, retrieved);
     }
 
     @Test
-    public void testUpdateProtoBridgeWithInChain() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
-        zom.create(bridge);
+    public void testUpdateProtoNetworkWithInChain() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
+        zom.create(network);
 
-        Devices.Chain inChain = this.createProtoChain(chainUuid, "in_chain");
+        Chain inChain = this.createProtoChain(CHAIN_UUID, "in_chain");
         zom.create(inChain);
 
         // make sure they are created
-        sync(zom.get(Devices.Chain.class, inChain.getId()));
+        sync(zom.get(Chain.class, inChain.getId()));
 
-        // Update the bridge with an in-bound chain.
-        Devices.Bridge updatedBridge =
-                bridge.toBuilder().setInboundFilterId(chainUuid).build();
-        zom.update(updatedBridge);
+        // Update the network with an in-bound chain.
+        Network updatedNetwork =
+                network.toBuilder().setInboundFilterId(CHAIN_UUID).build();
+        zom.update(updatedNetwork);
 
-        Devices.Bridge bridgeOut =
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
-        assertEquals("The retrieved bridge is updated with the chain.",
-                     chainUuid, bridgeOut.getInboundFilterId());
+        Network networkOut = sync(zom.get(Network.class, NETWORK_UUID));
+        assertEquals("The retrieved network is updated with the chain.",
+                     CHAIN_UUID, networkOut.getInboundFilterId());
 
-        // Chains should have back refs to the bridge.
-        Devices.Chain in =
-            sync(zom.get(Devices.Chain.class, chainUuid));
-        assertThat(in.getBridgeIdsList(), contains(bridgeUuid));
+        // Chains should have back refs to the network.
+        Chain in = sync(zom.get(Chain.class, CHAIN_UUID));
+        assertThat(in.getNetworkIdsList(), contains(NETWORK_UUID));
     }
 
     @Test
@@ -696,15 +694,15 @@ public class ZookeeperObjectMapperTest {
     }
 
     @Test
-    public void testUpdateProtoBridgeWithNonExistingId() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
+    public void testUpdateProtoNetworkWithNonExistingId() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
         try {
-            zom.update(bridge);
+            zom.update(network);
             fail("Should not be able to update nonexisting item.");
         } catch (NotFoundException ex) {
-            assertEquals(Devices.Bridge.class, ex.clazz());
-            assertEquals(bridgeUuid, ex.id());
+            assertEquals(Network.class, ex.clazz());
+            assertEquals(NETWORK_UUID, ex.id());
         }
     }
 
@@ -819,51 +817,50 @@ public class ZookeeperObjectMapperTest {
 
     @Test(expected = AssertionError.class)
     public void testDeleteForUnregisteredClass() throws Exception {
-        zom.delete(Devices.Router.class, UUID.randomUUID());
+        zom.delete(Router.class, UUID.randomUUID());
     }
 
     @Test
-    public void testDeleteProtoBridge() throws Exception {
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "test_bridge", true, 10);
-        // Persists a bridge in ZooKeeper
-        zom.create(bridge);
+    public void testDeleteProtoNetwork() throws Exception {
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, true, 10);
+        // Persists the network in ZooKeeper
+        zom.create(network);
 
-        // Delete the bridge data in ZooKeeper.
-        zom.delete(Devices.Bridge.class, bridgeUuid);
+        // Delete the network data in ZooKeeper.
+        zom.delete(Network.class, NETWORK_UUID);
 
-        // Get on the bridge should throw a NotFoundException.
+        // Get on the network should throw a NotFoundException.
         try {
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
-            fail("The deleted bridge is returned.");
+            sync(zom.get(Network.class, NETWORK_UUID));
+            fail("The deleted network is returned.");
         } catch (NotFoundException nfe) {
-            // The bridge has been properly deleted.
+            // The network has been properly deleted.
         }
     }
 
     @Test
-    public void testDeleteProtoBridgeWithInChain() throws Exception {
-        Devices.Chain inChain =
-                this.createProtoChain(chainUuid, "in_chain");
+    public void testDeleteProtoNetworkWithInChain() throws Exception {
+        Chain inChain = this.createProtoChain(CHAIN_UUID, "in_chain");
         zom.create(inChain);
 
-        // Add bridge referencing an in-bound chain.
-        Devices.Bridge bridge =
-                this.createProtoBridge(bridgeUuid, "bridge", chainUuid, null);
-        zom.create(bridge);
+        // Add a network referencing an in-bound chain.
+        Network network = this.createProtoNetwork(
+                NETWORK_UUID, NETWORK_NAME, CHAIN_UUID, null);
+        zom.create(network);
 
-        zom.delete(Devices.Bridge.class, bridgeUuid);
-        // Get on the bridge should throw a NotFoundException.
+        zom.delete(Network.class, NETWORK_UUID);
+        // GET on the network should throw a NotFoundException.
         try {
-            sync(zom.get(Devices.Bridge.class, bridgeUuid));
-            fail("The deleted bridge is returned.");
+            sync(zom.get(Network.class, NETWORK_UUID));
+            fail("The deleted network is returned.");
         } catch (NotFoundException nfe) {
-            // The bridge has been properly deleted.
+            // The network has been properly deleted.
         }
 
-        // Chains should not have the backrefs to the bridge.
-        Devices.Chain in = sync(zom.get(Devices.Chain.class, chainUuid));
-        assertTrue(in.getBridgeIdsList().isEmpty());
+        // Chains should not have the backrefs to the network.
+        Chain in = sync(zom.get(Chain.class, CHAIN_UUID));
+        assertTrue(in.getNetworkIdsList().isEmpty());
     }
 
     @Test

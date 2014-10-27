@@ -20,7 +20,7 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "Devices";
 
-message Bridge {
+message Network {
     // Neutron / MidoNet common attributes
     optional UUID id = 1;
     optional string tenant_id = 2;
@@ -52,7 +52,7 @@ message Router {
 
 message Port {
     optional UUID id = 1;
-    optional UUID bridge_id = 2;  // Separate device id fields for ORM.
+    optional UUID network_id = 2;  // Separate device id fields for ORM.
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
@@ -109,7 +109,7 @@ message Chain {
 
     // Back references
     repeated UUID rule_ids = 101;
-    repeated UUID bridge_ids = 102;
+    repeated UUID network_ids = 102;
     repeated UUID router_ids = 103;
     repeated UUID port_ids = 104;
 }

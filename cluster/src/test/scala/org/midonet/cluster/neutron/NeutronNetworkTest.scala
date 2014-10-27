@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Devices.Bridge
+import org.midonet.cluster.models.Devices.Network
 import org.midonet.cluster.models.Neutron
 import org.midonet.cluster.util.UUIDUtil
 
@@ -48,15 +48,15 @@ class NeutronNetworkTest extends FlatSpec {
                                 .setAdminStateUp(adminStateUp)
                                 .build
 
-    "Netron Network CREATE" should "create a new Mido bridge" in {
+    "Netron Network CREATE" should "create a new Mido Network" in {
         network.create(neutronNetwork)
 
-        verify(storage).create(Bridge.newBuilder()
-                                     .setId(networkId)
-                                     .setTenantId(tenantId)
-                                     .setName(networkName)
-                                     .setAdminStateUp(adminStateUp)
-                                     .build)
+        verify(storage).create(Network.newBuilder()
+                                      .setId(networkId)
+                                      .setTenantId(tenantId)
+                                      .setName(networkName)
+                                      .setAdminStateUp(adminStateUp)
+                                      .build)
     }
 
     // TODO Test that NeutronNetworkService ensures the provider router if
@@ -64,34 +64,34 @@ class NeutronNetworkTest extends FlatSpec {
     // TODO Test that NeutronNetworkService creates and persists a new
     // tunnel key ID
     // TODO Test that NeutronNetworkService updates the tunnel key ID node
-    // with the data of the owner (bridge)
+    // with the data of the owner (Mido Network)
     // TODO Test that NeutronNetworkService creates a tunnel key ID
 
-    "Netron Network UPDATE" should "update the corresponding bridge" in {
+    "Netron Network UPDATE" should "update the corresponding Mido Network" in {
         val updatedNetwork = neutronNetwork.toBuilder()
                                            .setName(networkName2)
                                            .build
         network.update(updatedNetwork)
-        verify(storage).update(Bridge.newBuilder()
-                                     .setId(networkId)
-                                     .setTenantId(tenantId)
-                                     .setName(networkName2)
-                                     .setAdminStateUp(adminStateUp)
-                                     .build)
+        verify(storage).update(Network.newBuilder()
+                                      .setId(networkId)
+                                      .setTenantId(tenantId)
+                                      .setName(networkName2)
+                                      .setAdminStateUp(adminStateUp)
+                                      .build)
 
         // TODO Verify external network is updated.
     }
 
-    "Netron Network DELETE" should "delete the corresponding bridge" in {
+    "Netron Network DELETE" should "delete the corresponding Mido Network" in {
         network.delete(networkId)
-        verify(storage).delete(classOf[Bridge], networkId)
+        verify(storage).delete(classOf[Network], networkId)
 
         // TODO Verify external network is also deleted.
     }
 
     "Netron Network DELETE" should "be idempotent" in {
-        doThrow(new NotFoundException(classOf[Bridge], networkId))
-            .when(storage).delete(classOf[Bridge], networkId)
+        doThrow(new NotFoundException(classOf[Network], networkId))
+            .when(storage).delete(classOf[Network], networkId)
         network.delete(networkId)
     }
 }

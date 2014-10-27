@@ -20,34 +20,34 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Devices.Bridge
+import org.midonet.cluster.models.Devices.Network
 import org.midonet.cluster.models.Neutron
 
 /**
  * Defines the conversion logic.
  */
 object NeutronNetworkService {
-    implicit def toMido(network: Neutron.NeutronNetwork): Bridge = {
-       Bridge.newBuilder()
-             .setId(network.getId)
-             .setTenantId(network.getTenantId)
-             .setName(network.getName)
-             .setAdminStateUp(network.getAdminStateUp)
-             .build
+    implicit def toMido(network: Neutron.NeutronNetwork): Network = {
+       Network.newBuilder()
+              .setId(network.getId)
+              .setTenantId(network.getTenantId)
+              .setName(network.getName)
+              .setAdminStateUp(network.getAdminStateUp)
+              .build
     }
 }
 
 /**
  * Provides Neutron Network CRUD service.
  */
-class NeutronNetworkService(val storage: Storage){
+class NeutronNetworkService(val storage: Storage) {
     import NeutronNetworkService.toMido
     val log = LoggerFactory.getLogger(classOf[NeutronNetworkService])
 
     def create(network: Neutron.NeutronNetwork) = {
         // TODO Ensures the provider router if the network is external
         // TODO Creates and persists a new tunnel key ID
-        // TODO Updates the tunnel key ID node with the data of the bridge ID.
+        // TODO Updates the tunnel key ID node with the data of the Network ID.
         // TODO Creates a tunnel key ID
         storage.create(toMido(network))
     }
@@ -68,8 +68,8 @@ class NeutronNetworkService(val storage: Storage){
     def delete(networkId: Commons.UUID) = {
         try {
             // TODO Update the external network. To do that, need to look up the
-            // bridge data first.
-            storage.delete(classOf[Bridge], networkId)
+            // Mido Network data first.
+            storage.delete(classOf[Network], networkId)
         } catch {
             case _: NotFoundException =>
                 log.info("Deleting a non-existent neutron network with UUID = "
