@@ -16,7 +16,7 @@
 package org.midonet.midolman
 
 import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet, UUID}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor.{Stash, Actor, ActorRef}
@@ -28,6 +28,7 @@ import org.midonet.midolman.topology.{ VirtualToPhysicalMapper => VTPM }
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.util.concurrent._
 
 object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
@@ -57,20 +58,20 @@ object HostRequestProxy {
   * the host object.
   */
 class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
-        val subscriber: ActorRef) extends Actor with ActorLogWithoutPath with Stash {
+        val subscriber: ActorRef) extends Actor
+                                  with ActorLogWithoutPath
+                                  with SingleThreadExecutionContextProvider {
 
     import HostRequestProxy._
     import context.system
     import context.dispatcher
 
     var lastPorts: Set[UUID] = Set.empty
+    val belt = new ConveyorBelt(_ => {})
 
     override def preStart() {
         VTPM ! HostRequest(hostId)
     }
-
-    private def newLocalPorts(newHost: Host, oldPorts: Set[UUID]): Iterable[UUID] =
-        newHost.ports.keys.filter(!oldPorts.contains(_))
 
     private def stateForPort(port: UUID): Future[FlowStateBatch] = {
         val scf = storage.fetchStrongConnTrackRefs(port)
@@ -88,34 +89,18 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
-    case object Continue
-
-    val ready: Receive = {
+    override def receive = super.receive orElse {
         case h: Host =>
-            context.become(busy)
-            stateForPorts(newLocalPorts(h, lastPorts)) andThen {
-                case Success(stateBatch) =>
-                    PacketsEntryPoint ! stateBatch
-                case Failure(e) =>
-                    log.warn("Failed to fetch state from Cassandra: {}", e)
-            } andThen {
-                case _ =>
-                    subscriber ! h
-                    self ! Continue
-            }
-
-            lastPorts = h.ports.keySet
-
-        case _ => // not reached
-    }
-
-    val busy: Receive = {
-        case Continue =>
-            context.become(ready)
-            unstashAll()
-        case _ =>
-            stash()
-    }
-
-    override def receive = ready
+            belt.handle(() => {
+                val ps = h.ports.keySet -- lastPorts
+                stateForPorts(ps).andThen {
+                    case Success(stateBatch) =>
+                        lastPorts = ps
+                        PacketsEntryPoint ! stateBatch
+                    case Failure(e) =>
+                        log.warn("Failed to fetch state from Cassandra: {}", e)
+                }.andThen {
+                    case _ => subscriber ! h
+                }(singleThreadExecutionContext)})
+        }
 }
