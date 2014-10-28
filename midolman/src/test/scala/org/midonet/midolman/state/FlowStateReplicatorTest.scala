@@ -143,7 +143,7 @@ class FlowStateReplicatorTest extends FeatureSpec
         packetsSeen = List.empty
     }
 
-    private def sendAndAcceptTransactions() = {
+    private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
         sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id, egressPort1.id,
                                  null, new mutable.HashSet[FlowTag](),
                                  new ArrayList[Callback0])
@@ -153,9 +153,9 @@ class FlowStateReplicatorTest extends FeatureSpec
         natTx.flush()
         connTrackTx.flush()
         packetsSeen should not be empty
-        val (_, actions) = packetsSeen.head
+        val passedPacketsSeen = packetsSeen
         acceptPushedState()
-        actions
+        passedPacketsSeen
     }
 
     feature("L4 flow state replication") {
@@ -168,6 +168,22 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             Then("Its peer's stateful tables should contain the key")
             recipient.conntrackTable.get(connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
+        }
+
+        scenario("L4 flow state packet size is less than MTU") {
+            Given("A conntrack key in a transaction")
+            connTrackTx.putAndRef(
+                connTrackKeys.head, ConnTrackState.RETURN_FLOW)
+
+            When("A flowstate packet is generated")
+            val (packet, _) = sendAndAcceptTransactions().head
+
+            Then("Packet size of the flowstate packet should be less than MTU.")
+            recipient.conntrackTable.get(
+                connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
+            val ethernetFrame = packet.getData
+            ethernetFrame.length should be <= (FlowStatePackets.MTU -
+                FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
         }
 
         scenario("Replicates Nat keys") {

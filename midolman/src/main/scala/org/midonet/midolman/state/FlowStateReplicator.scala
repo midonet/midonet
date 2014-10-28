@@ -125,7 +125,7 @@ abstract class BaseFlowStateReplicator() {
     /* Used for packet building
      * FIXME(guillermo) - use MTU
      */
-    private[this] val buffer = new Array[Byte](1500 - OVERHEAD)
+    private[this] val buffer = new Array[Byte](MTU - OVERHEAD)
     private[this] val stream = new FixedArrayOutputStream(buffer)
     private[this] val packet = {
         val udpShell = makeUdpShell(buffer)
