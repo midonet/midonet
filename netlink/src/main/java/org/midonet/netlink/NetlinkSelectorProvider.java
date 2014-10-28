@@ -133,7 +133,7 @@ public class NetlinkSelectorProvider extends SelectorProvider {
             log.error("Security exception when trying to instantiate class {}"
                 + "   midonet-jdk-boostrap might be missing ? {}", type, e);
         } catch (Throwable e) {
-            log.error("Exception making instance of class {}: {}", type, e);
+            log.error("Exception making instance of class " + type, e);
         }
         return null;
     }

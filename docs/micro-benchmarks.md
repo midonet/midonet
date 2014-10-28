@@ -589,7 +589,7 @@ yields the following list of supported profilers:
 
 To run a benchmark with a particular profiler attached, we can do
 
-`./gradlew :midonet-util:benchmarks '-Pjmh= -prof stack .*Statistical.*'`
+`./gradlew :midonet-util:benchmarks '-Pjmh= .*Statistical.* -prof stack'`
 
 Note that we can run more than one profiler at the same time.
 

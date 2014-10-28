@@ -318,8 +318,9 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task benchmarks(type: JavaExec) {
         main = 'org.openjdk.jmh.Main'
         classpath = sourceSets.perf.runtimeClasspath + files(benchOutput)
-        bootstrapClasspath(file(project.jdkBootstrap))
-        maxHeapSize = "1024m"
+        jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
+        jvmArgs('-Djava.library.path=/lib:/usr/lib')
+        maxHeapSize = "4096m"
         description 'Executes the specified benchmarks. By default runs all. ' +
                     'Example command: ./gradlew :midonet-util:benchmarks \'-Pjmh=.*Statistical.*\''
 
