@@ -357,7 +357,8 @@ public class NetworkZkManager extends BaseZkManager {
             dhcpZkManager
                 .getSubnet(subnet.networkId, IPv4Subnet.fromCidr(subnet.cidr));
         dhcpSubnet.removeOpt121Route(MetaDataService.IPv4_ADDRESS, addr);
-        dhcpSubnet.setServerAddr(null);
+        dhcpSubnet.setServerAddr(subnet.gatewayIp == null ? null :
+                                 IPv4Addr.fromString(subnet.gatewayIp));
         dhcpZkManager.prepareUpdateSubnet(ops, subnet.networkId, dhcpSubnet);
     }
 

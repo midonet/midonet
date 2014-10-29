@@ -94,9 +94,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
 
         public Subnet(org.midonet.cluster.data.neutron.Subnet subnet) {
 
+            this.serverAddr = subnet.gatewayIp == null ? null :
+                IPv4Addr.fromString(subnet.gatewayIp);
             this.subnetAddr = IPv4Subnet.fromCidr(subnet.cidr);
-            this.defaultGateway = subnet.gatewayIp == null ?
-                null :
+            this.defaultGateway = subnet.gatewayIp == null ? null :
                 IPv4Addr.fromString(subnet.gatewayIp);
 
             if (subnet.hostRoutes != null) {
