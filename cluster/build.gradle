@@ -16,6 +16,7 @@
 
 apply plugin: 'protobuf'
 apply plugin: 'scala'
+apply plugin: 'application'
 
 jar {
     manifest {
@@ -41,11 +42,18 @@ dependencies {
     compile libraries.collections4, libraries.commons_lang3,
             libraries.curator_recipes, libraries.guava, libraries.guice,
             libraries.jackson_mapper, libraries.rx, libraries.scala,
-            libraries.scala_async
+            libraries.scala_async, libraries.commons_cli
 
     testCompile libraries.curator_test, libraries.hamcrest,
                 libraries.logback, libraries.scalatest, libraries.scala_async
                 libraries.test_frameworks
+}
+
+mainClassName = "org.midonet.cluster.ClusterNode"
+
+// Runs the cluster daemon, locally.
+run {
+    args = ['conf/cluster.conf']
 }
 
 cobertura {
