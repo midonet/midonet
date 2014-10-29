@@ -15,6 +15,7 @@
  */
 
 apply plugin: 'scala'
+apply plugin: 'application'
 
 jar {
     manifest {
@@ -60,6 +61,14 @@ dependencies {
             libraries.zookeeper
 
     testCompile libraries.hamcrest_lib, libraries.scalatest
+}
+
+// Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to
+// start it up pointing at the sample config file in brain/midonet-brain/conf -
+// Note that the path is relative to the midonet-brain submodule.
+run {
+    mainClassName = "org.midonet.brain.ClusterNode"
+    args = [conf]
 }
 
 cobertura {
