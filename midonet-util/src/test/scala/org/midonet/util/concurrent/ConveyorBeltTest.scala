@@ -71,7 +71,7 @@ class ConveyorBeltTest extends FeatureSpec with Matchers {
             val belt = new MultiLaneConveyorBelt[String](_ => { })
             val ps = mutable.ListBuffer[Promise[Any]]()
             var i = 0
-            val cargo = (k: String, shutdown: () => Unit) => {
+            val cargo = () => {
                 i += 1
                 val p = Promise[Any]()
                 ps += p
@@ -91,10 +91,9 @@ class ConveyorBeltTest extends FeatureSpec with Matchers {
 
         scenario ("shutdown removes a lane") {
             val belt = new MultiLaneConveyorBelt[String](_ => { })
-            belt.handle("key", (k, shutdown) => {
-                k should be ("key")
+            belt.handle("key", () => {
                 belt containsLane "key" should be (true)
-                shutdown()
+                belt.shutdown("key")
                 Future.successful(null)
             })
             belt containsLane "key" should be (false)
@@ -103,12 +102,11 @@ class ConveyorBeltTest extends FeatureSpec with Matchers {
         scenario ("a lane is removed only when it's empty ") {
             val belt = new MultiLaneConveyorBelt[String](_ => { })
             val p = Promise[Any]()
-            belt.handle("key", (k, shutdown) => {
-                k should be ("key")
+            belt.handle("key", () => {
                 belt containsLane "key" should be (true)
-                shutdown()
-                belt.handle("key", (k, shutdown) => {
-                    shutdown()
+                belt.shutdown("key")
+                belt.handle("key", () => {
+                    belt.shutdown("key")
                     Future.successful(null)
                 })
                 p.future
