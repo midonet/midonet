@@ -30,14 +30,14 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.{ArpTimeoutException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{ARP, Ethernet}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
@@ -48,6 +48,7 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import java.util.concurrent.TimeoutException
 
 object DeduplicationActor {
     // Messages
@@ -375,7 +376,15 @@ class DeduplicationActor(
      * Handles an error in a workflow execution.
      */
     private def handleErrorOn(pktCtx: PacketContext, ex: Throwable): Unit = {
-        log.warn("Exception while processing packet", ex)
+        ex match {
+            case ex: ArpTimeoutException =>
+                log.debug("ARP timeout")
+            case ex: TimeoutException =>
+                log.info("A piece of topology could not be " +
+                    "fetched and timed out.", ex)
+            case _ =>
+                log.warn("Exception while processing packet", ex)
+        }
         drop(pktCtx)
     }
 
