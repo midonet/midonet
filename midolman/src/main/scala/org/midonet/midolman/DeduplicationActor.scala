@@ -18,10 +18,20 @@ package org.midonet.midolman
 
 import java.util.{UUID, HashMap => JHashMap, List => JList}
 
+import scala.collection.mutable
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
+
 import akka.actor._
-import akka.event.LoggingReceive
+
 import com.codahale.metrics.Clock
+import org.slf4j.MDC
 import com.typesafe.scalalogging.Logger
+
+import org.jctools.queues.QueueFactory
+import org.jctools.queues.spec.ConcurrentQueueSpec._
+
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -38,16 +48,12 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
+import org.midonet.sdn.CallbackExecutor
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.ExecutionContextOps
-import org.slf4j.MDC
-
-import scala.collection.mutable
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import org.midonet.util.concurrent._
+import org.midonet.util.functors.Callback0
 
 object DeduplicationActor {
     // Messages
@@ -176,6 +182,9 @@ class DeduplicationActor(
     protected var replicator: FlowStateReplicator = _
 
     protected var workflow: PacketHandler = _
+    val cbExecutor: CallbackExecutor = new CallbackExecutor(
+        QueueFactory.newQueue[Callback0](createBoundedSpsc(1024))
+    )
 
     private var pendingFlowStateBatches = List[FlowStateBatch]()
 
@@ -193,7 +202,7 @@ class DeduplicationActor(
             }
         }
 
-    override def receive = LoggingReceive {
+    override def receive = {
 
         case DatapathReady(dp, state) if null == datapath =>
             datapath = dp
@@ -206,7 +215,8 @@ class DeduplicationActor(
                 datapath)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
-                                          dpConnPool, actionsCache, replicator)
+                                          dpConnPool, cbExecutor, actionsCache,
+                                          replicator)
 
         case m: FlowStateBatch =>
             if (replicator ne null)
@@ -226,6 +236,8 @@ class DeduplicationActor(
                 handlePacket(packets(i))
                 i += 1
             }
+
+            cbExecutor.run()
 
         case RestartWorkflow(pktCtx) =>
             MDC.put("cookie", pktCtx.cookieStr)
