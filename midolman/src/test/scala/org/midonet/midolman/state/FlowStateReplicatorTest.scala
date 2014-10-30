@@ -31,7 +31,7 @@ import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
@@ -436,7 +436,7 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
 
     val output = FlowActions.output(23)
 
-    override def host = Host(hostId, true, 23L, "midonet", Map.empty, Map.empty)
+    override def host = ResolvedHost(hostId, true, 23L, "midonet", Map.empty, Map.empty)
 
     override def peerTunnelInfo(peer: UUID): Option[Route] = {
         if (peers.contains(peer))

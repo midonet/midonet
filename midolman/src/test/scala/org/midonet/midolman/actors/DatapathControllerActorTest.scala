@@ -37,7 +37,7 @@ import org.midonet.midolman.io.ChannelType
 import org.midonet.midolman.state.{MockStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.HostConfigOperation
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
 import org.midonet.odp.Datapath
 import org.midonet.odp.DpPort
@@ -75,7 +75,7 @@ class DatapathControllerActorTest extends TestKit(ActorSystem("DPCActorTest"))
 
     val commonMessages = List[AnyRef](
         Initialize,
-        Host(UUID.randomUUID, true, 0L, "midonet", Map(), Map())
+        ResolvedHost(UUID.randomUUID, true, 0L, "midonet", Map(), Map())
     )
 
     val initOnlyMessages = List[AnyRef](
