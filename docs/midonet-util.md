@@ -1,6 +1,6 @@
 ## midonet-util package contents.
 
--   *org.midonet.util.process.ProcessHelper*
+* org.midonet.util.process.ProcessHelper*
 
     It is a class that allow easy and simple process execution and control.
 
@@ -15,29 +15,7 @@
     It can also force a process to be launched locally regardless if an remote
     host specification was provided at runtime.
 
--   *org.midonet.util.ssh.SshHelper*
-
-    It's a basic class that provides a simple entry point for operations executed
-    over a ssh connection to a remote host: file upload/download,
-    local/remote port forwarding, remote process launch and control,
-    remote command execution.
-
-    It is used mainly by the ProcessHelper and RemoteHost
-    to transparently execute remote commands and respectively forward ports at
-    runtime if so desired.
-
-- *org.midonet.util.SystemHelper*
-
-    Easy way to find out the currently running OS type.
-
-- *org.midonet.remote.RemoteHost*
-
-    Class that will look for a managed_host.properties in the current classpath.
-    If found it will read it and it it will try to open a ssh connection to the
-    remote host specified in there while at the same time enabling a set of port
-    forwardings (those port forwardings that have been already specified in there).
-
-- *org.midonet.tools.timed.Timed*
+* org.midonet.tools.timed.Timed*
 
     Provides support for conditional wait loops. Waiting up to x amount of
     milliseconds while checking for a condition every y amount of milliseconds.
@@ -45,12 +23,28 @@
 
     Mainly used inside the functional tests.
 
-- *org.midonet.util.functors*
+* org.midonet.util.functors*
 
     A couple of simple interfaces that abstract functions. Until we will have
     closures in java :).
 
-- *some hamcrest matchers*
+* some hamcrest matchers*
 
     Some simple Hamcrest matchers (used in the functional tests and in the controller).
+    
+* midonet.util.collection.*
+
+    A few collection classes: object pools, a scala bidirectional map, a trivial ring buffer...
+    
+* org.midonet.util.eventloop
+
+    A single threaded select loop.
+    
+* org.midonet.util.concurrent
+
+    Concurrency utilities: execution contexts for Akka actors, a lock-free reference counted map with timed expiration, and padded atomics, a statistical counter, and more.
+
+* org.midonet.util.TockenBucket et al.
+
+    An HTB implementation used to distribute available processing capacity among local ports.
 

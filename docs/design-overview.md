@@ -1,6 +1,6 @@
 ## Midolman Daemon Design Overview
 
-### Text diagram
+### Diagram
 
 <pre>
 
@@ -12,15 +12,15 @@
                  │  cluster...←────│              ↑              │
                  │          Remote │              │              │ Read-only
                  │          State  │              │              │ Virtual Topology
-                 │          Queries│        ┌─────────┐          │ State data / Messages
-                 │                 └────────│Virt─Phys│          │
-                 │                          │ Mapping │          │
-                 │                          └─────────┘          │
+                 │          Queries│        ┌──────────┐         │ State data / Messages
+                 │                 └────────│VirtToPhys│         │
+                 │                          │ Mapper   │         │
+                 │                          └──────────┘         │
                  │                 Host/IF/Vport ↑               │
                  ↓                    Mappings   │               │
                  │                               ↓               │
                  │                      ┌───────────────────┐    │
-                 │Flow                  │   DP Controller   │────│
+                 │Flow                  │ DatapathController│────│
                  │Invalidation          └───────────────────┘    │
                  │By Tag                          │       │      │
                  │                                │       │      │
@@ -71,7 +71,7 @@ ODP API. On datapaths that do not support wildcarding (all OVS versions before
 packet.
 
 - WildcardFlow: MidoNet extension of a flow, that allows for header field
-wildcarding. Since they are not supported in the kernel, they live exclusively
+wildcarding. Since they are not supported in all kernels, they live exclusively
 inside midolman, and produce specific datapath flows when a packet matches on
 them.
 
@@ -79,16 +79,17 @@ them.
 
 ### Netlink Datapath API - odp
 
-The Netlink Datapath API is a thread-safe non-blocking library that provides
-methods to query the Kernel (and particularly the OVS kernel module) to perform
+The Netlink Datapath API is a library that provides methods to query the
+Kernel (and particularly the OVS kernel module) to perform
 CRUD operations on datapaths, datapath ports, and datapath flows.
 
 ### VirtualToPhysicalMapper
 
 The VirtualToPhysicalMapper is a component that interacts with Midonet's
 state management cluster and is responsible for those pieces of state that map
-physical world entities to virtual world entities. In particular, the VPM
+physical world entities to virtual world entities. In particular, the VTPM
 can be used to:
+
 - determine what virtual port UUIDs should be mapped to what interfaces (by IF
 name) on a given physical host.
 - determine what physical hosts are subscribed to a given PortSet.
@@ -102,34 +103,32 @@ corresponding local interface and the interface is ready to receive).
 
 The VirtualTopologyActor is a component that interacts with MidoNet's state
 management cluster and is responsible for all pieces of state that describe
-virtual network devices. In particular, the VTA can be used to:
+virtual network devices. In particular, the VTA can be used to get and subscribe
+to the configuration of any virtual device:
 
-- get the configuration of a virtual port, including the port's associated
-filters, the port's associated services (DHCP, BGP, VPN), the port's MAC and IP
-addresses (e.g. in the case of a virtual router port).
-- get the configuration of a virtual router, including the router's associated
-filters, forwarding table and ARP cache.
-- get the configuration of a virtual bridge, including the bridge's associated
-filters and mac-learning table.
-- subscribe to update notifications for any of these devices.
+- virtual ports, including their associated filters, services (DHCP, BGP, VPN),
+and their MAC and IP addresses (e.g. in the case of a virtual router port).
+- virtual routers, including their associated filters, forwarding tables
+and ARP caches.
+- virtual bridges, with their associated filters and mac-learning tables.
+- filtering chains, and their lists of rules
 
 ### Datapath Controller
 
 The DP (Datapath) Controller is responsible for managing MidoNet's local kernel
-datapath. It queries the Virt-Phys mapping to discover (and receive updates
+datapath. It queries the VirtToPhysicalMapper  to discover (and receive updates
 about) what virtual ports are mapped to this host's interfaces. It uses the
 Netlink API to query the local datapaths, create the datapath if it does not
 exist, create datapath ports for the appropriate host interfaces and learn their
-IDs (usually a Short), locally track the mapping of datapath port ID to MidoNet
+local (numeric) IDs, locally track the mapping of datapath port ID to MidoNet
 virtual port ID. When a locally managed vport has been successfully mapped
 to a local network interface, the DP Controller notifies the VirtualToPhysical
 Mapper that the vport is ready to receive flows. This allows other Midolman
 daemons (at other physical hosts) to correctly forward flows that should be
 emitted from the vport in question.
 
-The DP Controller knows when the Datapath is ready to be used and notifies the
-Flow Controller and the Deduplication Actor so that the latter may register
-for Netlink PacketIn notifications.
+The DP Controller knows when the Datapath is ready to be used and notifies other
+components so they may register with the datapath to receive packet notifications.
 
 The DP Controller is also responsible for managing overlay tunnels.
 Tunnel management is described in a separate design document.
@@ -138,14 +137,16 @@ Tunnel management is described in a separate design document.
 
 The DeduplicationActor (DDA) is the entry point to the packet processing
 activities. There may be several of them running in parallel. Packets make it
-to a given DDA worker based on the hash of their flow match. Thus two identical
-packets will always be routed through the same DDA.
+to a given DDA worker based on the hash of their 5-tuple. Thus any two
+identical that belong the same L4 connection will always be routed through
+the same DDA.
 
 When a DDA receives a packet notification from the Netlink API, it first
-checks that there are no packets with the same match being processed. If there
-are, the packets are kept in the pended packets queue, so that, when the
-in-progress packet is processed the resulting actions can be applied to all the
-packets pended with the same match.
+checks that there are no packets with the same match being whose processing
+is suspended pending an asynchronous computation (fetching a device or
+waiting for an ARP reply). If there are, the packets are kept in the pended
+packets queue, so that, when the in-progress packet is processed the resulting
+actions can be applied to all the packets pended with the same match.
 
 If the incoming packet doesn't have same-match counterpart, the DDA
 synchronously runs a new PacketWorkflow (PW) to process the packet.
@@ -161,9 +162,9 @@ using the packet's match and the wildcard flow's actions and makes two calls
 the Netlink API: one to install the flow and one to execute the packet (if
 applicable). It will also inform the FlowController of the new datapath flow.
 
-If no match is found in the WildcardFlow table the packet, it translates the
-arriving datapath port ID to a virtual port UUID and starts a simulation
-of the packet as it would traverse the virtual topology.
+If no match is found in the WildcardFlow table it translates the arriving
+datapath port ID to a virtual port UUID and starts a simulation of the packet
+as it would traverse the virtual topology.
 
 When the simulation produces a result a new Wildcard Flow can be produced.
 This Wildcard Flow needs to be translated. If the flow is being emitted from
@@ -202,19 +203,13 @@ free up space in the table).
 The Flow Controller also manages a Wildcarded flow table and offers its clients
 an interface for adding/removing wildcarded flows.
 
-The Flow Controller's per-flow statistics may be queried and used for other
-purposes than reclaiming space taken by unused flows. For example, they can
-be aggregated by the devices they traversed to meter bandwidth utilization on
-a virtual device or link.
-
 ### Simulations
 
 Simulations are one of the workflow phases managed by the DDA, they work
-purely at the virtual topology level (no knowledge of physical mappings)
-of actions
+purely at the virtual topology level, no knowledge of physical mappings.
 
-Each simulation reads the VirtualTopologyActor shared state database for device
-state. The simulations don't subscribe for device updates. Normally a simulation
+Each simulation reads the VirtualTopologyActor's shared map of virtual devices.
+The simulations don't subscribe for device updates. Normally a simulation
 cannot know at the outset the entire set of devices it will need to simulate
 (and therefore query from the VTA) - more commonly, it will discover a new device
 it needs to simulate as soon as the previous device's simulation completes.
@@ -258,45 +253,37 @@ frames addressed to M1 correctly to port A.
 
 ### Traffic-dynamic state
 
-There are three pieces of state which are updated dynamically as flows
-are processed (not as configuration changes):  The ARP cache, the MAC-Port
-map, and the MAC flow count.  The ARP cache and MAC-Port map are shared
-across daemons, and so are managed by the cluster service.  The calls to
-this service are thread-safe and take callbacks.  When a forwarding element
-needs to get data from the cluster service, the FE will set up an Akka
-`Promise` which will be completed by the callback method, then query for
-the data, then await the `Promise`'s completion for the queried data.
-The MAC flow count is daemon-local, and will be managed by the 
-`VirtualTopologyManager`'s actor.  When a `DeviceManager` (a child of the VTA)
-constructs a forwarding element using any of this dynamic state, it will
-pass an object reference handing the state to the forwarding element's
-constructor, with all the RCU copies of that forwarding element instance
-getting a reference to the same object, but an instance of a *different*
-forwarding element will get a different state management object.  (E.g.,
-different routers don't share ARP caches, but changing a router's config --
-triggering generation of a new RCU copy -- doesn't reset the ARP cache.)
+There are two pieces of state which are updated dynamically as flows
+are processed (not as configuration changes):  The ARP cache and the
+MAC-Port map.  Both are shared across daemons, and so are managed by
+the cluster layer and are instances of `ReplicatedMap`. Replicated
+maps live in ZooKeeper and are locally cached. All reads performed
+by forwarding elements can thus be non-blocking and synchronous.
+
+### MAC-Port mappings
+
+There are local pieces of state that agents must manage too, such as
+reference counts to MAC-Port map entries. The agent that discovered
+a MAC-Port association will keep it in the shared replicated map as
+long as it owns flows that reference it. Once all flows disappear,
+the agent deletes the entry from the replicated map after 30 seconds
+of idleness. Midolman uses the lock-free TimedExpirationMap to keep
+track of these references. Packet processing threads add references
+and the flow-removal callbacks in the flows they create will later
+unref those entries and, eventually, trigger the deletion of an entry.
 
 ### ARP Cache
 
-The ARP Cache is traffic-updated (specifically, ARP-reply-updated) data
-managed by Midostore and used by the `Router` class.  All instances of
-a particular virtual router will share the same ARP Cache, which will
-handle ARP replies and generate ARP requests.
+The ARP Cache is traffic-updated (specifically, ARP-reply-updated) is
+scoped per virtual router, shared across all midolman instances as any
+other ReplicatedMap. It will handle ARP replies and generate ARP requests.
 
-When a `Router` requires the MAC for an IP address, it queries its ARP cache,
-which will suspend the `Controller` actor the `Router` is running in until
-the ARP Cache replies.  When a `Router` receives an ARP reply addressed
-to it, it sends it to its ARP Cache and instructs its caller that it has
-consumed the packet.
+When a `Router` requires the MAC for an IP address, it queries its ARP
+cache. Successful queries are resolved on the spot by reading the local
+cache directly. Queries for missing entries will cause an ARP request to
+be emmited and suspend the simulation of the affected packet until a reply
+is received. Suspended simulations receive a `Future` that will be completed
+by the reply. This serves as an indication to packet processing threads that
+they can re-attempt to simulate the packet.
 
-If the ARP Cache has an entry for a requested IP address, it returns it
-immediately.  If it does not, it records the waiting callback and the address
-it's waiting on, and produces an ARP request and instructs the
-`DatapathController` to emit it.  If the cluster service is notified of an
-entry for an outstanding address, it sends that entry to every callback
-waiting for it.  When the cluster service Client receives an ARP reply from
-the `Router` object, it updates the ARP Cache with the data from that reply
-and sends it to any callbacks waiting on it.  These callbacks complete the
-`Promise`s the simulations are suspended on, and so when the simulations are
-run a second time, Routers will find the entries in their ARP table without
-suspending.
+See [ARP table](arp-table.md).

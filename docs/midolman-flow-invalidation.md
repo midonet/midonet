@@ -46,8 +46,9 @@ active flows traversing the device matters.
 
 ### Implementation
 
-We will implement flow invalidation using tags. A tag can be a String or any other
-class, we decided to be as flexible as possible, that's why a tag is of type Any.
+We will implement flow invalidation using tags. Tags are case classes extending
+from FlowTag.
+
 There are two kind of flows, wildcard flows and kernel flows. Wildcard flows are
 understood only by MM and are semantically more powerful because you can use
 wildcards. A wildcard flow is translated into one or many kernel flows.
@@ -73,7 +74,8 @@ be passed to the FlowController, that will use them to tag the flow installed.
 
 FlowTagger is the class that will take care of keeping the tagging semantic
 coherent. Every object that need to tag a flow, will request a tag from the
-FlowTagger.
+FlowTagger. The FlowTagger uses a per-thread cache to avoid unnecessary tag
+allocations.
 
 ### Implementation Details
 
@@ -173,7 +175,7 @@ Every bridge will tag every packet it sees using its bridge id.
 
 Configuration change -> invalidate all flows tagged with this bridge id
 
-##### Materialized ports
+##### Exterior ports
 React to the changes in the MAC learning table
 
     1) A new association {port, mac, vlan id} is learnt -> invalidate all flows tagged
@@ -185,7 +187,7 @@ React to the changes in the MAC learning table
     3) A MAC moves from port1 to port2 -> invalidate all the flows tagged
        (bridgeId, port1, MAC, VLAN ID)
 
-##### Logical ports
+##### Interior ports
 Added -> Invalidate all ARP requests for the port's MAC.
          Invalidate all flooded flows to the port's MAC, tagged (bridge ID, MAC,
          VLAN ID)

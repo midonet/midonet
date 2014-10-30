@@ -12,11 +12,6 @@ BGP is a good example of an external program giving service to Midonet. It
 communicates with external peers and it's possible to learn and advertise
 routes to and from Midonet via this program.
 
-Previously in Babuza, external software was run in a framework called
-PortService. This is no longer the case and has been replaced by a container
-based approach. This new way allows Midonet to run several instances of BGP
-with no interference from the network point of view.
-
 ### Design
 
 In our model, we want to run one or more BGP processes that connect to one

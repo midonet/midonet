@@ -42,7 +42,7 @@ forwarded back to the same port after mac-learning. Midolman will detect
 this case and create a temporary drop, giving time for the network to
 stabilize the mac on a given port.
 
-## Coordinator changes
+## Simulation changes
 
 Supporting multicast from VUB's connected to a VAB required an
 additional change in the Coordinator. Note that in a typical topology, a

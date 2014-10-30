@@ -38,54 +38,49 @@ the Datapath Controller's responsibilities and behavior.
 
 ### Setting up and sending from tunnels.
 
-When the Datapath Controller starts it uses the Virtual-Physical Mapping (see
-the Design Overview document) to retrieve (and receive updates about) the list
-of all MidoNet hosts. For each remote MidoNet host, the DPC creates a tunnel
-port by calling the Netlink API. Upon receiving a successful response from the
-Netlink API about a tunnel port create request, the DPC can update a local
-bi-directional map of port-numbers to remote MidoNet hosts.
+When the Datapath Controller boots, it:
 
-When the DPC receives a request to install a wild-carded flow with an action to
-emit from a vport (specified by UUID), the DPC uses the Virtual Topology Manager
-to get the vport's configuration. If the vport is not local, the DPC queries the
-Virtual-Physical Mapping to find the MidoNet host where the vport is located.
-The DPC then maps that remote MidoNet host to a local tunnel port number and
-translates the flow's output action to use the tunnel port number instead of the
-vport UUID. Finally, the DPC adds an action to the flow to encode the vport
-ID in the tunnel key.
+* Queries the VirtualToPhysicalMapper to retrieve (and subscribe to) the list
+all other MidoNet hosts and maintains a map keeps track of their IP addresses
+and which ports they own.
+* Queries the VirtualToPhysicalMapper to retrieve the list of virtual ports
+that should be local, and the names of the network interfaces that should be
+bound to them.
+* It creates a tunnel port per supported tunneling protocol (VxLAN, GRE) using
+the netlink API. (see: [Flow based tunneling](flow-based-tunneling.md)).
 
-When the Virtual-Physical Mapping notifies of a removal of a MidoNet host, the
-DPC tears down its tunnel to that host and requests that the FlowController
-delete any flows that ingressed or emitted from that tunnel port number.
+The DatapathController then exposes, as a read only map, the map of peers
+to packet-processing threads. They will use it in their flow translation phase
+to calculate the final physical destination of a packet, based on port
+ownership and peer IP address.
 
 ### Setting up local vports and receiving from tunnels.
 
-When the DPC starts it uses the Virtual-Physical Mapping to retrieve (and
-receive updates about) the list of UUIDs of virtual ports that should be local
-to its host, as well as the local interfaces to which those virtual ports should
-be mapped. For each local virtual port and its corresponding interface name, the
-DPC creates a datapath port via the Netlink API. Upon receiving a successful
-response from the Netlink API about a datapath port create request, the DPC
-can update a local bi-directional map of local vports to datapath port numbers.
-It can then also install a wild-carded flow in the FlowController that matches
-only packets with a tunnel key that encodes that vport's ID. That flow has a
-single action to output the packet to the port number returned by the port
-creation response. Finally, the DPC informs the Virtual-Physical Mapping that
-the vport is 'actually local and ready'.
+In the case of local ports, upon learning about them, the DPC will:
+
+* ask the kernel to plug the network interface to the datapath
+* ask the FlowController to create a WildcarFlow that will match on tunnel
+packets received from peers which contain the tunnel key that identifies that port.
+* notify the VirtualToPhysicalMapper that the port is local and ready. This will
+result on this information being written to zookeeper and other host learning
+that this host owns the given port.
+
+The action for the flow above will be to output to that port. In other words, this
+means that packets received from peers are not at all processed at this host,
+they are forwarded directly to the port, which is identified by the tunnel key.
 
 When a packet arrives on a tunnel, if the tunnel key encodes the ID of a
 virtual port that has already been recognized as local by the DPC, then the
 FlowController should already have a flow that matches that packet and emits
-it via the appropriate local datapath port. If the FlowController has no such
-flow, then it will pass the packet to the DPC for further processing. The DPC
-in turn will just drop the tunneled packet and may install a temporary flow that
-drops subsequent packets with that tunnel key. This takes care of the case where
-a remote Midolman daemon tunnels packets to the local MidoNet host based on a
-stale vport-to-host mapping.
+it via the appropriate local datapath port.
 
-When the Virtual-Physical Mapping notifies that a virtual port should no longer
+If the FlowController does not contain such a wilcard flow, the packet is assumed
+to belong to be flooding a bridge (or PortSet), and a look up is made to see
+which bridge corresponds to the tunnel key and which local ports belong to it.
+
+When the VirtualToPhysicalMapper notifies that a virtual port should no longer
 be local (or when the corresponding local network interface goes down), the DPC
 tears down the corresponding datapath port, removes the corresponding flow that
 matches on the tunnel-key, requests that the FlowController delete all flows
-that arrived on that port, and informs the Virtual-Physical Mapping that the
+that arrived on that port, and informs the VirtualPhysicalMapper that the
 vport is no longer local nor ready to receive.

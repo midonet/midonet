@@ -1,28 +1,47 @@
-## Introduction
+## Midolman
 
-Midolman is the controller for the *MidoNet* SDN system.  The core function
-of Midolman is to receive notifications of new, unhandled network flows
-(often TCP connections) from the kernel's Open Datapath (ODP) module
-and instruct the kernel how to handle them.  The datapath communication is
-described in the [flow installation document](flow-installation.md).  To
+### Introduction
+
+Midolman is the controller for the *MidoNet* SDN system.  Also referred to
+as the MidoNet Agent. The core function of Midolman is to receive
+notifications of new, unhandled network flows from the OpenvSwitch kernel
+module and instruct the kernel how to handle them.  The datapath communication
+is described in the [flow installation document](flow-installation.md).  To
 figure out how to handle the flows, Midolman runs a simulation of the MidoNet
 virtual topology, described in [the design overview](design-overview.md).
-The state of the virtual network is kept in actors, and made available to
-other actors running the simulations in RCU copies, as described in the
-[actor model](actors-model.md).
 
-## Subsystems
+The configuration of the virtual topology and certain pieces of slow changing
+state (such as what agents exist in the network, ARP tables, port status, ...)
+are kept in zookeeper. The agent requests information from the zookeeper cluster
+opportunistically, and watches for updates to that information.
 
-There are multiple logical components of Midolman not directly related to
-the network simulation discussed below.
+### Midolman overall design
 
-### Monitoring
+* [Design overview](design-overview.md)
+* [Packet processing fast path](fast-path.md)
+* [DoS protection and fair resource allocation](resource-protection.md)
+* [Flow invalidation](midolman-flow-invalidation.md)
+* [Flow based tunneling](flow-based-tunneling.md)
+* [Tunnel management](tunnel-management.md)
 
-This component handles the collection and export of the metrics gathered by the
-system. It is explained at length inside the [Metrics & Monitoring document](monitoring.md).
+### Virtual devices
 
-### BGP Service
+* [BGP](midolman-bgp.md)
+* [ARP tables](arp-table.md)
+* [L2 VLAN gateway](l2-gateway.md)
+  * [Bridge behaviour](device-behaviour.md)
+  * [Failover](l2-gateway-failover.md)
+* [Stateful L4 flow processing](stateful-packet-processing.md)
+* [ICMP over NAT](icmp-over-nat.md)
+* [L4 load balancing](load_balancing.md)
+* [Distributed NAT leases](nat-leasing.md)
 
-This component provides sets of interfaces for interacting with an external
-program which handles speaking BGP (border gateway protocol).  It is explained
-at length in the [BGP document](midolman-bgp.md).
+### MidoNet-wide topics
+
+* [Exterior vport handling](exterior-vport-handling.md)
+* [Event logging](event-logging.md)
+
+### Misc
+
+* [Micro benchmarks](micro-benchmarks.md)
+* [midonet-util library](midonet-util.md)
