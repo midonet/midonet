@@ -215,6 +215,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         // when we delete the routes we expect the flow to be invalidated
         clusterDataClient().routesDelete(routeId)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        runFlowRemovalCallbacks()
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
             IPv4Addr.fromString(ipToReach), 0))
 
@@ -337,6 +338,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         // delete one flow for tag vmIp1, check that the corresponding tag gets removed
         flowProbe().testActor ! new RemoveWildcardFlow(flowTag1.f.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        runFlowRemovalCallbacks()
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
                 IPv4Addr.fromInt(ipVm1AsInt), 0))
 
@@ -357,12 +359,14 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         // remove 1 flow for tag ipVm2
         flowProbe().testActor ! new RemoveWildcardFlow(flowTag2.f.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        runFlowRemovalCallbacks()
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
                 IPv4Addr.fromInt(ipVm2AsInt), 1))
 
         // remove the remaining flow for ipVm2
         flowProbe().testActor ! new RemoveWildcardFlow(flow2Tag2.f.getMatch)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        runFlowRemovalCallbacks()
         tagEventProbe.expectMsg(new RouterInvTrieTagCountModified(
                 IPv4Addr.fromInt(ipVm2AsInt), 0))
 
