@@ -46,7 +46,7 @@ public class ZkOpList {
 
     private static final Logger logger =
         LoggerFactory.getLogger(ZkOpList.class);
-    public static final int DEL_RETRIES = 1;
+    public static final int DEL_RETRIES = 2;
 
     private final SortedMap<String, Op> deleteOps = new TreeMap<>(
         Collections.reverseOrder());
