@@ -354,6 +354,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        runFlowRemovalCallbacks()
 
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
@@ -414,6 +415,7 @@ class NatTestCase extends MidolmanTestCase with VMsBehindRouterFixture {
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
         requestOfType[WildcardFlowRemoved](wflowRemovedProbe)
+        runFlowRemovalCallbacks()
 
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
