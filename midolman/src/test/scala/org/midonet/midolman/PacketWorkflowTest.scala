@@ -17,6 +17,7 @@
 package org.midonet.midolman
 
 import java.util.{List => JList}
+
 import scala.collection.JavaConversions._
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -45,6 +46,8 @@ object PacketWorkflowTest {
 
     val NoLogging = Logger(NOPLogger.NOP_LOGGER)
 
+    val output = FlowActions.output(12)
+
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
         val dpCon = OvsDatapathConnection.
@@ -64,6 +67,7 @@ object PacketWorkflowTest {
         val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
+                                    CallbackExecutor.Immediate,
                                     new ActionsCache(log = NoLogging), null) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
@@ -75,15 +79,8 @@ object PacketWorkflowTest {
             override def translateActions(pktCtx: PacketContext,
                                           actions: Seq[FlowAction]) = {
                 testKit ! TranslateActions
-                Nil
+                List(output)
             }
-            override def translateVirtualWildcardFlow(
-                    pktCtx: PacketContext,
-                    flow: WildcardFlow) = {
-                testKit ! TranslateActions
-                flow
-            }
-
             override def applyState(pktCtx: PacketContext,
                                     actions: Seq[FlowAction]): Unit = { }
         }
@@ -269,7 +266,6 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     /* helper generator functions */
 
-    val output = FlowActions.output(12)
 
     def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()

@@ -16,45 +16,40 @@
 package org.midonet.midolman
 
 import java.util.UUID
-import scala.collection.{Set => ROSet, mutable}
+
 import scala.collection.immutable.List
+import scala.collection.{mutable, Set => ROSet}
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{TunnelZone, Port, Bridge, Chain}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
-import org.midonet.midolman.rules.{RuleResult, Condition}
-import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.topology.{LocalPortActive,
-                                      VirtualToPhysicalMapper,
-                                      VirtualTopologyActor}
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.cluster.data.{Bridge, Chain, Port, TunnelZone}
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.rules.{Condition, RuleResult}
+import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{Packet, DpPort}
-import org.midonet.odp.flows.{FlowKeys, FlowActions, FlowAction,
-                              FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
-import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
+import org.midonet.odp.{DpPort, Packet}
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
+import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
-                                             FlowActionOutputToVrnPortSet}
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort, FlowActionOutputToVrnPortSet}
+import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowTranslatorTest extends MidolmanSpec {
-    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
-                                                  with MessageAccumulator),
-                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
-                                                     with MessageAccumulator))
+    registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor),
+                   VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     trait TranslationContext {
         protected val dpState: TestDatapathState
@@ -495,14 +490,6 @@ class FlowTranslatorTest extends MidolmanSpec {
         implicit override protected def executor = ExecutionContext.callingThread
         val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
 
-        override def translateVirtualWildcardFlow(
-                            pktCtx: PacketContext,
-                            flow: WildcardFlow) : WildcardFlow = {
-            if (pktCtx.inputPort eq null)
-                fail("NULL in forwarded call")
-            super.translateVirtualWildcardFlow(pktCtx, flow)
-        }
-
         override def translateActions(
                             pktCtx: PacketContext,
                             actions: Seq[FlowAction]) : Seq[FlowAction] =
@@ -537,7 +524,6 @@ class FlowTranslatorTest extends MidolmanSpec {
     def translationScenario(name: String)
                            (testFun: TranslationContext => Unit): Unit = {
         translateWithAndWithoutTags(name, testFun)
-        translateWildcardFlow(name, testFun)
     }
 
     def translateWithAndWithoutTags(name: String,
@@ -569,42 +555,6 @@ class FlowTranslatorTest extends MidolmanSpec {
             }
             testFun(ctx)
         }
-    }
-
-    def translateWildcardFlow(name: String,
-                              testFun: TranslationContext => Unit): Unit = {
-        var translation: WildcardFlow = null
-        val ctx = new TranslationContext() {
-            protected val dpState = new TestDatapathState
-            var pktCtx: PacketContext = _
-
-            def translate(actions: List[FlowAction],
-                          ethernet: Ethernet): Unit = {
-                inPortUUID match {
-                    case None =>
-                        inPortUUID = Some(UUID.randomUUID())
-                        local (inPortUUID.get -> 99)
-                    case _ =>
-                }
-
-                do {
-                    pktCtx = packetContext(ethernet, inPortUUID)
-                    val id = UUID.randomUUID()
-                    pktCtx.outPortId = id
-                    val wildFlow = WildcardFlow(pktCtx.wcmatch, actions)
-                    val ft = new TestFlowTranslator(dpState)
-                    translation = force(ft.translateVirtualWildcardFlow(pktCtx, wildFlow))
-                    pktCtx.outPortId should be (id)
-                } while (translation == null)
-            }
-
-            def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
-                translation.actions should contain theSameElementsAs result._1
-                pktCtx.flowTags should be (result._2)
-            }
-        }
-
-        scenario(name + " via WildcardFlow")(testFun(ctx))
     }
 
     def packetContext(ethernet: Ethernet, inputPortId: Option[UUID],
