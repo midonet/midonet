@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.{List => JList, UUID}
+import java.util.{UUID, List => JList}
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
@@ -23,21 +23,22 @@ import scala.reflect.ClassTag
 import akka.actor._
 
 import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
-import org.midonet.midolman.simulation.{Coordinator, PacketContext, DhcpImpl}
+import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
-import org.midonet.midolman.topology.{VirtualTopologyActor, VirtualToPhysicalMapper, VxLanPortMapper}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.CallbackExecutor
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
-import com.typesafe.scalalogging.Logger
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -79,6 +80,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
                      val dpConnPool: DatapathConnectionPool,
+                     val cbExecutor: CallbackExecutor,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
@@ -87,7 +89,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
     import PacketWorkflow._
     import DeduplicationActor._
     import FlowController.{AddWildcardFlow, FlowAdded}
-    import VirtualToPhysicalMapper.PortSetForTunnelKeyRequest
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -133,9 +134,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 addToActionsCacheAndInvalidate(context, flow.getActions)
             case Some(wf) =>
                 FlowController ! AddWildcardFlow(wf, flow,
-                                context.flowRemovedCallbacks, context.flowTags,
-                                context.lastInvalidation, context.packet.getMatch,
-                                actionsCache.pending,
+                                context.flowRemovedCallbacks,
+                                context.flowTags, context.lastInvalidation,
+                                context.packet.getMatch, actionsCache.pending,
                                 actionsCache.getSlot())
                 actionsCache.actions.put(context.packet.getMatch, flow.getActions)
         }
@@ -222,7 +223,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
             hardExpirationMillis = hardExpirationMillis,
             idleExpirationMillis = idleExpirationMillis,
             actions =  actions.toList,
-            priority = 0)
+            priority = 0,
+            cbExecutor = cbExecutor)
 
         addTranslatedFlow(context, wildFlow)
     }
@@ -424,9 +426,14 @@ class PacketWorkflow(protected val dpState: DatapathState,
             TemporaryDrop
         }
 
-    def addVirtualWildcardFlow(context: PacketContext,
-                               flow: WildcardFlow): Unit =
-        addTranslatedFlow(context, translateVirtualWildcardFlow(context, flow))
+    def addVirtualWildcardFlow(context: PacketContext, flow: WildcardFlow): Unit =
+        addTranslatedFlow(context,
+            WildcardFlow(wcmatch = flow.getMatch,
+                         actions = translateActions(context, flow.getActions).toList,
+                         priority = flow.priority,
+                         hardExpirationMillis = flow.hardExpirationMillis,
+                         idleExpirationMillis = flow.idleExpirationMillis,
+                         cbExecutor = cbExecutor))
 
     private def handleStateMessage(context: PacketContext): PipelinePath = {
         context.log.debug("Accepting a state push message")

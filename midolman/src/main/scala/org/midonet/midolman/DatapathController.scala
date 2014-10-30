@@ -468,7 +468,6 @@ class DatapathController extends Actor
             if (dpState.host.zones contains zone)
                 handleZoneChange(zone, zoneType, hostConfig, op)
 
-
         case InterfacesUpdate_(interfaces) =>
             dpState.updateInterfaces(interfaces)
             setTunnelMtu(interfaces)
