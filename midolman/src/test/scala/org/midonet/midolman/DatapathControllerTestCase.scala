@@ -211,7 +211,7 @@ class DatapathControllerTestCase extends MidolmanTestCase with Matchers {
 
         materializePort(port2, host, "port2")
         replyOfType[RCUHost](vtpProbe())
-        requestOfType[LocalPortActive](vtpProbe())
+        fishForRequestOfType[LocalPortActive](vtpProbe())
 
         val newPorts = datapathPorts(dpConn().futures.datapathsEnumerate().get().head)
         newPorts should contain key ("port1")

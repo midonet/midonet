@@ -21,14 +21,16 @@ import scala.util.{Failure, Success}
 
 import akka.actor.{Stash, Actor, ActorRef}
 
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost, Host}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.FlowStateStorage
-import org.midonet.midolman.topology.{ VirtualToPhysicalMapper => VTPM }
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM,
+                                      VirtualTopologyActor => VTA}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostUnsubscribe, HostRequest}
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.util.concurrent._
+import org.midonet.cluster.client.Port
 
 object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
@@ -62,9 +64,13 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
                                   with ActorLogWithoutPath
                                   with SingleThreadExecutionContextProvider {
 
+    override def logSource = "org.midonet.datapath-control.host-proxy"
+
     import HostRequestProxy._
     import context.system
     import context.dispatcher
+
+    case object ReSync
 
     var lastPorts: Set[UUID] = Set.empty
     val belt = new ConveyorBelt(_ => {})
@@ -89,18 +95,59 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
+    /* Resolve all ports into UUIDs, creating a ResolvedHost object.
+     *
+     * Ports that failed to be fetched are filtered out. If any of them
+     * is left out, we schedule a resync with the virtual to physical mapper,
+     * effectively creating an in-band retry loop that will use the most
+     * up to date version of the Host object.
+     */
+    private def resolvePorts(host: Host): ResolvedHost = {
+        val bindings = host.ports.map {
+                case (id, iface) =>
+                    try {
+                        val port = VTA.tryAsk[Port](id)
+                        if ((iface ne null) && port.isExterior)
+                            Some(PortBinding(id, port.tunnelKey, iface))
+                        else
+                            None
+                    } catch {
+                        case NotYetException(f, _) =>
+                            f.onComplete{
+                                case _ =>
+                                    log.debug("Port resolved, re-syncing")
+                                    self ! ReSync
+                            }
+                            None
+                    }
+            }.toSeq.filter(_.isDefined).map(opt => (opt.get.portId, opt.get))
+
+        ResolvedHost(host.id, host.alive, host.epoch, host.datapath,
+                     bindings.toMap, host.zones)
+    }
+
     override def receive = super.receive orElse {
+        case ReSync =>
+            log.debug("Re-syncing port bindings")
+            VTPM ! HostUnsubscribe(hostId)
+            VTPM ! HostRequest(hostId)
+
         case h: Host =>
+            log.debug(s"Received host update with bindings ${h.ports}")
             belt.handle(() => {
                 val ps = h.ports.keySet -- lastPorts
+                val resolved = resolvePorts(h)
                 stateForPorts(ps).andThen {
-                    case Success(stateBatch) =>
-                        lastPorts = ps
-                        PacketsEntryPoint ! stateBatch
-                    case Failure(e) =>
-                        log.warn("Failed to fetch state from Cassandra: {}", e)
+                        case Success(stateBatch) =>
+                            lastPorts = ps
+                            PacketsEntryPoint ! stateBatch
+                        case Failure(e) =>
+                            log.warn("Failed to fetch state from Cassandra: {}", e)
                 }.andThen {
-                    case _ => subscriber ! h
-                }(singleThreadExecutionContext)})
-        }
+                    case _ =>
+                        log.debug(s"Resolved host bindings to ${resolved.ports}")
+                        subscriber ! resolved
+                }(singleThreadExecutionContext)
+            })
+    }
 }
