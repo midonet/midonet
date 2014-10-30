@@ -50,8 +50,15 @@ object FlowStatePackets {
     val DST_IP = IPv4Addr.fromString("169.254.15.2")
     val UDP_PORT: Short = 2925
 
-    /* 14 (eth) + 20 (ip) + 8 (udp) */
-    val OVERHEAD = 42
+    val MTU = 1500
+    // Ethernet(IEE 802.3): http://standards.ieee.org/about/get/802/802.3.html
+    // IP: https://tools.ietf.org/html/rfc791
+    // UDP: http://tools.ietf.org/html/rfc768
+    // GRE: http://tools.ietf.org/html/rfc2784
+    // 20(IP) + 8(GRE+Key)
+    val GRE_ENCAPUSULATION_OVERHEAD = 28
+    // 20(IP) + 8(GRE+Key) + 14(Ethernet w/o preamble and CRC) + 20(IP) + 8(UDP)
+    val OVERHEAD = 70
 
     def isStateMessage(packet: Packet): Boolean = {
         var i = 0
