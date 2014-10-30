@@ -23,7 +23,6 @@ import scala.util.{Success, Failure}
 
 object ConveyorBelt {
     type Cargo = () => Future[_]
-    type KeyedCargo[-K] = (K, () => Unit) => Future[_]
 }
 
 /**
@@ -76,18 +75,21 @@ sealed class MultiLaneConveyorBelt[K](exceptionHandler: Throwable => Unit) {
 
     val lanes = new HashMap[K, ConveyorBelt]()
 
-    def handle(key: K, cargo: KeyedCargo[K]): Unit = {
+    def shutdown(key: K): Unit = {
+        handle (key, () => {
+            scheduleShutdown(key)
+            Future successful null
+        })
+    }
+
+    def handle(key: K, cargo: Cargo): Unit = {
         var belt = lanes get key
         if (belt eq null) {
             belt = new ConveyorBelt(exceptionHandler)
             lanes put (key, belt)
         }
 
-        val requestShutdown = () => belt handle (() => {
-            scheduleShutdown(key)
-            Future successful null
-        })
-        belt handle (() => cargo(key, requestShutdown))
+        belt handle cargo
     }
 
     def containsLane(key: K) = lanes containsKey key

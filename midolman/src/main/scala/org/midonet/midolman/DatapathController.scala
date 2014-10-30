@@ -21,10 +21,9 @@ import java.nio.ByteBuffer
 import java.util.{ArrayList, Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.Future
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 import scala.reflect._
 
 import akka.actor._
@@ -50,7 +49,7 @@ import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
     ZoneMembers, TunnelZoneRequest}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -75,7 +74,7 @@ trait UnderlayResolver {
     import UnderlayResolver.Route
 
     /** object representing the current host */
-    def host: Host
+    def host: ResolvedHost
 
     /** pair of IPv4 addresses from current host to remote peer host.
      *  None if information not available or peer outside of tunnel Zone. */
@@ -237,23 +236,23 @@ class DatapathController extends Actor
                 upcallConnManager.deleteDpPort(datapath, port)
             }
 
-            override def setVportStatus(port: DpPort, vportId: UUID,
+            override def setVportStatus(port: DpPort, binding: PortBinding,
                                         isActive: Boolean): Future[_] = {
-                log.info(s"Port ${port.getPortNo}/${port.getName}/$vportId " +
+                log.info(s"Port ${port.getPortNo}/${port.getName}/${binding.portId} " +
                          s"became ${if (isActive) "active" else "inactive"}")
-                VirtualToPhysicalMapper ! LocalPortActive(vportId, isActive)
-                invalidateAndInstallTunnelKeyFlow(port, vportId, isActive)
+                VirtualToPhysicalMapper ! LocalPortActive(binding.portId, isActive)
+                invalidateAndInstallTunnelKeyFlow(port, binding.tunnelKey, isActive)
             }
         }
     )(singleThreadExecutionContext, log)
 
     var initializer: ActorRef = system.deadLetters  // only used in tests
 
-    var host: Host = null
+    var host: ResolvedHost = null
     // If a Host message arrives while one is being processed, we stash it
     // in this variable. We don't use Akka's stash here, because we only
     // care about the last Host message (i.e. ignore intermediate messages).
-    var nextHost: Host = null
+    var nextHost: ResolvedHost = null
 
     var portWatcher: Subscription = null
     var portWatcherEnabled = true
@@ -279,7 +278,7 @@ class DatapathController extends Actor
             initializer = sender()
             subscribeToHost(hostService.getHostId)
 
-        case h: Host =>
+        case h: ResolvedHost =>
             // If we already had the host info, process this after init.
             this.host match {
                 case null =>
@@ -376,7 +375,7 @@ class DatapathController extends Actor
             })
         }
 
-        log.info(s"Process the host's interface-vport bindings. $host")
+        log.info(s"Process the host's interface-vport bindings.")
         dpState.updateVPortInterfaceBindings(host.ports)
     }
 
@@ -425,7 +424,7 @@ class DatapathController extends Actor
             }
             self ! Initialize
 
-        case h: Host =>
+        case h: ResolvedHost =>
             this.nextHost = h
             processNextHost()
 
@@ -478,10 +477,10 @@ class DatapathController extends Actor
 
     }
 
-    private def installTunnelKeyFlow(port: DpPort, exterior: client.Port): Unit = {
+    private def installTunnelKeyFlow(port: DpPort, tunnelKey: Long): Unit = {
         val fc = FlowController
 
-        val wMatch = new WildcardMatch().setTunnelKey(exterior.tunnelKey)
+        val wMatch = new WildcardMatch().setTunnelKey(tunnelKey)
         val actions = List[FlowAction](port.toOutputAction)
         val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
@@ -492,19 +491,13 @@ class DatapathController extends Actor
         // The order of these two messages to the FlowController is strict, as
         // we want to invalidate the flows after the new WildcarFlow is in place.
         fc ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.tagForTunnelKey(exterior.tunnelKey))
+                FlowTagger.tagForTunnelKey(tunnelKey))
 
-        log.info(s"Added flow for tunnelkey ${exterior.tunnelKey}")
+        log.info(s"Added flow for tunnelkey ${tunnelKey}")
     }
 
-    private def updateTunnelKeyFlow(dpPort: DpPort, port: Port,
+    private def updateTunnelKeyFlow(dpPort: DpPort, tunnelKey: Long,
                                     active: Boolean): Unit = {
-        if (port.isInterior) {
-            log.warn(s"local port $port active state changed, but it's not " +
-                      "Exterior, don't know what to do with it")
-            return
-        }
-
         // Trigger invalidation. This is done regardless of whether we are
         // activating or deactivating:
         //   - The case for invalidating on deactivation is obvious.
@@ -513,28 +506,14 @@ class DatapathController extends Actor
         FlowController ! InvalidateFlowsByTag(
             FlowTagger.tagForDpPort(dpPort.getPortNo.shortValue()))
 
-        if (active) {
-            installTunnelKeyFlow(dpPort, port)
-        }
+        if (active)
+            installTunnelKeyFlow(dpPort, tunnelKey)
     }
 
-    private def invalidateAndInstallTunnelKeyFlow(port: DpPort, vif: UUID,
+    private def invalidateAndInstallTunnelKeyFlow(port: DpPort, tunnelKey: Long,
                                                   active: Boolean): Future[_] = {
-        val p = Promise[Any]()
-        try {
-            val vPort = VirtualTopologyActor.tryAsk[Port](vif)
-            updateTunnelKeyFlow(port, vPort, active)
-            p success null
-        } catch { case NotYetException(f, _) =>
-            f.mapTo[Port] onComplete {
-                case Success(vPort) =>
-                    updateTunnelKeyFlow(port, vPort, active)
-                    p success null
-                case Failure(ex) =>
-                    log.error("failed to install tunnel key flow", ex)
-            }
-        }
-        p.future
+        updateTunnelKeyFlow(port, tunnelKey, active)
+        Future.successful[Any](null)
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
@@ -694,7 +673,7 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
 
     /** reference to the current host information. Used to query this host ip
      *  when adding tunnel routes to peer host for given zone uuid. */
-    var host: Host = _
+    var host: ResolvedHost = _
 
     /** 2D immutable map of peerUUID -> zoneUUID -> (srcIp, dstIp, outputAction)
      *  this map stores all the possible underlay routes from this host
