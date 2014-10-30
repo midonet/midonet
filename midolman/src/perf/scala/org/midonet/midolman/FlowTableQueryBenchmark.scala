@@ -16,20 +16,18 @@
 
 package org.midonet.midolman
 
-import java.util.ArrayList
-import java.util.concurrent.TimeUnit
+import java.util.{Random, ArrayList}
+import java.util.concurrent.{ThreadLocalRandom, TimeUnit}
 
-import scala.util.Random
-
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, Benchmark, Scope, State, Threads, Fork, Measurement, Warmup, OutputTimeUnit, Mode, BenchmarkMode}
+import org.openjdk.jmh.annotations._
+import org.openjdk.jmh.annotations.{Setup => JmhSetup}
 
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{FlowMatch, Flow}
-import org.midonet.odp.flows.{IpProtocol, FlowKeys, FlowKey}
-import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.sdn.flows.WildcardFlow.WildcardFlowImpl
+import org.midonet.odp.flows.{FlowKey, FlowKeys, IpProtocol}
+import org.midonet.odp.{Flow, FlowMatch}
 import org.midonet.packets.IPv4Addr
+import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 import org.midonet.util.functors.Callback0
 
 object FlowTableQueryBenchmark {
@@ -37,7 +35,7 @@ object FlowTableQueryBenchmark {
 
     @State(Scope.Thread)
     sealed class ThreadIndex {
-        var value: Long = new Random().nextInt(numFlows)
+        var value: Long = ThreadLocalRandom.current().nextInt(numFlows)
 
         def getAndIncrement(): Int = {
             val res = value
@@ -100,7 +98,7 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
             val flowMatch = generateFlowMatch(rand)
             wcMatches(i) = WildcardMatch.fromFlowMatch(flowMatch)
             FlowController ! AddWildcardFlow(
-                new WildcardFlowImpl(wcMatches(i)),
+                WildcardFlow(wcMatches(i)),
                 new Flow(flowMatch),
                 new ArrayList[Callback0](), // No callbacks
                 Set()) // No tags
