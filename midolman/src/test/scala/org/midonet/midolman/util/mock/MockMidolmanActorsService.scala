@@ -16,17 +16,14 @@
 package org.midonet.midolman.util.mock
 
 import scala.collection.mutable
-import scala.concurrent.Await
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
 import akka.actor.{Actor, ActorIdentity, ActorSystem, Identify, Props}
 import akka.pattern.ask
 import akka.testkit.TestActorRef
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
-
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import com.google.inject.{Inject, Injector}
-
 import org.midonet.midolman.{MockScheduler, Referenceable}
 import org.midonet.midolman.services.MidolmanActorsService
 
