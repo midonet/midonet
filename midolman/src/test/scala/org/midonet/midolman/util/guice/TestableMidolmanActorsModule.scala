@@ -166,4 +166,9 @@ class TestablePacketsEntryPoint extends PacketsEntryPoint {
     override def receive = super.receive orElse {
         case m: HandlePackets => dda ! m
     }
+
+    override def startWorker(index: Int) = {
+        val props = propsForWorker(index).withDispatcher(context.props.dispatcher)
+        context.actorOf(props, s"PacketProcessor-$index")
+    }
 }

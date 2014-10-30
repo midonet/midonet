@@ -52,18 +52,6 @@ trait FlowTranslator {
     implicit protected def system: ActorSystem
     implicit protected def executor = system.dispatcher
 
-    protected def translateVirtualWildcardFlow(context: PacketContext,
-                                               flow: WildcardFlow)
-    : WildcardFlow = {
-        val translated = translateActions(context, flow.getActions)
-        WildcardFlow(wcmatch = flow.getMatch,
-                     actions = translated.toList,
-                     priority = flow.priority,
-                     hardExpirationMillis = flow.hardExpirationMillis,
-                     idleExpirationMillis = flow.idleExpirationMillis)
-    }
-
-
     /** Applies filters on a sequence of virtual port uuids for the given
      *  wildcard match and return a sequence of corresponding datapath port
      *  index numbers for passing chains, or -1 otherwise for non passing chains
