@@ -33,7 +33,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.{ResolvedHost, Host}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
@@ -83,8 +83,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
             override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
             override def getDpPortName(num: Integer): Option[String] = ???
-            override def host: Host = new Host(UUID.randomUUID(), true, 0, "",
-                                               Map(), Map())
+            override def host = new ResolvedHost(UUID.randomUUID(), true, 0, "",
+                                                 Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def isVtepTunnellingPort(portNumber: Short): Boolean = ???
             override def isOverlayTunnellingPort(portNumber: Short): Boolean = ???
