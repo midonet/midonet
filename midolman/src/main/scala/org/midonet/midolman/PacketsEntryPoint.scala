@@ -129,8 +129,13 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
     protected def startWorker(index: Int): ActorRef = {
+        val props = propsForWorker(index).withDispatcher("actors.pinned-dispatcher")
+        context.actorOf(props, s"PacketProcessor-$index")
+    }
+
+    protected def propsForWorker(index: Int) = {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
-        val props = Props(
+        Props(
             classOf[DeduplicationActor],
             cookieGen, dpConnPool, clusterDataClient,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
@@ -138,9 +143,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             storageFactory.create(),
             natLeaser,
             metrics,
-            counter.addAndGet(index, _: Int)).withDispatcher("actors.pinned-dispatcher")
-
-        context.actorOf(props, s"PacketProcessor-$index")
+            counter.addAndGet(index, _: Int))
     }
 
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
