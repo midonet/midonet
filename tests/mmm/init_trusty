@@ -69,7 +69,7 @@ sudo pip install readline
 MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-/tmp/python-midonetclient}
 sudo rm -rf /usr/local/lib/python2.7/dist-packages/midonetclient* /usr/local/bin/midonet-cli
 [ -d $MMM_PMC_SOURCE_DIR ] || {
-    git clone git@github.com:midokura/python-midonetclient -b master $MMM_PMC_SOURCE_DIR
+    git clone git@github.com:midonet/python-midonetclient -b master $MMM_PMC_SOURCE_DIR
 }
 cd $MMM_PMC_SOURCE_DIR
 sudo python setup.py install
