@@ -17,6 +17,8 @@ package org.midonet.midolman.datapath
 
 import java.util.{UUID, Set => JSet}
 
+import org.midonet.midolman.topology.rcu.PortBinding
+
 import scala.concurrent.{Future, ExecutionContext}
 
 import com.typesafe.scalalogging.Logger
@@ -26,12 +28,13 @@ import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.collection.Bimap
 import org.midonet.util.concurrent.{SingleThreadExecutionContext, MultiLaneConveyorBelt}
+import org.midonet.cluster.client.Port
 
 object DatapathPortEntangler {
     trait Controller {
         def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
         def removeFromDatapath(port: DpPort): Future[_]
-        def setVportStatus(port: DpPort, vportId: UUID,
+        def setVportStatus(port: DpPort, binding: PortBinding,
                            isActive: Boolean): Future[_]
     }
 }
@@ -107,6 +110,7 @@ trait DatapathPortEntangler {
     var interfaceToDpPort = Map[String, DpPort]()
     var dpPortNumToInterface = Map[Integer, String]()
     var interfaceToVport = new Bimap[String, UUID]()
+    var bindings = Map[String, PortBinding]()
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
@@ -118,9 +122,9 @@ trait DatapathPortEntangler {
      * Registers an internal port (namely, port 0)
      */
     def registerInternalPort(port: InternalPort): Unit =
-        conveyor handle (port.getName, (name, _) => {
-            interfaceToDpPort += name -> port
-            dpPortNumToInterface += port.getPortNo -> name
+        conveyor handle (port.getName, () => {
+            interfaceToDpPort += port.getName -> port
+            dpPortNumToInterface += port.getPortNo -> port.getName
             Future successful null
         })
 
@@ -134,40 +138,50 @@ trait DatapathPortEntangler {
         while (it.hasNext) {
             val itf = it.next()
             interfacesToDelete -= itf.getName
-            conveyor.handle(itf.getName, (port, _) => processUpdate(itf, port))
+            conveyor.handle(itf.getName, () => processUpdate(itf, itf.getName))
         }
 
-        interfacesToDelete foreach (conveyor.handle(_, deleteInterface))
+        for (ifname <- interfacesToDelete) {
+            conveyor.handle(ifname, () => deleteInterface(ifname))
+        }
     }
 
     /**
      * We do not support remapping a vport to a different interface or vice-versa.
      * We assume each vport ID and interface will occur in at most one binding.
      */
-    def updateVPortInterfaceBindings(vportToInterface: Map[UUID, String]): Unit = {
-        log.debug(s"updating vport to interface bindings: $vportToInterface")
+    def updateVPortInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
+        val vportToInterface = bindings map { case (id, p) => (id, p.iface)}
+        log.debug(s"updating vport to interface bindings: $bindings")
 
-        for ((vport, ifname) <- vportToInterface if !interfaceToVport.contains(ifname)) {
-            conveyor handle (ifname, (port, _) => newInterfaceVportBinding(vport, port))
+        for ((vportId, ifname) <- vportToInterface if !interfaceToVport.contains(ifname)) {
+            conveyor handle (ifname, () => {
+                this.bindings += ifname -> bindings(vportId)
+                newInterfaceVportBinding(vportId, ifname)
+            })
         }
 
-        for ((ifname, vport) <- interfaceToVport if !vportToInterface.contains(vport)) {
-            conveyor handle (ifname, deletedInterfaceVportBinding(vport, _, _))
+        for ((ifname, vportId) <- interfaceToVport if !vportToInterface.contains(vportId)) {
+            conveyor handle (ifname, () => {
+                val f = deletedInterfaceVportBinding(vportId, ifname)
+                this.bindings -= ifname
+                f
+            })
         }
     }
 
-    private def processUpdate(itf: InterfaceDescription, port: String): Future[_] =
-        if (interfaceToDescription contains port) {
-            updateInterface(itf, port)
+    private def processUpdate(itf: InterfaceDescription, ifname: String): Future[_] =
+        if (interfaceToDescription contains ifname) {
+            updateInterface(itf, ifname)
         } else {
-            newInterface(itf, port)
+            newInterface(itf, ifname)
         }
 
-    private def newInterface(itf: InterfaceDescription, port: String): Future[_] = {
+    private def newInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
         val isUp = itf.isUp
         log.info(s"Found new interface ${itf.logString} which is ${if (isUp) "up" else "down"}")
-        interfaceToDescription += port -> itf
-        tryCreateDpPort(port)
+        interfaceToDescription += ifname -> itf
+        tryCreateDpPort(ifname)
     }
 
     private def newInterfaceVportBinding(vport: UUID, ifname: String): Future[_] = {
@@ -176,15 +190,15 @@ trait DatapathPortEntangler {
         tryCreateDpPort(ifname)
     }
 
-    private def tryCreateDpPort(port: String): Future[_] = {
-        val vPort = interfaceToVport get port
-        val itf = interfaceToDescription get port
+    private def tryCreateDpPort(ifname: String): Future[_] = {
+        val vPort = interfaceToVport get ifname
+        val itf = interfaceToDescription get ifname
         if (vPort.isDefined && itf.isDefined) {
-            val dpPort = interfaceToDpPort get port
+            val dpPort = interfaceToDpPort get ifname
             if (dpPort.isDefined) { // If it was registered
                 dpPortAdded(dpPort.get)
             } else {
-                addDpPort(port)
+                addDpPort(ifname)
             }
         } else {
             Future successful null
@@ -199,24 +213,23 @@ trait DatapathPortEntangler {
      * that this is a dangling tap. We need to recreate the dp port. Use case:
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
-    private def updateInterface(itf: InterfaceDescription, port: String): Future[_] = {
-        val name = itf.getName
+    private def updateInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
         val isUp = itf.isUp
-        val wasUp = interfaceToDescription(port).isUp
-        interfaceToDescription += itf.getName -> itf
+        val wasUp = interfaceToDescription(ifname).isUp
+        interfaceToDescription += ifname -> itf
 
-        val dpPort = interfaceToDpPort get name
-        val vPort = interfaceToVport get name
+        val dpPort = interfaceToDpPort get ifname
+        val vPort = interfaceToVport get ifname
         if (dpPort.isDefined && vPort.isDefined) {
             if (isDangling(itf, isUp)) {
-                updateDangling(dpPort.get, name)
+                updateDangling(dpPort.get, ifname)
             } else if (isUp != wasUp) {
                 changeStatus(dpPort.get, itf, isUp)
             } else {
                 Future successful null
             }
         } else {
-            tryCreateDpPort(name) // In case we failed to create it before
+            tryCreateDpPort(ifname) // In case we failed to create it before
         }
     }
 
@@ -236,66 +249,65 @@ trait DatapathPortEntangler {
     private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,
                              isUp: Boolean): Future[_] = {
         log.info(s"Interface $itf is now ${if (isUp) "up" else "down"}")
-        val vport = interfaceToVport.get(itf.getName)
-        if (vport.isDefined) { // This can be a registered port with no binding
-            controller.setVportStatus(dpPort, vport.get, isUp)
+        val vportId = interfaceToVport.get(itf.getName)
+        if (vportId.isDefined) { // This can be a registered port with no binding
+            controller.setVportStatus(dpPort, bindings(itf.getName), isUp)
         } else {
             Future successful null
         }
     }
 
-    private def deleteInterface(port: String, scheduleShutdown: () => Unit): Future[_] = {
-        log.info("Deleting interface {}", port)
-        tryRemovePort(port, scheduleShutdown) {
-            interfaceToDescription -= port
+    private def deleteInterface(ifname: String): Future[_] = {
+        log.info("Deleting interface {}", ifname)
+        tryRemovePort(ifname) {
+            interfaceToDescription -= ifname
         }
     }
 
-    private def deletedInterfaceVportBinding(vport: UUID, name: String,
-                                             scheduleShutdown: () => Unit): Future[_] = {
-        log.info(s"Deleting binding of port $vport to $name")
-        tryRemovePort(name, scheduleShutdown) {
-            interfaceToVport -= name
+    private def deletedInterfaceVportBinding(vport: UUID, ifname: String): Future[_] = {
+        log.info(s"Deleting binding of port $vport to $ifname")
+        tryRemovePort(ifname) {
+            interfaceToVport -= ifname
         }
     }
 
-    private def tryRemovePort(port: String, scheduleShutdown: () => Unit)
+    private def tryRemovePort(ifname: String)
                              (removeFromMap: => Unit): Future[_] = {
-        val dpPort = interfaceToDpPort get port
+        val dpPort = interfaceToDpPort get ifname
         val res =
             if (dpPort.isDefined) {
-                Future.sequence(List(removeIfNeeded(dpPort.get, port),
-                                     deactivateIfNeeded(dpPort.get, port)))
+                Future.sequence(List(removeIfNeeded(dpPort.get, ifname),
+                                     deactivateIfNeeded(dpPort.get, ifname)))
             } else {
                 Future successful null
             }
 
         removeFromMap
 
-        if (!(interfaceToDescription contains port) &&
-            !(interfaceToVport contains port)) {
-            scheduleShutdown()
+        if (!(interfaceToDescription contains ifname) &&
+            !(interfaceToVport contains ifname)) {
+            conveyor.shutdown(ifname)
         }
 
         res
     }
 
-    private def addDpPort(port: String): Future[_] =
-        (controller addToDatapath port) flatMap { case (dpPort, _) =>
-            log.debug(s"Datapath port $port added")
-            interfaceToDpPort += port -> dpPort
-            dpPortNumToInterface += dpPort.getPortNo -> port
+    private def addDpPort(ifname: String): Future[_] =
+        (controller addToDatapath ifname) flatMap { case (dpPort, _) =>
+            log.debug(s"Datapath port $ifname added")
+            interfaceToDpPort += ifname -> dpPort
+            dpPortNumToInterface += dpPort.getPortNo -> ifname
             dpPortAdded(dpPort)
         } recover { case t =>
             // We'll retry on the next interface scan
-            log.warn(s"Failed to create port $port: ${t.getMessage}")
+            log.warn(s"Failed to create port $ifname: ${t.getMessage}")
         }
 
     private def dpPortAdded(port: DpPort): Future[_] = {
         val name = port.getName
         if (interfaceToDescription(name).isUp) {
             val vport = interfaceToVport.get(name).get
-            controller.setVportStatus(port, vport, isActive = true)
+            controller.setVportStatus(port, bindings(name), isActive = true)
         } else {
             Future successful null
         }
@@ -314,11 +326,11 @@ trait DatapathPortEntangler {
         }
 
     private def deactivateIfNeeded(dpPort: DpPort, name: String): Future[_] = {
-        val vport = interfaceToVport get name
-        val status = interfaceToDescription get name
+        val vportId = interfaceToVport get name
+        val desc = interfaceToDescription get name
 
-        if (vport.isDefined && status.isDefined && status.get.isUp) {
-            controller.setVportStatus(dpPort, vport.get, isActive = false)
+        if (vportId.isDefined && desc.isDefined && desc.get.isUp) {
+            controller.setVportStatus(dpPort, bindings(name), isActive = false)
         } else {
             Future successful null
         }
