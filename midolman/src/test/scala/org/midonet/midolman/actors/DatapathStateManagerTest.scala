@@ -25,9 +25,10 @@ import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
+import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.datapath.DatapathPortEntangler
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.GreTunnelPort
 import org.midonet.odp.ports.VxLanTunnelPort
@@ -58,7 +59,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
             Future.successful(null)
         override def removeFromDatapath(port: DpPort) =
             Future.successful(true)
-        override def setVportStatus(port: DpPort, vportId: UUID, isActive: Boolean) =
+        override def setVportStatus(port: DpPort, binding: PortBinding, isActive: Boolean) =
             Future.successful(null)
     }
 
@@ -102,7 +103,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
     }
 
     def testHostSet {
-        List[Host](
+        List[ResolvedHost](
             null
             /* add some more */
         ).foreach { h => {
