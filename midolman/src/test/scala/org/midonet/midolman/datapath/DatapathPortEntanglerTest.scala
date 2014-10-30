@@ -26,11 +26,13 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.client.{BridgePort, Port}
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
-import org.midonet.util.concurrent._
-import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.util.collection.Bimap
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneInstancePerTest {
@@ -60,7 +62,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             Future.successful(true)
         }
 
-        override def setVportStatus(port: DpPort, vportId: UUID,
+        override def setVportStatus(port: DpPort, binding: PortBinding,
                                     isActive: Boolean): Future[_] = {
             portUpdated = port
             portActive = isActive
@@ -166,7 +168,10 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class VportBindingAdded(port: String, uuid: UUID, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            entangler.updateVPortInterfaceBindings(Map(uuid -> port))
+            val bridgePort = new BridgePort()
+            bridgePort.setID(uuid)
+            bridgePort.setInterfaceName(port)
+            entangler.updateVPortInterfaceBindings(Map(uuid -> PortBinding(uuid, 1L, port)))
         }
 
         override def validate(prevInterfaceToStatus: Map[String, Boolean],

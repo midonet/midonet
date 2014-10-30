@@ -33,7 +33,7 @@ import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.Host
+import org.midonet.midolman.topology.rcu.{ResolvedHost, Host}
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
@@ -72,8 +72,8 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     var rightPort: BridgePort = _
 
     val underlayResolver = new UnderlayResolver {
-        override def host: Host = new Host(UUID.randomUUID(), true, 0, "midonet",
-                                           Map(), Map())
+        override def host= new ResolvedHost(UUID.randomUUID(), true, 0, "midonet",
+                                            Map(), Map())
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
         override def isVtepTunnellingPort(portNumber: Short): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Short): Boolean = false
