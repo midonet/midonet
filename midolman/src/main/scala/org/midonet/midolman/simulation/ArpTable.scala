@@ -119,7 +119,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                                    onExpire: (Promise[T]) => Unit): Promise[T] = {
         val when = Duration.create(timeout, TimeUnit.MILLISECONDS)
         val exp = system.scheduler.scheduleOnce(when) {
-            if (promise tryFailure new TimeoutException())
+            if (promise tryFailure new ArpTimeoutException())
                 onExpire(promise)
         }
         promise.future onComplete {
