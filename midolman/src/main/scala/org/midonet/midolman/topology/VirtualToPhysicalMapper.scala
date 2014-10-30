@@ -86,6 +86,9 @@ object VirtualToPhysicalMapper extends Referenceable {
         protected[topology] val tag = classTag[Host]
         override def getCached = DeviceCaches.host(hostId)
     }
+
+    case class HostUnsubscribe(hostId: UUID)
+
     case class TunnelZoneRequest(zoneId: UUID) extends VTPMRequest[ZoneMembers] {
         protected[topology] val tag = classTag[ZoneMembers]
         override def getCached = DeviceCaches.tunnelZone(zoneId)
@@ -413,6 +416,9 @@ abstract class VirtualToPhysicalMapperBase
 
         case host: Host =>
             hostsMgr.updateAndNotifySubscribers(host.id, host)
+
+        case HostUnsubscribe(hostId) =>
+            hostsMgr.removeSubscriber(hostId, sender)
 
         case TunnelZoneRequest(zoneId) =>
             tunnelZonesMgr.addSubscriber(zoneId, sender, updates = true)

@@ -27,14 +27,17 @@ import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.client.{BridgePort => ClientPort}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
 import org.midonet.cluster.data.{Bridge, Chain, Port, TunnelZone}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.rcu.{Host, PortBinding, ResolvedHost}
+import org.midonet.midolman.topology.{LocalPortActive,
+                                      VirtualToPhysicalMapper,
+                                      VirtualTopologyActor}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
@@ -57,7 +60,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         var inPortUUID: Option[UUID] = None
 
-        def host(host: Host): Unit = dpState.host = host
+        def host(host: ResolvedHost): Unit = dpState.host = host
 
         def grePort(id: Int): Unit =
             dpState.grePort = id
@@ -183,9 +186,18 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
     }
 
+    var tunKey = 0
+    def makeBinding(id: UUID, iface: String) = {
+        tunKey += 1
+        (id, PortBinding(id, tunKey, iface))
+    }
+
     def makeHost(bindings: Map[UUID, String],
-                 hostIp: IPv4Addr = IPv4Addr("102.32.2.2")) = new Host(
-            hostId(), true, 0L, "midonet", bindings,
+                 hostIp: IPv4Addr = IPv4Addr("102.32.2.2")) = new ResolvedHost(
+            hostId(), true, 0L, "midonet",
+            bindings.map{
+                case (id, iface) => makeBinding(id, iface)
+            }.toMap,
             Map(UUID.randomUUID() -> new TunnelZone.HostConfig().setIp(hostIp)))
 
     feature("FlowActionOutputToVrnBridge is translated") {
@@ -285,9 +297,12 @@ class FlowTranslatorTest extends MidolmanSpec {
             bridge = clusterDataClient().bridgesGet(bridge.getId)
             activatePorts(List(inPort, port0))
 
-            val rcuHost: Host = new Host(
+            val clientPort0 = new ClientPort().setID(port0.getId).setInterfaceName("port0")
+            val clientInPort = new ClientPort().setID(inPort.getId).setInterfaceName("in")
+            val rcuHost = new ResolvedHost(
                 hostId(), true, 0L, "midonet",
-                Map(inPort.getId -> "in", port0.getId -> "port0"),
+                Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),
+                    port0.getId -> PortBinding(port0.getId, clientPort0.tunnelKey, "port0")),
                 Map(
                     UUID.randomUUID() -> new TunnelZone.HostConfig()
                                              .setIp(hostIp),
@@ -464,7 +479,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     class TestDatapathState extends DatapathState {
         var version: Long = 0
-        var host: Host = null
+        var host: ResolvedHost = null
         var dpPortNumberForVport = mutable.Map[UUID, Integer]()
         var peerTunnels = mutable.Map[UUID,Route]()
         var grePort: Int = _
