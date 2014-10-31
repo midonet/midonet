@@ -25,10 +25,12 @@ import com.google.inject.Injector;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import rx.Observable;
 
@@ -50,6 +52,7 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 
+@RunWith(JMockit.class)
 public class VxLanGatewayServiceTest {
 
     /*

@@ -27,6 +27,7 @@ import com.google.inject.Injector;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import rx.Observable;
 import rx.Subscription;
@@ -55,9 +56,11 @@ import org.midonet.util.functors.Callback;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(JMockit.class)
 public class VxLanFloodingProxyTest {
     private static final byte[] VTEP_MGMT_IP = { (byte)192, (byte)168 };
     private static final byte[] HOST_IP = { (byte)10, (byte)2 };

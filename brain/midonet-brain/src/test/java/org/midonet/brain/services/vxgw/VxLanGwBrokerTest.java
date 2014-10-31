@@ -28,9 +28,11 @@ import mockit.Delegate;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
+import mockit.integration.junit4.JMockit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -54,6 +56,7 @@ import org.midonet.util.functors.Callback;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(JMockit.class)
 public class VxLanGwBrokerTest {
 
     private static IPv4Addr vtepMgmtIp = IPv4Addr.fromString("192.168.1.20");

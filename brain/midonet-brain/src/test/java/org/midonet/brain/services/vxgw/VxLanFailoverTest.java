@@ -24,10 +24,12 @@ import com.google.inject.Injector;
 
 import mockit.Expectations;
 import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import rx.Observable;
 import rx.Subscription;
@@ -52,6 +54,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@RunWith(JMockit.class)
 public class VxLanFailoverTest {
     private static final byte[] VTEP_MGMT_IP = { (byte)192, (byte)168 };
     private static final int VTEP_MGMT_PORT = 6632;
