@@ -6,7 +6,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>org.midonet</groupId>
-        <version>2.0-SNAPSHOT</version>
+        <version>1.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

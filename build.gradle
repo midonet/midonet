@@ -15,10 +15,10 @@
  */
 
 project.ext {
-    midonetVersion = "2.0-SNAPSHOT"
-    vendor = 'Midokura'
-    maintainer = "MidoNet Team <info@midokura.com>"
-    url = "http://midokura.com"
+    midonetVersion = "1.8-SNAPSHOT"
+    vendor = 'MidoNet'
+    maintainer = "MidoNet user list <midonet-user@midonet.org>"
+    url = "http://midonet.org"
 
     rhelTarget = "6"
 
