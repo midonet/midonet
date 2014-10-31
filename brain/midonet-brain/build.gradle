@@ -52,7 +52,7 @@ dependencies {
             "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             "io.netty:netty-all:4.0.10.Final",
-            "com.googlecode.jmockit:jmockit:1.7",
+            "org.jmockit:jmockit:1.12",
             libraries.commons_conf,
             libraries.guava,
             libraries.guice,
