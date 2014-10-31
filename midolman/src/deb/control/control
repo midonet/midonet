@@ -6,6 +6,6 @@ Architecture: all
 Depends: quagga (>= 0.99.21), bridge-utils, haproxy, iproute (>= 20111117-1ubuntu2.1), java7-runtime-headless, openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0)
 Conflicts: openvswitch-switch, openvswitch-datapath-source (>= 1.11), openvswitch-datapath-dkms (>= 1.11)
 Recommends: java7-jdk
-Maintainer: Midokura <info@midokura.com>
+Maintainer: MidoNet <midonet-user@midonet.org>
 Description: Midolman is a virtual network controller
 Distribution: development

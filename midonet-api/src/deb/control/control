@@ -4,6 +4,6 @@ Section: misc
 Priority: optional
 Architecture: all
 Recommends: java7-runtime-headless | java7-runtime
-Maintainer: Midokura <info@midokura.com>
+Maintainer: MidoNet <midonet-user@midonet.org>
 Description: Midonet-API is the REST API for Midolman, a virtual network controller
 Distribution: development
