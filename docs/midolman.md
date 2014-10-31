@@ -43,5 +43,6 @@ opportunistically, and watches for updates to that information.
 
 ### Misc
 
+* [Getting started](getting-started.md)
 * [Micro benchmarks](micro-benchmarks.md)
 * [midonet-util library](midonet-util.md)
