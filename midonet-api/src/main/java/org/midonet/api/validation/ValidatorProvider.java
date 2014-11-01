@@ -24,7 +24,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
 /**
- *　Validator provider
+ * Validator provider
  */
 public class ValidatorProvider implements Provider<Validator> {
 

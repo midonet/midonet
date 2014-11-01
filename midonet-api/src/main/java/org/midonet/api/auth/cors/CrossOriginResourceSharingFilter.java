@@ -76,7 +76,7 @@ public final class CrossOriginResourceSharingFilter implements Filter {
       *    </a>
      * @see <a href="http://stackoverflow.com/questions/5406350/access-control-
      *               allow-origin-has-no-influence-in-rest-web-service">
-     *     “Access-Control-Allow-Origin:*” has no influence in REST Web Service
+     *     Access-Control-Allow-Origin:* has no influence in REST Web Service
      *     </a>
      *
      * @param servletRequest
