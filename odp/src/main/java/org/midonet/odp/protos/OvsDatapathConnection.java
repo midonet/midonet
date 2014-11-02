@@ -17,6 +17,7 @@ package org.midonet.odp.protos;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -744,6 +745,24 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
         _doPortsCreate(datapath, boundPort, callback, timeoutMills);
     }
 
+    /**
+     * Callback based api for deleting an interface on the datapath.
+     *
+     * @param datapath       the datapath from which an interface is removed.
+     * @param interfaceName the name of the interface to be deleted.
+     * @param callback      the callback which will receive the deleted dp-port.
+     * @param timeoutMills  the timeout until the operation should complete
+     */
+    public void deleteInterface(@Nonnull final Datapath datapath,
+                                @Nonnull final String interfaceName,
+                                final Callback<DpPort> callback,
+                                final long timeoutMills)
+            throws InterruptedException, ExecutionException {
+        DpPort deletingPort = OvsDatapathConnection.this.futures.portsGet(
+                interfaceName, datapath).get();
+        _doPortsDelete(deletingPort, datapath, callback, timeoutMills);
+    }
+
     public class FuturesApi {
 
         public Future<Boolean> initialize() {
@@ -1020,6 +1039,18 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
                     datapath, interfaceName, wrapFuture(addInterfaceFuture),
                     DEF_REPLY_TIMEOUT);
             return addInterfaceFuture;
+        }
+
+        public Future<DpPort> deleteInterface(
+                @Nonnull final Datapath datapath,
+                @Nonnull final String interfaceName)
+                throws InterruptedException, ExecutionException {
+            SettableFuture<DpPort> deleteInterfaceFuture =
+                    SettableFuture.create();
+            OvsDatapathConnection.this.deleteInterface(
+                    datapath, interfaceName, wrapFuture(deleteInterfaceFuture),
+                    DEF_REPLY_TIMEOUT);
+            return deleteInterfaceFuture;
         }
     }
 
