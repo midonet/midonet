@@ -68,6 +68,7 @@ project.ext {
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
         commons_cli: "commons-cli:commons-cli:1.2",
         commons_io: "commons-io:commons-io:2.3",
+        protobufs: 'com.google.protobuf:protobuf-java:2.6.1',
         guice: ["com.google.inject:guice:${versions.guice}",
                 "com.google.inject.extensions:guice-assistedinject:${versions.guice}"],
         guice_servlet: "com.google.inject.extensions:guice-servlet:${versions.guice}",
@@ -85,17 +86,18 @@ project.ext {
             exclude group: 'com.google.guava', module: 'guava'},
         jsonpath: "com.jayway.jsonpath:json-path:${versions.jsonpath}",
         jsonpath_assert: "com.jayway.jsonpath:json-path-assert:${versions.jsonpath}",
+
+        hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
+        hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
+        hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
+        hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
+
         test_frameworks: ["junit:junit:4.11",
                           "org.powermock:powermock-module-junit4:1.4.11",
                           "org.powermock:powermock-api-mockito:1.4.11",
                           "org.mockito:mockito-all:1.9.0",
                           "pl.pragmatists:JUnitParams:1.0.2",
                           "nl.jqno.equalsverifier:equalsverifier:1.4.1"],
-
-        hamcrest: "org.hamcrest:hamcrest-all:${versions.hamcrest}",
-        hamcrest_core: "org.hamcrest:hamcrest-core:${versions.hamcrest}",
-        hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
-        hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
 
         zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.6") {
             exclude group: 'jline', module: 'jline'
