@@ -57,9 +57,11 @@ dependencies {
             libraries.guava,
             libraries.guice,
             libraries.rx,
-            libraries.zookeeper
+            libraries.zookeeper,
+            libraries.protobufs
 
-    testCompile libraries.hamcrest_lib, libraries.scalatest
+    testCompile libraries.test_frameworks, libraries.hamcrest,
+                libraries.scalatest
 }
 
 cobertura {
