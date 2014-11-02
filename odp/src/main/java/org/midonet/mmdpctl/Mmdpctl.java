@@ -124,6 +124,12 @@ public class Mmdpctl {
         OptionBuilder.withLongOpt("add-if");
         mutuallyExclusiveOptions.addOption(OptionBuilder.create());
 
+        OptionBuilder.withDescription("Delete an interface on a datapath.");
+        OptionBuilder.withArgName("interface> <datapath");
+        OptionBuilder.hasArgs(2);
+        OptionBuilder.withLongOpt("delete-if");
+        mutuallyExclusiveOptions.addOption(OptionBuilder.create());
+
         // make sure that there is at least one.
         mutuallyExclusiveOptions.setRequired(true);
         options.addOptionGroup(mutuallyExclusiveOptions);
@@ -166,15 +172,19 @@ public class Mmdpctl {
             } else if (cl.hasOption("delete-dp")) {
                 System.exit(mmdpctl.execute(new DeleteDatapathCommand(cl.getOptionValue("delete-dp"))));
             } else if (cl.hasOption("add-if")) {
-                String[] targets = cl.getOptionValues("add-if")
-                        .replaceAll("\\s+", " ")
-                        .split(" ");
+                String[] targets = cl.getOptionValues("add-if");
                 String interfaceName = targets[0];
                 String datapathName = targets[1];
                 System.exit(mmdpctl.execute(new AddInterfaceToDatapathCommand(
                         interfaceName, datapathName)));
+            } else if (cl.hasOption("delete-if")) {
+                String [] targets = cl.getOptionValues("delete-if");
+                String interfaceName = targets[0];
+                String datapathName = targets[1];
+                System.exit(mmdpctl.execute(
+                        new DeleteInterfaceOnDatapathCommand(
+                                interfaceName, datapathName)));
             }
-
         } catch (ParseException e) {
             showHelpAndExit(options, e.getMessage());
         }
