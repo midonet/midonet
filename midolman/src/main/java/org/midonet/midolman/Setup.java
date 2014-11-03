@@ -98,7 +98,6 @@ public class Setup {
         paths.add(pathMgr.getVersionsPath());
         paths.add(pathMgr.getVersionPath(DataWriteVersion.CURRENT));
         paths.add(pathMgr.getSystemStatePath());
-        paths.add(pathMgr.getTraceConditionsPath());
         paths.add(pathMgr.getHealthMonitorsPath());
         paths.add(pathMgr.getLoadBalancersPath());
         paths.add(pathMgr.getPoolHealthMonitorMappingsPath());

@@ -34,7 +34,6 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
@@ -152,8 +151,6 @@ class DeduplicationActor(
 
     def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
 
-    var traceConditions: Seq[Condition] = null
-
     var datapath: Datapath = null
     var dpState: DatapathState = null
 
@@ -246,10 +243,6 @@ class DeduplicationActor(
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
             startWorkflow(Packet.fromEthernet(ethernet), Right(egressPort))
-
-        case TraceConditions(newTraceConditions) =>
-            log.debug("traceConditions updated to {}", newTraceConditions)
-            traceConditions = newTraceConditions
     }
 
     // We return collection.Set so we can return an empty immutable set
@@ -282,10 +275,6 @@ class DeduplicationActor(
                                        parentCookie, wcMatch)
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
         pktCtx.log = PacketTracing.loggerFor(wcMatch)
-
-        if (traceConditions ne null) {
-            pktCtx.setTraced(traceConditions exists { _.matches(pktCtx, false) })
-        }
         pktCtx
     }
 

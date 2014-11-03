@@ -156,7 +156,6 @@ class Coordinator(context: PacketContext)
         }
         numDevicesSimulated += 1
         log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceID}")
-        context.traceMessage(port.deviceID, "Entering device")
         handleAction(device.process(context))
     }
 
@@ -222,20 +221,14 @@ class Coordinator(context: PacketContext)
                 results reduceLeft mergeSimulationResults
 
             case ToPortSetAction(portSetID) =>
-                context.traceMessage(portSetID, "Flooded to port set")
                 emit(portSetID, isPortSet = true, null)
 
             case ToPortAction(outPortID) =>
-                context.traceMessage(outPortID, "Forwarded to port")
                 packetEgressesPort(outPortID)
 
-            case ConsumedAction =>
-                context.traceMessage(null, "Consumed")
-                NoOp
+            case ConsumedAction => NoOp
 
-            case ErrorDropAction =>
-                context.traceMessage(null, "Encountered error")
-                TemporaryDrop
+            case ErrorDropAction => TemporaryDrop
 
             case TemporaryDropAction =>
                 log.debug("Device returned TemporaryDropAction")
@@ -246,7 +239,6 @@ class Coordinator(context: PacketContext)
                 Drop
 
             case NotIPv4Action =>
-                context.traceMessage(null, "Unsupported protocol")
                 log.debug("Device returned NotIPv4Action")
                     if (context.isGenerated) {
                         NoOp
@@ -263,10 +255,8 @@ class Coordinator(context: PacketContext)
                             WildcardFlow(wcmatch = notIPv4Match))
                     }
 
-            case _ =>
-                context.traceMessage(null,
-                                    "ERROR Unexpected action returned")
-                log.error("Device returned unexpected action!")
+            case action =>
+                log.error(s"Device returned unexpected action - $action")
                 TemporaryDrop
         } // end action match
     }
