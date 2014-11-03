@@ -1,4 +1,4 @@
 [gerrit]
-host=reviews.midonet.org
+host=review.gerrithub.io
 port=29418
-project=midonet.git
+project=midonet/midonet.git
