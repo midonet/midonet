@@ -71,11 +71,12 @@ The **MidoNet** project is split into several submodules:
 
 ### brain
 
-This contains the various pieces that compose the Midonet controller
-node `brain`. Controller nodes take care of orchestrating the
-configuration of all Midonet subcomponents, as well as coordinating with
-other external devices and systems, such as VTEP switches, the backend services
-holding our Network State DataBase (e.g: Zookeeper and Cassandra), etc.
+This contains the various pieces that compose each of the nodes in
+Midonet's distributed controller (`brain`). Controller nodes take care
+of orchestrating the configuration of all Midonet subcomponents, as well
+as coordinating with other external devices and systems, such as VTEP
+switches, the backend services holding our Network State DataBase (e.g:
+Zookeeper and Cassandra), etc.
 
 ### packets
 
