@@ -266,13 +266,14 @@ find_deb() {
 install_midonet_api() {
     pushd $MIDONET_SRC_DIR
     test_phase "Installing MidoNet API"
-    deb=`find_deb midonet-api/target`
+    deb=`find_deb midonet-api/build/packages`
     test -f "$deb" || err_exit "deb file not found at: $deb"
 
     /etc/init.d/tomcat7 stop
     dpkg --purge midonet-api
     dpkg -i $deb || err_exit "installing $deb"
-    cp /usr/share/midonet-api/WEB-INF/web.xml.dev /usr/share/midonet-api/WEB-INF/web.xml
+    cp midonet-api/src/main/webapp/WEB-INF/web.xml.dev \
+       /usr/share/midonet-api/WEB-INF/web.xml
     popd
     /etc/init.d/tomcat7 start || err_exit "starting midonet-api"
     sleep 30
@@ -283,7 +284,7 @@ install_midonet_api() {
 install_midolman() {
     pushd $MIDONET_SRC_DIR
     test_phase "Installing Midolman"
-    mm_deb=`find_deb midolman/target`
+    mm_deb=`find_deb midolman/build/packages`
     test -f "$mm_deb" || err_exit "deb file not found at: $mm_deb"
 
     test -f $mm_deb || err_exit "$mm_deb"
