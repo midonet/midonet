@@ -28,7 +28,6 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.Packet
@@ -141,28 +140,11 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         inputPort = null
     }
 
-    var traceConditions: TraceConditions = null
-
     def setTraced(flag: Boolean) {
         if (!isTraced && flag) {
             traceID = UUID.randomUUID
         }
         isTraced = flag
-    }
-
-    def traceMessage(equipmentID: UUID, msg: String) {
-        if (isTraced) {
-            traceStep += 1
-            val key: String = traceID.toString + ":" + traceStep
-            val equipStr: String = if (equipmentID == null)
-                                       "(none)"
-                                   else
-                                       equipmentID.toString
-            val value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS ")
-                            .format(new Date) + equipStr + " " + msg
-            //traceMessageCache.set(key, value)
-            //traceIndexCache.set(traceID.toString, traceStep.toString)
-        }
     }
 
     def actionsFromMatchDiff(): ArrayBuffer[FlowAction] = {

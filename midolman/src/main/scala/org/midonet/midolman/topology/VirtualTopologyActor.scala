@@ -37,7 +37,6 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.util.concurrent._
@@ -166,17 +165,6 @@ object VirtualTopologyActor extends Referenceable {
                   () => new PoolHealthMonitorMapManager(client)
     }
 
-    case class ConditionListRequest(id: UUID, update: Boolean = false)
-        extends DeviceRequest {
-
-        protected[VirtualTopologyActor]
-        override val managerName = conditionListManagerName(id)
-
-        protected[VirtualTopologyActor]
-        def managerFactory(client: Client, config: MidolmanConfig) =
-            () => new TraceConditionsManager(id, client)
-    }
-
     case class Unsubscribe(id: UUID)
 
     private val topology = Topology()
@@ -210,7 +198,6 @@ object VirtualTopologyActor extends Referenceable {
         classTag[IPAddrGroup]       -> (new IPAddrGroupRequest(_)),
         classTag[LoadBalancer]      -> (new LoadBalancerRequest(_)),
         classTag[Pool]              -> (new PoolRequest(_)),
-        classTag[TraceConditions]   -> (new ConditionListRequest(_)),
         classTag[PortGroup]         -> (new PortGroupRequest(_))
     )
 
@@ -247,9 +234,6 @@ object VirtualTopologyActor extends Referenceable {
 
     def poolHealthMonitorManagerName() = "PoolHealthMonitorMapRequest"
 
-    def conditionListManagerName(listId: UUID) =
-            "ConditionListManager-" + listId
-
     def getDeviceManagerPath(parentActorName: String, deviceName: String) =
         Referenceable.getReferenceablePath("midolman",
                 "%s/%s".format(parentActorName, deviceName))
@@ -277,9 +261,6 @@ object VirtualTopologyActor extends Referenceable {
 
     def poolHealthMonitorManagerPath(parentActorName: String) =
         getDeviceManagerPath(parentActorName, poolHealthMonitorManagerName())
-
-    def conditionListManagerPath(parentActorName: String, deviceId: UUID) =
-        getDeviceManagerPath(parentActorName, conditionListManagerName(deviceId))
 }
 
 class VirtualTopologyActor extends Actor {
@@ -400,13 +381,6 @@ class VirtualTopologyActor extends Actor {
         case pg: PortGroup =>
             log.debug("Received a PortGroup for {}", pg.id)
             updated(pg)
-        case traceCondition @ TraceConditions(conditions) =>
-            log.debug("TraceConditions updated to {}", conditions)
-            updated(TraceConditionsManager.uuid, conditions)
-            // We know the DDA should always get an update to the trace
-            // conditions.  For some reason the ChainRequest(update=true)
-            // message from the DDA doesn't get the sender properly set.
-            PacketsEntryPoint ! traceCondition
         case PoolHealthMonitorMap(mappings) =>
             log.info("Received PoolHealthMonitorMappings")
             updated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,

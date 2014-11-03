@@ -35,7 +35,7 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.topology.rcu.{Host, TraceConditions}
+import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{DpPort, FlowMatch, FlowMatches, Packet, Datapath}
@@ -115,19 +115,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
     def cookieList(cookies: Seq[Int]): List[Either[Int, UUID]] =
         cookies map { case c => Left(c) } toList
-
-    feature("DeduplicationActor initializes correctly") {
-        scenario("requests the condition list to the VTA") {
-            When("the DDA boots")
-            dda should not be null
-
-            Then("the Deduplication should be able to receive conditions lists")
-            ddaRef ! TraceConditions(immutable.Seq())
-            eventually {
-                dda.traceConditions = immutable.Seq()
-            }
-        }
-    }
 
     feature("DeduplicationActor handles packets") {
         scenario("pends packets that have the same match") {

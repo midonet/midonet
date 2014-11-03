@@ -29,7 +29,6 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.LoadBalancerBuilder;
 import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.client.TunnelZones;
@@ -54,8 +53,6 @@ public interface Client {
     void getTunnelZones(UUID uuid, TunnelZones.BuildersProvider builders);
 
     void getPortSet(UUID uuid, PortSetBuilder builder);
-
-    void getTraceConditions(TraceConditionsBuilder builder);
 
     void getIPAddrGroup(UUID uuid, IPAddrGroupBuilder builder);
 

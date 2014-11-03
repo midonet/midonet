@@ -19,7 +19,6 @@ import com.google.inject.Singleton;
 
 import org.midonet.cluster.ClusterBgpManager;
 import org.midonet.cluster.ClusterChainManager;
-import org.midonet.cluster.ClusterConditionManager;
 import org.midonet.cluster.ClusterHealthMonitorManager;
 import org.midonet.cluster.ClusterIPAddrGroupManager;
 import org.midonet.cluster.ClusterLoadBalancerManager;
@@ -44,9 +43,6 @@ public class DataClusterClientModule extends DataClientModule {
                 .in(Singleton.class);
 
         bind(ClusterChainManager.class)
-                .in(Singleton.class);
-
-        bind(ClusterConditionManager.class)
                 .in(Singleton.class);
 
         bind(ClusterIPAddrGroupManager.class)

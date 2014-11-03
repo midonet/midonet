@@ -67,7 +67,6 @@ import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
 import org.midonet.midolman.state.zkManagers.RuleZkManager;
 import org.midonet.midolman.state.zkManagers.TenantZkManager;
-import org.midonet.midolman.state.zkManagers.TraceConditionZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
@@ -166,7 +165,6 @@ public class DataClientModule extends PrivateModule {
         managers.add(TenantZkManager.class);
         managers.add(TunnelZoneZkManager.class);
         managers.add(PortSetZkManager.class);
-        managers.add(TraceConditionZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(VtepZkManager.class);
         /*

@@ -30,8 +30,6 @@ import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
-import org.midonet.midolman.topology.{TraceConditionsManager, VirtualTopologyActor}
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.slf4j.LoggerFactory
@@ -44,8 +42,6 @@ object PacketsEntryPoint extends Referenceable {
     case object GetWorkers
 
     case class Workers(list: IndexedSeq[ActorRef])
-
-    case object _GetConditionListFromVta
 }
 
 class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
@@ -53,7 +49,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     import org.midonet.midolman.DatapathController.DatapathReady
     import org.midonet.midolman.DeduplicationActor._
     import org.midonet.midolman.PacketsEntryPoint._
-    import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
 
     private var _NUM_WORKERS = 1
     def NUM_WORKERS = _NUM_WORKERS
@@ -108,9 +103,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         super.preStart()
         NUM_WORKERS = config.getSimulationThreads
         metrics = new PacketPipelineMetrics(metricsRegistry)
-        // Defer this until actor start-up finishes, so that the VTA
-        // will have an actor (ie, self) in 'sender' to send replies to.
-        self ! _GetConditionListFromVta
 
         connTrackStateTable = new ShardedFlowStateTable(clock)
         natStateTable = new ShardedFlowStateTable(clock)
@@ -154,16 +146,10 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
         case m: DatapathReady => broadcast(m)
 
-        case m: TraceConditions => broadcast(m)
-
         case m: EmitGeneratedPacket => roundRobin(m)
 
         case m: FlowStateBatch => broadcast(m)
 
         case GetWorkers => sender ! Workers(workers)
-
-        case PacketsEntryPoint._GetConditionListFromVta =>
-            VirtualTopologyActor !
-                ConditionListRequest(TraceConditionsManager.uuid, update = true)
     }
 }

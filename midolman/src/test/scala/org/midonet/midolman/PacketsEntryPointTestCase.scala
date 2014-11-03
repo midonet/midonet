@@ -29,10 +29,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.PacketsEntryPoint.{Workers, GetWorkers}
-import org.midonet.midolman.topology.TraceConditionsManager
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.VirtualTopologyActor.ConditionListRequest
-import org.midonet.midolman.topology.rcu.TraceConditions
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
@@ -66,16 +63,6 @@ class PacketsEntryPointTestCase extends MidolmanSpec {
     }
 
     feature("PacketsEntryPoint initializes correctly") {
-        scenario("requests the condition list to the VTA") {
-            When("the PEP boots")
-            testablePep should not be null
-
-            Then("the VTA must receive a ConditionListRequest")
-            VirtualTopologyActor.messages should be (List(
-                    ConditionListRequest(TraceConditionsManager.uuid,
-                                         update = true)))
-        }
-
         scenario("replies to workers requests") {
             When("the PEP gets asked for the list of workers")
             implicit val timeout: Timeout = 3 seconds
@@ -103,19 +90,6 @@ class PacketsEntryPointTestCase extends MidolmanSpec {
             eventually {
                 for (child <- testablePep.children) {
                     child.messages should equal (List(msg))
-                }
-            }
-        }
-
-        scenario("forwards trace condition lists") {
-            When("the VTA sends a trace condition list")
-            testablePep.children foreach { _.getAndClear() }
-            PacketsEntryPoint ! TraceConditions(Nil)
-
-            Then("all the PEP's children should receive the list")
-            eventually {
-                for (child <- testablePep.children) {
-                    child.messages should equal (List(TraceConditions(Nil)))
                 }
             }
         }

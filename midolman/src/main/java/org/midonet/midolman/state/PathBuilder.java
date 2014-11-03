@@ -57,19 +57,6 @@ public class PathBuilder extends ZkPathManager {
         return new StringBuilder(basePath).append("/").append(TENANTS_PATH);
     }
 
-    public String getTraceConditionsPath() {
-        return buildTraceConditionsPath().toString();
-    }
-
-    private StringBuilder buildTraceConditionsPath() {
-        return new StringBuilder(basePath).append("/")
-                                          .append(TRACED_CONDITIONS_PATH);
-    }
-
-    public String getTraceConditionPath(UUID id) {
-        return getTraceConditionsPath() + "/" + id;
-    }
-
     public String getLicensesPath() { return buildLicensesPath().toString(); }
 
     private StringBuilder buildLicensesPath() {

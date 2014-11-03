@@ -41,7 +41,6 @@ import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
-import org.midonet.cluster.client.TraceConditionsBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
 import org.midonet.cluster.data.l4lb.Pool;
@@ -54,7 +53,6 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkDirectory;
 import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.midolman.topology.TraceConditionsManager;
 import org.midonet.util.eventloop.Reactor;
 
 
@@ -75,9 +73,6 @@ public class LocalClientImpl implements Client {
 
     @Inject
     ClusterChainManager chainManager;
-
-    @Inject
-    ClusterConditionManager conditionManager;
 
     @Inject
     ClusterIPAddrGroupManager ipAddrGroupManager;
@@ -149,12 +144,6 @@ public class LocalClientImpl implements Client {
             final UUID uuid, final IPAddrGroupBuilder builder) {
          ipAddrGroupManager.registerNewBuilder(uuid, builder);
         log.debug("getIPAddrGroup {}", uuid);
-    }
-
-    @Override
-    public void getTraceConditions(TraceConditionsBuilder builder) {
-        log.debug("getTraceConditions");
-        conditionManager.registerNewBuilder(TraceConditionsManager.getUuid(), builder);
     }
 
     @Override

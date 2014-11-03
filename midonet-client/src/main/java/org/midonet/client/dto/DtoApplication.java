@@ -35,7 +35,6 @@ public class DtoApplication {
     private URI portGroups;
     private URI ipAddrGroups;
     private URI routers;
-    private URI traceConditions;
     private URI traces;
     private URI writeVersion;
     private URI systemState;
@@ -64,7 +63,6 @@ public class DtoApplication {
     private String routeTemplate;
     private String routerTemplate;
     private String tunnelZoneTemplate;
-    private String traceConditionTemplate;
     private String traceTemplate;
     private String tenantTemplate;
     private String healthMonitorTemplate;
@@ -177,14 +175,6 @@ public class DtoApplication {
 
     public void setTunnelZones(URI tunnelZones) {
         this.tunnelZones = tunnelZones;
-    }
-
-    public URI getTraceConditions() {
-        return traceConditions;
-    }
-
-    public void setTraceConditions(URI traceConditions) {
-        this.traceConditions = traceConditions;
     }
 
     public URI getTraces() {
@@ -397,14 +387,6 @@ public class DtoApplication {
 
     public void setTunnelZoneTemplate(String tunnelZoneTemplate) {
         this.tunnelZoneTemplate = tunnelZoneTemplate;
-    }
-
-    public String getTraceConditionTemplate() {
-        return traceConditionTemplate;
-    }
-
-    public void setTraceConditionTemplate(String traceConditionTemplate) {
-        this.traceConditionTemplate = traceConditionTemplate;
     }
 
     public String getTraceTemplate() {
