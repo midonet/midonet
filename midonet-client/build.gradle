@@ -32,3 +32,7 @@ dependencies {
     testCompile libraries.hamcrest_integration,
                 libraries.jersey_grizzly, libraries.jersey_test_grizzly
 }
+
+cobertura {
+    coverageExcludes = ['.*org.midonet.client.*' ]
+}

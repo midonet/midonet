@@ -23,3 +23,8 @@ jar {
         'Implementation-Version': version
     }
 }
+
+
+cobertura {
+    coverageExcludes = ['.*org.midonet.rpc.*']
+}
