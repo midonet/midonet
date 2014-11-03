@@ -66,6 +66,9 @@ cobertura {
     coverageSourceDirs << sourceSets.main.scala.srcDirs
 
     coverageExcludes = [
+        '.*org.midonet.midolman.io.*Test.*',
+        '.*org.midonet.midolman.tools.*',
+        '.*org.midonet.midolman.Midolman',
         '.*FlowController$Wildcard.*',
         '.*FlowController$Wildcard.*',
         '.*FlowController$Add.*',
