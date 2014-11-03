@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_493c1130",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-03T16:59:17Z",
+      "side": 1,
+      "message": "required",
+      "range": {
+        "startLine": 38,
+        "startChar": 8,
+        "endLine": 38,
+        "endChar": 16
+      },
+      "revId": "e0e2010238a375433a427491941f791d28d41513",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4909b130",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-03T16:59:17Z",
+      "side": 1,
+      "message": "what is this for?",
+      "range": {
+        "startLine": 44,
+        "startChar": 15,
+        "endLine": 44,
+        "endChar": 19
+      },
+      "revId": "e0e2010238a375433a427491941f791d28d41513",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
