@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_efeebd8a",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-04T18:01:22Z",
+      "side": 1,
+      "message": "if it\u0027s 7 in the command line you don\u0027t want it overwritten",
+      "parentUuid": "7a6b29fe_afe5e5a9",
+      "revId": "44d9db614aa4d2f68baded298ac6affbd1bf509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0fd7b9c2",
         "filename": "build.gradle",
         "patchSetId": 1
@@ -47,6 +65,24 @@
       "writtenOn": "2014-11-04T18:00:14Z",
       "side": 1,
       "message": "indent?",
+      "revId": "44d9db614aa4d2f68baded298ac6affbd1bf509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cff30172",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-04T18:01:22Z",
+      "side": 1,
+      "message": "I hate you two.",
+      "parentUuid": "7a6b29fe_6fdbcded",
       "revId": "44d9db614aa4d2f68baded298ac6affbd1bf509e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
