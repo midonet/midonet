@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a6b29fe_0f82194f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "I would like some thread safety considerations here.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cf794195",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -106,6 +123,40 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6f962d96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "Could this extend from Observable directly? We could override the subscribe method.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4f9371a3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "synchronized? reentrant lock?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_14187080",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -123,6 +174,40 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_2f7d556f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "I wouldn\u0027t call callbacks inside a lock",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_efe99d1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "Does this need to be inside the lock?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_b406dc1e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -134,6 +219,23 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "I suppose that if a device manager needs to produce devices that are the result of merging several observables or it needs to run code before publishing results (i.e. invalidations), the observable that it returns here would be the result of all of that, right?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8f8d897e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:38:04Z",
+      "side": 1,
+      "message": "Why do we need to lock here?",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
