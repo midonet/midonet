@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6fce2d85",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "I responded to a comment below explaining some of these. I would like to have a discussion to what\u0027s the best way to approach synchronization.",
+      "parentUuid": "7a6b29fe_0f82194f",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cf794195",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -54,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_8fb6293c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "This should be a device type observable.\n\nShould we use DeviceStream or DeviceTypeObservable, and then sub classes would implement: xStream and xObseravble (e.g. PortStream as per-type class, and PortObservable as per-device class)?",
+      "parentUuid": "7a6b29fe_0f74d997",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_af6205d6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_8fe4693c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Right now there are two items that are device specific:\n- creating the DeviceObservable (i.e. PortObservable, BridgeObservable, etc.)\n- flow tag invalidation\n\nShould we rather pass these rather as an argument, instead of extending this class? I don\u0027t have a strong preference for neither option.",
+      "parentUuid": "7a6b29fe_af6205d6",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_740c4443",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -82,6 +136,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "note that instead of straight class names, we are using logger names that get \"documented\" in the default logback.xml file. The goal is easy per-component, per-device, and per-subsystem configurability. In the case of device managers, we are including the ID in the logger name, to have per-device. (take a look at current device managers and logback.xml).",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af904596",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Ok, I see, then I have to create a new logger for each observable. I will add a MidolmanLogging trait similar to ActorLogWithoutPath but without requiring the subclass being an actor.",
+      "parentUuid": "7a6b29fe_740c4443",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -123,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_2ff435f1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "I haven\u0027t implemented the cache CG here, perhaps it\u0027s better to leave it for a future patch. For now, I\u0027ve only added the ref count and removing the subscription once all the subscribers disconnect.",
+      "parentUuid": "7a6b29fe_af4b2558",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_6f962d96",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -134,6 +224,24 @@
       "writtenOn": "2014-11-04T11:38:04Z",
       "side": 1,
       "message": "Could this extend from Observable directly? We could override the subscribe method.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0f47b920",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "I thought of this option, but I\u0027m not sure whether it makes sense because it would depend on an underlying subject anyway (in this case the tappedStream subject) as source of notifications. We can make it a subject, but then we would replicate the functionality of the PublishSubject here.",
+      "parentUuid": "7a6b29fe_6f962d96",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -157,6 +265,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6f4bcd2b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure if synchronized wouldn\u0027t be too heavy for the few operations we have to synchronize here. I will change to synchronize (if I remember well it does one lock-free iteration before suspending the thread).",
+      "parentUuid": "7a6b29fe_4f9371a3",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_14187080",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -168,6 +294,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "the \"completed\" verb is a bit confusing. Would this happen because the device was deleted from the virtual topology or for other reasons?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0ff979e9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "I will change for deleted.",
+      "parentUuid": "7a6b29fe_14187080",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -191,6 +335,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_4fcb7172",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "See thread-safety comment at getEventually() method.",
+      "parentUuid": "7a6b29fe_2f7d556f",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_efe99d1b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -202,6 +364,24 @@
       "writtenOn": "2014-11-04T11:38:04Z",
       "side": 1,
       "message": "Does this need to be inside the lock?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_afc84575",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "See thread-safety comment at getEventually() method.",
+      "parentUuid": "7a6b29fe_efe99d1b",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -225,6 +405,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6fdd8d70",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Yes. For example, right now the PortManager creates the Port simulation object as a 1-to-1 mapping to the Port protobufs. But other managers would combine different Protobufs to create the simulation objects, and expose them by overriding this.",
+      "parentUuid": "7a6b29fe_b406dc1e",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_8f8d897e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -236,6 +434,24 @@
       "writtenOn": "2014-11-04T11:38:04Z",
       "side": 1,
       "message": "Why do we need to lock here?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_aff165cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "The rationale for locks in the device managers is to prevent using a DeviceObservable that it\u0027s about to unsubscribe because of a zero ref count. Therefore, I was trying to make the following operations mutually exclusive, but without requiring a global lock:\n- call getEventually()/subscribe()\n- unsubscribe the observer and remove it from the observers map\n\nI added the guard method to prevent conditions to the observer map, but retrying the operation if the observable has already unsubscribed.\n\nDepending on the VT typical requests, maybe a read/write lock would perform better. Can you provide some input? Thanks!",
+      "parentUuid": "7a6b29fe_8f8d897e",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -277,6 +493,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_4fda5179",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "tryGet() sounds good.\n\nAnd yes, the idea is that the",
+      "parentUuid": "7a6b29fe_ef74fd9d",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cf04a117",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -288,6 +522,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "why is this necessary?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cfbf81cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "See my previous response to Duarte related to the synchronization needs here.\n\nThis is basically to solve race conditions to the observables map without using a global lock. If a returned observable has just unsubscribed, then we retry the operation by accessing the global map again (and creating if needed / a new observable).",
+      "parentUuid": "7a6b29fe_cf04a117",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -311,6 +563,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_cf6301b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortManagerEx.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Temporary name while we keep the old device managers. After the refactor, we can change to PortManager.",
+      "parentUuid": "7a6b29fe_2f0a7521",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_4f6531e0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 1
@@ -322,6 +592,24 @@
       "writtenOn": "2014-11-04T11:32:32Z",
       "side": 1,
       "message": "Wow, nice!",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2f59d5fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "7a6b29fe_4f6531e0",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -345,6 +633,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6f72ad7d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "This exception happens when the device observable sends an error during a get. Should we wrap it as a failed future inside the NotYetException?",
+      "parentUuid": "7a6b29fe_cfa021f7",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_2fa6f510",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 1
@@ -356,6 +662,24 @@
       "writtenOn": "2014-11-04T11:32:32Z",
       "side": 1,
       "message": "If we have a global \"manager\" we can pass the tag to getOrThrow",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af6cc59d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Yes, let\u0027s discuss the global manager offline. If we use a global manager, it can be the same as the VirtualTopology.",
+      "parentUuid": "7a6b29fe_2fa6f510",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -379,6 +703,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_8f69098e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Ahhhh.. !\u003d of course.",
+      "parentUuid": "7a6b29fe_afb96530",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_4fac11ee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 1
@@ -396,6 +738,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_ef051dc3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "No rationale (I think it\u0027s ugly actually). I just observed that many mm actors (e.g. the VTA, FC) use a companion object to expose their methods as static. We could make the VT a single class and use Guice to inject it where necessary. Should we prefer that instead?",
+      "parentUuid": "7a6b29fe_4fac11ee",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0f0fb931",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 1
@@ -407,6 +767,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "weird whitespace alignment (could be a gerrit issue).\n\nactorsService doesn\u0027t seem to be used other than to get the actorSystem. I\u0027d make the actorSystem (which agent agnostic) the constructor parameter, instead of a MidolmanActorsService, which shouldn\u0027t leak to other agent components.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cf0ae1d1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-04T14:07:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_0f0fb931",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
