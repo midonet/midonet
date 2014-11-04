@@ -149,7 +149,9 @@ project.ext {
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
         aspectj: "org.aspectj:aspectjrt:1.8.0",
 
-        protobuf: "com.google.protobuf:protobuf-java:2.6.1"
+        protobuf: "com.google.protobuf:protobuf-java:2.6.1",
+
+        disruptor: "com.lmax:disruptor:3.3.0"
     ]
 
     timestamp = new Date().format("YYYYMMddHHmm")
