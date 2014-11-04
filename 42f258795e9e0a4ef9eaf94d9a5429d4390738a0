@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a6b29fe_cf794195",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:25:42Z",
+      "side": 1,
+      "message": "We need a new name for this! DeviceStream?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_740c4443",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -30,6 +47,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "do we really want to stop watching when there are no subscriptors to a device?\n\nFor example, simulations don\u0027t \u0027subscribe\u0027 to the device, if we remove the local copy of the device as soon as we give the device to them, they wouldn\u0027t work because they\u0027d get suspended and would again not find the device when they are retried.\n\n...maybe I\u0027m misunderstanding this.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af4b2558",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:25:42Z",
+      "side": 1,
+      "message": "The idea is that the Device cache is a subscriber of this layer. So while we don\u0027t GC the devices we request during a simulation, this will always be kept alive.",
+      "parentUuid": "7a6b29fe_54094830",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -81,6 +116,24 @@
       "writtenOn": "2014-11-04T11:17:42Z",
       "side": 1,
       "message": "is this the API that clients will use to fetch devices or something on top of this?\n\nNote, I\u0027m asking because simulations can\u0027t afford to go through a future and/or a spin lock, they really need a direct read from a lockless RO map or a ConcurrentHashMap.\n\nhow about tryGet() for a name?\n\n\nUPDATE: i see now in the VirtualTopology object/class that you are respecting the direct-through-the-map implementation. I still have doubts about how subscriptions work though: does this mean that the \u0027Topology\u0027 object is a subscriber, meaning that these DeviceManagers will not go to zero-subscribers unless we explicitly delete their device from the Topology? If so, it makes sense, i like it :-)",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_ef74fd9d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T11:25:42Z",
+      "side": 1,
+      "message": "Of course you do :)",
+      "parentUuid": "7a6b29fe_efffddff",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
