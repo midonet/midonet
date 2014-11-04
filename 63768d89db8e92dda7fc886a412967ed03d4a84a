@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_548668ba",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-04T09:37:51Z",
+      "side": 1,
+      "message": "Maybe the doc should mention that this is also the connection id used in Bye and Ack (or maybe it is better to have always a req_id field separated from the cnxn_id in both Handshake and Bye commands)",
+      "range": {
+        "startLine": 23,
+        "startChar": 22,
+        "endLine": 23,
+        "endChar": 28
+      },
+      "revId": "63768d89db8e92dda7fc886a412967ed03d4a84a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_54d828ef",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-04T09:37:51Z",
+      "side": 1,
+      "message": "For consistency, I would use the same name in \"Unsubscribe\" (I prefer \"type\" bc. it is shorter...)",
+      "range": {
+        "startLine": 31,
+        "startChar": 22,
+        "endLine": 31,
+        "endChar": 33
+      },
+      "revId": "63768d89db8e92dda7fc886a412967ed03d4a84a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_b4937cf9",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-04T09:37:51Z",
+      "side": 1,
+      "message": "See the comment for Handshake...",
+      "range": {
+        "startLine": 42,
+        "startChar": 22,
+        "endLine": 42,
+        "endChar": 29
+      },
+      "revId": "63768d89db8e92dda7fc886a412967ed03d4a84a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_949000ee",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-04T09:37:51Z",
+      "side": 1,
+      "message": "tab instead of spaces?",
+      "range": {
+        "startLine": 47,
+        "startChar": 11,
+        "endLine": 47,
+        "endChar": 18
+      },
+      "revId": "63768d89db8e92dda7fc886a412967ed03d4a84a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_f4bcd46e",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-04T09:37:51Z",
+      "side": 1,
+      "message": "This allows us to reject a request, but it does not allow us to tell the client about other errors (e.g. a malformed protobuf will not contain a valid request id...). Should we add an \"Error\" message (or maybe add an \"ErrorType\" enum value to NAck and make the req_id optional)?",
+      "range": {
+        "startLine": 66,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "63768d89db8e92dda7fc886a412967ed03d4a84a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
