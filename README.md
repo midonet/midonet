@@ -18,12 +18,13 @@ and associated information is stored in ZooKeeper, and per-connection
 state which is shared between nodes is stored in Cassandra -- all the
 Midolman nodes which compose a virtual network must have connectivity to
 the ZooKeeper and Cassandra clusters, as that's how they coordinate.
-The web-based REST API described [here](docs/rest-api-specification.md)
-is provided by nodes running MidoNet's API service in a webserver.  These
-API server nodes will read and modify the virtual topology configuration,
-so they need to have connectivity to the ZooKeeper cluster, but not
-necessarialy any other node types.
+The web-based REST API described [here][rest-api] is provided by nodes running
+MidoNet's API service in a webserver.  These API server nodes will read and
+modify the virtual topology configuration, so they need to have connectivity to
+the ZooKeeper cluster, but not necessarily any other node types.
 
+[rest-api]: http://docs.midonet.org/docs/v1.8/rest-api/api/rest-api-specification.html
+    "MidoNet API Specification"
 
 ## Organization of the project
 
