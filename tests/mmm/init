@@ -33,7 +33,8 @@ sudo apt-get install iproute -y
 # curl -L https://www.opscode.com/chef/install.sh | sudo bash
 
 # add midokura apt source
-echo 'deb [arch=amd64] http://repo.midonet.org/midonet/v1.8/unstable precise main' |sudo tee /etc/apt/sources.list.d/midokura.list
+echo 'deb http://repo.midonet.org/midonet/v1.8 unstable main' |sudo tee /etc/apt/sources.list.d/midokura.list
+echo 'deb http://repo.midonet.org/misc stable main' |sudo tee /etc/apt/sources.list.d/midokura.list
 curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
 
 # add cloud archive for grizzly
