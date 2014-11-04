@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_8f1d89c0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T16:40:57Z",
+      "side": 1,
+      "message": "subscribeAll could be an Observable[Observable[T]]. I\u0027ll ask Galo.",
+      "parentUuid": "7a6b29fe_6f262d18",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0f82194f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
