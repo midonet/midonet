@@ -26,6 +26,41 @@ the ZooKeeper cluster, but not necessarily any other node types.
 [rest-api]: http://docs.midonet.org/docs/v1.8/rest-api/api/rest-api-specification.html
     "MidoNet API Specification"
 
+## How to contribute
+
+All patches to MidoNet are submitted to Gerrit, an open source,
+web-based code review system. It's publicly hosted on
+[GerritHub][gerrithub], and integrated with a CI infrastructure based on
+Jenkins that runs several suites of automated tests.
+
+To submit a patch, you'll need to sign into GerritHub using your GitHub
+account and set up your ssh-key in `Settings->SSH public keys`. If you
+need information to set up git review, or git-review workflows, please
+check MidoNet Developer's Guide in the [wiki][dev-guide].
+
+Submitting a review is simple, typically:
+
+    git clone https://github.com/midonet/midonet
+    git checkout -b your_branch origin/master
+    # .. make some changes ..
+    git commit -as  # commit your changes, and sign off your commit
+    git review master
+
+Your review will now appear on [GerritHub][gerrithub]. After committers
+approve your change and the code is tested, it'll get merged into the
+main repository.
+
+Feel free to join other MidoNet developers at #midonet-dev on
+irc.freenode.net, or our the Development [mailing list][dev-mail]. We'll
+be happy to help you get set up.
+
+[gerrithub]: https://review.gerrithub.io/#/q/project:midonet/midonet
+    "GerritHub"
+[dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
+    "MidoNet developers guide"
+[dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
+    "MidoNet developers mailing list"
+
 ## Organization of the project
 
 The **MidoNet** project is split into several submodules:
