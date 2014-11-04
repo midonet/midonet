@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_740c4443",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "note that instead of straight class names, we are using logger names that get \"documented\" in the default logback.xml file. The goal is easy per-component, per-device, and per-subsystem configurability. In the case of device managers, we are including the ID in the logger name, to have per-device. (take a look at current device managers and logback.xml).",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_54094830",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "do we really want to stop watching when there are no subscriptors to a device?\n\nFor example, simulations don\u0027t \u0027subscribe\u0027 to the device, if we remove the local copy of the device as soon as we give the device to them, they wouldn\u0027t work because they\u0027d get suspended and would again not find the device when they are retried.\n\n...maybe I\u0027m misunderstanding this.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_14187080",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "the \"completed\" verb is a bit confusing. Would this happen because the device was deleted from the virtual topology or for other reasons?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_b406dc1e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "I suppose that if a device manager needs to produce devices that are the result of merging several observables or it needs to run code before publishing results (i.e. invalidations), the observable that it returns here would be the result of all of that, right?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_efffddff",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "is this the API that clients will use to fetch devices or something on top of this?\n\nNote, I\u0027m asking because simulations can\u0027t afford to go through a future and/or a spin lock, they really need a direct read from a lockless RO map or a ConcurrentHashMap.\n\nhow about tryGet() for a name?\n\n\nUPDATE: i see now in the VirtualTopology object/class that you are respecting the direct-through-the-map implementation. I still have doubts about how subscriptions work though: does this mean that the \u0027Topology\u0027 object is a subscriber, meaning that these DeviceManagers will not go to zero-subscribers unless we explicitly delete their device from the Topology? If so, it makes sense, i like it :-)",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cf04a117",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "why is this necessary?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2f0a7521",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortManagerEx.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "why \u0027Ex\u0027?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0f0fb931",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "weird whitespace alignment (could be a gerrit issue).\n\nactorsService doesn\u0027t seem to be used other than to get the actorSystem. I\u0027d make the actorSystem (which agent agnostic) the constructor parameter, instead of a MidolmanActorsService, which shouldn\u0027t leak to other agent components.",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af1de568",
+        "filename": "pom.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-04T11:17:42Z",
+      "side": 1,
+      "message": "2.11?",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
