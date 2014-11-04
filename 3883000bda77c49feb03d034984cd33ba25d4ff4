@@ -1,0 +1,395 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_6f3f4d26",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPAddressUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "What about: \"Address: addr is not an IPv4 address\"?",
+      "range": {
+        "startLine": 74,
+        "startChar": 48,
+        "endLine": 74,
+        "endChar": 64
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4f3c1130",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPAddressUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "What about: \"Address: addr is not an IPv6 address\"?",
+      "range": {
+        "startLine": 81,
+        "startChar": 48,
+        "endLine": 81,
+        "endChar": 64
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0f1219b1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPAddressUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "Why can\u0027t this just be Commons.IPAddress? This parameter seems superfluous to me...",
+      "range": {
+        "startLine": 109,
+        "startChar": 48,
+        "endLine": 109,
+        "endChar": 52
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af2045f8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "Same remark as for IPAddressUtil",
+      "range": {
+        "startLine": 54,
+        "startChar": 29,
+        "endLine": 54,
+        "endChar": 40
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cf7e61e4",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "Isn\u0027t this redundant with line 40?",
+      "range": {
+        "startLine": 44,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 38
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2f8435d3",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "Redundant with line 56?",
+      "range": {
+        "startLine": 60,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 41
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0f8979eb",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6 to be consistent with the test above.",
+      "range": {
+        "startLine": 88,
+        "startChar": 40,
+        "endLine": 88,
+        "endChar": 53
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6f6d8d32",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6",
+      "range": {
+        "startLine": 120,
+        "startChar": 40,
+        "endLine": 120,
+        "endChar": 53
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4f6a511b",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 153,
+        "startChar": 40,
+        "endLine": 153,
+        "endChar": 59
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af77a501",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 185,
+        "startChar": 41,
+        "endLine": 185,
+        "endChar": 53
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8f7469fe",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 190,
+        "startChar": 27,
+        "endLine": 190,
+        "endChar": 40
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_ef607d37",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 249,
+        "startChar": 40,
+        "endLine": 249,
+        "endChar": 53
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cf65c146",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPAddressUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 281,
+        "startChar": 40,
+        "endLine": 281,
+        "endChar": 59
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0f605931",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPSubnetUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V4?",
+      "range": {
+        "startLine": 74,
+        "startChar": 39,
+        "endLine": 74,
+        "endChar": 56
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6f546d54",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPSubnetUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 92,
+        "startChar": 39,
+        "endLine": 92,
+        "endChar": 56
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4f51b161",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPSubnetUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V4?",
+      "range": {
+        "startLine": 119,
+        "startChar": 39,
+        "endLine": 119,
+        "endChar": 56
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_af4e85bf",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/IPSubnetUtilTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-04T17:25:33Z",
+      "side": 1,
+      "message": "ADDRESS_V6?",
+      "range": {
+        "startLine": 144,
+        "startChar": 39,
+        "endLine": 144,
+        "endChar": 56
+      },
+      "revId": "3883000bda77c49feb03d034984cd33ba25d4ff4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
