@@ -213,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6fd10dfb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T15:55:55Z",
+      "side": 1,
+      "message": "Right, right. That\u0027s a whole different patch.",
+      "parentUuid": "7a6b29fe_2ff435f1",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_6f962d96",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
@@ -593,6 +611,24 @@
       "side": 1,
       "message": "why not SimPortManager?",
       "parentUuid": "7a6b29fe_cf6301b0",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0fedf9c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortManagerEx.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-04T15:55:55Z",
+      "side": 1,
+      "message": "@guillermo: http://msdn.microsoft.com/en-us/library/windows/desktop/ms687036(v\u003dvs.85).aspx",
+      "parentUuid": "7a6b29fe_afc4c540",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
