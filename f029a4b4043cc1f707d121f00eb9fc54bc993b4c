@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_34d2ccd2",
+        "filename": "cluster/src/main/proto/devices.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-04T08:54:01Z",
+      "side": 1,
+      "message": "[OPTIONAL] If it\u0027s meant to be a \"backref\", then probably assigning to it a field number in a different range (say 101) would be more consistent with the other message definitions.",
+      "revId": "f029a4b4043cc1f707d121f00eb9fc54bc993b4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
