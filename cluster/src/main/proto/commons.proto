@@ -35,7 +35,7 @@ message IPAddress {
 }
 
 message IPSubnet {
-    optional string address = 1;
+    optional IPAddress address = 1;
     optional int32 prefix_length = 2;
 }
 
