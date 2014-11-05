@@ -16,6 +16,24 @@
       "revId": "f029a4b4043cc1f707d121f00eb9fc54bc993b4c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_212289b9",
+        "filename": "cluster/src/main/proto/devices.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T09:42:45Z",
+      "side": 1,
+      "message": "done, also on the vtep which has the ref from bindings.",
+      "parentUuid": "7a6b29fe_34d2ccd2",
+      "revId": "f029a4b4043cc1f707d121f00eb9fc54bc993b4c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
