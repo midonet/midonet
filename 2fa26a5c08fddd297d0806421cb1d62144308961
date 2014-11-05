@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_645f6f0f",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-05T11:07:51Z",
+      "side": 1,
+      "message": "SUB is implemented as a GET with the subscribe flag set to true (maybe it can be removed from the doc)",
+      "parentUuid": "7a6b29fe_01e94d80",
+      "range": {
+        "startLine": 15,
+        "startChar": 50,
+        "endLine": 15,
+        "endChar": 53
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_c118f586",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-05T09:54:42Z",
       "side": 1,
       "message": "A question / In the case a client wants to re-subscribe after a connection outage, is the Ack message exchanging sequence different as if the client subscribes for the first time? Or is this just a server side logic and transparent to the client that subscribes always with the same sequence?",
+      "range": {
+        "startLine": 20,
+        "startChar": 13,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_84628bd6",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-05T11:07:51Z",
+      "side": 1,
+      "message": "In case of reconnection, the handshake message should contain the same cnxn_id as it was sent for the original connection. The last_tx_id is meant to indicate the last update received before the connection outage (but its format/contents are not defined yet)",
+      "parentUuid": "7a6b29fe_c118f586",
       "range": {
         "startLine": 20,
         "startChar": 13,
