@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_e4141ff7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-05T13:50:10Z",
+      "side": 1,
+      "message": "It seems to me to be an overgeneralization... I\u0027ll keep like this for now.",
+      "parentUuid": "7a6b29fe_243e17b9",
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_c474839e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 2
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_64692f8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-05T13:50:10Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean. Do you want to inject a value or something? In a future patch?",
+      "parentUuid": "7a6b29fe_c474839e",
+      "range": {
+        "startLine": 212,
+        "startChar": 38,
+        "endLine": 212,
+        "endChar": 41
+      },
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_844bab58",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 2
@@ -53,6 +95,30 @@
       "writtenOn": "2014-11-05T11:04:04Z",
       "side": 1,
       "message": "nice, I didn\u0027t know this one :)",
+      "range": {
+        "startLine": 842,
+        "startChar": 5,
+        "endLine": 842,
+        "endChar": 22
+      },
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_c405a3c3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-05T13:50:10Z",
+      "side": 1,
+      "message": ":-)",
+      "parentUuid": "7a6b29fe_844bab58",
       "range": {
         "startLine": 842,
         "startChar": 5,
