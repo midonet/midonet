@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_81e55daa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/ArpTimeoutException.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-05T08:20:39Z",
+      "side": 1,
+      "message": "Btw, if you want to change, since we don\u0027t care about the stacktrace when this is thrown, this can become:\n\n    object ArpTimeoutException extends Exception {\n        override def fillInStackTrace(): Throwable \u003d this\n    }",
+      "revId": "75fb211c377b7327989417fa98e6e14774f8f1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
