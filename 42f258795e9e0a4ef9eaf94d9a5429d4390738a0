@@ -234,6 +234,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_c4d00356",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-05T11:39:34Z",
+      "side": 1,
+      "message": "Hum.. I see. I\u0027m waving my hands, but if you have a custom, cold Observable, you would only trigger the call to storage when the observable is subscribed to (because you override the subscribe method). At that time you would already have your first subscriber.",
+      "parentUuid": "7a6b29fe_e149b18c",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0f82194f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
