@@ -50,6 +50,41 @@ message Network {
     optional UUID outbound_filter_id = 7;
     optional UUID vxlan_port_id = 8;
 
+    message Dhcp {
+        optional IPSubnet subnet_address = 1;
+        optional IPAddress server_address = 2;
+        repeated IPAddress dns_server_address = 3;
+        optional IPAddress default_gateway = 4;
+        optional int32 interface_mtu = 5;
+
+        message Opt121Route {
+            optional IPSubnet dst_subnet = 1;
+            optional IPAddress gateway = 2;
+        }
+        repeated Opt121Route opt121_routes = 6;
+
+        message Host {
+            optional string mac = 1;
+            optional IPAddress ip_address = 2;
+            optional string name = 3;
+        }
+        repeated Host hosts = 7;
+
+        optional bool enabled = 8;
+    }
+    repeated Dhcp dhcp_subnets = 9;
+
+    message DhcpV6 {
+        optional IPSubnet subnet_address = 1;
+        message Host {
+            optional string client_id = 1;
+            optional IPAddress fixed_address = 2;
+            optional string name = 3;
+        }
+        repeated Host hosts = 2;
+    }
+    repeated DhcpV6 dhcp_v6_subnets = 10;
+
     // Back references
     repeated UUID port_ids = 101;
 }
@@ -73,28 +108,28 @@ message Port {
     optional UUID router_id = 3;
     optional UUID inbound_filter_id = 4;
     optional UUID outbound_filter_id = 5;
-    optional int32 tunnel_key = 6;
+    optional int64 tunnel_key = 6;
     optional UUID peer_id = 7;
     optional UUID vif_id = 8;
     optional UUID host_id = 9;
     optional string interface_name = 10;
     optional bool admin_state_up = 11 [default = true];
 
-    repeated UUID port_group_id = 12;
+    repeated UUID port_group_ids = 12;
 
     // interior bridge port specific
     optional uint32 vlan_id = 13;
 
-    // router port specific
-    optional string network_address = 14;
-    optional uint32 network_length = 15;
-    optional string port_address = 16;
-    optional string port_mac = 17;
+    // Router port specific
+    optional IPSubnet port_subnet = 14;
+    optional IPAddress port_address = 15;
+    optional string port_mac = 16;
 
-    // vxlan port specific - TODO: should we nest instead?
-    optional string vxlan_mgmt_ip = 18;
-    optional uint32 vxlan_mgmt_port = 19;
-    optional uint32 vxlan_vni = 20;
+    // VXLAN port specific
+    optional IPAddress vxlan_mgmt_ip = 17;
+    optional uint32 vxlan_mgmt_port = 18;
+    optional uint32 vxlan_vni = 19;
+    optional IPAddress vxlan_tunnel_ip = 20;
     optional UUID vxlan_tunnel_zone_id = 21;
 
     // Back references
