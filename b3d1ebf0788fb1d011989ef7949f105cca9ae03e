@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_619c816a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NetworkTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T03:21:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_54514861",
+      "range": {
+        "startLine": 27,
+        "startChar": 20,
+        "endLine": 27,
+        "endChar": 23
+      },
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_944be0af",
         "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NeutronApiTranslator.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-04T09:06:06Z",
       "side": 1,
       "message": "TranslationException?",
+      "range": {
+        "startLine": 30,
+        "startChar": 6,
+        "endLine": 30,
+        "endChar": 26
+      },
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_01830d05",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NeutronApiTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T03:21:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_944be0af",
       "range": {
         "startLine": 30,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_6173e14d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NeutronApiTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T03:21:40Z",
+      "side": 1,
+      "message": "I see your point, but I also think that this component translates not just a model but an operation on a model, so it seems to me that API translation (request for an operation on some resource) sounds closer to what it actually does. Not a strong opinion either, though. What do you think?",
+      "parentUuid": "7a6b29fe_b44edcbf",
+      "range": {
+        "startLine": 42,
+        "startChar": 22,
+        "endLine": 42,
+        "endChar": 25
+      },
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_f4c7b410",
         "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NeutronApiTranslator.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_e187f10d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/neutron/NeutronApiTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T03:21:40Z",
+      "side": 1,
+      "message": "Renamed to \"processExceptions\".",
+      "parentUuid": "7a6b29fe_f4c7b410",
+      "range": {
+        "startLine": 58,
+        "startChar": 18,
+        "endLine": 58,
+        "endChar": 34
+      },
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_d4cc3838",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/NetworkConverter.scala",
         "patchSetId": 1
@@ -105,6 +201,24 @@
       "writtenOn": "2014-11-04T09:06:06Z",
       "side": 1,
       "message": "I\u0027d move the Ops here too to reduce files. They also kind of make sense together.",
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2179e92f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/NetworkConverter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T03:21:40Z",
+      "side": 1,
+      "message": "This file would contain only a single Converter for Network, therefore Ops doesn\u0027t fit here. (I\u0027m envisioning we\u0027ll have a bunch of XXXConverter.scala files.) Do you prefer / suggest that we have a single file containing all Converters? Please let me know.",
+      "parentUuid": "7a6b29fe_d4cc3838",
       "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
