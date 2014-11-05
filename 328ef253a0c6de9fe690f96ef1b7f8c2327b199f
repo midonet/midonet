@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_841d6b69",
+        "filename": "cluster/src/main/proto/devices.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T10:00:27Z",
+      "side": 1,
+      "message": "I think that this is actually \"forward refs\", but I guess that\u0027s fine :P",
+      "revId": "328ef253a0c6de9fe690f96ef1b7f8c2327b199f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
