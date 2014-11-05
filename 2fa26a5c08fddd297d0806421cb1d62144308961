@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_a4a067f5",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:12:56Z",
+      "side": 1,
+      "message": "If you don\u0027t mind I\u0027ll fix this in a later patch, so I can unblock further changes.",
+      "parentUuid": "7a6b29fe_645f6f0f",
+      "range": {
+        "startLine": 15,
+        "startChar": 50,
+        "endLine": 15,
+        "endChar": 53
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_c118f586",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 4
@@ -96,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_04a67b10",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:12:56Z",
+      "side": 1,
+      "message": "The last_tx_id can remain empty for now, yep.",
+      "parentUuid": "7a6b29fe_84628bd6",
+      "range": {
+        "startLine": 20,
+        "startChar": 13,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_e1a41159",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 4
@@ -107,6 +155,30 @@
       "writtenOn": "2014-11-05T08:49:51Z",
       "side": 1,
       "message": "A nit. Somehow a single white-space was added since patch #1. Maybe you want to get rid of it and align this comment with the one below :P",
+      "range": {
+        "startLine": 65,
+        "startChar": 34,
+        "endLine": 65,
+        "endChar": 35
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_e4aa5fd3",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:12:56Z",
+      "side": 1,
+      "message": "I\u0027ll fix this along with the comment above later if it\u0027s ok.",
+      "parentUuid": "7a6b29fe_e1a41159",
       "range": {
         "startLine": 65,
         "startChar": 34,
