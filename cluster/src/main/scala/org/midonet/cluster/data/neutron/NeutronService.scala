@@ -45,7 +45,6 @@ protected[data] object TaskType extends Enumeration {
  * Neutron resource type The value is the ID used to represent the resource
  * type in Neutron's task table.
  */
-
 protected[data] object NeutronResourceType extends Enumeration {
     type NeutronResourceType = Value
     val Network = Value(1)
@@ -58,8 +57,7 @@ protected[data] object NeutronResourceType extends Enumeration {
     val RouterInterface = Value(8)
 
     private val vals = Array(Network, Subnet, Router, Port, FloatingIp,
-                               SecurityGroup, SecurityGroupRule,
-                               RouterInterface)
+                             SecurityGroup, SecurityGroupRule, RouterInterface)
     def valueOf(i: Int): NeutronResourceType = vals(i - 1)
 }
 
