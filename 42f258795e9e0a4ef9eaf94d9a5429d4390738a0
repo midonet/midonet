@@ -2,6 +2,167 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a6b29fe_2151e962",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "This comment appears to be out of date, since ZoomClass isn\u0027t used in this function.",
+      "range": {
+        "startLine": 293,
+        "startChar": 61,
+        "endLine": 293,
+        "endChar": 70
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_c1bc756f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "I think you can get rid of this special case by just matching on pojoField.getGenericType. The case for an array would be \"c: Class[_] if c.isArray\"",
+      "range": {
+        "startLine": 307,
+        "startChar": 0,
+        "endLine": 311,
+        "endChar": 13
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_81939df9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "What case does this cover? What would it be except a Class? Null, in the case of Set[_]?",
+      "range": {
+        "startLine": 330,
+        "startChar": 0,
+        "endLine": 332,
+        "endChar": 42
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_619001ed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "Why not move this up to the top of the function, under \"if (!protoField.isRepeated)\"\n\nThat way you can unindent the huge block above.",
+      "range": {
+        "startLine": 340,
+        "startChar": 8,
+        "endLine": 340,
+        "endChar": 56
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_61a76150",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "element",
+      "range": {
+        "startLine": 590,
+        "startChar": 51,
+        "endLine": 590,
+        "endChar": 60
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_c163d518",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 592,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "How about elemConverter?",
+      "range": {
+        "startLine": 592,
+        "startChar": 39,
+        "endLine": 592,
+        "endChar": 48
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_617e41b0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "I feel like we\u0027re duplicating some work here. Don\u0027t we already know what clazz should be? Can we pass it in as an argument to the constructor?",
+      "range": {
+        "startLine": 596,
+        "startChar": 0,
+        "endLine": 597,
+        "endChar": 64
+      },
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_8f4629be",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 1
@@ -49,6 +210,24 @@
       "side": 1,
       "message": "subscribeAll could be an Observable[Observable[T]]. I\u0027ll ask Galo.",
       "parentUuid": "7a6b29fe_6f262d18",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_e149b18c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-05T09:39:06Z",
+      "side": 1,
+      "message": "In the case of subscribeAll, it allows us to control when subscribe() happens, so that we can guarantee that no updates happen between the time we generate the observable and the time the caller subscribes, as these would be lost to the caller.\n\nI don\u0027t think it\u0027s necessary for single subscribe, but we may have just done it for consistency.\n\nIt\u0027s a bit complicated to explain the problem, but we spent a lot of time looking for a better solution.",
+      "parentUuid": "7a6b29fe_8f1d89c0",
       "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
