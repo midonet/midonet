@@ -19,9 +19,8 @@ package org.midonet.cluster.data.neutron
 import java.sql.{ResultSet, Connection}
 import java.util.UUID
 
-import org.midonet.cluster.data.neutron.ResourceType.ResourceType
+import org.midonet.cluster.data.neutron.NeutronResourceType.NeutronResourceType
 import org.midonet.cluster.data.neutron.TaskType.TaskType
-import org.midonet.cluster.data.{ObjId, Obj}
 
 import scala.collection.mutable.ListBuffer
 
@@ -32,12 +31,12 @@ protected[data] object TaskType extends Enumeration {
     val Update = Value(3)
     val Flush = Value(4)
 
-    private val values = Array(Create, Delete, Update, Flush)
-    def valueOf(i: Int) = values(i - 1)
+    private val vals = Array(Create, Delete, Update, Flush)
+    def valueOf(i: Int) = vals(i - 1)
 }
 
-protected[data] object ResourceType extends Enumeration {
-    type ResourceType = Value
+protected[data] object NeutronResourceType extends Enumeration {
+    type NeutronResourceType = Value
     val Network = Value(1)
     val Subnet = Value(2)
     val Router = Value(3)
@@ -47,20 +46,20 @@ protected[data] object ResourceType extends Enumeration {
     val SecurityGroupRule = Value(7)
     val RouterInterface = Value(8)
 
-    private val values = Array(Network, Subnet, Router, Port, FloatingIp,
-                               SecurityGroup, SecurityGroupRule,
-                               RouterInterface)
-    def valueOf(i: Int) = values(i - 1)
+    private val vals = Array(Network, Subnet, Router, Port, FloatingIp,
+                             SecurityGroup, SecurityGroupRule,
+                             RouterInterface)
+    def valueOf(i: Int) = vals(i - 1)
 }
 
 protected[data] sealed trait Operation {
     val opId: Int
 }
-protected[data] case class Create(opId: Int, rsrcType: ResourceType,
+protected[data] case class Create(opId: Int, rsrcType: NeutronResourceType,
                                   json: String) extends Operation
-protected[data] case class Delete(opId: Int, rsrcType: ResourceType,
+protected[data] case class Delete(opId: Int, rsrcType: NeutronResourceType,
                                   objId: UUID) extends Operation
-protected[data] case class Update(opId: Int, rsrcType: ResourceType,
+protected[data] case class Update(opId: Int, rsrcType: NeutronResourceType,
                                   json: String) extends Operation
 protected[data] case class Flush(opId: Int) extends Operation
 
@@ -132,7 +131,7 @@ protected[data] class RemoteNeutronService(conn: Connection) {
     }
 
     protected case class Row(opId: Int, taskType: TaskType,
-                             rsrcType: ResourceType, rsrcId: UUID,
+                             rsrcType: NeutronResourceType, rsrcId: UUID,
                              txnId: String, json: String) {
         def toOp = taskType match {
             case TaskType.Create => Create(opId, rsrcType, json)
@@ -144,7 +143,7 @@ protected[data] class RemoteNeutronService(conn: Connection) {
     protected def parseRow(rslt: ResultSet): Row = {
         val opId = rslt.getInt(idCol)
         val taskType = TaskType.valueOf(rslt.getInt(typeIdCol))
-        val rsrcType = ResourceType.valueOf(rslt.getInt(resourceIdCol))
+        val rsrcType = NeutronResourceType.valueOf(rslt.getInt(resourceIdCol))
         val rsrcIdStr = rslt.getString(resourceIdCol)
         val rsrcId = if (rsrcIdStr == null) null else UUID.fromString(rsrcIdStr)
         val txnId = rslt.getString(txnIdCol)

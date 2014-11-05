@@ -19,7 +19,7 @@ import java.io.StringWriter
 import java.util.concurrent.Executors
 import java.util.{ConcurrentModificationException, List => JList}
 
-import org.midonet.cluster.data.{ObjId, Obj}
+import org.midonet.cluster.data.{Obj, ObjId}
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._

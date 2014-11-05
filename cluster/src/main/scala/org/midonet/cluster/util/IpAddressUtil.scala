@@ -32,11 +32,15 @@ object IPAddressUtil {
     private val IPV4ADDR = classOf[IPv4Addr]
     private val INETADDRESS = classOf[InetAddress]
 
-    implicit def toProto(addr: String): Commons.IPAddress =
+    implicit def toProto(addr: String): Commons.IPAddress = {
+        assert(addr.contains('.') || addr.contains(':'))
+        val version = if (addr.contains('.')) Commons.IPAddress.Version.IPV4
+                      else Commons.IPAddress.Version.IPV6
         Commons.IPAddress.newBuilder
-            .setVersion(Commons.IPAddress.Version.IPV4)
+            .setVersion(version)
             .setAddress(addr)
             .build()
+    }
 
     implicit def toProto(addr: IPv4Addr): Commons.IPAddress = addr.toString
 
