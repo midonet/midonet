@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_01e94d80",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T08:49:51Z",
+      "side": 1,
+      "message": "A question / nit-pick. SUB is implicit and it\u0027s not actually sent?",
+      "range": {
+        "startLine": 15,
+        "startChar": 50,
+        "endLine": 15,
+        "endChar": 53
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_e1a41159",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T08:49:51Z",
+      "side": 1,
+      "message": "A nit. Somehow a single white-space was added since patch #1. Maybe you want to get rid of it and align this comment with the one below :P",
+      "range": {
+        "startLine": 65,
+        "startChar": 34,
+        "endLine": 65,
+        "endChar": 35
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
