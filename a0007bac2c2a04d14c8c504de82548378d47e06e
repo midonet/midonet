@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_443a33ce",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/ClusterException.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_c4ff6300",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_a404e715",
         "filename": "cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2014-11-05T09:54:56Z",
       "side": 1,
       "message": "Out-of-order.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 40
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_243737e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_a404e715",
       "range": {
         "startLine": 23,
         "startChar": 0,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_84344bdf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_040afb20",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_2109e931",
         "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
         "patchSetId": 1
@@ -70,6 +130,30 @@
       "writtenOn": "2014-11-05T09:54:56Z",
       "side": 1,
       "message": "Where it\u0027s incremented?",
+      "range": {
+        "startLine": 37,
+        "startChar": 12,
+        "endLine": 37,
+        "endChar": 20
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_64312fec",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_2109e931",
       "range": {
         "startLine": 37,
         "startChar": 12,
@@ -128,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_c44da374",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_41b0658b",
+      "range": {
+        "startLine": 73,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 35
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_81aa7d17",
         "filename": "cluster/src/main/scala/org/midonet/cluster/minions/Heartbeat.scala",
         "patchSetId": 1
@@ -139,6 +247,30 @@
       "writtenOn": "2014-11-05T09:54:56Z",
       "side": 1,
       "message": "Out-of-order.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 76
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_a4522711",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/minions/Heartbeat.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T10:47:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_81aa7d17",
       "range": {
         "startLine": 22,
         "startChar": 0,
