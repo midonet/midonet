@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_e4cfffae",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-05T11:58:09Z",
+      "side": 1,
+      "message": "Isn\u0027t this supposed to extend NeutronService?",
+      "range": {
+        "startLine": 76,
+        "startChar": 22,
+        "endLine": 76,
+        "endChar": 42
+      },
+      "revId": "13d40b3d324e92fed79918eca24ee28bbed51de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_44c4f391",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-05T11:58:09Z",
+      "side": 1,
+      "message": "the id in NeutronService is an UUID... is this meant to be the same?",
+      "range": {
+        "startLine": 129,
+        "startChar": 21,
+        "endLine": 129,
+        "endChar": 24
+      },
+      "revId": "13d40b3d324e92fed79918eca24ee28bbed51de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
