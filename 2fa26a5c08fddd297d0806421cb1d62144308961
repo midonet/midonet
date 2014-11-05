@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_c118f586",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002828
+      },
+      "writtenOn": "2014-11-05T09:54:42Z",
+      "side": 1,
+      "message": "A question / In the case a client wants to re-subscribe after a connection outage, is the Ack message exchanging sequence different as if the client subscribes for the first time? Or is this just a server side logic and transparent to the client that subscribes always with the same sequence?",
+      "range": {
+        "startLine": 20,
+        "startChar": 13,
+        "endLine": 20,
+        "endChar": 19
+      },
+      "revId": "2fa26a5c08fddd297d0806421cb1d62144308961",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_e1a41159",
         "filename": "cluster/src/main/proto/topology_api.proto",
         "patchSetId": 4
