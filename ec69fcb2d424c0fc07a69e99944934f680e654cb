@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_243e17b9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:04:04Z",
+      "side": 1,
+      "message": "Maybe worth moving this to a trait that both classes can share. But we can do that in a separate patch.",
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_c474839e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:04:04Z",
+      "side": 1,
+      "message": "Let\u0027s do this configurable later!",
+      "range": {
+        "startLine": 212,
+        "startChar": 38,
+        "endLine": 212,
+        "endChar": 41
+      },
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_844bab58",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 842,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-05T11:04:04Z",
+      "side": 1,
+      "message": "nice, I didn\u0027t know this one :)",
+      "range": {
+        "startLine": 842,
+        "startChar": 5,
+        "endLine": 842,
+        "endChar": 22
+      },
+      "revId": "ec69fcb2d424c0fc07a69e99944934f680e654cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
