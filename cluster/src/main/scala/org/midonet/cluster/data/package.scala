@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data
+package org.midonet.cluster
 
-package object storage {
-    private[storage] type Obj = Object
-    private[storage] type ObjId = Any
+package object data {
+    protected[data] type Obj = Object
+    protected[data] type ObjId = Any
 }

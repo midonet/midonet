@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import org.midonet.cluster.data.ObjId
+
 /**
  * Catch-all wrapper for any non-runtime exception occurring in the
  * ZookeeperObjectMapper or below that is not due to caller error. This
@@ -101,9 +103,13 @@ class ObjectReferencedException private[storage](
  * This restriction does not apply to list references, which can accommodate
  * an arbitrary number of IDs.
  *
- * @param referencingObj
- *        Object referenced by the primary target of the Create/Update
- *        operation. This is p2 in the example above.
+ * @param referencingClass
+ *        Class of the object referenced by the primary target of the
+ *        Create/Update operation. This is Port in the example above.
+ *
+ * @param referencingId
+ *        Id of the object referenced by the primary target of the Create/Update
+ *        operation. This is p2.id in the exapmle above.
  *
  * @param referencingFieldName
  *        The name of the field by which the object referenced by the
@@ -124,7 +130,7 @@ class ReferenceConflictException private[storage](
         val referencingFieldName: String,
         val referencedClass: String, val referencedId: String)
     extends RuntimeException(
-        s"Operation failed because the ${referencingClass} with ID " +
+        s"Operation failed because the $referencingClass with ID " +
         s"$referencingId. already references the " +
         s"$referencedClass with ID $referencedId via the field " +
         s"$referencingFieldName. This field can accommodate only one " +
