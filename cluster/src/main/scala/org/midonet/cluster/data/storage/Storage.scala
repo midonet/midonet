@@ -17,6 +17,8 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
+import org.midonet.cluster.data.{ObjId, Obj}
+
 import scala.concurrent.Future
 
 import rx.{Observable, Observer, Subscription}
