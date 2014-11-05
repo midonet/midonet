@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_04b15be1",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-05T15:15:24Z",
+      "side": 1,
+      "message": "need to filter out disabled minions",
+      "range": {
+        "startLine": 62,
+        "startChar": 26,
+        "endLine": 62,
+        "endChar": 27
+      },
+      "revId": "e5a0045f352da41986e8f548f285d0c590dfde3d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
