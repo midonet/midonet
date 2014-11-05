@@ -16,21 +16,13 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util.concurrent.{TimeUnit, ScheduledExecutorService, Executors}
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 import java.util.{ConcurrentModificationException, List => JList}
 
 import com.google.common.annotations.VisibleForTesting
-
-import scala.async.Async.async
-import scala.collection.JavaConverters._
-import scala.collection.concurrent.TrieMap
-import scala.collection.{Set, mutable}
-import scala.concurrent.{ExecutionContext, Future, Promise}
-
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{Message, TextFormat}
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -41,12 +33,17 @@ import org.apache.zookeeper.data.Stat
 import org.apache.zookeeper.{CreateMode, KeeperException}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.util.concurrent.Locks
 import org.slf4j.LoggerFactory
-
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.util.concurrent.Locks
+import scala.async.Async.async
+import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
+import scala.collection.{Set, mutable}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
@@ -164,11 +161,11 @@ class ZookeeperObjectMapper(
     }
 
     /**
-     * Function called when the last subscriber to an instance subscription cache
-     * unsubscribes.
+     * Function called when the last subscriber to an instance subscription
+     * cache unsubscribes.
      */
     private def onInstanceCacheClose(path: String,
-                                     cache: InstanceSubscriptionCache[_]) = {
+                                     cache: InstanceSubscriptionCache[_]) {
 
         /*
          * We obtain a read lock on instanceCacheRWLock to prevent
@@ -192,7 +189,7 @@ class ZookeeperObjectMapper(
      * unsubscribes.
      */
     private def onClassCacheClose(path: String,
-                                  cache: ClassSubscriptionCache[_]) = {
+                                  cache: ClassSubscriptionCache[_]): Unit = {
 
         /*
          * We obtain a read lock on classCacheRWLock for the
@@ -823,8 +820,8 @@ class ZookeeperObjectMapper(
         Locks.withReadLock(instanceCacheRWLock) {
             instanceCaches(clazz).getOrElse(id.toString, {
                 val path = getPath(clazz, id)
-                val newCache = new InstanceSubscriptionCache(clazz, path, id.toString,
-                                                             curator, onInstanceCacheClose)
+                val newCache = new InstanceSubscriptionCache(
+                    clazz, path, id.toString, curator, onInstanceCacheClose)
                 instanceCaches(clazz)
                     .putIfAbsent(id.toString, newCache)
                     .getOrElse {
