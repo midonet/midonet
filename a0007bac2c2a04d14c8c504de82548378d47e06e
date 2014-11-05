@@ -1,0 +1,187 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_c4ff6300",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/ClusterException.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Don\u0027t we need this to be able to wrap around another exception?",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_a404e715",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 40
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_040afb20",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2109e931",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Where it\u0027s incremented?",
+      "range": {
+        "startLine": 37,
+        "startChar": 12,
+        "endLine": 37,
+        "endChar": 20
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6103e10f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "That all the minions are disabled doesn\u0027t necessarily mean error, I think.",
+      "range": {
+        "startLine": 51,
+        "startChar": 0,
+        "endLine": 52,
+        "endChar": 38
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_41b0658b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "s/APi/API/",
+      "range": {
+        "startLine": 73,
+        "startChar": 32,
+        "endLine": 73,
+        "endChar": 35
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_81aa7d17",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/minions/Heartbeat.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "range": {
+        "startLine": 22,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 76
+      },
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0145cd6f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/minions/Heartbeat.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "I think you can simplify this as follows:\n\npool.scheduleAtFixedRate(\n        new Runnable {\n            override def run(): Unit \u003d beat()\n        },\n        0,  // initial delay\n        cfg.periodSeconds,\n        SECONDS);",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_a1369901",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/minions/Heartbeat.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-05T09:54:56Z",
+      "side": 1,
+      "message": "Seems necessary to call pool.shutdownNow() once again here? See:\nhttp://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ExecutorService.html#awaitTermination(long,%20java.util.concurrent.TimeUnit)",
+      "revId": "a0007bac2c2a04d14c8c504de82548378d47e06e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
