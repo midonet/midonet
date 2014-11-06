@@ -222,6 +222,24 @@
       "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_b7d09b54",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/NetworkConverter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-06T01:59:06Z",
+      "side": 1,
+      "message": "Galo, I\u0027ll relocate OpType in a separate patch, so I\u0027d like to keep this as is for now.",
+      "parentUuid": "7a6b29fe_2179e92f",
+      "revId": "b3d1ebf0788fb1d011989ef7949f105cca9ae03e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
