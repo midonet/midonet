@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_973c7f95",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-06T04:30:36Z",
+      "side": 1,
+      "message": "Oh, yes. Thanks!",
+      "parentUuid": "7a6b29fe_e4cfffae",
+      "range": {
+        "startLine": 76,
+        "startChar": 22,
+        "endLine": 76,
+        "endChar": 42
+      },
+      "revId": "13d40b3d324e92fed79918eca24ee28bbed51de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_44c4f391",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-05T11:58:09Z",
       "side": 1,
       "message": "the id in NeutronService is an UUID... is this meant to be the same?",
+      "range": {
+        "startLine": 129,
+        "startChar": 21,
+        "endLine": 129,
+        "endChar": 24
+      },
+      "revId": "13d40b3d324e92fed79918eca24ee28bbed51de7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_f741730c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-06T04:30:36Z",
+      "side": 1,
+      "message": "Yes, they should be the same, although actually Int is correct, as the task ID needs to be chronologically ordered, and is thus an autoincrementing integer.",
+      "parentUuid": "7a6b29fe_44c4f391",
       "range": {
         "startLine": 129,
         "startChar": 21,
