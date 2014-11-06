@@ -45,18 +45,29 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  *
  * @param clazz Class to deserialize to.
  * @param path Zookeeper path of node to watch.
+ * @param id The id of the node.
+ * @param onLastUnsubscribe A function that is called when the last subscriber
+ *                          unsubscribes. This is used to pass the ids of caches
+ *                          to garbage collect to ZOOM.
  */
 private[storage]
 class InstanceSubscriptionCache[T](val clazz: Class[T],
                                    path: String,
-                                   curator: CuratorFramework) {
+                                   val id: String,
+                                   curator: CuratorFramework,
+                                   onLastUnsubscribe:
+                                       (String, InstanceSubscriptionCache[_]) => Unit) {
     private val nodeCache = new ObservableNodeCache(curator)
     private val stream = BehaviorSubject.create[T]()
 
     private val refCount = new AtomicInteger(0)
     private val unsubscribeObservable = stream.doOnUnsubscribe(makeAction0 {
-        refCount.decrementAndGet()
+        if (refCount.decrementAndGet() == 0) {
+            onLastUnsubscribe(path, this)
+        }
     })
+
+    def subscriptionCount = refCount.get
 
     def connect(): Unit = {
         nodeCache.connect(path)
@@ -73,9 +84,18 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
         unsubscribeObservable.subscribe(observer)
     }
 
-    def close(): Unit = {
-        if (refCount.compareAndSet(0, -1)) {
+    /**
+     * Closes the cache if it does not have any subscribers.
+     * This function is called by the ZOOM garbage collector.
+     *
+     * @return True if the cache was closed, false otherwise.
+     */
+    def closeIfNeeded(): Boolean = {
+        if (refCount.get == 0) {
             nodeCache.close()
+            true
+        } else {
+            false
         }
     }
 }
@@ -88,17 +108,26 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
  *
  * @param clazz Class to deserialize to.
  * @param path Path of parent node to watch.
+ * @param onLastUnsubscribe A function that is called when the last subscriber
+ *                          unsubscribes. This is used to pass the ids of caches
+ *                          to garbage collect to ZOOM.
  */
 private[storage]
 class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
-                                curator: CuratorFramework) {
+                                curator: CuratorFramework,
+                                onLastUnsubscribe:
+                                    (String, ClassSubscriptionCache[_]) => Unit) {
     private val pathCache = new ObservablePathChildrenCache(curator)
     private val refCount = new AtomicInteger(0)
     private val unsubscribeAction =
         new OperatorDoOnUnsubscribe[Observable[ChildData]](makeAction0 {
-            refCount.decrementAndGet()
+            if (refCount.decrementAndGet() == 0) {
+                onLastUnsubscribe(path, this)
+            }
         })
+
+    def subscriptionCount = refCount.get
 
     def connect() = {
         pathCache.connect(path)
@@ -112,9 +141,18 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
         pathCache.subscribe(subj, unsubscribeAction)
     }
 
-    def close(): Unit = {
-        if (refCount.compareAndSet(0, -1)) {
+    /**
+     * Closes the cache if it does not have any subscribers.
+     * This function is called by the ZOOM garbage collector.
+     *
+     * @return True if the cache was closed, false otherwise.
+     */
+    def closeIfNeeded(): Boolean = {
+        if (refCount.get == 0) {
             pathCache.close()
+            true
+        } else {
+            false
         }
     }
 

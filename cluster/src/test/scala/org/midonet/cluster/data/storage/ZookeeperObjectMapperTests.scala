@@ -16,16 +16,21 @@
 package org.midonet.cluster.data.storage
 
 import java.util.UUID
-import java.util.concurrent.TimeUnit
+import java.util.concurrent._
 
+import org.apache.curator.framework.CuratorFramework
+
+import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, Suite}
+import rx.{Observable, Observer}
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.concurrent.Await
@@ -38,8 +43,34 @@ class ZookeeperObjectMapperTests extends Suite
 
     private var zom: ZookeeperObjectMapper = _
 
+    private var gcRunnable: Runnable = _
+    private var gcDone: Boolean = _
+
+    private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
+        extends ZookeeperObjectMapper(basePath, curator) {
+
+        override def scheduleCacheGc(scheduler: ScheduledExecutorService,
+                                     runnable: Runnable) = {
+            gcRunnable = new Runnable {
+                def run() = {
+                    gcRunnable.synchronized {
+                        gcRunnable.wait()
+                    }
+                    runnable.run()
+                    gcRunnable.synchronized {
+                        gcDone = true
+                        gcRunnable.notify()
+                    }
+                }
+            }
+            scheduler.schedule(gcRunnable, 0, TimeUnit.SECONDS)
+        }
+    }
+
     override protected def setup(): Unit = {
-        zom = new ZookeeperObjectMapper(ZK_ROOT, curator)
+
+        gcDone = false
+        zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
 
         List(classOf[PojoBridge], classOf[PojoRouter], classOf[PojoPort],
              classOf[PojoChain], classOf[PojoRule]).foreach {
@@ -188,6 +219,139 @@ class ZookeeperObjectMapperTests extends Suite
             Future.sequence(zom.getAll(classOf[PojoChain], twoIds.asScala))
         )
         twoChains.map(_.name) should equal(List("chain0", "chain1"))
+    }
+
+    private def createBridge() : PojoBridge = {
+        val bridge = PojoBridge()
+        zom.create(bridge)
+        bridge
+    }
+
+    private def addPortToBridge(bId: UUID) = {
+        val port = PojoPort(bridgeId = bId)
+        zom.create(port)
+    }
+
+    private def startGc() = {
+        gcRunnable.synchronized {
+            gcRunnable.notify()
+        }
+    }
+
+    private def waitForGc() = {
+        gcRunnable.synchronized {
+            while (!gcDone) {
+                gcRunnable.wait()
+            }
+        }
+    }
+
+    def testSubscribe() {
+        val bridge = createBridge()
+        val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
+        zom.subscribe(classOf[PojoBridge], bridge.id, obs)
+        addPortToBridge(bridge.id)
+
+        obs.await(1, TimeUnit.SECONDS)
+    }
+
+    def testSubscribeWithGc() = {
+        val bridge = createBridge()
+        val obs = new ObjectSubscription[PojoBridge](0)
+        val sub = zom.subscribe(classOf[PojoBridge], bridge.id, obs)
+
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(1))
+        sub.unsubscribe()
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(0))
+
+        startGc()
+        waitForGc()
+
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (None)
+    }
+
+    def testSubscribeAll() {
+        createBridge()
+        createBridge()
+
+        val obs = new ClassSubscription[PojoBridge](2 /* We expect two events */)
+        zom.subscribeAll(classOf[PojoBridge], obs)
+
+        obs.await(1, TimeUnit.SECONDS)
+    }
+
+    def testSubscribeAllWithGc() {
+        val obs = new ClassSubscription[PojoBridge](0)
+        val sub = zom.subscribeAll(classOf[PojoBridge], obs)
+
+        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
+        sub.unsubscribe()
+        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(0))
+
+        startGc()
+        waitForGc()
+
+        zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+    }
+}
+
+private class ObjectSubscription[T](counter: Int) extends Observer[T] {
+    private var countDownLatch = new CountDownLatch(counter)
+    var updates: Int = 0
+    var event: Option[T] = _
+    var ex: Throwable = _
+
+    def onCompleted {
+        event = None
+        countDownLatch.countDown()
+    }
+
+    def onError(e: Throwable) {
+        ex = e
+        countDownLatch.countDown()
+    }
+
+    def onNext(t: T) {
+        updates += 1
+        event = Option(t)
+        countDownLatch.countDown()
+    }
+
+    def await(timeout: Long, unit: TimeUnit) {
+        assertTrue(countDownLatch.await(timeout, unit))
+    }
+
+    def reset(newCounter: Int) {
+        countDownLatch = new CountDownLatch(newCounter)
+    }
+}
+
+private class ClassSubscription[T](counter: Int) extends Observer[Observable[T]] {
+    private var countDownLatch: CountDownLatch = new CountDownLatch(counter)
+    val subs = new mutable.MutableList[ObjectSubscription[T]]
+
+
+    def onCompleted {
+        fail("Class subscription should not complete.")
+    }
+
+    def onError(e: Throwable) {
+        throw new RuntimeException("Got exception from class subscription", e)
+    }
+
+    def onNext(observable: Observable[T]) {
+        val sub = new ObjectSubscription[T](1)
+        observable.subscribe(sub)
+        subs += sub
+        countDownLatch.countDown()
+    }
+
+    def await(timeout: Long, unit: TimeUnit) {
+        assertTrue(countDownLatch.await(timeout, unit))
+    }
+
+    def reset(newCounter: Int) {
+        countDownLatch = new CountDownLatch(newCounter)
     }
 }
 

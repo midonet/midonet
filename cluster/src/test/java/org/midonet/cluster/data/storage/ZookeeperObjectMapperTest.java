@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import scala.None$;
@@ -40,9 +39,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import rx.Observable;
-import rx.Observer;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
@@ -312,6 +308,7 @@ public class ZookeeperObjectMapperTest {
         networkBuilder.setName(name);
         networkBuilder.setAdminStateUp(adminStateUp);
         networkBuilder.setTunnelKey(tunnelKey);
+
         if (inFilterId != null)
             networkBuilder.setInboundFilterId(inFilterId);
         if (outFilterId != null)
@@ -899,9 +896,9 @@ public class ZookeeperObjectMapperTest {
         ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
                                                       chain.id, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.updates);
-        assertNotNull(sub.t);
-        assertEquals(chain.name, sub.t.name);
+        assertEquals(1, sub.updates());
+        assertNotNull(sub.event().get());
+        assertEquals(chain.name, sub.event().get().name);
     }
 
     @Test
@@ -915,8 +912,8 @@ public class ZookeeperObjectMapperTest {
         chain.name = "renamedChain";
         zom.update(chain);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.updates);
-        assertEquals(chain.name, sub.t.name);
+        assertEquals(2, sub.updates());
+        assertEquals(chain.name, sub.event().get().name);
     }
 
     @Test
@@ -929,7 +926,7 @@ public class ZookeeperObjectMapperTest {
         sub.reset(1);
         zom.delete(PojoChain.class, chain.id);
         sub.await(1, TimeUnit.SECONDS);
-        assertNull(sub.t);
+        assertTrue(sub.event().isEmpty());
     }
 
     @Test
@@ -937,8 +934,8 @@ public class ZookeeperObjectMapperTest {
         UUID id = UUID.randomUUID();
         ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertThat(sub.ex, instanceOf(NotFoundException.class));
-        NotFoundException ex = (NotFoundException)sub.ex;
+        assertThat(sub.ex(), instanceOf(NotFoundException.class));
+        NotFoundException ex = (NotFoundException)sub.ex();
         assertEquals(ex.clazz(), PojoChain.class);
         assertEquals(None$.MODULE$, ex.id());
     }
@@ -959,9 +956,9 @@ public class ZookeeperObjectMapperTest {
         ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class,
                                                        chain.id, 1);
         sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub2.updates);
-        assertNotNull(sub2.t);
-        assertEquals("renamedChain", sub2.t.name);
+        assertEquals(1, sub2.updates());
+        assertNotNull(sub2.event().get());
+        assertEquals("renamedChain", sub2.event().get().name);
     }
 
     @Test
@@ -971,7 +968,7 @@ public class ZookeeperObjectMapperTest {
         createObjects(chain1, chain2);
         ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 2);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.subs.size());
+        assertEquals(2, sub.subs().size());
     }
 
     @Test
@@ -980,14 +977,14 @@ public class ZookeeperObjectMapperTest {
         zom.create(chain1);
         ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.subs.size());
-        assertEquals("chain1", sub.subs.get(0).t.name);
+        assertEquals(1, sub.subs().size());
+        assertEquals("chain1", sub.subs().get(0).get().event().get().name);
 
         PojoChain chain2 = new PojoChain("chain2");
         sub.reset(1);
         zom.create(chain2);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.subs.size());
+        assertEquals(2, sub.subs().size());
     }
 
     @Test
@@ -996,7 +993,7 @@ public class ZookeeperObjectMapperTest {
         zom.create(chain1);
         ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.subs.size());
+        assertEquals(1, sub.subs().size());
 
         PojoChain chain2 = new PojoChain("chain2");
         sub.reset(1);
@@ -1005,7 +1002,7 @@ public class ZookeeperObjectMapperTest {
 
         ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 2);
         sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub2.subs.size());
+        assertEquals(2, sub2.subs().size());
     }
 
     @Test
@@ -1016,98 +1013,20 @@ public class ZookeeperObjectMapperTest {
         zom.create(chain1);
         zom.create(chain2);
         sub1.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub1.subs.size());
+        assertEquals(2, sub1.subs().size());
 
         ObjectSubscription<PojoChain> chain1Sub =
-            (sub1.subs.get(0).t.id.equals(chain1.id)) ?
-            sub1.subs.get(0) : sub1.subs.get(1);
+            (sub1.subs().get(0).get().event().get().id.equals(chain1.id)) ?
+            sub1.subs().get(0).get() : sub1.subs().get(1).get();
         chain1Sub.reset(1);
         zom.delete(PojoChain.class, chain1.id);
         chain1Sub.await(1, TimeUnit.SECONDS);
-        assertNull(chain1Sub.t);
+        assertTrue(chain1Sub.event().isEmpty());
 
         ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 1);
         sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub2.subs.size());
-        assertEquals("chain2", sub2.subs.get(0).t.name);
-    }
-
-    private class ObjectSubscription<T> implements Observer<T> {
-
-        public int updates = 0;
-        public T t = null;
-        public Throwable ex = null;
-        private volatile CountDownLatch counter;
-
-        public ObjectSubscription(int counter) {
-            this.counter = new CountDownLatch(counter);
-        }
-
-        @Override
-        public void onCompleted() {
-            t = null;
-            counter.countDown();
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            ex = e;
-            counter.countDown();
-        }
-
-        @Override
-        public void onNext(T t) {
-            updates++;
-            this.t = t;
-            counter.countDown();
-        }
-
-        public void await(long timeout, TimeUnit unit)
-                throws InterruptedException {
-            assertTrue(counter.await(timeout, unit));
-        }
-
-        public void reset(int counter) {
-            this.counter = new CountDownLatch(counter);
-        }
-    }
-
-    private class ClassSubscription<T> implements Observer<Observable<T>> {
-
-        public final List<ObjectSubscription<T>> subs = new ArrayList<>();
-        private volatile CountDownLatch counter;
-
-        public ClassSubscription(int counter) {
-            this.counter = new CountDownLatch(counter);
-        }
-
-        @Override
-        public void onCompleted() {
-            fail("Class subscription should not complete.");
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            throw new RuntimeException(
-                "Got exception from class subscription", e);
-        }
-
-        @Override
-        public void onNext(Observable<T> tObservable) {
-            ObjectSubscription<T> sub = new ObjectSubscription<>(1);
-            tObservable.subscribe(sub);
-            subs.add(sub);
-            counter.countDown();
-        }
-
-        public void await(long timeout, TimeUnit unit)
-                throws InterruptedException {
-            assertTrue(counter.await(timeout, unit));
-        }
-
-        public void reset(int counter) {
-            this.counter = new CountDownLatch(counter);
-        }
+        assertEquals(1, sub2.subs().size());
+        assertEquals("chain2", sub2.subs().get(0).get().event().get().name);
     }
 
     private <T> ObjectSubscription<T> subscribe(
