@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_7abeea00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T17:16:28Z",
+      "side": 1,
+      "message": "Yes, make sense. I\u0027d better add a method just for this.",
+      "parentUuid": "7a6b29fe_bad08254",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_9ad5c645",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
         "patchSetId": 3
@@ -101,6 +119,24 @@
       "writtenOn": "2014-11-06T17:08:47Z",
       "side": 1,
       "message": "Could we have:\n\n    private val subscription \u003d observable.doOnEach(tap).subscribe(inStream)\n    outStream \u003d inStream.doOnEach(tap).doOnSubscribe(...).doOnUnsubscribe(...)\n\nI\u0027m missing the point of the intermediate tappedStream, I think.",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_9a3ca695",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T17:16:28Z",
+      "side": 1,
+      "message": "if we add the tap as show in the second line:\n\n  outStream \u003d inStream.doOnEach(tap).doOnSubscribe(...).doOnUnsubscribe(...)\n\nthen, the tap methods will be executed for each subscriber (e.g. if the stream has 10 subscribers, for a device update the tap.onNext(...) method is called 10 times)\n\nThe tappedStream subject is supposed to insulate the tap from the subscriber stream. I wish it was a better way.\n\nAlthough now I think we can remove the inStream, since we don\u0027t need that subject anymore (initially it was used as the cache). I\u0027ll examine it again see if we can get rid of it.",
+      "parentUuid": "7a6b29fe_9ad5c645",
       "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
