@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_9a794696",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-06T16:41:34Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 47,
+        "startChar": 54,
+        "endLine": 47,
+        "endChar": 79
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_3a68f2b9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-06T16:41:34Z",
+      "side": 1,
+      "message": "I was not able to compile this class. Is mockit missing from the dependencies in the build.gradle file?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_1a3ed6b8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-06T16:41:34Z",
+      "side": 1,
+      "message": "indentation",
+      "range": {
+        "startLine": 61,
+        "startChar": 34,
+        "endLine": 61,
+        "endChar": 64
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
