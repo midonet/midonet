@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.c3po
+
+import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.models.Topology.Network
 
 /**
- * Defines a set of operations to be performed by the Neutron data importer on a
- * single high-level Neutron model object or the entire set of Neutron model
- * data.
+ * Defines the conversion logic.
  */
-object OpType extends Enumeration {
-    type OpType = Value
-
-    val Create = Value(1)
-    val Delete = Value(2)
-    val Update = Value(3)
-    val Flush = Value(4)
-
-    private val ops = Array(Create, Delete, Update, Flush)
-    def valueOf(i: Int) = ops(i - 1)
+object NetworkConverter {
+    implicit def toMido(network: NeutronNetwork): Network = {
+       Network.newBuilder()
+              .setId(network.getId)
+              .setTenantId(network.getTenantId)
+              .setName(network.getName)
+              .setAdminStateUp(network.getAdminStateUp)
+              .build
+    }
 }
