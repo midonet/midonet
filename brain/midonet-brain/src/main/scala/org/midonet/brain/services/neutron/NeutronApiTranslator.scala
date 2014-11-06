@@ -13,51 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.neutron
 
-import org.slf4j.LoggerFactory
-
+import org.midonet.brain.services.c3po.ApiTranslator
+import org.midonet.brain.services.c3po.MidoModelOp
+import org.midonet.brain.services.c3po.OpType.OpType
+import org.midonet.brain.services.c3po.TranslationException
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.neutron.OpType.OpType
 import org.midonet.cluster.util.UUIDUtil
-
-/**
- * Thrown by NeutronAPIService implementations when they fail to perform the
- * requested operation on the Neutron model.
- */
-class TranslationException(val operation: OpType.Value,
-                                    val model: Class[_], val cause: Throwable)
-        extends RuntimeException(
-                s"Failed to ${operation} ${model.getSimpleName}.", cause) {
-}
-
-case class MidoModelOp(op: OpType, midoModel: Object)
 
 /**
  * Defines an abstract base class for Neutron API request translator that
  * processes operations on high-level Neutron model (Network, Subnet, etc.).
  */
-abstract class NeutronApiTranslator[T, M <: Object](
+abstract class NeutronApiTranslator[T](
         val neutronModelClass: Class[T],
-        val midoModelClass: Class[M],
-        val storage: ReadOnlyStorage) {
-    val log = LoggerFactory.getLogger(classOf[NeutronApiTranslator[T,M]])
-
-    /**
-     * Converts a Neutron operation on a high-level Neutron model into 1 or more
-     * operations on lower-level MidoNet model.
-     */
-    @throws[TranslationException]
-    def toMido(op: OpType, neutronModel: T): List[MidoModelOp]
+        val midoModelClass: Class[_],
+        val storage: ReadOnlyStorage) extends ApiTranslator[T] {
 
     /**
      * Unified exception handling.
      */
     protected def processExceptions(e: Exception,
-                                   op: OpType.Value) = {
+                                    op: OpType) = {
         throw new TranslationException(op, neutronModelClass, e)
     }
-
 }

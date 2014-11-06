@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.neutron;
 
 import org.slf4j.LoggerFactory
 
@@ -71,10 +71,9 @@ class NeutronNetworkService(val storage: Storage) {
             // Mido Network data first.
             storage.delete(classOf[Network], networkId)
         } catch {
-            case _: NotFoundException =>
+            case _: Throwable =>
                 log.info("Deleting a non-existent neutron network with UUID = "
                          + s"${networkId}")
-            case e: Throwable => throw e
         }
     }
 }
