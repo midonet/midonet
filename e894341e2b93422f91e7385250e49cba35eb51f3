@@ -49,6 +49,64 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_5ae4ce3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T17:08:47Z",
+      "side": 1,
+      "message": "It is.",
+      "parentUuid": "7a6b29fe_3a963295",
+      "range": {
+        "startLine": 47,
+        "startChar": 54,
+        "endLine": 47,
+        "endChar": 79
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_bad08254",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T17:08:47Z",
+      "side": 1,
+      "message": "I think I prefer the explicit invalidate call, because we must also invalidate on error and on completion.",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_9ad5c645",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T17:08:47Z",
+      "side": 1,
+      "message": "Could we have:\n\n    private val subscription \u003d observable.doOnEach(tap).subscribe(inStream)\n    outStream \u003d inStream.doOnEach(tap).doOnSubscribe(...).doOnUnsubscribe(...)\n\nI\u0027m missing the point of the intermediate tappedStream, I think.",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_1aac16ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 3
