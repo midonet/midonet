@@ -20,16 +20,18 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.neutron.OpType.OpType
+import org.midonet.cluster.services.c3po.MidoModelOp
 import org.midonet.cluster.services.c3po.NetworkConverter
+import org.midonet.cluster.services.c3po.OpType.OpType
+import org.midonet.cluster.services.c3po.TranslationException
 
 /**
  * Provides a Neutron model translator for Network.
  */
 class NetworkTranslator(override val storage: Storage)
-        extends NeutronApiTranslator[NeutronNetwork, Network](
+        extends NeutronApiTranslator[NeutronNetwork](
                 classOf[NeutronNetwork], classOf[Network], storage) {
-    override val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
+    val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
 
     @throws[TranslationException]
     override def toMido(op: OpType, neutronModel: NeutronNetwork) = {
