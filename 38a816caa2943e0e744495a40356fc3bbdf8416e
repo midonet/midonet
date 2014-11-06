@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_77c8c374",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-06T09:59:45Z",
+      "side": 1,
+      "message": "I wonder if we should catch possible exceptions from starting minions, and forward a notifyFailed... In this case we should stop services that were already started. Otherwise, we could simply ignore the failures and continue (but still we should catch exceptions from startAsync().awaitRunning())",
+      "range": {
+        "startLine": 41,
+        "startChar": 20,
+        "endLine": 42,
+        "endChar": 68
+      },
+      "revId": "38a816caa2943e0e744495a40356fc3bbdf8416e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
