@@ -206,8 +206,10 @@ message TunnelZone {
     enum Type {
         GRE = 1;
         VXLAN = 2;
+        VTEP = 3;
     }
     optional Type type = 3;
+    repeated UUID host_ids = 4; // Hosts in this zone
 }
 
 message Vtep {
