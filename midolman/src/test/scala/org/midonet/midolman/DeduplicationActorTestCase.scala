@@ -16,34 +16,32 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import scala.collection.JavaConverters._
-import scala.collection.immutable
 import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
-import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.Host
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{DpPort, FlowMatch, FlowMatches, Packet, Datapath}
+import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.odp.flows.{FlowActionOutput, FlowAction}
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.state.{HappyGoLuckyLeaser, MockStateStorage}
@@ -128,7 +126,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             packetsSeen.length should be (1)
 
             And("exactly one packet should be pended")
-            dda.pendedPackets(1) should be (Some(Set(pkts.head)))
+            dda.suspended(pkts(0).getMatch) should be (Set(pkts.head))
 
             And("packetOut should have been called with the correct number")
             packetsOut should be (4)
@@ -142,7 +140,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
-            dda.pendedPackets(1) should not be None
+            dda.suspended(pkts(0).getMatch) should have size 2
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -152,7 +150,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
             Then("the packets should be dropped")
             mockDpConn().packetsSent should be (empty)
-            dda.pendedPackets(1) should be (None)
+            dda.suspended(pkts(0).getMatch) should be (null)
         }
 
         scenario("emits packets when ApplyFlow contains actions") {
@@ -163,7 +161,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("some packets should be pended")
-            dda.pendedPackets(1) should not be None
+            dda.suspended(pkts(0).getMatch) should not be null
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -177,7 +175,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             actual should be (expected)
 
             And("no pended packets should remain")
-            dda.pendedPackets(1) should be (None)
+            dda.suspended(pkts(0).getMatch) should be (null)
         }
 
         scenario("executes packets that hit the actions cache") {
@@ -192,7 +190,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             mockDpConn().packetsSent.asScala should be (pkts)
 
             And("no pended packets should remain")
-            dda.pendedPackets(1) should be (None)
+            dda.suspended(pkts(0).getMatch) should be (null)
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (1)
@@ -213,12 +211,9 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             packetsSeen should be (expected)
 
             And("one packet should be pended")
-            dda.pendedPackets(1) should not be None
-            dda.pendedPackets(1).get should be ('empty)
-            dda.pendedPackets(2) should not be None
-            dda.pendedPackets(2).get should have size 1
-            dda.pendedPackets(3) should not be None
-            dda.pendedPackets(3).get should be ('empty)
+            dda.suspended(pkts(0).getMatch) should not be null
+            dda.suspended(pkts(1).getMatch) should have size 1
+            dda.suspended(pkts(2).getMatch) should not be null
         }
 
         scenario("simulates generated packets") {
@@ -245,14 +240,13 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
             // simulationExpireMillis is 0, pended packets should be
             // expired immediately
-            dda.pendedPackets(1) should be (None)
+            dda.suspended(pkts(0).getMatch) should be (null)
             packetsOut should be (2)
 
             When("putting another packet handler in the waiting room")
             val pkt2 = makePacket(2)
             ddaRef ! DeduplicationActor.HandlePackets(Array(pkt2))
-            dda.pendedPackets(2) should not be (None)
-            dda.pendedPackets(2).get should be ('empty)
+            dda.suspended(pkt2.getMatch) should not be null
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -297,8 +291,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         implicit override val dispatcher = this.context.dispatcher
 
-        def pendedPackets(cookie: Int): Option[collection.Set[Packet]] =
-            cookieToPendedPackets.get(cookie)
+        def suspended(flowMatch: FlowMatch): collection.Set[Packet] =
+            suspendedPackets.get(flowMatch)
 
         def complete(wcmatch: FlowMatch, actions: List[FlowAction]): Unit = {
             workflow.asInstanceOf[MockPacketHandler].complete(wcmatch, actions)
