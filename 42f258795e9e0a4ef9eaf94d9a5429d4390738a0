@@ -270,6 +270,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_dacf3eaf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T17:10:53Z",
+      "side": 1,
+      "message": "you can call map and other operators. to do that now you need a subject. I\u0027m not sure why we wouldn\u0027t be able to share resources, it\u0027s just a mapper of moving initialization around it seems, but I\u0027m really just waving my hands :p",
+      "parentUuid": "7a6b29fe_77be0301",
+      "revId": "42f258795e9e0a4ef9eaf94d9a5429d4390738a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0f82194f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceManager.scala",
         "patchSetId": 1
