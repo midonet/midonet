@@ -143,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_3a4bd22c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T17:20:17Z",
+      "side": 1,
+      "message": "sorry, the doOnEach in the second line is wrong, consider only the doOnEach on the first line. so it would be:\n\n    private val subscription \u003d observable.doOnEach(tap).subscribe(inStream)\n    outStream \u003d inStream.doOnSubscribe(...).doOnUnsubscribe(...)\n\nthe fact that they are behavioursubjects and cache the element invalidates my solution to gc the virtual topology, I think. we\u0027ll deal with it later though :p",
+      "parentUuid": "7a6b29fe_9a3ca695",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_1aac16ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 3
