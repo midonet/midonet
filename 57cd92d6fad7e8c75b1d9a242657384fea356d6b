@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_f799736f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T10:30:57Z",
+      "side": 1,
+      "message": "Garbage collection for unused observables is not implemented in this patch. Now initialize the refCount at 1 to count for the default (cache) subscription.",
+      "revId": "57cd92d6fad7e8c75b1d9a242657384fea356d6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_d79ef755",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T10:30:57Z",
+      "side": 1,
+      "message": "For now only keep track of the refCount, don\u0027t modify the subscription to storage.",
+      "revId": "57cd92d6fad7e8c75b1d9a242657384fea356d6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_77760340",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T10:30:57Z",
+      "side": 1,
+      "message": "This is the devices cache: device observable write back changes to this cache when receiving updates, to improve lookup performance.",
+      "revId": "57cd92d6fad7e8c75b1d9a242657384fea356d6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_b78ffb22",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T10:30:57Z",
+      "side": 1,
+      "message": "A TrieMap to take advantage of the atomic getOrElse, not create a new observable if already there is one.",
+      "revId": "57cd92d6fad7e8c75b1d9a242657384fea356d6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_97947f38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T10:30:57Z",
+      "side": 1,
+      "message": "Do we need this, in order to use the VT from a static context, or should we rather use Guice?",
+      "revId": "57cd92d6fad7e8c75b1d9a242657384fea356d6b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
