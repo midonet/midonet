@@ -161,6 +161,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_956c779e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T17:50:16Z",
+      "side": 1,
+      "message": "Yes, I think this should work. Testing it right now.",
+      "parentUuid": "7a6b29fe_3a4bd22c",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_1aac16ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 3
