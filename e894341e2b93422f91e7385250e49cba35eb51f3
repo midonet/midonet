@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_1aac16ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-06T16:47:03Z",
+      "side": 1,
+      "message": "+        classTag[Port] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[RouterPort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[BridgePort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[VxLanPort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this))",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_3a68f2b9",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
         "patchSetId": 3
