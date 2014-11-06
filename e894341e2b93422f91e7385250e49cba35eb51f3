@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_3a963295",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T16:58:59Z",
+      "side": 1,
+      "message": "Here is fine, isn\u0027t it?",
+      "parentUuid": "7a6b29fe_9a794696",
+      "range": {
+        "startLine": 47,
+        "startChar": 54,
+        "endLine": 47,
+        "endChar": 79
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_1aac16ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2014-11-06T16:47:03Z",
       "side": 1,
       "message": "+        classTag[Port] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[RouterPort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[BridgePort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this)),\n+        classTag[VxLanPort] -\u003e ((id: UUID) \u003d\u003e new PortObservable(id, store, this))",
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_1a9376a4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T16:58:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_1aac16ed",
       "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_7a90aa95",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T16:58:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_3a68f2b9",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 20
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_1a3ed6b8",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2014-11-06T16:41:34Z",
       "side": 1,
       "message": "indentation",
+      "range": {
+        "startLine": 61,
+        "startChar": 34,
+        "endLine": 61,
+        "endChar": 64
+      },
+      "revId": "e894341e2b93422f91e7385250e49cba35eb51f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_5a8dee7a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-06T16:58:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_1a3ed6b8",
       "range": {
         "startLine": 61,
         "startChar": 34,
