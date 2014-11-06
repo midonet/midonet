@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.neutron
 
 import org.junit.runner.RunWith
 import org.mockito.Mockito.doThrow

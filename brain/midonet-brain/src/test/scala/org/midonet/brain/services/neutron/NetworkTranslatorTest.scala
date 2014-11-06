@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.neutron
 
 import org.junit.runner.RunWith
 import org.junit.Assert.assertThat
@@ -29,7 +29,8 @@ import org.midonet.cluster.data.storage.ServiceUnavailableException
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.neutron.OpType.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.MidoModelOp
+import org.midonet.cluster.services.c3po.OpType.{Create, Delete, Update}
 import org.midonet.cluster.util.UUIDUtil
 
 /**

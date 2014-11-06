@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.brain.services.neutron
 
 import org.slf4j.LoggerFactory
 
+import org.midonet.brain.services.c3po.MidoModelOp
+import org.midonet.brain.services.c3po.NetworkConverter
+import org.midonet.brain.services.c3po.OpType.OpType
+import org.midonet.brain.services.c3po.TranslationException
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.neutron.OpType.OpType
-import org.midonet.cluster.services.c3po.NetworkConverter
 
 /**
  * Provides a Neutron model translator for Network.
  */
 class NetworkTranslator(override val storage: Storage)
-        extends NeutronApiTranslator[NeutronNetwork, Network](
+        extends NeutronApiTranslator[NeutronNetwork](
                 classOf[NeutronNetwork], classOf[Network], storage) {
-    override val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
+    val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
 
     @throws[TranslationException]
     override def toMido(op: OpType, neutronModel: NeutronNetwork) = {
