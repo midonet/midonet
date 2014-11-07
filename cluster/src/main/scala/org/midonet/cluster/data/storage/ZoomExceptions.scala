@@ -109,7 +109,7 @@ class ObjectReferencedException private[storage](
  *
  * @param referencingId
  *        Id of the object referenced by the primary target of the Create/Update
- *        operation. This is p2.id in the exapmle above.
+ *        operation. This is p2.id in the example above.
  *
  * @param referencingFieldName
  *        The name of the field by which the object referenced by the
