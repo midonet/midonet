@@ -20,7 +20,7 @@ import org.midonet.api.network.validation.*;
 import org.midonet.cluster.DataClient;
 
 /**
- *　Network module.
+ * Network module.
  */
 public class NetworkModule extends AbstractModule {
 

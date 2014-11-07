@@ -25,7 +25,7 @@ import java.util.UUID;
 public interface InteriorPort {
 
     /**
-     * @return　Peer port ID
+     * @return Peer port ID
      */
     UUID getPeerId();
 

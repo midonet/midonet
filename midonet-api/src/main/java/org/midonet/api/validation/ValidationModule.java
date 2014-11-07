@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import javax.validation.Validator;
 
 /**
- *　Validation module.
+ * Validation module.
  */
 public class ValidationModule extends AbstractModule {
 

@@ -103,7 +103,7 @@ public class UserIdentitySecurityContext implements SecurityContext {
 
     /**
      * @param userIdentity
-     *            　UserIdentity object to set.
+     *            UserIdentity object to set.
      */
     public void setUserIdentity(UserIdentity userIdentity) {
         this.userIdentity = userIdentity;
