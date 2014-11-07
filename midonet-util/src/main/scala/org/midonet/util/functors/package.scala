@@ -18,6 +18,9 @@ package org.midonet.util
 import rx.functions.{Action0, Func1}
 
 package object functors {
+    def makeRunnable(fn: => Unit) = new Runnable {
+        override def run(): Unit = fn
+    }
     def makeFunc1[T1, R](fn: T1 => R) = new Func1[T1, R] {
         override def call(t1: T1): R = fn(t1)
     }

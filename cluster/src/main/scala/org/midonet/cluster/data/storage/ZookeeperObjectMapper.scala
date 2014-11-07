@@ -165,7 +165,7 @@ class ZookeeperObjectMapper(
      * cache unsubscribes.
      */
     private def onInstanceCacheClose(path: String,
-                                     cache: InstanceSubscriptionCache[_]) {
+                                     cache: InstanceSubscriptionCache[_]): Unit = {
 
         /*
          * We obtain a read lock on instanceCacheRWLock to prevent
@@ -762,28 +762,7 @@ class ZookeeperObjectMapper(
         basePath + "/" + clazz.getSimpleName
 
     private[storage] def getPath(clazz: Class[_], id: ObjId): String = {
-        val idString = if (classOf[Message].isAssignableFrom(clazz)) {
-            ProtoFieldBinding.getIdString(id)
-        } else {
-            id.toString
-        }
-
-        getPath(clazz) + "/" + idString
-    }
-
-    private def makeIdGetter(clazz: Class[_]): IdGetter = {
-        try {
-            if (classOf[Message].isAssignableFrom(clazz)) {
-                new MessageIdGetter(clazz)
-            } else {
-                new PojoIdGetter(clazz)
-            }
-        } catch {
-            case ex: Exception =>
-                throw new IllegalArgumentException(
-                    s"Class $clazz does not have a field named 'id', or the " +
-                     "field could not be made accessible.", ex)
-        }
+        getPath(clazz) + "/" + getIdString(clazz, id)
     }
 
     /**
@@ -882,34 +861,58 @@ class ZookeeperObjectMapper(
             "Data operation received before call to build().")
     }
 
-    private trait IdGetter {
+    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
+}
+
+object ZookeeperObjectMapper {
+
+    private[storage] trait IdGetter {
         def idOf(obj: Obj): ObjId
     }
 
-    private class MessageIdGetter(clazz: Class[_]) extends IdGetter {
+    private[storage] class MessageIdGetter(clazz: Class[_]) extends IdGetter {
         val idFieldDesc =
             ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
 
         def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
     }
 
-    private class PojoIdGetter(clazz: Class[_]) extends IdGetter {
+    private[storage] class PojoIdGetter(clazz: Class[_]) extends IdGetter {
         val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
         idField.setAccessible(true)
 
         def idOf(obj: Obj) = idField.get(obj)
     }
 
-    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
-}
-
-object ZookeeperObjectMapper {
     private case class Key[T](clazz: Class[T], id: ObjId)
     private case class ObjWithVersion[T](obj: T, version: Int)
 
     protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
+
+    private[storage] def makeIdGetter(clazz: Class[_]): IdGetter = {
+        try {
+            if (classOf[Message].isAssignableFrom(clazz)) {
+                new MessageIdGetter(clazz)
+            } else {
+                new PojoIdGetter(clazz)
+            }
+        } catch {
+            case ex: Exception =>
+                throw new IllegalArgumentException(
+                    s"Class $clazz does not have a field named 'id', or the " +
+                    "field could not be made accessible.", ex)
+        }
+    }
+
+    private[storage] def getIdString(clazz: Class[_], id: ObjId): String = {
+        if (classOf[Message].isAssignableFrom(clazz)) {
+            ProtoFieldBinding.getIdString(id)
+        } else {
+            id.toString
+        }
+    }
 
     private[storage] def serialize(obj: Obj): Array[Byte] ={
         obj match {
