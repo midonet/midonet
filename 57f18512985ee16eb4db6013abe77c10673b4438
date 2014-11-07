@@ -16,6 +16,24 @@
       "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_eb118aad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:42:37Z",
+      "side": 1,
+      "message": "Yes it does. The set of IPs is not part of the proto (see the comment above the corresponding field).\n\nIn the previous design the TunnelZoneManager gathered the IPs of the hosts in this tunnel zone. I suppose that we have to do the same for the new design. Let me know if that\u0027s not the case.",
+      "parentUuid": "7a6b29fe_ab3cb294",
+      "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
