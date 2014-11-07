@@ -63,6 +63,126 @@
       "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_ab6312b0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "This seems worthy of documenting in a way that is also visible to integration devs. Do you have any good suggestions for doing it?",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb5e4ee9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "Should it be called _router_external, or something that incorporates the plugin name? Do we need to?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0b5966fe",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "Another detail worth documenting in for neutron devs.",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6b69fa8a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "I think the Neutron prefix is not really that important, being in the neutron package. But no problem if you prefer to keep it (or if it\u0027s creating conflicts elsewhere)",
+      "range": {
+        "startLine": 22,
+        "startChar": 40,
+        "endLine": 22,
+        "endChar": 47
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8b6c569e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "I know these were here already but, are these defined in the neutron  proto definitions, and if so, could we use them? Just to avoid redundant code.",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb05aec3",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:26:00Z",
+      "side": 1,
+      "message": "it certainly is",
+      "range": {
+        "startLine": 23,
+        "startChar": 38,
+        "endLine": 23,
+        "endChar": 41
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
