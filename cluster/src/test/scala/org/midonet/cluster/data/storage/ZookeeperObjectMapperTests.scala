@@ -107,9 +107,6 @@ class ZookeeperObjectMapperTests extends Suite
         zom.build()
     }
 
-    def await[T](f: Future[T]) =
-        Await.result(f, Duration.create(1, TimeUnit.SECONDS))
-
     def testMultiCreate() {
         val bridge = PojoBridge()
         val port = PojoPort(bridgeId = bridge.id)
@@ -301,17 +298,17 @@ private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     var event: Option[T] = _
     var ex: Throwable = _
 
-    def onCompleted {
+    override def onCompleted() {
         event = None
         countDownLatch.countDown()
     }
 
-    def onError(e: Throwable) {
+    override def onError(e: Throwable) {
         ex = e
         countDownLatch.countDown()
     }
 
-    def onNext(t: T) {
+    override def onNext(t: T) {
         updates += 1
         event = Option(t)
         countDownLatch.countDown()
@@ -331,15 +328,15 @@ private class ClassSubscription[T](counter: Int) extends Observer[Observable[T]]
     val subs = new mutable.MutableList[ObjectSubscription[T]]
 
 
-    def onCompleted {
+    override def onCompleted() {
         fail("Class subscription should not complete.")
     }
 
-    def onError(e: Throwable) {
+    override def onError(e: Throwable) {
         throw new RuntimeException("Got exception from class subscription", e)
     }
 
-    def onNext(observable: Observable[T]) {
+    override def onNext(observable: Observable[T]) {
         val sub = new ObjectSubscription[T](1)
         observable.subscribe(sub)
         subs += sub
@@ -382,5 +379,8 @@ private object ZookeeperObjectMapperTests {
         if (portIds == null) new PojoRule(name, chainId)
         else new PojoRule(name, chainId, portIds:_*)
     }
+
+    def await[T](f: Future[T]) =
+        Await.result(f, Duration.create(1, TimeUnit.SECONDS))
 
 }

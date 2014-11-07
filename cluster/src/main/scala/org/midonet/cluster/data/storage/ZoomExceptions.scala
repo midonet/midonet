@@ -101,8 +101,8 @@ class ObjectReferencedException private[storage](
  * This restriction does not apply to list references, which can accommodate
  * an arbitrary number of IDs.
  *
- * @param referencingObj
- *        Object referenced by the primary target of the Create/Update
+ * @param referencingId
+ *        ID of object referenced by the primary target of the Create/Update
  *        operation. This is p2 in the example above.
  *
  * @param referencingFieldName

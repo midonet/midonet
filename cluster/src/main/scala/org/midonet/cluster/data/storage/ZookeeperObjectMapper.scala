@@ -168,7 +168,7 @@ class ZookeeperObjectMapper(
      * unsubscribes.
      */
     private def onInstanceCacheClose(path: String,
-                                     cache: InstanceSubscriptionCache[_]) = {
+                                     cache: InstanceSubscriptionCache[_]): Unit = {
 
         /*
          * We obtain a read lock on instanceCacheRWLock to prevent
@@ -192,7 +192,7 @@ class ZookeeperObjectMapper(
      * unsubscribes.
      */
     private def onClassCacheClose(path: String,
-                                  cache: ClassSubscriptionCache[_]) = {
+                                  cache: ClassSubscriptionCache[_]): Unit = {
 
         /*
          * We obtain a read lock on classCacheRWLock for the
@@ -823,8 +823,8 @@ class ZookeeperObjectMapper(
         Locks.withReadLock(instanceCacheRWLock) {
             instanceCaches(clazz).getOrElse(id.toString, {
                 val path = getPath(clazz, id)
-                val newCache = new InstanceSubscriptionCache(clazz, path, id.toString,
-                                                             curator, onInstanceCacheClose)
+                val newCache = new InstanceSubscriptionCache(
+                    clazz, path, id.toString, curator, onInstanceCacheClose)
                 instanceCaches(clazz)
                     .putIfAbsent(id.toString, newCache)
                     .getOrElse {
