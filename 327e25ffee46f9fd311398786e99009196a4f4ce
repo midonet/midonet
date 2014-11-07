@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_8b49f6d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-07T15:48:50Z",
+      "side": 1,
+      "message": "reorder",
+      "revId": "327e25ffee46f9fd311398786e99009196a4f4ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6b461ac1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-07T15:48:50Z",
+      "side": 1,
+      "message": "this is certainly longer than 80 chars. glaring mistake.",
+      "revId": "327e25ffee46f9fd311398786e99009196a4f4ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb12ceb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-07T15:48:50Z",
+      "side": 1,
+      "message": "this should be outside of the condition, looks like a pre-existing bug that we never hit because we don\u0027t use add-wf like that.",
+      "revId": "327e25ffee46f9fd311398786e99009196a4f4ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
