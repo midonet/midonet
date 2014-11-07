@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList}
+import java.util.{List => JList, UUID}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
@@ -320,10 +320,32 @@ object ZoomConvert {
                 val elClass = generic.getActualTypeArguments()(0)
                     .asInstanceOf[Class[_]]
                 new SetConverter(getScalarConverter(elClass, zoomField))
-            case _ => throw new ConvertException(
-                s"Unsupported type ${pojoField.getGenericType} for repeated " +
-                s"field")
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Map[_, _]]) =>
+                getMapConverter(zoomField)
+            case _ => getScalarConverter(pojoField.getType, zoomField)
         }
+    }
+
+    /**
+     * Gets a converter instance for a zoomField of type Map. In this
+     * case the field must have a custom converter.
+     *
+     * The method stores all converter in a converter cache such that if a
+     * converter for a gien type already exists, the method does not create
+     * a new object.
+     *
+     * @param zoomField The ZoomField annotation.
+     * @return The converter instance.
+     */
+    private def getMapConverter(zoomField: ZoomField): Converter[_,_] = {
+        val converter = if (zoomField.converter != classOf[DefaultConverter]) {
+            zoomField.converter
+        } else {
+            throw new ConvertException("A ZoomField of type Map must" +
+                                       " have a custom converter")
+        }
+        converters.getOrElseUpdate(converter, converter.newInstance())
     }
 
     /**
@@ -335,7 +357,7 @@ object ZoomConvert {
      * converter for a given type already exists, the method does not create
      * a new object.
      *
-     * @param clazz The type..
+     * @param clazz The Zoom class.
      * @param zoomField The ZoomField annotation.
      * @return The converter instance.
      */
