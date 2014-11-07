@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_507cad20",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-07T01:08:33Z",
+      "side": 1,
+      "message": "I just realized that it was supposed to be a back reference to Network (I was thinking it was to VTEP, but we already had vtep_id...:P) Then I think this field is useless because 1) Network doesn\u0027t have references to VTEP binding, and 2) we\u0027ll never delete Network upon deleting a VTEP binding.",
+      "range": {
+        "startLine": 227,
+        "startChar": 18,
+        "endLine": 227,
+        "endChar": 28
+      },
+      "revId": "34f17a50b557346476770e1bfaa720e8f88d2db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
