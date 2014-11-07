@@ -39,6 +39,30 @@
       "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_f07219e4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-07T09:46:07Z",
+      "side": 1,
+      "message": "Oh, whoops. I think I added JavaConverters manually, and then I guess IDEA put TrieMap next to it, since they were related.",
+      "parentUuid": "7a6b29fe_70c1e92d",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 42
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
