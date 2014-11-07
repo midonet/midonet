@@ -448,8 +448,8 @@ class MockUnderlayResolver(hostId: UUID, hostIp: IPv4Addr,
     }
 
     override def vtepTunnellingOutputAction: FlowActionOutput = null
-    override def isVtepTunnellingPort(portNumber: Short): Boolean = false
-    override def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+    override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+    override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
 }
 
 class MockFlowStateTable[K <: IdleExpiration, V]()(implicit ev: Null <:< V)

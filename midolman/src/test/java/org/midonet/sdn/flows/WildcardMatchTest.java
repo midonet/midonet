@@ -91,7 +91,7 @@ public class WildcardMatchTest {
     @Test
     public void testSetInputPort() {
         WildcardMatch wmatch = new WildcardMatch();
-        Short inPort = 0x11ee;
+        Integer inPort = 0x11ee;
         wmatch.setInputPortNumber(inPort);
         assertThat(wmatch.getInputPortNumber(), is(inPort));
         assertThat(wmatch.getUsedFields(), hasSize(1));

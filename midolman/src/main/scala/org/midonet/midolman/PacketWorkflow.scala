@@ -244,7 +244,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
-        if (!actions.isEmpty) {
+        if (actions.nonEmpty) {
             context.log.debug("Applying connection state")
             val outPort = context.outPortId
             replicator.accumulateNewKeys(context.state.conntrackTx,
@@ -260,15 +260,16 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {
-        if (context.origMatch.getInputPortNumber eq null) {
+        val inPortNo = context.origMatch.getInputPortNumber
+        if (inPortNo eq null) {
             context.log.error("packet had no inPort number")
             return Error
         }
 
-        context.flowTags.add(tagForDpPort(context.origMatch.getInputPortNumber.toInt))
+        context.flowTags.add(tagForDpPort(inPortNo))
 
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-            setVportForLocalTraffic(context)
+            setVportForLocalTraffic(context, inPortNo)
             processSimulationResult(context, simulatePacketIn(context))
         } else {
             FlowController.queryWildcardFlowTable(context.origMatch) match {
@@ -277,7 +278,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     WildcardTableHit
                 case None =>
                     context.log.debug("missed the wildcard flow table")
-                    handleWildcardTableMiss(context)
+                    handleWildcardTableMiss(context, inPortNo)
             }
         }
     }
@@ -298,7 +299,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
         executePacket(context, wildFlow.getActions)
     }
 
-    private def handleWildcardTableMiss(context: PacketContext): PipelinePath = {
+    private def handleWildcardTableMiss(context: PacketContext,
+                                        inPortNo: Integer): PipelinePath = {
         /** If the FlowMatch indicates that the packet came from a tunnel port,
          *  we assume here there are only two possible situations: 1) the tunnel
          *  port type is gre, in which case we are dealing with host2host
@@ -309,7 +311,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         if (wcMatch.isFromTunnel) {
             if (context.isStateMessage) {
                 handleStateMessage(context)
-            } else if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
+            } else if (dpState isOverlayTunnellingPort inPortNo) {
                 handlePacketToPortSet(context)
             } else {
                 val portIdOpt = VxLanPortMapper uuidOf wcMatch.getTunnelKey.toInt
@@ -317,14 +319,14 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 processSimulationResult(context, simulatePacketIn(context))
             }
         } else {
-            setVportForLocalTraffic(context)
+            setVportForLocalTraffic(context, inPortNo)
             processSimulationResult(context, simulatePacketIn(context))
         }
     }
 
-    private def setVportForLocalTraffic(context: PacketContext): Unit = {
-        val inPortNo = context.origMatch.getInputPortNumber
-        val inPortId = dpState getVportForDpPortNumber Unsigned.unsign(inPortNo)
+    private def setVportForLocalTraffic(context: PacketContext,
+                                        inPortNo: Integer): Unit = {
+        val inPortId = dpState getVportForDpPortNumber inPortNo
         context.inputPort = inPortId.orNull
     }
 
