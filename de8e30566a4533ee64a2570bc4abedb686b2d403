@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_90c48541",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-07T03:47:31Z",
+      "side": 1,
+      "message": "Out-of-order.",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_70c1e92d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-07T03:47:31Z",
+      "side": 1,
+      "message": "Should come after the java imports.",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 42
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
