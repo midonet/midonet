@@ -19,32 +19,32 @@ package org.midonet.midolman
 import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import scala.collection.mutable.ListBuffer
+
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import org.midonet.cluster.client.{VxLanPort, Port}
+import org.midonet.cluster.client.{Port, VxLanPort}
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain}
-import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.simulation.{Bridge, Chain, PacketContext}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
-import FlowTagger.FlowTag
-import org.midonet.odp.flows.FlowActions.{setKey, output}
+import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
-import org.midonet.packets.{ICMP, IPv4, Ethernet, IPv4Addr}
-import org.midonet.sdn.flows.VirtualActions
+import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr}
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 object FlowTranslator {
     val NotADpPort: JInteger = -1
 }
 
 trait FlowTranslator {
-    import FlowTranslator._
-    import VirtualToPhysicalMapper.PortSetRequest
-    import VirtualActions._
+    import org.midonet.midolman.FlowTranslator._
+    import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
+    import org.midonet.sdn.flows.VirtualActions._
 
     protected val dpState: DatapathState
 
@@ -279,8 +279,7 @@ trait FlowTranslator {
     : Seq[FlowAction] =
         dpState.getDpPortNumberForVport(port) map { portNum =>
             // If the DPC has a local DP port for this UUID, translate
-            towardsLocalDpPorts(List(portNum.shortValue()),
-                                context.flowTags, context)
+            towardsLocalDpPorts(List(portNum), context.flowTags, context)
         } getOrElse {
             // Otherwise we translate to a remote port or a vtep peer
             // VxLanPort is a subtype of exterior port,
