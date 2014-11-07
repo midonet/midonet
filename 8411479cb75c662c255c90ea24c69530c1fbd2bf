@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_90812592",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-07T09:48:50Z",
+      "side": 1,
+      "message": "Just a matter of style (so feel free to ignore it :-)) but I find it easier to read if the embedded message definitions are grouped at the beginning: it would make easier to check if field numbers form a correct sequence and to see the actual contents of the message at a glance...",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 18
+      },
+      "revId": "8411479cb75c662c255c90ea24c69530c1fbd2bf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
