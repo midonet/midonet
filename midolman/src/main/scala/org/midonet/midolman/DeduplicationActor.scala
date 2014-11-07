@@ -51,8 +51,8 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent._
+import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
 
 object DeduplicationActor {
@@ -163,12 +163,7 @@ class DeduplicationActor(
     implicit val dispatcher = this.context.system.dispatcher
     implicit val system = this.context.system
 
-    // data structures to handle the duplicate packets.
-    protected val cookieToDpMatch = mutable.HashMap[Integer, FlowMatch]()
-    protected val dpMatchToCookie = mutable.HashMap[FlowMatch, Integer]()
-    protected val cookieToPendedPackets: mutable.MultiMap[Integer, Packet] =
-                                new mutable.HashMap[Integer, mutable.Set[Packet]]
-                                with mutable.MultiMap[Integer, Packet]
+    protected val suspendedPackets = new JHashMap[FlowMatch, mutable.HashSet[Packet]]
 
     protected val simulationExpireMillis = 5000L
 
@@ -263,16 +258,12 @@ class DeduplicationActor(
 
     // We return collection.Set so we can return an empty immutable set
     // and a non-empty mutable set.
-    private def removePendingPacket(cookie: Int): collection.Set[Packet] = {
-        val pending = cookieToPendedPackets.remove(cookie)
-        if (pending.isDefined) {
-            log.debug(s"Remove ${pending.get.size} pending packet(s)")
-            val dpMatch = cookieToDpMatch.remove(cookie)
-            if (dpMatch.isDefined)
-                dpMatchToCookie.remove(dpMatch.get)
-            pending.get
+    private def removeSuspendedPackets(flowMatch: FlowMatch): collection.Set[Packet] = {
+        val pending = suspendedPackets.remove(flowMatch)
+        if (pending ne null) {
+            log.debug(s"Removing ${pending.size} suspended packet(s)")
+            pending
         } else {
-            log.debug("No pending packets")
             Set.empty
         }
     }
@@ -300,6 +291,10 @@ class DeduplicationActor(
      */
     private def postponeOn(pktCtx: PacketContext, f: Future[_]) {
         pktCtx.postpone()
+        val flowMatch = pktCtx.packet.getMatch
+        if (!suspendedPackets.containsKey(flowMatch)) {
+            suspendedPackets.put(flowMatch, mutable.HashSet())
+        }
         f.onComplete {
             case Success(_) =>
                 self ! RestartWorkflow(pktCtx)
@@ -332,11 +327,7 @@ class DeduplicationActor(
             case e: Exception =>
                 log.error("Failed to drop flow", e)
         } finally {
-            var dropped = 0
-            if (pktCtx.ingressed) {
-                val cookie = pktCtx.cookieOrEgressPort.left.get
-                dropped = removePendingPacket(cookie).size
-            }
+            val dropped = removeSuspendedPackets(pktCtx.packet.getMatch).size
             metrics.packetsDropped.mark(dropped + 1)
         }
 
@@ -367,19 +358,15 @@ class DeduplicationActor(
     }
 
     private def applyFlow(cookie: Int, pktCtx: PacketContext): Unit = {
-        val actions = actionsCache.actions.get(pktCtx.packet.getMatch)
-        val pendingPackets = removePendingPacket(cookie)
-        val numPendingPackets = pendingPackets.size
-        if (numPendingPackets > 0) {
-            // Send all pended packets with the same action list (unless
-            // the action list is empty, which is equivalent to dropping)
-            if (actions.isEmpty) {
-                metrics.packetsProcessed.mark(numPendingPackets)
-            } else {
-                log.debug(s"Sending ${pendingPackets.size} pended packets")
-                pendingPackets foreach (executePacket(_, actions))
-                metrics.pendedPackets.dec(numPendingPackets)
-            }
+        val flowMatch = pktCtx.packet.getMatch
+        val actions = actionsCache.actions.get(flowMatch)
+        val suspendedPackets = removeSuspendedPackets(flowMatch)
+        val numSuspendedPackets = suspendedPackets.size
+        if (numSuspendedPackets > 0) {
+            log.debug(s"Sending ${suspendedPackets.size} pended packets")
+            suspendedPackets foreach (executePacket(_, actions))
+            metrics.packetsProcessed.mark(numSuspendedPackets)
+            metrics.pendedPackets.dec(numSuspendedPackets)
         }
 
         if (!pktCtx.isStateMessage && actions.isEmpty) {
@@ -440,12 +427,18 @@ class DeduplicationActor(
             log.debug("Got actions from the cache {} for match {}",
                        actions, flowMatch)
             executePacket(packet, actions)
+            metrics.packetsProcessed.mark()
             packetOut(1)
         } else if (FlowStatePackets.isStateMessage(packet)) {
             processPacket(packet)
-        } else dpMatchToCookie.get(flowMatch) match {
-            case None => processPacket(packet)
-            case Some(cookie) => makePending(packet, cookie)
+        } else suspendedPackets.get(flowMatch) match {
+            case null =>
+                processPacket(packet)
+            case packets =>
+                log.debug("A matching packet is already being handled")
+                packets.add(packet)
+                packetOut(1)
+                giveUpWorkflows(waitingRoom.doExpirations())
         }
     }
 
@@ -453,21 +446,7 @@ class DeduplicationActor(
     // cookie and start the packet workflow.
     private def processPacket(packet: Packet): Unit = {
         val newCookie = cookieGen.next
-        val flowMatch = packet.getMatch
-        dpMatchToCookie.put(flowMatch, newCookie)
-        cookieToDpMatch.put(newCookie, flowMatch)
-        cookieToPendedPackets.put(newCookie, mutable.Set.empty)
         startWorkflow(packet, Left(newCookie))
-    }
-
-    // There is a simulation in progress, so wait until it finishes and
-    // apply the resulting actions.
-    private def makePending(packet: Packet, cookie: Integer): Unit = {
-        log.debug("A matching packet with cookie {} is already " +
-                 "being handled", cookie)
-        cookieToPendedPackets.addBinding(cookie, packet)
-        packetOut(1)
-        giveUpWorkflows(waitingRoom.doExpirations())
     }
 
     private def executePacket(packet: Packet, actions: JList[FlowAction]) {
@@ -481,7 +460,6 @@ class DeduplicationActor(
             case e: NetlinkException =>
                 log.info("Failed to execute packet: {}", e)
         }
-        metrics.packetsProcessed.mark()
     }
 
     private def flushTransactions(): Unit = {
