@@ -83,7 +83,7 @@ message Response {
             Vtep vtep = 9;
             VtepBinding vtep_binding = 10;
             Host host = 11;
-            HostInterfacePort host_interface_port = 12;
+            PortToInterface port_interface = 12;
         }
     }
     oneof response {
