@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_0b0de690",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortObservable.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a6b29fe_cb880e25",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 47
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_eb3a2a35",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-07T15:37:45Z",
       "side": 1,
       "message": "That\u0027s a pretty thorough testing! Next step: model checking or proof assistants ;-)",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0b84c6d2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "I don\u0027t want my class on the wall-of-shame for test coverage :o",
+      "parentUuid": "7a6b29fe_eb3a2a35",
       "range": {
         "startLine": 38,
         "startChar": 6,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_eb886ae9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "7a6b29fe_8bc45641",
+      "range": {
+        "startLine": 45,
+        "startChar": 10,
+        "endLine": 45,
+        "endChar": 23
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_2bc70247",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2014-11-07T15:37:45Z",
       "side": 1,
       "message": "In class ZookeeperObjectMapperTests.scala there a class that does almost the same as this one. Its name is ObjectSubscription. Wouldn\u0027t it be better to merge these two classes into one?",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2b6a621a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "Good catch, I\u0027ll take a look. If we can make a common one, so much better.",
+      "parentUuid": "7a6b29fe_2bc70247",
       "range": {
         "startLine": 70,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_ab65d246",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "But that\u0027s not the intention here. This future\u0027s value is a TestableDevice not a scala.Option, so of course it\u0027s value can never be None. I only want to verify the device returned by this future is not null (maybe a somewhat redundant test, but just to check that we don\u0027t pass null, in case we decide to change the implementation in future - granted that if the future\u0027s value is null, the next instruction will fail with a NullPointerException).",
+      "parentUuid": "7a6b29fe_2bcee25a",
+      "range": {
+        "startLine": 187,
+        "startChar": 47,
+        "endLine": 187,
+        "endChar": 51
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_2b3c222f",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2014-11-07T15:37:45Z",
       "side": 1,
       "message": "This trait does not seem to be used in your patch, is it meant to be used only later on?",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_abccb236",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-07T16:05:17Z",
+      "side": 1,
+      "message": "Yes, it will be used when we start refactoring the others actors in the agent. I used it in an earlier patch, that\u0027s why is still here, but I didn\u0027t deleted afterwards since I expect we\u0027re going to need it again.",
+      "parentUuid": "7a6b29fe_2b3c222f",
       "range": {
         "startLine": 32,
         "startChar": 6,
