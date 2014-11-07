@@ -61,6 +61,7 @@ class MidolmanActorsService extends AbstractService {
     private var _system: ActorSystem = null
     implicit def system: ActorSystem = _system
     implicit def ex: ExecutionContext = _system.dispatcher
+    implicit protected val childActorTimeout = 200.milliseconds
     implicit protected val tout = new Timeout(5 seconds)
 
     protected def actorSpecs = List(
@@ -115,7 +116,8 @@ class MidolmanActorsService extends AbstractService {
         try {
             var stopFutures = childrenActors map stopActor
             stopFutures ::= stopActor(supervisorActor)
-            Await.result(Future.sequence(stopFutures), 5 seconds)
+            val aggregationTimout = (childActorTimeout * stopFutures.length) / 2
+            Await.result(Future.sequence(stopFutures), aggregationTimout)
             log.info("All actors stopped successfully")
         } catch {
             case e: Throwable =>
@@ -145,7 +147,7 @@ class MidolmanActorsService extends AbstractService {
 
     protected def stopActor(actorRef: ActorRef) = {
         log.debug("Stopping actor: {}", actorRef.toString())
-        gracefulStop(actorRef, 100.millis)
+        gracefulStop(actorRef, childActorTimeout)
     }
 
     private def startTopActor(actorProps: Props, actorName: String) = {
