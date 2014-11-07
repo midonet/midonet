@@ -22,6 +22,30 @@
       "revId": "c20bd1a0d172c5e9580884e9c939e95c133c03e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb748e9e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/services/MidolmanActorsService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-07T11:52:18Z",
+      "side": 1,
+      "message": "Each actor would be terminated concurrently, so this could be just childActorTimeout ideally, however it would not completely be in parallel. But I don\u0027t think it\u0027ll take (childActorTimeout  * stopFutures.length). I was supposed to take the mean between the best case and the worst case but it\u0027s (childActorTimeout + (childActorTmeout * stopFutures.length)) / 2 indeed.\n\nhttp://doc.akka.io/docs/akka/2.0/scala/actors.html#Graceful_Stop\n\nHowever, right, it\u0027d be safer to set the timeout in the worst case, where all terminations of actors are timed out and proceeded sequentially.",
+      "parentUuid": "7a6b29fe_b0cc2137",
+      "range": {
+        "startLine": 119,
+        "startChar": 77,
+        "endLine": 119,
+        "endChar": 80
+      },
+      "revId": "c20bd1a0d172c5e9580884e9c939e95c133c03e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
