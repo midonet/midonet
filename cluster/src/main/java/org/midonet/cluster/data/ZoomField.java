@@ -36,9 +36,8 @@ public @interface ZoomField {
     String name();
 
     /**
-     * Specified the converter for this field.
+     * Specifies the converter for this field.
      */
     Class<? extends ZoomConvert.Converter<?,?>> converter()
         default ZoomConvert.DefaultConverter.class;
-
 }

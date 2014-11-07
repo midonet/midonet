@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList}
+import java.util.{List => JList, UUID}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
@@ -303,27 +303,33 @@ object ZoomConvert {
                              protoField: Descriptors.FieldDescriptor,
                              zoomField: ZoomField): Converter[_,_] = {
 
-        if (protoField.isRepeated) {
-            if (pojoField.getType.isArray) {
-                return new ArrayConverter(
+        if (!protoField.isRepeated) {
+            return getScalarConverter(pojoField.getType, zoomField)
+        }
+
+        pojoField.getGenericType match {
+            case c: Class[_] if c.isArray =>
+                new ArrayConverter(
                     getScalarConverter(pojoField.getType.getComponentType,
                                        zoomField))
-            } else pojoField.getGenericType match {
-                case generic: ParameterizedType
-                    if generic.getRawType.equals(classOf[JList[_]]) =>
-                    val elClass = generic.getActualTypeArguments()(0)
-                    elClass match {
-                        case c: Class[_] =>
-                            return new ListConverter(
-                                getScalarConverter(c, zoomField))
-                        case _ => throw new ConvertException(
-                            s"Unsupported argument type $elClass for list " +
-                            s"conversion")
-                    }
-                case _ => throw new ConvertException(
-                    s"Unsupported type ${pojoField.getGenericType} for " +
-                    s"repeated field")
-            }
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[JList[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                new ListConverter(getScalarConverter(elClass, zoomField))
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                new SetConverter(getScalarConverter(elClass, zoomField))
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Map[UUID, _]]) =>
+                val valueClass = generic.getActualTypeArguments()(1)
+                    .asInstanceOf[Class[_]]
+                new MapConverter(getScalarConverter(pojoField.getClass, zoomField))
+            case _ => throw new ConvertException(
+                s"Unsupported type ${pojoField.getGenericType} for repeated " +
+                s"field")
         }
 
         getScalarConverter(pojoField.getType, zoomField)
@@ -338,7 +344,7 @@ object ZoomConvert {
      * converter for a given type already exists, the method does not create
      * a new object.
      *
-     * @param clazz The type..
+     * @param clazz The Zoom class.
      * @param zoomField The ZoomField annotation.
      * @return The converter instance.
      */
@@ -574,6 +580,76 @@ object ZoomConvert {
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
 
+    }
+
+    /**
+     * Converter class for set.
+     * @param converter The converter for the list component type.
+     */
+    protected[data] class SetConverter(converter: Converter[_,_])
+            extends Converter[Set[_], JList[_]] {
+
+        override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                value.map(el => converter.to(el, elClass)).toSeq
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): Set[_] = clazz match {
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[Set[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                Set(value.map(el => converter.from(el, elClass)).toArray: _*)
+            case _ => throw new ConvertException(
+                s"Set converter cannot convert $clazz to Protocol Buffers")
+        }
+    }
+
+    /**
+     * Converter class for maps. This converter assumes that the map has type
+     * [UUID, T] where T is any type supported by the DefaultConverter.
+     * The element converter is used to convert a (key, value)
+     * tuple of the map to a proto of the java list and vice-versa.
+     * @param elementConverter The converter for list elements and (key, value)
+     *                         pairs of the map.
+     */
+    protected[data] class MapConverter(elementConverter: Converter[_, _])
+        extends Converter[Map[UUID, _], JList[_]] {
+
+        private val defaultConverter = converters(classOf[DefaultConverter])
+
+        override def toProto(value: Map[UUID, _], clazz: Type): JList[_] =
+            clazz match {
+                case generic: ParameterizedType
+                    if generic.getRawType.equals(classOf[Map[UUID, _]]) =>
+                    val elClass = generic.getActualTypeArguments()(0)
+                    value.map {tuple =>
+                        val key = tuple._1
+                        val value = defaultConverter.to(tuple._2, classOf[Any])
+                        elementConverter.to((key, value), elClass)
+                    } toList
+                case _ => throw new ConvertException(
+                    s"Map converter cannot convert $clazz to Protocol Buffers")
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): Map[UUID, _] =
+            clazz match {
+                case generic: ParameterizedType
+                    if generic.getRawType.equals(classOf[Map[UUID, _]]) =>
+                    val elClass = generic.getActualTypeArguments()(0)
+                    value.map(el => {
+                        val zoomTuple = elementConverter.from(el, elClass)
+                                                        .asInstanceOf[(UUID, _)]
+                        val key = zoomTuple._1
+                        val value = defaultConverter.from(zoomTuple._2, classOf[Any])
+                        (key, value)
+                    }).toMap
+                case _ => throw new ConvertException(
+                    s"Map converter cannot convert $clazz to Protocol Buffers")
+        }
     }
 
     /**
