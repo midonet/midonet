@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_b0cc2137",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/services/MidolmanActorsService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-07T09:02:36Z",
+      "side": 1,
+      "message": "What\u0027s the rationale behind dividing by 2?",
+      "range": {
+        "startLine": 119,
+        "startChar": 77,
+        "endLine": 119,
+        "endChar": 80
+      },
+      "revId": "c20bd1a0d172c5e9580884e9c939e95c133c03e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
