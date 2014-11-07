@@ -22,6 +22,30 @@
       "revId": "34f17a50b557346476770e1bfaa720e8f88d2db1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_9076453d",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-07T01:17:42Z",
+      "side": 1,
+      "message": "My fault again. I was badly confused, and what was wrong is that it\u0027s vtep_id that is a back reference, not network_id. I\u0027ll prepare a patch fixing it.",
+      "parentUuid": "7a6b29fe_507cad20",
+      "range": {
+        "startLine": 227,
+        "startChar": 18,
+        "endLine": 227,
+        "endChar": 28
+      },
+      "revId": "34f17a50b557346476770e1bfaa720e8f88d2db1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
