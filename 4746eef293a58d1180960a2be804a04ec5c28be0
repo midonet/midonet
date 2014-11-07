@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb180e87",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApi.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-07T18:53:59Z",
+      "side": 1,
+      "message": "This can be addressed in a different patch, but for testing purposes it would be interesting to have a non-sealed State class... The elements necessary for this particular protocol implementation could be in a sealed subclass of State (e.g. StateBase)",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 31
+      },
+      "revId": "4746eef293a58d1180960a2be804a04ec5c28be0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
