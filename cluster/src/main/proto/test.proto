@@ -102,3 +102,12 @@ message TestMessageNoId {
     optional string name = 1;
     optional UUID uuid_ref = 2;
 }
+
+message TestMapMessage {
+    repeated TestKeyValue map = 1;
+}
+
+message TestKeyValue {
+    optional UUID id = 1;
+    optional string value = 2;
+}
