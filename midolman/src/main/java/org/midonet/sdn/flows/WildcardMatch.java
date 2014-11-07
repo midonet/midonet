@@ -116,7 +116,7 @@ public class WildcardMatch implements Cloneable {
         return seenFields;
     }
 
-    private short inputPortNumber = 0;
+    private int inputPortNumber = 0;
     private long tunnelKey = 0L;
     private MAC ethSrc;
     private MAC ethDst;
@@ -245,7 +245,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setInputPortNumber(short inputPortNumber) {
+    public WildcardMatch setInputPortNumber(int inputPortNumber) {
         usedFields.add(Field.InputPortNumber);
         this.inputPortNumber = inputPortNumber;
         return this;
@@ -259,7 +259,7 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nullable
-    public Short getInputPortNumber() {
+    public Integer getInputPortNumber() {
         return usedFields.contains(Field.InputPortNumber) ? inputPortNumber : null;
     }
 
@@ -1011,7 +1011,7 @@ public class WildcardMatch implements Cloneable {
 
                 case OpenVSwitch.FlowKey.Attr.InPort:
                     FlowKeyInPort inPort = as(flowKey, FlowKeyInPort.class);
-                    setInputPortNumber((short) inPort.getInPort());
+                    setInputPortNumber(inPort.getInPort());
                     break;
 
                 case OpenVSwitch.FlowKey.Attr.Ethernet:

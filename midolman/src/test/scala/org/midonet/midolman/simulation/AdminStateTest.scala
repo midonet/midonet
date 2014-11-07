@@ -404,8 +404,8 @@ class AdminStateTest extends MidolmanSpec {
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L
             def uplinkPid: Int = 0
-            def isVtepTunnellingPort(portNumber: Short): Boolean = false
-            def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+            def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+            def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

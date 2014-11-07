@@ -74,8 +74,8 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         override def host: Host = new Host(UUID.randomUUID(), true, 0, "midonet",
                                            Map(), Map())
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
-        override def isVtepTunnellingPort(portNumber: Short): Boolean = false
-        override def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+        override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
+        override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         override def vtepTunnellingOutputAction: FlowActionOutput = null
     }
     val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue].addShard()
