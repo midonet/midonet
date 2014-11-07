@@ -233,13 +233,14 @@ message Host {
     optional UUID id = 1;
     optional string name = 2;
     optional bool alive = 3;
-    repeated string addresses = 4; // IP addrs
-    optional int32 flooding_proxy_weight = 5;
+    repeated IPAddress addresses = 4;
+    repeated HostInterfacePort port_interface_mapping = 5;
+    repeated UUID tunnel_zone_ids = 6;
+    optional int32 flooding_proxy_weight = 7;
 }
 
 message HostInterfacePort {
-    optional string id = 1;
-    optional UUID host_id = 2;
-    optional UUID port_id = 3;
-    optional string interface_name = 4;
+    optional UUID id = 1;
+    optional UUID port_id = 2;
+    optional string interface_name = 3;
 }
