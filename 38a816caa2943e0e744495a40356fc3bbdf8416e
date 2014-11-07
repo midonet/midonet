@@ -22,6 +22,30 @@
       "revId": "38a816caa2943e0e744495a40356fc3bbdf8416e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6bee1aee",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-07T13:55:59Z",
+      "side": 1,
+      "message": "Yeah, I\u0027m not sure what\u0027s the best policy there. I guess it\u0027s better to be resilient to a single minion\u0027s failure (which is anyway shown in the logs) than blow up the whole daemon (certainly a scary thing). Do you think we need to clarify it now, or can we leave it for further iterations?",
+      "parentUuid": "7a6b29fe_77c8c374",
+      "range": {
+        "startLine": 41,
+        "startChar": 20,
+        "endLine": 42,
+        "endChar": 68
+      },
+      "revId": "38a816caa2943e0e744495a40356fc3bbdf8416e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
