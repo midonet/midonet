@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_cb880e25",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortObservable.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "unused import",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 47
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_eb3a2a35",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "That\u0027s a pretty thorough testing! Next step: model checking or proof assistants ;-)",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 26
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8bc45641",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "DeviceStream?",
+      "range": {
+        "startLine": 45,
+        "startChar": 10,
+        "endLine": 45,
+        "endChar": 23
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2bc70247",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "In class ZookeeperObjectMapperTests.scala there a class that does almost the same as this one. Its name is ObjectSubscription. Wouldn\u0027t it be better to merge these two classes into one?",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2bcee25a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "You can replace null with None and the same goes for all the nulls below.",
+      "range": {
+        "startLine": 187,
+        "startChar": 47,
+        "endLine": 187,
+        "endChar": 51
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2b3c222f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/ReactiveActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-07T15:37:45Z",
+      "side": 1,
+      "message": "This trait does not seem to be used in your patch, is it meant to be used only later on?",
+      "range": {
+        "startLine": 32,
+        "startChar": 6,
+        "endLine": 32,
+        "endChar": 19
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
