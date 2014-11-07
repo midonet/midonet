@@ -16,35 +16,36 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
-import java.util.{ArrayList, Set => JSet, Map => JMap}
+import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
+import java.util.{ArrayList, Map => JMap, Set => JSet}
+
 import javax.inject.Inject
+
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
-import scala.collection.{Set => ROSet, mutable}
+import scala.collection.{mutable, Set => ROSet}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
-import com.codahale.metrics.{Gauge, MetricRegistry}
+
 import com.codahale.metrics.MetricRegistry.name
+import com.codahale.metrics.{Gauge, MetricRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
-import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
-import org.midonet.sdn.flows.{FlowTagger, FlowManagerHelper, ManagedWildcardFlow, WildcardFlow, WildcardMatch}
-import FlowTagger.FlowTag
+import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
-import org.midonet.sdn.flows.FlowManager
+import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.{FlowManager, FlowManagerHelper, ManagedWildcardFlow,
+                              WildcardFlow, WildcardMatch}
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.functors.{Callback0, Callback1}
 
@@ -201,21 +202,13 @@ object FlowController extends Referenceable {
     }
 
     def lastInvalidationEvent = invalidationHistory.youngest
-
-    def runCallbacks(callbacks: Iterable[Callback0]) {
-        val iter = callbacks.iterator
-        while (iter.hasNext) {
-            iter.next().call()
-        }
-    }
-
 }
 
 
 class FlowController extends Actor with ActorLogWithoutPath {
 
-    import FlowController._
     import DatapathController.DatapathReady
+    import FlowController._
 
     override def logSource = "org.midonet.flow-management"
 
@@ -286,8 +279,8 @@ class FlowController extends Actor with ActorLogWithoutPath {
                     CheckFlowExpiration_)
             }
 
-        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
-                                 flowMatch, pendingFlowMatches, index) =>
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags,
+                                 lastInval, flowMatch, pendingFlowMatches, index) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 wildFlowPool.take.orElse {
@@ -319,9 +312,9 @@ class FlowController extends Actor with ActorLogWithoutPath {
                           wildFlow.getMatch, tags)
                 if (dpFlow != null) {
                     flowManagerHelper removeFlow dpFlow.getMatch
-                    runCallbacks(callbacks)
                     metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
+                wildFlow.cbExecutor.schedule(callbacks)
             }
 
             // We assume metrics.wildFlowsMetric.mark() already contains a
@@ -386,8 +379,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
         if (flowManager.remove(wildFlow)) {
             tagsCleanup(wildFlow.tags)
             wildFlow.unref() // tags ref
-            if (wildFlow.callbacks != null)
-                runCallbacks(wildFlow.callbacks)
+            wildFlow.cbExecutor.schedule(wildFlow.callbacks)
             context.system.eventStream.publish(WildcardFlowRemoved(wildFlow.immutable))
             wildFlow.unref() // FlowController's ref
         }
@@ -415,19 +407,16 @@ class FlowController extends Actor with ActorLogWithoutPath {
 
     private def handleFlowAddedForNewWildcard(wildFlow: ManagedWildcardFlow,
                                               dpFlow: Flow,
-                                              flowRemovalCallbacks: Seq[Callback0],
+                                              flowRemovalCallbacks: ArrayList[Callback0],
                                               tags: ROSet[FlowTag]): Boolean = {
 
         if (!flowManager.add(wildFlow)) {
             log.error("FlowManager failed to install wildcard flow {}", wildFlow)
-            if (null != flowRemovalCallbacks)
-                for (cb <- flowRemovalCallbacks)
-                    cb.call()
+            wildFlow.cbExecutor.schedule(flowRemovalCallbacks)
             return false
         }
 
-        if (null != flowRemovalCallbacks)
-            wildFlow.callbacks = flowRemovalCallbacks.toArray
+        wildFlow.callbacks = flowRemovalCallbacks
         wildFlow.ref() // tags ref
         if (null != tags) {
             wildFlow.tags = tags.toArray
