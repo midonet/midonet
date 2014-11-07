@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_70a72950",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-07T09:43:38Z",
+      "side": 1,
+      "message": "I tried, but traits can\u0027t have constructors.\n\nhttp://docs.scala-lang.org/tutorials/tour/traits.html",
+      "parentUuid": "7a6b29fe_b0bb81c3",
+      "revId": "cb91d1d4c45b23fb619f7f20fa522f0200ce0f67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_10b195e1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2014-11-07T02:17:09Z",
       "side": 1,
       "message": "s/Tasks/Task/",
+      "range": {
+        "startLine": 109,
+        "startChar": 19,
+        "endLine": 109,
+        "endChar": 24
+      },
+      "revId": "cb91d1d4c45b23fb619f7f20fa522f0200ce0f67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_b068a1f6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-07T09:43:38Z",
+      "side": 1,
+      "message": "It can return multiple tasks. So it gets tasks. Hence getTasksStmt.",
+      "parentUuid": "7a6b29fe_10b195e1",
       "range": {
         "startLine": 109,
         "startChar": 19,
