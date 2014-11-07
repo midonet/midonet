@@ -875,7 +875,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         }
     }
 
-    def setBGPFlows(localPortNum: Short, bgp: BGP,
+    def setBGPFlows(localPortNum: Int, bgp: BGP,
                     bgpPort: RouterPort, uplinkPid: Int) {
 
         log.debug("({}) setting up wildcard flows for bgpd", phase)

@@ -23,25 +23,21 @@ import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge,
-                                             FlowActionOutputToVrnPort}
+import org.slf4j.LoggerFactory
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -81,8 +77,8 @@ object PacketWorkflow {
 
 trait UnderlayTrafficHandler { this: PacketWorkflow =>
 
-    def handleFromTunnel(context: PacketContext): PipelinePath = {
-        if (dpState isOverlayTunnellingPort context.wcmatch.getInputPortNumber) {
+    def handleFromTunnel(context: PacketContext, inPortNo: Int): PipelinePath = {
+        if (dpState isOverlayTunnellingPort inPortNo) {
             if (context.isStateMessage)
                 handleStateMessage(context)
             else
@@ -142,9 +138,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     (implicit val system: ActorSystem)
         extends FlowTranslator with PacketHandler with UnderlayTrafficHandler {
 
-    import PacketWorkflow._
-    import DeduplicationActor._
-    import FlowController.{AddWildcardFlow, FlowAdded}
+    import org.midonet.midolman.DeduplicationActor._
+    import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowAdded}
+    import org.midonet.midolman.PacketWorkflow._
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -300,7 +296,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
-        if (!actions.isEmpty) {
+        if (actions.nonEmpty) {
             context.log.debug("Applying connection state")
             replicator.accumulateNewKeys(context.state.conntrackTx,
                                          context.state.natTx,
@@ -314,15 +310,16 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {
-        if (context.origMatch.getInputPortNumber eq null) {
+        val inPortNo = context.origMatch.getInputPortNumber
+        if (inPortNo eq null) {
             context.log.error("packet had no inPort number")
             return Error
         }
 
-        context.flowTags.add(tagForDpPort(context.origMatch.getInputPortNumber.toInt))
+        context.flowTags.add(tagForDpPort(inPortNo))
 
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
-            setVportForLocalTraffic(context)
+            setVportForLocalTraffic(context, inPortNo)
             processSimulationResult(context, simulatePacketIn(context))
         } else {
             FlowController.queryWildcardFlowTable(context.origMatch) match {
@@ -331,7 +328,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     WildcardTableHit
                 case None =>
                     context.log.debug("missed the wildcard flow table")
-                    handleWildcardTableMiss(context)
+                    handleWildcardTableMiss(context, inPortNo)
             }
         }
     }
@@ -369,18 +366,19 @@ class PacketWorkflow(protected val dpState: DatapathState,
       * Otherwise, the packet is coming in from a regular port into the
       * virtual network and we'll simulate it.
       */
-    private def handleWildcardTableMiss(context: PacketContext): PipelinePath = {
+    private def handleWildcardTableMiss(context: PacketContext,
+                                        inPortNo: Int): PipelinePath = {
         if (context.origMatch.isFromTunnel) {
-            handleFromTunnel(context)
+            handleFromTunnel(context, inPortNo)
         } else {
-            setVportForLocalTraffic(context)
+            setVportForLocalTraffic(context, inPortNo)
             processSimulationResult(context, simulatePacketIn(context))
         }
     }
 
-    private def setVportForLocalTraffic(context: PacketContext): Unit = {
-        val inPortNo = context.origMatch.getInputPortNumber
-        val inPortId = dpState getVportForDpPortNumber Unsigned.unsign(inPortNo)
+    private def setVportForLocalTraffic(context: PacketContext,
+                                        inPortNo: Int): Unit = {
+        val inPortId = dpState getVportForDpPortNumber inPortNo
         context.inputPort = inPortId.orNull
     }
 
