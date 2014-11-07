@@ -186,7 +186,7 @@ public class ZookeeperObjectMapperTest {
                                         .build();
     }
 
-    public static <T> T sync(Future<T> f) throws Exception {
+    protected static <T> T sync(Future<T> f) throws Exception {
         ready(f, Duration.create(10, TimeUnit.SECONDS));
         Try<T> tryValue = f.value().get();
         if (tryValue.isFailure()) {
@@ -201,7 +201,7 @@ public class ZookeeperObjectMapperTest {
         }
     }
 
-    private static <T> List<T> syncAll(Seq<Future<T>> fs) throws Exception {
+    protected static <T> List<T> syncAll(Seq<Future<T>> fs) throws Exception {
         List<T> _fs = new ArrayList<>(fs.size());
         Iterator<Future<T>> it = fs.iterator();
         while(it.hasNext()) {
@@ -210,7 +210,7 @@ public class ZookeeperObjectMapperTest {
         return _fs;
     }
 
-    private static <T> List<T> syncAll(Future<Seq<Future<T>>> f)
+    protected static <T> List<T> syncAll(Future<Seq<Future<T>>> f)
             throws Exception {
         return syncAll(sync(f));
     }
@@ -661,7 +661,6 @@ public class ZookeeperObjectMapperTest {
         Chain inChain = this.createProtoChain(CHAIN_UUID, "in_chain");
         zom.create(inChain);
 
-        // make sure they are created
         sync(zom.get(Chain.class, inChain.getId()));
 
         // Update the network with an in-bound chain.
