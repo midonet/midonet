@@ -34,7 +34,7 @@ import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.topology.rcu.{Host, PortBinding, ResolvedHost}
+import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
                                       VirtualTopologyActor}
@@ -498,9 +498,9 @@ class FlowTranslatorTest extends MidolmanSpec {
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
         def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = None
         def getDpPortName(num: Integer): Option[String] = None
-        def isVtepTunnellingPort(portNumber: Short): Boolean =
+        def isVtepTunnellingPort(portNumber: Integer): Boolean =
             portNumber == vxlanPortNumber
-        def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+        def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
         override def getDescForInterface(itfName: String) = None
     }
 

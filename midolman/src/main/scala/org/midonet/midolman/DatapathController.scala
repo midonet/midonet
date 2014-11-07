@@ -92,10 +92,10 @@ trait UnderlayResolver {
     def vtepTunnellingOutputAction: FlowActionOutput
 
     /** tells if the given portNumber points to the vtep tunnel port. */
-    def isVtepTunnellingPort(portNumber: Short): Boolean
+    def isVtepTunnellingPort(portNumber: Integer): Boolean
 
     /** tells if the given portNumber points to the overlay tunnel port. */
-    def isOverlayTunnellingPort(portNumber: Short): Boolean
+    def isOverlayTunnellingPort(portNumber: Integer): Boolean
 }
 
 trait VirtualPortsResolver {
@@ -642,10 +642,10 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
         log.info(s"vxlan vtep tunnel port was assigned to $port")
     }
 
-    def isVtepTunnellingPort(portNumber: Short) =
+    def isVtepTunnellingPort(portNumber: Integer) =
         tunnelVtepVxLan.getPortNo == portNumber
 
-    def isOverlayTunnellingPort(portNumber: Short) =
+    def isOverlayTunnellingPort(portNumber: Integer) =
         tunnelOverlayGre.getPortNo == portNumber ||
         tunnelOverlayVxLan.getPortNo == portNumber
 
