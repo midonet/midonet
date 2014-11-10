@@ -20,29 +20,34 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.{ExecutionContext, Future}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FeatureSpec, Matchers, BeforeAndAfter}
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTests._
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Topology.{Network, Chain, Router}
+import org.midonet.cluster.models.Topology.{Chain, Network, Router}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
+import org.midonet.util.reactivex.AwaitableObserver.{OnCompleted, OnNext}
+import org.midonet.util.reactivex.{AwaitableObserver, ClassAwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
                           with Matchers {
 
-    import InMemoryStorageTest._
+    import org.midonet.cluster.data.storage.InMemoryStorageTest._
 
     private val reactor: Reactor = new CallingThreadReactor()
     private var storage: InMemoryStorage = _
+
+    private val oneSecond = new FiniteDuration(1, TimeUnit.SECONDS)
 
     def createStorage = new InMemoryStorage(reactor)
 
@@ -209,22 +214,22 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe") {
             val bridge = createPojoBridge()
             storage.create(bridge)
-            val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
+            val obs = new AwaitableObserver[PojoBridge](2 /* We expect two events */)
             storage.subscribe(classOf[PojoBridge], bridge.id, obs)
             val port = createPojoPort(bridgeId = bridge.id)
             storage.create(port)
 
-            obs.await(1, TimeUnit.SECONDS)
+            obs.await(oneSecond, 0)
         }
 
         scenario("Test subscribe all") {
             storage.create(createPojoBridge())
             storage.create(createPojoBridge())
 
-            val obs = new ClassSubscription[PojoBridge](2 /* We expect two events */)
+            val obs = new ClassAwaitableObserver[PojoBridge](2 /* We expect two events */)
             storage.subscribeAll(classOf[PojoBridge], obs)
 
-            obs.await(1, TimeUnit.SECONDS)
+            obs.await(oneSecond, 0)
         }
     }
 
@@ -742,46 +747,47 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new ObjectSubscription[PojoChain](1)
+            val obs = new AwaitableObserver[PojoChain](1)
             storage.subscribe(classOf[PojoChain], chain.id, obs)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.updates should be (1)
-            obs.event.get.id should be (chain.id)
+            obs.await(oneSecond, 0)
+            obs.list.size should be (1)
+            obs.list.get(0).get.asInstanceOf[OnNext[PojoChain]].value.id should be (chain.id)
         }
 
         scenario("Test subscriber gets updates") {
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new ObjectSubscription[PojoChain](1)
+            val obs = new AwaitableObserver[PojoChain](1)
             storage.subscribe(classOf[PojoChain], chain.id, obs)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.reset(1)
+            obs.await(oneSecond, 1)
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.updates should be (2)
-            obs.event.get.name should be (chain.name)
+            obs.await(oneSecond, 0)
+            obs.list.size should be (2)
+            val chainName = obs.list.get(1).get.asInstanceOf[OnNext[PojoChain]]
+                .value.name
+            chainName should be (chain.name)
         }
 
         scenario("Test subscriber gets delete") {
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs = new ObjectSubscription[PojoChain](1)
+            val obs = new AwaitableObserver[PojoChain](1)
             storage.subscribe(classOf[PojoChain], chain.id, obs)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.reset(1)
+            obs.await(oneSecond, 1)
             storage.delete(classOf[PojoChain], chain.id)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.event should be (None)
+            obs.await(oneSecond, 0)
+            assert(obs.list.get(1).get.getClass == classOf[OnCompleted])
         }
 
         scenario("Test subscribe to non-existent object") {
-            val obs = new ObjectSubscription[PojoChain](1)
+            val obs = new AwaitableObserver[PojoChain](1)
             val id = UUID.randomUUID
             storage.subscribe(classOf[PojoChain], id, obs)
-            obs.await(1, TimeUnit.SECONDS)
+            obs.await(oneSecond, 0)
+
             obs.ex.getClass should be (classOf[NotFoundException])
             val e = obs.ex.asInstanceOf[NotFoundException]
             e.clazz should be (classOf[PojoChain])
@@ -792,22 +798,23 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             val chain = createPojoChain()
             storage.create(chain)
 
-            val obs1 = new ObjectSubscription[PojoChain](1)
+            val obs1 = new AwaitableObserver[PojoChain](1)
             storage.subscribe(classOf[PojoChain], chain.id, obs1)
-            obs1.await(1, TimeUnit.SECONDS)
-            obs1.reset(1)
+            obs1.await(oneSecond, 1)
 
             chain.name = "renamed_chain"
             storage.update(chain)
-            obs1.await(1, TimeUnit.SECONDS)
+            obs1.await(oneSecond, 0)
 
-            val obs2 = new ObjectSubscription[PojoChain](1)
+            val obs2 = new AwaitableObserver[PojoChain](1)
             storage.subscribe(classOf[PojoChain], chain.id, obs2)
-            obs2.await(1, TimeUnit.SECONDS)
+            obs2.await(oneSecond, 0)
 
-            obs2.updates should be (1)
-            obs2.event should not be None
-            obs2.event.get.name should be ("renamed_chain")
+            obs2.list should have size (1)
+            obs2.list.get(0) should not be None
+            val updatedChain = obs2.list.get(0).get.asInstanceOf[OnNext[PojoChain]]
+                                   .value
+            updatedChain.name should be ("renamed_chain")
         }
 
         scenario("Test class subscriber gets current list") {
@@ -816,77 +823,82 @@ class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter
             storage.create(chain1)
             storage.create(chain2)
 
-            val obs = new ClassSubscription[PojoChain](2)
+            val obs = new ClassAwaitableObserver[PojoChain](2)
             storage.subscribeAll(classOf[PojoChain], obs)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.subs.size should be (2)
+            obs.await(oneSecond, 0)
+            obs.list.size should be (2)
         }
 
         scenario("Test class subscriber gets new object") {
             val chain1 = createPojoChain(name = "chain1")
             storage.create(chain1)
 
-            val obs = new ClassSubscription[PojoChain](1)
+            val obs = new ClassAwaitableObserver[PojoChain](1)
             storage.subscribeAll(classOf[PojoChain], obs)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.subs.size should be (1)
-            obs.subs.get(0).get.event.get.name should be ("chain1")
-            obs.reset(1)
+            obs.await(oneSecond, 1)
+            obs.list.size should be (1)
+            val chainObs = obs.list.get(0).get
+            val chain = chainObs.list.get(0).get.asInstanceOf[OnNext[PojoChain]].value
+            chain.name should be ("chain1")
 
             val chain2 = createPojoChain(name = "chain2")
             storage.create(chain2)
-            obs.await(1, TimeUnit.SECONDS)
-            obs.subs.size should be (2)
+            obs.await(oneSecond, 0)
+            obs.list.size should be (2)
         }
 
         scenario("Test second class subscriber gets current list") {
             val chain1 = createPojoChain()
             storage.create(chain1)
 
-            val obs1 = new ClassSubscription[PojoChain](1)
+            val obs1 = new ClassAwaitableObserver[PojoChain](1)
             storage.subscribeAll(classOf[PojoChain], obs1)
-            obs1.await(1, TimeUnit.SECONDS)
-            obs1.subs.size should be (1)
-            obs1.reset(1)
+            obs1.await(oneSecond, 1)
+            obs1.list.size should be (1)
 
             val chain2 = createPojoChain()
             storage.create(chain2)
-            obs1.await(1, TimeUnit.SECONDS)
+            obs1.await(oneSecond, 0)
 
-            val obs2 = new ClassSubscription[PojoChain](2)
+            val obs2 = new ClassAwaitableObserver[PojoChain](2)
             storage.subscribeAll(classOf[PojoChain], obs2)
-            obs2.await(1, TimeUnit.SECONDS)
-            obs2.subs.size should be (2)
+            obs2.await(oneSecond, 0)
+            obs2.list.size should be (2)
         }
 
         scenario("Test class observable ignores deleted instances") {
             val chain1 = createPojoChain(name = "chain1")
             val chain2 = createPojoChain(name = "chain2")
 
-            val obs1 = new ClassSubscription[PojoChain](1)
-            storage.subscribeAll(classOf[PojoChain], obs1)
-
+            val classObs1 = new ClassAwaitableObserver[PojoChain](1)
+            storage.subscribeAll(classOf[PojoChain], classObs1)
             storage.create(chain1)
             storage.create(chain2)
 
-            obs1.await(1, TimeUnit.SECONDS)
-            obs1.subs.size should be (2)
+            classObs1.await(oneSecond, 0)
+            classObs1.list.size should be (2)
 
-            val chain1Sub =
-                if (obs1.subs.get(0).get.event.get.id.equals(chain1.id))
-                    obs1.subs.get(0).get
-                else obs1.subs.get(1).get
-            chain1Sub.reset(1)
+            val obs1 = classObs1.list.get(0).get
+            val obs2 = classObs1.list.get(1).get
+
+            val chain1Obs =
+                if (obs1.list.get(0).get.asInstanceOf[OnNext[PojoChain]].value
+                        .id.equals(chain1.id))
+                    obs1
+                else obs2
+            chain1Obs.reset(1)
 
             storage.delete(classOf[PojoChain], chain1.id)
-            chain1Sub.await(1, TimeUnit.SECONDS)
-            chain1Sub.event should be (None)
+            chain1Obs.await(oneSecond, 0)
+            assert(chain1Obs.list.get(1).get.getClass == classOf[OnCompleted])
 
-            val obs2 = new ClassSubscription[PojoChain](1)
-            storage.subscribeAll(classOf[PojoChain], obs2)
-            obs2.await(1, TimeUnit.SECONDS)
-            obs2.subs.size should be (1)
-            obs2.subs.get(0).get.event.get.name should be ("chain2")
+            val classObs2 = new ClassAwaitableObserver[PojoChain](1)
+            storage.subscribeAll(classOf[PojoChain], classObs2)
+            classObs2.await(oneSecond, 0)
+            classObs2.list.size should be (1)
+            val pojoChain = classObs2.list.get(0).get
+            pojoChain.list.get(0).get.asInstanceOf[OnNext[PojoChain]]
+                .value.name should be ("chain2")
         }
     }
 
