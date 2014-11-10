@@ -295,66 +295,6 @@ class ZookeeperObjectMapperTests extends Suite
     }
 }
 
-private class ObjectSubscription[T](counter: Int) extends Observer[T] {
-    private var countDownLatch = new CountDownLatch(counter)
-    var updates: Int = 0
-    var event: Option[T] = _
-    var ex: Throwable = _
-
-    def onCompleted {
-        event = None
-        countDownLatch.countDown()
-    }
-
-    def onError(e: Throwable) {
-        ex = e
-        countDownLatch.countDown()
-    }
-
-    def onNext(t: T) {
-        updates += 1
-        event = Option(t)
-        countDownLatch.countDown()
-    }
-
-    def await(timeout: Long, unit: TimeUnit) {
-        assertTrue(countDownLatch.await(timeout, unit))
-    }
-
-    def reset(newCounter: Int) {
-        countDownLatch = new CountDownLatch(newCounter)
-    }
-}
-
-private class ClassSubscription[T](counter: Int) extends Observer[Observable[T]] {
-    private var countDownLatch: CountDownLatch = new CountDownLatch(counter)
-    val subs = new mutable.MutableList[ObjectSubscription[T]]
-
-
-    def onCompleted {
-        fail("Class subscription should not complete.")
-    }
-
-    def onError(e: Throwable) {
-        throw new RuntimeException("Got exception from class subscription", e)
-    }
-
-    def onNext(observable: Observable[T]) {
-        val sub = new ObjectSubscription[T](1)
-        observable.subscribe(sub)
-        subs += sub
-        countDownLatch.countDown()
-    }
-
-    def await(timeout: Long, unit: TimeUnit) {
-        assertTrue(countDownLatch.await(timeout, unit))
-    }
-
-    def reset(newCounter: Int) {
-        countDownLatch = new CountDownLatch(newCounter)
-    }
-}
-
 private object ZookeeperObjectMapperTests {
 
     def PojoBridge(id: UUID = UUID.randomUUID, name: String = null,
