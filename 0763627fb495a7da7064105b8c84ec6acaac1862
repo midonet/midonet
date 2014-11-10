@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_ae203d4a",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 4
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2014-11-10T07:42:42Z",
+      "side": 1,
+      "message": "Do we need DATAPATH? we always use only one DP named \"midonet\". I\u0027d suggest to make it optional (defaulting to \u0027midonet\u0027) or even remove it.\n\n\nCould you make ADDRESS more informative? \nLooks like it\u0027s just passing to \"ip addr add\", but it is not clear what address it can handle, mac address or inet4 or inet6.",
+      "revId": "0763627fb495a7da7064105b8c84ec6acaac1862",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
