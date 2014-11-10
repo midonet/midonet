@@ -51,6 +51,24 @@
       "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8e92a155",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-10T08:16:09Z",
+      "side": 1,
+      "message": "The patch has been merged already but I\u0027ll do that later.",
+      "parentUuid": "7a6b29fe_2ed42d1f",
+      "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
