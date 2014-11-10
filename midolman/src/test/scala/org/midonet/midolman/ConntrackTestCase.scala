@@ -51,17 +51,16 @@ class ConntrackTestCase extends MidolmanSpec {
     var clusterBridge: ClusterBridge = null
 
     private def buildTopology() {
-        val host = newHost("myself",
-            injector.getInstance(classOf[HostIdProviderService]).getHostId)
+        val host = newHost("myself", hostId())
         host should not be null
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
 
         leftPort = newBridgePort(clusterBridge)
-        clusterDataClient().portsSetLocalAndActive(leftPort.getId, true)
+        clusterDataClient().portsSetLocalAndActive(leftPort.getId, host.getId, true)
         rightPort = newBridgePort(clusterBridge)
-        clusterDataClient().portsSetLocalAndActive(rightPort.getId, true)
+        clusterDataClient().portsSetLocalAndActive(rightPort.getId, host.getId, true)
 
         val brChain = newInboundChainOnBridge("brChain", clusterBridge)
 

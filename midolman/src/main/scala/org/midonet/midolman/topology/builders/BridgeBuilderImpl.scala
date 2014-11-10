@@ -17,7 +17,7 @@
 package org.midonet.midolman.topology.builders
 
 import java.lang.{Short => JShort}
-import java.util.{Map => JMap, Set => JSet, UUID}
+import java.util.{Map => JMap, Set => JSet, UUID, List => JList}
 import scala.Some
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -30,7 +30,7 @@ import org.midonet.cluster.client.IpMacMap
 import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.client.VlanPortMap
 import org.midonet.cluster.data.Bridge
-import org.midonet.midolman.FlowController
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.BridgeConfig
 import org.midonet.midolman.topology.BridgeManager
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
@@ -60,6 +60,8 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var vlanBridgePeerPortId: Option[UUID] = None
     private var exteriorVxlanPortId: Option[UUID] = None
     private var vlanPortMap: VlanPortMap = null
+    private var exteriorPorts: List[UUID] = List.empty
+    private var oldExteriorPorts: List[UUID] = List.empty
 
     def setAdminStateUp(adminStateUp: Boolean) = {
         cfg = cfg.copy(adminStateUp = adminStateUp)
@@ -133,7 +135,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
                 oldMacToLogicalPortId -- (macToLogicalPortId.keys)
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
-                flowController ! FlowController.InvalidateFlowsByTag(
+                bridgeMgr ! InvalidateFlowsByTag(
                         FlowTagger.tagForBridgePort(id, portId))
             }
             // 1. Invalidate all arp requests
@@ -142,14 +144,19 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // invalidating Unicast flows to the device port's MAC
             val addedPortMap = macToLogicalPortId -- oldMacToLogicalPortId.keys
             if (addedPortMap.size > 0)
-                flowController ! FlowController.InvalidateFlowsByTag(
+                bridgeMgr ! InvalidateFlowsByTag(
                         FlowTagger.tagForArpRequests(id))
 
             for ((mac, portId) <- addedPortMap) {
-                flowController ! FlowController.InvalidateFlowsByTag(
+                bridgeMgr ! InvalidateFlowsByTag(
                         FlowTagger.tagForFloodedFlowsByDstMac(
                                 id, Bridge.UNTAGGED_VLAN_ID, mac))
             }
+        }
+
+        if (oldExteriorPorts != exteriorPorts) {
+            bridgeMgr ! InvalidateFlowsByTag(FlowTagger.tagForBroadcast(id))
+            oldExteriorPorts = exteriorPorts
         }
     }
 
@@ -161,23 +168,13 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             collection.immutable.HashMap(vlanMacTableMap.toSeq: _*), ip4MacMap,
             collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(ipToMac.toSeq: _*),
-            vlanBridgePeerPortId, exteriorVxlanPortId, vlanPortMap)
+            vlanBridgePeerPortId, exteriorVxlanPortId, vlanPortMap, exteriorPorts)
 
-         // Note from Guillermo:
-         // There's a possible race here. We route flow invalidations through
-         // the VTA to make sure there's a happens before relationship between device
-         // updates and invalidations. Otherwise, a packet could get simulated with
-         // the old version of the device _after_ the invalidation took place,
-         // installing an obsolete flow that will skip invalidation.
-         //
-         // Not only that, but this invalidations need to go through the
-         // BridgeManager, because it's that class that sends to the VTA. If we sent
-         // the invalidation directly to the VTA from here we'd be incurring in the
-         // same race.
-         //
-         // Here we are sending directly to the FlowController, that looks wrong.
-         // TODO(tomohiko) Fix the possible race.
          sendFlowInvalidation()
+    }
+
+    override def setExteriorPorts(ports: JList[UUID]) {
+        exteriorPorts = asScalaBuffer(ports).toList
     }
 
     override def updateMacEntry(
@@ -189,14 +186,14 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
                 Array(mac, oldPort, vlanId.asInstanceOf[Object]))
-            flowController ! FlowController.InvalidateFlowsByTag(
+            flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort != null
             && !newPort.equals(oldPort)) {
             log.debug("MAC {}, VLAN ID {} moved from port {} to {}",
                       Array(mac, vlanId.asInstanceOf[Object], oldPort, newPort))
-            flowController ! FlowController.InvalidateFlowsByTag(
+            flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
         if (newPort != null && oldPort == null){
@@ -205,12 +202,12 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
             // Now we have the MAC entry in the table so we can deliver it to
             // the proper port instead of flooding it. As regards broadcast or
             // arp requests:
-            // 1. If this port was just added to the PortSet, the invalidation
-            //    will occur in the VirtualToPhysicalMapper.
+            // 1. If this port was just added to the bridge, the invalidation
+            //    will occur by the update to the bridge's list of ports.
             // 2. If we just forgot the MAC port association, no need of
-            //    invalidating, the port was in the PortSet, broadcast and ARP
-            //    requests were correctly delivered.
-            flowController ! FlowController.InvalidateFlowsByTag(
+            //    invalidating, broadcast and ARP requests were correctly
+            //    delivered.
+            flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForFloodedFlowsByDstMac(id, vlanId, mac))
         }
     }

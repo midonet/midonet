@@ -165,45 +165,22 @@ object DatapathController extends Referenceable {
 
 /**
  * The DP (Datapath) Controller is responsible for managing MidoNet's local
- * kernel datapath. It queries the Virt-Phys mapping to discover (and receive
- * updates about) what virtual ports are mapped to this host's interfaces.
- * It uses the Netlink API to query the local datapaths, create the datapath
- * if it does not exist, create datapath ports for the appropriate host
- * interfaces and learn their IDs (usually a Short), locally track the mapping
+ * kernel datapath. It queries the VirtualToPhysicalMapper to discover (and
+ * receive updates about) what virtual ports are mapped to this host's
+ * interfaces. It uses the Netlink API to query the local datapaths, create the
+ * datapath if it does not exist, create datapath ports for the appropriate host
+ * interfaces and learn their numeric IDs, locally track the mapping
  * of datapath port ID to MidoNet virtual port ID. When a locally managed vport
  * has been successfully mapped to a local network interface, the DP Controller
- * notifies the Virtual-Physical Mapping that the vport is ready to receive flows.
+ * notifies the VirtualToPhysicalMapper that the vport is ready to receive flows.
  * This allows other Midolman daemons (at other physical hosts) to correctly
  * forward flows that should be emitted from the vport in question.
+ *
  * The DP Controller knows when the Datapath is ready to be used and notifies
- * the Flow Controller so that the latter may register for Netlink PacketIn
- * notifications. For any PacketIn that the FlowController cannot handle with
- * the already-installed wildcarded flows, DP Controller receives a PacketIn
- * from the FlowController, translates the arriving datapath port ID to a virtual
- * port UUID and passes the PacketIn to the Simulation Controller. Upon receiving
- * a simulation result from the Simulation Controller, the DP is responsible
- * for creating the corresponding wildcard flow. If the flow is being emitted
- * from a single remote virtual port, this involves querying the Virtual-Physical
- * Mapping for the location of the host responsible for that virtual port, and
- * then building an appropriate tunnel port or using the existing one. If the
- * flow is being emitted from a single local virtual port, the DP Controller
- * recognizes this and uses the corresponding datapath port. Finally, if the
- * flow is being emitted from a PortSet, the DP Controller queries the
- * Virtual-Physical Mapping for the set of hosts subscribed to the PortSet;
- * it must then map each of those hosts to a tunnel and build a wildcard flow
- * description that outputs the flow to all of those tunnels and any local
- * datapath port that corresponds to a virtual port belonging to that PortSet.
- * Finally, the wildcard flow, free of any MidoNet ID references, is pushed to
- * the FlowController.
+ * the PacketsEntryPoint so that the latter may register for Netlink PacketIn
+ * notifications.
  *
- * The DP Controller is responsible for managing overlay tunnels (see the
- * previous paragraph).
- *
- * The DP Controller notifies the Flow Validation Engine of any installed
- * wildcard flow so that the FVE may do appropriate indexing of flows (e.g. by
- * the ID of any virtual device that was traversed by the flow). The DP Controller
- * may receive requests from the FVE to invalidate specific wildcard flows; these
- * are passed on to the FlowController.
+ * The DP Controller is also responsible for managing overlay tunnels.
  */
 class DatapathController extends Actor
                          with ActorLogWithoutPath

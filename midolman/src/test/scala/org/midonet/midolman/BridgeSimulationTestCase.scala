@@ -96,12 +96,9 @@ class BridgeSimulationTestCase extends MidolmanTestCase
         }
 
         bridgeTunnelTo2 =
-            tunnelIsLike(host1Ip.toInt, host2Ip.toInt, bridge.getTunnelKey)
+            tunnelIsLike(host1Ip.toInt, host2Ip.toInt, portOnHost2.getTunnelKey)
         bridgeTunnelTo3 =
-            tunnelIsLike(host1Ip.toInt, host3Ip.toInt, bridge.getTunnelKey)
-
-        clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
-        clusterDataClient().portSetsAddHost(bridge.getId, host3.getId)
+            tunnelIsLike(host1Ip.toInt, host3Ip.toInt, portOnHost3.getTunnelKey)
 
         initializeDatapath() should not be (null)
 
@@ -201,7 +198,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         val preChain = newInboundChainOnBridge("brFilter-in", bridge)
         newLiteralRuleOnChain(preChain, 1,udpCond, RuleResult.Action.DROP)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         checkTrafficWithDropChains()
     }
@@ -214,7 +210,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         val postChain = newOutboundChainOnBridge("brFilter-out", bridge)
         newLiteralRuleOnChain(postChain, 1, udpCond, RuleResult.Action.DROP)
-        fishForRequestOfType[InvalidateFlowsByTag](flowProbe())
 
         checkTrafficWithDropChains()
     }

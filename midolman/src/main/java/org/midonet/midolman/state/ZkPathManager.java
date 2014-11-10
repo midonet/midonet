@@ -323,6 +323,10 @@ public class ZkPathManager {
         return basePath().append("/ports");
     }
 
+    public String getPortActivePath(UUID id) {
+        return buildPortPath(id).append("/active").toString();
+    }
+
     /**
      * Get ZK port path.
      *
@@ -335,45 +339,6 @@ public class ZkPathManager {
 
     private StringBuilder buildPortPath(UUID id) {
         return buildPortsPath().append("/").append(id);
-    }
-
-    /**
-     * Get ZK port sets path.
-     *
-     * @return /port_sets
-     */
-    public String getPortSetsPath() {
-        return buildPortSetsPath().toString();
-    }
-
-    private StringBuilder buildPortSetsPath() {
-        return basePath().append("/port_sets");
-    }
-
-    /**
-     * Get ZK port sets path.
-     *
-     * @return /port_sets/id
-     */
-    public String getPortSetPath(UUID id) {
-        return buildPortSetPath(id).toString();
-    }
-
-    private StringBuilder buildPortSetPath(UUID id) {
-        return buildPortSetsPath().append("/").append(id);
-    }
-
-    /**
-     * Get ZK port sets path.
-     *
-     * @return /port_sets/id
-     */
-    public String getPortSetEntryPath(UUID id, UUID hostId) {
-        return buildPortSetHostPath(id, hostId).toString();
-    }
-
-    private StringBuilder buildPortSetHostPath(UUID id, UUID hostId) {
-        return buildPortSetPath(id).append("/").append(hostId);
     }
 
     /**

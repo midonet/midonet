@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.client;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,4 +38,5 @@ public interface BridgeBuilder extends DeviceBuilder<BridgeBuilder> {
     void setExteriorVxlanPortId(Option<UUID> id);
     void setVlanPortMap(VlanPortMap vlanPortMap);
     void updateMacEntry(short vlanId, MAC mac, UUID oldPort, UUID newPort);
+    void setExteriorPorts(List<UUID> ports);
 }

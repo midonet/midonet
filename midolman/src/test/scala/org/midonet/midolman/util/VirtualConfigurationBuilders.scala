@@ -386,19 +386,7 @@ trait VirtualConfigurationBuilders {
         clusterDataClient().hostsAddVrnPortMappingAndReturnPort(hostId,
             port.getId, portName)
 
-        clusterDataClient().portsSetLocalAndActive(port.getId, true)
-
-        if (port.isInstanceOf[BridgePort]) {
-            clusterDataClient().portSetsAsyncAddHost(port.getDeviceId, hostId,
-                new DirectoryCallback.Add {
-                    override def onSuccess(result: String) {
-                    }
-                    override def onTimeout() {
-                    }
-                    override def onError(e: KeeperException) {
-                    }
-                })
-        }
+        clusterDataClient().portsSetLocalAndActive(port.getId, hostId, true)
     }
 
     def newCondition(

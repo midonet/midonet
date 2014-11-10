@@ -20,6 +20,7 @@ import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, Level, Benchmark, Scope, State, Fork, Measurement, Warmup, OutputTimeUnit, Mode, BenchmarkMode}
 import org.openjdk.jmh.infra.Blackhole
@@ -113,7 +114,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     def benchmarkConntrack(holder: PacketHolder, bh: Blackhole): Unit = {
         bh.consume(sendPacket(leftPort -> holder.packet))
         replicator.accumulateNewKeys(conntrackTx, natTx, leftPort.getId,
-                                     rightPort.getId, null, mutable.Set(),
+                                     List(rightPort.getId).asJava, mutable.Set(),
                                      new ArrayList())
         conntrackTx.commit()
         conntrackTx.flush()

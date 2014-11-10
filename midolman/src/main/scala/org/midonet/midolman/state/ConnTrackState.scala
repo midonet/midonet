@@ -142,11 +142,6 @@ trait ConnTrackState extends FlowState {
 
     protected def fetchIngressDevice(): UUID = {
         implicit val actorSystem: ActorSystem = null
-        try {
-            VirtualTopologyActor.tryAsk[Port](pktCtx.inputPort).deviceID
-        } catch {
-            case ignored: NullPointerException =>
-                throw org.midonet.midolman.simulation.FixPortSets
-        }
+        VirtualTopologyActor.tryAsk[Port](pktCtx.inputPort).deviceID
     }
 }

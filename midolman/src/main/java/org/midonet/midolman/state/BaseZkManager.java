@@ -36,9 +36,7 @@ import org.midonet.util.functors.Functor;
  * and exists() for free.
  *
  * You should extend BaseZkManager only if your new ZkManager does not
- * manage a single-node primary resource (e.g., PortSetZkManager's
- * primary resource is a Set of UUID, which is seralized as multiple
- * nodes, so it extends BaseZkManager), or if if it does not have a
+ * manage a single-node primary resource, or if if it does not have a
  * single key (e.g., TaggableConfigZkManager has a multi-part key).
  */
 public abstract class BaseZkManager {

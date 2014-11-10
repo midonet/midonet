@@ -46,7 +46,6 @@ public class Setup {
         paths.add(pathMgr.getTunnelPath());
         paths.add(pathMgr.getTunnelZonesPath());
         paths.add(pathMgr.getPortsPath());
-        paths.add(pathMgr.getPortSetsPath());
         paths.add(pathMgr.getRoutersPath());
         paths.add(pathMgr.getRoutesPath());
         paths.add(pathMgr.getAgentPath());
