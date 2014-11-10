@@ -34,6 +34,23 @@
       "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_2ed42d1f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-10T07:47:52Z",
+      "side": 1,
+      "message": "I think we should add a check for deviceTag.",
+      "revId": "57f18512985ee16eb4db6013abe77c10673b4438",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
