@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_bceeb7ea",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-10T16:55:36Z",
+      "side": 1,
+      "message": "The ZookeeperObjectMapperTest/Tests need some refactoring too. Is it okay if we do it in a future patch, adding the common functionality in a single StorageSpec class?",
+      "parentUuid": "7a6b29fe_2b6a621a",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 5
+      },
+      "revId": "592b13ca2e0b6a9e7e145d554258a39be6ed6521",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_2bcee25a",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceObservableTest.scala",
         "patchSetId": 4
