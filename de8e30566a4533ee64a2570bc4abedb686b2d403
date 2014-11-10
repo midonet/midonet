@@ -83,6 +83,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_2e00ad00",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-10T03:49:58Z",
+      "side": 1,
+      "message": "You mean Neutron devs? Why would they need to know about this?",
+      "parentUuid": "7a6b29fe_ab6312b0",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cb5e4ee9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
         "patchSetId": 2
@@ -94,6 +112,30 @@
       "writtenOn": "2014-11-07T13:26:00Z",
       "side": 1,
       "message": "Should it be called _router_external, or something that incorporates the plugin name? Do we need to?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6e0aa522",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-10T03:49:58Z",
+      "side": 1,
+      "message": "We could replace the colon with an underscore, I guess, but I\u0027m not sure if we need to. I don\u0027t think there\u0027s any overlap now, but there might be at some point in the future.",
+      "parentUuid": "7a6b29fe_cb5e4ee9",
       "range": {
         "startLine": 41,
         "startChar": 4,
@@ -146,6 +188,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_ae131d5b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-10T03:49:58Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure I changed it because of a conflict, but now I can\u0027t find the class it was conflicting with.",
+      "parentUuid": "7a6b29fe_6b69fa8a",
+      "range": {
+        "startLine": 22,
+        "startChar": 40,
+        "endLine": 22,
+        "endChar": 47
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_8b6c569e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 2
@@ -157,6 +223,24 @@
       "writtenOn": "2014-11-07T13:26:00Z",
       "side": 1,
       "message": "I know these were here already but, are these defined in the neutron  proto definitions, and if so, could we use them? Just to avoid redundant code.",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_ee1d1568",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-10T03:49:58Z",
+      "side": 1,
+      "message": "I don\u0027t think so. These are numerical constants, whereas the definitions in neutron.proto are for message classes.",
+      "parentUuid": "7a6b29fe_8b6c569e",
       "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
