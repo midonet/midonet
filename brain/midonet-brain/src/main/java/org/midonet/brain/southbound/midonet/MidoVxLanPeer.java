@@ -189,6 +189,7 @@ public class MidoVxLanPeer implements VxLanPeer {
                     return true;
                 log.warn("watcher not set: port {} does not exist anymore",
                          vxLanPortId);
+                ripper.peer.forgetBridge(ripper.bridgeId);
                 return false;
             } catch (StateAccessException | SerializationException e) {
                 log.warn("failed to set watcher for port {}",

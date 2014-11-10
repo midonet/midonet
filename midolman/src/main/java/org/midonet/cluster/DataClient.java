@@ -367,10 +367,11 @@ public interface DataClient {
      * forwarding table if this port belongs to a router.
      *
      * @param portID the id of the port
+     * @param host the id of the host where it's active
      * @param active true / false depending on what state we want in the end
      *               for the port
      */
-    void portsSetLocalAndActive(UUID portID, boolean active);
+    void portsSetLocalAndActive(UUID portID, UUID host, boolean active);
 
     /**
      * Register a callback to be called whenever a port becomes "local and
@@ -866,31 +867,6 @@ public interface DataClient {
 
     List<Rule<?, ?>> rulesFindByChain(UUID chainId)
             throws StateAccessException, SerializationException;
-
-    /* PortSet related methods */
-
-    /**
-     * This should be called AddMember but since our port set membership right
-     * now means hosts we named it accordingly.
-     *
-     * @param portSetId the id of the portset
-     * @param hostId the id of the host
-     * @param callback the callback to be fired when the operation is completed
-     */
-    void portSetsAsyncAddHost(
-            UUID portSetId, UUID hostId, DirectoryCallback.Add callback);
-
-    void portSetsAddHost(UUID portSetId, UUID hostId)
-        throws StateAccessException;
-
-    void portSetsAsyncDelHost(
-            UUID portSetId, UUID hostId, DirectoryCallback.Void callback);
-
-    void portSetsDelHost(UUID portSetId, UUID hostId)
-        throws StateAccessException;
-
-    Set<UUID> portSetsGet(UUID portSet)
-            throws SerializationException, StateAccessException;
 
     /**
      * Get tenants

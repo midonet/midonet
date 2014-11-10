@@ -212,7 +212,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
                 null,
                 null, null, null, null,
                 null, null, null, null,
-                null, null)
+                null, null, Nil)
             VirtualTopologyActor ! updatedBridge
 
             Then("We receive an updated bridge")
@@ -226,7 +226,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
             val updatedBridgeAgain = new SimulationBridge(bridgeId,
                 updatedAdminState, bridge.getTunnelKey,
                 null, null, null, null, null, null,
-                updatedVxlanPortId, null, null, null, null)
+                updatedVxlanPortId, null, null, null, null, Nil)
 
             Then("We receive a second update")
             val rsUpdatedBridge = receivedTopology.device[SimulationBridge](
@@ -258,7 +258,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
                 null,
                 null, null, null, null,
                 null, null, null, null,
-                null, null)
+                null, null, Nil)
             VirtualTopologyActor ! updatedBridge
 
             Then("We do not receive an updated bridge")
@@ -285,7 +285,7 @@ class VirtualTopologyActorTest extends MidolmanSpec {
                 val updatedBridge = new SimulationBridge(bridgeId, false,
                     bridge.getTunnelKey,
                     null, null, null, null, null, null, null, null, null, null,
-                    null)
+                    null, Nil)
                 VirtualTopologyActor ! updatedBridge
 
                 Then("The VTA has received the unsubscription request")
