@@ -20,7 +20,7 @@ import java.util.concurrent.CountDownLatch
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
-import rx.Observer
+import rx.{Observable, Observer}
 
 object AwaitableObserver {
 
@@ -35,7 +35,8 @@ class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
 
     import org.midonet.util.reactivex.AwaitableObserver._
 
-    private val list = new mutable.MutableList[Notification]
+    val list = new mutable.MutableList[Notification]
+    var ex: Throwable = _
     @volatile private var counter = new CountDownLatch(awaitCount)
 
     override def onNext(value: T): Unit = {
@@ -49,6 +50,7 @@ class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
     }
 
     override def onError(e: Throwable): Unit = {
+        ex = e
         list += OnError(e)
         counter.countDown()
     }
@@ -69,4 +71,36 @@ class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
 
     def notifications: Seq[Notification] = list
 
+}
+
+
+class ClassAwaitableObserver[T](awaitCount: Int) extends Observer[Observable[T]] {
+
+    val list = new mutable.MutableList[AwaitableObserver[T]]
+    @volatile private var counter: CountDownLatch = new CountDownLatch(awaitCount)
+
+    def onCompleted {
+        throw new IllegalStateException("Class subscription should not complete.")
+    }
+
+    def onError(e: Throwable) {
+        throw new RuntimeException("Got exception from class subscription", e)
+    }
+
+    def onNext(value: Observable[T]) {
+        val obs = new AwaitableObserver[T](1)
+        value.subscribe(obs)
+        list += obs
+        counter.countDown()
+    }
+
+    def await(duration: Duration, resetCount: Int): Boolean = try {
+        counter.await(duration.length, duration.unit)
+    } finally {
+        counter = new CountDownLatch(resetCount)
+    }
+
+    def reset(newCounter: Int) {
+        counter = new CountDownLatch(newCounter)
+    }
 }

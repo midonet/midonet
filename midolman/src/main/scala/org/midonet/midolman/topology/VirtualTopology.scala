@@ -164,7 +164,8 @@ class VirtualTopology @Inject() (store: Storage,
         manifest[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
         manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
         manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
+        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this)),
+        manifest[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, store, this))
     )
 
     register(this)
