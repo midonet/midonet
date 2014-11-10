@@ -72,6 +72,8 @@ class AdminStateTest extends MidolmanSpec {
     var interiorRouterPort: RouterPort = _
     var exteriorRouterPort: RouterPort = _
 
+    var brPortIds: List[UUID] = List.empty
+
     override def beforeTest() {
         newHost("myself", hostId)
         bridge = newBridge("bridge0")
@@ -79,6 +81,8 @@ class AdminStateTest extends MidolmanSpec {
 
         interiorBridgePort = newBridgePort(bridge)
         exteriorBridgePort = newBridgePort(bridge)
+
+        brPortIds = List(exteriorBridgePort.getId)
 
         val routerInteriorPortIp = new IPv4Subnet("10.0.0.254", 24)
         interiorRouterPort = newRouterPort(router,
@@ -98,6 +102,8 @@ class AdminStateTest extends MidolmanSpec {
 
         materializePort(exteriorBridgePort, hostId, "port0")
         materializePort(exteriorRouterPort, hostId, "port1")
+
+        brPortIds = List(exteriorBridgePort.getId)
 
         newRoute(router,
             "0.0.0.0", 0,
@@ -254,7 +260,7 @@ class AdminStateTest extends MidolmanSpec {
 
             var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
             var simRes = simulate (pktCtx)
-            simRes should be (toPortSet(bridge.getId))
+            simRes should be (toBridge(bridge.getId, brPortIds))
             ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
@@ -266,8 +272,8 @@ class AdminStateTest extends MidolmanSpec {
 
             pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
             simRes = simulate(pktCtx)
-            simRes should be (toPortSet(bridge.getId))
-            ft.translate(simRes) should not (contain (output(1).asInstanceOf[Any]))
+
+            simRes should be (dropped())
             pktCtx.flowTags should contain(
                 FlowTagger.tagForDevice(exteriorBridgePort.getId))
         }
@@ -393,7 +399,7 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         protected val dpState: DatapathState = new DatapathState {
-            def host: rcu.Host = null
+            val host: rcu.Host = rcu.Host(hostId(), true, 0, "mido", Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
             def vtepTunnellingOutputAction: FlowActionOutput = null
@@ -575,6 +581,8 @@ class AdminStateTest extends MidolmanSpec {
         val invalidations = VirtualTopologyActor.messages
                 .filter(_.isInstanceOf[FlowController.InvalidateFlowsByTag])
 
-        invalidations should contain theSameElementsAs tags
+        for (tag <- tags) {
+            invalidations should contain (tag)
+        }
     }
 }

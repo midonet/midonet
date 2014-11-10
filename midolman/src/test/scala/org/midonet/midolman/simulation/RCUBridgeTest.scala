@@ -27,7 +27,7 @@ import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{BridgePort, RouterPort, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{BridgePort, IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
@@ -79,12 +79,14 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val macLearningTables = Map[JShort, MacLearningTable]()
         macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
+        brPort.id = UUID.randomUUID()
+
         bridge = new Bridge(bridgeID, true, 0, macLearningTables, ip4MacMap,
                             flowCount, Option(inFilterId), Option(outFilterId),
                             vlanBridgePortId, None, flowRemovedCallbackGen,
-                            rtrMacToLogicalPortId, rtrIpToMac, vlanToPort)
+                            rtrMacToLogicalPortId, rtrIpToMac, vlanToPort,
+                            List(brPort.id))
 
-        brPort.id = UUID.randomUUID()
         brPort.setHostID(UUID.randomUUID())
         brPort.setInterfaceName("eth0")
         brPort.setDeviceID(bridge.id)
@@ -133,8 +135,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         ingressMatch should be (origMatch)
 
         result match {
-            case Coordinator.ToPortSetAction(port) =>
-                assert(port === bridgeID)
+            case Coordinator.FloodBridgeAction(brId, ports) =>
+                assert(brId === bridgeID)
+                assert(List(brPort.id) == ports)
             case _ => fail("Not ForwardAction, instead: " + result.toString)
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -183,8 +186,9 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         ingressMatch should be (origMatch)
 
         result match {
-            case Coordinator.ToPortSetAction(port) =>
-                assert(port === bridgeID)
+            case Coordinator.FloodBridgeAction(brId, ports) =>
+                assert(brId === bridgeID)
+                assert(List(brPort.id) === ports)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC

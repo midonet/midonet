@@ -61,7 +61,6 @@ import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager;
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -164,7 +163,6 @@ public class DataClientModule extends PrivateModule {
         managers.add(PortGroupZkManager.class);
         managers.add(TenantZkManager.class);
         managers.add(TunnelZoneZkManager.class);
-        managers.add(PortSetZkManager.class);
         managers.add(IpAddrGroupZkManager.class);
         managers.add(VtepZkManager.class);
         /*

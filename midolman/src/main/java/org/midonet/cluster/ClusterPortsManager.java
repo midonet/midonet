@@ -33,6 +33,8 @@ import org.midonet.cluster.client.VxLanPort;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
@@ -46,6 +48,9 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
+
+    @Inject
+    PortZkManager portMgr;
 
     @Inject
     public ClusterPortsManager(PortConfigCache configCache) {
@@ -94,6 +99,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             throw new IllegalArgumentException("unknown Port type");
         }
 
+
         port.setTunnelKey(config.tunnelKey);
         port.setAdminStateUp(config.adminStateUp);
         port.setDeviceID(config.device_id);
@@ -104,6 +110,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         port.setPeerID(config.getPeerId());
         port.setHostID(config.getHostId());
         port.setInterfaceName(config.getInterfaceName());
+        port.setActive(isActive(id));
         if (config.portGroupIDs != null) {
             port.setPortGroups(config.portGroupIDs);
         }
@@ -114,11 +121,36 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             log.debug("Build port {}, id {}", port, id);
             builder.build();
         }
+
         // this runnable notifies the classes in the cluster of a change in the
         // port configuration
         Runnable watcher = clusterWatchers.get(id);
         if (null != watcher)
             watcher.run();
+    }
+
+    private boolean isActive(final UUID portId, final Runnable watcher) {
+        try {
+            return portMgr.isActivePort(portId, watcher);
+        } catch (StateAccessException e) {
+            log.warn("Exception retrieving Port liveness", e);
+            connectionWatcher.handleError(
+                    "Port Liveness:" + portId, watcher, e);
+        }
+        return false;
+    }
+
+    private boolean isActive(final UUID portId) {
+        return isActive(portId, aliveWatcher(portId));
+    }
+
+    public Runnable aliveWatcher(final UUID portId) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                getConfig(portId);
+            }
+        };
     }
 
     public Callback1<UUID> getPortsWatcher(){

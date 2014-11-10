@@ -144,8 +144,9 @@ class FlowStateReplicatorTest extends FeatureSpec
     }
 
     private def sendAndAcceptTransactions(): List[(Packet, List[FlowAction])] = {
-        sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id, egressPort1.id,
-                                 null, new mutable.HashSet[FlowTag](),
+        sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
+                                 List(egressPort1.id),
+                                 new mutable.HashSet[FlowTag](),
                                  new ArrayList[Callback0])
         sender.pushState(dpConn)
         natTx.commit()
@@ -209,7 +210,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
             When("The transaction is added to the replicator")
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPortNoGroup.id,
-                                     egressPortNoGroup.id, null,
+                                     List(egressPortNoGroup.id),
                                      new mutable.HashSet[FlowTag](),
                                      new ArrayList[Callback0])
             sender.pushState(dpConn)
@@ -239,7 +240,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             When("The transaction is commited and added to the replicator")
             connTrackTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                                     egressPort1.id, null,
+                                     List(egressPort1.id),
                                      new mutable.HashSet[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
@@ -267,7 +268,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             When("The transaction is commited and added to the replicator")
             natTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, ingressPort.id,
-                egressPort1.id, null,
+                List(egressPort1.id),
                 new mutable.HashSet[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
@@ -338,7 +339,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             When("The flow replicator resolves peers for a flow's state")
             val hosts = new JHashSet[UUID]()
             val ports = new JHashSet[UUID]()
-            sender.resolvePeers(ingressPort.id, egressPort1.id, null, hosts, ports, tags)
+            sender.resolvePeers(ingressPort.id, List(egressPort1.id), hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
@@ -419,15 +420,12 @@ class TestableFlowStateReplicator(
 
     override def getPortGroup(id: UUID) = portGroups(id)
 
-    override def getPortSet(id: UUID) = null
-
     override def resolvePeers(ingressPort: UUID,
-                              egressPort: UUID,
-                              egressPortSet: UUID,
+                              egressPorts: Iterable[UUID],
                               peers: JSet[UUID],
                               ports: JSet[UUID],
                               tags: mutable.Set[FlowTag]) {
-        super.resolvePeers(ingressPort, egressPort, egressPortSet, peers, ports, tags)
+        super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
     }
 }
 

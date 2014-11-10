@@ -44,8 +44,8 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.IPv4Addr
 import org.midonet.packets.MAC
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
 import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -204,18 +204,16 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         val port1OnHost1 = newBridgePort(bridge)
         val portOnHost2 = newBridgePort(bridge)
 
+        val brPorts = List(port1OnHost1.getId, portOnHost2.getId)
+
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
-
-        // The local MM adds the local host to the PortSet. We add the remote.
-        //clusterDataClient().portSetsAddHost(bridge.getId, host1.getId)
-        clusterDataClient().portSetsAddHost(bridge.getId, host2.getId)
 
         // flows installed for tunnel key = port when the port becomes active.
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // Wait for LocalPortActive messages - they prove the
-        // VirtualToPhysicalMapper has the correct information for the PortSet.
+        // VirtualToPhysicalMapper has the correct information for the port.
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val srcIp = IPv4Addr("192.168.100.1")
@@ -247,7 +245,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         flowProbe().fishForMessage(3 seconds,"Tag")(matchATagInvalidation(tag1))
 
         addVirtualWildcardFlow(port1OnHost1.getId,
-                               FlowActionOutputToVrnPortSet(bridge.getId))
+                               FlowActionOutputToVrnBridge(bridge.getId, brPorts))
         val flow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // update the gre ip of the second host

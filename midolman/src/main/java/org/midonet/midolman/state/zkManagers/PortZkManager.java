@@ -34,6 +34,7 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
@@ -211,7 +212,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
-    public List<Op> prepareCreate(UUID id,
+    private List<Op> prepareCreate(UUID id,
             PortDirectory.BridgePortConfig config)
             throws StateAccessException, SerializationException {
 
@@ -276,6 +277,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throw new IllegalArgumentException("Unknown port type found " +
                                  ((config != null) ? config.getClass() : null));
         }
+
+        String activePath = paths.getPortActivePath(id);
+        ops.add(zk.getPersistentCreateOp(activePath, new byte[0]));
 
         return ops;
     }
@@ -463,6 +467,14 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             // try to delete the peer port again.
             cfg.setPeerId(null);
         }
+
+        String activePath = paths.getPortActivePath(cfg.id);
+        try {
+            Set<String> hosts = zk.getChildren(activePath);
+            for (String host: hosts)
+                ops.add(zk.getDeleteOp(activePath + "/" + host));
+            ops.add(zk.getDeleteOp(activePath));
+        } catch (NoStatePathException e) {}
 
         if (cfg instanceof PortDirectory.RouterPortConfig) {
             ops.addAll(
@@ -782,6 +794,18 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             return ops;
         }
 
+        String activePath = paths.getPortActivePath(id);
+        try {
+            Set<String> hosts = zk.getChildren(activePath);
+            for (String host: hosts)
+                ops.add(zk.getDeleteOp(activePath + "/" + host));
+        } catch (NoStatePathException e) {
+            // expected
+        }
+        if (zk.exists(activePath)) {
+            ops.add(zk.getDeleteOp(activePath));
+        }
+
         if (config.inboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefDelete(
                     config.inboundFilter, ResourceType.PORT, id));
@@ -884,7 +908,21 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                             PortDirectory.RouterPortConfig rpCfg) {
                         return rpCfg.portAddressEquals(gatewayIp);
                     }
-                });
+                }
+        );
+    }
+
+    public void setActivePort(UUID portId, UUID owner, boolean active) throws StateAccessException {
+        String path = paths.getPortActivePath(portId) + "/" + owner.toString();
+        if (active)
+            zk.ensureEphemeral(path, new byte[0]);
+        else
+            zk.deleteEphemeral(path);
+    }
+
+    public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
+        Set<String> children = zk.getChildren(paths.getPortActivePath(portId), watcher);
+        return children.size() > 0;
     }
 
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(

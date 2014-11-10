@@ -18,6 +18,7 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
 
@@ -31,7 +32,7 @@ import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
 
 object Coordinator {
@@ -65,7 +66,7 @@ object Coordinator {
 
     sealed trait ForwardAction extends Action
     case class ToPortAction(outPort: UUID) extends ForwardAction
-    case class ToPortSetAction(portSetID: UUID) extends ForwardAction
+    case class FloodBridgeAction(bridgeId: UUID, ports: List[UUID]) extends ForwardAction
     case class DoFlowAction(action: FlowAction) extends Action
 
     // This action is used when one simulation has to return N forward actions
@@ -220,8 +221,8 @@ class Coordinator(context: PacketContext)
                 // the merge action resulting from the other partial ones
                 results reduceLeft mergeSimulationResults
 
-            case ToPortSetAction(portSetID) =>
-                emit(portSetID, isPortSet = true, null)
+            case FloodBridgeAction(brId, ports) =>
+                floodBridge(brId, ports)
 
             case ToPortAction(outPortID) =>
                 packetEgressesPort(outPortID)
@@ -303,7 +304,7 @@ class Coordinator(context: PacketContext)
 
     /**
      * Simulate the packet egressing a virtual port. This is NOT intended
-     * for output-ing to PortSets.
+     * for flooding bridges
      */
     private def packetEgressesPort(portID: UUID): SimulationResult = {
         val port = tryAsk[Port](portID)
@@ -316,7 +317,7 @@ class Coordinator(context: PacketContext)
                 context.outPortId = p.id
                 applyPortFilter(p, p.outboundFilter, {
                     case p: Port if p.isExterior =>
-                        emit(p.id, isPortSet = false, p)
+                        emitFromPort(p)
                     case p: Port if p.isInterior =>
                         packetIngressesPort(p.peerID, getPortGroups = false)
                     case _ =>
@@ -328,33 +329,64 @@ class Coordinator(context: PacketContext)
 
     /**
      * Complete the simulation by emitting the packet from the specified
-     * virtual port or PortSet.  If the packet was internally generated
+     * virtual port.  If the packet was internally generated
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
-     * @param outputID The id of the output Port or PortSet.
-     * @param isPortSet Whether the packet is output to a port set.
-     * @param port The port to output to; unused if outputting to a port set.
      */
-    private def emit(outputID: UUID, isPortSet: Boolean,
-                     port: Port) : SimulationResult = {
+    private def emitFromPort(port: Port): SimulationResult = {
         val actions = context.actionsFromMatchDiff()
-        isPortSet match {
-            case false =>
-                log.debug("Emitting packet from vport {}", outputID)
-                actions.append(FlowActionOutputToVrnPort(outputID))
-            case true =>
-                log.debug("Emitting packet from port set {}", outputID)
-                actions.append(FlowActionOutputToVrnPortSet(outputID))
-        }
-        context.toPortSet = isPortSet
+        log.debug("Emitting packet from vport {}", port.id)
+        actions.append(FlowActionOutputToVrnPort(port.id))
+        emit(port.deviceID, actions.toList)
+    }
 
+    /**
+     * Accumulates an output action for a port in the actions array buffer if
+     * the port is exterior, active and its filter allows it
+     */
+    def applyExteriorPortFilter(portId: UUID): Boolean = {
+        val port = tryAsk[Port](portId)
+        context.addFlowTag(port.deviceTag)
+
+        if (port.isExterior && port.adminStateUp &&
+            port.active && port.id != context.inPortId) {
+
+            if (port.outboundFilter ne null) {
+                context.outPortId = portId
+                val chain = tryAsk[Chain](port.outboundFilter)
+                val result = Chain.apply(chain, context, port.id, true)
+                (result == RuleResult.Action.ACCEPT)
+            } else {
+                true
+            }
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Complete the simulation by emitting the packet from the specified
+     * list of virtual ports. If the packet was internally generated
+     * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
+     */
+    private def floodBridge(deviceId: UUID, ports: List[UUID]): SimulationResult = {
+        log.debug("Flooding bridge {}", deviceId)
+        val actions = context.actionsFromMatchDiff()
+        val filteredPorts = ports filter applyExteriorPortFilter
+        if (filteredPorts.size > 0) {
+            actions.append(FlowActionOutputToVrnBridge(deviceId, filteredPorts))
+            emit(deviceId, actions.toList)
+        } else {
+            Drop
+        }
+    }
+
+    private def emit(deviceId: UUID, actions: List[FlowAction]): SimulationResult = {
         if (context.isGenerated) {
             log.debug("SendPacket with actions {}", actions)
-            SendPacket(actions.toList)
+            SendPacket(actions)
         } else {
             log.debug("Add a flow with actions {}", actions)
-            // TODO(guillermo,pino) don't assume that portset id == bridge id
-            val dev = if (isPortSet) outputID else port.deviceID
-            context.state.trackConnection(dev)
+            context.state.trackConnection(deviceId)
 
             var hardExp = 0
             var idleExp = 0
@@ -365,7 +397,7 @@ class Coordinator(context: PacketContext)
 
             virtualWildcardFlowResult(WildcardFlow(
                 wcmatch = context.origMatch,
-                actions = actions.toList,
+                actions = actions,
                 idleExpirationMillis = idleExp,
                 hardExpirationMillis = hardExp))
         }

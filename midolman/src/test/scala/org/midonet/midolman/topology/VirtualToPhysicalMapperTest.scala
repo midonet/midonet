@@ -28,7 +28,6 @@ import org.midonet.cluster.data.TunnelZone
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.midolman.topology.rcu.PortSet
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.IPv4Addr
@@ -106,28 +105,6 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec {
             subscriber.getAndClear() should be (List(
                 ZoneChanged(zone.getId, zone.getType, other,
                                HostConfigOperation.Added)))
-        }
-    }
-
-    feature("VirtualToPhysicalMapper resolves port sets.") {
-        scenario("Subscribe to a port set") {
-            val host = newHost("myself", hostId())
-            val bridge = newBridge("portSetBridge")
-            val localPort = newBridgePort(
-                    bridge, new BridgePort().setHostId(host.getId))
-            val remoteHost = UUID.randomUUID()
-            newBridgePort(bridge, new BridgePort().setHostId(remoteHost))
-            fetchTopology(bridge, localPort)
-            VirtualToPhysicalMapper ! LocalPortActive(localPort.getId,
-                                                      active = true)
-            clusterDataClient().portSetsAddHost(bridge.getId, remoteHost)
-
-            val subscriber = subscribe(PortSetRequest(bridge.getId,
-                                                      update = false))
-            subscriber.getAndClear() should be (List(
-                    PortSet(bridge.getId,
-                            Set(remoteHost),
-                            Set(localPort.getId))))
         }
     }
 }

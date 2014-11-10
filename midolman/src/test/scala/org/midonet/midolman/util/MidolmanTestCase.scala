@@ -274,6 +274,8 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             clusterDataClient()
                 .hostsAddVrnPortMappingAndReturnPort(host.getId, port.getId, name)
 
+        clusterDataClient().portsSetLocalAndActive(port.getId, host.getId, true)
+
         if (host.getId == hostId()) {
             val itf = new InterfaceDescription(name)
             itf.setHasLink(true)

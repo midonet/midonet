@@ -137,43 +137,15 @@ A port is deleted -> invalidate all the flows tagged with this port number
 
 Tagging and invalidation performed in DatapathController
 
-#### PortSet
-
-A new port is added in the PortSet:
-
-
-        1) port is local -> invalidate all the flows related to the PortSet. We
-                            need to re-compute all the flows to include this port
-
-        2) port is NOT local and it's on an host that has already a port
-           in the same PortSet ->
-           do nothing, the flow to send broadcast packets to the tunnel to that
-           host is already in place
-        3) port is NOT local and it's the first port belonging to the PortSet on
-           that host ->
-           invalidate all the flows related to the PortSet
-
-A port is deleted -> do nothing, the DatapathController will take care of that.
-                     DP tags every flow using inPort and outPort number,
-                     when a port gets deleted it will invalidate all the flows
-                     tagged by that port number, hitting also the PortSet related
-                     flows. A portSet is expanded into several output action
-                     including the local ports in the set and the tunnel port to
-                     the hosts that have ports belonging to the portSet. To PortSet
-                     related flows the DP attaches a tag for each local port and
-                     a tag for each tunnel port. The deletion of a local port
-                     will cause the flowCount to go to 0 (since all flow from
-                     that port get deleted), so that the MAC entry for that
-                     port is removed and also remote hosts get notified of
-                     this port's deletion.
-
-Tagging in Bridge.scala
-Invalidation in VirtualToPhysicalMapper
-
 #### Bridge
 Every bridge will tag every packet it sees using its bridge id.
 
 Configuration change -> invalidate all flows tagged with this bridge id
+
+Change in the list of exterior ports -> invalidate all flows that were flooding the bridge.
+
+Additionally, bridge-flooding flows get tagged with every port they send to, making them
+react to changes in the list of ports or in the contents of any individual port.
 
 ##### Exterior ports
 React to the changes in the MAC learning table
@@ -200,7 +172,7 @@ Cases:
     1) unicast packet for the L2 network, tag = bridgeId, MAC destination,
         port destination id
 
-    2) broadcast packet, tag = bridge ID, portSet ID
+    2) broadcast packet, tag = bridge ID
 
     3) a packet for a logical port, tag = bridge ID, port ID
 
@@ -261,7 +233,6 @@ be directed to that PoolMember.
 ##### Tagging by DatapathController
 - ingress port's short-port-number on every flow
 - egress port's short-port-number of any flow that is emitted from a virtual port.
-  More than one of these tags if the flow is emitted from a PortSet
 
 ##### Tagging by Coordinator:
 - gives every flow one tag (consisting of the vport UUID) for every vport the
@@ -273,7 +244,7 @@ be directed to that PoolMember.
 - gives every flow a tag consisting of its own ID
 - gives every flow forwarded to a single port (interior or exterior) a tag
   consisting of the tuple (bridge ID, port ID, dst MAC, dst VLAN)
-- gives every broadcast flow a tag consisting of the tuple (bridge ID, portSet ID)
+- gives every broadcast flow a tag consisting the bridge id.
 - gives every flow forwarded to a logical port a tag consisting of a tuple
   (bridge ID, port ID) where port ID is the ID of the logical port on the bridge
 - gives every flow flooded a tag (bridge ID, dst MAC, DST VLAN ID) where MAC is the
@@ -309,10 +280,6 @@ Invalidation is triggered by:
 Invalidation is triggered by:
 - changes in the configuration
 - changes in the RoutingTable
-
-#### VirtualToPhysicalMapper
-Invalidation is triggered by:
-- changes in the PortSet
 
 #### PortManager
 Invalidation is triggered by:
