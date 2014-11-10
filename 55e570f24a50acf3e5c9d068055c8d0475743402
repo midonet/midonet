@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_6eb585ed",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-10T07:58:12Z",
+      "side": 1,
+      "message": "Is this going to be a top-level entity? If so, then it\u0027ll need a reference to a Host, and we can get rid of port_interface_mapping from Host. If not, then HostInterfacePort won\u0027t need \u0027id\u0027 and we can make this a nested message inside Host.",
+      "revId": "55e570f24a50acf3e5c9d068055c8d0475743402",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
