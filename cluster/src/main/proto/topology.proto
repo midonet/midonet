@@ -240,7 +240,12 @@ message TunnelZone {
         VTEP = 3;
     }
     optional Type type = 3;
-    repeated UUID host_ids = 4; // Hosts in this zone
+    repeated HostToIp hosts = 4; // Hosts in this zone
+}
+
+message HostToIp {
+    optional UUID host_id = 1;
+    optional IPAddress ip = 2;
 }
 
 message Vtep {
