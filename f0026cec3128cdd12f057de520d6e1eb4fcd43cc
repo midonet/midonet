@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_dc03b3b6",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorageTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-10T16:46:24Z",
+      "side": 1,
+      "message": "The tests in this class can be consolidated with the ones from ZookeeperObjectMapperTest and ZookeeperObjectMapperTests. I shall do that in a future patch-set.",
+      "revId": "f0026cec3128cdd12f057de520d6e1eb4fcd43cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
