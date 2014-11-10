@@ -16,6 +16,24 @@
       "revId": "0b6d98452b9909e7fb9a73360ebf70cf77769b1e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8e23c104",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-10T09:41:20Z",
+      "side": 1,
+      "message": "This Integer is java.lang.Integer. I want it to avoid unnecessary boxing and unboxing.",
+      "parentUuid": "7a6b29fe_eef195ce",
+      "revId": "0b6d98452b9909e7fb9a73360ebf70cf77769b1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
