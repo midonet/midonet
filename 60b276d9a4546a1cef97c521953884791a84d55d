@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_bc7eb7ac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-10T19:04:42Z",
+      "side": 1,
+      "message": "This can be prettified if we\u0027re not being mindful of garbage because this is a rare operation; otherwise, this can be greener with ArrayLists! :p",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_5c45e36e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-10T19:04:42Z",
+      "side": 1,
+      "message": "we can drop this case and let the code fall through. this is more or less what will happen if the tunnel key doesn\u0027t map to any VNI.",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_5c3cc3e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-10T19:04:42Z",
+      "side": 1,
+      "message": "this append takes a varargs array to then call appendAll, so there\u0027s an instantiation right here. appendAll then uses a foreach. i would like us to avoid scala collections like the plague they are",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_fc366f02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 362,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-10T19:04:42Z",
+      "side": 1,
+      "message": "I don\u0027t like this very much. It seems this can be done during the simulation or during flow translation.",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
