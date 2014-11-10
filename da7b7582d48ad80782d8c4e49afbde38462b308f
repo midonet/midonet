@@ -22,6 +22,30 @@
       "revId": "da7b7582d48ad80782d8c4e49afbde38462b308f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_f1c85876",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-10T13:52:53Z",
+      "side": 1,
+      "message": "According to the docs, it\u0027s ok for both (see below). I did add it to the start, but for some reason seem to have mixed up patches :/ I\u0027ll fix this.\n\nhttp://docs.guava-libraries.googlecode.com/git/javadoc/com/google/common/util/concurrent/AbstractService.html#notifyFailed(java.lang.Throwable)",
+      "parentUuid": "7a6b29fe_ce55b91e",
+      "range": {
+        "startLine": 73,
+        "startChar": 24,
+        "endLine": 73,
+        "endChar": 36
+      },
+      "revId": "da7b7582d48ad80782d8c4e49afbde38462b308f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
