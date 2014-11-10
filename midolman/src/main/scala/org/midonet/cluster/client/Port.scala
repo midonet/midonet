@@ -36,6 +36,7 @@ sealed trait Port {
     var peerID: UUID = _
     var vlanId: Short = _
     var deviceTag: FlowTag = _
+    var active = false
 
     def isExterior: Boolean = this.hostID != null && this.interfaceName != null
 
@@ -78,6 +79,10 @@ sealed trait Port {
         this
     }
 
+    def setActive(active: Boolean): this.type = {
+        this.active = active
+        this
+    }
 
     def setVlanId(id: Short): this.type = {
         this.vlanId = id

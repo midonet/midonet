@@ -35,8 +35,6 @@ import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
                                       VirtualToPhysicalMapper => VTPM}
-import org.midonet.midolman.topology.rcu.PortSet
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.PortSetRequest
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
@@ -108,7 +106,6 @@ abstract class BaseFlowStateReplicator() {
     protected def log: Logger
     protected def invalidateFlowsFor: (FlowStateKey) => Unit
     protected def getPort(id: UUID): Port
-    protected def getPortSet(id: UUID): PortSet
     protected def getPortGroup(id: UUID): PortGroup
 
     /* Used for message building */
@@ -215,10 +212,7 @@ abstract class BaseFlowStateReplicator() {
      *                    from.
      * @param ingressPort Ingress port id for the packet that originated the new
      *                    keys.
-     * @param egressPort The egress port id, or null if the packet egressed a
-     *                   port set.
-     * @param egressPortSet The egress port set id, or null if the packet
-     *                      egressed an unicast port.
+     * @param egressPorts The egress ports ids
      * @param tags A mutable set to collect tags that will invalidate the
      *             soon-to-be-installed flow. The caller is responsible
      *             for tagging the flow.
@@ -232,13 +226,13 @@ abstract class BaseFlowStateReplicator() {
     @throws(classOf[NotYetException])
     def accumulateNewKeys(conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue],
                           natTx: FlowStateTransaction[NatKey, NatBinding],
-                          ingressPort: UUID, egressPort: UUID,
-                          egressPortSet: UUID, tags: mutable.Set[FlowTag],
+                          ingressPort: UUID, egressPorts: JList[UUID],
+                          tags: mutable.Set[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = {
         if (natTx.size() == 0 && conntrackTx.size() == 0)
             return
 
-        resolvePeers(ingressPort, egressPort, egressPortSet, txPeers, txPorts, tags)
+        resolvePeers(ingressPort, egressPorts, txPeers, txPorts, tags)
         val hasPeers = !txPeers.isEmpty
 
         if (hasPeers) {
@@ -251,17 +245,12 @@ abstract class BaseFlowStateReplicator() {
         natTx.fold(callbacks, _natAdder)
 
         if (hasPeers)
-            buildMessage(ingressPort, egressPort, egressPortSet)
+            buildMessage(ingressPort)
     }
 
-    def buildMessage(ingressPort: UUID, egressPort: UUID, egressPortSet: UUID): Unit =
+    def buildMessage(ingressPort: UUID): Unit =
         if (txState.hasConntrackKey || txState.getNatEntriesCount > 0) {
             txState.setIngressPort(uuidToProto(ingressPort))
-            if (egressPort != null)
-                txState.setEgressPort(uuidToProto(egressPort))
-            else if (egressPortSet != null)
-                txState.setEgressPortSet(uuidToProto(egressPortSet))
-
             currentMessage.addNewState(txState.build())
             pendingMessages.add((txPeers, currentMessage.build()))
         }
@@ -390,31 +379,19 @@ abstract class BaseFlowStateReplicator() {
     }
 
     @throws(classOf[NotYetException])
-    private def collectPeersForPortSet(psetId: UUID, hosts: JSet[UUID],
-                                       tags: mutable.Set[FlowTag]) {
-        /* FIXME(guillermo) - this is not checking port groups, but it should
-         * be enough because the port set contains all ports in the egress
-         * device */
-        val portSet = getPortSet(psetId)
-        portSet.hosts foreach hosts.add
-        tags.add(FlowTagger.tagForBroadcast(psetId, psetId))
-    }
-
-    @throws(classOf[NotYetException])
     protected def resolvePeers(ingressPort: UUID,
-                               egressPort: UUID,
-                               egressPortSet: UUID,
+                               egressPorts: JList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
                                tags: mutable.Set[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
         collectPeersForPort(ingressPort, hosts, ports, tags)
-        if (egressPort != null) {
-            ports.add(egressPort)
-            collectPeersForPort(egressPort, hosts, ports, tags)
-        } else if (egressPortSet != null) {
-            collectPeersForPortSet(egressPortSet, hosts, tags)
+        val portsIt = egressPorts.iterator
+        while (portsIt.hasNext) {
+            val port = portsIt.next()
+            ports.add(port)
+            collectPeersForPort(port, hosts, ports, tags)
         }
 
         log.debug("Resolved peers {}", hosts)
@@ -437,7 +414,4 @@ class FlowStateReplicator(
 
     @throws(classOf[NotYetException])
     override def getPortGroup(id: UUID) = VTA.tryAsk[PortGroup](id)
-
-    @throws(classOf[NotYetException])
-    override def getPortSet(id: UUID) = VTPM.tryAsk(PortSetRequest(id))
 }

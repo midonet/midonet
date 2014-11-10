@@ -75,7 +75,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
 
     private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
         val port = spec.newBridgePort(br)
-        spec.clusterDataClient().portsSetLocalAndActive(port.getId, true)
+        spec.clusterDataClient().portsSetLocalAndActive(port.getId, spec.hostId(), true)
         port
     }
 

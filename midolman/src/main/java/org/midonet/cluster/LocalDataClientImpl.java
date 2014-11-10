@@ -123,7 +123,6 @@ import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHeal
 import org.midonet.midolman.state.zkManagers.PoolMemberZkManager;
 import org.midonet.midolman.state.zkManagers.PoolZkManager;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.state.zkManagers.RouteZkManager;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -209,9 +208,6 @@ public class LocalDataClientImpl implements DataClient {
 
     @Inject
     private TunnelZoneZkManager zonesZkManager;
-
-    @Inject
-    private PortSetZkManager portSetZkManager;
 
     @Inject
     private ZkManager zkManager;
@@ -885,6 +881,7 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void portsSetLocalAndActive(final UUID portID,
+                                       final UUID host,
                                        final boolean active) {
         // use the reactor thread for this operations
         reactor.submit(new Runnable() {
@@ -894,6 +891,7 @@ public class LocalDataClientImpl implements DataClient {
                 PortConfig config = null;
                 try {
                     config = portZkManager.get(portID);
+                    portZkManager.setActivePort(portID, host, active);
                 } catch (StateAccessException e) {
                     log.error("Error retrieving the configuration for port {}",
                             portID, e);
@@ -3041,36 +3039,6 @@ public class LocalDataClientImpl implements DataClient {
         return rules;
     }
 
-    @Override
-    public void portSetsAsyncAddHost(@Nonnull UUID portSetId, @Nonnull UUID hostId,
-                                     DirectoryCallback.Add callback) {
-        portSetZkManager.addMemberAsync(portSetId, hostId, callback);
-    }
-
-    @Override
-    public void portSetsAddHost(@Nonnull UUID portSetId, @Nonnull UUID hostId)
-        throws StateAccessException {
-        portSetZkManager.addMember(portSetId, hostId);
-    }
-
-    @Override
-    public void portSetsAsyncDelHost(UUID portSetId, UUID hostId,
-                                     DirectoryCallback.Void callback) {
-        portSetZkManager.delMemberAsync(portSetId, hostId, callback);
-    }
-
-    @Override
-    public void portSetsDelHost(UUID portSetId, UUID hostId)
-        throws StateAccessException {
-        portSetZkManager.delMember(portSetId, hostId);
-    }
-
-    @Override
-    public Set<UUID> portSetsGet(UUID portSetId)
-            throws SerializationException, StateAccessException {
-        return portSetZkManager.getPortSet(portSetId, null);
-    }
-
     /**
      * Gets all the tenants stored in the data store.
      *
@@ -3470,7 +3438,8 @@ public class LocalDataClientImpl implements DataClient {
         // Delete the port.
         VxLanPortConfig portConfig =
                 (VxLanPortConfig)portZkManager.get(vxLanPortId);
-        ops.addAll(portZkManager.prepareDelete(vxLanPortId, portConfig));
+
+        ops.addAll(portZkManager.prepareDelete(vxLanPortId));
 
         // Delete its bindings in Zookeeper.
         ops.addAll(vtepZkManager.prepareDeleteAllBindings(
@@ -3501,7 +3470,11 @@ public class LocalDataClientImpl implements DataClient {
     @Override
     public boolean portWatch(UUID portId, Directory.TypedWatcher typedWatcher)
         throws StateAccessException, SerializationException {
-        return null != portZkManager.get(portId, typedWatcher);
+        try {
+            return null != portZkManager.get(portId, typedWatcher);
+        } catch (NoStatePathException e) {
+            return false;
+        }
     }
 
     @Override

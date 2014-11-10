@@ -414,7 +414,6 @@ class DeduplicationActor(
             case NotYetException(f, msg) =>
                 log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
-            case org.midonet.midolman.simulation.FixPortSets => drop(pktCtx)
             case ex: Exception => handleErrorOn(pktCtx, ex)
         } finally {
             flushTransactions()
