@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "7a6b29fe_2ebd4d69",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApi.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-10T11:05:03Z",
+      "side": 1,
+      "message": "Maybe it\u0027s better \u0027ackWith\u0027, for consistency with the other methods, and adding a note on the fact that the session termination cannot be denied.",
+      "range": {
+        "startLine": 27,
+        "startChar": 18,
+        "endLine": 27,
+        "endChar": 26
+      },
+      "revId": "4746eef293a58d1180960a2be804a04ec5c28be0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cb180e87",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApi.scala",
         "patchSetId": 2
