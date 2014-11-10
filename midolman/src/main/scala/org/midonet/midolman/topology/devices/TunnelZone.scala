@@ -18,9 +18,12 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import scala.collection.mutable
+
 import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
+import org.midonet.midolman.topology.VirtualTopology.Device
 
 import org.midonet.packets.IPAddr
 import org.midonet.sdn.flows.FlowTagger
@@ -28,7 +31,7 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 
 @ZoomClass(clazz = classOf[Topology.TunnelZone])
-class TunnelZone extends ZoomObject {
+class TunnelZone extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -43,7 +46,7 @@ class TunnelZone extends ZoomObject {
      * This information is not present in the corresponding proto
      * but will rather be filled in by the TunnelZoneManager.
      */
-    var IPs: Set[IPAddr] = _
+    var IPs: mutable.Set[IPAddr] = mutable.Set()
 
     private var _deviceTag: FlowTag = _
 
