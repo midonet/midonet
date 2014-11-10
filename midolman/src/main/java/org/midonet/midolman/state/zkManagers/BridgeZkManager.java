@@ -193,8 +193,7 @@ public class BridgeZkManager
                 paths.getBridgeMacPortsPath(id, Bridge.UNTAGGED_VLAN_ID),
                 paths.getBridgeIP4MacMapPath(id),
                 paths.getBridgeTagsPath(id),
-                paths.getBridgeVlansPath(id),
-                paths.getPortSetPath(id)));
+                paths.getBridgeVlansPath(id)));
 
         // Update TunnelKey to reference the bridge.
         TunnelZkManager.TunnelKey tunnelKey = new TunnelZkManager.TunnelKey(id);
@@ -330,9 +329,6 @@ public class BridgeZkManager
 
         // Delete GRE
         ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
-
-        // Delete this bridge's port-set
-        ops.addAll(zk.getRecursiveDeleteOps(paths.getPortSetPath(id)));
 
         // Delete the bridge
         ops.add(Op.delete(paths.getBridgePath(id), -1));

@@ -75,8 +75,8 @@ FlowController should already have a flow that matches that packet and emits
 it via the appropriate local datapath port.
 
 If the FlowController does not contain such a wilcard flow, the packet is assumed
-to belong to be flooding a bridge (or PortSet), and a look up is made to see
-which bridge corresponds to the tunnel key and which local ports belong to it.
+to belong to be flooding a bridge, and a look up is made to see which bridge
+corresponds to the tunnel key and which local ports belong to it.
 
 When the VirtualToPhysicalMapper notifies that a virtual port should no longer
 be local (or when the corresponding local network interface goes down), the DPC

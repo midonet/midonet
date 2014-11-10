@@ -113,7 +113,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     def benchmarkConntrack(holder: PacketHolder, bh: Blackhole): Unit = {
         bh.consume(sendPacket(leftPort -> holder.packet))
         replicator.accumulateNewKeys(conntrackTx, natTx, leftPort.getId,
-                                     rightPort.getId, null, mutable.Set(),
+                                     List(rightPort.getId), mutable.Set(),
                                      new ArrayList())
         conntrackTx.commit()
         conntrackTx.flush()

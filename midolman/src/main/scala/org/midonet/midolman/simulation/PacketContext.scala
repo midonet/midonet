@@ -71,7 +71,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     var inPortId: UUID = _
     var outPortId: UUID = _
-    var toPortSet: Boolean = _
+    val outPorts = new ArrayList[UUID]()
 
     val wcmatch = origMatch.clone()
 

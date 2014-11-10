@@ -77,7 +77,6 @@ message Response {
             Router router = 2;
             Port port = 3;
             PortGroup port_group = 4;
-            PortSet port_set = 5;
             Route route = 6;
             Rule rule = 7;
             TunnelZone tunnel_zone = 8;

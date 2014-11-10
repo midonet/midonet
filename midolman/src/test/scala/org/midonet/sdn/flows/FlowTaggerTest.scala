@@ -75,7 +75,7 @@ class FlowTaggerTest extends FeatureSpecLike
             () => tagForArpRequests(uuid),
             () => tagForVlanPort(uuid, mac, short, uuid),
             () => tagForTunnelRoute(int, int),
-            () => tagForBroadcast(uuid, uuid),
+            () => tagForBroadcast(uuid),
             () => tagForBridgePort(uuid, uuid),
             () => tagForDpPort(int),
             () => tagForTunnelKey(int),

@@ -24,7 +24,6 @@ import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,6 @@ import org.midonet.cluster.client.PoolBuilder;
 import org.midonet.cluster.client.PoolHealthMonitorMapBuilder;
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.cluster.client.PortGroupBuilder;
-import org.midonet.cluster.client.PortSetBuilder;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.TunnelZones;
 import org.midonet.cluster.data.TunnelZone;
@@ -47,11 +45,9 @@ import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkConnectionAwareWatcher;
 import org.midonet.midolman.state.ZkDirectory;
-import org.midonet.midolman.state.zkManagers.PortSetZkManager;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
 import org.midonet.util.eventloop.Reactor;
 
@@ -97,9 +93,6 @@ public class LocalClientImpl implements Client {
 
     @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
-
-    @Inject
-    PortSetZkManager portSetZkManager;
 
     @Inject
     ClusterRouterManager routerManager;
@@ -214,45 +207,6 @@ public class LocalClientImpl implements Client {
                 }
             }
         });
-    }
-
-    @Override
-    public void getPortSet(final UUID uuid, final PortSetBuilder builder) {
-        portSetZkManager.getPortSetAsync(
-                uuid,
-                new DirectoryCallback<Set<UUID>>() {
-                    @Override
-                    public void onSuccess(Set<UUID> uuidSet) {
-                        builder.setHosts(uuidSet).build();
-                    }
-
-                    @Override
-                    public void onTimeout() {
-                        connectionWatcher.handleTimeout(makeRetry());
-                    }
-
-                    @Override
-                    public void onError(KeeperException e) {
-                        connectionWatcher.handleError(
-                                "PortSet:" + uuid, makeRetry(), e);
-                    }
-
-                    private Runnable makeRetry() {
-                        return new Runnable() {
-                            @Override
-                            public void run() {
-                                getPortSet(uuid, builder);
-                            }
-                        };
-                    }
-                },
-                new Directory.DefaultTypedWatcher() {
-                    @Override
-                    public void pathChildrenUpdated(String path) {
-                        getPortSet(uuid, builder);
-                    }
-                }
-        );
     }
 
     @Override

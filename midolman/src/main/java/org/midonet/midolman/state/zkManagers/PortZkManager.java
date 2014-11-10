@@ -34,6 +34,7 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory;
@@ -211,7 +212,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
-    public List<Op> prepareCreate(UUID id,
+    private List<Op> prepareCreate(UUID id,
             PortDirectory.BridgePortConfig config)
             throws StateAccessException, SerializationException {
 
@@ -276,6 +277,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             throw new IllegalArgumentException("Unknown port type found " +
                                  ((config != null) ? config.getClass() : null));
         }
+
+        String activePath = paths.getPortActivePath(id);
+        ops.add(zk.getPersistentCreateOp(activePath, new byte[0]));
 
         return ops;
     }
@@ -464,13 +468,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             cfg.setPeerId(null);
         }
 
-        if (cfg instanceof PortDirectory.RouterPortConfig) {
-            ops.addAll(
-                    prepareDelete(cfg.id,(PortDirectory.RouterPortConfig) cfg));
-        } else {
-            ops.addAll(
-                    prepareDelete(cfg.id,(PortDirectory.BridgePortConfig) cfg));
-        }
+        ops.addAll(prepareDelete(cfg.id, cfg));
     }
 
     public void prepareDelete(List<Op> ops,
@@ -689,15 +687,45 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
     public List<Op> prepareDelete(UUID id, PortConfig config)
             throws SerializationException, StateAccessException {
+        List<Op> ops = new ArrayList<Op>();
+
+        String activePath = paths.getPortActivePath(id);
+        try {
+            Set<String> hosts = zk.getChildren(activePath);
+            for (String host: hosts)
+                ops.add(zk.getDeleteOp(activePath + "/" + host));
+        } catch (NoStatePathException e) {
+            // expected
+        }
+        if (zk.exists(activePath)) {
+            ops.add(zk.getDeleteOp(activePath));
+        }
+
+        if (config.inboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.inboundFilter, ResourceType.PORT, id));
+        }
+        if (config.outboundFilter != null) {
+            ops.addAll(chainZkManager.prepareChainBackRefDelete(
+                    config.outboundFilter, ResourceType.PORT, id));
+        }
 
         if (config instanceof PortDirectory.RouterPortConfig) {
-            return prepareDelete(id, (PortDirectory.RouterPortConfig) config);
+            ops.addAll(prepareDelete(id,
+                    (PortDirectory.RouterPortConfig) config));
+        } else if (config instanceof PortDirectory.BridgePortConfig) {
+            ops.addAll(prepareDelete(id,
+                    (PortDirectory.BridgePortConfig) config));
+        } else if (config instanceof PortDirectory.VxLanPortConfig) {
+            ops.addAll(prepareDelete(id,
+                    (PortDirectory.VxLanPortConfig) config));
         } else {
-            return prepareDelete(id, (PortDirectory.BridgePortConfig) config);
+            throw new IllegalArgumentException("Unknown port type found.");
         }
+        return ops;
     }
 
-    public List<Op> prepareDelete(UUID id,
+    private List<Op> prepareDelete(UUID id,
         PortDirectory.RouterPortConfig config)
         throws StateAccessException, SerializationException {
 
@@ -726,7 +754,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id, PortDirectory.VxLanPortConfig cfg)
+    private List<Op> prepareDelete(UUID id, PortDirectory.VxLanPortConfig cfg)
         throws StateAccessException, SerializationException
     {
         List<Op> ops = new ArrayList<>();
@@ -741,13 +769,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return ops;
     }
 
-    public List<Op> prepareDelete(UUID id,
+    private List<Op> prepareDelete(UUID id,
         PortDirectory.BridgePortConfig config)
         throws StateAccessException, SerializationException {
 
         List<Op> ops = new ArrayList<>();
 
-        if(config.isExterior()) {
+        if (config.isExterior()) {
             // Remove the reference from the port interface mapping
             String path = paths.getHostVrnPortMappingPath(
                     config.getHostId(), id);
@@ -756,11 +784,11 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             ops.addAll(prepareUnlink(id));
         }
 
-        if(config.getVlanId() != null) {
+        if (config.getVlanId() != null) {
             ops.addAll(prepareBridgeVlanDelete(config.device_id,
                 config.getVlanId(), config));
         }
-        if(config.tunnelKey != 0) {
+        if (config.tunnelKey != 0) {
             ops.addAll(tunnelZkManager.prepareTunnelDelete(config.tunnelKey));
         }
 
@@ -782,32 +810,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
             return ops;
         }
 
-        if (config.inboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefDelete(
-                    config.inboundFilter, ResourceType.PORT, id));
-        }
-        if (config.outboundFilter != null) {
-            ops.addAll(chainZkManager.prepareChainBackRefDelete(
-                    config.outboundFilter, ResourceType.PORT, id));
-        }
-
-        // TODO: Find a way to not use instanceof here. Perhaps we should
-        // create an Op collection builder class for Port that PortDirectory
-        // class takes in as a member. Then we can invoke:
-        // portDirectory.prepareDeleteOps();
-        if (config instanceof PortDirectory.RouterPortConfig) {
-            ops.addAll(prepareDelete(id,
-                    (PortDirectory.RouterPortConfig) config));
-        } else if (config instanceof PortDirectory.BridgePortConfig) {
-            ops.addAll(prepareDelete(id,
-                    (PortDirectory.BridgePortConfig) config));
-        } else if (config instanceof PortDirectory.VxLanPortConfig) {
-            ops.addAll(prepareDelete(id,
-                                     (PortDirectory.VxLanPortConfig) config));
-        } else {
-            throw new IllegalArgumentException("Unknown port type found.");
-        }
-
+        ops.addAll(prepareDelete(id, config));
         return ops;
     }
 
@@ -884,7 +887,27 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
                             PortDirectory.RouterPortConfig rpCfg) {
                         return rpCfg.portAddressEquals(gatewayIp);
                     }
-                });
+                }
+        );
+    }
+
+    public void setActivePort(UUID portId, UUID owner, boolean active) throws StateAccessException {
+        String path = paths.getPortActivePath(portId) + "/" + owner.toString();
+
+        // NOTE(guillermo): creating this path here ensures backwards
+        // compatibility for ports that were created without an 'active' subnode.
+        if (active && !zk.exists(path))
+            zk.addPersistent(path, new byte[0]);
+
+        if (active)
+            zk.ensureEphemeral(path, new byte[0]);
+        else
+            zk.deleteEphemeral(path);
+    }
+
+    public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
+        Set<String> children = zk.getChildren(paths.getPortActivePath(portId), watcher);
+        return children.size() > 0;
     }
 
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(

@@ -63,7 +63,8 @@ object BridgeManager {
                              ipToMac: ROMap[IPAddr, MAC],
                              vlanBridgePeerPortId: Option[UUID],
                              exteriorVxlanPortId: Option[UUID],
-                             vlanPortMap: VlanPortMap)
+                             vlanPortMap: VlanPortMap,
+                             exteriorPorts: List[UUID])
 
     case class CheckExpiredMacPorts()
 
@@ -133,6 +134,8 @@ class BridgeManager(id: UUID, val clusterClient: Client,
     private val learningMgr = new MacLearningManager(
         log, config.getMacPortMappingExpireMillis millis)
 
+    private var exteriorPorts: List[UUID] = List.empty
+
     private var vlanToPort: VlanPortMap = null
 
     def topologyReady() {
@@ -141,7 +144,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             if (config.getMidolmanBridgeArpEnabled) ip4MacMap else null,
             flowCounts, Option(cfg.inboundFilter), Option(cfg.outboundFilter),
             vlanBridgePeerPortId, exteriorVxlanPortId, flowRemovedCallback,
-            macToLogicalPortId, rtrIpToMac, vlanToPort)
+            macToLogicalPortId, rtrIpToMac, vlanToPort, exteriorPorts)
 
         VirtualTopologyActor ! bridge
         if (changed) {
@@ -168,7 +171,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
         case TriggerUpdate(newCfg, vlanMacTableMap, newIp4MacMap,
                            newMacToLogicalPortId, newRtrIpToMac,
                            newVlanBridgePeerPortId, newExteriorVxlanPortId,
-                           newVlanToPortMap) =>
+                           newVlanToPortMap, newExteriorPorts) =>
             log.debug("Received a Bridge update from the data store.")
 
             if (newCfg != cfg && cfg != null)
@@ -182,8 +185,11 @@ class BridgeManager(id: UUID, val clusterClient: Client,
             vlanBridgePeerPortId = newVlanBridgePeerPortId
             exteriorVxlanPortId = newExteriorVxlanPortId
             vlanToPort = newVlanToPortMap
+            exteriorPorts = newExteriorPorts
             // Notify that the update finished
             prefetchTopology()
+
+        case invalidation: InvalidateFlowsByTag => FlowController ! invalidation
     }
 
     private class MacFlowCountImpl extends MacFlowCount {
