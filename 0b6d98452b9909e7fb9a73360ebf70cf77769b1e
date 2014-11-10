@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_eef195ce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-10T07:58:07Z",
+      "side": 1,
+      "message": "What is this Integer here? Int is better than Integer if this is a Scala\u0027s Integer. If it meant to be Java Integer, it should be JInteger.\nhttp://stackoverflow.com/questions/1269170/what-is-are-differences-between-int-and-integer-in-scala#answer-1271990",
+      "revId": "0b6d98452b9909e7fb9a73360ebf70cf77769b1e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
