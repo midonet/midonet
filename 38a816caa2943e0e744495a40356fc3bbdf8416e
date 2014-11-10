@@ -46,6 +46,30 @@
       "revId": "38a816caa2943e0e744495a40356fc3bbdf8416e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_8e7461d0",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-10T11:11:31Z",
+      "side": 1,
+      "message": "I think we can leave that decision to a further iteration (but if startAsync().awaitRunning() may throw an exception (via notifyFailed), then we should catch it to allow the rest of the minions to be started).",
+      "parentUuid": "7a6b29fe_6bee1aee",
+      "range": {
+        "startLine": 41,
+        "startChar": 20,
+        "endLine": 42,
+        "endChar": 68
+      },
+      "revId": "38a816caa2943e0e744495a40356fc3bbdf8416e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
