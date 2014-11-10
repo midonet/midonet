@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_ce55b91e",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/Daemon.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-11-10T11:19:39Z",
+      "side": 1,
+      "message": "I may be wrong, but I think that notifyFailed is meant to be used in start rather than stop (In anycase, we should catch the exceptions during the start, also)",
+      "range": {
+        "startLine": 73,
+        "startChar": 24,
+        "endLine": 73,
+        "endChar": 36
+      },
+      "revId": "da7b7582d48ad80782d8c4e49afbde38462b308f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
