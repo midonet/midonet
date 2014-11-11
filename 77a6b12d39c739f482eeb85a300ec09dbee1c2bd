@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a6b29fe_6fc73c46",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "Why not sticking to a single set of terms: either external/internal or high/low-level models. \nAlso, extenal -\u003e external",
+      "range": {
+        "startLine": 10,
+        "startChar": 56,
+        "endLine": 10,
+        "endChar": 69
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_afaaf46d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "Above you speak about high and low-level models. Why not keeping the same terminology?",
+      "range": {
+        "startLine": 106,
+        "startChar": 3,
+        "endLine": 107,
+        "endChar": 80
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_0fb7a8d9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "why not sticking with one set of terms: either internal/external models or high/low-level models.",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 32,
+        "endChar": 46
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_6fce1c5c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "I guess this set of operations should also update some kind of bookmark to remember what was the last operation performed on the storage in case of leader changes.",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 23
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_4fe880b4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "We should probably not have commented code like this if it\u0027s gonna go to a public repo. I feel it gives a bad impression.",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 12
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_cfdbf019",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T14:34:19Z",
+      "side": 1,
+      "message": "No handling of update and delete?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 25
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
