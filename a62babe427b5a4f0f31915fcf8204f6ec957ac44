@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "3a65312a_17041614",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-11T23:08:16Z",
+      "side": 1,
+      "message": "I\u0027ve worked a bit on the converter issue, and I think that a more generic way is the following.\n\n    protected[data] class MapConverter(keyConverter: Converter[_,_],\n                                       valueConverter: Converter[_,_])\n        extends Converter[Map[_,_], JList[_]] {\n\n        override def toProto(value: Map[_,_], clazz: Type): JList[_] \u003d clazz match {\n            case generic: ParameterizedType\n                if generic.getRawType.equals(classOf[Map[_,_]]) \u003d\u003e\n                val valueClass \u003d generic.getActualTypeArguments()(1)\n                value.values\n                     .map(el \u003d\u003e valueConverter.to(el, valueClass)).toList.asJava\n            case _ \u003d\u003e throw new ConvertException(\n                s\"Map converter cannot convert $clazz to Protocol Buffers\")\n        }\n\n        override def fromProto(value: JList[_], clazz: Type): Map[_,_] \u003d clazz match {\n            case generic: ParameterizedType\n                if generic.getRawType.equals(classOf[Map[_,_]]) \u003d\u003e\n                val keyClass \u003d generic.getActualTypeArguments()(0)\n                val valueClass \u003d generic.getActualTypeArguments()(1)\n                Map(value.asScala.map(\n                    el \u003d\u003e (keyConverter.from(el, keyClass),\n                    valueConverter.from(el, valueClass))).toArray: _*)\n            case _ \u003d\u003e throw new ConvertException(\n                s\"Map converter cannot convert $clazz to Protocol Buffers\")\n        }\n    }\n\nOf course, this requires us to add an additional converter in the ZoomField annotation (or creating a new e.g. ZoomMap annotation). If we want to add additional converters to the ZoomField annotation, we can append:\n\n    /**\n     * Additional converters for this field, when the field is a generic type\n     * with multiple arguments.\n     */\n    Class\u003c? extends ZoomConvert.Converter\u003c?,?\u003e\u003e[] converters()\n        default { };\n\nto use for generic types that have more than one generic argument.\n\nHowever, after working a while on this I realized the following:\n- The purpose of the original converters (list, set, array, etc.) was to prevent writing a custom converter each time we want to convert a sequence of common types, like primitives, UUIDs, IP addresses, zoom objects, etc.\n- In the case of map, this is more difficult since for each conversion we need to specify one conversion for the key, and one conversion for the value of the object, requiring the declaration of at least one additional converter, either (proto \u003c-\u003e tuple), or (proto \u003c-\u003e key), (proto \u003c-\u003e value), etc. Hence there isn\u0027t much advantage for using a built-in converter.\n\nTherefore, since in any case we need to create a custom converter for every map, why not simply make a MapConverter trait that provides the code common for all conversions, and which could be extended for particular maps?\n\nCheck out this draft:\nhttps://gist.github.com/alexbikfalvi/2246793dc8aa9a48c512",
+      "revId": "a62babe427b5a4f0f31915fcf8204f6ec957ac44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a65312a_34baf0e1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 5
