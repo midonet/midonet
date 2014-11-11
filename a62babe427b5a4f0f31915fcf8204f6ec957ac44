@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_34baf0e1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:20:22Z",
+      "side": 1,
+      "message": "This can probably made more specific, I just didn\u0027t know how...",
+      "range": {
+        "startLine": 631,
+        "startChar": 66,
+        "endLine": 631,
+        "endChar": 78
+      },
+      "revId": "a62babe427b5a4f0f31915fcf8204f6ec957ac44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_14bff4d1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 647,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:20:22Z",
+      "side": 1,
+      "message": "This can probably made more specific, I just didn\u0027t know how...",
+      "range": {
+        "startLine": 647,
+        "startChar": 72,
+        "endLine": 647,
+        "endChar": 84
+      },
+      "revId": "a62babe427b5a4f0f31915fcf8204f6ec957ac44",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
