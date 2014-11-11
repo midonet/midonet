@@ -148,6 +148,30 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_8e3e21b7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-11T05:25:46Z",
+      "side": 1,
+      "message": "By the way, I did it that way because that\u0027s how the fields are defined in neutron.proto. If we want to change this logic, we\u0027ll need to change the message definitions, too.",
+      "parentUuid": "7a6b29fe_6e0aa522",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0b5966fe",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
         "patchSetId": 2
