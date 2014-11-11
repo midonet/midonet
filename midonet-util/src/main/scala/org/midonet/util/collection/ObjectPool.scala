@@ -16,8 +16,8 @@
 
 package org.midonet.util.collection
 
-trait ObjectPool[T] {
-    def take: Option[T]
+trait ObjectPool[T >: Null] {
+    def take: T
 
     def offer(element: T)
 
@@ -29,23 +29,20 @@ trait ObjectPool[T] {
 trait PooledObject {
     private[this] var refCount = 0
 
-    type PooledType
+    def pool: ObjectPool[_ >: this.type]
 
-    def self: PooledType
+    def clear(): Unit
 
-    def pool: ObjectPool[PooledType]
+    def ref(): Unit =
+        refCount += 1
 
-    def clear()
-
-    def ref() { refCount += 1 }
-
-    def unref() {
+    def unref(): Unit = {
         refCount -= 1
 
         refCount match {
             case 0 =>
                 if (pool != null)
-                    pool.offer(self)
+                    pool.offer(this)
                 clear()
             case neg if neg < 0 =>
                 refCount = 0
@@ -55,31 +52,32 @@ trait PooledObject {
     }
 }
 
-abstract class ArrayObjectPool[T:Manifest](override val capacity: Int) extends ObjectPool[T] {
-    private var floating = 0 // total number of allocated objects
-    private var avail = 0    // number of allocated objects present in the pool
+sealed class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
+                                                   factory: ObjectPool[T] => T)
+    extends ObjectPool[T] {
+
+    var size = capacity
     private val pool = new Array[T](capacity)
 
-    def allocate: T
+    {
+        var i = 0
+        while (i < capacity) {
+            pool(i) = factory(this)
+            i +=1
+        }
+    }
 
-    override def take: Option[T] = {
-        if (avail == 0 && floating >= capacity) {
-            None
-        } else if (avail == 0) {
-            floating += 1
-            Some(allocate)
+    def take: T =
+        if (size == 0) {
+            null
         } else {
-            avail -= 1
-            Some(pool(avail))
+            size -= 1
+            pool(size)
         }
-    }
 
-    override def offer(element: T) {
-        if (avail < capacity) {
-            pool(avail) = element
-            avail += 1
+    def offer(element: T): Unit =
+        if (size < capacity) {
+            pool(size) = element
+            size += 1
         }
-    }
-
-    override def size: Int = capacity - floating + avail
 }
