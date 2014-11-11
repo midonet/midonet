@@ -260,9 +260,7 @@ class FlowController extends Actor with ActorLogWithoutPath
             FlowController.wildcardTablesProvider ,maxDpFlows, maxWildcardFlows,
             idleFlowToleranceInterval)
 
-        wildFlowPool = new ArrayObjectPool[ManagedWildcardFlow](maxWildcardFlows) {
-            override def allocate = new ManagedWildcardFlow(this)
-        }
+        wildFlowPool = new ArrayObjectPool(maxWildcardFlows, new ManagedWildcardFlow(_))
 
         metrics = new FlowTablesMetrics(flowManager)
     }
@@ -283,29 +281,30 @@ class FlowController extends Actor with ActorLogWithoutPath
                                  lastInval, flowMatch, pendingFlowMatches, index) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
-                wildFlowPool.take.orElse {
+                var managedFlow = wildFlowPool.take
+                if (managedFlow eq null) {
                     flowManager.evictOldestFlows()
-                    wildFlowPool.take
-                } match {
-                    case None =>
-                        log.warn("Failed to add wildcard flow, no capacity")
-                    case Some(managedFlow) =>
-                        managedFlow.reset(wildFlow)
-                        managedFlow.ref()           // the FlowController's ref
-                        if (handleFlowAddedForNewWildcard(managedFlow, dpFlow,
-                                                          callbacks, tags)) {
-                            context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
+                    managedFlow = wildFlowPool.take
+                }
+                if (managedFlow eq null) {
+                    log.warn("Failed to add wildcard flow, no capacity")
+                } else {
+                    managedFlow.reset(wildFlow)
+                    managedFlow.ref()           // the FlowController's ref
+                    if (handleFlowAddedForNewWildcard(managedFlow, dpFlow,
+                                                      callbacks, tags)) {
+                        context.system.eventStream.publish(WildcardFlowAdded(wildFlow))
 
-                            log.debug(s"Added wildcard flow ${wildFlow.getMatch} " +
-                                s"with tags $tags " +
-                                s"idleTout=${wildFlow.getIdleExpirationMillis} " +
-                                s"hardTout=${wildFlow.getHardExpirationMillis}")
+                        log.debug(s"Added wildcard flow ${wildFlow.getMatch} " +
+                            s"with tags $tags " +
+                            s"idleTout=${wildFlow.getIdleExpirationMillis} " +
+                            s"hardTout=${wildFlow.getHardExpirationMillis}")
 
-                            metrics.wildFlowsMetric.mark()
-                        } else {
-                            managedFlow.unref()     // the FlowController's ref
-                        }
-                        metrics.currentDpFlows = flowManager.getNumDpFlows
+                        metrics.wildFlowsMetric.mark()
+                    } else {
+                        managedFlow.unref()     // the FlowController's ref
+                    }
+                    metrics.currentDpFlows = flowManager.getNumDpFlows
                 }
             } else {
                 log.debug("Skipping obsolete wildcard flow with match {} and tags {}",

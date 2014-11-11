@@ -165,9 +165,6 @@ object ManagedWildcardFlow {
 class ManagedWildcardFlow(override val pool: ObjectPool[ManagedWildcardFlow])
         extends WildcardFlow with PooledObject {
 
-    override type PooledType = ManagedWildcardFlow
-    override def self = this
-
     var creationTimeMillis: Long = 0L
     var lastUsedTimeMillis: Long = 0L
     var callbacks: ArrayList[Callback0] = null
