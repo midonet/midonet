@@ -32,6 +32,8 @@ the ZooKeeper cluster, but not necessarily any other node types.
 
 ## How to contribute
 
+You can report a bug using [MidoNet Issue tracking][jira].
+
 All patches to MidoNet are submitted to Gerrit, an open source,
 web-based code review system. It's publicly hosted on
 [GerritHub][gerrithub], and integrated with a CI infrastructure based on
@@ -58,6 +60,8 @@ Feel free to join other MidoNet developers at #midonet-dev on
 irc.freenode.net, or our the Development [mailing list][dev-mail]. We'll
 be happy to help you get set up.
 
+[jira]: http://midonet.atlassian.net
+    "MidoNet Issue tracking"
 [gerrithub]: https://review.gerrithub.io/#/q/project:midonet/midonet
     "GerritHub"
 [dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
