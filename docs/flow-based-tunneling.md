@@ -4,12 +4,12 @@
 
 Traditionally, tunnel set-ups are port-based, that is, a tunnel port is created with fixed encapsulations, then all packet emitted from that port would be encapsulated with the same header.
 
-Starting from version 1.9.0, OpenVSwitch (OVS) supports flow-based tunneling, a technique in which fields in tunnel outer header encapsulation can be defined per flow, instead of per port. By OVS version 1.10, port-based tunneling will no longer be supported.
+Starting from version 1.9.0, Open vSwitch (OVS) supports flow-based tunneling, a technique in which fields in tunnel outer header encapsulation can be defined per flow, instead of per port.
 
 The most significant benefit of flow-based tunneling is the ability to convey information to the underlay - for example, whether the overlay wants to fragment the packet, or passing information about the QoS (via DSCP marking) for a particular flow can now be selected on a per flow basis
 
-### OpenVSwitch's implementation of flow-based tunneling
-Userspace sets flow attributes as it is today, and one of the actions of a flow match would still be output action and the associated port. But instead of actually having to identify the egress tunnel vport, a universal tunnel vport would be use for each encapsulation type (GRE, VxLAN, GRE64 ...etc). Tunnel peer information would then be set as part of a SET attribute where the following fields can be set:
+### Open vSwitch's implementation of flow-based tunneling
+Userspace sets flow attributes as it is today, and one of the actions of a flow match would still be output action and the associated port. But instead of actually having to identify the egress tunnel vport, a universal tunnel vport would be used for each encapsulation type (GRE, VxLAN, GRE64 ...etc). Tunnel peer information would then be set as part of a SET attribute where the following fields can be set:
 
     1. Tunnel id: up to 64 bits of metadata
     2. Source IPv4 address of the outer header
@@ -26,7 +26,7 @@ Such information would be stored in sw_flow_key->tun_key (for matching, for tunn
 
 The packet flow for packet to be emitted to a tunnel vport as follows:
 ovs_vport_receive
-    ---> ovs_dp_process_received_packet
+    ---> ovs_dp_process_packet
         ---> ovs_execute_actions
 
     The packet buffer (type sk_buff, a kernel packet buffer, usually named skb) contains a control block pointer for different types of application to embed information into the individual packet. OVS embeds a type ovs_skb_cb type in the packet buffer for quick access to per packet control data. In ovs_execute_actions, OVS zeroes out the skb->cb->tun_key field (tun_key is of type ovs_key_ipv4_tunnel, which contains the fields above), then executes the set of actions associated with this flow key. 
