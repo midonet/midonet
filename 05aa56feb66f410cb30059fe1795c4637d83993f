@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_bc0077ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:17:13Z",
+      "side": 1,
+      "message": "-epoch is actually never set (have a look at setEpoch in HostBuilder)\n-dataPath is the ZK path to the host in the previous design.\nI omitted these fields because I\u0027m assuming we don\u0027t need them anymore. Can anyone confirm that?",
+      "parentUuid": "7a6b29fe_8ece2159",
+      "revId": "05aa56feb66f410cb30059fe1795c4637d83993f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_ced81920",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2014-11-10T09:34:22Z",
       "side": 1,
       "message": "Maybe it would be easier for the refactor if we would make this a Map[UUID, String] \u003d portId -\u003e interface, since it is used like that across the agent.",
+      "revId": "05aa56feb66f410cb30059fe1795c4637d83993f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_bcc5175d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:17:13Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "7a6b29fe_ced81920",
       "revId": "05aa56feb66f410cb30059fe1795c4637d83993f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "7a6b29fe_5c27a364",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:17:13Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "7a6b29fe_0e0a118a",
+      "revId": "05aa56feb66f410cb30059fe1795c4637d83993f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_4eed29c3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
         "patchSetId": 4
@@ -64,6 +118,30 @@
       "writtenOn": "2014-11-10T09:34:22Z",
       "side": 1,
       "message": "indent",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 16
+      },
+      "revId": "05aa56feb66f410cb30059fe1795c4637d83993f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a6b29fe_bc5237db",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-11T17:17:13Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "7a6b29fe_4eed29c3",
       "range": {
         "startLine": 100,
         "startChar": 8,
