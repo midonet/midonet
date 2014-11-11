@@ -487,7 +487,7 @@ class DatapathController extends Actor
 
         val wMatch = new WildcardMatch().setTunnelKey(exterior.tunnelKey)
         val actions = List[FlowAction](port.toOutputAction)
-        val tags = Set(FlowTagger.tagForDpPort(port.getPortNo.shortValue))
+        val tags = Set(FlowTagger.tagForDpPort(port.getPortNo))
         fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
                              null, new ArrayList[Callback0](), tags)
 
@@ -514,8 +514,7 @@ class DatapathController extends Actor
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        FlowController ! InvalidateFlowsByTag(
-            FlowTagger.tagForDpPort(dpPort.getPortNo.shortValue()))
+        FlowController ! InvalidateFlowsByTag(FlowTagger.tagForDpPort(dpPort.getPortNo))
 
         if (active) {
             installTunnelKeyFlow(dpPort, port)
