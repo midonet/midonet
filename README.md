@@ -113,6 +113,7 @@ there are some prerequisites:
 
 * java 7 jdk
 * protobufs compiler
+    * Install 2.6.1 from [here](https://github.com/google/protobuf/releases)
 * fpm (ruby gem) to build debian/rpm packages
 * rpm
 
