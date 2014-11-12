@@ -27,7 +27,8 @@ message NeutronNetwork {
     optional bool shared = 4;
     optional bool admin_state_up = 5;
     optional string status = 6;
-    optional bool external = 7;
+    repeated UUID subnets = 7;
+    optional bool external = 8;
 }
 
 message NeutronSubnet {
