@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import org.midonet.midolman.MtuIncreaseActor;
 import scala.concurrent.duration.Duration;
 
 import akka.actor.ActorInitializationException;
@@ -119,6 +120,7 @@ public class MidolmanActorsModule extends PrivateModule {
         //bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
+        bind(MtuIncreaseActor.class);
     }
 
     protected void bindMidolmanActorsService() {
