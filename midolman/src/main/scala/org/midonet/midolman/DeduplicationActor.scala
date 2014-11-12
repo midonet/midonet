@@ -26,8 +26,6 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 
-import com.codahale.metrics.Clock
-
 import com.typesafe.scalalogging.Logger
 import org.slf4j.MDC
 
@@ -341,7 +339,7 @@ class DeduplicationActor(
         pktCtx.cookieOrEgressPort match {
             case Left(cookie) =>
                 applyFlow(cookie, pktCtx)
-                val latency = (Clock.defaultClock().getTick -
+                val latency = (NanoClock.DEFAULT.tick -
                                pktCtx.packet.startTimeNanos).toInt
                 metrics.packetsProcessed.mark()
                 path match {
