@@ -24,14 +24,13 @@ import scala.concurrent.{Promise, Future}
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
-import com.codahale.metrics.Clock
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.util.functors.Callback
-import org.midonet.util.concurrent.TimedExpirationMap
+import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
 import org.midonet.util.collection.Reducer
 
 object NatLeaser {
@@ -108,7 +107,7 @@ trait NatLeaser {
 
     val log: Logger
     val allocator: NatBlockAllocator
-    val clock: Clock
+    val clock: NanoClock
     private val deviceLeases = new DeviceLeases
     private var lastObliterated = 0L
 
@@ -154,7 +153,7 @@ trait NatLeaser {
                        binding: NatBinding): Unit = {
         val ipLeases = deviceLeases.get(deviceId)
         val leasedBlocks = ipLeases.get(binding.networkAddress)
-        val leasedBlock = leasedBlocks.unref(blockOf(binding.transportPort), clock.getTick)
+        val leasedBlock = leasedBlocks.unref(blockOf(binding.transportPort), clock.tick)
         val portOffset = binding.transportPort - leasedBlock.block.tpPortStart
         val uniquefier = blend(destinationIp, destinationPort)
         leasedBlock.leasedPorts(portOffset).remove(uniquefier)
@@ -175,13 +174,13 @@ trait NatLeaser {
      * Thread-safe for concurrent callers.
      */
     def obliterateUnusedBlocks(): Unit = {
-        val now = clock.getTick
+        val now = clock.tick
         if (now - lastObliterated > OBLITERATION_CYCLE) {
             val itDevs = deviceLeases.values().iterator()
             while (itDevs.hasNext) {
                 val itIps = itDevs.next().values().iterator()
                 while (itIps.hasNext) {
-                    itIps.next().obliterateIdleEntries(clock.getTick, allocator,
+                    itIps.next().obliterateIdleEntries(clock.tick, allocator,
                                                        blockObliterator)
                 }
             }
@@ -206,7 +205,7 @@ trait NatLeaser {
                     return binding
                 }
 
-                leasedBlocks.unref(block, clock.getTick)
+                leasedBlocks.unref(block, clock.tick)
             }
             port = firstPortInNextBlock
         }
@@ -277,7 +276,7 @@ trait NatLeaser {
         val leasedBlocks = getLeasedBlocks(block.deviceId, block.ip)
         val leasedBlock = new LeasedBlock(block)
         leasedBlocks.putAndRef(block.blockIndex, leasedBlock)
-        leasedBlocks.unref(block.blockIndex, clock.getTick)
+        leasedBlocks.unref(block.blockIndex, clock.tick)
     }
 
     private def getLeasedBlocks(deviceId: UUID, targetIp: IPAddr): LeasedBlocks = {
