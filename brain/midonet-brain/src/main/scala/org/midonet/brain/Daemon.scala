@@ -18,11 +18,11 @@ package org.midonet.brain
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
-import com.google.inject.{AbstractModule, Module}
-import com.google.inject.Singleton
+import com.google.inject.{AbstractModule, Module, Singleton}
+
 import org.slf4j.LoggerFactory
 
-import ClusterNode.MinionDef
+import org.midonet.brain.ClusterNode.MinionDef
 
 /** Models the base class that orchestrates the various sub services inside a
   * Midonet Cluster node.
@@ -45,7 +45,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
                         nMinions = nMinions + 1
                     } catch {
                         case t: Throwable =>
-                            log.warn(s"Minion ${m.name} failed to start")
+                            log.warn(s"Minion ${m.name} failed to start", t)
                             // TODO: not sure we want to stop?
                     }
                 case Some(klass) =>

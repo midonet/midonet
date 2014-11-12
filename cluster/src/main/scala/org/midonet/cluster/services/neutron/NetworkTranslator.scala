@@ -20,10 +20,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.{C3POOp, C3POCreate, C3PODelete, C3POUpdate}
-import org.midonet.cluster.services.c3po.{MidoCreate, MidoDelete, MidoUpdate}
-import org.midonet.cluster.services.c3po.NetworkConverter
-import org.midonet.cluster.services.c3po.TranslationException
+import org.midonet.cluster.services.c3po.{C3POCreate, C3PODelete, C3POOp, C3POUpdate, MidoCreate, MidoDelete, MidoUpdate, NetworkConverter, TranslationException}
 
 /**
  * Provides a Neutron model translator for Network.
