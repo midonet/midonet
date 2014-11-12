@@ -13,17 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.netlink;
 
-/**
- * Interface listing constant short values for netlink message types.
- * See include/uapi/linux/netlink.h in Linux kernel sources.
- */
-public interface NLMessageType {
-    short NOOP    = (short) 0x0001;
-    short ERROR   = (short) 0x0002;
-    short DONE    = (short) 0x0003;
-    short OVERRUN = (short) 0x0004;
+package org.midonet.netlink
 
-    short KNOWN_TYPES = NOOP | ERROR | DONE | OVERRUN;
+import java.nio.ByteBuffer
+
+class MockNetlinkWriter extends NetlinkBlockingWriter(
+            new MockNetlinkChannel(Netlink.selectorProvider,
+                                   NetlinkProtocol.NETLINK_GENERIC)) {
+    var shouldThrow = false
+
+    val ERROR = new Exception
+
+    override def close() = { }
+
+    override def write(src: ByteBuffer): Int =
+        if (shouldThrow) {
+            throw ERROR
+        } else {
+            src.remaining()
+        }
 }
