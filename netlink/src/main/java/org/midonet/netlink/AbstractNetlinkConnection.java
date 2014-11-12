@@ -491,6 +491,8 @@ public abstract class AbstractNetlinkConnection {
             String errorMessage = cLibrary.lib.strerror(-error);
             NetlinkException err = new NetlinkException(-error, errorMessage);
             dispatcher.submit(request.failed(err));
+        } else {
+            log.error(cLibrary.lib.strerror(-error));
         }
     }
 
@@ -513,34 +515,17 @@ public abstract class AbstractNetlinkConnection {
      *  not the case, the payload message will get overwritten or misaligned. */
     private void serializeNetlinkHeader(ByteBuffer request, short flags,
                                         NetlinkRequestContext ctx) {
-        int size = request.limit();             // payload + headers size
-
+        int size = request.limit(); // payload + headers size
         request.rewind(); // rewind for writing the header sections
-
-        // netlink header section
-        request.putInt(size);                   // nlmsg_len
-        request.putShort(ctx.commandFamily());  // nlmsg_type
-        request.putShort(flags);                // nlmsg_flags
-        request.position(seqPosition() + 4);    // skip nlmsg_seq
-        request.putInt(pid());                  // nlmsg_pid
-
-        // generic netlink (genl) header section
-        request.put(ctx.command());             // cmd
-        request.put(ctx.version());             // version
-        request.putShort((short) 0);            // reserved
-
-        request.rewind(); // rewind for writing to the channel
+        NetlinkMessage.writeHeader(request, size, ctx.commandFamily(), flags, 0,
+                                   pid(), ctx.command(), ctx.version());
     }
 
     private int writeSeqToNetlinkRequest(NetlinkRequest request, ByteBuffer out) {
         int seq = nextSequenceNumber();
         request.seq = seq;
-        out.putInt(seqPosition(), seq);
+        NetlinkMessage.writeSequenceNumber(out, seq);
         return seq;
-    }
-
-    private static int seqPosition() {
-        return 4 /* nlmsg_len */ + 2 /* lnmsg_type */ + 2 /* nlmsg_flags */;
     }
 
     /** Obtains a send buffer from the internal buffer pool and offset the
