@@ -203,9 +203,10 @@ class LinksTestCase extends MidolmanTestCase
         drainProbes()
 
         log.debug("Reactivate port2")
-        port2Ifc.setHasLink(true)
-        port2Ifc.setUp(true)
-        interfaceScanner.addInterface(port2Ifc)
+        val updatedPort2Ifc = new InterfaceDescription(rtrPort2Name)
+        updatedPort2Ifc.setHasLink(true)
+        updatedPort2Ifc.setUp(true)
+        interfaceScanner.addInterface(updatedPort2Ifc)
         portEvent = requestOfType[LocalPortActive](portsProbe)
         portEvent.active should be(true)
         portEvent.portID should be(rtrPort2.getId)

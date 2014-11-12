@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.DatapathController
 import org.midonet.midolman.FlowController
+import org.midonet.midolman.MtuIncreaseActor
 import org.midonet.midolman.NetlinkCallbackDispatcher
 import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.SupervisorActor
@@ -76,7 +77,9 @@ class MidolmanActorsService extends AbstractService {
             withDispatcher("actors.pinned-dispatcher"),HealthMonitor.Name),
         (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
         (propsFor(classOf[NetlinkCallbackDispatcher]),
-            NetlinkCallbackDispatcher.Name))
+            NetlinkCallbackDispatcher.Name),
+        (propsFor(classOf[MtuIncreaseActor]).
+            withDispatcher("actors.pinned-dispatcher"), MtuIncreaseActor.Name))
 
     protected var supervisorActor: ActorRef = _
     private var childrenActors: List[ActorRef] = Nil
