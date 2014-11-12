@@ -15,9 +15,9 @@
  */
 package org.midonet.netlink;
 
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 
 import com.sun.jna.Native;
@@ -57,6 +57,10 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         this.protocol = protocol;
         this.state = ST_UNCONNECTED;
         initSocket();
+    }
+
+    public Selector selector() throws IOException {
+        return provider().openSelector();
     }
 
     protected void initSocket() {
