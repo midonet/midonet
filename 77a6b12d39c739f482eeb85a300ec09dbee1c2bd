@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_7a09f12b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 4
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Thanks. Decided to use external/internal.",
+      "parentUuid": "7a6b29fe_6fc73c46",
+      "range": {
+        "startLine": 10,
+        "startChar": 56,
+        "endLine": 10,
+        "endChar": 69
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_afaaf46d",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-11T14:34:19Z",
       "side": 1,
       "message": "Above you speak about high and low-level models. Why not keeping the same terminology?",
+      "range": {
+        "startLine": 106,
+        "startChar": 3,
+        "endLine": 107,
+        "endChar": 80
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_ba126956",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Decided to stick to external/internal.",
+      "parentUuid": "7a6b29fe_afaaf46d",
       "range": {
         "startLine": 106,
         "startChar": 3,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_9a0fad2e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "7a6b29fe_0fb7a8d9",
+      "range": {
+        "startLine": 31,
+        "startChar": 3,
+        "endLine": 32,
+        "endChar": 46
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_6fce1c5c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2014-11-11T14:34:19Z",
       "side": 1,
       "message": "I guess this set of operations should also update some kind of bookmark to remember what was the last operation performed on the storage in case of leader changes.",
+      "range": {
+        "startLine": 57,
+        "startChar": 10,
+        "endLine": 57,
+        "endChar": 23
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_da19257b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Yes, that\u0027s correct. Transaction management and leadership election are handled by a separate patch.",
+      "parentUuid": "7a6b29fe_6fce1c5c",
       "range": {
         "startLine": 57,
         "startChar": 10,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_7a20d19b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Sorry, I wanted to update the patch even with some part of being unimplemented. Implemented now.",
+      "parentUuid": "7a6b29fe_4fe880b4",
+      "range": {
+        "startLine": 57,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 12
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_cfdbf019",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2014-11-11T14:34:19Z",
       "side": 1,
       "message": "No handling of update and delete?",
+      "range": {
+        "startLine": 71,
+        "startChar": 16,
+        "endLine": 71,
+        "endChar": 25
+      },
+      "revId": "77a6b12d39c739f482eeb85a300ec09dbee1c2bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_3a2659bb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/StorageC3PO.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-12T08:12:26Z",
+      "side": 1,
+      "message": "Implemented.",
+      "parentUuid": "7a6b29fe_cfdbf019",
       "range": {
         "startLine": 71,
         "startChar": 16,
