@@ -23,8 +23,8 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.StorageManagerState
-import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Neutron._
+import org.midonet.cluster.models.Topology.{Rule, IpAddrGroup, Chain, Network}
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigProvider, ConfigString}
 
 class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
@@ -34,6 +34,7 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
         curatorCfg.zkHosts, new ExponentialBackoffRetry(curatorCfg.baseRetryMs,
                                                         curatorCfg.maxRetries))
     curator.start()
+    curator.delete().deletingChildrenIfNeeded().forPath("/1")
 
     private val storage = initStorage(curator, curatorCfg.basePath)
 
@@ -49,8 +50,15 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
 
     def initStorage(curator: CuratorFramework, basePath: String): Storage = {
         val storage = new ZookeeperObjectMapper(basePath, curator)
-        List(classOf[Network],
+        List(classOf[Chain],
+             classOf[IpAddrGroup],
+             classOf[Network],
              classOf[NeutronNetwork],
+             classOf[NeutronPort],
+             classOf[NeutronRouter],
+             classOf[NeutronSubnet],
+             classOf[Rule],
+             classOf[SecurityGroup],
              classOf[StorageManagerState]).foreach(storage.registerClass)
         storage.build()
         storage

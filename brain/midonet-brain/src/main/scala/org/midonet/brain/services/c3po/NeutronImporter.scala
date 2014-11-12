@@ -24,11 +24,14 @@ import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron._
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.models.Neutron.SecurityGroup
+import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.c3po._
-import org.midonet.cluster.services.neutron.NetworkTranslator
+import org.midonet.cluster.services.neutron._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
+
+import scala.collection.JavaConverters._
 
 class NeutronImporter @Inject()(config: NeutronImporterConfig,
                                 storage: Storage,
@@ -91,8 +94,13 @@ class NeutronImporter @Inject()(config: NeutronImporterConfig,
 
     private def initDataManager(): C3PODataManager = {
         val dataMgr = new C3POStorageManager(storage)
-        dataMgr.registerTranslator(classOf[NeutronNetwork],
-                                   new NetworkTranslator(storage))
+        val translators = Map[Class[_], ApiTranslator[_]](
+            classOf[NeutronNetwork] -> new NetworkTranslator(storage),
+            classOf[NeutronPort] -> new PortTranslator(storage),
+            classOf[NeutronRouter] -> new RouterTranslator(storage),
+            classOf[NeutronSubnet] -> new SubnetTranslator(storage),
+            classOf[SecurityGroup] -> new SecurityGroupTranslator(storage))
+        dataMgr.registerTranslators(translators.asJava)
         dataMgr.init()
         dataMgr
     }

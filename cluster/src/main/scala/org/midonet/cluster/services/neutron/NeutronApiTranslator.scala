@@ -18,8 +18,8 @@ package org.midonet.cluster.services.neutron
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.services.c3po._
 import org.midonet.cluster.services.c3po.OpType.OpType
+import org.midonet.cluster.services.c3po._
 
 /**
  * Defines an abstract base class for Neutron API request translator that
@@ -27,7 +27,6 @@ import org.midonet.cluster.services.c3po.OpType.OpType
  */
 abstract class NeutronApiTranslator[T <: Object](
         val neutronModelClass: Class[T],
-        val midoModelClass: Class[_],
         val storage: ReadOnlyStorage) extends ApiTranslator[T] {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
@@ -47,17 +46,16 @@ abstract class NeutronApiTranslator[T <: Object](
  * @param neutronModelClass Neutron model class.
  * @param midoModelClass Midonet model class.
  * @param converter Function to convert Neutron model to Midonet model.
- * @param storage
+ * @param storage Topology store.
  * @tparam N Neutron model class.
  * @tparam M Midonet model class.
  */
 class OneToOneNeutronApiTranslator[N <: Object, M <: Object](
-                                                                neutronModelClass: Class[N],
-                                                                midoModelClass: Class[M],
-                                                                converter: (N) => M,
-                                                                storage: ReadOnlyStorage)
-    extends NeutronApiTranslator[N](neutronModelClass,
-                                    midoModelClass, storage) {
+        neutronModelClass: Class[N],
+        midoModelClass: Class[M],
+        converter: (N) => M,
+        storage: ReadOnlyStorage)
+    extends NeutronApiTranslator[N](neutronModelClass, storage) {
 
     /**
      * Converts an operation on an external model into the corresponding

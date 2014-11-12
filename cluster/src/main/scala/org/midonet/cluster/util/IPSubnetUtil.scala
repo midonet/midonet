@@ -28,6 +28,10 @@ object IPSubnetUtil {
             .build()
     }
 
+    def toProto(cidr: String): Commons.IPSubnet = {
+        toProto(IPSubnet.fromString(cidr))
+    }
+
     implicit def fromProto(subnet: Commons.IPSubnet): IPSubnet[_] = {
         subnet.getVersion match {
             case Commons.IPVersion.V4 =>

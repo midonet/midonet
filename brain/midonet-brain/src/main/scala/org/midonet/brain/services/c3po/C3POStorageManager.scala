@@ -63,16 +63,11 @@ object C3POStorageManager {
  * storage operations on internal Mido models.
  */
 class C3POStorageManager(val storage: Storage) extends C3PODataManager {
-    import C3POStorageManager._
+    import org.midonet.brain.services.c3po.C3POStorageManager._
     val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
 
     private val apiTranslators = new JHashMap[Class[_], ApiTranslator[_]]()
     private var initialized = false
-
-    def registerTranslator[T <: Object](clazz: Class[T],
-                                        translator: ApiTranslator[T]): Unit = {
-        apiTranslators.put(clazz, translator)
-    }
 
     def registerTranslators(translators: JMap[Class[_], ApiTranslator[_]]) = {
         apiTranslators.putAll(translators)
