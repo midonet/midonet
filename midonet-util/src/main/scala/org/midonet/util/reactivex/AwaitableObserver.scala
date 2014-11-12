@@ -17,39 +17,26 @@ package org.midonet.util.reactivex
 
 import java.util.concurrent.CountDownLatch
 
-import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
-import rx.Observer
+import rx.observers.TestObserver
 
-object AwaitableObserver {
+class AwaitableObserver[T](awaitCount: Int = 1) extends TestObserver[T] {
 
-    trait Notification
-    case class OnNext[T](value: T) extends Notification
-    case class OnCompleted() extends Notification
-    case class OnError(e: Throwable) extends Notification
-
-}
-
-class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
-
-    import org.midonet.util.reactivex.AwaitableObserver._
-
-    val notifications = new mutable.MutableList[Notification]
     @volatile private var counter = new CountDownLatch(awaitCount)
 
     override def onNext(value: T): Unit = {
-        notifications += OnNext(value)
+        super.onNext(value)
         counter.countDown()
     }
 
     override def onCompleted(): Unit = {
-        notifications += OnCompleted()
+        super.onCompleted()
         counter.countDown()
     }
 
     override def onError(e: Throwable): Unit = {
-        notifications += OnError(e)
+        super.onError(e)
         counter.countDown()
     }
 

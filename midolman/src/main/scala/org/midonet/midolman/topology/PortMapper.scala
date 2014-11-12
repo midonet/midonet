@@ -41,7 +41,7 @@ sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
 
     protected override def observable = {
         if (subscribed.compareAndSet(false, true)) {
-            store.subscribe(classOf[TopologyPort], id, inStream)
+            store.observable(classOf[TopologyPort], id).subscribe(inStream)
         }
         outStream
     }
