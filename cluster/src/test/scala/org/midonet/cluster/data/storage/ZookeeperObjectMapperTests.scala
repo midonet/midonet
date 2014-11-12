@@ -27,6 +27,7 @@ import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Matchers, Suite}
+import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
 import scala.collection.JavaConverters._
@@ -46,7 +47,8 @@ class ZookeeperObjectMapperTests extends Suite
     private var gcRunnable: Runnable = _
     private var gcDone: Boolean = _
 
-    private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
+    private class MockZookeeperObjectMapper(val basePath: String,
+                                            val curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
 
         override def scheduleCacheGc(scheduler: ScheduledExecutorService,
@@ -118,6 +120,7 @@ class ZookeeperObjectMapperTests extends Suite
         val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
+
 
     def testMultiCreateUpdateAndDelete() {
         val chain = PojoChain(name = "chain1")
@@ -248,7 +251,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     def testSubscribe() {
         val bridge = createBridge()
-        val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
+        val obs = new ObjectSubscription[PojoBridge](2 /* expect two events */)
         zom.subscribe(classOf[PojoBridge], bridge.id, obs)
         addPortToBridge(bridge.id)
 
@@ -301,7 +304,7 @@ private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     var event: Option[T] = _
     var ex: Throwable = _
 
-    def onCompleted {
+    def onCompleted() {
         event = None
         countDownLatch.countDown()
     }
@@ -318,6 +321,7 @@ private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     }
 
     def await(timeout: Long, unit: TimeUnit) {
+        LoggerFactory.getLogger(this.getClass).info("Waiting, seen {}", updates)
         assertTrue(countDownLatch.await(timeout, unit))
     }
 

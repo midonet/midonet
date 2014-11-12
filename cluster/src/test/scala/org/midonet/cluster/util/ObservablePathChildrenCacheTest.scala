@@ -104,7 +104,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(nItems)         // preseed
         opcc connect ZK_ROOT      // connect
-        opcc subscribe collector  // subscribe
+        opcc.observable.subscribe(collector) // subscribe
 
         Thread sleep 1000
 
@@ -124,7 +124,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val collector = new ChildDataAccumulator()
         val opcc = new ObservablePathChildrenCache(curator)
         opcc connect ZK_ROOT
-        opcc subscribe collector
+        opcc.observable.subscribe(collector)
         Thread sleep 500
         collector.getOnNextEvents should have size 2 // data is there
 
@@ -158,7 +158,7 @@ class ObservablePathChildrenCacheTest extends Suite
         nodeData should not be null
 
         opcc connect ZK_ROOT
-        opcc subscribe collector
+        opcc.observable.subscribe(collector)
 
         Thread sleep 500
 
@@ -201,7 +201,7 @@ class ObservablePathChildrenCacheTest extends Suite
         val opcc = new ObservablePathChildrenCache(curator)
 
         opcc connect ZK_ROOT
-        opcc subscribe collector
+        opcc.observable.subscribe(collector)
 
         Thread sleep 500
 
@@ -281,7 +281,7 @@ class ObservablePathChildrenCacheTest extends Suite
             val subscriber = new Callable[List[String]]() {
                     override def call() = {
                         val acc = new ChildDataAccumulator()
-                        opcc subscribe acc
+                        opcc.observable.subscribe(acc)
                         // Wait until the ObservablePathChildrenCache is closed
                         while (acc.getOnCompletedEvents.isEmpty) {
                             Thread.`yield`()

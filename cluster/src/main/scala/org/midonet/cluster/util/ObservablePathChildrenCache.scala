@@ -19,6 +19,9 @@ import java.util
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 
+import rx.Observable.OnSubscribe
+import rx.functions.Action0
+
 import scala.collection.mutable
 
 import com.google.inject.Inject
@@ -31,7 +34,7 @@ import org.apache.curator.framework.recipes.cache.{ChildData, PathChildrenCache,
 import org.slf4j.LoggerFactory
 
 import rx.internal.operators.OperatorDoOnUnsubscribe
-import rx.{Observer, Observable}
+import rx.{Subscription, Subscriber, Observer, Observable}
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 
 import org.midonet.util.concurrent.Locks._
@@ -44,7 +47,8 @@ import org.midonet.util.functors._
  * under the parent node. The child observables will emit the state of their
  * corresponding child node, and complete when their child is removed.
  *
- * @param zk Curator client that we will not connect nor disconnect.
+ * @param zk Curator client, connection management is assumed to be done by the
+ *           caller.
  */
 @Inject
 class ObservablePathChildrenCache(val zk: CuratorFramework) {
@@ -87,8 +91,6 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
         }
     }
 
-    private val defaultUnsubscribe = new UnsubscribeOp(makeAction0 { })
-
     /** Connects to ZK, starts monitoring the node at the given absolute path */
     def connect(toPath: String) {
         path = toPath
@@ -98,51 +100,45 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
         pathCache.start(StartMode.NORMAL)
     }
 
-    /** Stops monitoring the path's children and completes the top level
-      * observable. */
+    /** Stops monitoring the path's children, and completes the observables
+      * provided via observable() */
     def close() {
         pathCache.close()
         stream.onCompleted()
     }
 
-    /** Subscribes the given Observer to the main stream of child observables.
+    /** This method will provide a hot observable emitting the child observables
+      * for each of the child nodes that exist now, or are created later, on
+      * the given root path.
       *
       * Assuming the subscription happens at t0, the subscriber will immediately
       * receive one child Observable for each child node that is known at t0 by
       * the cache. These child Observables will in turn emit a single ChildData
       * with the latest known state of the child node.
       *
-      * All child node removals happening on t > t0 will cause the corresponding
+      * All child node removals happening at t > t0 will cause the corresponding
       * child observable to complete. All child node additions happening at
       * t > t0 will result in a new child observable primed with the initial
       * state being emitted to the subscriber.
-      *
-      * Two important considerations for the caller:
-      * - Elements WILL be emitted before the method returns: make sure to
-      *   install any relevant callbacks, subscriptions *before* calling this
-      *   method or you WILL lose updates.
-      * - This is a BLOCKING method in order to guarantee that all children
-      *   observables are emitted. Subscribe will block while child addition /
-      *   removals are in progress (this will typically be very little time
-      *   unless many children are added at once).
       */
-    def subscribe(subscriber: Observer[_ >: Observable[ChildData]],
-                  unsubscribe: UnsubscribeOp = defaultUnsubscribe) = {
-        val funnel: PathSub = PublishSubject.create()
-        withReadLock(childrenLock) {
-            log.info("Subscribe: {}, curr. size {}", path, children.values.size)
-            val subscription = funnel
-                .lift[Observable[ChildData]](unsubscribe)
-                .subscribe(subscriber)
-
-            // Dump all known children
-            children.values.foreach { childSubject =>
-                funnel onNext childSubject.asObservable()
+    def observable: Observable[Observable[ChildData]] = {
+        // this will keep the subscription to the underlying update stream
+        var subscription: Subscription = null
+        val preseedAndSubscribe = new OnSubscribe[Observable[ChildData]] {
+            override def call(s: Subscriber[_ >: Observable[ChildData]]): Unit = {
+                withReadLock(childrenLock) {
+                    val preSeed = children.values
+                    log.info("Subscribe {}, curr size {}", path, preSeed.size)
+                    preSeed foreach { s onNext _ } // emit all known children
+                    subscription = stream.subscribe(s)
+                }
             }
-
-            stream.subscribe(funnel) // Follow up with subsequent updates
-            subscription
         }
+        Observable.create(preseedAndSubscribe).doOnUnsubscribe(new Action0 {
+            override def call(): Unit = {
+                if (subscription != null) subscription.unsubscribe()
+            }
+        })
     }
 
     /** Returns the latest state known for the children at the given absolute
