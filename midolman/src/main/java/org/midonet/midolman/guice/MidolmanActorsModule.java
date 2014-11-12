@@ -29,7 +29,6 @@ import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
 
-import com.codahale.metrics.Clock;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Exposed;
 import com.google.inject.PrivateModule;
@@ -55,6 +54,8 @@ import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopologyActor;
+import org.midonet.util.concurrent.NanoClock;
+import org.midonet.util.concurrent.NanoClock$;
 import org.midonet.util.eventloop.SelectLoop;
 import org.midonet.util.eventloop.SimpleSelectLoop;
 
@@ -124,7 +125,7 @@ public class MidolmanActorsModule extends PrivateModule {
     }
 
     protected void bindMidolmanActorsService() {
-        bind(Clock.class).toInstance(Clock.defaultClock());
+        bind(NanoClock.class).toInstance(NanoClock$.MODULE$.DEFAULT());
         bind(MidolmanActorsService.class).in(Singleton.class);
     }
 

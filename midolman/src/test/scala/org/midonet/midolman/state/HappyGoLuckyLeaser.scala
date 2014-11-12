@@ -18,19 +18,19 @@ package org.midonet.midolman.state
 
 import java.util.UUID
 
-import com.codahale.metrics.Clock
+import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.MockClock
-import org.slf4j.helpers.NOPLogger
+import org.midonet.util.concurrent.MockClock
 
 object HappyGoLuckyLeaser extends NatLeaser {
 
     override val log = Logger(NOPLogger.NOP_LOGGER)
     override val allocator: NatBlockAllocator = new MockNatBlockAllocator
-    override val clock: Clock = new MockClock
+    override val clock = new MockClock
 
     override def allocateNatBinding(deviceId: UUID,
                                     destinationIp: IPv4Addr,
