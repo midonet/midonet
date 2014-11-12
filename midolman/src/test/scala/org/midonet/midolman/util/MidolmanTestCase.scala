@@ -76,7 +76,7 @@ import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.util.MockClock
+import org.midonet.util.concurrent.MockClock
 import org.midonet.util.functors.{Callback0, Callback2}
 
 object MidolmanTestCaseLock {
