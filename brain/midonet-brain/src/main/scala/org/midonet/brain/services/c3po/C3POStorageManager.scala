@@ -16,24 +16,17 @@
 
 package org.midonet.brain.services.c3po
 
-import java.util.{HashMap, Map => JMap}
-import java.util.{UUID => JUUID}
 import java.util.concurrent.TimeUnit
+import java.util.{HashMap => JHashMap, Map => JMap, UUID => JUUID}
 
-import scala.concurrent.Await
-import scala.concurrent.Future
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
-import org.midonet.cluster.data.storage.{Storage, ObjectExistsException, StorageException}
+import org.midonet.cluster.data.storage.{ObjectExistsException, Storage, StorageException, UpdateOp}
 import org.midonet.cluster.models.C3PO.StorageManagerState
-import org.midonet.cluster.services.c3po.{ApiTranslator, TranslationException}
-import org.midonet.cluster.services.c3po.{C3PODataManager, C3PODataManagerException}
-import org.midonet.cluster.services.c3po.{C3POCreate, C3PODelete, C3POOp, C3POUpdate}
-import org.midonet.cluster.services.c3po.{C3POTask, C3POTransaction}
-import org.midonet.cluster.services.c3po.{MidoCreate, MidoDelete, MidoUpdate}
+import org.midonet.cluster.services.c3po.{ApiTranslator, C3POCreate, C3PODataManager, C3PODataManagerException, C3PODelete, C3POTask, C3POTransaction, C3POUpdate, TranslationException}
 import org.midonet.cluster.util.UUIDUtil.toProto
 
 object C3POStorageManager {
@@ -71,25 +64,22 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
     import C3POStorageManager._
     val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
 
-    private val apiTranslators = new HashMap[Class[_], ApiTranslator[_]]()
+    private val apiTranslators = new JHashMap[Class[_], ApiTranslator[_]]()
     private var initialized = false
 
     def registerTranslators(translators: JMap[Class[_], ApiTranslator[_]])  = {
         apiTranslators.putAll(translators)
     }
 
-    def clearTranslators() = apiTranslators.clear()
+    def clearTranslators(): Unit = apiTranslators.clear()
 
-    def init() {
+    def init(): Unit = {
         try {
-            try {
-                storage.create(storageManagerState(0))
-                log.info("Initialized last processed task ID to 0.")
-            } catch {
-                case _: ObjectExistsException =>
-                    log.info(s"Found last processed task ID: ${lastProcessed}")
-            }
+            storage.create(storageManagerState(0))
+            log.info("Initialized last processed task ID to 0.")
         } catch {
+            case _: ObjectExistsException =>
+                log.info(s"Found last processed task ID: $lastProcessed")
             case e: Throwable =>
                     throw new C3PODataManagerException(
                             "Failure initializing C3PODataManager.", e)
@@ -101,12 +91,12 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
      * Returns the last processed C3PO task ID.
      */
     @throws[C3PODataManagerException]
-    override def lastProcessedC3POTaskId(): Int = {
+    override def lastProcessedC3POTaskId: Int = {
         assert(initialized)
         lastProcessed
     }
 
-    private def lastProcessed(): Int = {
+    private def lastProcessed: Int = {
         try {
             await(storage.get(classOf[StorageManagerState], stateId))
                     .getLastProcessedTaskId
@@ -169,7 +159,7 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
         }
         if (!apiTranslators.containsKey(modelClass)) {
             throw new C3PODataManagerException (
-                    s"No translator for ${modelClass}.", null)
+                    s"No translator for $modelClass.", null)
         }
 
         Seq(task.op.toPersistenceOp) ++  // Persists the original model
