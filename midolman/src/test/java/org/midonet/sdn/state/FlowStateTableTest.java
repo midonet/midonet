@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.slf4j.helpers.NOPLogger;
 import com.typesafe.scalalogging.Logger$;
 
-import org.midonet.util.MockClock;
 import org.midonet.util.collection.Reducer;
+import org.midonet.util.concurrent.MockClock;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -186,7 +186,7 @@ public class FlowStateTableTest {
         shard.unref(key("foo"));
         shard.unref(key("bar"));
 
-        clock.time = IDLE_EXPIRATION.toNanos() + 1;
+        clock.time_$eq(IDLE_EXPIRATION.toNanos() + 1);
 
         tx.ref(key("foo"));
         tx.commit();
@@ -304,16 +304,16 @@ public class FlowStateTableTest {
     public void testTouchExpirationReset() {
         FlowStateTable<TestKey, Integer> table = shards.get(0);
 
-        clock.time = 1;
+        clock.time_$eq(1);
         table.touch(keys[1], vals[1]);
         table.touch(keys[0], vals[0]);
-        clock.time += IDLE_EXPIRATION.toNanos() / 2;
+        clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos() / 2);
         table.touch(keys[1], vals[1]);
-        clock.time += IDLE_EXPIRATION.toNanos() / 2 + 1;
+        clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos() / 2 + 1);
         table.expireIdleEntries();
         assertThat(table.get(keys[1]), equalTo(vals[1]));
         assertThat(table.get(keys[0]), nullValue());
-        clock.time += IDLE_EXPIRATION.toNanos() / 2;
+        clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos() / 2);
         table.expireIdleEntries();
         assertThat(table.get(keys[1]), nullValue());
     }
@@ -324,24 +324,24 @@ public class FlowStateTableTest {
             cs.ref(key);
         }
 
-        clock.time = IDLE_EXPIRATION.toNanos() * 2;
+        clock.time_$eq(IDLE_EXPIRATION.toNanos() * 2);
         cs.expireIdleEntries();
 
         for (int i = 0; i < keys.length; i++)
             assertThat(cs.get(keys[i]), equalTo(vals[i]));
 
-        long baseTime = clock.time;
+        long baseTime = clock.time();
         for (TestKey key : keys) {
-            clock.time += IDLE_EXPIRATION.toNanos();
+            clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos());
             cs.unref(key);
             cs.ref(key);
-            clock.time += IDLE_EXPIRATION.toNanos();
+            clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos());
             cs.unref(key);
         }
 
         for (int i = 0; i < keys.length; i++) {
-            clock.time = baseTime + ((i+1) * IDLE_EXPIRATION.toNanos() * 2);
-            clock.time += IDLE_EXPIRATION.toNanos() + 1;
+            clock.time_$eq(baseTime + ((i+1) * IDLE_EXPIRATION.toNanos() * 2));
+            clock.time_$eq(clock.time() + IDLE_EXPIRATION.toNanos() + 1);
             cs.expireIdleEntries();
 
             for (int j = 0; j < keys.length; j++) {
