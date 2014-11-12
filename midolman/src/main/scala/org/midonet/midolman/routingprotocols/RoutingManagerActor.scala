@@ -24,7 +24,7 @@ import com.google.inject.Inject
 
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.cluster.client.{Port, RouterPort}
-import org.midonet.midolman.{DatapathState, Referenceable}
+import org.midonet.midolman.{LocalPortActiveSubscriberActor, DatapathState, Referenceable}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
@@ -46,7 +46,8 @@ object RoutingManagerActor extends Referenceable {
     case class BgpStatus(status : Array[String])
 }
 
-class RoutingManagerActor extends Actor with ActorLogWithoutPath {
+class RoutingManagerActor extends Actor with ActorLogWithoutPath
+        with LocalPortActiveSubscriberActor {
     import context.system
 
     override def logSource = "org.midonet.routing.bgp"
