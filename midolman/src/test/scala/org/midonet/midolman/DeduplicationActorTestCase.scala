@@ -89,6 +89,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             override def isVtepTunnellingPort(portNumber: Short): Boolean = ???
             override def isOverlayTunnellingPort(portNumber: Short): Boolean = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
+            override def getVportForInterface(itfName: String) = ???
+            override def getDescForInterface(itfName: String) = ???
         })
         dda.hookPacketHandler()
     }

@@ -45,7 +45,6 @@ object PacketsEntryPoint extends Referenceable {
 }
 
 class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
-
     import org.midonet.midolman.DatapathController.DatapathReady
     import org.midonet.midolman.DeduplicationActor._
     import org.midonet.midolman.PacketsEntryPoint._
