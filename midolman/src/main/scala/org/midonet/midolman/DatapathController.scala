@@ -111,9 +111,14 @@ trait VirtualPortsResolver {
     /** Returns vport UUID of bounded datapath port, or None if not found */
     def getVportForDpPortNumber(portNum: JInteger): Option[UUID]
 
+    /** Returns vport UUID bound to the interface or None if not found */
+    def getVportForInterface(itfName: String): Option[UUID]
+
     /** Returns bounded datapath port interface or None if port not found */
     def getDpPortName(num: JInteger): Option[String]
 
+    /** Returns interface desc bound to the interface or None if not found */
+    def getDescForInterface(itfName: String): Option[InterfaceDescription]
 }
 
 trait DatapathState extends VirtualPortsResolver with UnderlayResolver
@@ -241,12 +246,11 @@ class DatapathController extends Actor
                 log.info(s"Port ${port.getPortNo}/${port.getName}/$vportId " +
                          s"became ${if (isActive) "active" else "inactive"}")
                 VirtualToPhysicalMapper ! LocalPortActive(vportId, isActive)
+                MtuIncreaseActor ! LocalPortActive(vportId, isActive)
                 invalidateAndInstallTunnelKeyFlow(port, vportId, isActive)
             }
         }
     )(singleThreadExecutionContext, log)
-
-    var recentInterfacesScanned = new java.util.ArrayList[InterfaceDescription]()
 
     var initializer: ActorRef = system.deadLetters  // only used in tests
 
@@ -358,9 +362,8 @@ class DatapathController extends Actor
     def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
         context become receive
-
         Seq[ActorRef](FlowController, PacketsEntryPoint, RoutingManagerActor,
-                      initializer) foreach {
+            MtuIncreaseActor, initializer) foreach {
             _ ! DatapathReady(datapath, dpState)
         }
 
@@ -774,6 +777,12 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
     override def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
         dpPortNumToInterface get portNum flatMap { interfaceToVport.get }
 
+    override def getVportForInterface(itfName: String): Option[UUID] =
+         interfaceToVport.get(itfName)
+
     override def getDpPortName(num: JInteger): Option[String] =
         dpPortNumToInterface.get(num)
+
+    override def getDescForInterface(itf: String): Option[InterfaceDescription] =
+        interfaceToDescription.get(itf)
 }

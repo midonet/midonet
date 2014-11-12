@@ -38,8 +38,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
@@ -56,6 +55,8 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
     protected override def bindMidolmanActorsService() {
         bind(classOf[TestablePacketsEntryPoint])
         expose(classOf[TestablePacketsEntryPoint])
+        bind(classOf[TestableMtuIncreaseActor])
+        expose(classOf[TestableMtuIncreaseActor])
         bind(classOf[MidolmanActorsService])
             .toInstance(new TestableMidolmanActorsService())
         bind(classOf[Clock]).toInstance(clock)
@@ -111,7 +112,8 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
             (propsFor(classOf[FlowController]),            FlowController.Name),
             (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
             (propsFor(classOf[TestablePacketsEntryPoint]), PacketsEntryPoint.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
+            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name),
+            (propsFor(classOf[TestableMtuIncreaseActor]),  MtuIncreaseActor.Name))
     }
 
 
@@ -171,4 +173,9 @@ class TestablePacketsEntryPoint extends PacketsEntryPoint {
         val props = propsForWorker(index).withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"PacketProcessor-$index")
     }
+}
+
+class TestableMtuIncreaseActor extends MtuIncreaseActor {
+    override def handlePortActivation(msg: LocalPortActive): Future[_] =
+        Future.successful(Some(0))
 }
