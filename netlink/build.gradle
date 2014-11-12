@@ -26,9 +26,10 @@ jar {
 dependencies {
     compile project(":midonet-util"),
             project(":midonet-jdk-bootstrap")
-    compile libraries.jna, libraries.commons_io, libraries.guava
+    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx,
+            libraries.scala
 
-    testCompile libraries.scala, libraries.scalatest
+    testCompile libraries.scalatest
 }
 
 compileJava {
