@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_5af875e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-12T09:14:27Z",
+      "side": 1,
+      "message": "remove once the .observable works ok",
+      "revId": "b1eb6ccbf4551dcc08ffbcb14fb9fa36c5472a51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
