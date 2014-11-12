@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_97694628",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "Scala has a concurrent map class called TrieMap that could simplify the implementation of some of these methods.",
+      "range": {
+        "startLine": 89,
+        "startChar": 36,
+        "endLine": 89,
+        "endChar": 53
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_f776ba05",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "For example, this could be implemented as instance.get(id.toString).map(_.value)",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 104,
+        "endChar": 9
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_37603235",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "This can be expressed as ids.map(get), right?",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 37
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_775aaa84",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "If you change this to map(_.get), you can fit it all on one line, I think.",
+      "range": {
+        "startLine": 120,
+        "startChar": 47,
+        "endLine": 120,
+        "endChar": 70
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_972146b7",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "I\u0027ve looked at the documentation and I\u0027ve looked at the code, and I still don\u0027t understand what this is for. Why do you need a scheduler for a subscription? Aren\u0027t subscribers notified synchronously when there\u0027s an update?",
+      "range": {
+        "startLine": 144,
+        "startChar": 19,
+        "endLine": 144,
+        "endChar": 41
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_f72ebaa4",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "These are in ZookeeperObjectMapper, right? Can they be reused?",
+      "range": {
+        "startLine": 181,
+        "startChar": 0,
+        "endLine": 197,
+        "endChar": 5
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_dae3e531",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 454,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-12T09:16:03Z",
+      "side": 1,
+      "message": "This looks identical to the ZookeeperObjectMapper one, too. Maybe you could move all the IdGetter stuff to the ZookeeperObjectMapper companion object and use it from here. It doesn\u0027t need access to a ZookeeperObjectMapper instance, so it should probably be there anyway.",
+      "range": {
+        "startLine": 441,
+        "startChar": 0,
+        "endLine": 454,
+        "endChar": 5
+      },
+      "revId": "a974b361e636c647e28d26bd3044c942c42247fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
