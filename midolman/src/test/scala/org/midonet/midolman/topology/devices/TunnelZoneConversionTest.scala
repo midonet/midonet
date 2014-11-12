@@ -19,13 +19,22 @@ import java.util.UUID
 
 import scala.collection.JavaConversions._
 
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
+@RunWith(classOf[JUnitRunner])
 class TunnelZoneConversionTest extends FeatureSpec with Matchers {
+
+    private def deviceTag(proto: Topology.TunnelZone): FlowTag = {
+        FlowTagger.tagForDevice(proto.getId.asJava)
+    }
 
     feature("Conversion for tunnel zone of type GRE") {
         scenario("Test conversion from Protocol Buffer message") {
@@ -34,7 +43,8 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be None
+            zoomObj should not be null
+            zoomObj.deviceTag should be(deviceTag(proto))
             zoomObj.zoneType should be(TunnelZoneType.GRE)
             assertEquals(proto, zoomObj)
         }
@@ -58,7 +68,8 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be None
+            zoomObj should not be null
+            zoomObj.deviceTag should be(deviceTag(proto))
             zoomObj.zoneType should be(TunnelZoneType.VXLAN)
             assertEquals(proto, zoomObj)
         }
@@ -82,10 +93,12 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be None
+            zoomObj should not be null
+            zoomObj.deviceTag should be(deviceTag(proto))
             zoomObj.zoneType should be(TunnelZoneType.VTEP)
             assertEquals(proto, zoomObj)
         }
+
         scenario("Test conversion to Protocol Buffer message") {
             val zoomObj = new TunnelZone
             zoomObj.zoneType = TunnelZoneType.VTEP
