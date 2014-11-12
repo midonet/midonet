@@ -40,6 +40,7 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.util.concurrent.NanoClock
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
@@ -50,7 +51,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
  */
 class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
                                    actors: mutable.Map[String, TestActorRef[Actor]],
-                                   clock: Clock)
+                                   clock: NanoClock)
     extends MidolmanActorsModule {
 
     protected override def bindMidolmanActorsService() {
@@ -58,7 +59,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
         expose(classOf[TestablePacketsEntryPoint])
         bind(classOf[MidolmanActorsService])
             .toInstance(new TestableMidolmanActorsService())
-        bind(classOf[Clock]).toInstance(clock)
+        bind(classOf[NanoClock]).toInstance(clock)
     }
 
     class TestableMidolmanActorsService extends MidolmanActorsService {

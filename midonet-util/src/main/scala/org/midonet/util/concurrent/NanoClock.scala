@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package org.midonet.util;
+package org.midonet.util.concurrent
 
-import com.codahale.metrics.Clock;
+object NanoClock {
+    val DEFAULT = new SystemNanoClock
+}
 
-public class MockClock extends Clock {
-    public long time = 0;
+trait NanoClock {
 
-    @Override
-    public long getTick() {
-        return time;
-    }
+    /**
+     * The number of ticks in nanoseconds the clock has advanced since starting.
+     */
+    def tick: Long
+}
+
+
+sealed class SystemNanoClock extends NanoClock {
+    override def tick = System.nanoTime()
+}
+
+sealed class MockClock extends NanoClock {
+    var time = 0L
+
+    override def tick = time
 }
