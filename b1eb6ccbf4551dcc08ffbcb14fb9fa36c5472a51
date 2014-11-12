@@ -16,6 +16,23 @@
       "revId": "b1eb6ccbf4551dcc08ffbcb14fb9fa36c5472a51",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_5a46b524",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T09:36:50Z",
+      "side": 1,
+      "message": "Galo, this is what I had in my patch, although I haven\u0027t tested it yet.\n\nwithReadLock(childrenLock) {\n            Observable.from[Observable[ChildData]](\n                children.values.map { childSubject \u003d\u003e\n                    childSubject.asObservable }.asJava)\n                .concatWith(stream.asObservable)\n        }",
+      "revId": "b1eb6ccbf4551dcc08ffbcb14fb9fa36c5472a51",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
