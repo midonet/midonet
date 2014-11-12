@@ -28,8 +28,6 @@ import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.OneInstancePerTest
 
-import com.codahale.metrics.Clock
-
 import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
@@ -44,7 +42,7 @@ import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.util.MockClock
+import org.midonet.util.concurrent.{MockClock, NanoClock}
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -136,7 +134,7 @@ trait MidolmanSpec extends FeatureSpecLike
                     bind(classOf[MidolmanActorsService])
                             .toInstance(actorsService)
                     expose(classOf[MidolmanActorsService])
-                    bind(classOf[Clock]).toInstance(clock)
+                    bind(classOf[NanoClock]).toInstance(clock)
                 }
             },
             new ResourceProtectionModule(),
