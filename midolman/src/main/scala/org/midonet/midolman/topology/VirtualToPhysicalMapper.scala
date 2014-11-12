@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 import java.util.{Set => JSet}
+import org.midonet.midolman.host.interfaces.InterfaceDescription
+
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.mutable.Queue
 import scala.collection.{mutable, immutable}
@@ -72,7 +74,8 @@ sealed trait VTPMRequest[D] {
  * @param active True if the port is ready to emit/receive; false
  *               otherwise.
  */
-case class LocalPortActive(portID: UUID, active: Boolean)
+case class LocalPortActive(portID: UUID, active: Boolean,
+                           desc: Option[InterfaceDescription] = None)
 
 object VirtualToPhysicalMapper extends Referenceable {
 

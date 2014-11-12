@@ -125,7 +125,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             DatapathController.minMtu should be (ifmtu - VxLanTunnelPort.TunnelOverhead)
 
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case _: LocalPortActive => true
                 case _ => false
             } should equal (List(LocalPortActive(port.getId, true)))
 
@@ -140,7 +140,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             DatapathController.minMtu should be (DatapathController.DEFAULT_MTU)
 
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case _: LocalPortActive => true
                 case _ => false
             } should equal (List(LocalPortActive(port.getId, false)))
         }
@@ -156,7 +156,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             Then("the DpC should create the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal (None)
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case _: LocalPortActive => true
                 case _ => false
             } should equal (List(LocalPortActive(port.getId, true)))
 
@@ -167,7 +167,7 @@ class DatapathControllerPortCreationTestCase extends MidolmanSpec {
             Then("the DpC should delete the datapath port")
             testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
             VirtualToPhysicalMapper.getAndClear() filter {
-                case LocalPortActive(_,_) => true
+                case _: LocalPortActive => true
                 case _ => false
             } should equal (List(LocalPortActive(port.getId, false)))
         }
