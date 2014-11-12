@@ -49,6 +49,7 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
+import org.midonet.Util
 import org.midonet.util.concurrent._
 import org.midonet.util.collection.Reducer
 import org.midonet.util.functors.Callback0
@@ -72,9 +73,8 @@ object DeduplicationActor {
     // the WildcardFlowTable. After updating the table, the FlowController
     // will place the FlowMatch in the pending ring buffer so the DDA can
     // evict the entry from the cache.
-    sealed class ActionsCache(var size: Int = 1024,
-                              log: Logger) {
-        size = findNextPowerOfTwo(size)
+    sealed class ActionsCache(var size: Int = 1024, log: Logger) {
+        size = Util.findNextPositivePowerOfTwo(size)
         private val mask = size - 1
         val actions = new JHashMap[FlowMatch, JList[FlowAction]]()
         val pending = new Array[FlowMatch](size)
@@ -119,9 +119,6 @@ object DeduplicationActor {
         }
 
         private def index(x: Long): Int = (x & mask).asInstanceOf[Int]
-
-        private def findNextPowerOfTwo(value: Int) =
-            1 << (32 - Integer.numberOfLeadingZeros(value - 1))
     }
 }
 
