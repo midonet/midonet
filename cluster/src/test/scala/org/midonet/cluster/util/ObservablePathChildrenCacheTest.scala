@@ -93,18 +93,17 @@ class ObservablePathChildrenCacheTest extends Suite
         acc.childObserver.getOnErrorEvents should be (empty)
     }
 
-
-    /* Prepares a node with some children, connects, fetches the observable and
-     * expects that we receive an observable for each children that is already
-     * primed with the initial state of the node. */
-    def testChildObservablesArePrimed() {
+    /* Prepares a node with some children, connects, then subscribes. It expects
+     * an observable for each children that is already primed with the initial
+     * state of the node. */
+     def testChildObservablesArePrimed() {
         val nItems = 10
         val collector = new ChildDataAccumulator()
-        val opcc = new ObservablePathChildrenCache(curator)
+        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
         makePaths(nItems)         // preseed
-        opcc connect ZK_ROOT      // connect
-        opcc subscribe collector  // subscribe
+        opcc.connect()            // connect
+        opcc.subscribe(collector) // subscribe
 
         Thread sleep 1000
 
@@ -114,6 +113,8 @@ class ObservablePathChildrenCacheTest extends Suite
 
         checkChildren(collector)
 
+        Thread sleep 1000
+
         opcc close()
     }
 
@@ -122,9 +123,9 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(2)
         val collector = new ChildDataAccumulator()
-        val opcc = new ObservablePathChildrenCache(curator)
-        opcc connect ZK_ROOT
-        opcc subscribe collector
+        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
+        opcc.connect()
+        opcc.subscribe(collector)
         Thread sleep 500
         collector.getOnNextEvents should have size 2 // data is there
 
@@ -149,16 +150,16 @@ class ObservablePathChildrenCacheTest extends Suite
      * observable and continues making a bunch of updates to assert at the end
      * that both the child observable, and the direct access to the data did
      * converge to the last state. */
-    def testDataUpdatesReceived() {
+     def testDataUpdatesReceived() {
         val nodeData = makePaths(1)
         val childData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = new ObservablePathChildrenCache(curator)
+        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
         nodeData should not be null
 
-        opcc connect ZK_ROOT
-        opcc subscribe collector
+        opcc connect()
+        opcc.subscribe(collector)
 
         Thread sleep 500
 
@@ -198,18 +199,18 @@ class ObservablePathChildrenCacheTest extends Suite
         val nodeData = makePaths(1)
         val oldChildData = nodeData.values.head
         val collector = new ChildDataAccumulator()
-        val opcc = new ObservablePathChildrenCache(curator)
+        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
-        opcc connect ZK_ROOT
-        opcc subscribe collector
+        opcc.connect()
+        opcc.subscribe(collector)
 
-        Thread sleep 500
+        Thread sleep 1000
 
         val newChildData = "new"
         val newChildPath = ZK_ROOT + "/newchild"
         curator.create().forPath(ZK_ROOT + "/newchild", newChildData.getBytes)
 
-        Thread sleep 500
+        Thread sleep 1000
 
         collector.getOnErrorEvents should be (empty)
         collector.getOnCompletedEvents should be (empty)
@@ -225,7 +226,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
     /* This tests ensures that there are no gaps in child observables if
      * subscriptions and new children appear concurrently. This is focused
-     * mostly on syncing the subscribre() and newChild() handling. */
+     * mostly on syncing the subscribe() and newChild() handling. */
     def testRaceConditionOnSubscription() {
 
         // Avoid spam on the Curator lib, hits performance
@@ -239,9 +240,9 @@ class ObservablePathChildrenCacheTest extends Suite
 
         makePaths(nInitial)
 
-        val opcc = new ObservablePathChildrenCache(curator)
+        val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
 
-        opcc.connect(ZK_ROOT)
+        opcc.connect()
 
         // Let the OPCC catch up to the initial state
         var maxRetries = 20
@@ -281,7 +282,7 @@ class ObservablePathChildrenCacheTest extends Suite
             val subscriber = new Callable[List[String]]() {
                     override def call() = {
                         val acc = new ChildDataAccumulator()
-                        opcc subscribe acc
+                        opcc.subscribe(acc)
                         // Wait until the ObservablePathChildrenCache is closed
                         while (acc.getOnCompletedEvents.isEmpty) {
                             Thread.`yield`()
