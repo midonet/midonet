@@ -111,7 +111,8 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
             (propsFor(classOf[FlowController]),            FlowController.Name),
             (propsFor(classOf[RoutingManagerActor]),       RoutingManagerActor.Name),
             (propsFor(classOf[TestablePacketsEntryPoint]), PacketsEntryPoint.Name),
-            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name))
+            (propsFor(classOf[NetlinkCallbackDispatcher]), NetlinkCallbackDispatcher.Name),
+            (propsFor(classOf[MtuIncreaseActor]),          MtuIncreaseActor.Name))
     }
 
 
