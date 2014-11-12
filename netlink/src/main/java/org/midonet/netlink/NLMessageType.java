@@ -24,4 +24,5 @@ public interface NLMessageType {
     short ERROR   = (short) 0x0002;
     short DONE    = (short) 0x0003;
     short OVERRUN = (short) 0x0004;
+    short NLMSG_MIN_TYPE = (short) 0x10;
 }
