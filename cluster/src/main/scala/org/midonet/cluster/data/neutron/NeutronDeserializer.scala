@@ -26,6 +26,7 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
 import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
@@ -41,6 +42,8 @@ import scala.collection.concurrent.TrieMap
  * "external" in the Protobuf message.
  */
 object NeutronDeserializer {
+
+    private val log = LoggerFactory.getLogger(this.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
 
@@ -58,9 +61,13 @@ object NeutronDeserializer {
         toMessage(parseJson(jsonStr), clazz)
 
     private def toMessage[M <: Message](node: JsonNode, clazz: Class[M]): M = {
+        log.debug("Translating json {} to class {}", Array(node, clazz):_*)
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
-        for (field <- node.getFields.asScala) {
+        for (field <- node.getFields.asScala
+             if !field.getValue.isNull) {
+            log.debug("Deserializing field {}.{}: {}",
+                      clazz.getSimpleName, field.getKey, field.getValue)
             // Neutron has some field names in the form "plugin:field" for
             // fields added by plugins. We just ignore the first part.
             val nameParts = field.getKey.split(':')
@@ -85,7 +92,9 @@ object NeutronDeserializer {
                     bldr.addRepeatedField(fd, converter(child))
                 }
             } else {
-                bldr.setField(fd, converter(value))
+                val v = converter(value)
+                log.debug("Setting field {} to {}", fd.getName, v)
+                bldr.setField(fd, v)
             }
         }
 
@@ -124,7 +133,12 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        desc.findValueByName(node.getTextValue)
+        val textVal = node.getTextValue
+        val enumVal = desc.findValueByName(textVal)
+        if (enumVal == null)
+            throw new NeutronDeserializationException(
+                s"Value $textVal not found in enum ${desc.getName}.")
+        enumVal
     }
 
     private def parseUuid(str: String): UUID = {

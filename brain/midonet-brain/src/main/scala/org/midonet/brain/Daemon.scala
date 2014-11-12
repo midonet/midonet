@@ -45,7 +45,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
                         nMinions = nMinions + 1
                     } catch {
                         case t: Throwable =>
-                            log.warn(s"Minion ${m.name} failed to start")
+                            log.warn(s"Minion ${m.name} failed to start", t)
                             // TODO: not sure we want to stop?
                     }
                 case Some(klass) =>
