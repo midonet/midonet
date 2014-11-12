@@ -27,6 +27,33 @@ public final class NetlinkMessage {
     static public final short NLA_F_NET_BYTEORDER = (1 << 14);
     static public final short NLA_TYPE_MASK = ~NLA_F_NESTED | NLA_F_NET_BYTEORDER;
 
+    static public final int NLMSG_LEN_OFFSET = 0;
+    static public final int NLMSG_LEN_SIZE = 4;
+    static public final int NLMSG_TYPE_OFFSET = NLMSG_LEN_OFFSET + NLMSG_LEN_SIZE;
+    static public final int NLMSG_TYPE_SIZE = 2;
+    static public final int NLMSG_FLAGS_OFFSET = NLMSG_TYPE_OFFSET + NLMSG_TYPE_SIZE;
+    static public final int NLMSG_FLAGS_SIZE = 2;
+    static public final int NLMSG_SEQ_OFFSET =  NLMSG_FLAGS_OFFSET + NLMSG_FLAGS_SIZE;;
+    static public final int NLMSG_SEQ_SIZE =  4;
+    static public final int NLMSG_PID_OFFSET = NLMSG_SEQ_OFFSET + NLMSG_SEQ_SIZE;
+    static public final int NLMSG_PID_SIZE = 4;
+    static public final int HEADER_SIZE = NLMSG_LEN_SIZE + NLMSG_TYPE_SIZE +
+                                          NLMSG_FLAGS_SIZE + NLMSG_SEQ_SIZE +
+                                          NLMSG_PID_SIZE;
+
+    static public final int GENL_CMD_OFFSET = NLMSG_PID_OFFSET + NLMSG_PID_SIZE;
+    static public final int GENL_CMD_SIZE = 1;
+    static public final int GENL_VER_OFFSET = GENL_CMD_OFFSET + GENL_CMD_SIZE;
+    static public final int GENL_VER_SIZE = 1;
+    static public final int GENL_RESERVED_OFFSET = GENL_VER_OFFSET + GENL_VER_SIZE;
+    static public final int GENL_RESERVED_SIZE = 2;
+    static public final int GENL_HEADER_SIZE = HEADER_SIZE + GENL_CMD_SIZE + GENL_VER_SIZE + GENL_RESERVED_SIZE;
+
+    static public final int NLMSG_ERROR_OFFSET = NLMSG_PID_OFFSET + NLMSG_PID_SIZE;
+    static public final int NLMSG_ERROR_SIZE = 4;
+    static public final int NLMSG_ERROR_HEADER_OFFSET = NLMSG_ERROR_OFFSET + NLMSG_ERROR_SIZE;
+    static public final int NLMSG_ERROR_HEADER_SIZE = HEADER_SIZE;
+
     /** Write onto a ByteBuffer a netlink attribute header.
      *  @param buffer the ByteBuffer the header is written onto.
      *  @param id the short id associated with the value type (nla_type).
@@ -319,5 +346,31 @@ public final class NetlinkMessage {
             case 3:
                 buf.put(pad);
         }
+    }
+
+    public static void writeSequenceNumber(ByteBuffer buf, int seq) {
+        buf.putInt(buf.position() + NLMSG_SEQ_OFFSET, seq);
+    }
+
+    public static void writeHeader(ByteBuffer buf, int size, short commandFamily,
+                                   short flags, int seq, int pid, byte command,
+                                   byte version) {
+        int pos = buf.position();
+
+        // netlink header section
+        buf.putInt(pos + NLMSG_LEN_OFFSET, size);
+        buf.putShort(pos + NLMSG_TYPE_OFFSET, commandFamily);
+        buf.putShort(pos + NLMSG_FLAGS_OFFSET, flags);
+        buf.putInt(pos + NLMSG_SEQ_OFFSET, seq);
+        buf.putInt(pos + NLMSG_PID_OFFSET, pid);
+
+        // generic netlink (genl) header section
+        buf.put(pos + GENL_CMD_OFFSET, command);
+        buf.put(pos + GENL_VER_OFFSET, version);
+        buf.putShort(pos + GENL_RESERVED_OFFSET, (short) 0);
+    }
+
+    public static boolean isTruncated(ByteBuffer buf) {
+        return buf.remaining() < buf.getInt(buf.position() + NLMSG_LEN_OFFSET);
     }
 }

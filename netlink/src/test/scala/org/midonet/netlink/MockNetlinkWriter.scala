@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-apply plugin: 'scala'
+package org.midonet.netlink
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'MidoNet Netlink library',
-        'Implementation-Version': version
-    }
-}
+import java.nio.ByteBuffer
 
-dependencies {
-    compile project(":midonet-util"),
-            project(":midonet-jdk-bootstrap")
-    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx,
-            libraries.scala
+class MockNetlinkWriter extends NetlinkBlockingWriter(
+            new MockNetlinkChannel(Netlink.selectorProvider,
+                                   NetlinkProtocol.NETLINK_GENERIC)) {
+    var shouldThrow = false
 
-    testCompile libraries.scalatest
-}
+    val ERROR = new Exception
 
-compileJava {
-    options.bootClasspath = project.jdkBootstrap
-}
+    override def close() = { }
 
-cobertura {
-    coverageSourceDirs << sourceSets.main.java.srcDirs
+    override def write(src: ByteBuffer): Int =
+        if (shouldThrow) {
+            throw ERROR
+        } else {
+            src.remaining()
+        }
 }
