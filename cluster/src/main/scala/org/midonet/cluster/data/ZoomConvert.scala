@@ -334,7 +334,7 @@ object ZoomConvert {
      * the type class has a ZoomClass annotation, the field annotation takes
      * precedence over the class annotation.
      *
-     * The method stores all converters in a converter cache, such that if a
+     * The method stores all converters in a convtPerter cache, such that if a
      * converter for a given type already exists, the method does not create
      * a new object.
      *
