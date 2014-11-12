@@ -308,10 +308,10 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         multi(List(UpdateOp(obj, validator)))
 
     override def delete(clazz: Class[_], id: ObjId): Unit =
-        multi(List(DeleteOp(clazz, id, false)))
+        multi(List(DeleteOp(clazz, id)))
 
     override def deleteIfExists(clazz: Class[_], id: ObjId): Unit =
-        multi(List(DeleteOp(clazz, id, true)))
+        multi(List(DeleteOp(clazz, id, ignoreIfNotExists = true)))
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
             withReadLock(lock) {

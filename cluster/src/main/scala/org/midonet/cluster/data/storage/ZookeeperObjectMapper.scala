@@ -646,7 +646,7 @@ class ZookeeperObjectMapper(
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
     override def delete(clazz: Class[_], id: ObjId) =
-        multi(List(DeleteOp(clazz, id, false)))
+        multi(List(DeleteOp(clazz, id)))
 
     /**
      * Deletes the specified object from Zookeeper if it exists and ignores if
@@ -654,7 +654,7 @@ class ZookeeperObjectMapper(
      */
     @throws[ObjectReferencedException]
     override def deleteIfExists(clazz: Class[_], id: ObjId) =
-        multi(List(DeleteOp(clazz, id, true)))
+        multi(List(DeleteOp(clazz, id, ignoreIfNotExists = true)))
 
     @throws[NotFoundException]
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {

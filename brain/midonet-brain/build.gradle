@@ -41,8 +41,10 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':brain:odl-ovsdb:ovsdb'), project(':cluster'),
-            project(':midolman'), project(':midonet-util'),
+    compile project(':brain:odl-ovsdb:ovsdb'),
+            project(':cluster'),
+            project(':midolman'),
+            project(':midonet-util'),
             "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
             "com.fasterxml.jackson.core:jackson-core:2.3.0",
             "com.fasterxml.jackson.core:jackson-databind:2.3.0",
@@ -54,14 +56,18 @@ dependencies {
             "org.opendaylight.ovsdb:ovsdb:0.5.0",
             libraries.metrics,
             libraries.commons_conf,
+            libraries.curator_recipes,
             libraries.guava,
             libraries.guice,
             libraries.mockit,
             libraries.netty,
+            libraries.mysql_jdbc,
+            libraries.protobuf,
             libraries.rx,
             libraries.zookeeper
 
-    testCompile libraries.hamcrest_lib, libraries.scalatest
+    testCompile libraries.hamcrest_lib,
+                libraries.scalatest
 }
 
 // Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to
