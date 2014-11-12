@@ -16,6 +16,7 @@
 package org.midonet.netlink;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.spi.SelectorProvider;
 
 /** Mocking version of NetlinkChannel. */
@@ -48,4 +49,8 @@ public class MockNetlinkChannel extends NetlinkChannel {
     protected void closeFileDescriptor() {
     }
 
+    @Override
+    public int read(ByteBuffer dst) throws IOException {
+        return dst.remaining();
+    }
 }

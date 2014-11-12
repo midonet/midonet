@@ -66,4 +66,8 @@ public final class Util {
     public static <T> T uncheckedCast(Object o) {
         return (T)o;
     }
+
+    public static int findNextPositivePowerOfTwo(final int value) {
+        return 1 << (32 - Integer.numberOfLeadingZeros(value - 1));
+    }
 }
