@@ -18,39 +18,29 @@ package org.midonet.cluster.util
 import java.io.IOException
 
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.{ChildData, NodeCache, NodeCacheListener}
-
-import rx.subjects.{BehaviorSubject, Subject}
+import rx.subjects.BehaviorSubject
 
 /** A wrapper around Curator's NodeCache that exposes updates as observables. */
 @Inject
-class ObservableNodeCache(zk: CuratorFramework) {
-
-    private var nodeCache: NodeCache = _
-
-    /* Stream of updates to the node */
-    private var stream: Subject[ChildData, ChildData] = _
+class ObservableNodeCache(zk: CuratorFramework, path: String) {
 
     private val listener = new NodeCacheListener() {
         override def nodeChanged() {
             nodeCache.getCurrentData match {
-              case cd: ChildData => stream.onNext(cd)
-              case _ => stream.onCompleted()
+                case cd: ChildData => stream.onNext(cd)
+                case _ => stream.onCompleted()
             }
         }
     }
 
-    /** Connects to ZK and starts watching the node at path. It primes the cache
-      * with initial state, and emits the current element.
-      */
-    def connect(path: String) {
-        nodeCache = new NodeCache(zk, path)
-        nodeCache.getListenable.addListener(listener)
-        nodeCache.start(true)
-        stream = BehaviorSubject.create(nodeCache.getCurrentData)
-    }
+    /* Stream of updates to the node */
+    private val nodeCache = new NodeCache(zk, path)
+    nodeCache.getListenable.addListener(listener)
+    nodeCache.start(true) // blocking
+
+    private val stream = BehaviorSubject.create(nodeCache.getCurrentData)
 
     /** Return the current state of the watched node, or null if not
       * tracked */
