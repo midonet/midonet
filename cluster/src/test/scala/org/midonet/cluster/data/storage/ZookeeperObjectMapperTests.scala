@@ -18,22 +18,22 @@ package org.midonet.cluster.data.storage
 import java.util.UUID
 import java.util.concurrent._
 
-import org.apache.curator.framework.CuratorFramework
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 import org.junit.Assert._
+import org.junit.Test
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{Matchers, Suite}
+import rx.Observable
+import rx.observers.TestObserver
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, Suite}
-import rx.{Observable, Observer}
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
-import scala.concurrent.Await
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
@@ -43,38 +43,8 @@ class ZookeeperObjectMapperTests extends Suite
 
     private var zom: ZookeeperObjectMapper = _
 
-    private val gcSynchronization = new Object
-    @volatile private var gcStarted: Boolean = _
-    @volatile private var gcDone: Boolean = _
-
-    private def gcRunnable(runnable: Runnable): Runnable = new Runnable {
-        def run() = {
-            gcSynchronization.synchronized {
-                while (!gcStarted) {
-                    gcSynchronization.wait()
-                }
-            }
-            runnable.run()
-            gcSynchronization.synchronized {
-                gcDone = true
-                gcSynchronization.notify()
-            }
-        }
-    }
-
-    private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
-        extends ZookeeperObjectMapper(basePath, curator) {
-
-        override def scheduleCacheGc(scheduler: ScheduledExecutorService,
-                                     runnable: Runnable) = {
-            scheduler.schedule(gcRunnable(runnable), 0, TimeUnit.SECONDS)
-        }
-    }
-
     override protected def setup(): Unit = {
-        gcStarted = false
-        gcDone = false
-        zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
+        zom = new ZookeeperObjectMapper(ZK_ROOT, curator)
         initAndBuildZoom(zom)
     }
 
@@ -114,13 +84,6 @@ class ZookeeperObjectMapperTests extends Suite
         zom.build()
     }
 
-    override protected def teardown(): Unit = {
-        // This is to make sure that the gc thread is not blocked in tests
-        // where no garbage collection is performed.
-        startGc()
-        waitForGc()
-    }
-
     def testMultiCreate() {
         val bridge = PojoBridge()
         val port = PojoPort(bridgeId = bridge.id)
@@ -129,6 +92,7 @@ class ZookeeperObjectMapperTests extends Suite
         val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
+
 
     def testMultiCreateUpdateAndDelete() {
         val chain = PojoChain(name = "chain1")
@@ -269,49 +233,30 @@ class ZookeeperObjectMapperTests extends Suite
         bridge
     }
 
-    private def addPortToBridge(bridge: PojoBridge) = {
-        val port = PojoPort(bridgeId = bridge.id)
+    private def addPortToBridge(bId: UUID) = {
+        val port = PojoPort(bridgeId = bId)
         zom.create(port)
     }
 
-    private def startGc() = {
-        gcSynchronization.synchronized {
-            gcStarted = true
-            gcSynchronization.notify()
-        }
-    }
-
-    private def waitForGc() = {
-        gcSynchronization.synchronized {
-            while (!gcDone) {
-                gcSynchronization.wait()
-            }
-        }
-    }
-
+    @Test(timeout = 1000)
     def testSubscribe() {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](1)
-        zom.subscribe(classOf[PojoBridge], bridge.id, obs)
-        obs.await(1, TimeUnit.SECONDS)
+        zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
+        obs.await()
         obs.reset(1)
-        addPortToBridge(bridge)
-        obs.await(1, TimeUnit.SECONDS)
+        addPortToBridge(bridge.id)
+        obs.await()
     }
 
     def testSubscribeWithGc() = {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](0)
-        val sub = zom.subscribe(classOf[PojoBridge], bridge.id, obs)
+        val sub = zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
 
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id).get should be(1)
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) shouldBe Option(1)
         sub.unsubscribe()
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id).get should be(0)
-
-        startGc()
-        waitForGc()
-
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should be(None)
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) shouldBe None
     }
 
     def testSubscribeAll() {
@@ -319,23 +264,22 @@ class ZookeeperObjectMapperTests extends Suite
         createBridge()
 
         val obs = new ClassSubscription[PojoBridge](2 /* We expect two events */)
-        zom.subscribeAll(classOf[PojoBridge], obs)
+        zom.observable(classOf[PojoBridge]).subscribe(obs)
 
         obs.await(1, TimeUnit.SECONDS)
+
+        obs.getOnErrorEvents shouldBe empty
     }
 
     def testSubscribeAllWithGc() {
         val obs = new ClassSubscription[PojoBridge](0)
-        val sub = zom.subscribeAll(classOf[PojoBridge], obs)
+        val sub = zom.observable(classOf[PojoBridge]).subscribe(obs)
 
-        zom.subscriptionCount(classOf[PojoBridge]).get should be(1)
+        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
         sub.unsubscribe()
-        zom.subscriptionCount(classOf[PojoBridge]).get should be(0)
+        zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
 
-        startGc()
-        waitForGc()
-
-        zom.subscriptionCount(classOf[PojoBridge]) should be(None)
+        obs.getOnErrorEvents shouldBe empty
     }
 
     def testGetPath() {
@@ -400,26 +344,26 @@ class ZookeeperObjectMapperTests extends Suite
     }
 }
 
-private class ObjectSubscription[T](counter: Int) extends Observer[T] {
+private class ObjectSubscription[T](counter: Int) extends TestObserver[T] {
     private var countDownLatch = new CountDownLatch(counter)
-    var updates: Int = 0
-    var event: Option[T] = _
-    var ex: Throwable = _
 
-    override def onCompleted() {
-        event = None
+    override def onCompleted(): Unit = {
+        super.onCompleted()
         countDownLatch.countDown()
     }
 
-    override def onError(e: Throwable) {
-        ex = e
+    override def onError(t: Throwable): Unit = {
+        super.onError(t)
         countDownLatch.countDown()
     }
 
-    override def onNext(t: T) {
-        updates += 1
-        event = Option(t)
+    override def onNext(t: T): Unit = {
+        super.onNext(t)
         countDownLatch.countDown()
+    }
+
+    def await(): Unit = {
+        countDownLatch.await()
     }
 
     def await(timeout: Long, unit: TimeUnit) {
@@ -431,20 +375,22 @@ private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     }
 }
 
-private class ClassSubscription[T](counter: Int) extends Observer[Observable[T]] {
+private class ClassSubscription[T](counter: Int) extends TestObserver[Observable[T]] {
     private var countDownLatch: CountDownLatch = new CountDownLatch(counter)
     val subs = new mutable.MutableList[ObjectSubscription[T]]
 
-
-    override def onCompleted() {
-        fail("Class subscription should not complete.")
+    override def onCompleted(): Unit = {
+        super.onCompleted()
+        countDownLatch.countDown()
     }
 
-    override def onError(e: Throwable) {
-        throw new RuntimeException("Got exception from class subscription", e)
+    override def onError(t: Throwable): Unit = {
+        super.onError(t)
+        countDownLatch.countDown()
     }
 
     override def onNext(observable: Observable[T]) {
+        super.onNext(observable)
         val sub = new ObjectSubscription[T](1)
         observable.subscribe(sub)
         subs += sub
@@ -490,4 +436,5 @@ private object ZookeeperObjectMapperTests {
 
     def await[T](f: Future[T]) =
         Await.result(f, Duration.create(1, TimeUnit.SECONDS))
+
 }
