@@ -72,7 +72,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |        {
               |            "id": "6a7e9264-8fe9-4429-809a-cf2514275b75",
               |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
-              |            "direction": "EGRESS",
+              |            "direction": "egress",
               |            "ethertype": "IPv4",
               |            "protocol": "TCP",
               |            "port_range_min": 10000,
@@ -81,7 +81,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |        {
               |            "id": "1af2f735-6a02-4954-ae21-8316086c2e5e",
               |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
-              |            "direction": "INGRESS",
+              |            "direction": "ingress",
               |            "ethertype": "IPv6",
               |            "protocol": "ICMPv6"
               |        }
@@ -100,7 +100,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         rule1.getId.getMsb shouldBe 0x6a7e92648fe94429L
         rule1.getId.getLsb shouldBe 0x809acf2514275b75L
         rule1.getSecurityGroupId should equal(secGrp.getId)
-        rule1.getDirection shouldBe Commons.RuleDirection.EGRESS
+        rule1.getDirection shouldBe Commons.RuleDirection.egress
         rule1.getEthertype shouldBe Commons.EtherType.IPv4
         rule1.getProtocol shouldBe Commons.Protocol.TCP
         rule1.getPortRangeMin shouldBe 10000
@@ -110,7 +110,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         rule2.getId.getMsb shouldBe 0x1af2f7356a024954L
         rule2.getId.getLsb shouldBe 0xae218316086c2e5eL
         rule2.getSecurityGroupId should equal(secGrp.getId)
-        rule2.getDirection shouldBe Commons.RuleDirection.INGRESS
+        rule2.getDirection shouldBe Commons.RuleDirection.ingress
         rule2.getEthertype shouldBe Commons.EtherType.IPv6
         rule2.getProtocol shouldBe Commons.Protocol.ICMPv6
     }

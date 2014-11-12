@@ -16,76 +16,41 @@
 
 package org.midonet.brain.services.heartbeat
 
-import java.util.concurrent.{Executors, TimeUnit}
-
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
-
-import org.midonet.brain.{MinionConfig, ClusterMinion}
-import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigString}
+import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.config._
+import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration. */
-class Heartbeat extends ClusterMinion {
+class Heartbeat @Inject()(config: HeartbeatConfig)
+    extends ScheduledClusterMinion(config) {
 
-    @Inject
-    private var cfg: HeartbeatConfig = _
-
-    private val log = LoggerFactory.getLogger(classOf[Heartbeat])
-    private val pool = Executors.newSingleThreadScheduledExecutor()
-
-    override def doStart(): Unit = {
-        log.info("Live")
-        val schedule = new Runnable {
-            override def run(): Unit = {
-                try {
-                    while(true) {
-                        beat()
-                        Thread.sleep(cfg.periodSeconds * 1000)
-                    }
-                } catch {
-                    case t: InterruptedException =>
-                        log.error("Killed!")
-                        Thread.currentThread().interrupt()
-                }
-            }
-        }
-        pool.execute(schedule)
-        notifyStarted()
-    }
+    protected override val runnable = makeRunnable(beat())
 
     private def beat(): Unit = {
         log.info("Beat")
-    }
-
-    override def doStop(): Unit = {
-        log.info("Dead")
-        pool.shutdownNow()  // cancel running tasks
-        try {
-            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
-                log.error("Unable to shut down")
-            }
-        } catch {
-            case e: InterruptedException =>
-                log.warn("Interrupted while waiting for completion")
-                Thread.currentThread().interrupt() // preserve status
-        }
-        notifyStopped()
     }
 }
 
 /** Configuration for the Heartbeat Minion. */
 @ConfigGroup("heartbeat")
-trait HeartbeatConfig extends MinionConfig[Heartbeat] {
+trait HeartbeatConfig extends ScheduledMinionConfig[Heartbeat] {
 
-    val configGroup = "heartbeat"
-
-    @ConfigInt(key = "period_seconds", defaultValue = 1)
-    def periodSeconds: Int
+    // override val configGroup = "heartbeat"
 
     @ConfigBool(key = "enabled", defaultValue = false)
     override def isEnabled: Boolean
 
     @ConfigString(key = "with")
     override def minionClass: String
+
+    @ConfigInt(key = "num_threads", defaultValue = 1)
+    override def numThreads: Int
+
+    @ConfigLong(key = "delay_ms", defaultValue = 0)
+    override def delayMs: Long
+
+    @ConfigLong(key = "period_ms", defaultValue = 1000)
+    override def periodMs: Long
 }

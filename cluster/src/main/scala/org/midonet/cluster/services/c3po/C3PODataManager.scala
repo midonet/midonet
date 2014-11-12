@@ -53,6 +53,7 @@ case class C3POUpdate[T <: Object](model: T) extends C3POOp[T] {
     override val opType = OpType.Update
     override def toPersistenceOp = UpdateOp(model)
 }
+
 case class C3PODelete[T <: Object](clazz: Class[T], id: Commons.UUID)
         extends C3POOp[T] {
     override val opType = OpType.Delete
@@ -60,7 +61,7 @@ case class C3PODelete[T <: Object](clazz: Class[T], id: Commons.UUID)
      * no-op if the object doesn't exist. Revisit if we need to make this
      * configurable.
      */
-    override def toPersistenceOp = DeleteOp(clazz, id, true)
+    override def toPersistenceOp = DeleteOp(clazz, id, ignoreIfNotExists = true)
 }
 
 /**
@@ -88,7 +89,7 @@ case class MidoDelete[T <: Object](clazz: Class[T], id: Commons.UUID)
      * no-op if the object doesn't exist. Revisit if we need to make this
      * configurable.
      */
-    override def toPersistenceOp = DeleteOp(clazz, id, true)
+    override def toPersistenceOp = DeleteOp(clazz, id, ignoreIfNotExists = true)
 }
 
 /**

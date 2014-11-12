@@ -45,7 +45,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
                         nMinions = nMinions + 1
                     } catch {
                         case t: Throwable =>
-                            log.warn(s"Minion ${m.name} failed to start")
+                            log.warn(s"Minion ${m.name} failed to start", t)
                             // TODO: not sure we want to stop?
                     }
                 case Some(klass) =>
@@ -93,6 +93,7 @@ abstract class ClusterMinion extends AbstractService {}
 
 /** Base configuration mixin for a Cluster Minion. */
 trait MinionConfig[+D <: ClusterMinion] {
+    // val configGroup: String
     def isEnabled: Boolean
     def minionClass: String
 }

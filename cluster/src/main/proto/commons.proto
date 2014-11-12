@@ -45,8 +45,8 @@ message Int32Range {
 }
 
 enum RuleDirection {
-    EGRESS = 0;
-    INGRESS = 1;
+    egress = 0;
+    ingress = 1;
 }
 
 enum EtherType {
