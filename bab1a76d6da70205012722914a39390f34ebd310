@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_fdf17b96",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "Maybe a better name: PortToInterface",
+      "range": {
+        "startLine": 242,
+        "startChar": 8,
+        "endLine": 242,
+        "endChar": 21
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_ddee3fb4",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "I would rename this to --port_id-- to prevent any confusion. This object should map the port UUID to the host interface name.",
+      "range": {
+        "startLine": 244,
+        "startChar": 18,
+        "endLine": 244,
+        "endChar": 20
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_3dddb315",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "UUID is not needed here. Generic parameters are not available anyway due to erasure.",
+      "range": {
+        "startLine": 326,
+        "startChar": 57,
+        "endLine": 326,
+        "endChar": 61
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_bdd0a3f8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "For the last two cases maybe we can do:\n\n  case _ \u003d\u003e getScalaConverter(pojoField.getType, zoomField)\n\nThat is, even for repeated fields, we revert to the scalar converter, when not an array, list, seq, etc. If the conversion is not possible, the conversion will throw an exception anyway.",
+      "range": {
+        "startLine": 325,
+        "startChar": 1,
+        "endLine": 330,
+        "endChar": 25
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_9dc68748",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "This method looks very similar to getScalaConverter(). Why not use that method?",
+      "range": {
+        "startLine": 334,
+        "startChar": 0,
+        "endLine": 353,
+        "endChar": 5
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_5d034f73",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/PortInterfaceConverter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T18:09:54Z",
+      "side": 1,
+      "message": "I would add this class to a companion object for the Host class. This conversion is specific to that host field, besides that I\u0027m not sure whether it\u0027s that useful to be in util.",
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
