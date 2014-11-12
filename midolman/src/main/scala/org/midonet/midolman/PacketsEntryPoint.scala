@@ -16,11 +16,18 @@
 
 package org.midonet.midolman
 
+import scala.collection.immutable
+
 import akka.actor._
 import akka.event.LoggingReceive
-import com.codahale.metrics.{Clock, MetricRegistry}
+
+import com.codahale.metrics.MetricRegistry
+
 import com.google.inject.Inject
+
+import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
@@ -32,9 +39,7 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
-import org.slf4j.LoggerFactory
-
-import scala.collection.immutable
+import org.midonet.util.concurrent.NanoClock
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -90,7 +95,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var storageFactory: FlowStateStorageFactory = null
 
     @Inject
-    var clock: Clock = null
+    var clock: NanoClock = null
 
     @Inject
     var natBlockAllocator: NatBlockAllocator = _

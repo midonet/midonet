@@ -19,17 +19,17 @@ package org.midonet.sdn.state
 import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
-import com.codahale.metrics.Clock
-import com.typesafe.scalalogging.Logger
-import org.midonet.util.collection.Reducer
-import org.midonet.util.concurrent.TimedExpirationMap
 import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.Logger
+
+import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent.{NanoClock, TimedExpirationMap}
 
 object ShardedFlowStateTable {
     def create[K <: IdleExpiration, V >: Null](): ShardedFlowStateTable[K, V] =
             new ShardedFlowStateTable[K, V]()
 
-    def create[K <: IdleExpiration, V >: Null](clock: Clock):
+    def create[K <: IdleExpiration, V >: Null](clock: NanoClock):
             ShardedFlowStateTable[K, V] = new ShardedFlowStateTable[K, V](clock)
 }
 
@@ -54,7 +54,7 @@ object ShardedFlowStateTable {
  * external thread or pool, not a shard-owning thread.
  */
 class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
-        (val clock: Clock = Clock.defaultClock()) extends FlowStateTable[K, V] {
+        (val clock: NanoClock = NanoClock.DEFAULT) extends FlowStateTable[K, V] {
 
     private val shards = new ArrayList[FlowStateShard]()
     private val SHARD_NONE: Int = -1
@@ -193,7 +193,7 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
             unref(key)
         }
 
-        private def tickMillis = TimeUnit.NANOSECONDS.toMillis(clock.getTick)
+        private def tickMillis = TimeUnit.NANOSECONDS.toMillis(clock.tick)
 
         override def unref(key: K) =
             map.unref(key, tickMillis)
@@ -208,4 +208,3 @@ class ShardedFlowStateTable[K <: IdleExpiration, V >: Null]
             map.obliterateIdleEntries(tickMillis, seed, func)
     }
 }
-
