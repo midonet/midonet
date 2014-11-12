@@ -38,13 +38,24 @@ sourceSets {
 dependencies {
     compile project(':midonet-util')
 
-    compile libraries.collections4, libraries.commons_lang3,
-            libraries.curator_recipes, libraries.guava, libraries.guice,
-            libraries.jackson_mapper, libraries.rx, libraries.scala,
-            libraries.scala_async, libraries.commons_cli
+    compile libraries.collections4,
+            libraries.commons_cli,
+            libraries.commons_lang3,
+            libraries.commons_dbcp2,
+            libraries.curator_recipes,
+            libraries.guava,
+            libraries.guice,
+            libraries.jackson_mapper,
+            libraries.protobuf,
+            libraries.rx,
+            libraries.scala,
+            libraries.scala_async
 
-    testCompile libraries.curator_test, libraries.hamcrest,
-                libraries.logback, libraries.scalatest, libraries.scala_async
+    testCompile libraries.curator_test,
+                libraries.hamcrest,
+                libraries.logback,
+                libraries.scalatest,
+                libraries.scala_async,
                 libraries.test_frameworks
 }
 
