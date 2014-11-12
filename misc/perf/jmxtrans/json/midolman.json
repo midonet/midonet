@@ -97,7 +97,7 @@
             "typeNames" : []
         }
       } ] },
-{
+
       "obj" : "metrics.org.midonet.midolman.monitoring.metrics:type=PacketPipelineMeter,name=packetsProcessed",
       "attr" : ["Count", "FifteenMinuteRate", "FiveMinuteRate", "OneMinuteRate", "MeanRate"],
       "outputWriters" : [ {
