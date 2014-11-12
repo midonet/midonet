@@ -31,14 +31,13 @@ import akka.testkit.TestActorRef
 import akka.testkit.TestKit
 import akka.util.Timeout
 
-import com.codahale.metrics.Clock
-
 import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman._
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
-import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.util.concurrent.NanoClock
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
@@ -49,7 +48,7 @@ import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, 
  */
 class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
                                    actors: mutable.Map[String, TestActorRef[Actor]],
-                                   clock: Clock)
+                                   clock: NanoClock)
     extends MidolmanActorsModule {
 
     protected override def bindMidolmanActorsService() {
@@ -57,7 +56,7 @@ class TestableMidolmanActorsModule(probes: mutable.Map[String, TestKit],
         expose(classOf[TestablePacketsEntryPoint])
         bind(classOf[MidolmanActorsService])
             .toInstance(new TestableMidolmanActorsService())
-        bind(classOf[Clock]).toInstance(clock)
+        bind(classOf[NanoClock]).toInstance(clock)
     }
 
     class TestableMidolmanActorsService extends MidolmanActorsService {
