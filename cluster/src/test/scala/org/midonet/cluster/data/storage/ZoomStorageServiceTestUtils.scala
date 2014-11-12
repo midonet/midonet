@@ -145,28 +145,12 @@ trait ZoomStorageTester extends StorageTester
 
     override def flush(): Unit = throw new UnsupportedOperationException
 
-    override def subscribe[T](clazz: Class[T],
-                              id: ObjId,
-                              obs: Observer[_ >: T]): Subscription = {
-        zoom.subscribe[T](clazz, id, obs)
+    override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
+        zoom.observable(clazz, id)
     }
 
-    /**
-     * Subscribes to the specified class. Upon subscription at time t0,
-     * obs.onNext() will receive an Observable[T] for each object of class
-     * T existing at time t0, and future updates at tn > t0 will each trigger
-     * a call to onNext() with an Observable[T] for a new object.
-     *
-     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
-     * circumstances.
-     *
-     * The subscribe() method of each of these Observables has the same behavior
-     * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
-     */
-    override def subscribeAll[T](clazz: Class[T],
-                                 obs: Observer[_ >: Observable[T]])
-                                 : Subscription = {
-        zoom.subscribeAll(clazz, obs)
+    override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
+        zoom.observable(clazz)
     }
 
     override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
