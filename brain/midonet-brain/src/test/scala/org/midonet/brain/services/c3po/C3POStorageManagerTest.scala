@@ -262,7 +262,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     }
 
     "C3PO Storage Mgr" should "return the last processed C3PO task ID." in {
-        val lastProcessed = storageManager.lastProcessedC3POTaskId()
+        val lastProcessed = storageManager.lastProcessedC3POTaskId
 
         assert(lastProcessed === 2, "last processed task ID.")
     }

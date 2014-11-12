@@ -19,6 +19,7 @@ package org.midonet.brain
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
 import com.google.inject.{AbstractModule, Module, Singleton}
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.MinionDef
@@ -50,7 +51,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
                 case Some(klass) =>
                     log.info(s"Minion '${m.name}' is disabled")
                 case _ =>
-                    log.info(s"Minion '${m.name}' has an invalid class")
+                    log.error(s"Minion '${m.name}' has an invalid class")
             }
         }
         if (nMinions == 0) {
@@ -88,7 +89,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
 /** Define a sub-service that runs as part of the Midonet Cluster. This
   * should expose the necessary API to let the Daemon babysit its minions.
   */
-abstract class ClusterMinion extends AbstractService {}
+abstract class ClusterMinion extends AbstractService
 
 /** Base configuration mixin for a Cluster Minion. */
 trait MinionConfig[+D <: ClusterMinion] {

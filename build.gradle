@@ -64,6 +64,7 @@ project.ext {
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_codec: "commons-codec:commons-codec:1.2",
         commons_conf: "commons-configuration:commons-configuration:1.8",
+        commons_dbcp2: "org.apache.commons:commons-dbcp2:2.0.1",
         commons_exec: "org.apache.commons:commons-exec:1.2",
         commons_lang: "commons-lang:commons-lang:2.6",
         commons_lang3: "org.apache.commons:commons-lang3:3.3",
@@ -144,6 +145,8 @@ project.ext {
         jersey_test_core: dependencies.create(
             "com.sun.jersey.jersey-test-framework:jersey-test-framework-core:${versions.jersey}") {
                 exclude group: 'junit', module: 'junit'},
+
+        mysql_jdbc: "mysql:mysql-connector-java:5.1.34",
 
         vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",

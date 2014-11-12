@@ -15,10 +15,9 @@
  */
 package org.midonet.cluster.services.neutron
 
-import org.midonet.cluster.services.c3po.ApiTranslator
-import org.midonet.cluster.services.c3po.OpType.OpType
-import org.midonet.cluster.services.c3po.TranslationException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.services.c3po.OpType.OpType
+import org.midonet.cluster.services.c3po.{ApiTranslator, TranslationException}
 
 /**
  * Defines an abstract base class for Neutron API request translator that
