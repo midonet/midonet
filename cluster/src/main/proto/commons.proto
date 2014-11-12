@@ -51,8 +51,8 @@ enum RuleDirection {
 
 enum EtherType {
     ARP = 2054;    // 0x0806
-    IPv4 = 2048;   // 0x0800
-    IPv6 = 34525;  // 0x86dd
+    IPV4 = 2048;   // 0x0800
+    IPV6 = 34525;  // 0x86dd
 }
 
 enum Protocol {
