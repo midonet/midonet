@@ -19,13 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.concurrent.TrieMap
 
+import com.google.common.annotations.VisibleForTesting
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.ChildData
-
+import org.slf4j.LoggerFactory
+import rx.Observable
 import rx.functions.Func1
-import rx.internal.operators.OperatorDoOnUnsubscribe
-import rx.subjects.{BehaviorSubject, PublishSubject}
-import rx.{Observable, Observer, Subscription}
 
 import org.midonet.cluster.util.{ObservableNodeCache, ObservablePathChildrenCache}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
@@ -52,51 +51,61 @@ import org.midonet.util.functors.{makeAction0, makeFunc1}
  */
 private[storage]
 class InstanceSubscriptionCache[T](val clazz: Class[T],
-                                   path: String,
+                                   val path: String,
                                    val id: String,
-                                   curator: CuratorFramework,
-                                   onLastUnsubscribe:
-                                       (String, InstanceSubscriptionCache[_]) => Unit) {
-    private val nodeCache = new ObservableNodeCache(curator)
-    private val stream = BehaviorSubject.create[T]()
+                                   val curator: CuratorFramework,
+                                   val onLastUnsubscribe:
+                                       (InstanceSubscriptionCache[_]) => Unit) {
 
+    private val log = LoggerFactory.getLogger(classOf[InstanceSubscriptionCache[_]])
+    private val nodeCache = new ObservableNodeCache(curator, path)
+
+    // Auxiliary stuff for GC
     private val refCount = new AtomicInteger(0)
-    private val unsubscribeObservable = stream.doOnUnsubscribe(makeAction0 {
-        if (refCount.decrementAndGet() == 0) {
-            onLastUnsubscribe(path, this)
-        }
-    })
+    private val onSubscribe = makeAction0 { refCount.incrementAndGet() }
+    private val onUnsubscribe = makeAction0 {
+                                                if (refCount.decrementAndGet() == 0) {
+                                                    nodeCache.close()
+                                                    onLastUnsubscribe(this)
+                                                }
+                                            }
 
+    /** The Observable where clients interested in updates about this entity may
+      * subscribe. Elements will start flowing as soon as connect() is called
+      *
+      * The InstanceSubscriptionCache will keep track of subscriptions to this
+      * observable and may decide to close the connection to ZK at any time in
+      * order to avoid open connections with no subscribers, rendering the
+      * InstanceSubscriptionCache unusable. When the connection is closed, the
+      * observable will just call onError(NodeCacheDisconnected) to signal that
+      * the connection is dead. The subscriber is then responsible to use an
+      * operator such as onErrorResumeNext to recreate a new
+      * InstanceSubscriptionCache and fetch the restored Observable. */
+    val observable = nodeCache.observable
+                              .map[T](DeserializerCache.deserializer(clazz))
+                              .doOnSubscribe(onSubscribe)
+                              .doOnUnsubscribe(onUnsubscribe)
+
+    def connect(): Unit = nodeCache.connect()
+
+    @VisibleForTesting
     def subscriptionCount = refCount.get
 
-    def connect(): Unit = {
-        nodeCache.connect(path)
-        nodeCache.observable
-            .map[T](DeserializerCache.deserializer(clazz))
-            .subscribe(stream)
-    }
+    /** Retrieve the last known value of the watched entity. */
+    def current: T = DeserializerCache.deserializer(clazz)
+                                      .call(nodeCache.current)
 
-    def current: T =
-        DeserializerCache.deserializer(clazz).call(nodeCache.current)
-
-    def subscribe(observer: Observer[_ >: T]): Subscription = {
-        refCount.incrementAndGet()
-        unsubscribeObservable.subscribe(observer)
-    }
-
-    /**
-     * Closes the cache if it does not have any subscribers.
-     * This function is called by the ZOOM garbage collector.
-     *
-     * @return True if the cache was closed, false otherwise.
-     */
-    def closeIfNeeded(): Boolean = {
-        if (refCount.get == 0) {
-            nodeCache.close()
-            true
-        } else {
-            false
+    /** Closes the cache if it does not have any subscribers. Called only by the
+      * ZOOM garbage collector.
+      *
+      * @return True if the cache was closed, false otherwise.
+      */
+    def close(): Unit = {
+        if (refCount.get > 0) {
+            log.info("Closed when still had subscribers")
         }
+        nodeCache.close() // Close the underlying observable, it'll emit onError
+                          // to notify any late subscriber not refCount'd
     }
 }
 
@@ -117,29 +126,29 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
                                 curator: CuratorFramework,
                                 onLastUnsubscribe:
-                                    (String, ClassSubscriptionCache[_]) => Unit) {
-    private val pathCache = new ObservablePathChildrenCache(curator)
+                                    (ClassSubscriptionCache[_]) => Unit) {
+
+    private val log = LoggerFactory.getLogger(classOf[ClassSubscriptionCache[_]])
+    private val pathCache = ObservablePathChildrenCache.create(curator, path)
     private val refCount = new AtomicInteger(0)
-    private val unsubscribeAction =
-        new OperatorDoOnUnsubscribe[Observable[ChildData]](makeAction0 {
-            if (refCount.decrementAndGet() == 0) {
-                onLastUnsubscribe(path, this)
-            }
-        })
+
+    private val decSubscribers = makeAction0 (
+        if (refCount.decrementAndGet() == 0) {
+            onLastUnsubscribe(ClassSubscriptionCache.this)
+        }
+    )
+    private val incSubscribers = makeAction0(refCount.incrementAndGet())
+
+    private val deserializer = makeFunc1 {
+        obs: Observable[ChildData] =>
+            obs.map[T](DeserializerCache.deserializer(clazz))
+    }
+
+    val observable = pathCache.map[Observable[T]](deserializer)
+                              .doOnSubscribe(incSubscribers)
+                              .doOnUnsubscribe(decSubscribers)
 
     def subscriptionCount = refCount.get
-
-    def connect() = {
-        pathCache.connect(path)
-    }
-
-    def subscribe(observer: Observer[_ >: Observable[T]]): Subscription = {
-        refCount.incrementAndGet()
-        val subj = PublishSubject.create[Observable[ChildData]]()
-        val mapped = subj.map[Observable[T]](instanceObservableConverter)
-        mapped.subscribe(observer)
-        pathCache.subscribe(subj, unsubscribeAction)
-    }
 
     /**
      * Closes the cache if it does not have any subscribers.
@@ -147,19 +156,14 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
      *
      * @return True if the cache was closed, false otherwise.
      */
-    def closeIfNeeded(): Boolean = {
-        if (refCount.get == 0) {
-            pathCache.close()
-            true
-        } else {
-            false
+    def close(): Unit = {
+        if (refCount.get > 0) {
+            log.info("Closed when still had subscribers")
         }
+        pathCache.close() // Close the underlying observable, it'll emit onError
+                          // to notify any late subscriber not refCount'd
     }
 
-    private val instanceObservableConverter =
-        makeFunc1 { obs: Observable[ChildData] =>
-            obs.map[T](DeserializerCache.deserializer(clazz))
-        }
 }
 
 /**
