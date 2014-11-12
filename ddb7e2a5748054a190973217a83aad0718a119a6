@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_5ad6b5c6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 333,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-12T13:00:01Z",
+      "side": 1,
+      "message": "This was a merge mistake, it should have been here and has been removed in the new version of this patch.",
+      "range": {
+        "startLine": 333,
+        "startChar": 8,
+        "endLine": 333,
+        "endChar": 56
+      },
+      "revId": "ddb7e2a5748054a190973217a83aad0718a119a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
