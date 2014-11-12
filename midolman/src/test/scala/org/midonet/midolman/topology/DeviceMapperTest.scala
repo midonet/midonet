@@ -18,9 +18,9 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
+import mockit.Mocked
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
@@ -29,10 +29,7 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
-import org.midonet.util.reactivex.AwaitableObserver.{OnCompleted, OnError, OnNext}
 import org.midonet.util.reactivex._
-
-import mockit.Mocked
 
 @RunWith(classOf[JUnitRunner])
 class DeviceMapperTest extends MidolmanSpec {
@@ -154,19 +151,19 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.refCount.get should be (0)
 
             When("Both observers subscribes")
-            val subscription1 = observable.subscribe(observer1)
-            val subscription2 = observable.subscribe(observer2)
+            val subscription1 = observable subscribe observer1
+            val subscription2 = observable subscribe observer2
 
             Then("The device mapper should have one subscription")
-            stream.refCount.get should be (1)
+            stream.refCount.get shouldBe 1
 
             When("Both observers unsubscribe")
             subscription1.unsubscribe()
             subscription2.unsubscribe()
 
             Then("The observers should be unsubscribed")
-            subscription1.isUnsubscribed should be (true)
-            subscription2.isUnsubscribed should be (true)
+            subscription1.isUnsubscribed shouldBe true
+            subscription2.isUnsubscribed shouldBe true
 
             And("The device observable should have one subscription")
             stream.refCount.get should be (1)
@@ -184,14 +181,15 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onCompleted()
 
             And("The observer subscribes")
-            val subscription = observable.subscribe(observer)
+            val subscription = observable subscribe observer
 
             Then("The subscription should be the empty subscription")
             subscription should be (Subscriptions.empty)
 
             And("The observer should have received an IllegalStateException")
-            observer.notifications should contain only
-                OnError(DeviceMapper.SUBSCRIPTION_EXCEPTION)
+            observer.getOnNextEvents shouldBe empty
+            observer.getOnCompletedEvents shouldBe empty
+            observer.getOnErrorEvents should contain (DeviceMapper.SUBSCRIPTION_EXCEPTION)
         }
 
         scenario("Stream error notifies future subscribers") {
@@ -213,7 +211,9 @@ class DeviceMapperTest extends MidolmanSpec {
             subscription should be (Subscriptions.empty)
 
             And("The observer should have received the exception")
-            observer.notifications should contain only OnError(e)
+            observer.getOnErrorEvents should contain only (e)
+            observer.getOnCompletedEvents shouldBe empty
+            observer.getOnNextEvents shouldBe empty
         }
     }
 
@@ -235,15 +235,13 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer1)
 
             Then("The first observer should see the device")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only (TestableDevice(id, 0))
 
             When("A second observer subscribes to the observable")
             observable.subscribe(observer2)
 
             Then("The second observer should see the device")
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer2.getOnNextEvents should contain only (TestableDevice(id, 0))
         }
 
         scenario("The observer does not receive a device until created") {
@@ -259,32 +257,30 @@ class DeviceMapperTest extends MidolmanSpec {
             observable.subscribe(observer1)
 
             Then("The first observer should not receive an update")
-            observer1.notifications should be (empty)
+            observer1.getOnNextEvents shouldBe empty
 
             When("The second observer subscribes to the observable")
             observable.subscribe(observer2)
 
             Then("The second observer should not receive an update")
-            observer2.notifications should be (empty)
+            observer2.getOnNextEvents shouldBe empty
 
             When("The device is created")
             val id = UUID.randomUUID
             stream.in.onNext(TestableDevice(id, 0))
 
             Then("Both observers should see the device")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The device is updated")
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("Both observers should see the device")
-            observer1.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnNext(TestableDevice(id, 1)))
-            observer2.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnNext(TestableDevice(id, 1)))
+            observer1.getOnNextEvents should contain inOrderOnly
+                (TestableDevice(id, 0), TestableDevice(id, 1))
+            observer2.getOnNextEvents should contain inOrderOnly
+                (TestableDevice(id, 0), TestableDevice(id, 1))
         }
 
         scenario("The observer does not receive updates after unsubscribe") {
@@ -301,14 +297,12 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 0))
 
             And("The both observers subscribe to the observable")
-            val subscription1 = observable.subscribe(observer1)
-            val subscription2 = observable.subscribe(observer2)
+            val subscription1 = observable subscribe observer1
+            val subscription2 = observable subscribe observer2
 
             Then("Both observers should see the device")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The first observer unsubscribes")
             subscription1.unsubscribe()
@@ -317,10 +311,9 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("Only the second observer should see the update")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnNext(TestableDevice(id, 1)))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain inOrderOnly
+                (TestableDevice(id, 0), TestableDevice(id, 1))
 
             When("The second observer unsubscribes")
             subscription2.unsubscribe()
@@ -329,10 +322,9 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 2))
 
             Then("No observer should see the update")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnNext(TestableDevice(id, 1)))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain inOrderOnly
+                (TestableDevice(id, 0), TestableDevice(id, 1))
         }
 
         scenario("Unsubscribing does not affect future subscribers") {
@@ -354,10 +346,8 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription2 = observable.subscribe(observer2)
 
             Then("Both observers should see the device")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The both observers unsubscribes")
             subscription1.unsubscribe()
@@ -367,17 +357,14 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 1))
 
             Then("No observer should see the device")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The third observer subscribes to the observable")
             val subscription3 = observable.subscribe(observer3)
 
             Then("The third observer should see the update")
-            observer3.notifications should contain only
-                OnNext(TestableDevice(id, 1))
+            observer3.getOnNextEvents should contain only TestableDevice(id, 1)
 
             When("The third observer unsubscribes")
             subscription3.unsubscribe()
@@ -386,12 +373,9 @@ class DeviceMapperTest extends MidolmanSpec {
             stream.in.onNext(TestableDevice(id, 2))
 
             Then("No observer should see the update")
-            observer1.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer2.notifications should contain only
-                OnNext(TestableDevice(id, 0))
-            observer3.notifications should contain only
-                OnNext(TestableDevice(id, 1))
+            observer1.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer2.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer3.getOnNextEvents should contain only TestableDevice(id, 1)
         }
 
         scenario("Observers receive device deletion") {
@@ -410,15 +394,14 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable.subscribe(observer)
 
             Then("The first observer should see the device")
-            observer.notifications should contain only
-                OnNext(TestableDevice(id, 0))
+            observer.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The stream is completed")
             stream.in.onCompleted()
 
             Then("The observer should see the device deletion")
-            observer.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnCompleted())
+            observer.getOnNextEvents should contain only TestableDevice(id, 0)
+            observer.getOnCompletedEvents should have size 1
 
             And("The observer should be unsubscribed")
             subscription.isUnsubscribed should be (true)
@@ -440,19 +423,20 @@ class DeviceMapperTest extends MidolmanSpec {
             val subscription = observable.subscribe(observer)
 
             Then("The first observer should see the device")
-            observer.notifications should contain only
-            OnNext(TestableDevice(id, 0))
+            observer.getOnNextEvents should have size 1
+            observer.getOnNextEvents should contain only TestableDevice(id, 0)
 
             When("The stream emits an error")
             val e = new NullPointerException()
             stream.in.onError(e)
 
             Then("The observer should see the device error")
-            observer.notifications should contain inOrderOnly
-                (OnNext(TestableDevice(id, 0)), OnError(e))
+            observer.getOnNextEvents should have size 1
+            observer.getOnNextEvents.get(0) shouldBe TestableDevice(id, 0)
+            observer.getOnErrorEvents.get(0) shouldBe e
 
             And("The observer should be unsubscribed")
-            subscription.isUnsubscribed should be (true)
+            subscription.isUnsubscribed shouldBe true
         }
     }
 
