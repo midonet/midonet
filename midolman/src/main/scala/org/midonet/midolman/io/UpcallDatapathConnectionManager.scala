@@ -15,26 +15,25 @@
  */
 package org.midonet.midolman.io
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{TimeUnit, ConcurrentHashMap}
 import java.util.concurrent.locks.ReentrantLock
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import com.codahale.metrics.Clock
-import org.slf4j.{Logger, LoggerFactory}
-
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.{PacketsEntryPoint, NetlinkCallbackDispatcher, DeduplicationActor}
+import org.midonet.midolman.{DeduplicationActor, NetlinkCallbackDispatcher, PacketsEntryPoint}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EBUSY
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.EEXIST
+import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.{EBUSY, EEXIST}
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.util.{Bucket, BatchCollector}
+import org.midonet.util.concurrent.NanoClock
+import org.midonet.util.{BatchCollector, Bucket}
+import org.slf4j.{Logger, LoggerFactory}
 
 /**
  * The UpcallDatapathConnectionManager will create a new netlink channel
@@ -78,7 +77,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     def askForWorkers()
                (implicit ec: ExecutionContext, as: ActorSystem) = {
-        implicit val tout = Timeout(3000L)
+        implicit val tout = Timeout(3, TimeUnit.SECONDS)
         (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
     }
 
@@ -197,7 +196,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                 log.trace("accumulating packet: {}", data.getMatch)
 
                 data.processUserspaceKeys()
-                data.startTimeNanos = Clock.defaultClock().getTick
+                data.startTimeNanos = NanoClock.DEFAULT.tick
 
                 val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
                 packets(worker)(cursors(worker)) = data
