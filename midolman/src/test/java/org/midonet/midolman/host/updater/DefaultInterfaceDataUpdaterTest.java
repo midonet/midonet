@@ -62,6 +62,8 @@ import org.midonet.midolman.util.guice.MockMidolmanModule;
 import org.midonet.midolman.util.guice.TestableMidolmanActorsModule;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.util.concurrent.NanoClock;
+import org.midonet.util.concurrent.NanoClock$;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -111,7 +113,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new TestableMidolmanActorsModule(
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestKit>()),
                 JavaConversions.mapAsScalaMap(new HashMap<String, TestActorRef<Actor>>()),
-                Clock.defaultClock()),
+                NanoClock$.MODULE$.DEFAULT()),
             new ResourceProtectionModule(),
             new InterfaceScannerModule());
 

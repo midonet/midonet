@@ -17,32 +17,34 @@
 package org.midonet.midolman
 
 import java.util.UUID
+
 import scala.collection.JavaConversions._
 
-import com.google.inject.{Scopes, PrivateModule, AbstractModule, Guice, Injector}
-import com.codahale.metrics.{Clock, MetricRegistry}
-import org.apache.commons.configuration.HierarchicalConfiguration
-import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
+import com.codahale.metrics.MetricRegistry
+import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule, Scopes}
 
-import org.midonet.cluster.services.MidostoreSetupService
+import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
+
+import org.apache.commons.configuration.HierarchicalConfiguration
+
 import org.midonet.cluster.Client
+import org.midonet.cluster.services.MidostoreSetupService
 import org.midonet.config.ConfigProvider
-import org.midonet.midolman.services.{DatapathConnectionService, DashboardService,
-        SelectLoopService, MidolmanActorsService, HostIdProviderService, MidolmanService}
-import org.midonet.midolman.version.guice.VersionModule
-import org.midonet.midolman.guice.{MidolmanModule, ResourceProtectionModule, MidolmanActorsModule}
-import org.midonet.midolman.guice.serialization.SerializationModule
+import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.guice.cluster.{ClusterClientModule, MidostoreModule}
 import org.midonet.midolman.guice.config.ConfigProviderModule
 import org.midonet.midolman.guice.datapath.MockDatapathModule
-import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
-import org.midonet.midolman.guice.cluster.{MidostoreModule, ClusterClientModule}
-import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.util.mock.{MockMidolmanActors, MockInterfaceScanner}
-import org.midonet.midolman.simulation.Chain
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.util.MockClock
-import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
+import org.midonet.midolman.guice.serialization.SerializationModule
 import org.midonet.midolman.guice.state.MockFlowStateStorageModule
+import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
+import org.midonet.midolman.guice.{MidolmanActorsModule, MidolmanModule, ResourceProtectionModule}
+import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
+import org.midonet.midolman.simulation.Chain
+import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
+import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
+import org.midonet.midolman.version.guice.VersionModule
+import org.midonet.util.concurrent.{MockClock, NanoClock}
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
@@ -96,7 +98,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     bind(classOf[MidolmanActorsService])
                             .toInstance(actorsService)
                     expose(classOf[MidolmanActorsService])
-                    bind(classOf[Clock]).toInstance(clock)
+                    bind(classOf[NanoClock]).toInstance(clock)
                 }
             },
             new ResourceProtectionModule(),
