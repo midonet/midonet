@@ -59,16 +59,24 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
                                        (String, InstanceSubscriptionCache[_]) => Unit) {
     private val nodeCache = new ObservableNodeCache(curator)
     private val stream = BehaviorSubject.create[T]()
-
     private val refCount = new AtomicInteger(0)
-    private val unsubscribeObservable = stream.doOnUnsubscribe(makeAction0 {
+    private val onUnsubscribe = makeAction0 {
         if (refCount.decrementAndGet() == 0) {
             onLastUnsubscribe(path, this)
         }
-    })
+    }
+    private val onSubscribe = makeAction0 {
+        refCount.incrementAndGet()
+    }
+
+    /** The Observable where clients interested in updates about this entity may
+      * subscribe. */
+    val observable: Observable[T] = stream.doOnSubscribe(onSubscribe)
+                                          .doOnUnsubscribe(onUnsubscribe)
 
     def subscriptionCount = refCount.get
 
+    /** Plug into the underlying stream of elements */
     def connect(): Unit = {
         nodeCache.connect(path)
         nodeCache.observable
@@ -76,20 +84,15 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
             .subscribe(stream)
     }
 
-    def current: T =
-        DeserializerCache.deserializer(clazz).call(nodeCache.current)
+    /** Retrieve the last known value of the watched entity */
+    def current: T = DeserializerCache.deserializer(clazz)
+                                      .call(nodeCache.current)
 
-    def subscribe(observer: Observer[_ >: T]): Subscription = {
-        refCount.incrementAndGet()
-        unsubscribeObservable.subscribe(observer)
-    }
-
-    /**
-     * Closes the cache if it does not have any subscribers.
-     * This function is called by the ZOOM garbage collector.
-     *
-     * @return True if the cache was closed, false otherwise.
-     */
+    /** Closes the cache if it does not have any subscribers. Called only by the
+      * ZOOM garbage collector.
+      *
+      * @return True if the cache was closed, false otherwise.
+      */
     def closeIfNeeded(): Boolean = {
         if (refCount.get == 0) {
             nodeCache.close()

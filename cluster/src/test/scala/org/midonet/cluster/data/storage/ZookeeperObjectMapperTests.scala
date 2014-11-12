@@ -46,7 +46,8 @@ class ZookeeperObjectMapperTests extends Suite
     private var gcRunnable: Runnable = _
     private var gcDone: Boolean = _
 
-    private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
+    private class MockZookeeperObjectMapper(val basePath: String,
+                                            val curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
 
         override def scheduleCacheGc(scheduler: ScheduledExecutorService,

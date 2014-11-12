@@ -19,6 +19,9 @@ import java.util
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 
+import rx.Observable.OnSubscribe
+import rx.functions.Action0
+
 import scala.collection.mutable
 
 import com.google.inject.Inject
@@ -31,7 +34,7 @@ import org.apache.curator.framework.recipes.cache.{ChildData, PathChildrenCache,
 import org.slf4j.LoggerFactory
 
 import rx.internal.operators.OperatorDoOnUnsubscribe
-import rx.{Observer, Observable}
+import rx.{Subscriber, Observer, Observable}
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 
 import org.midonet.util.concurrent.Locks._
@@ -143,6 +146,18 @@ class ObservablePathChildrenCache(val zk: CuratorFramework) {
             stream.subscribe(funnel) // Follow up with subsequent updates
             subscription
         }
+    }
+
+    def observable: Observable[Observable[ChildData]] = {
+        Observable.create(new OnSubscribe[Observable[ChildData]] {
+            override def call(s: Subscriber[_ >: Observable[ChildData]]): Unit = {
+                withReadLock(childrenLock) {
+                    val preSeed = children.values
+                    log.info("Subscribe {}, curr siz{ {}", path, preSeed.size)
+                    preSeed foreach { s onNext _ } // emit all known children
+                }
+            }
+        })
     }
 
     /** Returns the latest state known for the children at the given absolute

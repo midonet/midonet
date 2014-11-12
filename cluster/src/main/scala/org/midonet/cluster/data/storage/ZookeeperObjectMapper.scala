@@ -821,17 +821,19 @@ class ZookeeperObjectMapper(
            subscribing to a cache that the cache garbage collector is
            about to remove from instanceCaches. */
         Locks.withReadLock(instanceCacheRWLock) {
-            instanceCaches(clazz).getOrElse(id.toString, {
+            val instanceCache = instanceCaches(clazz).getOrElse(id.toString, {
                 val path = getPath(clazz, id)
-                val newCache = new InstanceSubscriptionCache(clazz, path, id.toString,
-                                                             curator, onInstanceCacheClose)
+                val newCache = new InstanceSubscriptionCache(
+                    clazz, path, id.toString, curator, onInstanceCacheClose)
                 instanceCaches(clazz)
                     .putIfAbsent(id.toString, newCache)
                     .getOrElse {
                         async { newCache.connect() }
                         newCache
                     }
-            }).asInstanceOf[InstanceSubscriptionCache[T]].subscribe(obs)
+            })
+            instanceCache.asInstanceOf[InstanceSubscriptionCache[T]]
+                         .observable.subscribe(obs)
         }
     }
 
