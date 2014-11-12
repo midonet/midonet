@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_3d181384",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-12T20:52:56Z",
+      "side": 1,
+      "message": "why? here we should just check if the packet is a state message, a vtep packet or a normal packet. any other case being handled with the same code. (note that, similarly, we don\u0027t explicitly handle here the case where we couldn\u0027t map the dp port to a vport or when there\u0027s no vni for the tunnel key)",
+      "parentUuid": "3a65312a_bd942345",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_5c3cc3e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
