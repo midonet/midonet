@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_5d9eaf57",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T17:45:36Z",
+      "side": 1,
+      "message": "proto cannot be None\nLet\u0027s leave it like this, we can fix it in a future patch. If proto would be null, the test would fail anyway.",
+      "revId": "97d41ac5d9502a128f3da01785f04782582ee415",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_bda26398",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T17:45:36Z",
+      "side": 1,
+      "message": "The same",
+      "revId": "97d41ac5d9502a128f3da01785f04782582ee415",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_9d9fa750",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-12T17:45:36Z",
+      "side": 1,
+      "message": "The same",
+      "revId": "97d41ac5d9502a128f3da01785f04782582ee415",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
