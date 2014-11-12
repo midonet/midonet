@@ -42,7 +42,6 @@ case class DeleteOp(clazz: Class[_], id: ObjId,
                     ignoreIfNotExists: Boolean = false)
         extends PersistenceOp
 
-
 /**
  * Used in update operations to perform validation that depends on knowing the
  * current state of the object to be validated.

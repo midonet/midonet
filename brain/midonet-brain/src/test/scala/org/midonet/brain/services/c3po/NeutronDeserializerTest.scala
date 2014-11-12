@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.neutron
+package org.midonet.brain.services.c3po
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.models.Commons
-import org.midonet.cluster.models.Neutron
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FunSuite, Matchers}
+
+import org.midonet.cluster.models.{Commons, Neutron}
 
 @RunWith(classOf[JUnitRunner])
 class NeutronDeserializerTest extends FunSuite with Matchers {
@@ -72,7 +72,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |        {
               |            "id": "6a7e9264-8fe9-4429-809a-cf2514275b75",
               |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
-              |            "direction": "EGRESS",
+              |            "direction": "egress",
               |            "ethertype": "IPv4",
               |            "protocol": "TCP",
               |            "port_range_min": 10000,
@@ -81,7 +81,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |        {
               |            "id": "1af2f735-6a02-4954-ae21-8316086c2e5e",
               |            "security_group_id": "cbb90306-60e8-446a-9a8a-e31840951096",
-              |            "direction": "INGRESS",
+              |            "direction": "ingress",
               |            "ethertype": "IPv6",
               |            "protocol": "ICMPv6"
               |        }
@@ -101,7 +101,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         rule1.getId.getLsb shouldBe 0x809acf2514275b75L
         rule1.getSecurityGroupId should equal(secGrp.getId)
         rule1.getDirection shouldBe Commons.RuleDirection.EGRESS
-        rule1.getEthertype shouldBe Commons.EtherType.IPv4
+        rule1.getEthertype shouldBe Commons.EtherType.IPV4
         rule1.getProtocol shouldBe Commons.Protocol.TCP
         rule1.getPortRangeMin shouldBe 10000
         rule1.getPortRangeMax shouldBe 10009
@@ -111,8 +111,8 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         rule2.getId.getLsb shouldBe 0xae218316086c2e5eL
         rule2.getSecurityGroupId should equal(secGrp.getId)
         rule2.getDirection shouldBe Commons.RuleDirection.INGRESS
-        rule2.getEthertype shouldBe Commons.EtherType.IPv6
-        rule2.getProtocol shouldBe Commons.Protocol.ICMPv6
+        rule2.getEthertype shouldBe Commons.EtherType.IPV6
+        rule2.getProtocol shouldBe Commons.Protocol.ICMPV6
     }
 
     // Interesting features:

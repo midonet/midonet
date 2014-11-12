@@ -19,10 +19,16 @@ package org.midonet.cluster.data.neutron
 import java.sql.{Connection, ResultSet}
 import java.util.UUID
 
-import org.midonet.cluster.data.neutron.NeutronResourceType.NeutronResourceType
-import org.midonet.cluster.data.neutron.TaskType.TaskType
-
 import scala.collection.mutable.ListBuffer
+
+import com.google.protobuf.Message
+
+import org.apache.commons.dbcp2.BasicDataSource
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.data.neutron.TaskType.TaskType
+import org.midonet.cluster.models.Neutron
+import org.midonet.cluster.models.Neutron._
 
 /**
  * Neutron task type. The value is the ID used to represent the task type
@@ -30,7 +36,7 @@ import scala.collection.mutable.ListBuffer
  * while Flush is a command to delete the Cluster's topology data and rebuild
  * from Neutron.
  */
-protected[data] object TaskType extends Enumeration {
+protected[cluster] object TaskType extends Enumeration {
     type TaskType = Value
     val Create = Value(1)
     val Delete = Value(2)
@@ -45,44 +51,51 @@ protected[data] object TaskType extends Enumeration {
  * Neutron resource type The value is the ID used to represent the resource
  * type in Neutron's task table.
  */
-protected[data] object NeutronResourceType extends Enumeration {
-    type NeutronResourceType = Value
-    val Network = Value(1)
-    val Subnet = Value(2)
-    val Router = Value(3)
-    val Port = Value(4)
-    val FloatingIp = Value(5)
-    val SecurityGroup = Value(6)
-    val SecurityGroupRule = Value(7)
-    val RouterInterface = Value(8)
+case class NeutronResourceType[M <: Message](id: Int, clazz: Class[M])
+
+protected[cluster] object NeutronResourceType extends Enumeration {
+    val Network = NeutronResourceType(1, classOf[NeutronNetwork])
+    val Subnet = NeutronResourceType(2, classOf[NeutronSubnet])
+    val Router = NeutronResourceType(3, classOf[NeutronRouter])
+    val Port = NeutronResourceType(4, classOf[NeutronPort])
+    val FloatingIp = NeutronResourceType(5, classOf[Neutron.FloatingIp])
+    val SecurityGroup = NeutronResourceType(6, classOf[Neutron.SecurityGroup])
+    val SecurityGroupRule =
+        NeutronResourceType(7, classOf[Neutron.SecurityGroupRule])
+    val RouterInterface =
+        NeutronResourceType(8, classOf[NeutronRouterInterface])
 
     private val vals = Array(Network, Subnet, Router, Port, FloatingIp,
                              SecurityGroup, SecurityGroupRule, RouterInterface)
-    def valueOf(i: Int): NeutronResourceType = vals(i - 1)
+    def valueOf(i: Int) = vals(i - 1)
 }
 
 /**
  * Case classes representing Neutron tasks.
  */
-protected[data] sealed trait Task {
+sealed trait Task {
     val taskId: Int
 }
-protected[data] case class Create(taskId: Int, rsrcType: NeutronResourceType,
-                                  json: String) extends Task
-protected[data] case class Delete(taskId: Int, rsrcType: NeutronResourceType,
-                                  objId: UUID) extends Task
-protected[data] case class Update(taskId: Int, rsrcType: NeutronResourceType,
-                                  json: String) extends Task
-protected[data] case class Flush(taskId: Int) extends Task
+case class Create(taskId: Int,
+                  rsrcType: NeutronResourceType[_ <: Message],
+                  json: String) extends Task
+case class Delete(taskId: Int,
+                  rsrcType: NeutronResourceType[_ <: Message],
+                  objId: UUID) extends Task
+case class Update(taskId: Int,
+                  rsrcType: NeutronResourceType[_ <: Message],
+                  json: String) extends Task
+case class Flush(taskId: Int) extends Task
 
-protected[data] class Transaction(id: String, tasks: List[Task]) {
+class Transaction(val id: String, val tasks: List[Task]) {
     val lastTaskId = tasks.last.taskId
+    val isFlushTxn = tasks.size == 1 && tasks(0).isInstanceOf[Flush]
 }
 
 /**
  * Interface for access to Neutron database.
  */
-protected[data] trait NeutronService {
+trait NeutronService {
     /**
      * Gets all tasks with task ID greater than lastTaskId, ordered by task ID
      * and grouped into Transactions according to transaction ID.
@@ -102,16 +115,17 @@ protected[data] trait NeutronService {
  * TODO: Use something smarter than a plain JDBC connection that will retry
  * and attempt to reconnect if the connection fails.
  */
-protected[data] class RemoteNeutronService(conn: Connection)
-    extends NeutronService{
-    private val getTasksStmt = conn.prepareStatement(
-        "select id, type_id, data_type_id, resource_id, transaction_id, data " +
-        "from task where id > ? " +
-        s"or (id = 1 and type_id = ${TaskType.Flush.id} " +
-        "order by id")
+class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
+                           user: String, password: String)
+    extends NeutronService {
 
-    private val deleteTaskStmt =
-        conn.prepareStatement("delete from task where id = ?")
+    private val log = LoggerFactory.getLogger(classOf[RemoteNeutronService])
+
+    private val dataSrc = new BasicDataSource()
+    dataSrc.setDriverClassName(jdbcDriverClassName)
+    dataSrc.setUrl(cnxnStr)
+    dataSrc.setUsername(user)
+    dataSrc.setPassword(password)
 
     private val idCol = 1
     private val typeIdCol = 2
@@ -121,27 +135,37 @@ protected[data] class RemoteNeutronService(conn: Connection)
     private val dataCol = 6
 
     override def getTasksSince(lastTaskId: Int): List[Transaction] = {
-        getTasksStmt.setInt(1, lastTaskId)
-        val rslt = getTasksStmt.executeQuery()
+        val con = dataSrc.getConnection
+        try getTasksSince(lastTaskId, con) finally con.close()
+    }
+
+    private def getTasksSince(lastTaskId: Int,
+                              con: Connection): List[Transaction] = {
+        log.debug("Querying Neutron DB for tasks with ID > {}", lastTaskId)
+        val rslt = queryTasksSince(lastTaskId, con)
         val txns = ListBuffer[Transaction]()
         var lastTxnId: String = null
         val txnTasks = ListBuffer[Task]()
+
+        def buildTxn(): Transaction = {
+            val tasks = txnTasks.toList
+            txnTasks.clear()
+            log.debug("Finished receiving transaction {}, containing tasks {}.",
+                      lastTxnId, tasks.map(_.taskId).asInstanceOf[Any])
+            new Transaction(lastTxnId, tasks)
+        }
+
         while (rslt.next()) {
             val row = parseTaskRow(rslt)
-            if (row.taskType == TaskType.Flush) {
-                assert(row.id == 1)
-                return List(new Transaction(row.txnId,
-                                            List(new Flush(row.id))))
-            }
+            log.debug("Received task from Neutron DB: {}", row)
 
             // Rows should be grouped by transaction, so if this row's txnId
             // is different from the last, we can close off the last transaction
             // and start a new one.
             if (lastTxnId != row.txnId) {
-                if (lastTxnId != null) {
-                    txns += new Transaction(lastTxnId, txnTasks.toList)
-                    txnTasks.clear()
-                }
+                if (lastTxnId != null)
+                    txns += buildTxn()
+                log.debug("Began receiving transaction {}", row.txnId)
                 lastTxnId = row.txnId
             }
 
@@ -149,25 +173,43 @@ protected[data] class RemoteNeutronService(conn: Connection)
         }
 
         // Close off the last transaction.
-        if (lastTxnId != null) {
-            txns += new Transaction(lastTxnId, txnTasks.toList)
-        }
+        if (lastTxnId != null)
+            txns += buildTxn()
 
+        log.debug("Received {} transactions from Neutron DB.", txns.size)
         txns.toList
     }
 
+    private def queryTasksSince(lastTaskId: Int, con: Connection): ResultSet = {
+        val stmt = con.prepareStatement(
+            "select id, type_id, data_type_id," +
+            "resource_id, transaction_id, data " +
+            "from midonet_tasks where id > ? or " +
+            s"(id = 1 and type_id = ${TaskType.Flush.id}) " +
+            "order by id")
+        stmt.setInt(1, lastTaskId)
+        val rslt = stmt.executeQuery()
+        rslt
+    }
+
     override def deleteTask(taskId: Int): Unit = {
-        deleteTaskStmt.setInt(1, taskId)
-        deleteTaskStmt.executeUpdate()
+        val con = dataSrc.getConnection
+        try {
+            val stmt =
+                con.prepareStatement("delete from midonet_tasks where id = ?")
+            stmt.setInt(1, taskId)
+            stmt.executeUpdate()
+        } finally con.close()
     }
 
     private case class TaskRow(id: Int, taskType: TaskType,
-                               rsrcType: NeutronResourceType, rsrcId: UUID,
-                               txnId: String, json: String) {
+                               rsrcType: NeutronResourceType[_ <: Message],
+                               rsrcId: UUID, txnId: String, json: String) {
         def toTask = taskType match {
             case TaskType.Create => Create(id, rsrcType, json)
             case TaskType.Delete => Delete(id, rsrcType, rsrcId)
             case TaskType.Update => Update(id, rsrcType, json)
+            case TaskType.Flush => Flush(id)
         }
     }
 
@@ -178,11 +220,15 @@ protected[data] class RemoteNeutronService(conn: Connection)
     private def parseTaskRow(rslt: ResultSet): TaskRow = {
         val id = rslt.getInt(idCol)
         val taskType = TaskType.valueOf(rslt.getInt(typeIdCol))
-        val rsrcType = NeutronResourceType.valueOf(rslt.getInt(resourceIdCol))
+        val rsrcType = NeutronResourceType.valueOf(rslt.getInt(dataTypeIdCol))
         val rsrcIdStr = rslt.getString(resourceIdCol)
         val rsrcId = if (rsrcIdStr == null) null else UUID.fromString(rsrcIdStr)
         val txnId = rslt.getString(txnIdCol)
         val json = rslt.getString(dataCol)
+
+        // Task ID for flush should always be 1.
+        assert(taskType != TaskType.Flush || id == 1)
+
         TaskRow(id, taskType, rsrcType, rsrcId, txnId, json)
     }
 

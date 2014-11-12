@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.neutron
-
-import java.util
-
-import com.google.protobuf.Descriptors.{EnumValueDescriptor, EnumDescriptor, FieldDescriptor, Descriptor}
-import com.google.protobuf.Message
-import com.google.protobuf.Descriptors.FieldDescriptor.{Type => FieldType}
-import org.codehaus.jackson.{JsonNode, JsonFactory}
-import org.codehaus.jackson.map.ObjectMapper
-import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+package org.midonet.brain.services.c3po
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
+
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.google.protobuf.Descriptors.FieldDescriptor.{Type => FieldType}
+import com.google.protobuf.Descriptors.{Descriptor, EnumDescriptor, EnumValueDescriptor, FieldDescriptor}
+import com.google.protobuf.Message
+
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
+import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
 
 /**
  * Converts Neutron JSON to corresponding Protobuf messages defined in
@@ -41,6 +42,8 @@ import scala.collection.concurrent.TrieMap
  * "external" in the Protobuf message.
  */
 object NeutronDeserializer {
+
+    private val log = LoggerFactory.getLogger(this.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
 
@@ -58,9 +61,10 @@ object NeutronDeserializer {
         toMessage(parseJson(jsonStr), clazz)
 
     private def toMessage[M <: Message](node: JsonNode, clazz: Class[M]): M = {
+        log.debug("Translating json {} to class {}", Array(node, clazz):_*)
         val bldr = builderFor(clazz)
         val classDesc = descriptorFor(clazz)
-        for (field <- node.getFields.asScala) {
+        for (field <- node.fields.asScala if !field.getValue.isNull) {
             // Neutron has some field names in the form "plugin:field" for
             // fields added by plugins. We just ignore the first part.
             val nameParts = field.getKey.split(':')
@@ -81,7 +85,7 @@ object NeutronDeserializer {
             }
 
             if (fd.isRepeated) {
-                for (child <- value.getElements.asScala) {
+                for (child <- value.elements.asScala) {
                     bldr.addRepeatedField(fd, converter(child))
                 }
             } else {
@@ -97,12 +101,11 @@ object NeutronDeserializer {
         // either the class or the builder, or even the fully-qualified class
         // name, from the Descriptor. We need a case for any message class used
         // as the type of a field in another message.
-        val name = desc.getFullName
-        name match {
+        desc.getFullName match {
             case "org.midonet.cluster.models.UUID" =>
-                UUIDUtil.toProto(node.getTextValue)
+                parseUuid(node.asText)
             case "org.midonet.cluster.models.IPAddress" =>
-                IPAddressUtil.toProto(node.getTextValue)
+                parseIpAddr(node.asText)
             case "org.midonet.cluster.models.NeutronHealthMonitor.Pool" =>
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronPort.IPAllocation" =>
@@ -117,26 +120,37 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronSecurityGroupRule])
             case "org.midonet.cluster.models.VIP.SessionPersistence" =>
                 toMessage(node, classOf[VIP.SessionPersistence])
-            case _ => throw new NeutronDeserializationException(
-                s"Don't know how to deserialize message type $name.")
+            case unknown => throw new NeutronDeserializationException(
+                s"Don't know how to deserialize message type $unknown.")
         }
     }
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        desc.findValueByName(node.getTextValue)
+        val textVal = node.asText
+        val enumVal = desc.findValueByName(textVal.toUpperCase)
+        if (enumVal == null)
+            throw new NeutronDeserializationException(
+                s"Value $textVal not found in enum ${desc.getName}.")
+        enumVal
     }
 
     private def parseUuid(str: String): UUID = {
-        val javaUuid = try util.UUID.fromString(str) catch {
+        try UUIDUtil.toProto(str) catch {
             case ex: Exception => throw new NeutronDeserializationException(
-                s"Could not parse UUID: $str")
+                s"Couldn't parse UUID: $str", ex)
         }
-        UUIDUtil.toProto(javaUuid)
+    }
+
+    private def parseIpAddr(str: String): IPAddress = {
+        try IPAddressUtil.toProto(str) catch {
+            case ex: Exception => throw new NeutronDeserializationException(
+                s"Couldn't parse IP address: $str", ex)
+        }
     }
 
     private def parseJson(jsonStr: String): JsonNode = {
-        val parser = jsonFactory.createJsonParser(jsonStr)
+        val parser = jsonFactory.createParser(jsonStr)
         try parser.readValueAsTree() catch {
             case ex: Exception =>
                 throw new NeutronDeserializationException(
@@ -176,5 +190,5 @@ object NeutronDeserializer {
  * This is not a user error, and should never be thrown except in case of bug
  * or data corruption. However, callers should handle it.
  */
-class NeutronDeserializationException private[neutron](
+class NeutronDeserializationException private[c3po](
         msg: String, cause: Throwable = null) extends Exception(msg, cause)

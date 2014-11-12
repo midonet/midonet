@@ -30,11 +30,18 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+    </appender>
+
     <!-- Fine grained settings for specific classes, sample-->
     <!-- logger name="org.eclipse.jetty" level="INFO" / -->
 
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
     <root level="INFO">
+        <appender-ref ref="STDOUT" />
         <appender-ref ref="LOG-FILE" />
     </root>
 
