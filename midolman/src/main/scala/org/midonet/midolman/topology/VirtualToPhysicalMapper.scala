@@ -18,6 +18,7 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.TimeoutException
 import java.util.{Set => JSet}
+
 import scala.collection.immutable.{Set => ROSet}
 import scala.collection.mutable.Queue
 import scala.collection.{mutable, immutable}
@@ -775,4 +776,5 @@ abstract class VirtualToPhysicalMapperBase
 class VirtualToPhysicalMapper
     extends VirtualToPhysicalMapperBase
     with DataClientLink with ZkConnectionWatcherLink with DeviceManagement
+    with LocalPortActiveSubscriberActor
 
