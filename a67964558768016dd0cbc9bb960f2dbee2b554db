@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_dab5a532",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-12T09:07:07Z",
+      "side": 1,
+      "message": "Oh, I found this vPortId was contained in LocalPortActive, so I don\u0027t need portEntangler anymore.",
+      "revId": "a67964558768016dd0cbc9bb960f2dbee2b554db",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_ba95498a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualToPhysicalMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-12T09:07:07Z",
+      "side": 1,
+      "message": "It seems I have to fill InterfaceDescription where this LocalPortActive is used. Technically it\u0027s OK to give it only when the virtual port is bound to the interface.",
+      "revId": "a67964558768016dd0cbc9bb960f2dbee2b554db",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
