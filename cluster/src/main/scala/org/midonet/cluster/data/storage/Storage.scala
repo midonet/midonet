@@ -41,6 +41,8 @@ object UpdateOp {
 
 case class DeleteOp(clazz: Class[_], id: ObjId) extends PersistenceOp
 
+case class FlushOp() extends PersistenceOp
+
 
 /**
  * Used in update operations to perform validation that depends on knowing the
