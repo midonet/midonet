@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import scala.None$;
+import scala.Option;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.concurrent.Future;
@@ -42,10 +42,11 @@ import org.junit.Test;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.util.NodeCacheOrphaned;
+import org.midonet.cluster.util.ObservableNodeCache;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -895,9 +896,8 @@ public class ZookeeperObjectMapperTest {
         ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
                                                       chain.id, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.updates());
-        assertNotNull(sub.event().get());
-        assertEquals(chain.name, sub.event().get().name);
+        assertEquals(1, sub.getOnNextEvents().size());
+        assertEquals(chain.name, sub.getOnNextEvents().get(0).name);
     }
 
     @Test
@@ -911,8 +911,8 @@ public class ZookeeperObjectMapperTest {
         chain.name = "renamedChain";
         zom.update(chain);
         sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.updates());
-        assertEquals(chain.name, sub.event().get().name);
+        assertEquals(2, sub.getOnNextEvents().size());
+        assertEquals(chain.name, sub.getOnNextEvents().get(0).name);
     }
 
     @Test
@@ -925,7 +925,7 @@ public class ZookeeperObjectMapperTest {
         sub.reset(1);
         zom.delete(PojoChain.class, chain.id);
         sub.await(1, TimeUnit.SECONDS);
-        assertTrue(sub.event().isEmpty());
+        assertEquals(1, sub.getOnCompletedEvents().size());
     }
 
     @Test
@@ -933,10 +933,9 @@ public class ZookeeperObjectMapperTest {
         UUID id = UUID.randomUUID();
         ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertThat(sub.ex(), instanceOf(NotFoundException.class));
-        NotFoundException ex = (NotFoundException)sub.ex();
-        assertEquals(ex.clazz(), PojoChain.class);
-        assertEquals(None$.MODULE$, ex.id());
+        assertFalse(sub.getOnErrorEvents().isEmpty());
+        assertTrue(sub.getOnErrorEvents().get(0) instanceof NodeCacheOrphaned);
+        assertTrue(sub.getOnNextEvents().isEmpty());
     }
 
     @Test
@@ -955,9 +954,8 @@ public class ZookeeperObjectMapperTest {
         ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class,
                                                        chain.id, 1);
         sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub2.updates());
-        assertNotNull(sub2.event().get());
-        assertEquals("renamedChain", sub2.event().get().name);
+        assertEquals(1, sub2.getOnNextEvents().size());
+        assertEquals("renamedChain", sub2.getOnNextEvents().get(0).name);
     }
 
     @Test
@@ -977,7 +975,8 @@ public class ZookeeperObjectMapperTest {
         ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
         sub.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub.subs().size());
-        assertEquals("chain1", sub.subs().get(0).get().event().get().name);
+        assertEquals("chain1",
+                     sub.subs().get(0).get().getOnNextEvents().get(0).name);
 
         PojoChain chain2 = new PojoChain("chain2");
         sub.reset(1);
@@ -1014,32 +1013,33 @@ public class ZookeeperObjectMapperTest {
         sub1.await(1, TimeUnit.SECONDS);
         assertEquals(2, sub1.subs().size());
 
-        ObjectSubscription<PojoChain> chain1Sub =
-            (sub1.subs().get(0).get().event().get().id.equals(chain1.id)) ?
+        ObjectSubscription<PojoChain> chain1Sub = (sub1.subs().get(0).get()
+                 .getOnNextEvents().get(0).id.equals(chain1.id)) ?
             sub1.subs().get(0).get() : sub1.subs().get(1).get();
         chain1Sub.reset(1);
         zom.delete(PojoChain.class, chain1.id);
         chain1Sub.await(1, TimeUnit.SECONDS);
-        assertTrue(chain1Sub.event().isEmpty());
+        assertTrue(chain1Sub.getOnNextEvents().isEmpty());
 
         ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 1);
         sub2.await(1, TimeUnit.SECONDS);
         assertEquals(1, sub2.subs().size());
-        assertEquals("chain2", sub2.subs().get(0).get().event().get().name);
+        assertEquals("chain2",
+                     sub2.subs().get(0).get().getOnNextEvents().get(0).name);
     }
 
     private <T> ObjectSubscription<T> subscribe(
         Class<T> clazz, Object id, int counter) throws Exception{
 
         ObjectSubscription<T> sub = new ObjectSubscription<>(counter);
-        zom.subscribe(clazz, id, sub);
+        zom.observable(clazz, id).subscribe(sub);
         return sub;
     }
 
     private <T> ClassSubscription<T> subscribe(Class<T> clazz, int counter)
             throws Exception {
         ClassSubscription<T> sub = new ClassSubscription<>(counter);
-        zom.subscribeAll(clazz, sub);
+        zom.observable(clazz).subscribe(sub);
         return sub;
     }
 

@@ -17,10 +17,9 @@ package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
 import java.lang.{Long => JLong}
-import java.util.{ConcurrentModificationException, List => JList}
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.{ConcurrentModificationException, List => JList}
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
@@ -31,27 +30,23 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{Message, TextFormat}
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException.{BadVersionException, NoNodeException, NodeExistsException}
 import org.apache.zookeeper.OpResult.ErrorResult
-import org.apache.zookeeper.{CreateMode, KeeperException}
-import org.apache.zookeeper.WatchedEvent
-import org.apache.zookeeper.Watcher
 import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper.data.Stat
+import org.apache.zookeeper.{CreateMode, KeeperException, WatchedEvent, Watcher}
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
+import rx.Observable
 
-import rx.{Observable, Observer, Subscription}
-
-import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.util.concurrent.Locks
+import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.util.reactivex._
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
  * integrity through the use of field bindings, which must be declared
@@ -144,101 +139,6 @@ class ZookeeperObjectMapper(
     private val instanceCaches = new mutable.HashMap[
         Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
-
-    /*
-     * The declarations below are used to garbage collect caches for which no
-     * subscribers exist.
-     */
-    private val instanceCacheRWLock = new ReentrantReadWriteLock()
-    private val classCacheRWLock = new ReentrantReadWriteLock()
-    private val instanceCachesToGc = new TrieMap[String, InstanceSubscriptionCache[_]]
-    private val classCachesToGc = new TrieMap[String, ClassSubscriptionCache[_]]
-    private val scheduler: ScheduledExecutorService =
-        Executors.newScheduledThreadPool(1)
-
-    private val gcCachesRunnable = new Runnable() {
-        def run() {
-           gcCaches()
-        }
-    }
-
-    /* Schedule the garbage collector. */
-    scheduleCacheGc(scheduler, gcCachesRunnable)
-
-    private def gcCaches(): Unit = {
-        /*
-         * By acquiring a lock on the cache we prevent an observer from
-         * subscribing to a cache that we are about to remove from the map.
-         */
-        Locks.withWriteLock(instanceCacheRWLock) {
-            for (cache <- instanceCachesToGc.values) {
-                if (cache.closeIfNeeded()) {
-                    instanceCaches(cache.clazz).remove(cache.id)
-                }
-            }
-            instanceCachesToGc.clear()
-        }
-
-        /* We acquire a lock for the same reason as above. */
-        Locks.withWriteLock(classCacheRWLock) {
-            for (cache <- classCachesToGc.values) {
-                if (cache.closeIfNeeded()) {
-                    classCaches.remove(cache.clazz)
-                }
-            }
-            classCachesToGc.clear()
-        }
-    }
-
-    /**
-     * Function called when the last subscriber to an instance subscription
-     * cache unsubscribes.
-     */
-    private def onInstanceCacheClose(path: String,
-                                     cache: InstanceSubscriptionCache[_]): Unit = {
-
-        /*
-         * We obtain a read lock on instanceCacheRWLock to prevent
-         * the following undesired scenario from occurring:
-         *  -A cache has no subscriber and is added to the set
-         *   of caches to gc.
-         *  -Before the gc kicks in, the cache gets a subscriber.
-         *  -As a consequence the cache is not closed by the gc.
-         *  -Before instanceCachesToGc is cleared by the gc,
-         *   the subscriber unsubscribes.
-         *  -The gc clears instanceCachesToGc.
-         *
-         * As a consequence the cache may never be closed.
-         */
-        Locks.withReadLock(instanceCacheRWLock)
-            { instanceCachesToGc.put(path, cache) }
-    }
-
-    /**
-     * Function called when the last subscriber to a class subscription cache
-     * unsubscribes.
-     */
-    private def onClassCacheClose(path: String,
-                                  cache: ClassSubscriptionCache[_]): Unit = {
-
-        /*
-         * We obtain a read lock on classCacheRWLock for the
-         * same reason as function onInstanceCacheClose above.
-         */
-        Locks.withReadLock(classCacheRWLock)
-            { classCachesToGc.put(path, cache) }
-    }
-
-    /**
-     * This function schedules the garbage collector. Override this function
-     * to customize the scheduling.
-     */
-    protected def scheduleCacheGc(scheduler: ScheduledExecutorService,
-                                  runnable: Runnable) = {
-        scheduler.scheduleAtFixedRate(runnable, 120 /* initialDelay */,
-                                      120 /* period */, TimeUnit.SECONDS)
-    }
-    /* End of garbage collection declarations */
 
     /**
      * Manages objects referenced by the primary target of a create, update,
@@ -761,8 +661,8 @@ class ZookeeperObjectMapper(
         assert(isRegistered(clazz))
 
         instanceCaches(clazz).get(id.toString) match {
-            case Some(cache) =>
-                Promise.successful(cache.current.asInstanceOf[T]).future
+            case Some(cache) => cache.asInstanceOf[InstanceSubscriptionCache[T]]
+                                     .observable.asFuture
             case None =>
                 val p = Promise[T]()
                 val cb = new BackgroundCallback {
@@ -780,8 +680,8 @@ class ZookeeperObjectMapper(
                     }
                 }
                 curator.getData
-                    .inBackground(cb)
-                    .forPath(getPath(clazz, id))
+                       .inBackground(cb)
+                       .forPath(getPath(clazz, id))
                 p.future
         }
     }
@@ -914,85 +814,47 @@ class ZookeeperObjectMapper(
         instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
     }
 
-    /**
-     * Subscribe to the specified object. Upon subscription at time t0,
-     * obs.onNext() will receive the object's state at time t0, and future
-     * updates at tn > t0 will trigger additional calls to onNext(). If an
-     * object is updated in Zookeeper multiple times in quick succession, some
-     * updates may not trigger a call to onNext(), but each call to onNext()
-     * will provide the most up-to-date data available.
-     *
-     * obs.onCompleted() will be called when the object is deleted, and
-     * obs.onError() will be invoked with a NotFoundException if the object
-     * does not exist.
-     */
-    override def subscribe[T](clazz: Class[T],
-                              id: ObjId,
-                              obs: Observer[_ >: T]): Subscription = {
+    override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
-        /* By acquiring a read lock we prevent an observer from
-           subscribing to a cache that the cache garbage collector is
-           about to remove from instanceCaches. */
-        Locks.withReadLock(instanceCacheRWLock) {
-            instanceCaches(clazz).getOrElse(id.toString, {
-                val path = getPath(clazz, id)
-                val newCache = new InstanceSubscriptionCache(
-                    clazz, path, id.toString, curator, onInstanceCacheClose)
-                instanceCaches(clazz)
-                    .putIfAbsent(id.toString, newCache)
-                    .getOrElse {
-                        async { newCache.connect() }
-                        newCache
-                    }
-            }).asInstanceOf[InstanceSubscriptionCache[T]].subscribe(obs)
-        }
+        instanceCaches(clazz).getOrElse(id.toString, {
+            val onLastUnsubscribe = (c: InstanceSubscriptionCache[_]) => {
+                instanceCaches.get(clazz).foreach( _.remove(id.toString) )
+            }
+            val ic = new InstanceSubscriptionCache(clazz, getPath(clazz, id),
+                                                   id.toString, curator,
+                                                   onLastUnsubscribe)
+            instanceCaches(clazz).putIfAbsent(id.toString, ic) getOrElse {
+                async { ic.connect() }
+                ic
+            }
+        }).observable.asInstanceOf[Observable[T]]
+    }
+
+    override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
+        assertBuilt()
+        assert(isRegistered(clazz))
+
+        classCaches.getOrElse(clazz, {
+            val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
+                c.close()
+                classCaches.remove(clazz)
+            }
+            val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
+                                                onLastUnsubscribe)
+            classCaches.putIfAbsent(clazz, cc)
+            classCaches.get(clazz).orNull
+        }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
 
     /**
-     * @return The number of subscriptions to the given class. If the corresponding
-     *         entry does not exist, None is returned.
+     * @return The number of subscriptions to the given class. If the
+     *         corresponding entry does not exist, None is returned.
      */
     @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T]) : Option[Int] = {
+    protected[storage] def subscriptionCount[T](clazz: Class[T]): Option[Int] = {
         classCaches.get(clazz).map(_.subscriptionCount)
-    }
-
-    /**
-     * Subscribes to the specified class. Upon subscription at time t0,
-     * obs.onNext() will receive an Observable[T] for each object of class
-     * T existing at time t0, and future updates at tn > t0 will each trigger
-     * a call to onNext() with an Observable[T] for a new object.
-     *
-     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
-     * circumstances.
-     *
-     * The subscribe() method of each of these Observables has the same behavior
-     * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
-     */
-    override def subscribeAll[T](
-            clazz: Class[T],
-            obs: Observer[_ >: Observable[T]]): Subscription = {
-        assertBuilt()
-        assert(isRegistered(clazz))
-
-        /* By acquiring a read lock we prevent an observer from
-           subscribing to a cache that the cache garbage collector is
-           about to remove from instanceCaches. */
-        Locks.withReadLock(classCacheRWLock) {
-            classCaches.getOrElse(clazz, {
-                val path = getPath(clazz)
-                val newCache = new ClassSubscriptionCache(clazz, path, curator,
-                                                          onClassCacheClose)
-                classCaches
-                    .putIfAbsent(clazz, newCache)
-                    .getOrElse {
-                        async { newCache.connect() }
-                        newCache
-                    }
-            }).asInstanceOf[ClassSubscriptionCache[T]].subscribe(obs)
-        }
     }
 
     private def assertBuilt() {
