@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import scala.None$;
+import scala.Option;
 import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.concurrent.Future;
@@ -45,7 +45,6 @@ import org.midonet.cluster.models.Commons;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -933,10 +932,10 @@ public class ZookeeperObjectMapperTest {
         UUID id = UUID.randomUUID();
         ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id, 1);
         sub.await(1, TimeUnit.SECONDS);
-        assertThat(sub.ex(), instanceOf(NotFoundException.class));
-        NotFoundException ex = (NotFoundException)sub.ex();
-        assertEquals(ex.clazz(), PojoChain.class);
-        assertEquals(None$.MODULE$, ex.id());
+        assertNotNull(sub.ex());
+        assertEquals(sub.ex().getClass(), IllegalStateException.class);
+        assertEquals(sub.event(), Option.empty());
+        assertEquals(0, sub.updates());
     }
 
     @Test
@@ -1032,14 +1031,14 @@ public class ZookeeperObjectMapperTest {
         Class<T> clazz, Object id, int counter) throws Exception{
 
         ObjectSubscription<T> sub = new ObjectSubscription<>(counter);
-        zom.subscribe(clazz, id, sub);
+        zom.observable(clazz, id).subscribe(sub);
         return sub;
     }
 
     private <T> ClassSubscription<T> subscribe(Class<T> clazz, int counter)
             throws Exception {
         ClassSubscription<T> sub = new ClassSubscription<>(counter);
-        zom.subscribeAll(clazz, sub);
+        zom.observable(clazz).subscribe(sub);
         return sub;
     }
 

@@ -19,7 +19,7 @@ import java.util.{List => JList}
 
 import scala.concurrent.Future
 
-import rx.{Observable, Observer, Subscription}
+import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.{Obj, ObjId}
@@ -210,36 +210,44 @@ trait Storage extends ReadOnlyStorage {
     def flush(): Unit
 
     /**
-     * Subscribe to the specified object asynchronously. If a cached version
-     * of the requested object already exists, before the subscription method
-     * returns (at t0), obs.onNext() will receive the current object's state,
-     * and future updates at tn > t0 will trigger additional calls to onNext().
-     * If an object is updated in Zookeeper multiple times in quick succession,
-     * some updates may not trigger a call to onNext(), but each call to
-     * onNext() will provide the most up-to-date data available.
+     * Provide an Observable that emits updates to the specified object
+     * asynchronously. Note that an implementation may chose to cache
+     * the observable for each given object in order for several callers
+     * to share it. Any recycling/GC mechanism may also be applied on
+     * observables, as long as it guarantees that the observable has no
+     * subscriptions left.
      *
-     * obs.onCompleted() will be called when the object is deleted, and
-     * obs.onError() will be invoked with a NotFoundException if the object
-     * does not exist.
+     * When the object exists in the backend, the Observable will always emit
+     * at least one element containing its most recent state. After this,
+     * further updates will be emitted in the same order as they occurred in
+     * the backend storage. Note however that if an object is updated in the
+     * backend storage multiple times in quick succession, some updates may not
+     * trigger a call to onNext(). In any case, each call to onNext() will
+     * provide the most up-to-date data available, and all subscribers will
+     * be able to see the same sequence of events, in the same order.
+     *
+     * When an object doesn't exist the returned observable will
+     * immediately complete with an Error containing a NotFoundException.
+     *
+     * When an object is deleted, the observable will be completed. If
+     * the object doesn't exist in the backend when the Observable is first
+     * requested then it'll onError.
      */
-    def subscribe[T](clazz: Class[T],
-                     id: ObjId,
-                     obs: Observer[_ >: T]): Subscription
+    def observable[T](clazz: Class[T], id: ObjId): Observable[T]
 
     /**
-     * Subscribes to the specified class. Upon subscription at time t0,
-     * obs.onNext() will receive an Observable[T] for each object of class
-     * T existing at time t0, and future updates at tn > t0 will each trigger
-     * a call to onNext() with an Observable[T] for a new object.
+     * Subscribes to all the entities of the given type. Upon subscription at
+     * time t0, obs.onNext() will receive an Observable[T] for each object of
+     * class T existing at time t0, and future updates at tn > t0 will each
+     * trigger a call to onNext() with an Observable[T] for a new object.
      *
-     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
-     * circumstances.
+     * Neither obs.onCompleted() nor obs.onError() will be invoked under
+     * normal circumstances.
      *
      * The subscribe() method of each of these Observables has the same behavior
      * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
      */
-    def subscribeAll[T](clazz: Class[T],
-                        obs: Observer[_ >: Observable[T]]): Subscription
+    def observable[T](clazz: Class[T]): Observable[Observable[T]]
 
     /* We should remove the methods below, but first we must make ZOOM support
      * offline class registration so that we can register classes from the

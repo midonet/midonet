@@ -26,7 +26,8 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Ignore, Matchers, Suite}
+import org.scalatest.{Matchers, Suite}
+import org.slf4j.LoggerFactory
 import rx.{Observable, Observer}
 
 import scala.collection.JavaConverters._
@@ -46,7 +47,8 @@ class ZookeeperObjectMapperTests extends Suite
     private var gcRunnable: Runnable = _
     private var gcDone: Boolean = _
 
-    private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
+    private class MockZookeeperObjectMapper(val basePath: String,
+                                            val curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
 
         override def scheduleCacheGc(scheduler: ScheduledExecutorService,
@@ -115,6 +117,7 @@ class ZookeeperObjectMapperTests extends Suite
         val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
+
 
     def testMultiCreateUpdateAndDelete() {
         val chain = PojoChain(name = "chain1")
@@ -276,18 +279,17 @@ class ZookeeperObjectMapperTests extends Suite
 
     def testSubscribe() {
         val bridge = createBridge()
-        val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
-        zom.subscribe(classOf[PojoBridge], bridge.id, obs)
+        val obs = new ObjectSubscription[PojoBridge](2 /* expect two events */)
+        zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
         addPortToBridge(bridge.id)
 
         obs.await(1, TimeUnit.SECONDS)
     }
 
-    @Ignore
     def testSubscribeWithGc() = {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](0)
-        val sub = zom.subscribe(classOf[PojoBridge], bridge.id, obs)
+        val sub = zom.observable(classOf[PojoBridge], bridge.id).subscribe(obs)
 
         zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(1))
         sub.unsubscribe()
@@ -304,15 +306,14 @@ class ZookeeperObjectMapperTests extends Suite
         createBridge()
 
         val obs = new ClassSubscription[PojoBridge](2 /* We expect two events */)
-        zom.subscribeAll(classOf[PojoBridge], obs)
+        zom.observable(classOf[PojoBridge]).subscribe(obs)
 
         obs.await(1, TimeUnit.SECONDS)
     }
 
-    @Ignore
     def testSubscribeAllWithGc() {
         val obs = new ClassSubscription[PojoBridge](0)
-        val sub = zom.subscribeAll(classOf[PojoBridge], obs)
+        val sub = zom.observable(classOf[PojoBridge]).subscribe(obs)
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
         sub.unsubscribe()
@@ -328,7 +329,7 @@ class ZookeeperObjectMapperTests extends Suite
 private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     private var countDownLatch = new CountDownLatch(counter)
     var updates: Int = 0
-    var event: Option[T] = _
+    var event: Option[T] = None
     var ex: Throwable = _
 
     override def onCompleted() {
@@ -348,6 +349,7 @@ private class ObjectSubscription[T](counter: Int) extends Observer[T] {
     }
 
     def await(timeout: Long, unit: TimeUnit) {
+        LoggerFactory.getLogger(this.getClass).info("Waiting, seen {}", updates)
         assertTrue(countDownLatch.await(timeout, unit))
     }
 

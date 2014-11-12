@@ -15,13 +15,15 @@
  */
 package org.midonet.cluster.util
 
+import java.util.concurrent.CountDownLatch
+
 import org.apache.curator.framework.recipes.cache.ChildData
-
-import rx.observers.TestObserver
-
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
+import rx.Subscriber
+import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class ObservableNodeCacheTest extends Suite
@@ -34,20 +36,57 @@ class ObservableNodeCacheTest extends Suite
         curator.create().forPath(path, "1".getBytes)
         Thread.sleep(500)
 
-        val onc = new ObservableNodeCache(curator)
-        onc connect path
-        val cd = new TestObserver[ChildData]()
-        onc.observable.subscribe(cd)
+        val onc = new ObservableNodeCache(curator, path)
+
+        // Will subscribe before connect
+        val sub1 = new TestObserver[ChildData]()
+        // Will subscribe after connect
+        val sub2 = new TestObserver[ChildData]()
+
+        onc.observable.subscribe(sub1)
+        onc.connect()
+
+        Thread.sleep(500)
+
+        sub1.getOnNextEvents should have size 1
+        sub2.getOnNextEvents should have size 0
+
+        onc.observable.subscribe(sub2)
+
         Thread sleep 500
 
-        cd.getOnNextEvents should have size 1
-        cd.getOnNextEvents.get(0).getData should have size 1
+        sub1.getOnNextEvents should have size 1
+        sub2.getOnNextEvents should have size 1
+
+        sub1.getOnNextEvents.get(0).getData should have size 1
+        sub2.getOnNextEvents.get(0).getData should have size 1
         onc.current.getData should be ("1".getBytes)
 
         curator delete() forPath path
         Thread sleep 500
 
-        cd.getOnErrorEvents should be (empty)
-        cd.getOnCompletedEvents should have size 1
+        List(sub1, sub2) foreach { s =>
+            s.getOnErrorEvents should be (empty)
+            s.getOnCompletedEvents should have size 1
+        }
+    }
+
+    @Test(timeout = 500)
+    def testNonExistent(): Unit = {
+        val c = new CountDownLatch(1)
+        val onc = new ObservableNodeCache(curator, "/nonExistent")
+        onc.observable.subscribe(new Subscriber[ChildData]() {
+            override def onCompleted(): Unit = fail("unexpected onComplete")
+            override def onError(e: Throwable): Unit = {
+                c.countDown()
+                e match {
+                    case _: IllegalStateException => // ok
+                    case _ => fail("Unexpected error " + e)
+                }
+            }
+            override def onNext(t: ChildData): Unit = fail("unexpected onNext")
+        })
+        onc.connect()
+        c.await()
     }
 }

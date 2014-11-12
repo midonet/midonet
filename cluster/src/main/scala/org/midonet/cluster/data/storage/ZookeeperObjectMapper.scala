@@ -37,7 +37,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.concurrent.Locks
 import org.slf4j.LoggerFactory
-import rx.{Observable, Observer, Subscription}
+import rx.Observable
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
@@ -180,6 +180,7 @@ class ZookeeperObjectMapper(
          *
          * As a consequence the cache may never be closed.
          */
+        log.info("Instance cache closes {}", path)
         Locks.withReadLock(instanceCacheRWLock)
             { instanceCachesToGc.put(path, cache) }
     }
@@ -803,66 +804,29 @@ class ZookeeperObjectMapper(
         instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
     }
 
-    /**
-     * Subscribe to the specified object. Upon subscription at time t0,
-     * obs.onNext() will receive the object's state at time t0, and future
-     * updates at tn > t0 will trigger additional calls to onNext(). If an
-     * object is updated in Zookeeper multiple times in quick succession, some
-     * updates may not trigger a call to onNext(), but each call to onNext()
-     * will provide the most up-to-date data available.
-     *
-     * obs.onCompleted() will be called when the object is deleted, and
-     * obs.onError() will be invoked with a NotFoundException if the object
-     * does not exist.
-     */
-    override def subscribe[T](clazz: Class[T],
-                              id: ObjId,
-                              obs: Observer[_ >: T]): Subscription = {
+    override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
         /* By acquiring a read lock we prevent an observer from
            subscribing to a cache that the cache garbage collector is
            about to remove from instanceCaches. */
-        Locks.withReadLock(instanceCacheRWLock) {
-            instanceCaches(clazz).getOrElse(id.toString, {
-                val path = getPath(clazz, id)
-                val newCache = new InstanceSubscriptionCache(
-                    clazz, path, id.toString, curator, onInstanceCacheClose)
-                instanceCaches(clazz)
-                    .putIfAbsent(id.toString, newCache)
-                    .getOrElse {
-                        async { newCache.connect() }
-                        newCache
-                    }
-            }).asInstanceOf[InstanceSubscriptionCache[T]].subscribe(obs)
+        var ic: InstanceSubscriptionCache[T] = null
+        val o = Locks.withReadLock(instanceCacheRWLock) {
+            instanceCaches(clazz).getOrElseUpdate(id.toString, {
+                ic = new InstanceSubscriptionCache(clazz, getPath(clazz, id),
+                                                   id.toString, curator,
+                                                   onInstanceCacheClose)
+                ic
+            }).observable.asInstanceOf[Observable[T]]
         }
+        if (null != ic) {
+            async { ic.connect() }
+        }
+        o
     }
 
-    /**
-     * @return The number of subscriptions to the given class. If the corresponding
-     *         entry does not exist, None is returned.
-     */
-    @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T]) : Option[Int] = {
-        classCaches.get(clazz).map(_.subscriptionCount)
-    }
-
-    /**
-     * Subscribes to the specified class. Upon subscription at time t0,
-     * obs.onNext() will receive an Observable[T] for each object of class
-     * T existing at time t0, and future updates at tn > t0 will each trigger
-     * a call to onNext() with an Observable[T] for a new object.
-     *
-     * Neither obs.onCompleted() nor obs.onError() will be invoked under normal
-     * circumstances.
-     *
-     * The subscribe() method of each of these Observables has the same behavior
-     * as ZookeeperObjectMapper.subscribe(Class[T], ObjId).
-     */
-    override def subscribeAll[T](
-            clazz: Class[T],
-            obs: Observer[_ >: Observable[T]]): Subscription = {
+    override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
@@ -870,18 +834,20 @@ class ZookeeperObjectMapper(
            subscribing to a cache that the cache garbage collector is
            about to remove from instanceCaches. */
         Locks.withReadLock(classCacheRWLock) {
-            classCaches.getOrElse(clazz, {
-                val path = getPath(clazz)
-                val newCache = new ClassSubscriptionCache(clazz, path, curator,
-                                                          onClassCacheClose)
-                classCaches
-                    .putIfAbsent(clazz, newCache)
-                    .getOrElse {
-                        async { newCache.connect() }
-                        newCache
-                    }
-            }).asInstanceOf[ClassSubscriptionCache[T]].subscribe(obs)
+            classCaches.getOrElseUpdate(clazz, {
+                new ClassSubscriptionCache(clazz, getPath(clazz), curator,
+                                           onClassCacheClose)
+            }).asInstanceOf[ClassSubscriptionCache[T]].observable
         }
+    }
+
+    /**
+     * @return The number of subscriptions to the given class. If the
+     *         corresponding entry does not exist, None is returned.
+     */
+    @VisibleForTesting
+    protected[storage] def subscriptionCount[T](clazz: Class[T]): Option[Int] = {
+        classCaches.get(clazz).map(_.subscriptionCount)
     }
 
     private def assertBuilt() {
