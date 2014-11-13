@@ -16,7 +16,6 @@
 package org.midonet.midolman.simulation
 
 import java.lang.{Short => JShort}
-import java.util
 import java.util.UUID
 
 import scala.collection.{Map => ROMap}
@@ -24,16 +23,21 @@ import scala.collection.{Map => ROMap}
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
-import org.midonet.cluster.data
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
 import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
+
+object Bridge {
+    final val UntaggedVlanId: Short = 0
+}
 
 /**
   * A bridge.
@@ -65,10 +69,10 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, ta
   * @param inFilterId
   * @param outFilterId
   * @param vlanPortId this field is the id of the interior port of a peer Bridge
-  *                    connected to this device. This means that this Bridge is
-  *                    considered to be on VLAN X, Note that a vlan-unaware
-  *                    bridge can only be connected to a single vlan-aware device
-  *                    (thus having only a single optional value)
+  *                   connected to this device. This means that this Bridge is
+  *                   considered to be on VLAN X, Note that a vlan-unaware
+  *                   bridge can only be connected to a single vlan-aware device
+  *                   (thus having only a single optional value)
   * @param vxlanPortIds uuids of optional virtual exterior ports logically
                        connected to a virtual switch running on a vtep gateway.
                        If defined, the UUIDs will point in the virtual topology
@@ -86,24 +90,33 @@ import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, ta
 class Bridge(val id: UUID,
              val adminStateUp: Boolean,
              val tunnelKey: Long,
-             val vlanMacTableMap: ROMap[JShort, MacLearningTable],
+             val vlanMacTableMap: ROMap[Short, MacLearningTable],
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount,
              val inFilterId: Option[UUID],
              val outFilterId: Option[UUID],
              val vlanPortId: Option[UUID],
-             val vxlanPortIds: util.List[UUID],
+             val vxlanPortIds: Seq[UUID],
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID])
-            (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
+            (implicit val actorSystem: ActorSystem) extends Coordinator.Device
+                                                    with VirtualDevice {
 
     import org.midonet.midolman.simulation.Coordinator._
 
-    val deviceTag = tagForDevice(id)
     val floodAction = FloodBridgeAction(id, exteriorPorts)
+
+    override val deviceTag = tagForDevice(id)
+
+    override def toString =
+        s"Bridge [id=$id adminStateUp=$adminStateUp tunnelKey=$tunnelKey " +
+        s"vlans=${vlanMacTableMap.keys} inFilterId=$inFilterId " +
+        s"outFilterId=$outFilterId vlanPortId=$vlanPortId " +
+        s"vxlanPortIds=$vxlanPortIds vlanToPorts=$vlanToPort " +
+        s"exteriorPorts=$exteriorPorts]"
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods
@@ -516,9 +529,8 @@ class Bridge(val id: UUID,
       * is the source VLAN
       * - Else it is untagged (None)
       */
-    private def srcVlanTagOption(context: PacketContext) = {
-        val inPortVlan = Option.apply(
-            vlanToPort.getVlan(context.inPortId))
+    private def srcVlanTagOption(context: PacketContext): Option[JShort] = {
+        val inPortVlan = Option(vlanToPort.getVlan(context.inPortId))
 
         def getVlanFromFlowMatch = context.wcmatch.getVlanIds match {
             case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
@@ -541,9 +553,8 @@ class Bridge(val id: UUID,
       *   of the bridge's interior ports.
       */
     private def srcVlanTag(context: PacketContext): JShort = {
-        if (vlanMacTableMap.size == 1) data.Bridge.UNTAGGED_VLAN_ID
-        else srcVlanTagOption(context)
-                              .getOrElse(data.Bridge.UNTAGGED_VLAN_ID)
+        if (vlanMacTableMap.size == 1) UntaggedVlanId
+        else srcVlanTagOption(context).getOrElse(UntaggedVlanId)
     }
 
     /**
