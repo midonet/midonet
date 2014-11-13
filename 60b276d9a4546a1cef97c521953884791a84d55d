@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_2830d355",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-13T11:59:35Z",
+      "side": 1,
+      "message": "Honestly, I\u0027m not seeing the problem nor the special cases. This logic does exactly what is supposed to. A tunnel packet can have 3 outcomes: state message, vtep, unknown port ID. Can this be made easier to follow? maybe, but it doesn\u0027t look to me like we have a readability problem precisely here.",
+      "parentUuid": "3a65312a_88fe476a",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_5c3cc3e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
