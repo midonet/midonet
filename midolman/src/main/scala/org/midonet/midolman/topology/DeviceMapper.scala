@@ -29,6 +29,7 @@ import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 object DeviceMapper {
     protected[topology] val SUBSCRIPTION_EXCEPTION =
@@ -57,8 +58,8 @@ object DeviceMapper {
  *    subscribers are notified.
  */
 abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
-                                            (implicit m: Manifest[D],
-                                                      actorSystem: ActorSystem)
+                                        (implicit m: Manifest[D],
+                                                  actorSystem: ActorSystem)
         extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
     import DeviceMapper.SUBSCRIPTION_EXCEPTION
@@ -110,8 +111,12 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
         invalidate(device)
     }
 
-    private final def invalidate(device: Device): Unit = if (device ne null) {
+    protected final def invalidate(device: Device): Unit = if (device ne null) {
         FlowController.getRef ! InvalidateFlowsByTag(device.deviceTag)
+    }
+
+    protected final def invalidate(tag: FlowTag): Unit = {
+        FlowController.getRef ! InvalidateFlowsByTag(tag)
     }
 
 }

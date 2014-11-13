@@ -185,7 +185,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
-                Array(mac, oldPort, vlanId.asInstanceOf[Object]))
+                Array(mac, vlanId.asInstanceOf[Object], oldPort))
             flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }

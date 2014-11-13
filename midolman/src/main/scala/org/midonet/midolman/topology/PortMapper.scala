@@ -23,12 +23,11 @@ import akka.actor.ActorSystem
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
-import org.midonet.util.functors._
+import org.midonet.util.functors.makeFunc1
 
-sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
+sealed class PortMapper(id: UUID, vt: VirtualTopology)
                        (implicit actorSystem: ActorSystem)
         extends DeviceMapper[SimulationPort](id, vt) {
 
@@ -41,7 +40,7 @@ sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
 
     protected override def observable = {
         if (subscribed.compareAndSet(false, true)) {
-            store.subscribe(classOf[TopologyPort], id, inStream)
+            vt.store.subscribe(classOf[TopologyPort], id, inStream)
         }
         outStream
     }

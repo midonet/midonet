@@ -26,14 +26,11 @@ import org.midonet.cluster.data
 import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.topology.MacFlowCount
-import org.midonet.midolman.topology.RemoveFlowCallbackGenerator
+import org.midonet.midolman.topology.{VirtualTopology, MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger
-import FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice,
-                   tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger._
 
 /**
   * A bridge.
@@ -98,12 +95,15 @@ class Bridge(val id: UUID,
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID])
-            (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
+            (implicit val actorSystem: ActorSystem) extends Coordinator.Device
+                                                    with VirtualTopology.Device {
 
     import Coordinator._
 
-    val deviceTag = tagForDevice(id)
+    private val tag = tagForDevice(id)
     val floodAction = FloodBridgeAction(id, exteriorPorts)
+
+    override def deviceTag = tag
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods
@@ -131,7 +131,7 @@ class Bridge(val id: UUID,
     def normalProcess()(implicit context: PacketContext,
                                  actorSystem: ActorSystem)
     : Coordinator.Action = {
-        context.addFlowTag(deviceTag)
+        context.addFlowTag(tag)
 
         if (!adminStateUp) {
             context.log.debug("Bridge {} is down, DROP", id)

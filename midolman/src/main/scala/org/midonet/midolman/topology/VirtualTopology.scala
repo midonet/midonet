@@ -25,9 +25,12 @@ import com.google.inject.Inject
 import rx.Observable
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.NotYetException
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.devices._
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
@@ -147,7 +150,9 @@ object VirtualTopology extends MidolmanLogging {
     }
 }
 
-class VirtualTopology @Inject() (store: Storage,
+class VirtualTopology @Inject() (private[topology] val config: MidolmanConfig,
+                                 private[topology] val store: Storage,
+                                 private[topology] val state: StateStorage,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
@@ -161,10 +166,11 @@ class VirtualTopology @Inject() (store: Storage,
         new ConcurrentHashMap[UUID, Observable[_]]()
 
     private val factories = Map[Manifest[_], DeviceFactory](
-        manifest[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
+        manifest[Port] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
+        manifest[Bridge] -> ((id: UUID) => new BridgeMapper(id, this))
     )
 
     register(this)

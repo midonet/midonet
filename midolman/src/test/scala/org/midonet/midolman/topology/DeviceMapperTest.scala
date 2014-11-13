@@ -23,8 +23,10 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.subscriptions.Subscriptions
 
+import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -94,7 +96,11 @@ class DeviceMapperTest extends MidolmanSpec {
     type TestableObserver = AwaitableObserver[TestableDevice]
 
     @Mocked
+    var config: MidolmanConfig = _
+    @Mocked
     var storage: Storage = _
+    @Mocked
+    var state: StateStorage = _
     implicit var vt: VirtualTopology = _
 
     registerActors(FlowController -> (() => new FlowController
@@ -103,7 +109,7 @@ class DeviceMapperTest extends MidolmanSpec {
     def fc = FlowController.as[FlowController with MessageAccumulator]
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, actorsService)
+        vt = new VirtualTopology(config, storage, state, actorsService)
     }
 
     feature("Test device observable subscription") {
