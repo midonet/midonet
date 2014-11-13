@@ -21,6 +21,8 @@ import java.util.{ArrayList, Map => JMap, Set => JSet}
 
 import javax.inject.Inject
 
+import com.yammer.metrics.core.{Gauge, MetricsRegistry}
+
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
@@ -30,9 +32,6 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
-
-import com.codahale.metrics.MetricRegistry.name
-import com.codahale.metrics.{Gauge, MetricRegistry}
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.WildcardTablesProvider
@@ -225,7 +224,7 @@ class FlowController extends Actor with ActorLogWithoutPath {
     def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
 
     @Inject
-    var metricsRegistry: MetricRegistry = null
+    var metricsRegistry: MetricsRegistry = null
 
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
@@ -521,25 +520,27 @@ class FlowController extends Actor with ActorLogWithoutPath {
     class FlowTablesMetrics(val flowManager: FlowManager) {
         @volatile var currentDpFlows: Long = 0L
 
-        val currentWildFlowsMetric = metricsRegistry.register(name(
-                classOf[FlowTablesGauge], "currentWildcardFlows"),
+        val currentWildFlowsMetric = metricsRegistry.newGauge(
+                classOf[FlowTablesGauge],
+                "currentWildcardFlows",
                 new Gauge[Long]{
-                    override def getValue = flowManager.getNumWildcardFlows
+                    override def value = flowManager.getNumWildcardFlows
                 })
 
-        val currentDpFlowsMetric = metricsRegistry.register(name(
-                classOf[FlowTablesGauge], "currentDatapathFlows"),
+        val currentDpFlowsMetric = metricsRegistry.newGauge(
+                classOf[FlowTablesGauge],
+                "currentDatapathFlows",
                 new Gauge[Long]{
-                    override def getValue = currentDpFlows
+                    override def value = currentDpFlows
                 })
 
-        val wildFlowsMetric = metricsRegistry.meter(name(
-                classOf[FlowTablesMeter], "wildcardFlowsCreated",
-                "wildcardFlows"))
+        val wildFlowsMetric = metricsRegistry.newMeter(
+                classOf[FlowTablesMeter], "wildcardFlowsCreated", "wildcardFlows",
+                TimeUnit.SECONDS)
 
-        val dpFlowsMetric = metricsRegistry.meter(name(
-                classOf[FlowTablesMeter], "datapathFlowsCreated",
-                "datapathFlows"))
+        val dpFlowsMetric = metricsRegistry.newMeter(
+                classOf[FlowTablesMeter], "datapathFlowsCreated", "datapathFlows",
+                TimeUnit.SECONDS)
     }
 
 }

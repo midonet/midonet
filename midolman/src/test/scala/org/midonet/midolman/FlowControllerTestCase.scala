@@ -51,8 +51,8 @@ class FlowControllerTestCase extends MidolmanSpec {
             flowController should not be null
 
             Then("The wildcard flows metrics should be zero.")
-            flowController.metrics.currentDpFlowsMetric.getValue should be(0)
-            flowController.metrics.currentWildFlowsMetric.getValue should be(0)
+            flowController.metrics.currentDpFlowsMetric.value should be(0)
+            flowController.metrics.currentWildFlowsMetric.value should be(0)
 
             And("The flow manager should not be null.")
             flowController.flowManager should not be null
@@ -357,18 +357,18 @@ class FlowControllerTestCase extends MidolmanSpec {
                     (None)
 
             And("The datapath flow metric should be set at the original value.")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (
+            flowController.metrics.currentDpFlowsMetric.value() should be (
                 state.dpFlowsCount)
 
             And("The wildcard flow metric should be set at the original value.")
-            flowController.metrics.currentWildFlowsMetric.getValue should be (
+            flowController.metrics.currentWildFlowsMetric.value() should be (
                 state.wcFlowsCount + 1)
 
             And("The flow manager should indicate the same number of flows.")
-            flowController.metrics.currentDpFlowsMetric.getValue should be (
-                flowController.flowManager.getNumDpFlows)
-            flowController.metrics.currentWildFlowsMetric.getValue should be (
-                flowController.flowManager.getNumWildcardFlows)
+            flowController.metrics.currentDpFlowsMetric.value() should be (
+                flowController.flowManager.getNumDpFlows())
+            flowController.metrics.currentWildFlowsMetric.value() should be (
+                flowController.flowManager.getNumWildcardFlows())
 
             And("The flow controller should contain the flow tag mapping tags.")
             for (tag <- flow.tagsSet) {
@@ -411,27 +411,28 @@ class FlowControllerTestCase extends MidolmanSpec {
     private def testFlowAdded(flow: TestableFlow,
                               state: MetricsSnapshot): ManagedWildcardFlow = {
         Then("The flow should appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.wcMatch) should not be (None)
+        FlowController.queryWildcardFlowTable(flow.wcMatch) should not be
+                (None)
 
         val mwcFlow = FlowController.queryWildcardFlowTable(flow.wcMatch) get
 
         And("The datapath flow metric should be incremented by one.")
-        flowController.metrics.dpFlowsMetric.getCount should be (
+        flowController.metrics.dpFlowsMetric.count() should be (
             state.dpFlowsCount + 1)
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.metrics.currentDpFlowsMetric.value() should be (
             state.dpFlowsCount + 1)
 
         And("The wildcard flow metric should be incremented by one.")
-        flowController.metrics.wildFlowsMetric.getCount should be (
+        flowController.metrics.wildFlowsMetric.count() should be (
             state.wcFlowsCount + 1)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
+        flowController.metrics.currentWildFlowsMetric.value() should be (
             state.wcFlowsCount + 1)
 
         And("The flow manager should indicate the same number of flows.")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
-            flowController.flowManager.getNumDpFlows)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            flowController.flowManager.getNumWildcardFlows)
+        flowController.metrics.currentDpFlowsMetric.value() should be (
+            flowController.flowManager.getNumDpFlows())
+        flowController.metrics.currentWildFlowsMetric.value() should be (
+            flowController.flowManager.getNumWildcardFlows())
 
         And("The flow controller contains the correct tag mappings.")
         for (tag <- flow.tagsSet) {
@@ -449,18 +450,18 @@ class FlowControllerTestCase extends MidolmanSpec {
         FlowController.queryWildcardFlowTable(flow.wcMatch) should be(None)
 
         And("The datapath flow metric should be set at the original value.")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.metrics.currentDpFlowsMetric.value() should be (
             state.dpFlowsCount)
 
         And("The wildcard flow metric should be set at the original value.")
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
+        flowController.metrics.currentWildFlowsMetric.value() should be (
             state.wcFlowsCount)
 
         And("The flow manager should indicate the same number of flows.")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
-            flowController.flowManager.getNumDpFlows)
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
-            flowController.flowManager.getNumWildcardFlows)
+        flowController.metrics.currentDpFlowsMetric.value() should be (
+            flowController.flowManager.getNumDpFlows())
+        flowController.metrics.currentWildFlowsMetric.value() should be (
+            flowController.flowManager.getNumWildcardFlows())
 
         And("The flow controller should not contain the flow tag mapping tags.")
         for (tag <- flow.tagsSet) {
@@ -482,17 +483,17 @@ class FlowControllerTestCase extends MidolmanSpec {
             mwcFlow)
 
         And("The datapath flow metric should be incremented by one.")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.metrics.currentDpFlowsMetric.value() should be (
             state.dpFlowsCount + 1)
 
         And("The wildcard flow metric should be incremented by one.")
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
+        flowController.metrics.currentWildFlowsMetric.value() should be (
             state.wcFlowsCount + 1)
 
         And("The flow manager should indicate the same number of flows.")
-        flowController.metrics.currentDpFlowsMetric.getValue should be (
+        flowController.metrics.currentDpFlowsMetric.value() should be (
             flowController.flowManager.getNumDpFlows())
-        flowController.metrics.currentWildFlowsMetric.getValue should be (
+        flowController.metrics.currentWildFlowsMetric.value() should be (
             flowController.flowManager.getNumWildcardFlows())
 
         And("The flow controller contains the correct tag mappings.")
@@ -567,8 +568,8 @@ class FlowControllerTestCase extends MidolmanSpec {
     }
 
     sealed class MetricsSnapshot {
-        val dpFlowsCount = flowController.metrics.currentDpFlowsMetric.getValue
-        val wcFlowsCount = flowController.metrics.currentWildFlowsMetric.getValue
+        val dpFlowsCount = flowController.metrics.currentDpFlowsMetric.value()
+        val wcFlowsCount = flowController.metrics.currentWildFlowsMetric.value()
     }
 
     object TestableFlow {

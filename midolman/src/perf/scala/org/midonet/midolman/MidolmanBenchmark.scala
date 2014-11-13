@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject.{Scopes, PrivateModule, AbstractModule, Guice, Injector}
-import com.codahale.metrics.{Clock, MetricRegistry}
+import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, TearDown}
 
@@ -139,9 +139,9 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     })
                     expose(classOf[DashboardService])
 
-                    bind(classOf[MetricRegistry])
-                            .toInstance(new MetricRegistry)
-                    expose(classOf[MetricRegistry])
+                    bind(classOf[MetricsRegistry])
+                            .toInstance(new MetricsRegistry)
+                    expose(classOf[MetricsRegistry])
 
                     requestStaticInjection(classOf[Chain])
                 }

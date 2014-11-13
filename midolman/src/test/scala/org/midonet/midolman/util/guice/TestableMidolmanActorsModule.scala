@@ -31,15 +31,18 @@ import akka.testkit.TestActorRef
 import akka.testkit.TestKit
 import akka.util.Timeout
 
-import com.codahale.metrics.Clock
+import com.yammer.metrics.core.Clock
 
 import org.midonet.midolman.DeduplicationActor.HandlePackets
 import org.midonet.midolman._
 import org.midonet.midolman.guice.MidolmanActorsModule
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.state.ConnTrackState._
+import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.sdn.state.ShardedFlowStateTable
 
 /**
  * A [[org.midonet.midolman.guice.MidolmanActorsModule]] that can will override
