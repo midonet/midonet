@@ -22,6 +22,30 @@
       "revId": "2c00179d2cefa0ad0304ed134473e148d1f5344b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_c8d03ffa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T10:02:27Z",
+      "side": 1,
+      "message": "Does it mean we\u0027ll store in somewhere else? I\u0027m not sure I understand the impact on this patch.",
+      "parentUuid": "3a65312a_a89fc34f",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 26
+      },
+      "revId": "2c00179d2cefa0ad0304ed134473e148d1f5344b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
