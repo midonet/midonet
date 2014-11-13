@@ -16,14 +16,18 @@
 
 package org.midonet.midolman
 
+import scala.collection.immutable
+
 import akka.actor._
 import akka.event.LoggingReceive
-import com.codahale.metrics.{Clock, MetricRegistry}
+import org.slf4j.LoggerFactory
+import com.yammer.metrics.core.{Clock, MetricsRegistry}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
+
 import org.midonet.cluster.DataClient
-import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -32,9 +36,6 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
-import org.slf4j.LoggerFactory
-
-import scala.collection.immutable
 
 object PacketsEntryPoint extends Referenceable {
     override val Name = "PacketsEntryPoint"
@@ -76,7 +77,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     override val supervisorStrategy: SupervisorStrategy = null
 
     @Inject
-    var metricsRegistry: MetricRegistry = null
+    var metricsRegistry: MetricsRegistry = null
 
     private var metrics: PacketPipelineMetrics = null
 
