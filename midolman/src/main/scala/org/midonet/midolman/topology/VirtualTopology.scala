@@ -16,7 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.{ThreadFactory, Executors, ConcurrentHashMap}
+import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
 
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
@@ -28,9 +28,12 @@ import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -153,7 +156,9 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: Storage,
+class VirtualTopology @Inject() (val config: MidolmanConfig,
+                                 val store: Storage,
+                                 val state: StateStorage,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val actorsService: MidolmanActorsService)
@@ -185,7 +190,8 @@ class VirtualTopology @Inject() (val store: Storage,
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this))
+        classTag[Host] -> (new HostMapper(_, this)),
+        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system))
     )
 
     register(this)
