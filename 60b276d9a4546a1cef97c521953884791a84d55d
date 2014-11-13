@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_88b007df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-13T09:34:14Z",
+      "side": 1,
+      "message": "I disagree: looking up the VNI should only be done on the vtep vxlan port, not on the overlay one, so this keeps the different possibilities on different paths.\n\nThere are three other outcomes here:\n\n* state message.\n* vtep packet -\u003e simulation\n* overlay packet -\u003e simulation.\n\nA packet on the overlay tunnelling port that didn\u0027t match the wflow table does not belong to any of those 3 branches and I would not send it through it.",
+      "parentUuid": "3a65312a_3d181384",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_5c3cc3e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
