@@ -57,7 +57,6 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
         scenario("Test conversion to Protocol Buffers message") {
             val port = init(new BridgePort())
             port.networkId = UUID.randomUUID
-
             val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
 
             port shouldBeDeviceOf proto

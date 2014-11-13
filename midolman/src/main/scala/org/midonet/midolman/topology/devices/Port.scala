@@ -17,6 +17,8 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import javax.annotation.concurrent.Immutable
+
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
@@ -34,6 +36,7 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
+@Immutable
 @ZoomClass(clazz = classOf[Topology.Port], factory = classOf[PortFactory])
 sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
@@ -92,13 +95,13 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     }
 }
 
-/** Logical port connected to a peer vtep gateway. This subtype holds the
-  *  24 bits VxLan Network Identifier (vni key) of the logical switch this
-  *  port belongs to as well as the underlay ip address of the vtep gateway, its
-  *  tunnel end point, and the tunnel zone to which hosts willing to open tunnels
-  *  to this VTEP should belong to determine their own endpoint IP.
-  *  It is assumed that the vxlan key is holded in the 3 last signifant bytes
-  *  of the vni int field. */
+/** Logical port connected to a peer VTEP gateway. This subtype holds the 24
+  * bits VxLan Network Identifier (VNI key) of the logical switch this port
+  * belongs to as well as the underlay ip address of the VTEP gateway, its
+  * tunnel end point, and the tunnel zone to which hosts willing to open tunnels
+  * to this VTEP should belong to determine their own endpoint IP. It is assumed
+  * that the VXLAN key is held in the 3 last significant bytes of the VNI int
+  * field. */
 class VxLanPort extends Port {
 
     @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
@@ -123,6 +126,15 @@ class VxLanPort extends Port {
     override def isExterior = true
     override def isInterior = false
     override def isActive = true
+
+    override def toString =
+        s"VxLanPort [id=$id adminStateUp=$adminStateUp peerId=$peerId " +
+        s"hostId=$hostId interfaceName=$interfaceName vlanId=$vlanId " +
+        s"tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
+        s"outboundFilter=$outboundFilter portGroups=$portGroups " +
+        s"networkId=$networkId vtepMgmtIp=$vtepMgmtIp " +
+        s"vtepMgmtPort=$vtepMgmtPort vtepTunnelIp=$vtepTunnelIp " +
+        s"vtepTunnelZoneId=$vtepTunnelZoneId vtepVni=$vtepVni]"
 }
 
 class BridgePort extends Port {
@@ -131,6 +143,12 @@ class BridgePort extends Port {
     var networkId: UUID = _
 
     override def deviceId = networkId
+
+    override def toString =
+        s"BridgePort [id=$id adminStateUp=$adminStateUp networkId=$networkId " +
+        s"peerId=$peerId hostId=$hostId interfaceName=$interfaceName " +
+        s"vlanId=$vlanId tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
+        s"outboundFilter=$outboundFilter portGroups=$portGroups]"
 }
 
 class RouterPort extends Port {
@@ -155,6 +173,13 @@ class RouterPort extends Port {
 
     def portAddr = _portAddr
     def nwSubnet = _portAddr
+
+    override def toString =
+        s"RouterPort [id=$id adminStateUp=$adminStateUp routerPort=$routerId " +
+        s"peerId=$peerId hostId=$hostId interfaceName=$interfaceName " +
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac vlanId=$vlanId " +
+        s"tunnelKey=$tunnelKey inboundFilter=$inboundFilter " +
+        s"outboundFilter=$outboundFilter portGroups=$portGroups]"
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
