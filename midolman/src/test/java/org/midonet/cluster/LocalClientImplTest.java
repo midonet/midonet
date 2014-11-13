@@ -405,7 +405,7 @@ public class LocalClientImplTest {
 
         @Override
         public void setLoadBalancer(UUID loadBalancerID) {
-            loadBalancerId = loadBalancerId;
+            loadBalancerId = loadBalancerID;
         }
 
         @Override
