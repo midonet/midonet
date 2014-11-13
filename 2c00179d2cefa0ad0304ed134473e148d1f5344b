@@ -70,6 +70,30 @@
       "revId": "2c00179d2cefa0ad0304ed134473e148d1f5344b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_4860af35",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T11:52:27Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "3a65312a_08db571c",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 62,
+        "endChar": 26
+      },
+      "revId": "2c00179d2cefa0ad0304ed134473e148d1f5344b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
