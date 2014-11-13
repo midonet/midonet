@@ -16,6 +16,57 @@
       "revId": "5dc2df9f6d9e4d1236b26fb0c27929e36d3ec316",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_a8c6a347",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-13T09:41:55Z",
+      "side": 1,
+      "message": "Oh, sorry I extended LocalPortActiveSubscriberActor but actually what I should extend is DatapathReadySubscriberActor. Let me fix it quickly.",
+      "revId": "5dc2df9f6d9e4d1236b26fb0c27929e36d3ec316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_08c4f73e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-13T09:41:55Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5dc2df9f6d9e4d1236b26fb0c27929e36d3ec316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_e8c09b2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-13T09:41:55Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "5dc2df9f6d9e4d1236b26fb0c27929e36d3ec316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
