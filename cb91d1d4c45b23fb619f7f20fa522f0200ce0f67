@@ -37,6 +37,46 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_736e40cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-13T15:23:34Z",
+      "side": 1,
+      "message": "Does this even compile? When I tested, the compiler complained that I needed \"override val\" before \"taskId: Int\".",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 60
+      },
+      "revId": "cb91d1d4c45b23fb619f7f20fa522f0200ce0f67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_53aa24d5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-13T15:23:34Z",
+      "side": 1,
+      "message": "I don\u0027t like this val overriding. How about the following?\n\nprotected[data] sealed trait Task {\n    def taskId: Int\n}\n\nprotected[data] case class Create(_taskId: Int, rsrcType: ResourceType, json: String) extends Task {\n    def taskId \u003d _taskId\n}\n\nprotected[data] case class Delete(_taskId: Int, rsrcType: ResourceType, objId: UUID) extends Task {\n    def taskId \u003d _taskId\n}\n\nprotected[data] case class Update(_taskId: Int, rsrcType: ResourceType, json: String) extends Task {\n    def taskId \u003d _taskId\n}",
+      "revId": "cb91d1d4c45b23fb619f7f20fa522f0200ce0f67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_10b195e1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 3
