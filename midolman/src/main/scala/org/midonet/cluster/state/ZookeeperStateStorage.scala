@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,29 +23,84 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.state.ZookeeperStateStorage.REACTOR_TAG
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, ZkConnectionAwareWatcher}
+import org.midonet.midolman.guice.ClusterModule.StorageReactorTag
+import org.midonet.midolman.logging.MidolmanLogging
+import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.state._
 import org.midonet.util.eventloop.Reactor
 
-object ZookeeperStateStorage {
-    private[state] final val REACTOR_TAG = "directoryReactor"
-}
-
 class ZookeeperStateStorage @Inject() (dataClient: DataClient,
-                                       @Named(REACTOR_TAG) val reactor: Reactor,
+                                       @Named(StorageReactorTag)
+                                       val reactor: Reactor,
+                                       zkManager: ZkManager,
+                                       pathBuilder: PathBuilder,
                                        val connectionWatcher:
-                                           ZkConnectionAwareWatcher)
-        extends StateStorage {
+                                       ZkConnectionAwareWatcher)
+    extends StateStorage with MidolmanLogging {
+
+    override def logSource = "org.midonet.cluster.state"
 
     @throws[StateAccessException]
-    override def getBridgeMacTable(@Nonnull bridgeId: UUID,
-                          vlanId: Short,
-                          ephemeral: Boolean): MacPortMap = {
+    override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
+                                ephemeral: Boolean): MacPortMap = {
+        ensureBridge(bridgeId)
+        ensureBridgeVlan(bridgeId, vlanId)
         dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
     }
 
     @throws[StateAccessException]
-    def getBridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap = {
+    override def bridgeIp4MacMap(@Nonnull bridgeId: UUID)
+    : Ip4ToMacReplicatedMap = {
+        ensureBridge(bridgeId)
         dataClient.getIp4MacMap(bridgeId)
+    }
+
+    /** Ensures that the path for the specified bridge is created in the
+      * legacy storage. */
+    private def ensureBridge(bridgeId: UUID) = {
+        // Create path.
+        val bridgePath = pathBuilder.getBridgePath(bridgeId)
+        val bridgeMacPortsPath =
+            pathBuilder.getBridgeMacPortsPath(bridgeId, UntaggedVlanId)
+        val bridgeVlansPath = pathBuilder.getBridgeVlansPath(bridgeId)
+
+        // Create the bridge path if it does not exist.
+        if (!zkManager.exists(bridgePath)) {
+            log.warn("Bridge {} does not exist in state storage, creating.",
+                     bridgeId)
+            createPath(bridgePath)
+            createPath(bridgeMacPortsPath)
+            createPath(bridgeVlansPath)
+        }
+    }
+
+    private def ensureBridgeVlan(bridgeId: UUID, vlanId: Short): Unit = {
+        // Create the VLAN if different from the default VLAN.
+        if (vlanId != UntaggedVlanId) {
+
+            log.warn("Bridge {} does not have state for VLAN {}, creating.",
+                     bridgeId, Short.box(vlanId))
+
+            val bridgeVlanPath = pathBuilder.getBridgeVlanPath(bridgeId, vlanId)
+            val bridgeVlanMacPortsPath =
+                pathBuilder.getBridgeMacPortsPath(bridgeId, vlanId)
+            if (!zkManager.exists(bridgeVlanPath)) {
+                createPath(bridgeVlanPath)
+            }
+            if (!zkManager.exists(bridgeVlanMacPortsPath)) {
+                createPath(bridgeVlanMacPortsPath)
+            }
+        }
+    }
+
+    /** Creates a path with no data in the legacy storage */
+    private def createPath(path: String): Unit = {
+        try {
+            log.debug("State storage create path {}", path)
+            zkManager.addPersistent(path, new Array[Byte](0))
+        } catch {
+            case e: StateAccessException =>
+                log.error("Failed to create path {} in legacy storage", path, e)
+        }
     }
 }

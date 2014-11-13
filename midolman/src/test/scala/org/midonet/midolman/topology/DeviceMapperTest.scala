@@ -28,6 +28,10 @@ import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.state.StateStorage
+import org.midonet.midolman.FlowController
+import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
@@ -77,12 +81,10 @@ class DeviceMapperTest extends MidolmanSpec {
 
     type TestableObserver = AwaitableObserver[TestableDevice]
 
-    @Mocked
-    var storage: Storage = _
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
+        vt = injector.getInstance(classOf[VirtualTopology])
     }
 
     feature("Test device observable subscription") {
@@ -191,7 +193,7 @@ class DeviceMapperTest extends MidolmanSpec {
             And("The observer should have received an IllegalStateException")
             observer.getOnNextEvents shouldBe empty
             observer.getOnCompletedEvents shouldBe empty
-            observer.getOnErrorEvents should contain (DeviceMapper.SUBSCRIPTION_EXCEPTION)
+            observer.getOnErrorEvents should contain (DeviceMapper.SubscriptionException)
         }
 
         scenario("Stream error notifies future subscribers") {
@@ -522,7 +524,7 @@ class DeviceMapperTest extends MidolmanSpec {
             future.isCompleted should be (true)
             future.value should not be None
             future.value.get.isFailure should be (true)
-            future.value.get.failed.get should be (DeviceMapper.SUBSCRIPTION_EXCEPTION)
+            future.value.get.failed.get should be (DeviceMapper.SubscriptionException)
         }
 
         scenario("The future completes async on error") {

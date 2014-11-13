@@ -145,7 +145,7 @@ abstract class VTPMRedirector extends Actor
         removeFromCache[D](deviceId)
     }
 
-    def receive = if (!config.getClusterStorageEnabled) Actor.emptyBehavior else {
+    def receive = if (!config.isClusterStorageEnabled) Actor.emptyBehavior else {
         case r: TunnelZoneRequest =>
             log.debug("Request for tunnel zone with id {}", r.zoneId)
             onRequest[TunnelZone](r)

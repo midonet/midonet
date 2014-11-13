@@ -68,7 +68,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Waiting for the future to complete")
             val e2 = intercept[NotFoundException] {
-                result(future, 1.seconds)
+                result(future, 5 seconds)
             }
 
             Then("The future fails with a NotFoundException")
@@ -209,7 +209,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Waiting for the future to complete")
             val e2 = intercept[NotFoundException] {
-                result(future, 1.seconds)
+                result(future, 5 seconds)
             }
 
             Then("The future fails with a NotFoundException")

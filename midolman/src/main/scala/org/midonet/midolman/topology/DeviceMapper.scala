@@ -29,7 +29,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.topology.VirtualTopology.Device
 
 object DeviceMapper {
-    protected[topology] val SUBSCRIPTION_EXCEPTION =
+    protected[topology] val SubscriptionException =
         new IllegalStateException("Device observable not connected")
 }
 
@@ -57,7 +57,7 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
         extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
-    import org.midonet.midolman.topology.DeviceMapper.SUBSCRIPTION_EXCEPTION
+    import org.midonet.midolman.topology.DeviceMapper.SubscriptionException
 
     private final val cache = BehaviorSubject.create[D]()
     private final val subscriber = Subscribers.from(cache)
@@ -80,7 +80,7 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
         }
         if (subscriber.isUnsubscribed) {
             val e = error.get
-            throw if (null != e) e else SUBSCRIPTION_EXCEPTION
+            throw if (null != e) e else SubscriptionException
         }
         cache.subscribe(s)
     }
@@ -111,4 +111,26 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
     }
 
     protected def onDeviceChanged(device: D): Unit = {}
+
+    /**
+     * Checks that this method is executed on the same thread as the one used
+     * during the initialization of the mapper.
+     */
+    @throws[DeviceMapperException]
+    @inline protected def assertThread(): Unit = {
+        if (vt.threadId != Thread.currentThread.getId) {
+            throw new DeviceMapperException(
+                tag.runtimeClass, id,
+                s"Call expected on thread ${vt.threadId} but received on " +
+                s"${Thread.currentThread().getId}")
+        }
+    }
+}
+
+class DeviceMapperException(msg: String) extends Exception(msg) {
+    def this(clazz: Class[_], id: UUID) =
+        this(s"Device mapper exception for device ${clazz.getSimpleName} $id")
+    def this(clazz: Class[_], id: UUID, msg: String) =
+        this(s"Device mapper exception for device ${clazz.getSimpleName} $id" +
+             s": $msg")
 }
