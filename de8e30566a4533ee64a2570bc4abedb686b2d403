@@ -172,6 +172,30 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_73cac0a2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-13T15:39:16Z",
+      "side": 1,
+      "message": "I agree that we should keep this as is.",
+      "parentUuid": "7a6b29fe_8e3e21b7",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 12
+      },
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_0b5966fe",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
         "patchSetId": 2
@@ -265,6 +289,24 @@
       "side": 1,
       "message": "I don\u0027t think so. These are numerical constants, whereas the definitions in neutron.proto are for message classes.",
       "parentUuid": "7a6b29fe_8b6c569e",
+      "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_93d95c86",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-13T15:39:16Z",
+      "side": 1,
+      "message": "Actually you can call on getNumber() on an enum value. Please see:\n\nhttps://developers.google.com/protocol-buffers/docs/reference/java/index",
+      "parentUuid": "7a6b29fe_ee1d1568",
       "revId": "de8e30566a4533ee64a2570bc4abedb686b2d403",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
