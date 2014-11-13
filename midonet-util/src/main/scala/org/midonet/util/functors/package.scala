@@ -15,7 +15,7 @@
  */
 package org.midonet.util
 
-import rx.functions.{Action0, Func1}
+import rx.functions._
 
 package object functors {
     def makeRunnable(fn: => Unit) = new Runnable {
@@ -24,7 +24,20 @@ package object functors {
     def makeFunc1[T1, R](fn: T1 => R) = new Func1[T1, R] {
         override def call(t1: T1): R = fn(t1)
     }
+    def makeFunc2[T1, T2, R](fn: (T1, T2) => R) = new Func2[T1, T2, R] {
+        override def call(t1: T1, t2: T2): R = fn(t1, t2)
+    }
+    def makeFunc3[T1, T2, T3, R](fn: (T1, T2, T3) => R) =
+        new Func3[T1, T2, T3, R] {
+            override def call(t1: T1, t2: T2, t3: T3): R = fn(t1, t2, t3)
+        }
     def makeAction0(fn: => Unit) = new Action0 {
+        override def call(): Unit = fn
+    }
+    def makeAction1[T1](fn: (T1) => Unit) = new Action1[T1] {
+        override def call(t1: T1): Unit = fn(t1)
+    }
+    def makeCallback0(fn: => Unit) = new Callback0 {
         override def call(): Unit = fn
     }
 }

@@ -201,11 +201,11 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             val thisClass = obj.getClass
             assert(isRegistered(thisClass))
             val thisId = getObjectId(obj)
+            classes.get(thisClass).create(thisId, obj)
             for (binding <- bindings.get(thisClass).asScala;
                  thatId <- binding.getFwdReferenceAsList(obj).asScala) {
                 addBackreference(binding, thisId, thatId)
             }
-            classes.get(thisClass).create(thisId, obj)
         }
 
         def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
