@@ -46,9 +46,9 @@ class TestMacLearningManager  extends FunSuite with Matchers {
         val expiry: Long = 40
         val mgr = new MacLearningManager(log, expiry millis)
         val table = mutable.Map[MAC, UUID]()
-        val macLearningTables = mutable.Map[JShort, MacLearningTable]()
+        val macLearningTables = mutable.Map[Short, MacLearningTable]()
         macLearningTables.put(Bridge.UNTAGGED_VLAN_ID, new MockMacLearningTable(table))
-        mgr.vlanMacTableMap = macLearningTables
+        mgr.vlanMacTableMap = macLearningTables.toMap
 
         // Initially, the backend has no entry for mac1.
         var p = table.get(mac1)
