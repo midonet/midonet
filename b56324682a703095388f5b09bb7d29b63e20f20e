@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_e82b7b92",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-13T12:27:18Z",
+      "side": 1,
+      "message": "The unsubscription should be removed. I think the method should look like:\n\n    def observable: Observable[Observable[ChildData]] \u003d {\n        val preseedAndSubscribe \u003d new OnSubscribe[Observable[ChildData]] {\n            override def call(s: Subscriber[_ \u003e: Observable[ChildData]]): Unit \u003d {\n                withReadLock(childrenLock) {\n                    val preSeed \u003d children.values\n                    log.info(\"Subscribe {}, curr size {}\", path, preSeed.size)\n                    preSeed foreach { s onNext _ } // emit all known children\n                    stream.subscribe(s)\n                }\n            }\n        }\n        Observable.create(preseedAndSubscribe)\n    }\n\nThe reason for this is the following:\n- The variable subscription is shared by all subscribe/unsubscribe actions applying to this observable. Hence, when a new subscriber subscribes to the same observable object (not by calling the observable method again), it will overwrite it.\n- Consequently, any unsubscribe action will unsubscribe the most recent subscriber.\n- The subscription is not needed in any case because the subscription is actually the subscriber (Subscription extends Subscriber). Hence, the same subscription is shared for both the subscription to our observable and and the subscription to the stream. When a caller will call unsubscribe() it will unsubscribe from both our observable and from stream at the same time, not further work needed on our part :)",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 142,
+        "endChar": 5
+      },
+      "revId": "b56324682a703095388f5b09bb7d29b63e20f20e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
