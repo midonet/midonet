@@ -268,10 +268,8 @@ class DatapathController extends Actor
                                         isActive: Boolean): Future[_] = {
                 log.info(s"Port ${port.getPortNo}/${port.getName}/$vportId " +
                          s"became ${if (isActive) "active" else "inactive"}")
-                VirtualToPhysicalMapper ! LocalPortActive(vportId, isActive)
-                MtuIncreaseActor ! LocalPortActive(vportId, isActive)
-                // context.system.eventStream.publish(
-                //     LocalPortActive(vportId, isActive))
+                context.system.eventStream.publish(
+                    LocalPortActive(vportId, isActive))
                 invalidateAndInstallTunnelKeyFlow(port, vportId, isActive)
             }
         }
@@ -387,12 +385,8 @@ class DatapathController extends Actor
     def completeInitialization() {
         log.info("Initialization complete. Starting to act as a controller.")
         context become receive
-        Seq[ActorRef](FlowController, PacketsEntryPoint, RoutingManagerActor,
-            MtuIncreaseActor, initializer) foreach {
-            _ ! DatapathReady(datapath, dpState)
-        }
-        // initializer ! DatapathReady(datapath, dpState)
-        // context.system.eventStream.publish(DatapathReady(datapath, dpState))
+        initializer ! DatapathReady(datapath, dpState)
+        context.system.eventStream.publish(DatapathReady(datapath, dpState))
 
         for ((zoneId, _) <- host.zones) {
             VirtualToPhysicalMapper ! TunnelZoneRequest(zoneId)
