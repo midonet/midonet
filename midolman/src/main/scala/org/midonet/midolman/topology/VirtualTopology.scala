@@ -27,9 +27,12 @@ import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -153,6 +156,8 @@ object VirtualTopology extends MidolmanLogging {
  * +------------------------------------------------+
  */
 class VirtualTopology @Inject() (val backend: MidonetBackend,
+                                 val config: MidolmanConfig,
+                                 val state: StateStorage,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val actorsService: MidolmanActorsService)
@@ -184,7 +189,8 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[VxLanPort] -> (new PortMapper(_, this)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[Host] -> (new HostMapper(_, this))
+        classTag[Host] -> (new HostMapper(_, this)),
+        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system))
     )
 
     register(this)
