@@ -18,7 +18,6 @@ package org.midonet.midolman.guice;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import scala.concurrent.duration.Duration;
 
 import akka.actor.ActorInitializationException;
@@ -27,13 +26,8 @@ import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
-
-import com.codahale.metrics.Clock;
-import com.google.inject.BindingAnnotation;
-import com.google.inject.Exposed;
-import com.google.inject.PrivateModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.google.inject.*;
+import com.yammer.metrics.core.Clock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

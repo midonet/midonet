@@ -19,14 +19,14 @@ package org.midonet.midolman
 import java.util.concurrent.TimeoutException
 import java.util.{UUID, HashMap => JHashMap, List => JList}
 
+import com.yammer.metrics.core.Clock
+
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-
-import com.codahale.metrics.Clock
 
 import com.typesafe.scalalogging.Logger
 import org.slf4j.MDC
@@ -341,7 +341,7 @@ class DeduplicationActor(
         pktCtx.cookieOrEgressPort match {
             case Left(cookie) =>
                 applyFlow(cookie, pktCtx)
-                val latency = (Clock.defaultClock().getTick -
+                val latency = (Clock.defaultClock().tick() -
                                pktCtx.packet.startTimeNanos).toInt
                 metrics.packetsProcessed.mark()
                 path match {

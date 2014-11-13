@@ -16,13 +16,13 @@
 
 package org.midonet.util;
 
-import com.codahale.metrics.Clock;
+import com.yammer.metrics.core.Clock;
 
 public class MockClock extends Clock {
     public long time = 0;
 
     @Override
-    public long getTick() {
+    public long tick() {
         return time;
     }
 }

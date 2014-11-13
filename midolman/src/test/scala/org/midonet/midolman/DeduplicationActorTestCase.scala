@@ -22,7 +22,7 @@ import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
-import com.codahale.metrics.{MetricFilter, MetricRegistry}
+import com.yammer.metrics.core.MetricsRegistry
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.DataClient
@@ -55,7 +55,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     var packetsOut = 0
 
     lazy val dpConnPool = injector.getInstance(classOf[DatapathConnectionPool])
-    lazy val metricsReg = injector.getInstance(classOf[MetricRegistry])
+    lazy val metricsReg = injector.getInstance(classOf[MetricsRegistry])
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
@@ -65,8 +65,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     def createDda(simulationExpireMillis: Long = 5000L): Unit = {
         if (ddaRef != null)
             actorSystem.stop(ddaRef)
-
-        metricsReg.removeMatching(MetricFilter.ALL)
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),

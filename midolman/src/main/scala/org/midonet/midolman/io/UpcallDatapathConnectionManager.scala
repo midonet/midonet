@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
-import com.codahale.metrics.Clock
+import com.yammer.metrics.core.Clock
 import org.slf4j.{Logger, LoggerFactory}
 
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
@@ -197,7 +197,7 @@ abstract class UpcallDatapathConnectionManagerBase(
                 log.trace("accumulating packet: {}", data.getMatch)
 
                 data.processUserspaceKeys()
-                data.startTimeNanos = Clock.defaultClock().getTick
+                data.startTimeNanos = Clock.defaultClock().tick()
 
                 val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS
                 packets(worker)(cursors(worker)) = data
