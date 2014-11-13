@@ -33,11 +33,10 @@ trait StateStorage {
     val connectionWatcher: ZkConnectionAwareWatcher
 
     @throws[StateAccessException]
-    def getBridgeMacTable(@Nonnull bridgeId: UUID,
-                          vlanId: Short,
-                          ephemeral: Boolean): MacPortMap
+    def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
+                       ephemeral: Boolean): MacPortMap
 
 
     @throws[StateAccessException]
-    def getBridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
+    def bridgeIp4MacMap(@Nonnull bridgeId: UUID): Ip4ToMacReplicatedMap
 }
