@@ -27,10 +27,12 @@ import org.scalatest.{Matchers, FeatureSpec}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.topology.TopologyBuilder
 import org.midonet.packets.{IPv4Subnet, MAC, IPv4Addr}
 
 @RunWith(classOf[JUnitRunner])
-class PortConversionTest extends FeatureSpec with Matchers {
+class PortConversionTest extends FeatureSpec with Matchers
+                         with TopologyBuilder {
 
     private val random = new Random()
 
@@ -54,7 +56,6 @@ class PortConversionTest extends FeatureSpec with Matchers {
         scenario("Test conversion to Protocol Buffers message") {
             val port = init(new BridgePort())
             port.networkId = UUID.randomUUID
-
             val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
 
             assertEquals(port, proto)

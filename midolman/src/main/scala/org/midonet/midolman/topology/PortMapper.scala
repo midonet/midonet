@@ -20,15 +20,16 @@ import java.util.UUID
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
-import org.midonet.util.functors._
+import org.midonet.util.functors.makeFunc1
 
 sealed class PortMapper(id: UUID, vt: VirtualTopology)
         extends VirtualDeviceMapper[SimulationPort](id, vt) {
 
     override def logSource = s"org.midonet.midolman.topology.port-$id"
 
-    protected override def observable = {
+    protected override lazy val observable = {
         vt.store.observable(classOf[TopologyPort], id)
+                .observeOn(vt.scheduler)
                 .map[SimulationPort](
                     makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPort]))
             )
