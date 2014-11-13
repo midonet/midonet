@@ -316,7 +316,8 @@ public class ZookeeperObjectMapperTest {
             networkBuilder.setInboundFilterId(inFilterId);
         if (outFilterId != null)
             networkBuilder.setOutboundFilterId(outFilterId);
-        networkBuilder.addAllVxlanPortIds(vxLanPortIds);
+        if (vxLanPortIds != null)
+            networkBuilder.addAllVxlanPortIds(vxLanPortIds);
 
         return networkBuilder.build();
     }

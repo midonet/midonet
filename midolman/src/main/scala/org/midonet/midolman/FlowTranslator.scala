@@ -187,10 +187,7 @@ trait FlowTranslator {
          *   this action in the result set
          */
         def addVtepActions(br: Bridge): Unit = {
-            var i = 0
-            while (i < br.vxlanPortIds.size()) {
-                val vxlanPortId = br.vxlanPortIds.get(i)
-                i += 1
+            for (vxlanPortId <- br.vxlanPortIds) {
                 tryAsk[Port](vxlanPortId) match {
                     case p: VxLanPort =>
                         outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,

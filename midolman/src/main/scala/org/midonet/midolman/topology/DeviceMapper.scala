@@ -112,3 +112,11 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
 
     protected def onDeviceChanged(device: D): Unit = {}
 }
+
+class DeviceMapperException(msg: String) extends Exception(msg) {
+    def this(clazz: Class[_], id: UUID) =
+        this(s"Device mapper exception for device ${clazz.getSimpleName} $id")
+    def this(clazz: Class[_], id: UUID, msg: String) =
+        this(s"Device mapper exception for device ${clazz.getSimpleName} $id" +
+             s": $msg")
+}
