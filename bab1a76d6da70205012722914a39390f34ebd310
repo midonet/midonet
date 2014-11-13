@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_a8918354",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "3a65312a_fdf17b96",
+      "range": {
+        "startLine": 242,
+        "startChar": 8,
+        "endLine": 242,
+        "endChar": 21
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a65312a_ddee3fb4",
         "filename": "cluster/src/main/proto/topology.proto",
         "patchSetId": 7
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-12T18:09:54Z",
       "side": 1,
       "message": "I would rename this to --port_id-- to prevent any confusion. This object should map the port UUID to the host interface name.",
+      "range": {
+        "startLine": 244,
+        "startChar": 18,
+        "endLine": 244,
+        "endChar": 20
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_089fd760",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "3a65312a_ddee3fb4",
       "range": {
         "startLine": 244,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_e89b7b70",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 326,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "I forgot to remove UUID from the previous version of this patch. It\u0027s has been removed now.",
+      "parentUuid": "3a65312a_3dddb315",
+      "range": {
+        "startLine": 326,
+        "startChar": 57,
+        "endLine": 326,
+        "endChar": 61
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a65312a_bdd0a3f8",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 7
@@ -82,6 +154,30 @@
       "writtenOn": "2014-11-12T18:09:54Z",
       "side": 1,
       "message": "For the last two cases maybe we can do:\n\n  case _ \u003d\u003e getScalaConverter(pojoField.getType, zoomField)\n\nThat is, even for repeated fields, we revert to the scalar converter, when not an array, list, seq, etc. If the conversion is not possible, the conversion will throw an exception anyway.",
+      "range": {
+        "startLine": 325,
+        "startChar": 1,
+        "endLine": 330,
+        "endChar": 25
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_4888af22",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "I used this for the last case but kept it as is for the Map case. This way the exception thrown in more precise when the field is a map but not converter has been specified.",
+      "parentUuid": "3a65312a_bdd0a3f8",
       "range": {
         "startLine": 325,
         "startChar": 1,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_28945336",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "getMapConverter is a bit different in the sense that it never returns the default converter of the ZoomClass. Also it throws a more specific exception when no converter exists for that field. If that\u0027s fine with you I\u0027d prefer to keep it as is.",
+      "parentUuid": "3a65312a_9dc68748",
+      "range": {
+        "startLine": 334,
+        "startChar": 0,
+        "endLine": 353,
+        "endChar": 5
+      },
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3a65312a_5d034f73",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/PortInterfaceConverter.scala",
         "patchSetId": 7
@@ -128,6 +248,24 @@
       "writtenOn": "2014-11-12T18:09:54Z",
       "side": 1,
       "message": "I would add this class to a companion object for the Host class. This conversion is specific to that host field, besides that I\u0027m not sure whether it\u0027s that useful to be in util.",
+      "revId": "bab1a76d6da70205012722914a39390f34ebd310",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a65312a_288d7332",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/PortInterfaceConverter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-13T09:06:50Z",
+      "side": 1,
+      "message": "I added this class to Host.scala",
+      "parentUuid": "3a65312a_5d034f73",
       "revId": "bab1a76d6da70205012722914a39390f34ebd310",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
