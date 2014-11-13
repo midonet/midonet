@@ -48,10 +48,8 @@ import org.midonet.util.concurrent._
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 
 /**
- * A simple in-memory implementation of the
- * [[org.midonet.cluster.data.storage.Storage]] trait, equivalent to
- * the [[org.midonet.cluster.data.storage.ZookeeperObjectMapper]] to use within
- * unit tests.
+ * A simple in-memory implementation of the [[Storage]] trait, equivalent to
+ * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
 class InMemoryStorage extends StorageWithOwnership {
 

@@ -30,6 +30,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.MACUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.packets._
 
@@ -296,8 +297,61 @@ trait TopologyBuilder {
 
 object TopologyBuilder {
 
+    class RichPort(port: Port) {
+        def setBridgeId(bridgeId: UUID): Port =
+            port.toBuilder.setNetworkId(bridgeId.asProto).build()
+        def setRouterId(routerId: UUID): Port =
+            port.toBuilder.setRouterId(routerId.asProto).build()
+        def setInboundFilterId(filterId: UUID): Port =
+            port.toBuilder.setInboundFilterId(filterId.asProto).build()
+        def setOutboundFilterId(filterId: UUID): Port =
+            port.toBuilder.setOutboundFilterId(filterId.asProto).build()
+        def setTunnelKey(tunnelKey: Long): Port =
+            port.toBuilder.setTunnelKey(tunnelKey).build()
+        def setPeerId(peerId: UUID): Port =
+            port.toBuilder.setPeerId(peerId.asProto).build()
+        def setVifId(vifId: UUID): Port =
+            port.toBuilder.setVifId(vifId.asProto).build()
+        def setInterfaceName(name: String): Port =
+            port.toBuilder.setInterfaceName(name).build()
+        def setAdminStateUp(adminStateUp: Boolean): Port =
+            port.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setVlanId(vlanId: Int): Port =
+            port.toBuilder.setVlanId(vlanId).build()
+        def setPortSubnet(ipSubnet: IPSubnet[_]): Port =
+            port.toBuilder.setPortSubnet(ipSubnet.asProto).build()
+        def setPortAddress(ipAddress: IPAddr): Port =
+            port.toBuilder.setPortAddress(ipAddress.asProto).build()
+        def setPortMac(mac: MAC): Port =
+            port.toBuilder.setPortMac(mac.toString).build()
+        def clearBridgeId(): Port =
+            port.toBuilder.clearNetworkId().build()
+        def clearRouterId(): Port =
+            port.toBuilder.clearRouterId().build()
+        def clearInboundFilterId(): Port =
+            port.toBuilder.clearInboundFilterId().build()
+        def clearOutboundFilterId(): Port =
+            port.toBuilder.clearOutboundFilterId().build()
+        def clearPeerId(): Port =
+            port.toBuilder.clearPeerId().build()
+        def clearVifId(): Port =
+            port.toBuilder.clearVifId().build()
+        def clearInterfaceName: Port =
+            port.toBuilder.clearInterfaceName().build()
+        def clearVlanId(): Port =
+            port.toBuilder.clearVlanId().build()
+        def clearPortSubnet(ipSubnet: IPSubnet[_]): Port =
+            port.toBuilder.clearPortSubnet().build()
+        def clearPortAddress(ipAddress: IPAddr): Port =
+            port.toBuilder.clearPortAddress().build()
+        def clearPortMac(mac: MAC): Port =
+            port.toBuilder.clearPortMac().build()
+    }
+
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
+
+    implicit def asRichPort(port: Port): RichPort = new RichPort(port)
 
 }
