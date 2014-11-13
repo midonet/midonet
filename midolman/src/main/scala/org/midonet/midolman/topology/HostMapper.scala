@@ -35,7 +35,7 @@ import org.midonet.midolman.topology.devices.{Host => SimHost, TunnelZone => Sim
 import org.midonet.packets.IPAddr
 import org.midonet.util.functors._
 
-class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
+class HostMapper(id: UUID, vt: VirtualTopology)
                 (implicit actorSystem: ActorSystem)
     extends DeviceMapper[SimHost](id, vt) {
 
@@ -65,7 +65,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
     //                status of the host when available.
     private def hostAliveWatcher: Watcher = new Watcher {
         override def process(event: WatchedEvent) =
-            hostAliveStream.onNext(dataClient.hostsIsAlive(id, aliveWatcher))
+            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
     }
 
     private def emptySimHost: SimHost = {
@@ -174,7 +174,7 @@ class HostMapper(id: UUID, vt: VirtualTopology, dataClient: DataClient)
 
     override def observable: Observable[SimHost] = {
         if (observableCreated.compareAndSet(false, true)) {
-            hostAliveStream.onNext(dataClient.hostsIsAlive(id, aliveWatcher))
+            hostAliveStream.onNext(vt.dataClient.hostsIsAlive(id, aliveWatcher))
             outStream = Observable.merge[Any](hostObservable,
                                               hostAliveStream,
                                               Observable.merge(tunnelZonesStream))
