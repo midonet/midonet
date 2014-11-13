@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a65312a_48b6efdd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-13T09:34:04Z",
+      "side": 1,
+      "message": "I introduced LocalPortActiveSubscriberActor and tried to replace these message sending with the message publishing to the event stream bus for the subscribers. However, I got a bunch of errors and I just made it comment-outed.",
+      "revId": "5dc2df9f6d9e4d1236b26fb0c27929e36d3ec316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
