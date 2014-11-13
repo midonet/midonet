@@ -26,7 +26,7 @@ import scala.collection.mutable
 import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable, VlanPortMap}
+import org.midonet.cluster.client.{VlanPortMap, BridgeBuilder, IpMacMap, MacLearningTable}
 import org.midonet.cluster.data.Bridge
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
@@ -54,7 +54,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     private var oldMacToLogicalPortId: mutable.Map[MAC, UUID] = null
     private var ipToMac: mutable.Map[IPAddr, MAC] = null
     private var vlanBridgePeerPortId: Option[UUID] = None
-    private var exteriorVxlanPortIds: util.List[UUID] = new util.ArrayList()
+    private var exteriorVxlanPortIds = Seq.empty[UUID]
     private var vlanPortMap: VlanPortMap = null
     private var exteriorPorts: List[UUID] = List.empty
     private var oldExteriorPorts: List[UUID] = List.empty
@@ -97,7 +97,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
     }
 
     def setExteriorVxlanPortIds(vxlanIds: util.List[UUID]) {
-        exteriorVxlanPortIds = if (vxlanIds == null) new util.ArrayList()
+        exteriorVxlanPortIds = if (vxlanIds eq null) Seq.empty[UUID]
                                else vxlanIds
     }
 
@@ -128,7 +128,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // calculate diff between the 2 maps
         if (null != oldMacToLogicalPortId) {
             val deletedPortMap =
-                oldMacToLogicalPortId -- (macToLogicalPortId.keys)
+                oldMacToLogicalPortId -- macToLogicalPortId.keys
             // invalidate all the Unicast flows to the logical port
             for ((mac, portId) <- deletedPortMap) {
                 bridgeMgr ! InvalidateFlowsByTag(
@@ -161,7 +161,9 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
         // send update info for bridges.
         // Convert the mutable map to immutable
         bridgeMgr ! BridgeManager.TriggerUpdate(cfg,
-            collection.immutable.HashMap(vlanMacTableMap.toSeq: _*), ip4MacMap,
+            collection.immutable.HashMap(
+                vlanMacTableMap.toSeq.map(e => (Short.unbox(e._1), e._2)): _*),
+            ip4MacMap,
             collection.immutable.HashMap(macToLogicalPortId.toSeq: _*),
             collection.immutable.HashMap(ipToMac.toSeq: _*),
             vlanBridgePeerPortId, exteriorVxlanPortIds, vlanPortMap,
@@ -181,7 +183,7 @@ class BridgeBuilderImpl(val id: UUID, val flowController: ActorRef,
 
         if (newPort == null && oldPort != null) {
             log.debug("MAC {}, VLAN ID {} removed from port {}",
-                Array(mac, oldPort, vlanId.asInstanceOf[Object]))
+                Array(mac, vlanId.asInstanceOf[Object], oldPort))
             flowController ! InvalidateFlowsByTag(
                     FlowTagger.tagForVlanPort(id, mac, vlanId, oldPort))
         }
