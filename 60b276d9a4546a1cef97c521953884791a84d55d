@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "3a65312a_88fe476a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-13T10:21:24Z",
+      "side": 1,
+      "message": "I still think this is kind of messy to have special cases everywhere. Maybe change it to processSimulationResult(context, TemporaryDrop)? Also, the comment needs to be updated I think.\n\nIf you wanna get crazy, this is the cleanest approach, which benefits the common case: https://gist.github.com/duarten/7c3568c7b8a6b685e878",
+      "parentUuid": "3a65312a_88b007df",
+      "revId": "60b276d9a4546a1cef97c521953884791a84d55d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_5c3cc3e2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
         "patchSetId": 1
