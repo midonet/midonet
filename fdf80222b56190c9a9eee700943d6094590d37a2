@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_925adc4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-14T16:28:33Z",
+      "side": 1,
+      "message": "Reminder to update scaladoc.",
+      "parentUuid": "fafc7978_d2a62453",
+      "range": {
+        "startLine": 34,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 7
+      },
+      "revId": "fdf80222b56190c9a9eee700943d6094590d37a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b2af202b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 10
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f257e824",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-14T16:28:33Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_b2af202b",
+      "range": {
+        "startLine": 39,
+        "startChar": 38,
+        "endLine": 39,
+        "endChar": 56
+      },
+      "revId": "fdf80222b56190c9a9eee700943d6094590d37a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_1268acf4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 10
@@ -59,6 +107,30 @@
       "writtenOn": "2014-11-14T16:26:48Z",
       "side": 1,
       "message": "Do you really need to guard against concurrent executions here? The worst that could happen is that two threads create an observable and try to put it in observables but only one will succeed.\nIt could be that the same is true for when you guard the execution of:\nself.observableOf(id, m).asFuture\n\n...although I\u0027m not 100% sure.",
+      "range": {
+        "startLine": 129,
+        "startChar": 8,
+        "endLine": 129,
+        "endChar": 42
+      },
+      "revId": "fdf80222b56190c9a9eee700943d6094590d37a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d2546423",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-14T16:28:33Z",
+      "side": 1,
+      "message": "Guard removed.",
+      "parentUuid": "fafc7978_1268acf4",
       "range": {
         "startLine": 129,
         "startChar": 8,
