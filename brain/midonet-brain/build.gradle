@@ -41,7 +41,7 @@ sourceSets {
 
 dependencies {
     compile project(':brain:odl-ovsdb:ovsdb'), project(':cluster'),
-            project(':midolman'), project(':midonet-util'), project(':packets'),
+            project(':midolman'), project(':midonet-util'),
             "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
             "com.fasterxml.jackson.core:jackson-core:2.3.0",
             "com.fasterxml.jackson.core:jackson-databind:2.3.0",
