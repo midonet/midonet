@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a622d24_f9bd0f04",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 443,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-14T09:43:45Z",
+      "side": 1,
+      "message": "Sorry to be picky, but this is identical to the first part of ZookeeperObjectMapper.getPath(). Could you make a shared function?\n\nIt\u0027s not worth blocking this patch for, though. If you don\u0027t have any other reason to change this patch, just get it in your next patch.",
+      "range": {
+        "startLine": 437,
+        "startChar": 0,
+        "endLine": 443,
+        "endChar": 5
+      },
+      "revId": "6bb873956d392bf69ceb8a7bb2fa8054dd2820c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
