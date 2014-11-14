@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a622d24_d95133da",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-14T09:59:05Z",
+      "side": 1,
+      "message": "Heh. It says \"C3 Poop.\"",
+      "range": {
+        "startLine": 35,
+        "startChar": 13,
+        "endLine": 35,
+        "endChar": 19
+      },
+      "revId": "f4c5b70c54ba60cea62c667f2c9cbd4ae9575007",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_1963abb2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-14T09:59:05Z",
+      "side": 1,
+      "message": "That really worked? Cool!",
+      "range": {
+        "startLine": 93,
+        "startChar": 19,
+        "endLine": 93,
+        "endChar": 56
+      },
+      "revId": "f4c5b70c54ba60cea62c667f2c9cbd4ae9575007",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
