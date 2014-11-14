@@ -77,6 +77,24 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_5617b251",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-14T07:22:15Z",
+      "side": 1,
+      "message": "Talked to Tomohiko and agreed that this is fine as is.",
+      "parentUuid": "1a622d24_53aa24d5",
+      "revId": "cb91d1d4c45b23fb619f7f20fa522f0200ce0f67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a6b29fe_10b195e1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 3
