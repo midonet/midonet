@@ -78,11 +78,6 @@ as coordinating with other external devices and systems, such as VTEP
 switches, the backend services holding our Network State DataBase (e.g:
 Zookeeper and Cassandra), etc.
 
-### packets
-
-This holds basic classes for parsing, building, and manipulating packets
-of various network protocol types.
-
 ### midonet-util
 
 Contains basic utilities used by the other modules, and is described
