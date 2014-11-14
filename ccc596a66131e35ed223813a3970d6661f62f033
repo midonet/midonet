@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a622d24_b9127756",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronPollingThread.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-14T07:56:52Z",
+      "side": 1,
+      "message": "Agreed that Tomohiko will move this into his class.",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 5
+      },
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
