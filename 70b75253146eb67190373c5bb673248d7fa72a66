@@ -22,6 +22,30 @@
       "revId": "70b75253146eb67190373c5bb673248d7fa72a66",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7212d863",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 404,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-14T17:20:48Z",
+      "side": 1,
+      "message": "Ooops! I\u0027ll fix it when submitting the VT unit tests. Thanks.",
+      "parentUuid": "fafc7978_d27d84b3",
+      "range": {
+        "startLine": 404,
+        "startChar": 31,
+        "endLine": 404,
+        "endChar": 38
+      },
+      "revId": "70b75253146eb67190373c5bb673248d7fa72a66",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
