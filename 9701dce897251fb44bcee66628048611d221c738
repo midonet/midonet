@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_595c0326",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-14T08:42:47Z",
+      "side": 1,
+      "message": "Renamed as C3POCreate/Update/Delete. \"Model\" is essentially Neutron model, but I\u0027d like to keep it general so that it can refer to other models.",
+      "parentUuid": "1a622d24_990fbb2e",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 1
+      },
+      "revId": "9701dce897251fb44bcee66628048611d221c738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a622d24_d919337b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
         "patchSetId": 3
@@ -71,6 +95,54 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_d947734a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-14T08:42:47Z",
+      "side": 1,
+      "message": "It seems to work. It compiles.",
+      "parentUuid": "1a622d24_f91cef6c",
+      "range": {
+        "startLine": 92,
+        "startChar": 63,
+        "endLine": 92,
+        "endChar": 71
+      },
+      "revId": "9701dce897251fb44bcee66628048611d221c738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_993dfbbe",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-14T08:42:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a622d24_d919337b",
+      "range": {
+        "startLine": 92,
+        "startChar": 28,
+        "endLine": 92,
+        "endChar": 40
+      },
+      "revId": "9701dce897251fb44bcee66628048611d221c738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a622d24_192bab83",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
         "patchSetId": 3
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a622d24_3974a79b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-14T08:42:47Z",
+      "side": 1,
+      "message": "Yes, but simplified for now.",
+      "parentUuid": "1a622d24_192bab83",
+      "range": {
+        "startLine": 107,
+        "startChar": 20,
+        "endLine": 108,
+        "endChar": 38
+      },
+      "revId": "9701dce897251fb44bcee66628048611d221c738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a622d24_7920df9b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
         "patchSetId": 3
@@ -105,6 +201,30 @@
       "writtenOn": "2014-11-14T07:49:06Z",
       "side": 1,
       "message": "Can just be $msg",
+      "range": {
+        "startLine": 112,
+        "startChar": 54,
+        "endLine": 112,
+        "endChar": 60
+      },
+      "revId": "9701dce897251fb44bcee66628048611d221c738",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a622d24_1979eb93",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PO.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-14T08:42:47Z",
+      "side": 1,
+      "message": "Ack.",
+      "parentUuid": "1a622d24_7920df9b",
       "range": {
         "startLine": 112,
         "startChar": 54,
