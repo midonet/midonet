@@ -5,10 +5,9 @@
 Midolman is the controller for the *MidoNet* SDN system.  Also referred to
 as the MidoNet Agent. The core function of Midolman is to receive
 notifications of new, unhandled network flows from the OpenvSwitch kernel
-module and instruct the kernel how to handle them.  The datapath communication
-is described in the [flow installation document](flow-installation.md).  To
-figure out how to handle the flows, Midolman runs a simulation of the MidoNet
-virtual topology, described in [the design overview](design-overview.md).
+module and instruct the kernel how to handle them. To figure out how to
+handle the flows, Midolman runs a simulation of the MidoNet virtual topology,
+described in [the design overview](design-overview.md).
 
 The configuration of the virtual topology and certain pieces of slow changing
 state (such as what agents exist in the network, ARP tables, port status, ...)
