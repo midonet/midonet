@@ -17,7 +17,7 @@
 apply plugin: 'scala'
 
 dependencies {
-    testCompile libraries.scalatest
+    testCompile libraries.scalatest, libraries.scalacheck
     compile libraries.akka, libraries.commons_cli, libraries.commons_conf,
             libraries.commons_io, libraries.commons_lang3, libraries.findbugs,
             libraries.guava, libraries.hamcrest_core, libraries.hamcrest_lib,
@@ -31,6 +31,17 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'MidoNet Utilily Library',
                    'Implementation-Version': version
+    }
+}
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
     }
 }
 
