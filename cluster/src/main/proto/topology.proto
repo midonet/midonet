@@ -146,10 +146,6 @@ message PortGroup {
     repeated UUID port_ids = 101;
 }
 
-message PortSet {
-    optional UUID id = 1;
-}
-
 message IpAddrGroup {
     optional UUID id = 1;
     optional string name = 2;

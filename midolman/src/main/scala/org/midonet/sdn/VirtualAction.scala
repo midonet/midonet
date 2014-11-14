@@ -26,8 +26,8 @@ import org.midonet.odp.flows.FlowAction
  *  can be understood by the datapath module. */
 object VirtualActions {
 
-    /** output action to a set of virtual ports with uuid portSetId */
-    case class FlowActionOutputToVrnPortSet(portSetId:UUID)
+    /** output action to a set of virtual ports in a bridge */
+    case class FlowActionOutputToVrnBridge(brId:UUID, ports: List[UUID])
             extends VirtualFlowAction
 
     /** output action to a single virtual ports with uuid portId */

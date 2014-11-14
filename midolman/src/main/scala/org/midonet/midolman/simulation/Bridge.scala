@@ -96,12 +96,14 @@ class Bridge(val id: UUID,
              val flowRemovedCallbackGen: RemoveFlowCallbackGenerator,
              val macToLogicalPortId: ROMap[MAC, UUID],
              val ipToMac: ROMap[IPAddr, MAC],
-             val vlanToPort: VlanPortMap)
+             val vlanToPort: VlanPortMap,
+             val exteriorPorts: List[UUID])
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device {
 
     import Coordinator._
 
     val deviceTag = tagForDevice(id)
+    val floodAction = FloodBridgeAction(id, exteriorPorts)
 
     /*
      * Avoid generating ToPortXActions directly in the processing methods
@@ -172,9 +174,12 @@ class Bridge(val id: UUID,
 
         val dstDlAddress = context.wcmatch.getEthDst
         val action =
-             if (isArpBroadcast()) handleARPRequest()
-             else if (Ethernet.isMcast(dstDlAddress)) handleL2Multicast()
-             else handleL2Unicast() // including ARP replies
+             if (isArpBroadcast())
+                 handleARPRequest()
+             else if (Ethernet.isMcast(dstDlAddress))
+                 handleL2Multicast()
+             else
+                 handleL2Unicast() // including ARP replies
 
         if (areChainsApplicable()) {
             doPostBridging(context, action)
@@ -259,7 +264,6 @@ class Bridge(val id: UUID,
     private def handleL2Multicast()(implicit context: PacketContext)
     : Coordinator.Action = {
         context.log.debug("Handling L2 multicast {}", id)
-        context.addFlowTag(tagForBroadcast(id, id))
         multicastAction()
     }
 
@@ -313,19 +317,19 @@ class Bridge(val id: UUID,
 
     /**
       * Possible cases of an L2 multicast happenning on any bridge (vlan-aware
-      * or not). This is generally a ToPortSetAction, but:
+      * or not). This is generally a FloodBridgeAction, but:
       *
       * - If this is a VUB connected to a VAB, it'll fork and do also a
       *   ToPortAction that sends the frame to the VAB.
       * - If this is VAB (that is: has ports with vlan-ids assigned to them)
       *   it'll jump to multicastVlanAware. This will:
       *   - If the frame comes from an exterior port and has a vlan id, restrict
-      *     the ToPortSetAction to a single ToPortSet, the one with that vlan-id,
+      *     the FloodBridgeAction to a single bridge, the one with that vlan-id,
       *     after popping the vlan tag.
-      *   - If the frame comes from an exterior port, but has no vlan id, send
-      *     to the ordinary port set (for example: BPDU, or an ARP request)
+      *   - If the frame comes from an exterior port, but has no vlan id, do
+      *     an ordinary flood (for example: BPDU, or an ARP request)
       *   - If the frame comes from an interior port, POP the vlan id if the
-      *     port has one assigned, and send to the PortSet.
+      *     port has one assigned, and flood the bridge.
       *
       *  Note that there is no flow tagging here, you're responsible to set the
       *  right tag depending on the reason for doing the multicast. Generally,
@@ -333,23 +337,25 @@ class Bridge(val id: UUID,
       *  tagForFloodedFlowsByDstMac. For broadcast flows, you'll want to set
       *  a tagForBroadcast.
       */
-    private def multicastAction()(implicit context: PacketContext)
-    : Coordinator.Action =
+    private def multicastAction()(implicit context: PacketContext) = {
+        context.addFlowTag(tagForBroadcast(id))
+
         vlanPortId match {
             case Some(vPId) if !context.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
-                context.log.debug("Add vlan-aware bridge to port set")
+                context.log.debug("Add vlan-aware bridge flood")
                 ForkAction(Vector(
-                    ToPortSetAction(id),
+                    floodAction,
                     ToPortAction(vPId)
                 ))
             case None if !vlanToPort.isEmpty => // A vlan-aware bridge
-                context.log.debug("Vlan-aware ToPortSet")
+                context.log.debug("Vlan-aware flood")
                 multicastVlanAware(tryAsk[BridgePort](context.inPortId))
             case _ => // A normal bridge
-                context.log.debug("Normal ToPortSet")
-                ToPortSetAction(id)
+                context.log.debug("Flooding")
+                floodAction
         }
+    }
 
     /**
       * Possible cases of an L2 multicast happening on a vlan-aware bridge.
@@ -365,15 +371,15 @@ class Bridge(val id: UUID,
             val vlanId = if (vlanIds.isEmpty) null else vlanIds.get(0)
             // get interior port tagged with frame's vlan id
             vlanToPort.getPort(vlanId) match {
-                case null => // none, ordinary ToPortSet
-                    context.log.debug("Frame to port set")
-                    ToPortSetAction(id)
+                case null => // none, ordinary flood
+                    context.log.debug("Flooding")
+                    floodAction
                 case vlanPort => // vlan is on an interior port
                     context.log.debug(
                         "Frame from trunk on vlan {}, send to trunks, POP, to port {}",
                         vlanId, vlanPort)
                     ForkAction(Vector(
-                        ToPortSetAction(id),
+                        floodAction,
                         DoFlowAction(popVLAN()),
                         ToPortAction(vlanPort))
                     )
@@ -384,9 +390,9 @@ class Bridge(val id: UUID,
                     context.log.debug("Frame from interior bridge port: PUSH {}", vlanId)
                     context.wcmatch.addVlanId(vlanId)
                 case _ =>
-                    context.log.debug("Send to port set")
+                    context.log.debug("Flood")
             }
-            ToPortSetAction(id)
+            floodAction
         case _ =>
             context.log.warn("Unexpected input port type!")
             ErrorDropAction
@@ -419,7 +425,7 @@ class Bridge(val id: UUID,
             // TODO: mac, so we can deal with changes in the mac.
             if (mac == null) {
                 // Unknown MAC for this IP, or it's an ARP reply, broadcast
-                context.log.debug("Flooding ARP to port set {}, source MAC {}",
+                context.log.debug("Flooding ARP at bridge {}, source MAC {}",
                                   id, pMatch.getEthSrc)
                 context.addFlowTag(tagForArpRequests(id))
                 multicastAction()
@@ -461,18 +467,16 @@ class Bridge(val id: UUID,
             case ToPortAction(port) =>
                 context.log.debug("To port: {}", port)
                 context.outPortId = port
-            case ToPortSetAction(portSet) =>
-                context.log.debug("To port set: {}", portSet)
-                context.outPortId = portSet
+            case FloodBridgeAction(brid, ports) =>
+                context.log.debug("Flood bridge: {}", brid)
             case ForkAction(acts) =>
-                context.log.debug("Fork, to port and port set")
+                context.log.debug("Fork, to port and flood")
                 // TODO (galo) check that we only want to apply to the first
                 // action
                 acts.head match {
                     case ToPortAction(port) =>
                         context.outPortId = port
-                    case ToPortSetAction(portSet) =>
-                        context.outPortId = portSet
+                    case FloodBridgeAction(brid, ports) =>
                     case a =>
                         context.log.warn("Unexpected forked action {}", a)
                 }

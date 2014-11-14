@@ -23,10 +23,6 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.sdn.state.FlowStateTransaction
 
-object FixPortSets extends Exception {
-    override def fillInStackTrace(): Throwable = this
-}
-
 sealed class StateContext(override val pktCtx: PacketContext,
                           override val log: Logger) extends FlowState
                                                    with ConnTrackState

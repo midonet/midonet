@@ -26,7 +26,7 @@ import org.midonet.packets.{IPv4, Ethernet}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket}
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPortSet
+import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
@@ -59,7 +59,7 @@ trait CustomMatchers {
                 }), s"a port action to $portId")
     }
 
-    def toPortSet(portSetId: UUID, expectedTags: FlowTag*) =
+    def toBridge(bridgeId: UUID, brPorts: List[UUID], expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult((simRes._1 match {
@@ -70,9 +70,10 @@ trait CustomMatchers {
                         case SendPacket(actions) => actions
                         case _ => Nil
                     }).exists({
-                        case FlowActionOutputToVrnPortSet(id) => id == portSetId
+                        case FlowActionOutputToVrnBridge(id, ports) =>
+                            id == bridgeId && ports == brPorts
                         case _ => false
-                    }), s"a port set action to $portSetId containing tags " +
+                    }), s"a flood bridge action on $bridgeId containing tags " +
                         s"{${expectedTags.toList}}")
     }
 

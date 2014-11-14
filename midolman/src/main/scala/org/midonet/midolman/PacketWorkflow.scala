@@ -22,8 +22,8 @@ import scala.reflect.ClassTag
 
 import akka.actor._
 
-import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
@@ -38,6 +38,8 @@ import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge,
+                                             FlowActionOutputToVrnPort}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -95,8 +97,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     override def start(context: PacketContext): PipelinePath = {
         context.prepareForSimulation(FlowController.lastInvalidationEvent)
-        context.log.debug("Initiating processing, attempt: {}",
-                          context.runs.underlying())
+        context.log.debug(s"Initiating processing, attempt: ${context.runs}")
         val res = if (context.ingressed)
                     handlePacketWithCookie(context)
                   else
@@ -246,12 +247,10 @@ class PacketWorkflow(protected val dpState: DatapathState,
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
         if (!actions.isEmpty) {
             context.log.debug("Applying connection state")
-            val outPort = context.outPortId
             replicator.accumulateNewKeys(context.state.conntrackTx,
                                          context.state.natTx,
                                          context.inputPort,
-                                         if (context.toPortSet) null else outPort,
-                                         if (context.toPortSet) outPort else null,
+                                         context.outPorts,
                                          context.flowTags,
                                          context.flowRemovedCallbacks)
             replicator.pushState(datapathConn(context))
@@ -298,21 +297,35 @@ class PacketWorkflow(protected val dpState: DatapathState,
         executePacket(context, wildFlow.getActions)
     }
 
+    /** Handles a packet that missed the wildcard flow table.
+      *
+      * If the FlowMatch indicates that the packet came from a tunnel port,
+      * there are 3 possible situations:
+      *
+      *     1) it came from the overlay tunneling port and is a
+      *        state message sent by a fellow agent.
+      *     2) it came from the overlay tunneling port and it corresponds
+      *        to an unknown port tunnel key, probably due to a race
+      *        between a packet and a port deactivation. We'll install a
+      *        temporary drop flow.
+      *     3) it's coming from a VTEP into the virtual network, we shall
+      *        simulate it.
+      *
+      * Otherwise, the packet is coming in from a regular port into the
+      * virtual network and we'll simulate it.
+      */
     private def handleWildcardTableMiss(context: PacketContext): PipelinePath = {
-        /** If the FlowMatch indicates that the packet came from a tunnel port,
-         *  we assume here there are only two possible situations: 1) the tunnel
-         *  port type is gre, in which case we are dealing with host2host
-         *  tunnelled traffic; 2) the tunnel port type is vxlan, in which case
-         *  we are dealing with vtep to midolman traffic. In the future, using
-         *  vxlan encap for host2host tunnelling will break this assumption. */
-        val wcMatch = context.origMatch
-        if (wcMatch.isFromTunnel) {
-            if (context.isStateMessage) {
-                handleStateMessage(context)
-            } else if (dpState isOverlayTunnellingPort wcMatch.getInputPortNumber) {
-                handlePacketToPortSet(context)
+        val wmatch = context.origMatch
+        if (wmatch.isFromTunnel) {
+            if (dpState isOverlayTunnellingPort wmatch.getInputPortNumber) {
+                if (context.isStateMessage) {
+                    handleStateMessage(context)
+                } else {
+                    processSimulationResult(context, TemporaryDrop)
+                    Error
+                }
             } else {
-                val portIdOpt = VxLanPortMapper uuidOf wcMatch.getTunnelKey.toInt
+                val portIdOpt = VxLanPortMapper uuidOf wmatch.getTunnelKey.toInt
                 context.inputPort = portIdOpt.orNull
                 processSimulationResult(context, simulatePacketIn(context))
             }
@@ -326,47 +339,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
         val inPortNo = context.origMatch.getInputPortNumber
         val inPortId = dpState getVportForDpPortNumber Unsigned.unsign(inPortNo)
         context.inputPort = inPortId.orNull
-    }
-
-    /*
-     * Take the outgoing filter for each port and apply it, checking for
-     * Action.ACCEPT.
-     *
-     * Aux. to handlePacketToPortSet.
-     */
-    private def applyOutgoingFilter(context: PacketContext,
-                                    localPorts: Seq[Port]): Unit = {
-        val portNumbers = applyOutboundFilters(localPorts, context)
-        val actions = towardsLocalDpPorts(portNumbers, context.flowTags,
-                                          context)
-        addTranslatedFlowForActions(context, actions)
-    }
-
-    /** The packet arrived on a tunnel but didn't match in the WFT. It's either
-      * addressed (by the tunnel key) to a local PortSet or it was mistakenly
-      * routed here. Map the tunnel key to a port set (through the
-      * VirtualToPhysicalMapper).
-      */
-    private def handlePacketToPortSet(context: PacketContext): PipelinePath = {
-        context.log.debug("packet from a tunnel port towards a port set")
-        // We currently only handle packets ingressing on tunnel ports if they
-        // have a tunnel key. If the tunnel key corresponds to a local virtual
-        // port then the pre-installed flow rules should have matched the
-        // packet. So we really only handle cases where the tunnel key exists
-        // and corresponds to a port set.
-
-        val tunnelKey = context.origMatch.getTunnelKey
-        val portSet = VirtualToPhysicalMapper.tryGetPortSetForTunnelKey(tunnelKey)
-        portSet match {
-            case null =>
-                throw new Exception("null portSet")
-            case pSet =>
-                context.log.debug("tun => portSet: {}", pSet)
-                // egress port filter simulation
-                val ports = activePorts(pSet.localPorts, context.flowTags, context)
-                applyOutgoingFilter(context, ports)
-                PacketToPortSet
-        }
     }
 
     private def doEgressPortSimulation(context: PacketContext) = {

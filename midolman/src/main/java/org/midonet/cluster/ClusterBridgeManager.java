@@ -19,6 +19,7 @@ package org.midonet.cluster;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -83,6 +84,7 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
                 stateFeeder.feedLearningTable(builder, id, UNTAGGED_VLAN_ID);
                 stateFeeder.feedIpToMacMap(builder, id);
                 updateLogicalPorts(builder, id, false);
+                updateExteriorPorts(builder, id);
             }
 
             /* NOTE(guillermo) this the last zk-related call in this block
@@ -138,12 +140,14 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         UUID vlanBridgePeerPortId = null;
         Collection<UUID> logicalPortIDs;
+        Collection<UUID> unlinkedPortIDs;
         Set<Short> currentVlans = new HashSet<>();
         currentVlans.add(UNTAGGED_VLAN_ID);
 
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
             logicalPortIDs = portMgr.getBridgeLogicalPortIDs(bridgeId, watcher);
+            unlinkedPortIDs = portMgr.getBridgePortIDs(bridgeId, watcher);
         } catch (StateAccessException e) {
             log.error("Failed to retrieve the logical port IDs for bridge {}",
                       bridgeId);
@@ -266,6 +270,41 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         public void run() {
             try {
                 buildLogicalPortUpdates(builder, bridgeID);
+            } catch (StateAccessException e) {
+                connectionWatcher.handleError(describe(), this, e);
+            }
+        }
+    }
+
+    private void updateExteriorPorts(BridgeBuilder builder, UUID bridgeId)
+            throws StateAccessException {
+        Runnable watcher = new BridgePortWatcher(bridgeId, builder);
+        updateExteriorPorts(builder, bridgeId, watcher);
+    }
+
+    private void updateExteriorPorts(BridgeBuilder builder, UUID bridgeId, Runnable watcher)
+            throws StateAccessException {
+        List<UUID> ports = portMgr.getBridgePortIDs(bridgeId, watcher);
+        builder.setExteriorPorts(ports);
+    }
+
+    class BridgePortWatcher implements Runnable {
+        UUID bridgeId;
+        BridgeBuilder builder;
+
+        BridgePortWatcher(UUID bridgeId, BridgeBuilder builder) {
+            this.bridgeId = bridgeId;
+            this.builder = builder;
+        }
+
+        public String describe() {
+            return "BridgePorts:" + bridgeId;
+        }
+
+        public void run() {
+            try {
+                updateExteriorPorts(builder, bridgeId, this);
+                builder.build();
             } catch (StateAccessException e) {
                 connectionWatcher.handleError(describe(), this, e);
             }

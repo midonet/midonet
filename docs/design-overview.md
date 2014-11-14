@@ -56,14 +56,6 @@ FAST PATH                             │              │            │  │
 
 ## Terminology
 
-- PortSet: identified by a UUID, this represents a group of virtual ports. A
-Flow that is emitted from a PortSet must be emitted from each vport in that set.
-A flow that is flooded from a L2 bridge is emitted from the PortSet that
-includes all that bridge's exterior ports; a flow that is directed to an IP
-multicast address in the virtual network is emitted from all the virtual ports
-that have received multicast subscribe messages for that IP. (Note: PortSets are
-not implemented for multicast).
-
 - Flow: also referred to as "datapath flow". A flow rule supported by the
 datapath and is thus installed in the kernel through a netlink channel using the
 ODP API. On datapaths that do not support wildcarding (all OVS versions before
@@ -92,9 +84,6 @@ can be used to:
 
 - determine what virtual port UUIDs should be mapped to what interfaces (by IF
 name) on a given physical host.
-- determine what physical hosts are subscribed to a given PortSet.
-- determine what local virtual ports are part of a PortSet.
-- determine all the virtual ports that are part of a PortSet.
 - determine whether a virtual port is reachable and at what physical host (a
 virtual port is reachable if the responsible host has mapped the vport ID to its
 corresponding local interface and the interface is ready to receive).
@@ -173,13 +162,13 @@ Mapper's state for the identity of the host responsible for that virtual port,
 and then adding flow actions to set the tunnel-id to encode that virtual port
 and to emit the packet from the tunnel corresponding to that remote host. If the
 flow is being emitted from a single local virtual port, the PW recognizes this
-and uses the corresponding datapath port. Finally, if the flow is being emitted
-from a PortSet, the PW queries the VirtualToPhysical Mapper for the set of
-hosts subscribed to the PortSet; it must then map each of those hosts to a
-tunnel and build a wildcard flow description that outputs the flow to all of
-those tunnels and any local datapath port that corresponds to a virtual port
-belonging to that PortSet. Finally, the wildcard flow, free of any MidoNet ID
-references, is ready to be pushed to the FlowController.
+and uses the corresponding datapath port. Finally, if the flow is meant to
+flood a bridge, the PW will do the above (send locally, or forward to a peer
+agent) for each exterior port in the bridge. It will build a wildcard flow
+description that outputs the flow to all of those tunnels and any local
+datapath port that corresponds to a virtual port belonging to the bridge.
+Finally, the wildcard flow, free of any MidoNet ID references, is ready to be
+pushed to the FlowController.
 
 At this point, the sequence of events is the same as above: create a datapath
 flow, execute the packet (if applicable) and inform the Flow

@@ -77,7 +77,7 @@ object FlowTagger {
 
     /**
      * Tag for the flows on "vlanId" addressed to the unknown
-     * "dstMac", which were thus flooded to the bridge's portset.
+     * "dstMac", which were thus flooded on the bridge
      */
     case class VlanFloodTag(bridgeId: UUID, vlanId: java.lang.Short,
                             dstMac: MAC) extends FlowTag {
@@ -156,20 +156,19 @@ object FlowTagger {
      * Tag for the flows associated with a broadcast from the specified
      * bridge.
      */
-    case class BroadcastTag(bridgeId: UUID, portSet: UUID) extends FlowTag {
-        override def toString = "br_flood:" + bridgeId + ":" + portSet
+    case class BroadcastTag(bridgeId: UUID) extends FlowTag {
+        override def toString = "br_flood:" + bridgeId
     }
 
     val cachedBroadcastTags = new ThreadLocal[TagsTrie] {
         override def initialValue = new TagsTrie
     }
 
-    def tagForBroadcast(bridgeId: UUID, portSet: UUID): FlowTag = {
-        val segment = cachedBroadcastTags .get().getOrAddSegment(bridgeId)
-                                                .getOrAddSegment(portSet)
+    def tagForBroadcast(bridgeId: UUID): FlowTag = {
+        val segment = cachedBroadcastTags.get().getOrAddSegment(bridgeId)
         var tag = segment.value
         if (tag eq null) {
-            tag = new BroadcastTag(bridgeId, portSet)
+            tag = new BroadcastTag(bridgeId)
             segment.value = tag
         }
         tag
