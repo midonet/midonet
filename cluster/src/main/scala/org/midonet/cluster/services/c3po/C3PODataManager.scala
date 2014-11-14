@@ -138,5 +138,5 @@ trait C3PODataManager {
      * corresponding internal model operations.
      */
     @throws[C3PODataManagerException]
-    def interpretAndExecTxn[T](txnId: String, ops: List[C3POOp[T]]): Unit
+    def interpretAndExecTxn(txnId: String, ops: List[C3POOp[Object]]): Unit
 }

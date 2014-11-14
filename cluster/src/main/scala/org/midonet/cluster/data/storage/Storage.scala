@@ -82,6 +82,23 @@ trait UpdateValidator[T <: Obj] {
 }
 
 /**
+ * A general exception class thrown by the Storage service API. Respective
+ * Storage logic is expected to extend this general exception class to define a
+ * proper specific exception.
+ */
+class StorageException(val msg: String, val cause: Throwable)
+        extends RuntimeException(msg, cause) {
+
+    def this(msg: String) {
+        this(msg, null)
+    }
+
+    def this(cause: Throwable) {
+        this("", cause)
+    }
+}
+
+/**
  * A trait defining the read-only storage service API.
  */
 trait ReadOnlyStorage {
