@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.neutron.OpType.OpType
 import org.midonet.cluster.services.c3po.NetworkConverter
+import org.midonet.cluster.services.c3po.OpType.OpType
 
 /**
  * Provides a Neutron model translator for Network.
