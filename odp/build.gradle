@@ -24,7 +24,7 @@ jar {
 }
 
 dependencies {
-    compile project(":packets"), project(":midonet-util"), project(":netlink")
+    compile project(":midonet-util"), project(":netlink")
 
     compile libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.commons_cli, libraries.commons_exec,

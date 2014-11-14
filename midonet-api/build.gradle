@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    compile project(':packets'), project(':cluster'), project(':midolman'),
+    compile project(':cluster'), project(':midolman'),
             project(':midonet-client'), project(':brain:odl-ovsdb:ovsdb'),
             project(':brain:midonet-brain'), project(':odp')
     compile(project(':midonet-util')) {
