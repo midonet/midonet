@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_725ad884",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-14T15:32:26Z",
+      "side": 1,
+      "message": "InMemoryZoom?",
+      "range": {
+        "startLine": 52,
+        "startChar": 6,
+        "endLine": 52,
+        "endChar": 21
+      },
+      "revId": "6bb873956d392bf69ceb8a7bb2fa8054dd2820c8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a622d24_f9bd0f04",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 3
