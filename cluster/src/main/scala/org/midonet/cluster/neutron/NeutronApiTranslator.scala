@@ -20,15 +20,16 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.neutron.OpType.OpType
+import org.midonet.cluster.services.c3po.OpType.OpType
 import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Thrown by NeutronAPIService implementations when they fail to perform the
  * requested operation on the Neutron model.
  */
-class TranslationException(val operation: OpType.Value,
-                                    val model: Class[_], val cause: Throwable)
+class TranslationException(val operation: OpType,
+                           val model: Class[_],
+                           val cause: Throwable)
         extends RuntimeException(
                 s"Failed to ${operation} ${model.getSimpleName}.", cause) {
 }
@@ -56,7 +57,7 @@ abstract class NeutronApiTranslator[T, M <: Object](
      * Unified exception handling.
      */
     protected def processExceptions(e: Exception,
-                                   op: OpType.Value) = {
+                                    op: OpType) = {
         throw new TranslationException(op, neutronModelClass, e)
     }
 
