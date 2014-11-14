@@ -13,31 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.neutron
+package org.midonet.cluster.services.neutron
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.services.c3po.{C3POOp, C3POCreate, C3PODelete, C3POUpdate}
+import org.midonet.cluster.services.c3po.{MidoCreate, MidoDelete, MidoUpdate}
 import org.midonet.cluster.services.c3po.NetworkConverter
-import org.midonet.cluster.services.c3po.OpType.OpType
+import org.midonet.cluster.services.c3po.TranslationException
 
 /**
  * Provides a Neutron model translator for Network.
  */
-class NetworkTranslator(override val storage: Storage)
-        extends NeutronApiTranslator[NeutronNetwork, Network](
+class NetworkTranslator(override val storage: ReadOnlyStorage)
+        extends NeutronApiTranslator[NeutronNetwork](
                 classOf[NeutronNetwork], classOf[Network], storage) {
-    override val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
+    val log = LoggerFactory.getLogger(classOf[NetworkTranslator])
 
     @throws[TranslationException]
-    override def toMido(op: OpType, neutronModel: NeutronNetwork) = {
+    override def toMido(op: C3POOp[NeutronNetwork]) = {
         try {
-            List(MidoModelOp(op, NetworkConverter.toMido(neutronModel)))
+            op match {
+                case c: C3POCreate[_] =>
+                    List(MidoCreate(NetworkConverter.toMido(c.model)))
+                case u: C3POUpdate[_] =>
+                    List(MidoUpdate(NetworkConverter.toMido(u.model)))
+                case d: C3PODelete[_] =>
+                    List(MidoDelete(classOf[Network], d.id))
+            }
         } catch {
             case e: Exception =>
-                processExceptions(e, op)
+                processExceptions(e, op.opType)
         }
     }
 }
