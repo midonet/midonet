@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_15c1b6e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-15T16:39:47Z",
+      "side": 1,
+      "message": "It seems the failure of MDTS is due to a NotYetException thrown here. Do I need to wait for VirtualTopologyActor to be ready for providing the virtual port?",
+      "revId": "2218640ff1567dcd0b5e7ec41bdc3591b6bef2ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
