@@ -16,7 +16,6 @@
 package org.midonet.midolman.management
 
 import java.lang.management.{MemoryPoolMXBean, GarbageCollectorMXBean}
-import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
 
 import com.codahale.metrics.JmxReporter.{JmxCounterMBean, JmxHistogramMBean, JmxMeterMBean, JmxGaugeMBean}
 import javax.management.remote.{JMXConnectorFactory, JMXServiceURL}

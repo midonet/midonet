@@ -296,14 +296,16 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     }
 
     @Override
-    protected void _doFlowsDelete(@Nonnull Datapath datapath, @Nonnull Iterable<FlowKey> keys, @Nonnull Callback<Flow> callback, long timeout) {
+    protected void _doFlowsDelete(@Nonnull Datapath datapath,
+                                  @Nonnull Iterable<FlowKey> keys,
+                                  @Nonnull Callback<Flow> callback, long timeout) {
         FlowMatch match = new FlowMatch(keys);
-        if(flowsTable.containsKey(match)){
-            Flow removed = flowsTable.remove(match);
+        Flow removed = flowsTable.remove(match);
+        if (removed != null) {
             callback.onSuccess(removed);
             if (flowsCb != null)
                 flowsCb.flowDeleted(removed);
-        } else{
+        } else {
             callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
         }
     }
