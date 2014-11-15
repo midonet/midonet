@@ -23,12 +23,27 @@ jar {
     }
 }
 
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+    perf {
+        scala { srcDirs = ['src/perf/scala', 'src/perf/java'] }
+        java { srcDirs = [] }
+    }
+}
+
 dependencies {
     compile project(":midonet-util"), project(":netlink")
 
     compile libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.commons_cli, libraries.commons_exec,
-            libraries.jna
+            libraries.jna, libraries.scala
 
     testCompile libraries.scalatest
 }
@@ -38,4 +53,12 @@ cobertura {
     coverageSourceDirs << sourceSets.main.scala.srcDirs
 
     coverageExcludes = ['.*org.midonet.odp.test.*']
+}
+
+task integrationTest(type: JavaExec, dependsOn: testClasses) {
+    main = 'org.midonet.odp.test.OvsIntegrationTest'
+    classpath sourceSets.main.runtimeClasspath
+    classpath configurations.runtime
+    jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
+    jvmArgs('-Djava.library.path=/lib:/usr/lib')
 }

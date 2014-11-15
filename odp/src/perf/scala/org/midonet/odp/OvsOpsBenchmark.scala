@@ -119,7 +119,7 @@ class FlowCreate extends OvsBenchmark {
 class FlowDelete extends OvsBenchmark {
 
     @Benchmark
-    def flowDeleteWithCallback(): Flow =
+    def flowDeleteWithCallback() =
         Await.result(con delFlow (flow, datapath), Duration.Inf)
 
     @Benchmark
@@ -129,6 +129,15 @@ class FlowDelete extends OvsBenchmark {
     @Setup(Level.Invocation)
     def createFlow(): Unit =
         Await.result(con createFlow (flow, datapath), Duration.Inf)
+}
+
+class FlowDeleteBlocking extends OvsBenchmark {
+
+
+    @Setup
+    def createBlockingConnection(): Unit = {
+
+    }
 }
 
 class TwoChannels extends OvsBenchmark {
