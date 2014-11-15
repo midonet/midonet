@@ -199,7 +199,7 @@ trait WildcardFlowTest extends TapTrafficInjectBase {
         dpF flatMap { con.setHandler(_, handler) }
 
         def createWFlow(f: Flow): Future[Flow] = dpF flatMap { con createFlow(f, _) }
-        def delWFlow(f: Flow): Future[Flow] = dpF flatMap { con delFlow(f, _) }
+        def delWFlow(f: Flow): Future[java.lang.Boolean] = dpF flatMap { con delFlow(f, _) }
         def checkMegaflows: Future[Boolean] = dpF flatMap { con supportsWildcards(_) }
 
         val supportsMegaflows = Await.result(checkMegaflows, 1 second)
