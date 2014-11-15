@@ -63,8 +63,7 @@ class BridgeBuilderStateFeeder {
                 } catch { case e: Throwable =>
                     log.error(s"Failed add $mac, VLAN $vlanId, port $portId", e)
                 }
-                log.info("Added {}, VLAN {} to port {} for bridge {}",
-                         Array(mac, vlanId, portId, bridgeId))
+                log.info(s"Added $mac, VLAN $vlanId to port $portId for bridge $bridgeId")
             }
         }
 
