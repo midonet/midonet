@@ -106,8 +106,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              new MockStateStorage,
-                                             underlayResolver, _ => { },
-                                             new Datapath(1, "midonet", null))
+                                             underlayResolver, _ => { })
     }
 
     @Benchmark

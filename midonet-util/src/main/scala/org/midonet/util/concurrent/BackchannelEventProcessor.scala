@@ -44,6 +44,8 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
     private val running = new AtomicBoolean(false)
     private val poller = ringBuffer.newPoller(sequencesToTrack:_*)
 
+    var exceptionHandler = new FatalExceptionHandler
+
     override def getSequence: Sequence =
         poller.getSequence
 
@@ -72,6 +74,8 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             throw new IllegalStateException("Thread is already running")
         }
 
+        notifyStart()
+
         try {
             var retries = DEFAULT_RETRIES
             while (running.get()) {
@@ -84,7 +88,30 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                 backchannel.process()
             }
         } finally {
+            notifyShutdown()
             running.set(false)
         }
     }
+
+    private def notifyStart(): Unit =
+        eventHandler match {
+            case aware: LifecycleAware =>
+                try {
+                    aware.onStart()
+                } catch { case ex: Throwable =>
+                    exceptionHandler.handleOnStartException(ex)
+                }
+            case _ =>
+        }
+
+    private def notifyShutdown(): Unit =
+        eventHandler match {
+            case aware: LifecycleAware =>
+                try {
+                    aware.onShutdown()
+                } catch { case ex: Throwable =>
+                    exceptionHandler.handleOnShutdownException(ex)
+                }
+            case _ =>
+        }
 }

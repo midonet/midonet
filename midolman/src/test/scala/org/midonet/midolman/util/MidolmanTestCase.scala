@@ -172,23 +172,18 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
             interfaceScanner = injector.getInstance(classOf[InterfaceScanner])
                 .asInstanceOf[MockInterfaceScanner]
 
-            val cb = new Callback2[Packet, JList[FlowAction]] {
-                override def call(pkt: Packet, actions: JList[FlowAction]) {
+            mockDpChannel().packetsExecuteSubscribe {
+                (pkt: Packet, actions: JList[FlowAction]) =>
                     actors.eventStream.publish(PacketsExecute(pkt, actions))
-                }
             }
-            mockDpConn().packetsExecuteSubscribe(cb)
 
-            mockDpConn().flowsSubscribe(
-                new FlowListener {
-                    def flowCreated(flow: Flow) {
-                        actors.eventStream.publish(FlowAdded(flow))
-                    }
+            mockDpChannel().flowCreateSubscribe { flow =>
+                actors.eventStream.publish(FlowAdded(flow))
+            }
 
-                    def flowDeleted(flow: Flow) {
-                        actors.eventStream.publish(FlowRemoved(flow))
-                    }
-                })
+            mockFlowEjector().flowDeleteSubscribe { flow =>
+                actors.eventStream.publish(FlowRemoved(flow))
+            }
 
             // Make sure that each test method runs alone
             MidolmanTestCaseLock.sequential.lock()

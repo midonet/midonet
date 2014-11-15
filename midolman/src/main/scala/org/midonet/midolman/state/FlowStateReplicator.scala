@@ -16,34 +16,30 @@
 
 package org.midonet.midolman.state
 
-import java.util.{UUID, List => JList, Set => JSet, Iterator => JIterator,
-                  HashSet => JHashSet, ArrayList}
+import java.util.{ArrayList, UUID, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet}
 
 import scala.collection.mutable
-import akka.actor.ActorSystem
 
+import akka.actor.ActorSystem
 import com.google.protobuf.MessageLite
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.datapath.DatapathChannel
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
-import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
+import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
-                                      VirtualToPhysicalMapper => VTPM}
-import org.midonet.odp.{Datapath, FlowMatches, Packet}
+import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
+import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
@@ -102,7 +98,6 @@ abstract class BaseFlowStateReplicator() {
     def natTable: FlowStateTable[NatKey, NatBinding]
     def storage: FlowStateStorage
     def underlay: UnderlayResolver
-    def datapath: Datapath
     protected def log: Logger
     protected def invalidateFlowsFor: (FlowStateKey) => Unit
     protected def getPort(id: UUID): Port
@@ -282,16 +277,14 @@ abstract class BaseFlowStateReplicator() {
      * EXPECTED CALLING THREADS: only the packet processing thread that owns
      * this replicator.
      */
-    def pushState(dp: OvsDatapathConnection) {
+    def pushState(dpChannel: DatapathChannel) {
         var i = pendingMessages.size() - 1
         while (i >= 0) {
             val (hosts, message) = pendingMessages.remove(i)
             if (message.getSerializedSize <= buffer.length) {
                 stream.reset()
                 message.writeDelimitedTo(stream)
-                val actions = hostsToActions(hosts)
-                if (!actions.isEmpty)
-                    dp.packetsExecute(datapath, packet, actions)
+                dpChannel.executePacket(packet, hostsToActions(hosts))
             } else {
                 // TODO(guillermo) partition messages
                 log.warn(s"Skipping state message, too large: $message")
@@ -403,9 +396,8 @@ class FlowStateReplicator(
         override val natTable: FlowStateTable[NatKey, NatBinding],
         override val storage: FlowStateStorage,
         override val underlay: UnderlayResolver,
-        override val invalidateFlowsFor: (FlowStateKey) => Unit,
-        override val datapath: Datapath)(implicit as: ActorSystem)
-        extends BaseFlowStateReplicator {
+        override val invalidateFlowsFor: (FlowStateKey) => Unit)
+       (implicit as: ActorSystem) extends BaseFlowStateReplicator {
 
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
