@@ -571,7 +571,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
                             @Nonnull final Iterable<FlowKey> keys,
-                            @Nonnull final Callback<Flow> callback) {
+                            @Nonnull final Callback<Boolean> callback) {
         flowsDelete(datapath, keys, callback, DEF_REPLY_TIMEOUT);
     }
 
@@ -585,14 +585,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
                             @Nonnull final Iterable<FlowKey> keys,
-                            @Nonnull final Callback<Flow> callback,
+                            @Nonnull final Callback<Boolean> callback,
                             long timeoutMillis) {
         _doFlowsDelete(datapath, keys, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsDelete(@Nonnull final Datapath datapath,
                                            @Nonnull final Iterable<FlowKey> keys,
-                                           @Nonnull final Callback<Flow> callback,
+                                           @Nonnull final Callback<Boolean> callback,
                                            final long timeout);
 
     /**
@@ -893,9 +893,9 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
             return future;
         }
 
-        public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
+        public Future<Boolean> flowsDelete(@Nonnull final Datapath datapath,
                                         @Nonnull final Iterable<FlowKey> keys) {
-            SettableFuture<Flow> flowFuture = SettableFuture.create();
+            SettableFuture<Boolean> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsDelete(datapath, keys, wrapFuture(flowFuture));
             return flowFuture;
         }
