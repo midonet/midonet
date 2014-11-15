@@ -50,9 +50,8 @@ class ObjectPoolTest extends FeatureSpec with Matchers {
     }
 
     feature ("PooledObjects are pooled") {
-        class PObject(p: ObjectPool[PObject]) extends PooledObject {
+        class PObject(val pool: ObjectPool[PObject]) extends PooledObject {
             override def clear(): Unit = { }
-            override def pool: ObjectPool[PObject] = p
         }
 
         val pool = new ArrayObjectPool[PObject](capacity, new PObject(_))

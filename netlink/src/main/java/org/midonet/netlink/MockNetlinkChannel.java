@@ -18,13 +18,28 @@ package org.midonet.netlink;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Mocking version of NetlinkChannel. */
 public class MockNetlinkChannel extends NetlinkChannel {
 
+    public Queue<ByteBuffer> written = new LinkedList<>();
+    public AtomicInteger packetsWritten = new AtomicInteger();
+    public Queue<ByteBuffer> toRead = new LinkedList<>();
+
+    public Netlink.Address address;
+
     public MockNetlinkChannel(SelectorProvider provider,
                               NetlinkProtocol protocol) {
         super(provider, protocol);
+        setPid(0);
+    }
+
+    public void setPid(int pid) {
+        address = new Netlink.Address(pid);
     }
 
     @Override
@@ -42,7 +57,7 @@ public class MockNetlinkChannel extends NetlinkChannel {
 
     @Override
     public Netlink.Address getLocalAddress() {
-        return new Netlink.Address(0);
+        return address;
     }
 
     @Override
@@ -51,6 +66,19 @@ public class MockNetlinkChannel extends NetlinkChannel {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        return dst.remaining();
+        if (toRead.isEmpty()) {
+            return 0;
+        }
+        ByteBuffer src = toRead.poll();
+        int nbytes = src.remaining();
+        dst.put(src);
+        return nbytes;
+    }
+
+    @Override
+    public int write(ByteBuffer src) throws IOException {
+        written.add(src);
+        packetsWritten.incrementAndGet();
+        return src.remaining();
     }
 }
