@@ -29,7 +29,7 @@ trait ObjectPool[T >: Null] {
 trait PooledObject {
     private[this] var refCount = 0
 
-    def pool: ObjectPool[_ >: this.type]
+    val pool: ObjectPool[_ >: this.type]
 
     def clear(): Unit
 
@@ -63,7 +63,7 @@ sealed class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
         var i = 0
         while (i < capacity) {
             pool(i) = factory(this)
-            i +=1
+            i += 1
         }
     }
 
