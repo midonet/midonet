@@ -15,18 +15,29 @@
  */
 package org.midonet.midolman.guice.datapath;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.inject.Singleton;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import org.midonet.midolman.datapath.DatapathChannel;
+import org.midonet.midolman.flows.FlowEjector;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.MockDatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
+import org.midonet.midolman.util.mock.MockDatapathChannel;
+import org.midonet.midolman.util.mock.MockFlowEjector;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
-
+import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMatch;
 
 public class MockDatapathModule extends DatapathModule {
+
+    public final Map<FlowMatch, Flow> flowsTable = new HashMap<>();
+
     @Override
     protected void bindUpcallDatapathConnectionManager() {
         bind(UpcallDatapathConnectionManager.class)
@@ -38,6 +49,16 @@ public class MockDatapathModule extends DatapathModule {
     protected void bindDatapathConnectionPool() {
         bind(DatapathConnectionPool.class).
             toInstance(new MockDatapathConnectionPool());
+    }
+
+    @Override
+    protected void bindDatapathChannel() {
+        bind(DatapathChannel.class).toInstance(new MockDatapathChannel(flowsTable));
+    }
+
+    @Override
+    protected void bindFlowEjector() {
+        bind(FlowEjector.class).toInstance(new MockFlowEjector(flowsTable));
     }
 
     public static class MockUpcallDatapathConnectionManagerProvider
