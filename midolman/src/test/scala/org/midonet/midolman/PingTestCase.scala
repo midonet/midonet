@@ -412,8 +412,8 @@ class PingTestCase extends MidolmanTestCase
         drainProbes()
 
         // Verify what all were sent, note that the ARPs do not get emitted
-        mockDpConn().packetsSent should have size howMany
-        val seqs = mockDpConn().packetsSent.map ( p => {
+        mockDpChannel().packetsSent should have size howMany
+        val seqs = mockDpChannel().packetsSent.map ( p => {
             icmp_quench(p.getEthernet) match {
                 case (`icmpId`, seq: Short) => seq
                 case _ => -1
