@@ -15,13 +15,20 @@
  */
 package org.midonet.midolman.io;
 
+import java.util.Map;
+
 import org.midonet.netlink.Callback;
+import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMatch;
 import org.midonet.odp.protos.OvsDatapathConnection;
 
 public class MockManagedDatapathConnection implements ManagedDatapathConnection {
+    private final Map<FlowMatch, Flow> flowsTable;
     private OvsDatapathConnection conn = null;
 
-    public MockManagedDatapathConnection() {}
+    public MockManagedDatapathConnection(Map<FlowMatch, Flow> flowsTable) {
+        this.flowsTable = flowsTable;
+    }
 
     public OvsDatapathConnection getConnection() {
         if (conn == null) {
@@ -36,7 +43,7 @@ public class MockManagedDatapathConnection implements ManagedDatapathConnection 
 
     @Override
     public void start() {
-        this.conn = OvsDatapathConnection.createMock();
+        this.conn = OvsDatapathConnection.createMock(flowsTable);
     }
 
     public void stop() throws Exception {}

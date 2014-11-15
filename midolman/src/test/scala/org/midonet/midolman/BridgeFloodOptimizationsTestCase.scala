@@ -128,9 +128,9 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         outports should have size 1
         outports should contain (portId2)
         // one packet should have been forwarded; no flows installed
-        mockDpConn().flowsTable.size() should be(0)
-        mockDpConn().packetsSent.size() should be (1)
-        mockDpConn().packetsSent.get(0) should be (pktOut.packet)
+        mockDpChannel().flowsTable.size() should be(0)
+        mockDpChannel().packetsSent.size() should be (1)
+        mockDpChannel().packetsSent.get(0) should be (pktOut.packet)
 
         // If a packet is sent to mac1 it's forwarded to port1, not flooded.
         ethPkt = Packets.udp(mac2, mac1, ip2, ip1, 10, 12, "Test".getBytes)
@@ -142,13 +142,13 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         outports should contain (portId1)
         // one dp flow should also have been added and one packet forwarded
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        mockDpConn().flowsTable.size() should be(1)
+        mockDpChannel().flowsTable.size() should be(1)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
         pktOut.actions.toArray should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
-        mockDpConn().packetsSent.size() should be (2)
-        mockDpConn().packetsSent.get(1) should be (pktOut.packet)
+        mockDpChannel().packetsSent.size() should be (2)
+        mockDpChannel().packetsSent.get(1) should be (pktOut.packet)
 
         // If a packet is sent to mac3 it's flooded (mac3 hasn't been learned).
         val mac3 = MAC.fromString("0a:fe:88:90:ee:ee")
@@ -163,12 +163,12 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
 
         // one dp flow should also have been added and one packet forwarded
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
-        mockDpConn().flowsTable.size() should be(2)
+        mockDpChannel().flowsTable.size() should be(2)
 
         pktOut = packetEventsProbe.expectMsgClass(classOf[PacketsExecute])
         pktOut.actions.toArray should be (wflow.getActions.toArray)
         pktOut.packet.getData should be (ethPkt.serialize())
-        mockDpConn().packetsSent.size() should be (3)
-        mockDpConn().packetsSent.get(2) should be (pktOut.packet)
+        mockDpChannel().packetsSent.size() should be (3)
+        mockDpChannel().packetsSent.get(2) should be (pktOut.packet)
     }
 }

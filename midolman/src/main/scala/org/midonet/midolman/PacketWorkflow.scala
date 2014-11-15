@@ -27,19 +27,17 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.DeduplicationActor.ActionsCache
-import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge,
-                                             FlowActionOutputToVrnPort}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -80,7 +78,7 @@ object PacketWorkflow {
 class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
-                     val dpConnPool: DatapathConnectionPool,
+                     val dpChannel: DatapathChannel,
                      val cbExecutor: CallbackExecutor,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
@@ -168,7 +166,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
         val dpFlow = new Flow(flowMatch, flowMask, wildFlow.getActions)
         try {
-            datapathConn(context).flowsCreate(datapath, dpFlow)
+            dpChannel.createFlow(dpFlow)
             notifyFlowAdded(context, dpFlow, newWildFlow)
         } catch {
             case e: NetlinkException =>
@@ -191,7 +189,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             handleFlow(context, wildFlow)
         }
 
-        executePacket(context, wildFlow.getActions)
+        dpChannel.executePacket(context.packet, wildFlow.getActions)
     }
 
     private def handleFlow(context: PacketContext, wildFlow: WildcardFlow): Unit = {
@@ -229,21 +227,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
         addTranslatedFlow(context, wildFlow)
     }
 
-    def executePacket(context: PacketContext, actions: Seq[FlowAction]): Unit = {
-        if (actions.isEmpty) {
-            context.log.debug("Dropping packet")
-            return
-        }
-
-        try {
-            context.log.debug("Executing packet")
-            datapathConn(context).packetsExecute(datapath, context.packet, actions)
-        } catch {
-            case e: NetlinkException =>
-                context.log.info("Failed to execute packet", e)
-        }
-    }
-
     def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
         if (!actions.isEmpty) {
             context.log.debug("Applying connection state")
@@ -253,7 +236,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                                          context.outPorts,
                                          context.flowTags,
                                          context.flowRemovedCallbacks)
-            replicator.pushState(datapathConn(context))
+            replicator.pushState(dpChannel)
             context.state.conntrackTx.commit()
             context.state.natTx.commit()
     }
@@ -294,7 +277,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
             createFlow(context, wildFlow)
         }
 
-        executePacket(context, wildFlow.getActions)
+        dpChannel.executePacket(context.packet, wildFlow.getActions)
     }
 
     /** Handles a packet that missed the wildcard flow table.
@@ -461,7 +444,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         context.log.debug("Sending with actions {}", acts)
         resultLogger.debug(s"Match ${context.origMatch} send with actions $acts " +
                            s"visited tags ${context.flowTags}")
-        executePacket(context, translateActions(context, acts))
+        dpChannel.executePacket(context.packet, translateActions(context, acts))
     }
 
     private def addToActionsCacheAndInvalidate(context: PacketContext,
@@ -470,7 +453,4 @@ class PacketWorkflow(protected val dpState: DatapathState,
         actionsCache.actions.put(wm, actions)
         actionsCache.pending(actionsCache.getSlot()) = wm
     }
-
-    private def datapathConn(context: PacketContext) =
-        dpConnPool.get(context.packet.getMatch.hashCode)
 }

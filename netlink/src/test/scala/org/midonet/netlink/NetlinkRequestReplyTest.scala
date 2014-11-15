@@ -20,7 +20,9 @@ class NetlinkRequestReplyTest extends FeatureSpec
 
     val maxRequests = 8
     val channel = new MockNetlinkChannel(Netlink.selectorProvider,
-                                         NetlinkProtocol.NETLINK_GENERIC)
+                                         NetlinkProtocol.NETLINK_GENERIC) {
+        override def read(dst: ByteBuffer) = dst.remaining()
+    }
 
     {
         channel.connect(new Address(0))
