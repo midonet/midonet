@@ -23,11 +23,25 @@ jar {
     }
 }
 
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+    perf {
+        scala { srcDirs = ['src/perf/scala', 'src/perf/java'] }
+        java { srcDirs = [] }
+    }
+}
+
 dependencies {
     compile project(":packets"), project(":midonet-util"),
             project(":midonet-jdk-bootstrap")
-    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx,
-            libraries.scala
+    compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx
 
     testCompile libraries.scalatest
 }
@@ -38,4 +52,5 @@ compileJava {
 
 cobertura {
     coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
 }
