@@ -19,7 +19,10 @@ package org.midonet.odp
 import java.io.IOException
 import java.nio.ByteBuffer
 
+import scala.concurrent.duration.Duration
+
 import org.midonet.netlink.exceptions.NetlinkException
+import org.slf4j.LoggerFactory
 import rx.Observer
 
 import org.midonet.netlink._
@@ -27,6 +30,7 @@ import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFam
 import org.midonet.util.concurrent.NanoClock
 
 object OvsNetlinkFamilies {
+    val log = LoggerFactory.getLogger(classOf[OvsNetlinkFamilies])
 
     @throws(classOf[IOException])
     @throws(classOf[NetlinkException])
@@ -46,8 +50,17 @@ object OvsNetlinkFamilies {
                 override def onError(e: Throwable): Unit = throw e
                 override def onNext(bb: ByteBuffer): Unit = res = f(bb)
             })
+
             while (res == null) {
-                requestReply.processReply()
+                log.debug("Processing replies...")
+                requestReply.processReply(new Observer[ByteBuffer] {
+                    override def onCompleted(): Unit = log.error("unexpected on complete")
+
+                    override def onError(e: Throwable): Unit = log.error("unexpected", e)
+
+                    override def onNext(t: ByteBuffer): Unit = log.error("unexpected on next")
+
+                })
             }
             buf.clear()
             res
