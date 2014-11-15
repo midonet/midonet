@@ -15,6 +15,9 @@
  */
 package org.midonet.midolman.util.mock
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{Map => JMap}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import akka.actor.ActorSystem
@@ -25,16 +28,17 @@ import org.midonet.midolman.PacketsEntryPoint.Workers
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io._
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.odp.{Packet, DpPort, Datapath, OvsConnectionOps}
+import org.midonet.odp._
 import org.midonet.util._
 
-class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
+class MockUpcallDatapathConnectionManager(config: MidolmanConfig,
+                                          flowsTable: JMap[FlowMatch, Flow] = new ConcurrentHashMap[FlowMatch, Flow])
         extends UpcallDatapathConnectionManagerBase(config,
             new TokenBucketPolicy(config, new TokenBucketTestRate, 1,
                                   _ => Bucket.BOTTOMLESS)) {
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
-    val conn = new MockManagedDatapathConnection()
+    val conn = new MockManagedDatapathConnection(flowsTable)
 
     var upcallHandler: BatchCollector[Packet] = null
 
