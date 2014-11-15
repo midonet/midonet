@@ -15,22 +15,42 @@
  */
 package org.midonet.midolman.guice.datapath;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Singleton;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.datapath.DatapathChannel;
+import org.midonet.midolman.flows.FlowEjector;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.MockDatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
+import org.midonet.midolman.util.mock.MockDatapathChannel;
+import org.midonet.midolman.util.mock.MockFlowEjector;
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager;
-
+import org.midonet.odp.Flow;
+import org.midonet.odp.FlowMatch;
 
 public class MockDatapathModule extends DatapathModule {
+
+    public final Map<FlowMatch, Flow> flowsTable = new ConcurrentHashMap<>();
+
     @Override
     protected void bindUpcallDatapathConnectionManager() {
         bind(UpcallDatapathConnectionManager.class)
-                .toProvider(MockUpcallDatapathConnectionManagerProvider.class)
+                .toProvider(new Provider<UpcallDatapathConnectionManager>() {
+                    @Inject
+                    MidolmanConfig config;
+
+                    @Override
+                    public UpcallDatapathConnectionManager get() {
+                        return new MockUpcallDatapathConnectionManager(config, flowsTable);
+                    }
+                })
                 .in(Singleton.class);
     }
 
@@ -40,15 +60,13 @@ public class MockDatapathModule extends DatapathModule {
             toInstance(new MockDatapathConnectionPool());
     }
 
-    public static class MockUpcallDatapathConnectionManagerProvider
-            implements Provider<UpcallDatapathConnectionManager> {
+    @Override
+    protected void bindDatapathChannel() {
+        bind(DatapathChannel.class).toInstance(new MockDatapathChannel(flowsTable));
+    }
 
-        @Inject
-        org.midonet.midolman.config.MidolmanConfig config;
-
-        @Override
-        public UpcallDatapathConnectionManager get() {
-            return new MockUpcallDatapathConnectionManager(config);
-        }
+    @Override
+    protected void bindFlowEjector() {
+        bind(FlowEjector.class).toInstance(new MockFlowEjector(flowsTable));
     }
 }
