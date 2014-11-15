@@ -31,6 +31,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -75,6 +76,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var dpConnPool: DatapathConnectionPool = null
 
     @Inject
+    var dpChannel: DatapathChannel = _
+
+    @Inject
     var clusterDataClient: DataClient = null
 
     @Inject
@@ -104,7 +108,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
 
-    override def preStart() {
+    override def preStart(): Unit = {
         super.preStart()
         NUM_WORKERS = config.getSimulationThreads
         metrics = new PacketPipelineMetrics(metricsRegistry)
@@ -122,6 +126,10 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         }
     }
 
+    override def postStop(): Unit = {
+        dpChannel.stop()
+    }
+
     private def shardLogger(t: AnyRef) =
         Logger(LoggerFactory.getLogger("org.midonet.state.table"))
 
@@ -134,7 +142,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         Props(
             classOf[DeduplicationActor],
-            cookieGen, dpConnPool, clusterDataClient,
+            cookieGen, dpChannel, clusterDataClient,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             storageFactory.create(),
@@ -152,7 +160,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
 
     override def receive = LoggingReceive {
 
-        case m: DatapathReady => broadcast(m)
+        case m@DatapathReady(dp, _) =>
+            dpChannel.start(dp)
+            broadcast(m)
 
         case m: EmitGeneratedPacket => roundRobin(m)
 
