@@ -110,7 +110,6 @@ class NetlinkRequestReply(reader: NetlinkReader,
      * registers an Observer through which the reply will be streamed.
      * Returns the number of bytes written.
      */
-    @throws(classOf[IOException])
     def request(src: ByteBuffer, observer: Observer[ByteBuffer]): Int = {
         val seq = acquireSeq()
         try {
