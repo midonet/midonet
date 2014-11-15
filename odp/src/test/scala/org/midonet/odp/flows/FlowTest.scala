@@ -20,14 +20,14 @@ import java.util.{List => JList}
 import scala.collection.JavaConversions.asScalaBuffer
 
 import org.junit.runner.RunWith
+import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.netlink.BytesUtil
 import org.midonet.netlink.NetlinkMessage
 import org.midonet.netlink.Writer
-import org.midonet.odp.OpenVSwitch
-import org.midonet.odp.{Flow, FlowMatch}
+import org.midonet.odp._
 
 @RunWith(classOf[JUnitRunner])
 class FlowTest extends FunSpec with Matchers {
@@ -61,8 +61,12 @@ class FlowTest extends FunSpec with Matchers {
         it("can be serialized in a ByteBuffer and deserialized back from it.") {
             (keyLists zip actLists) foreach { case (keys, actions) =>
                 buf.clear
-                Flow describeOneRequest (buf, 42, keys, actions)
                 val flow = new Flow(new FlowMatch(keys), actions)
+                val protocol = new OvsProtocol(0, new DatapathFamily(0),
+                                               new PortFamily(0), new FlowFamily(0),
+                                               new PacketFamily(0))
+                protocol.prepareFlowCreate(42, flow, false, buf)
+                buf.position(NetlinkMessage.GENL_HEADER_SIZE)
                 (Flow.deserializer deserializeFrom buf) shouldBe flow
             }
         }
