@@ -38,7 +38,6 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         with VMsBehindRouterFixture
         with SimulationHelper {
 
-    var datapath: MockOvsDatapathConnection = null
     var flowManager: FlowManager = null
 
     override def fillConfig(config: HierarchicalConfiguration) = {
@@ -52,7 +51,6 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         super.beforeTest()
 
         flowManager = flowController().underlyingActor.flowManager
-        datapath = dpConn().asInstanceOf[MockOvsDatapathConnection]
 
         arpVmToRouterAndCheckReply(vmPortNames(0), vmMacs(0), vmIps(0),
             routerIp.getAddress, routerMac)
@@ -64,7 +62,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
     }
 
     private def findMatch[T](implicit m: ClassTag[T]) : Option[FlowMatch] = {
-        for (flowMatch <- datapath.flowsTable.keySet()) {
+        for (flowMatch <- mockDpChannel().flowsTable.keySet()) {
            for (flowKey <- flowMatch.getKeys) {
                if (m.runtimeClass.isInstance(flowKey)) {
                    return Option(flowMatch)
@@ -103,7 +101,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         flowManager.getNumDpFlows shouldBe 1
 
         // remove flow, from the datapath
-        datapath.flowsTable remove tcpMatch.get
+        mockDpChannel().flowsTable remove tcpMatch.get
         findMatch[FlowKeyTCP] shouldBe None
 
         // instead of waiting for IDLE_EXPIRATION for 60 secs, expire the flow
@@ -123,7 +121,7 @@ class DatapathFlowTableConsistencyTestCase extends MidolmanTestCase
         pktMatch should not be (None)
 
         // remove flow, from the datapath
-        pktMatch.foreach{datapath.flowsTable.remove(_)}
+        pktMatch.foreach{mockDpChannel().flowsTable.remove(_)}
         findMatch[FlowKeyTCP] should be (None)
 
         drainProbes()
