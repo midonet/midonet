@@ -47,15 +47,17 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
         running.get
 
     override def shouldWakeUp(): Boolean = {
+        if (backchannel.shouldProcess() || !isRunning) {
+            return true
+        }
+
         var i = 0
         while (i < sequencesToTrack.length) {
             if (sequencesToTrack(i).get() <= poller.getSequence.get())
                 return false
             i += 1
         }
-        ringBuffer.isPublished(poller.getSequence.get() + 1) ||
-        backchannel.shouldProcess() ||
-        !isRunning
+        ringBuffer.isPublished(poller.getSequence.get() + 1)
     }
 
     override def run(): Unit = {
@@ -71,7 +73,6 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                         backchannel.process()
                         retries = applyWait(retries)
                     case _ =>
-                        retries = DEFAULT_RETRIES
                 }
             }
         } finally {
@@ -87,7 +88,7 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             counter - 1
         } else {
             park()
-            counter
+            DEFAULT_RETRIES
         }
     }
 }
