@@ -120,6 +120,11 @@ public class Flow implements AttributeHandler {
         return this;
     }
 
+    public void deserialize(ByteBuffer buf) {
+        int actualDpIndex = buf.getInt(); // read datapath index;
+        NetlinkMessage.scanAttributes(buf, this);
+    }
+
     /** Static stateless deserializer which builds one Flow instance and
      *  consumes data from the given ByteBuffer. */
     public static final Reader<Flow> deserializer = new Reader<Flow>() {
@@ -131,9 +136,8 @@ public class Flow implements AttributeHandler {
     };
 
     public static Flow buildFrom(ByteBuffer buf) {
-        int actualDpIndex = buf.getInt(); // read datapath index;
         Flow flow = new Flow();
-        NetlinkMessage.scanAttributes(buf, flow);
+        flow.deserialize(buf);
         return flow;
     }
 

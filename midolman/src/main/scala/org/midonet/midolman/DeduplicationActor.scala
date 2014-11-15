@@ -33,7 +33,7 @@ import org.midonet.Util
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
-import org.midonet.midolman.io.DatapathConnectionPool
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -41,9 +41,8 @@ import org.midonet.midolman.simulation.{ArpTimeoutException, DeviceQueryTimeoutE
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
-import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.flows.{FlowKeys, FlowAction}
-import org.midonet.odp.{Datapath, FlowMatch, Packet}
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.collection.Reducer
@@ -135,7 +134,7 @@ class CookieGenerator(val start: Int, val increment: Int) {
 class DeduplicationActor(
             val config: MidolmanConfig,
             val cookieGen: CookieGenerator,
-            val dpConnPool: DatapathConnectionPool,
+            val dpChannel: DatapathChannel,
             val clusterDataClient: DataClient,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
@@ -151,9 +150,6 @@ class DeduplicationActor(
 
     override def logSource = "org.midonet.packet-worker"
 
-    def datapathConn(packet: Packet) = dpConnPool.get(packet.getMatch.hashCode)
-
-    var datapath: Datapath = null
     var dpState: DatapathState = null
 
     implicit val dispatcher = this.context.system.dispatcher
@@ -193,19 +189,17 @@ class DeduplicationActor(
 
     override def receive = {
 
-        case DatapathReady(dp, state) if null == datapath =>
-            datapath = dp
+        case DatapathReady(dp, state) if null == dpState =>
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
-                natStateTable,
-                storage,
-                dpState,
-                FlowController ! _,
-                datapath,
-                config.getControlPacketsTos.toByte)
+                                                 natStateTable,
+                                                 storage,
+                                                 dpState,
+                                                 FlowController ! _,
+                                                 config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
-            workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
-                                          dpConnPool, cbExecutor, actionsCache,
+            workflow = new PacketWorkflow(dpState, dp, clusterDataClient,
+                                          dpChannel, cbExecutor, actionsCache,
                                           replicator)
 
         case m: FlowStateBatch =>
@@ -355,7 +349,7 @@ class DeduplicationActor(
         val numSuspendedPackets = suspendedPackets.size
         if (numSuspendedPackets > 0) {
             log.debug(s"Sending ${suspendedPackets.size} pended packets")
-            suspendedPackets foreach (executePacket(_, actions))
+            suspendedPackets foreach (dpChannel.executePacket(_, actions))
             metrics.packetsProcessed.mark(numSuspendedPackets)
             metrics.pendedPackets.dec(numSuspendedPackets)
         }
@@ -417,7 +411,7 @@ class DeduplicationActor(
         if (actions != null) {
             log.debug("Got actions from the cache {} for match {}",
                        actions, flowMatch)
-            executePacket(packet, actions)
+            dpChannel.executePacket(packet, actions)
             metrics.packetsProcessed.mark()
             packetOut(1)
         } else if (FlowStatePackets.isStateMessage(packet)) {
@@ -438,19 +432,6 @@ class DeduplicationActor(
     private def processPacket(packet: Packet): Unit = {
         val newCookie = cookieGen.next
         startWorkflow(packet, Left(newCookie))
-    }
-
-    private def executePacket(packet: Packet, actions: JList[FlowAction]) {
-        if (actions.isEmpty) {
-            return
-        }
-
-        try {
-            datapathConn(packet).packetsExecute(datapath, packet, actions)
-        } catch {
-            case e: NetlinkException =>
-                log.info("Failed to execute packet: {}", e)
-        }
     }
 
     private def flushTransactions(): Unit = {

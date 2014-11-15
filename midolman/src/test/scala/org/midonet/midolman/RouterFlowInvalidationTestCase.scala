@@ -143,8 +143,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         val tag = FlowTagger.tagForTunnelKey(7001L)
         val tags = ROSet(tag)
 
-        val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)
-        dpconn.flowsCreate(datapath, dpflow)
+        mockDpChannel().createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
@@ -158,14 +157,14 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
 
-        dpconn.futures.flowsCreate(datapath, dpflow)
+        mockDpChannel().createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0],
                                          tags, lastInval)
         dpFlowProbe.expectMsgClass(classOf[FlowRemoved])
         wflowAddedProbe.expectNoMsg()
 
-        dpconn.futures.flowsCreate(datapath, dpflow)
+        mockDpChannel().createFlow(dpflow)
         dpFlowProbe.expectMsgClass(classOf[FlowAdded])
         FlowController ! AddWildcardFlow(wflow, dpflow, new ArrayList[Callback0], tags)
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])

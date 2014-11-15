@@ -26,6 +26,7 @@ import akka.actor._
 import akka.testkit._
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
+import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
@@ -50,33 +51,22 @@ object PacketWorkflowTest {
 
     def forCookie(testKit: ActorRef, pkt: Packet, cookie: Int)
         (implicit system: ActorSystem): (PacketContext, PacketWorkflow) = {
-        val dpCon = OvsDatapathConnection.
-                createMock().asInstanceOf[MockOvsDatapathConnection]
-        val flowListener = new MockOvsDatapathConnection.FlowListener() {
-            override def flowDeleted(flow: Flow) {}
-            override def flowCreated(flow: Flow) {}
+        val dpChannel = new MockDatapathChannel() {
+            override def executePacket(packet: Packet,
+                                       actions: JList[FlowAction]): Unit = {
+                testKit ! ExecPacket
+                Future.successful(true)
+            }
         }
-        val dpConPool = new DatapathConnectionPool() {
-            override def getAll = List(dpCon).iterator
-            override def get(hash: Int): OvsDatapathConnection = dpCon
-            override def stop(): Unit = { }
-            override def start(): Unit = { }
-        }
-        dpCon.flowsSubscribe(flowListener)
         val dpState = new DatapathStateManager(null)(null, null)
         val wcMatch = pkt.getMatch
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
-        val wf = new PacketWorkflow(dpState, null, null, dpConPool,
+        val wf = new PacketWorkflow(dpState, null, null, dpChannel,
                                     CallbackExecutor.Immediate,
                                     new ActionsCache(4, CallbackExecutor.Immediate,
                                                      log = NoLogging), null) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
-            override def executePacket(pktCtx: PacketContext,
-                                       actions: Seq[FlowAction]) = {
-                testKit ! ExecPacket
-                Future.successful(true)
-            }
             override def translateActions(pktCtx: PacketContext,
                                           actions: Seq[FlowAction]) = {
                 testKit ! TranslateActions

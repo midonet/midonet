@@ -22,6 +22,7 @@ import scala.collection.mutable
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
+import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.slf4j.LoggerFactory
@@ -32,14 +33,13 @@ import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.odp.{Packet, Datapath}
+import org.midonet.odp.Packet
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
-import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
-import org.midonet.util.functors.{Callback0, Callback2}
+import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateReplicatorTest extends FeatureSpec
@@ -99,7 +99,7 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     val senderUnderlay = new MockUnderlayResolver(ingressHostId, senderIp, peers)
     val recipientUnderlay = new MockUnderlayResolver(egressHost1, senderIp, peers)
-    val dpConn = OvsDatapathConnection.createMock().asInstanceOf[MockOvsDatapathConnection]
+    val dpChannel = new MockDatapathChannel()
     var packetsSeen = List[(Packet, List[FlowAction])]()
 
     var connTrackTx: ConnTrackTx = _
@@ -115,12 +115,10 @@ class FlowStateReplicatorTest extends FeatureSpec
         NatKey(NatState.FWD_SNAT, "192.168.10.2", 10002, "17.16.15.2", 443, 2, UUID.randomUUID()) ->
                NatBinding("4.3.2.1", 12345))
 
-    dpConn.packetsExecuteSubscribe(new Callback2[Packet, JList[FlowAction]]() {
-        override def call(p: Packet, actions: JList[FlowAction]) {
+    dpChannel.packetsExecuteSubscribe((p: Packet, actions: JList[FlowAction]) => {
             val pkt = new Packet(p.getEthernet.clone(), p.getMatch)
             packetsSeen ::= ((pkt, actions.asScala.toList))
-        }
-    })
+        })
 
     val conntrackDevice = UUID.randomUUID()
 
@@ -148,7 +146,7 @@ class FlowStateReplicatorTest extends FeatureSpec
                                  List(egressPort1.id).asJava,
                                  new mutable.HashSet[FlowTag](),
                                  new ArrayList[Callback0])
-        sender.pushState(dpConn)
+        sender.pushState(dpChannel)
         natTx.commit()
         connTrackTx.commit()
         natTx.flush()
@@ -213,7 +211,7 @@ class FlowStateReplicatorTest extends FeatureSpec
                                      List(egressPortNoGroup.id).asJava,
                                      new mutable.HashSet[FlowTag](),
                                      new ArrayList[Callback0])
-            sender.pushState(dpConn)
+            sender.pushState(dpChannel)
             natTx.commit()
             connTrackTx.commit()
             natTx.flush()
@@ -405,7 +403,7 @@ class TestableFlowStateReplicator(
     val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
 } with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
                                underlay, invalidateFlowsFor,
-                               new Datapath(1, "midonet", null), 0) {
+                               0) {
 
     override val log = Logger(LoggerFactory.getLogger(this.getClass))
 

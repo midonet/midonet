@@ -33,8 +33,7 @@ import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.rcu.{ResolvedHost, Host}
-import org.midonet.odp.Datapath
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.packets.{Ethernet, IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
@@ -106,8 +105,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              new MockStateStorage,
-                                             underlayResolver, _ => { },
-                                             new Datapath(1, "midonet", null), 0)
+                                             underlayResolver, _ => { }, 0)
     }
 
     @Benchmark

@@ -22,21 +22,22 @@ import scala.concurrent.Promise
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
-import org.apache.commons.configuration.HierarchicalConfiguration
+
 import org.junit.runner.RunWith
-import org.midonet.config.ConfigProvider
+
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.datapath.DatapathChannel
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.PacketWorkflow.Simulation
-import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.topology.rcu.{ResolvedHost, Host}
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{Datapath, DpPort, FlowMatch, FlowMatches, Packet}
@@ -57,7 +58,6 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     def dda = ddaRef.underlyingActor
     var packetsOut = 0
 
-    lazy val dpConnPool = injector.getInstance(classOf[DatapathConnectionPool])
     lazy val metricsReg = injector.getInstance(classOf[MetricRegistry])
 
     override def beforeTest() {
@@ -73,7 +73,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
-            dpConnPool, clusterDataClient(),
+            mockDpChannel(), clusterDataClient(),
             new PacketPipelineMetrics(metricsReg),
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
@@ -154,7 +154,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             dda.complete(pkts(0).getMatch, Nil)
 
             Then("the packets should be dropped")
-            mockDpConn().packetsSent should be (empty)
+            mockDpChannel().packetsSent should be (empty)
             dda.suspended(pkts(0).getMatch) should be (null)
         }
 
@@ -175,7 +175,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             dda.complete(pkts(0).getMatch, List(output(1)))
 
             Then("the packets should be sent to the datapath")
-            val actual = mockDpConn().packetsSent.asScala.toList.sortBy { _.## }
+            val actual = mockDpChannel().packetsSent.asScala.toList.sortBy { _.## }
             val expected = pkts.tail.sortBy { _.## }
             actual should be (expected)
 
@@ -192,7 +192,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             ddaRef ! DeduplicationActor.HandlePackets(pkts.toArray)
 
             Then("the DDA should execute that packet directly")
-            mockDpConn().packetsSent.asScala should be (pkts)
+            mockDpChannel().packetsSent.asScala should be (pkts)
 
             And("no pended packets should remain")
             dda.suspended(pkts(0).getMatch) should be (null)
@@ -284,13 +284,13 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     }
 
     class TestableDDA(cookieGen: CookieGenerator,
-                      dpConnPool: DatapathConnectionPool,
+                      dpChannel: DatapathChannel,
                       clusterDataClient: DataClient,
                       metrics: PacketPipelineMetrics,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
             extends DeduplicationActor(injector.getInstance(classOf[MidolmanConfig]),
-                                       cookieGen, dpConnPool, clusterDataClient,
+                                       cookieGen, dpChannel, clusterDataClient,
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
                                        new MockStateStorage(),

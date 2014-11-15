@@ -347,16 +347,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        // allows to see failing flow create requests if debug logging is on.
-        if (callback == null && log.isDebugEnabled()) {
-            callback = new LoggingCallback<Flow>() {
-                public String requestString() { return "flow create"; }
-                public String dataString() { return flow.toString(); }
-            };
-        }
-
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowCreate(datapathId, flow, callback != null, buf);
+        protocol.prepareFlowCreate(datapathId, flow, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -482,32 +474,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        // allows to see failing packet execute requests if debug logging is on.
-        if (callback == null && log.isDebugEnabled()) {
-            callback = new LoggingCallback<Boolean>() {
-                public String requestString() {
-                    return "packet execute";
-                }
-                public String dataString() {
-                    return Arrays.toString(actions.toArray()) + " on " + packet;
-                }
-            };
-        }
-
         ByteBuffer buf = getBuffer();
-        protocol.preparePacketExecute(datapathId, packet, actions,
-                                      callback != null, buf);
+        protocol.preparePacketExecute(datapathId, packet, actions, buf);
         sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
-    }
-
-    /** Used for debugging failing requests that do not register callbacks. */
-    private static abstract class LoggingCallback<T> implements Callback<T> {
-        public abstract String requestString();
-        public abstract String dataString();
-        public void onSuccess(T any) { }
-        public void onError(NetlinkException ex) {
-            log.debug(requestString() + " request for " +
-                      dataString() + " failed", ex);
-        }
     }
 }
