@@ -180,28 +180,4 @@ public class Packet implements AttributeHandler {
                 break;
         }
     }
-
-    /** Prepares an ovs request for executing and a packet with the given list
-     *  of actions. */
-    public static ByteBuffer execRequest(ByteBuffer buf, int datapathId,
-                                         Iterable<FlowKey> keys,
-                                         Iterable<FlowAction> actions,
-                                         Ethernet packet) {
-        buf.putInt(datapathId);
-        // TODO(pino): find out why ovs_packet_cmd_execute throws an
-        // EINVAL if we put the PACKET attribute right after the
-        // datapathId. I examined the ByteBuffers constructed with that
-        // ordering of attributes and compared it to this one, and found
-        // only the expected difference.
-
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
-
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
-                                    actions, FlowActions.writer);
-
-        NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
-
-        buf.flip();
-        return buf;
-    }
 }

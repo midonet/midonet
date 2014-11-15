@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -69,13 +70,13 @@ public class OvsFlowsDeleteTest extends AbstractNetlinkProtocolTest {
         assertThat("The created flow has the same keySet as the requested one",
                    flow.getMatch(), equalTo(flowMatch()));
 
-        Future<Flow> deleteFlowOp =
+        Future<Boolean> deleteFlowOp =
             connection.futures.flowsDelete(datapath, flow.getMatch().getKeys());
         exchangeMessage();
 
-        assertThat("The created flow has the same keySet as the requested one",
-                   deleteFlowOp.get().getMatch(),
-                   equalTo(flowMatch()));
+        assertThat("The flow was successfully deleted",
+                   deleteFlowOp.get(),
+                   is(true));
 
         Future<Set<Flow>> enumeratedFlows =
             connection.futures.flowsEnumerate(datapath);
