@@ -59,12 +59,6 @@ public final class CtrlFamily {
         short MCAST_GRP_ID    = (short) 2;
     }
 
-    public static ByteBuffer familyNameRequest(ByteBuffer buf, String name) {
-        NetlinkMessage.writeStringAttr(buf, AttrKey.FAMILY_NAME, name);
-        buf.flip();
-        return buf;
-    }
-
     public static Reader<Integer> mcastGrpDeserializer(final String groupName) {
         return new Reader<Integer>() {
             public Integer deserializeFrom(ByteBuffer buf) {
