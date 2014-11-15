@@ -16,38 +16,41 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
-import java.util.{ArrayList, Map => JMap, Set => JSet}
-
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
+import java.util.{ArrayList, Set => JSet, Map => JMap}
 import javax.inject.Inject
-
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
-import scala.collection.{mutable, Set => ROSet}
+import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
 
-import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.MetricRegistry.name
+import org.jctools.queues.SpscArrayQueue
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.WildcardTablesProvider
+import org.midonet.midolman.flows.{FlowEjector, WildcardTablesProvider}
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
+import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
+import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.{FlowManager, FlowManagerHelper, ManagedWildcardFlow,
-                              WildcardFlow, WildcardMatch}
-import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
+import org.midonet.sdn.flows._
+import org.midonet.util.collection.{PooledObject, ArrayObjectPool, ObjectPool}
+import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.{Callback0, Callback1}
+import rx.Observer
 
 // TODO(guillermo) - move to a scala util pkg in midonet-util
 sealed trait EventSearchResult
@@ -202,8 +205,27 @@ object FlowController extends Referenceable {
     }
 
     def lastInvalidationEvent = invalidationHistory.youngest
-}
 
+    class FlowDeleteRequest(val pool: ArrayObjectPool[FlowDeleteRequest],
+                            pendingRequests: SpscArrayQueue)
+        extends Observer[ByteBuffer] with PooledObject {
+
+        private var flow: Flow = _
+
+        override def onError(e: Throwable): Unit = ???
+
+        override def onNext(t: ByteBuffer): Unit =
+            try {
+                flow.deserialize(t)
+            } catch { case e: Throwable =>
+                onError(e)
+            }
+
+        override def onCompleted(): Unit = { }
+
+        override def clear(): Unit = { }
+    }
+}
 
 class FlowController extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
@@ -223,6 +245,9 @@ class FlowController extends Actor with ActorLogWithoutPath
     var datapathConnPool: DatapathConnectionPool = null
 
     def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
+
+    @Inject
+    var ejector: FlowEjector = null
 
     @Inject
     var metricsRegistry: MetricRegistry = null
@@ -277,8 +302,8 @@ class FlowController extends Actor with ActorLogWithoutPath
                     CheckFlowExpiration_)
             }
 
-        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags,
-                                 lastInval, flowMatch, pendingFlowMatches, index) =>
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
+                                 flowMatch, pendingFlowMatches, index) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 var managedFlow = wildFlowPool.take
@@ -433,7 +458,7 @@ class FlowController extends Actor with ActorLogWithoutPath
 
     class FlowManagerInfoImpl() extends FlowManagerHelper {
         val sched = context.system.scheduler
-
+/*
         private def _removeFlow(flowMatch: FlowMatch, retries: Int) {
             def scheduleRetry() {
                 if (retries > 0) {
@@ -476,14 +501,29 @@ class FlowController extends Actor with ActorLogWithoutPath
                     }
 
                     private def notifyRemoval(): Unit = {
-                        log.debug("DP confirmed removal of flow with match {}", flowMatch)
+
                     }
                 })
+                */
+        val waitContext = new Parkable {
+            override def shouldWakeUp(): Boolean = ejector.canEject
         }
 
         def removeFlow(flowMatch: FlowMatch) {
             metrics.currentDpFlows = flowManager.getNumDpFlows
-            _removeFlow(flowMatch, 10)
+            if (!ejector.eject(flowMatch)) {
+                var retries = 100
+                while (!ejector.eject(flowMatch)) {
+                    if (retries > 50) {
+                        retries -= 1
+                    } else if (retries > 0) {
+                        Thread.`yield`()
+                        retries -= 1
+                    } else {
+                        waitContext.park()
+                    }
+                }
+            }
         }
 
         def removeWildcardFlow(flow: ManagedWildcardFlow) {

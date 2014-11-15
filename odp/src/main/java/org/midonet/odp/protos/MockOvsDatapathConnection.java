@@ -56,13 +56,14 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     AtomicInteger datapathIds = new AtomicInteger(1);
 
-    public MockOvsDatapathConnection(NetlinkChannel channel) {
+    public MockOvsDatapathConnection(NetlinkChannel channel,
+                                     Map<FlowMatch, Flow> flowsTable) {
         super(channel, new BufferPool(128, 512, 0x1000));
         this.datapaths = Collections.newSetFromMap(
                             new ConcurrentHashMap<Datapath,Boolean>());
         this.datapathPorts = new ConcurrentHashMap<Datapath, Set<DpPort>>();
         this.portsIndexes = new ConcurrentHashMap<Datapath, AtomicInteger>();
-        this.flowsTable = new ConcurrentHashMap<FlowMatch, Flow>();
+        this.flowsTable = flowsTable;
         this.packetsSent = new ArrayList<Packet>();
     }
 

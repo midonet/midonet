@@ -29,7 +29,7 @@ trait ObjectPool[T >: Null] {
 trait PooledObject {
     private[this] var refCount = 0
 
-    def pool: ObjectPool[_ >: this.type]
+    val pool: ObjectPool[_ >: this.type]
 
     def clear(): Unit
 

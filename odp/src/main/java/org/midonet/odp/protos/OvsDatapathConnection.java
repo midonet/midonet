@@ -15,7 +15,9 @@
  */
 package org.midonet.odp.protos;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
@@ -81,10 +83,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
     }
 
     public static OvsDatapathConnection createMock() {
+        return createMock(new HashMap<FlowMatch, Flow>());
+    }
+
+    public static OvsDatapathConnection createMock(Map<FlowMatch, Flow> flowsTable) {
         NetlinkChannel channel =
             new MockNetlinkChannel(Netlink.selectorProvider(),
                                    NetlinkProtocol.NETLINK_GENERIC);
-        return new MockOvsDatapathConnection(channel);
+        return new MockOvsDatapathConnection(channel, flowsTable);
     }
 
     /**

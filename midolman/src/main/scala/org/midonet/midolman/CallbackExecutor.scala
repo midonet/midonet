@@ -19,6 +19,7 @@ import java.util.concurrent.locks.LockSupport
 import java.util.{ArrayList, LinkedList, Queue}
 
 import akka.actor.ActorRef
+import org.jctools.queues.SpscArrayQueue
 import org.midonet.util.functors.Callback0
 
 // A wrapper class that enqueues callbacks in the specified queue.
@@ -36,13 +37,13 @@ object CallbackExecutor {
     case object CheckCallbacks
 }
 
-sealed class CallbackExecutor(queue: Queue[Callback0], alert: ActorRef) {
+sealed class CallbackExecutor(queue: SpscArrayQueue[Callback0], alert: ActorRef) {
     def schedule(callbacks: ArrayList[Callback0]): Unit = {
         var retries = 200
         var i = 0
         while (i < callbacks.size()) {
             val cb = callbacks.get(i)
-            while (!queue.add(cb)) {
+            while (!queue.offer(cb)) {
                 retries = doWait(retries)
             }
             i += 1
