@@ -29,7 +29,6 @@ import org.midonet.odp.OpenVSwitch.Flow.Attr;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActions;
 import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeys;
 import org.midonet.odp.flows.FlowStats;
 import org.midonet.packets.TCP;
 
@@ -225,80 +224,4 @@ public class Flow implements AttributeHandler {
         return  desc;
     }
 
-    /** Prepares an ovs request to select all flows in a datapath instance. The
-     *  message is empty. Used with flow get (enumerate) and flow del (flush
-     *  all) generic netlink commands of the flow family. */
-    public static ByteBuffer selectAllRequest(ByteBuffer buf, int datapathId) {
-        buf.putInt(datapathId);
-        buf.flip();
-        return buf;
-    }
-
-    /** Prepares an ovs request to select a single flow in a datapath instance
-     *  based of the flow match. Used with flow get and flow del generic netlink
-     *  commands of the flow family. */
-    public static ByteBuffer selectOneRequest(ByteBuffer buf, int datapathId,
-                                              Iterable<FlowKey> keys) {
-        buf.putInt(datapathId);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
-        buf.flip();
-        return buf;
-    }
-
-    /**
-     * Prepares an ovs request to describe a single flow (flow match and flow
-     * actions). Used with flow set and flow create generic netlink commands
-     * of the flow family.
-     */
-    public ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId) {
-        buf.putInt(datapathId);
-
-        // add the keys
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, match.getKeys(), FlowKeys.writer);
-
-        // add the actions
-        // the actions list is allowed to be empty (drop flow). Nevertheless the
-        // actions nested attribute header needs to be written otherwise the
-        // datapath will answer back with EINVAL
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, getActions(), FlowActions.writer);
-
-        if (!hasEmptyMask())
-            NetlinkMessage.writeAttrSeq(buf, Attr.Mask, mask.getKeys(), FlowKeys.writer);
-
-        buf.flip();
-        return buf;
-    }
-
-    /**
-     * Prepares an ovs request to describe a single flow (flow match and flow
-     * actions). Used with flow set and flow create generic netlink commands
-     * of the flow family.
-     */
-    public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
-                                                Iterable<FlowKey> keys,
-                                                Iterable<FlowAction> actions) {
-        buf.putInt(datapathId);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
-        buf.flip();
-        return buf;
-    }
-
-    /**
-     * Prepares an ovs request to describe a single flow with a mask
-     */
-    public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
-                                                Iterable<FlowKey> keys,
-                                                Iterable<FlowKey> maskKeys,
-                                                Iterable<FlowAction> actions) {
-        buf.putInt(datapathId);
-
-        // add the keys, the actions and the mask
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Mask, maskKeys, FlowKeys.writer);
-
-        buf.flip();
-        return buf;
-    }
 }
