@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.netlink.BytesUtil
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
@@ -346,7 +347,7 @@ trait NatState extends FlowState {
                     else
                         tpDst = binding.transportPort.toShort
                 }
-                val natBB = ByteBuffer.allocate(data.length)
+                val natBB = BytesUtil.instance.allocate(data.length)
                 natBB.put(header.serialize, 0, ipHeadSize)
                 natBB.putShort(tpSrc)
                 natBB.putShort(tpDst)
