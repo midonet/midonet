@@ -204,46 +204,7 @@ public abstract class DpPort {
         }
     }
 
-    public static ByteBuffer getRequest(ByteBuffer buf, int datapathId, int pid,
-                                        String portName, Integer portId) {
-        buf.putInt(datapathId);
 
-        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
-
-        if (portId != null) {
-            NetlinkMessage.writeIntAttr(buf, Attr.PortNo, portId);
-        }
-
-        if (portName != null) {
-            NetlinkMessage.writeStringAttr(buf, Attr.Name, portName);
-        }
-
-        buf.flip();
-        return buf;
-    }
-
-    public static ByteBuffer createRequest(ByteBuffer buf, int datapathId,
-                                           int pid, DpPort port) {
-        buf.putInt(datapathId);
-        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
-        port.serializeInto(buf);
-        buf.flip();
-        return buf;
-    }
-
-    public static ByteBuffer deleteRequest(ByteBuffer buf, int datapathId,
-                                           DpPort port) {
-        buf.putInt(datapathId);
-        NetlinkMessage.writeIntAttr(buf, Attr.PortNo, port.getPortNo());
-        buf.flip();
-        return buf;
-    }
-
-    public static ByteBuffer enumRequest(ByteBuffer buf, int datapathId) {
-        buf.putInt(datapathId);
-        buf.flip();
-        return buf;
-    }
 
     public static class Stats {
         long rxPackets, txPackets;
