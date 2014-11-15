@@ -24,9 +24,11 @@ import com.google.inject.Injector
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
+import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.flows.FlowEjector
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
+import org.midonet.midolman.util.mock.{MockFlowEjector, MockDatapathChannel, MockUpcallDatapathConnectionManager}
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 
 trait MidolmanServices {
@@ -43,6 +45,16 @@ trait MidolmanServices {
 
     def mockDpConn()(implicit ec: ExecutionContext, as: ActorSystem) = {
         dpConn().asInstanceOf[MockOvsDatapathConnection]
+    }
+
+    def mockDpChannel() = {
+        injector.getInstance(classOf[DatapathChannel])
+                .asInstanceOf[MockDatapathChannel]
+    }
+
+    def mockFlowEjector() = {
+        injector.getInstance(classOf[FlowEjector])
+                .asInstanceOf[MockFlowEjector]
     }
 
     def dpConn()(implicit ec: ExecutionContext, as: ActorSystem):

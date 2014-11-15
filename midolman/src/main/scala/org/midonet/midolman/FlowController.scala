@@ -16,9 +16,9 @@
 
 package org.midonet.midolman
 
+import java.nio.ByteBuffer
 import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
 import java.util.{ArrayList, Map => JMap, Set => JSet}
-
 import javax.inject.Inject
 
 import org.midonet.midolman.management.Metering
@@ -33,24 +33,24 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
-
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
-
+import org.jctools.queues.SpscArrayQueue
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.WildcardTablesProvider
+import org.midonet.midolman.flows.{FlowEjector, WildcardTablesProvider}
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
-import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.{Datapath, Flow, FlowMatch}
+import org.midonet.netlink.{BytesUtil, Callback}
+import org.midonet.odp.{Datapath, Flow, FlowMatch, OvsProtocol}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.{FlowManager, FlowManagerHelper, ManagedWildcardFlow,
-                              WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows._
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
+import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.{Callback0, Callback1}
+import rx.Observer
 
 // TODO(guillermo) - move to a scala util pkg in midonet-util
 sealed trait EventSearchResult
@@ -135,11 +135,7 @@ object FlowController extends Referenceable {
     case class GetFlowSucceeded_(flow: Flow, origMatch: FlowMatch, flowCallback: Callback1[Flow])
     case class GetFlowFailed_(flowCallback: Callback1[Flow])
 
-    /** NOTE(guillermo): we include an 'origMatch' here because 'userspace' keys
-      * are lost in the trip to the kernel, and that plays badly with out book
-      * keeping, in particular with that of the MetricsRegistry. */
-    case class DeleteFlowSucceeded_(flow: Flow, origMatch: FlowMatch)
-    case class DeleteFlowFailed_(flowMatch: FlowMatch)
+    case object CheckCompletedRequests
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
 
@@ -213,8 +209,68 @@ object FlowController extends Referenceable {
     }
 
     def lastInvalidationEvent = invalidationHistory.youngest
-}
 
+    sealed abstract class FlowOvsCommand[T](completedRequests: SpscArrayQueue[T])
+                                           (implicit actorSystem: ActorSystem)
+        extends Observer[ByteBuffer] { self: T =>
+
+        var failure: Throwable = _
+
+        def isFailed = failure ne null
+
+        def netlinkErrorCode() =
+            failure match {
+                case ex: NetlinkException => ex.getErrorCodeEnum
+                case _ => NetlinkException.GENERIC_IO_ERROR
+            }
+
+        def clear(): Unit =
+            failure = null
+
+        def prepareRequest(datapathId: Int, protocol: OvsProtocol): ByteBuffer
+
+        final override def onCompleted(): Unit = {
+            completedRequests.offer(this)
+            FlowController ! FlowController.CheckCompletedRequests
+        }
+
+        final override def onError(e: Throwable): Unit = {
+            failure = e
+            onCompleted()
+        }
+    }
+
+    sealed class FlowRemoveCommand(pool: ObjectPool[FlowRemoveCommand],
+                                   completedRequests: SpscArrayQueue[FlowRemoveCommand])
+                                  (implicit actorSystem: ActorSystem)
+        extends FlowOvsCommand[FlowRemoveCommand](completedRequests) {
+
+        private val buf = BytesUtil.instance.allocateDirect(8*1024)
+        val flow = new Flow()
+        var retries: Int = _
+        var flowMatch: FlowMatch = _
+
+        def reset(flowMatch: FlowMatch, retries: Int): Unit = {
+            this.flowMatch = flowMatch
+            this.retries = retries
+        }
+
+        override def clear(): Unit = {
+            super.clear()
+            flowMatch = null
+            pool.offer(this)
+        }
+
+        override def prepareRequest(datapathId: Int, protocol: OvsProtocol): ByteBuffer = {
+            buf.clear()
+            protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, buf)
+            buf
+        }
+
+        override def onNext(t: ByteBuffer): Unit =
+            flow.deserialize(t)
+    }
+}
 
 class FlowController extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
@@ -234,6 +290,12 @@ class FlowController extends Actor with ActorLogWithoutPath
     var datapathConnPool: DatapathConnectionPool = null
 
     def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
+
+    @Inject
+    var ejector: FlowEjector = null
+
+    var pooledFlowDeleteCommands: ArrayObjectPool[FlowRemoveCommand] = _
+    var completedFlowDeleteCommands: SpscArrayQueue[FlowRemoveCommand] = _
 
     @Inject
     var metricsRegistry: MetricRegistry = null
@@ -278,6 +340,10 @@ class FlowController extends Actor with ActorLogWithoutPath
         wildFlowPool = new ArrayObjectPool(maxWildcardFlows, new ManagedWildcardFlow(_))
 
         metrics = new FlowTablesMetrics(flowManager)
+
+        completedFlowDeleteCommands = new SpscArrayQueue(ejector.maxPendingRequests)
+        pooledFlowDeleteCommands = new ArrayObjectPool(ejector.maxPendingRequests,
+                                                       new FlowRemoveCommand(_, completedFlowDeleteCommands))
     }
 
     def receive = LoggingReceive {
@@ -292,8 +358,8 @@ class FlowController extends Actor with ActorLogWithoutPath
                     CheckFlowExpiration_)
             }
 
-        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags,
-                                 lastInval, flowMatch, pendingFlowMatches, index) =>
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
+                                 flowMatch, pendingFlowMatches, index) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 var managedFlow = wildFlowPool.take
@@ -384,13 +450,8 @@ class FlowController extends Actor with ActorLogWithoutPath
             metrics.currentDpFlows = flowManager.getNumDpFlows
             meters.forgetFlow(flowMatch)
 
-        case DeleteFlowSucceeded_(flow, origMatch) =>
-            if (flow.getStats ne null)
-                meters.updateFlow(origMatch, flow.getStats)
-            meters.forgetFlow(flow.getMatch)
-
-        case DeleteFlowFailed_(flowMatch) =>
-            meters.forgetFlow(flowMatch)
+        case CheckCompletedRequests =>
+            processRemovedFlows()
     }
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
@@ -460,71 +521,96 @@ class FlowController extends Actor with ActorLogWithoutPath
         true
     }
 
-    class FlowManagerInfoImpl() extends FlowManagerHelper {
-        val sched = context.system.scheduler
-
-        private def _removeFlow(flowMatch: FlowMatch, retries: Int) {
-            def scheduleRetry() {
-                if (retries > 0) {
-                    log.debug("Scheduling retry of flow deletion with match: {}",
-                              flowMatch)
-                    sched.scheduleOnce(1 second) {
-                        _removeFlow(flowMatch, retries - 1)
-                    }
-                } else {
-                    self ! DeleteFlowFailed_(flowMatch)
-                    log.error("Giving up on deleting flow with match: {}",
-                              flowMatch)
-                }
+    private def processRemovedFlows(): Unit = {
+        var req: FlowRemoveCommand = null
+        while ({ req = completedFlowDeleteCommands.poll(); req } ne null) {
+            if (req.isFailed) {
+                flowDeleteFailed(req)
+            } else {
+                flowDeleteSucceeded(req)
             }
-
-            datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
-                new Callback[Flow] {
-                    def onError(ex: NetlinkException): Unit = {
-                        log.debug("Got an exception {} when trying to remove " +
-                                  "flow with match {}", ex, flowMatch)
-                        ex.getErrorCodeEnum match {
-                            // Success cases, the flow doesn't exist so userspace
-                            // can take it as a successful remove:
-                            case ErrorCode.ENODEV => notifyFlowLost()
-                            case ErrorCode.ENOENT => notifyFlowLost()
-                            case ErrorCode.ENXIO => notifyFlowLost()
-                            // Retry cases.
-                            case ErrorCode.EBUSY => scheduleRetry()
-                            case ErrorCode.EAGAIN => scheduleRetry()
-                            case ErrorCode.EIO => scheduleRetry()
-                            case ErrorCode.EINTR => scheduleRetry()
-                            case ErrorCode.ETIMEOUT => scheduleRetry()
-                            // Give up
-                            case _ =>
-                                self ! DeleteFlowFailed_(flowMatch)
-                                log.error("Giving up on deleting flow with "+
-                                    "match: {} due to: {}", flowMatch, ex)
-                        }
-                    }
-
-                    def onSuccess(flow: Flow) {
-                        log.debug("DP confirmed flow removal: {}", flowMatch)
-                        self ! DeleteFlowSucceeded_(flow, flowMatch)
-                    }
-
-                    def notifyFlowLost() {
-                        log.debug("DP flow was already deleted: {}", flowMatch)
-                        self ! DeleteFlowFailed_(flowMatch)
-                    }
-                })
         }
+    }
 
-        def removeFlow(flowMatch: FlowMatch) {
+    private def flowDeleteFailed(req: FlowRemoveCommand): Unit = {
+        log.debug("Got an exception when trying to remove " +
+                  s"flow with match ${req.flowMatch}", req.failure)
+        req.netlinkErrorCode() match {
+            // Success cases, the flow doesn't exist so userspace
+            // can take it as a successful remove:
+            case ErrorCode.ENODEV => flowLost(req)
+            case ErrorCode.ENOENT => flowLost(req)
+            case ErrorCode.ENXIO => flowLost(req)
+            // Retry cases:
+            case ErrorCode.EBUSY => scheduleRetry(req)
+            case ErrorCode.EAGAIN => scheduleRetry(req)
+            case ErrorCode.EIO => scheduleRetry(req)
+            case ErrorCode.EINTR => scheduleRetry(req)
+            case ErrorCode.ETIMEOUT => scheduleRetry(req)
+            case _ => giveUp(req)
+        }
+    }
+
+    private def scheduleRetry(req: FlowRemoveCommand): Unit = {
+        var retries = req.retries
+        val flowMatch = req.flowMatch
+        if (retries > 0) {
+            retries -= 1
+            log.debug(s"Scheduling retry of flow deletion with match: $flowMatch")
+            context.system.scheduler.scheduleOnce(1 second) {
+                req.reset(flowMatch, retries)
+                ejector.eject(req)
+            }
+        } else {
+            giveUp(req)
+        }
+    }
+
+    private def flowLost(req: FlowRemoveCommand): Unit = {
+        val flowMatch = req.flowMatch
+        log.debug("DP flow was already deleted: {}", flowMatch)
+        meters.forgetFlow(flowMatch)
+        req.clear()
+    }
+
+    private def flowDeleteSucceeded(req: FlowRemoveCommand): Unit = {
+        // Note: we use the request's FlowMatch because any userspace keys
+        // that we added to it are no present in the kernel's response and we
+        // need them for our bookkeeping, in particular for the MetricsRegistry.
+        val flowMatch = req.flowMatch
+        val flow = req.flow
+        log.debug(s"DP confirmed removal of flow with match $flowMatch")
+        if (flow.getStats ne null)
+            meters.updateFlow(flowMatch, flow.getStats)
+        meters.forgetFlow(flowMatch)
+        req.clear()
+    }
+
+    private def giveUp(req: FlowRemoveCommand): Unit = {
+        log.error(s"Failed to delete flow with match: ${req.flowMatch}", req.failure)
+        req.clear()
+    }
+
+    sealed class FlowManagerInfoImpl extends FlowManagerHelper with Parkable {
+
+        override def shouldWakeUp() = completedFlowDeleteCommands.size > 0
+
+        def removeFlow(flowMatch: FlowMatch): Unit = {
             metrics.currentDpFlows = flowManager.getNumDpFlows
-            _removeFlow(flowMatch, 10)
+            var req: FlowRemoveCommand = null
+            while ({ req = pooledFlowDeleteCommands.take; req } eq null) {
+                park()
+                processRemovedFlows()
+            }
+            req.reset(flowMatch, 10)
+            ejector.eject(req)
         }
 
-        def removeWildcardFlow(flow: ManagedWildcardFlow) {
+        def removeWildcardFlow(flow: ManagedWildcardFlow): Unit = {
             FlowController.this.removeWildcardFlow(flow)
         }
 
-        def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow] ) {
+        def getFlow(flowMatch: FlowMatch, flowCallback: Callback1[Flow]): Unit = {
             log.debug("requesting flow for flow match: {}", flowMatch)
             val cb = new Callback[Flow] {
                 def onError(ex: NetlinkException) {
@@ -574,5 +660,4 @@ class FlowController extends Actor with ActorLogWithoutPath
                 classOf[FlowTablesMeter], "datapathFlowsCreated",
                 "datapathFlows"))
     }
-
 }
