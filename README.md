@@ -27,7 +27,7 @@ MidoNet's API service in a webserver.  These API server nodes will read and
 modify the virtual topology configuration, so they need to have connectivity to
 the ZooKeeper cluster, but not necessarily any other node types.
 
-[rest-api]: http://docs.midonet.org/docs/v1.8/rest-api/api/rest-api-specification.html
+[rest-api]: http://docs.midonet.org/docs/latest/rest-api/
     "MidoNet API Specification"
 
 ## How to contribute
