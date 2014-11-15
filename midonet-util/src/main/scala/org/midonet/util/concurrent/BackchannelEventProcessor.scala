@@ -72,7 +72,6 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                     case PollState.GATING | PollState.IDLE =>
                         retries = applyWait(retries)
                     case _ =>
-                        retries = DEFAULT_RETRIES
                 }
                 backchannel.process()
             }
@@ -89,6 +88,6 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             counter - 1
         } else {
             park()
-            counter
+            DEFAULT_RETRIES
         }
 }
