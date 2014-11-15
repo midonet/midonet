@@ -19,11 +19,10 @@ package org.midonet.odp
 import java.io.IOException
 import java.nio.ByteBuffer
 
-import org.midonet.netlink.exceptions.NetlinkException
-
 import rx.Observer
 
 import org.midonet.netlink._
+import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.family.{PacketFamily, FlowFamily, PortFamily, DatapathFamily}
 import org.midonet.util.concurrent.NanoClock
 
@@ -48,6 +47,7 @@ object OvsNetlinkFamilies {
                 override def onError(e: Throwable): Unit = throw e
                 override def onNext(bb: ByteBuffer): Unit = res = f(bb)
             })
+
             while (res == null) {
                 requestReply.readReply()
             }
