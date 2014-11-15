@@ -16,36 +16,35 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
-import java.util.{ArrayList, Map => JMap, Set => JSet}
-
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap => ConcHashMap}
+import java.util.{ArrayList, Set => JSet, Map => JMap}
 import javax.inject.Inject
-
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
-import scala.collection.{mutable, Set => ROSet}
+import scala.collection.{Set => ROSet, mutable}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
 
-import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
+import com.codahale.metrics.MetricRegistry.name
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.WildcardTablesProvider
+import org.midonet.midolman.flows.{FlowEjector, WildcardTablesProvider}
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.monitoring.metrics.{FlowTablesGauge, FlowTablesMeter}
+import org.midonet.midolman.monitoring.metrics.FlowTablesGauge
+import org.midonet.midolman.monitoring.metrics.FlowTablesMeter
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.{FlowManager, FlowManagerHelper, ManagedWildcardFlow,
-                              WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows._
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.functors.{Callback0, Callback1}
 
@@ -204,7 +203,6 @@ object FlowController extends Referenceable {
     def lastInvalidationEvent = invalidationHistory.youngest
 }
 
-
 class FlowController extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
     import DatapathController.DatapathReady
@@ -223,6 +221,9 @@ class FlowController extends Actor with ActorLogWithoutPath
     var datapathConnPool: DatapathConnectionPool = null
 
     def datapathConnection(flowMatch: FlowMatch) = datapathConnPool.get(flowMatch.hashCode)
+
+    @Inject
+    var ejector: FlowEjector = null
 
     @Inject
     var metricsRegistry: MetricRegistry = null
@@ -277,8 +278,8 @@ class FlowController extends Actor with ActorLogWithoutPath
                     CheckFlowExpiration_)
             }
 
-        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags,
-                                 lastInval, flowMatch, pendingFlowMatches, index) =>
+        case msg@AddWildcardFlow(wildFlow, dpFlow, callbacks, tags, lastInval,
+                                 flowMatch, pendingFlowMatches, index) =>
             context.system.eventStream.publish(msg)
             if (FlowController.isTagSetStillValid(lastInval, tags)) {
                 var managedFlow = wildFlowPool.take
@@ -411,11 +412,14 @@ class FlowController extends Actor with ActorLogWithoutPath
 
         if (!flowManager.add(wildFlow)) {
             log.error("FlowManager failed to install wildcard flow {}", wildFlow)
-            wildFlow.cbExecutor.schedule(flowRemovalCallbacks)
+            if (null != flowRemovalCallbacks)
+                for (cb <- flowRemovalCallbacks)
+                    cb.call()
             return false
         }
 
-        wildFlow.callbacks = flowRemovalCallbacks
+        if (null != flowRemovalCallbacks)
+            wildFlow.callbacks = flowRemovalCallbacks
         wildFlow.ref() // tags ref
         if (null != tags) {
             wildFlow.tags = tags.toArray
@@ -432,58 +436,9 @@ class FlowController extends Actor with ActorLogWithoutPath
     }
 
     class FlowManagerInfoImpl() extends FlowManagerHelper {
-        val sched = context.system.scheduler
-
-        private def _removeFlow(flowMatch: FlowMatch, retries: Int) {
-            def scheduleRetry() {
-                if (retries > 0) {
-                    log.debug("Scheduling retry of flow deletion with match: {}",
-                              flowMatch)
-                    sched.scheduleOnce(1 second) {
-                        _removeFlow(flowMatch, retries - 1)
-                    }
-                } else {
-                    log.error("Giving up on deleting flow with match: {}",
-                              flowMatch)
-                }
-            }
-            datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
-                new Callback[java.lang.Boolean] {
-                    def onError(ex: NetlinkException): Unit = {
-                        log.debug("Got an exception {} when trying to remove " +
-                                  "flow with match {}", ex, flowMatch)
-                        ex.getErrorCodeEnum match {
-                            // Success cases, the flow doesn't exist so userspace
-                            // can take it as a successful remove:
-                            case ErrorCode.ENODEV => notifyRemoval()
-                            case ErrorCode.ENOENT => notifyRemoval()
-                            case ErrorCode.ENXIO => notifyRemoval()
-                            // Retry cases.
-                            case ErrorCode.EBUSY => scheduleRetry()
-                            case ErrorCode.EAGAIN => scheduleRetry()
-                            case ErrorCode.EIO => scheduleRetry()
-                            case ErrorCode.EINTR => scheduleRetry()
-                            case ErrorCode.ETIMEOUT => scheduleRetry()
-                            // Give up
-                            case _ =>
-                                log.error("Giving up on deleting flow with "+
-                                    "match: {} due to: {}", flowMatch, ex)
-                        }
-                    }
-
-                    def onSuccess(data: java.lang.Boolean): Unit = {
-                        notifyRemoval()
-                    }
-
-                    private def notifyRemoval(): Unit = {
-                        log.debug("DP confirmed removal of flow with match {}", flowMatch)
-                    }
-                })
-        }
-
         def removeFlow(flowMatch: FlowMatch) {
             metrics.currentDpFlows = flowManager.getNumDpFlows
-            _removeFlow(flowMatch, 10)
+            ejector.eject(flowMatch)
         }
 
         def removeWildcardFlow(flow: ManagedWildcardFlow) {
