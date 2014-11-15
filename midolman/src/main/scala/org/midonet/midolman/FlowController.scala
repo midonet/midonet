@@ -474,7 +474,7 @@ class FlowController extends Actor with ActorLogWithoutPath
 
             datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
                 new Callback[Flow] {
-                    def onError(ex: NetlinkException) {
+                    def onError(ex: NetlinkException): Unit = {
                         log.debug("Got an exception {} when trying to remove " +
                                   "flow with match {}", ex, flowMatch)
                         ex.getErrorCodeEnum match {

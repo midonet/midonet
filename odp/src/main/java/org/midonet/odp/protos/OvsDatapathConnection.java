@@ -43,7 +43,6 @@ import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
 
-
 /**
  * OvsDatapath protocol implementation.
  */

@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
-import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
@@ -39,6 +38,7 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.OvsProtocol;
 import org.midonet.odp.Packet;
 import org.midonet.odp.family.DatapathFamily;
 import org.midonet.odp.family.FlowFamily;
@@ -143,9 +143,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         this.notificationHandler = notificationHandler;
     }
 
-    private DatapathFamily datapathFamily;
-    private PortFamily portFamily;
-    private FlowFamily flowFamily;
+    private OvsProtocol protocol;
     private PacketFamily packetFamily;
 
     private int datapathMulticast;
@@ -171,13 +169,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            datapathFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), 0, name),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathGet(0, name, buf);
+        sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
@@ -190,40 +184,26 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            datapathFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), datapathId, null),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathGet(datapathId, null, buf);
+        sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
     protected void _doDatapathsEnumerate(@Nonnull Callback<Set<Datapath>> callback,
                                          long timeoutMillis) {
-        sendMultiAnswerNetlinkMessage(
-            datapathFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP,
-            Datapath.enumRequest(getBuffer()),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathEnumerate(buf);
+        sendMultiAnswerNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
     protected void _doDatapathsCreate(@Nonnull String name,
                                       @Nonnull Callback<Datapath> callback,
                                       long timeoutMillis) {
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        sendNetlinkMessage(
-            datapathFamily.contextNew,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.createRequest(getBuffer(), localPid, name),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathCreate(name, buf);
+        sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
@@ -236,13 +216,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            datapathFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), 0, name),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathDel(0, name, buf);
+        sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
@@ -255,13 +231,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            datapathFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Datapath.getRequest(getBuffer(), datapathId, null),
-            callback,
-            Datapath.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDatapathDel(datapathId, null, buf);
+        sendNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
     }
 
     @Override
@@ -287,15 +259,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         int datapathId = datapath == null ? 0 : datapath.getIndex();
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        sendNetlinkMessage(
-            portFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            DpPort.getRequest(getBuffer(), datapathId, localPid, name, portId),
-            callback,
-            DpPort.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDpPortGet(datapathId, portId, name, buf);
+        sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
     @Override
@@ -305,14 +271,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   long timeoutMillis) {
 
         int datapathId = datapath == null ? 0 : datapath.getIndex();
-
-        sendNetlinkMessage(
-            portFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            DpPort.deleteRequest(getBuffer(), datapathId, port),
-            callback,
-            DpPort.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDpPortDelete(datapathId, port, buf);
+        sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
     @Override
@@ -321,7 +282,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                @Nonnull final Callback<DpPort> callback,
                                final long timeoutMillis) {
         int datapathId = datapath == null ? 0 : datapath.getIndex();
-        int localPid = getChannel().getLocalAddress().getPid();
 
         if (port.getName() == null && datapathId == 0) {
             callback.onError(
@@ -330,13 +290,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            portFamily.contextSet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            DpPort.createRequest(getBuffer(), datapathId, localPid, port),
-            callback,
-            DpPort.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDpPortCreate(datapathId, port, buf);
+        sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
 
@@ -344,13 +300,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     protected void _doPortsEnumerate(@Nonnull final Datapath datapath,
                                      @Nonnull Callback<Set<DpPort>> callback,
                                      long timeoutMillis) {
-        sendMultiAnswerNetlinkMessage(
-            portFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
-            DpPort.enumRequest(getBuffer(), datapath.getIndex()),
-            callback,
-            DpPort.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDpPortEnum(datapath.getIndex(), buf);
+        sendMultiAnswerNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
     @Override
@@ -358,16 +310,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                   @Nonnull DpPort port,
                                   @Nonnull Callback<DpPort> callback,
                                   long timeoutMillis) {
-        int datapathId = datapath.getIndex();
-        int localPid = getChannel().getLocalAddress().getPid();
-
-        sendNetlinkMessage(
-            portFamily.contextNew,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            DpPort.createRequest(getBuffer(), datapathId, localPid, port),
-            callback,
-            DpPort.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareDpPortCreate(datapath.getIndex(), port, buf);
+        sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
     @Override
@@ -383,13 +328,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendMultiAnswerNetlinkMessage(
-            flowFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO | NLFlag.Get.DUMP | NLFlag.ACK,
-            Flow.selectAllRequest(getBuffer(), datapathId),
-            callback,
-            Flow.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowEnum(datapathId, buf);
+        sendMultiAnswerNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
     @Override
@@ -414,18 +355,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
         }
 
-        short flags = NLFlag.REQUEST | NLFlag.New.CREATE;
-        if (callback != null) {
-            flags |= NLFlag.ECHO;
-        }
-
-        sendNetlinkMessage(
-            flowFamily.contextNew,
-            flags,
-            flow.describeOneRequest(getBuffer(), datapathId),
-            callback,
-            Flow.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowCreate(datapathId, flow, callback != null, buf);
+        sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
     @Override
@@ -442,15 +374,10 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            flowFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Flow.selectOneRequest(getBuffer(), datapathId, keys),
-            callback,
-            Flow.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowDelete(datapathId, keys, buf);
+        sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
-
 
     @Override
     protected void _doFlowsFlush(@Nonnull final Datapath datapath,
@@ -465,13 +392,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            flowFamily.contextDel,
-            NLFlag.REQUEST | NLFlag.ACK,
-            Flow.selectAllRequest(getBuffer(), datapathId),
-            callback,
-            alwaysTrueReader,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowFlush(datapathId, buf);
+        sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
     }
 
     @Override
@@ -487,13 +410,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            flowFamily.contextGet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            Flow.selectOneRequest(getBuffer(), datapathId, match.getKeys()),
-            callback,
-            Flow.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowGet(datapathId, match, buf);
+        sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
     @Override
@@ -520,13 +439,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        sendNetlinkMessage(
-            flowFamily.contextSet,
-            NLFlag.REQUEST | NLFlag.ECHO,
-            flow.describeOneRequest(getBuffer(), datapathId),
-            callback,
-            Flow.deserializer,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.prepareFlowSet(datapathId, flow, buf);
+        sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
     private void propagateError(Callback<?> callback, NetlinkException ex) {
@@ -579,23 +494,18 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             };
         }
 
-        short flags = NLFlag.REQUEST;
-        if (callback != null) {
-            flags |= NLFlag.ACK;
-        }
-
-        sendNetlinkMessage(
-            packetFamily.contextExec,
-            flags,
-            Packet.execRequest(getBuffer(), datapathId, keys,
-                               actions, packet.getEthernet()),
-            callback,
-            alwaysTrueReader,
-            timeoutMillis);
+        ByteBuffer buf = getBuffer();
+        protocol.preparePacketExecute(datapathId, packet, actions,
+                                      callback != null, buf);
+        sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
     }
 
     @Override
     public void initialize(final Callback<Boolean> initStatusCallback) {
+        final DatapathFamily[] datapathFamily = new DatapathFamily[1];
+        final PortFamily[] portFamily = new PortFamily[1];
+        final FlowFamily[] flowFamily = new FlowFamily[1];
+
         final Callback<Integer> portMulticastCallback =
             new ChainedCallback<Integer>(initStatusCallback) {
                 @Override
@@ -612,6 +522,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
                     }
 
+                    protocol = new OvsProtocol(pid(), datapathFamily[0],
+                                               portFamily[0], flowFamily[0],
+                                               packetFamily);
                     initialized = true;
                     initStatusCallback.onSuccess(true);
                 }
@@ -647,7 +560,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
-                    flowFamily = new FlowFamily(data);
+                    flowFamily[0] = new FlowFamily(data);
                     log.debug("Got flow family id: {}.", data);
                     getFamilyId(OpenVSwitch.Packet.Family, packetFamilyBuilder);
                 }
@@ -657,7 +570,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
-                    portFamily = new PortFamily(data);
+                    portFamily[0] = new PortFamily(data);
                     log.debug("Got port family id: {}.", data);
                     getFamilyId(OpenVSwitch.Flow.Family, flowFamilyBuilder);
                 }
@@ -667,7 +580,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             new ChainedCallback<Short>(initStatusCallback) {
                 @Override
                 public void onSuccess(Short data) {
-                    datapathFamily = new DatapathFamily(data);
+                    datapathFamily[0] = new DatapathFamily(data);
                     log.debug("Got datapath family id: {}.", data);
                     getFamilyId(OpenVSwitch.Port.Family, portFamilyBuilder);
                 }

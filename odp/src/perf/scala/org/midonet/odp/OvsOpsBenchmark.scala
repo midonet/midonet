@@ -119,7 +119,7 @@ class FlowCreate extends OvsBenchmark {
 class FlowDelete extends OvsBenchmark {
 
     @Benchmark
-    def flowDeleteWithCallback(): Flow =
+    def flowDeleteWithCallback() =
         Await.result(con delFlow (flow, datapath), Duration.Inf)
 
     @Benchmark

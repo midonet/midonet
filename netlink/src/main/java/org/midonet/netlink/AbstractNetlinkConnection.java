@@ -17,18 +17,15 @@ package org.midonet.netlink;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.SelectionKey;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sun.jna.Native;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,10 +167,11 @@ public abstract class AbstractNetlinkConnection {
 
     public void getFamilyId(String familyName,
                             Callback<Short> callback, long timeoutMillis) {
+        ByteBuffer buf = getBuffer();
+        GenlProtocol.familyNameRequest(familyName, NLFlag.REQUEST, pid(),
+                                       CtrlFamily.Context.GetFamily, buf);
         sendNetlinkMessage(
-            CtrlFamily.Context.GetFamily,
-            NLFlag.REQUEST,
-            CtrlFamily.familyNameRequest(getBuffer(), familyName),
+            buf,
             callback,
             CtrlFamily.familyIdDeserializer,
             timeoutMillis);
@@ -189,10 +187,11 @@ public abstract class AbstractNetlinkConnection {
                                   String groupName,
                                   Callback<Integer> callback,
                                   long timeoutMillis) {
+        ByteBuffer buf = getBuffer();
+        GenlProtocol.familyNameRequest(familyName, NLFlag.REQUEST, pid(),
+                                       CtrlFamily.Context.GetFamily, buf);
         sendNetlinkMessage(
-            CtrlFamily.Context.GetFamily,
-            NLFlag.REQUEST,
-            CtrlFamily.familyNameRequest(getBuffer(), familyName),
+            buf,
             callback,
             CtrlFamily.mcastGrpDeserializer(groupName),
             timeoutMillis);
@@ -202,14 +201,10 @@ public abstract class AbstractNetlinkConnection {
      *  internal queue of messages to be writen to the nl socket by the
      *  writing thread. It is assumed that this message will be answered by
      *  a unique reply message. */
-    protected <T> void sendNetlinkMessage(NetlinkRequestContext ctx,
-                                          int flags,
-                                          ByteBuffer payload,
+    protected <T> void sendNetlinkMessage(ByteBuffer payload,
                                           Callback<T> callback,
                                           Reader<T> reader,
                                           long timeoutMillis) {
-        serializeNetlinkHeader(payload, (short) flags, ctx);
-
         enqueueRequest(NetlinkRequest.makeSingle(callback, reader,
                                                  payload, timeoutMillis));
     }
@@ -219,14 +214,10 @@ public abstract class AbstractNetlinkConnection {
      *  handler will take care of assembling a set of answers using the given
      *  deserialisation function, and will pass this set to the given callback
      *  once a DONE netlink message is read for the handler seq number. */
-    protected <T> void sendMultiAnswerNetlinkMessage(NetlinkRequestContext ctx,
-                                                     int flags,
-                                                     ByteBuffer payload,
+    protected <T> void sendMultiAnswerNetlinkMessage(ByteBuffer payload,
                                                      Callback<Set<T>> callback,
                                                      Reader<T> reader,
                                                      long timeoutMillis) {
-        serializeNetlinkHeader(payload, (short) flags, ctx);
-
         enqueueRequest(NetlinkRequest.makeMulti(callback, reader,
                                                 payload, timeoutMillis));
     }
@@ -241,7 +232,7 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
-    private int pid() {
+    protected int pid() {
         return getChannel().getLocalAddress().getPid();
     }
 
@@ -508,19 +499,6 @@ public abstract class AbstractNetlinkConnection {
     protected abstract void handleNotification(short type, byte cmd, int seq,
                                                int pid, ByteBuffer buffer);
 
-    /** Finalizes a ByteBuffer containing a msg payload with the header
-     *  sections, except for the sequence number, which is set by the writing
-     *  thread. It is assumed that the buffer was obtained with getBuffer() and
-     *  has enough space for the header sections at its beginning. If this is
-     *  not the case, the payload message will get overwritten or misaligned. */
-    private void serializeNetlinkHeader(ByteBuffer request, short flags,
-                                        NetlinkRequestContext ctx) {
-        int size = request.limit(); // payload + headers size
-        request.rewind(); // rewind for writing the header sections
-        NetlinkMessage.writeHeader(request, size, ctx.commandFamily(), flags, 0,
-                                   pid(), ctx.command(), ctx.version());
-    }
-
     private int writeSeqToNetlinkRequest(NetlinkRequest request, ByteBuffer out) {
         int seq = nextSequenceNumber();
         request.seq = seq;
@@ -528,13 +506,9 @@ public abstract class AbstractNetlinkConnection {
         return seq;
     }
 
-    /** Obtains a send buffer from the internal buffer pool and offset the
-     *  buffer position to reserve enough space for the netlink and generic
-     *  netlink header sections. */
     protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();
         buf.clear();
-        buf.position(NETLINK_HEADER_LEN);
         return buf;
     }
 }

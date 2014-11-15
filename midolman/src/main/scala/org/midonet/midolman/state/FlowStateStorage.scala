@@ -21,7 +21,7 @@ import java.net.InetAddress
 import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
                   HashSet => JHashSet, Iterator => JIterator}
 import java.util.concurrent.{TimeoutException, TimeUnit}
-import scala.concurrent.{ExecutionContext, promise, Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.concurrent.duration.Duration
 
 import akka.actor.ActorSystem
@@ -342,7 +342,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             (implicit ec: ExecutionContext,
                       as: ActorSystem): Future[ResultSet] = {
 
-        val p: Promise[ResultSet] = promise[ResultSet]()
+        val p: Promise[ResultSet] = Promise[ResultSet]()
         Futures.addCallback(f, new FutureCallback[ResultSet](){
             override def onSuccess(result: ResultSet): Unit = {
                 p.success(result)
