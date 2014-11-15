@@ -281,33 +281,6 @@ public class Datapath {
             '}';
     }
 
-    public static ByteBuffer getRequest(ByteBuffer buf, int datapathId,
-                                        String name) {
-        buf.putInt(datapathId);
-        if (name != null) {
-            NetlinkMessage.writeStringAttr(buf, Attr.Name, name);
-        }
-        buf.flip();
-        return buf;
-    }
-
-    public static ByteBuffer enumRequest(ByteBuffer buf) {
-        buf.putInt(0);
-        buf.flip();
-        return buf;
-    }
-
-    public static ByteBuffer createRequest(ByteBuffer buf, int pid,
-                                           String name) {
-        buf.putInt(0);
-        NetlinkMessage.writeIntAttr(buf, Attr.UpcallPID, pid);
-        if (name != null) {
-            NetlinkMessage.writeStringAttr(buf, Attr.Name, name);
-        }
-        buf.flip();
-        return buf;
-    }
-
     public static Datapath random() {
         return new Datapath(1 + r.nextInt(100),
                             new BigInteger(100, r).toString(32),

@@ -449,15 +449,15 @@ class FlowController extends Actor with ActorLogWithoutPath
             }
             datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
                 new Callback[Flow] {
-                    def onError(ex: NetlinkException) {
+                    def onError(ex: NetlinkException): Unit = {
                         log.debug("Got an exception {} when trying to remove " +
                                   "flow with match {}", ex, flowMatch)
                         ex.getErrorCodeEnum match {
                             // Success cases, the flow doesn't exist so userspace
                             // can take it as a successful remove:
-                            case ErrorCode.ENODEV => notifyRemoval(flowMatch)
-                            case ErrorCode.ENOENT => notifyRemoval(flowMatch)
-                            case ErrorCode.ENXIO => notifyRemoval(flowMatch)
+                            case ErrorCode.ENODEV => notifyRemoval()
+                            case ErrorCode.ENOENT => notifyRemoval()
+                            case ErrorCode.ENXIO => notifyRemoval()
                             // Retry cases.
                             case ErrorCode.EBUSY => scheduleRetry()
                             case ErrorCode.EAGAIN => scheduleRetry()
@@ -471,11 +471,11 @@ class FlowController extends Actor with ActorLogWithoutPath
                         }
                     }
 
-                    def onSuccess(flow: Flow) {
-                        notifyRemoval(flow.getMatch)
+                    def onSuccess(data: Flow): Unit = {
+                        notifyRemoval()
                     }
 
-                    def notifyRemoval(flowMatch: FlowMatch) {
+                    private def notifyRemoval(): Unit = {
                         log.debug("DP confirmed removal of flow with match {}", flowMatch)
                     }
                 })
