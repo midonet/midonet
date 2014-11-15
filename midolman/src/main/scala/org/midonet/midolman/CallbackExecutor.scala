@@ -42,7 +42,7 @@ sealed class CallbackExecutor(queue: Queue[Callback0], alert: ActorRef) {
         var i = 0
         while (i < callbacks.size()) {
             val cb = callbacks.get(i)
-            while (!queue.add(cb)) {
+            while (!queue.offer(cb)) {
                 retries = doWait(retries)
             }
             i += 1
