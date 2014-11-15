@@ -71,7 +71,6 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
                         backchannel.process()
                         retries = applyWait(retries)
                     case _ =>
-                        retries = DEFAULT_RETRIES
                 }
             }
         } finally {
@@ -87,7 +86,7 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             counter - 1
         } else {
             park()
-            counter
+            DEFAULT_RETRIES
         }
     }
 }
