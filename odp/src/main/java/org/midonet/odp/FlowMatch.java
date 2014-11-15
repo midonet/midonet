@@ -38,6 +38,7 @@ public class FlowMatch implements AttributeHandler {
     private final List<FlowKey> keys = new ArrayList<>();
     private int keysHashCode = 0;
     private int connectionHash = 0;
+    private long sequence;
 
     public FlowMatch() { }
 
@@ -70,6 +71,15 @@ public class FlowMatch implements AttributeHandler {
                 return true;
         }
         return false;
+    }
+
+    public long getSequence() {
+        return sequence;
+    }
+
+    public FlowMatch setSequence(long sequence) {
+        this.sequence = sequence;
+        return this;
     }
 
     @Override

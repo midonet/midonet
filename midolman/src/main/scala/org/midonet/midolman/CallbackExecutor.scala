@@ -58,7 +58,7 @@ sealed class CallbackExecutor(capacity: Int, alert: ActorRef)
 
     def run(): Unit = {
         var cb: Callback0 = null
-        while ({cb = queue.poll(); cb } ne null) {
+        while ({ cb = queue.poll(); cb } ne null) {
             cb.call()
         }
     }
