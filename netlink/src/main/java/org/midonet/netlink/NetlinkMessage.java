@@ -75,12 +75,12 @@ public final class NetlinkMessage {
 
         int start = buffer.position();      // save position
 
-        NetlinkMessage.setAttrHeader(buffer, id, 4); // space for nl_attr header
+        NetlinkMessage.setAttrHeader(buffer, id, 0); // space for nl_attr header
 
-        translator.serializeInto(buffer, value);
+        int nbytes = 4 + translator.serializeInto(buffer, value);
 
         // write nl_attr length field
-        buffer.putShort(start, (short)(buffer.position() - start));
+        buffer.putShort(start, (short)nbytes);
         alignBuffer(buffer);
 
         return buffer.position() - start;
@@ -124,7 +124,7 @@ public final class NetlinkMessage {
             nByte += writeAttr(buffer, v, translator);
         }
 
-        buffer.putShort(start, (short) (buffer.position() - start));
+        buffer.putShort(start, (short) nByte);
 
         return nByte;
     }
