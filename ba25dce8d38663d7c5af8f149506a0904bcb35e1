@@ -2,6 +2,92 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_46a1d2a8",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/SubscriptionUtil.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T11:21:12Z",
+      "side": 1,
+      "message": "Can\u0027t the AwaitableObserver from midonet-util be used here (maybe extended as appropriate)?",
+      "revId": "ba25dce8d38663d7c5af8f149506a0904bcb35e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_86abba88",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T11:21:12Z",
+      "side": 1,
+      "message": "Remove whitespace",
+      "range": {
+        "startLine": 38,
+        "startChar": 22,
+        "endLine": 38,
+        "endChar": 23
+      },
+      "revId": "ba25dce8d38663d7c5af8f149506a0904bcb35e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a6919e54",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T11:21:12Z",
+      "side": 1,
+      "message": "In my last VT patch, I removed this argument, and exposed the storage via the vt argument, such that we don\u0027t have to add additional arguments such as dataClient for the state information, etc.",
+      "range": {
+        "startLine": 38,
+        "startChar": 34,
+        "endLine": 38,
+        "endChar": 48
+      },
+      "revId": "ba25dce8d38663d7c5af8f149506a0904bcb35e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c694a246",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T11:21:12Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 39,
+        "startChar": 23,
+        "endLine": 39,
+        "endChar": 27
+      },
+      "revId": "ba25dce8d38663d7c5af8f149506a0904bcb35e1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_0676aa3e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
         "patchSetId": 4
