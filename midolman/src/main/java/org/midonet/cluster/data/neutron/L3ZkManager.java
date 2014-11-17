@@ -205,11 +205,15 @@ public class L3ZkManager extends BaseZkManager {
             if (bpConfig.inboundFilter != null) {
                 ops.addAll(chainZkManager.prepareDelete(
                     bpConfig.inboundFilter));
+                bpConfig.inboundFilter = null;
+                ops.addAll(portZkManager.prepareUpdate(bpConfig.id, bpConfig));
             }
 
             if (bpConfig.outboundFilter != null) {
                 ops.addAll(chainZkManager.prepareDelete(
                     bpConfig.outboundFilter));
+                bpConfig.outboundFilter = null;
+                ops.addAll(portZkManager.prepareUpdate(bpConfig.id, bpConfig));
             }
 
             networkZkManager.prepareDeleteDhcpHostEntries(ops, port);
