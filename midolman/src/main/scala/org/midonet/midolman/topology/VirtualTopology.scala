@@ -19,12 +19,13 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.concurrent.{Future, Promise}
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect._
 
 import com.google.inject.Inject
 
 import rx.Observable
 
+import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.{FlowController, NotYetException}
@@ -152,7 +153,7 @@ object VirtualTopology extends MidolmanLogging {
  * | Port/Network/RouterMapper extends DeviceMapper | (1 per device)
  * +------------------------------------------------+
  */
-class VirtualTopology @Inject() (val store: Storage,
+class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
                                  val actorsService: MidolmanActorsService)
         extends MidolmanLogging {
 
@@ -170,7 +171,8 @@ class VirtualTopology @Inject() (val store: Storage,
         classTag[RouterPort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
         classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
-        classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this))
+        classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this)),
+        classTag[Host] -> ((id: UUID) => new HostMapper(id, this, dataClient))
     )
 
     register(this)

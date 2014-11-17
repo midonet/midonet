@@ -26,10 +26,7 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.util.IPAddressUtil
-import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.packets.IPAddr
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
@@ -45,8 +42,6 @@ class HostConversionTest extends FeatureSpec with Matchers {
             val proto = newProto
             val zoomObj = ZoomConvert.fromProto(proto, classOf[Host])
 
-            zoomObj should not be null
-            zoomObj.deviceTag should be(deviceTag(proto))
             assertEquals(proto, zoomObj)
         }
 
@@ -54,18 +49,12 @@ class HostConversionTest extends FeatureSpec with Matchers {
             val zoomObj = newZoomObj
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.Host])
 
-            proto should not be null
             assertEquals(proto, zoomObj)
         }
     }
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava should be(zoomObj.id)
-        proto.getName should be(zoomObj.name)
-        proto.getAddressesCount should be(zoomObj.addresses.size)
-        for (addr <- proto.getAddressesList) {
-            zoomObj.addresses should contain(IPAddressUtil.toIPAddr(addr))
-        }
         proto.getPortInterfaceMappingCount should be(zoomObj.portInterfaceMapping.size)
         for (portMapping <- proto.getPortInterfaceMappingList) {
             val protoInterface = portMapping.getInterfaceName
@@ -76,11 +65,10 @@ class HostConversionTest extends FeatureSpec with Matchers {
         for (tunnelId <- proto.getTunnelZoneIdsList) {
             zoomObj.tunnelZoneIds should contain(tunnelId.asJava)
         }
-        proto.getFloodingProxyWeight should be(zoomObj.floodingProxyWeight)
 
-        // The tunnelZones field of the zoomObj should be None since no such field
-        // exists in the proto.
-        Option(zoomObj.tunnelZones) should be(None)
+        // The tunnelZones field of the zoomObj should be an empty map since no
+        // such field exists in the proto.
+        zoomObj.tunnelZones should be(Map.empty)
     }
 
     private def portInterfaceMapping(interface: String): Topology.Host.PortToInterface = {
@@ -93,28 +81,20 @@ class HostConversionTest extends FeatureSpec with Matchers {
     private def newZoomObj = {
         val zoomObj = new Host
         zoomObj.id = UUID.randomUUID()
-        zoomObj.name = "tata"
-        zoomObj.addresses = Set(IPAddr.fromString("192.168.0.1"),
-                                IPAddr.fromString("192.168.0.2"))
         zoomObj.portInterfaceMapping = Map(UUID.randomUUID() -> "eth0",
                                            UUID.randomUUID() -> "eth1")
         zoomObj.tunnelZoneIds = Set(UUID.randomUUID(),
                                     UUID.randomUUID())
-        zoomObj.floodingProxyWeight = 42
         zoomObj
     }
 
     private def newProto = {
         Topology.Host.newBuilder
             .setId(UUID.randomUUID().asProto)
-            .setName("tata")
-            .addAddresses("192.168.0.1".asProtoIPAddress)
-            .addAddresses("192.168.0.2".asProtoIPAddress)
             .addPortInterfaceMapping(portInterfaceMapping("foo"))
             .addPortInterfaceMapping(portInterfaceMapping("bar"))
             .addTunnelZoneIds(UUID.randomUUID().asProto)
             .addTunnelZoneIds(UUID.randomUUID().asProto)
-            .setFloodingProxyWeight(42)
             .build()
     }
 }
