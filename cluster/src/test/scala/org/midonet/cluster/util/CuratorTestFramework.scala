@@ -70,7 +70,7 @@ trait CuratorTestFramework extends BeforeAndAfter
     protected def setUpCurator(): Unit = {
         zk = testServers(this.getClass)
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
-                                                    1000, 1000, retryPolicy)
+                                                    retryPolicy)
     }
 
     before {
