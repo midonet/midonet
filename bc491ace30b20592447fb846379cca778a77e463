@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e116f0f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T17:34:24Z",
+      "side": 1,
+      "message": "s/UUID/PortBinding?",
+      "revId": "bc491ace30b20592447fb846379cca778a77e463",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_41d37c38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/HostRequestProxy.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T17:34:24Z",
+      "side": 1,
+      "message": "host.ports.map { ...}.collect { case Some(binding) \u003d\u003e (binding.portId, binding) for coolness points",
+      "revId": "bc491ace30b20592447fb846379cca778a77e463",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
