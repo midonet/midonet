@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_c6c9425c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T11:23:45Z",
+      "side": 1,
+      "message": "I don\u0027t think you need to subclass PortActivationStateMachine, as this actor can be synchronous.",
+      "revId": "07a3365e18254630ca2dc273edf8165c72980c43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_86b0dade",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T11:23:45Z",
+      "side": 1,
+      "message": "It seems you only need the ifDesc to get the interface name. However, that information is already in the Port object. Is this true?",
+      "revId": "07a3365e18254630ca2dc273edf8165c72980c43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a6c6be47",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T11:23:45Z",
+      "side": 1,
+      "message": "It seems you\u0027re potentially executing the command from a thread pool thread, that\u0027s completing the future, while we should be executing the command from the actor\u0027s pinned thread.",
+      "revId": "07a3365e18254630ca2dc273edf8165c72980c43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_46b6f2dd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T11:23:45Z",
+      "side": 1,
+      "message": "You don\u0027t need to load the bridge. You just need to check if port.isInstanceOf[Bridge].",
+      "revId": "07a3365e18254630ca2dc273edf8165c72980c43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
