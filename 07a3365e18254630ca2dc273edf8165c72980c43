@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_462b92eb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T11:37:14Z",
+      "side": 1,
+      "message": "Ah, IIRC, you needed to check if the interface is a TUN/TAP, right?",
+      "parentUuid": "fafc7978_86b0dade",
+      "revId": "07a3365e18254630ca2dc273edf8165c72980c43",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_a6c6be47",
         "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaseActor.scala",
         "patchSetId": 9
