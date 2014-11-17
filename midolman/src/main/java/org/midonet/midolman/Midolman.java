@@ -29,6 +29,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+
+import org.midonet.midolman.guice.StateStorageModule;
 import org.midonet.midolman.guice.cluster.MidostoreModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,6 +125,7 @@ public class Midolman {
             new HostModule(),
             new ConfigProviderModule(configFilePath),
             new MidostoreModule(),
+            new StateStorageModule(),
             new DatapathModule(),
             new ClusterClientModule(),
             new SerializationModule(),
