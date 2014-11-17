@@ -78,9 +78,9 @@ class HostConversionTest extends FeatureSpec with Matchers {
         }
         proto.getFloodingProxyWeight should be(zoomObj.floodingProxyWeight)
 
-        // The tunnelZones field of the zoomObj should be None since no such field
-        // exists in the proto.
-        Option(zoomObj.tunnelZones) should be(None)
+        // The tunnelZones field of the zoomObj should be an empty map since no
+        // such field exists in the proto.
+        zoomObj.tunnelZones should be(Map.empty)
     }
 
     private def portInterfaceMapping(interface: String): Topology.Host.PortToInterface = {

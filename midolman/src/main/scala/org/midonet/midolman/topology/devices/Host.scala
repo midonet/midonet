@@ -18,13 +18,14 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
-import org.midonet.cluster.data.{ZoomField, ZoomObject, ZoomClass}
-import org.midonet.cluster.models.Topology
+import scala.collection.mutable
+
+import org.midonet.cluster.data.{ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology.Host.PortToInterface
-import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddrConverter}
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.MapConverter
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.packets.IPAddr
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -51,8 +52,7 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
     }
 }
 
-@ZoomClass(clazz = classOf[Topology.Host])
-class Host extends ZoomObject {
+class Host extends ZoomObject with VirtualDevice {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -70,7 +70,7 @@ class Host extends ZoomObject {
 
     // To be filled by the HostObservable.
     // The IP address of the host in each one of the tunnel zones.
-    var tunnelZones: Map[UUID, IPAddr] = _
+    var tunnelZones = mutable.Map[UUID, IPAddr]()
 
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = _
