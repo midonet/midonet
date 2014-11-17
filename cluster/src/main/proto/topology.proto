@@ -266,14 +266,12 @@ message VtepBinding {
 
 message Host {
     optional UUID id = 1;
-    optional string name = 2;
-    repeated IPAddress addresses = 3;
+    optional string datapath = 2;
 
     message PortToInterface {
         optional UUID port_id = 1;
         optional string interface_name = 2;
     }
-    repeated PortToInterface port_interface_mapping = 4;
-    repeated UUID tunnel_zone_ids = 5;
-    optional int32 flooding_proxy_weight = 6;
+    repeated PortToInterface port_interface_mapping = 3;
+    repeated UUID tunnelZoneIds = 4;
 }
