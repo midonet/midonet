@@ -485,6 +485,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         def isVtepTunnellingPort(portNumber: Short): Boolean =
             portNumber == vxlanPortNumber
         def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+        override def getDescForInterface(itfName: String) = None
     }
 
     def translationScenario(name: String)
