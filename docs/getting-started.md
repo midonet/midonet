@@ -62,7 +62,7 @@ Now we can set up midonet-cli and check that the API responds:
     midonet> router list
     midonet>
 
-## Running midolan and creating a virtual network
+## Running midolman and creating a virtual network
 
 Once we start midolman:
 
