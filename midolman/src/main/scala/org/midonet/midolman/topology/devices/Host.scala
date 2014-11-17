@@ -18,16 +18,13 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
-import org.midonet.cluster.data.{ZoomField, ZoomObject, ZoomClass}
+import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.util.MapConverter
-import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddrConverter}
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.IPAddr
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 /**
  * This class implements the MapConverter trait to do the conversion between
@@ -52,35 +49,30 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
 }
 
 @ZoomClass(clazz = classOf[Topology.Host])
-class Host extends ZoomObject {
+class Host extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
-    @ZoomField(name = "name")
-    var name: String = _
-    @ZoomField(name = "addresses", converter = classOf[IPAddrConverter])
-    var addresses: Set[IPAddr] = _
     @ZoomField(name = "port_interface_mapping",
                converter = classOf[PortInterfaceConverter])
-    var portInterfaceMapping: Map[UUID, String] = _
-    @ZoomField(name = "flooding_proxy_weight")
-    var floodingProxyWeight: Int = _
+    var portInterfaceMapping = Map[UUID, String]()
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
-    var tunnelZoneIds: Set[UUID] = _
+    var tunnelZoneIds = Set.empty[UUID]
 
-    // To be filled by the HostObservable.
+    // To be filled by the HostMapper.
     // The IP address of the host in each one of the tunnel zones.
-    var tunnelZones: Map[UUID, IPAddr] = _
+    var tunnelZones = Map.empty[UUID, IPAddr]
 
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = _
 
-    private var _deviceTag: FlowTag = _
-
-    override def afterFromProto(): Unit = {
-        _deviceTag = FlowTagger.tagForDevice(id)
-        super.afterFromProto()
+    def deepCopy: Host = {
+        val hostCopy = new Host()
+        hostCopy.id = id
+        hostCopy.portInterfaceMapping = portInterfaceMapping
+        hostCopy.tunnelZoneIds = tunnelZoneIds
+        hostCopy.tunnelZones = tunnelZones
+        hostCopy.alive = alive
+        hostCopy
     }
-
-    def deviceTag = _deviceTag
 }
