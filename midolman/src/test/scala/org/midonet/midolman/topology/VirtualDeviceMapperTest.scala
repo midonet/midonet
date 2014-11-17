@@ -91,7 +91,7 @@ class VirtualDeviceMapperTest extends MidolmanSpec {
     def fc = FlowController.as[FlowController with MessageAccumulator]
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, actorsService)
+        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
     }
 
     feature("Test the flows tags are invalidated") {
