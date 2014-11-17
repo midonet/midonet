@@ -50,7 +50,7 @@ class PacketInWorkflowTestCase extends MidolmanTestCase {
 
         initializeDatapath() should not be (null)
 
-        val datapath = requestOfType[DatapathReady](flowProbe()).datapath
+        val datapath = datapathEventsProbe.expectMsgType[DatapathReady].datapath
         datapath should not be null
 
         portsProbe.expectMsgClass(classOf[LocalPortActive])
