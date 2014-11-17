@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e1ff10a9",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T16:58:29Z",
+      "side": 1,
+      "message": "Import order.",
+      "revId": "45485c079a851c37cf7c9623f91df13d739ff45f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_412c1c4b",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-17T16:58:29Z",
+      "side": 1,
+      "message": "Unused import.",
+      "revId": "45485c079a851c37cf7c9623f91df13d739ff45f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
