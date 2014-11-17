@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_c11f6c08",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaser.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-17T17:20:22Z",
+      "side": 1,
+      "message": "The reason this is generally not needed it because Receive is a PartialFunction. A PartialFunction has an isDefinedAt method that, in this particular case, will only return true for LocalPortActive messages with active \u003d\u003d true. The other messages are simply sent to the dead letters actor, and logged. So I\u0027d say it\u0027s best to remove the _ \u003d\u003e case.",
+      "revId": "fcb7d10cca42d6aa77d6d6485ff3e4efe3857804",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
