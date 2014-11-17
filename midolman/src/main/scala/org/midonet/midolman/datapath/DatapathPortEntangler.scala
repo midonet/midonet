@@ -103,7 +103,7 @@ trait DatapathPortEntangler {
     implicit val ec: SingleThreadExecutionContext
     implicit val log: Logger
 
-    var interfaceToStatus = Map[String, Boolean]()
+    var interfaceToDescription = Map[String, InterfaceDescription]()
     var interfaceToDpPort = Map[String, DpPort]()
     var dpPortNumToInterface = Map[Integer, String]()
     var interfaceToVport = new Bimap[String, UUID]()
@@ -128,7 +128,7 @@ trait DatapathPortEntangler {
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
-        var interfacesToDelete = interfaceToStatus.keySet
+        var interfacesToDelete = interfaceToDescription.keySet
 
         val it = itfs.iterator()
         while (it.hasNext) {
@@ -157,7 +157,7 @@ trait DatapathPortEntangler {
     }
 
     private def processUpdate(itf: InterfaceDescription, port: String): Future[_] =
-        if (interfaceToStatus contains port) {
+        if (interfaceToDescription contains port) {
             updateInterface(itf, port)
         } else {
             newInterface(itf, port)
@@ -166,7 +166,7 @@ trait DatapathPortEntangler {
     private def newInterface(itf: InterfaceDescription, port: String): Future[_] = {
         val isUp = itf.isUp
         log.info(s"Found new interface ${itf.logString} which is ${if (isUp) "up" else "down"}")
-        interfaceToStatus += port -> isUp
+        interfaceToDescription += port -> itf
         tryCreateDpPort(port)
     }
 
@@ -178,7 +178,7 @@ trait DatapathPortEntangler {
 
     private def tryCreateDpPort(port: String): Future[_] = {
         val vPort = interfaceToVport get port
-        val itf = interfaceToStatus get port
+        val itf = interfaceToDescription get port
         if (vPort.isDefined && itf.isDefined) {
             val dpPort = interfaceToDpPort get port
             if (dpPort.isDefined) { // If it was registered
@@ -203,8 +203,8 @@ trait DatapathPortEntangler {
         log.debug(s"Updating interface: $itf")
         val name = itf.getName
         val isUp = itf.isUp
-        val wasUp = interfaceToStatus(port)
-        interfaceToStatus += itf.getName -> isUp
+        val wasUp = interfaceToDescription(port).isUp
+        interfaceToDescription += itf.getName -> itf
 
         val dpPort = interfaceToDpPort get name
         val vPort = interfaceToVport get name
@@ -246,7 +246,7 @@ trait DatapathPortEntangler {
     private def deleteInterface(port: String, scheduleShutdown: () => Unit): Future[_] = {
         log.info("Deleting interface {}", port)
         tryRemovePort(port, scheduleShutdown) {
-            interfaceToStatus -= port
+            interfaceToDescription -= port
         }
     }
 
@@ -271,7 +271,7 @@ trait DatapathPortEntangler {
 
         removeFromMap
 
-        if (!(interfaceToStatus contains port) &&
+        if (!(interfaceToDescription contains port) &&
             !(interfaceToVport contains port)) {
             scheduleShutdown()
         }
@@ -292,7 +292,7 @@ trait DatapathPortEntangler {
 
     private def dpPortAdded(port: DpPort): Future[_] = {
         val name = port.getName
-        if (interfaceToStatus(name)) {
+        if (interfaceToDescription(name).isUp) {
             val vport = interfaceToVport.get(name).get
             controller.setVportStatus(port, vport, isActive = true)
         } else {
@@ -314,9 +314,9 @@ trait DatapathPortEntangler {
 
     private def deactivateIfNeeded(dpPort: DpPort, name: String): Future[_] = {
         val vport = interfaceToVport get name
-        val status = interfaceToStatus get name
+        val status = interfaceToDescription get name
 
-        if (vport.isDefined && status.isDefined && status.get) {
+        if (vport.isDefined && status.isDefined && status.get.isUp) {
             controller.setVportStatus(dpPort, vport.get, isActive = false)
         } else {
             Future successful null

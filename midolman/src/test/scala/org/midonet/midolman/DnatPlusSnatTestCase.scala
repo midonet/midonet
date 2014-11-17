@@ -70,8 +70,8 @@ class DnatPlusSnatTestCase extends MidolmanTestCase
         materializePort(rtrPort2, host, "port2")
         requestOfType[LocalPortActive](portsProbe)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].
-            datapath should not be (null)
+        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
+            .datapath should not be (null)
         drainProbes()
 
         val inChain = newInboundChainOnRouter("InFilter", router)

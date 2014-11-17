@@ -147,6 +147,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
         for (klass <- List(classOf[PacketIn], classOf[EmitGeneratedPacket])) {
             registerProbe(sProbe, klass, actors.eventStream)
         }
+        datapathEventsProbe = makeEventProbe(classOf[DatapathReady])
         packetInProbe = makeEventProbe(classOf[PacketIn])
         packetsEventsProbe = makeEventProbe(classOf[PacketsExecute])
         wflowAddedProbe = makeEventProbe(classOf[WildcardFlowAdded])
@@ -472,8 +473,7 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     def allProbes() = List(vtaProbe(), sProbe, flowProbe(), vtpProbe(),
             dpProbe(), dedupProbe(), discardPacketProbe, wflowAddedProbe,
             wflowRemovedProbe, packetInProbe, packetsEventsProbe,
-            flowUpdateProbe, wflowAddReqProbe)
-            //flowUpdateProbe, datapathEventsProbe, portsProbe)
+            flowUpdateProbe, datapathEventsProbe, wflowAddReqProbe, portsProbe)
 
     protected def drainProbes() {
         for (p <- allProbes()) { drainProbe(p) }

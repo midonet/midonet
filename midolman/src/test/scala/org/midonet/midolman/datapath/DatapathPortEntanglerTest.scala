@@ -97,7 +97,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                               prevInterfaceToVport: Bimap[String, UUID],
                               prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
 
-            (entangler.interfaceToStatus get port).get should be (isUp)
+            entangler.interfaceToDescription(port).isUp should be (isUp)
 
             if ((controller.portCreated ne null) || (controller.portUpdated ne null)) {
                 (prevInterfaceToVport contains port) should be (true)
@@ -140,7 +140,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                               prevInterfaceToVport: Bimap[String, UUID],
                               prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
 
-            (entangler.interfaceToStatus contains port) should be (false)
+            (entangler.interfaceToDescription contains port) should be (false)
             (entangler.interfaceToDpPort contains port) should be (internal)
 
             if (controller.portCreated ne null) {
@@ -177,7 +177,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
 
             if ((controller.portCreated ne null) || (controller.portUpdated ne null)) {
                 (prevInterfaceToStatus contains port) should be (true)
-                (entangler.interfaceToStatus contains port) should be (true)
+                (entangler.interfaceToDescription contains port) should be (true)
                 if (!internal) {
                     (prevInterfaceToDpPort contains port) should be (false)
                 }
@@ -192,8 +192,11 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             } else if (controller.portRemoved ne null) {
                 fail("port removed on new binding")
             } else {
-                (prevInterfaceToStatus get port) should be (entangler.interfaceToStatus get port)
-                (prevInterfaceToDpPort contains port) should be (entangler.interfaceToDpPort contains port)
+                (prevInterfaceToStatus get port) should be (for {
+                    ifDesc <- entangler.interfaceToDescription.get(port)
+                } yield ifDesc.isUp)
+                (prevInterfaceToDpPort contains port) should be (
+                    entangler.interfaceToDpPort contains port)
             }
         }
     }
@@ -216,7 +219,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             } else if ((controller.portRemoved ne null) || (controller.portUpdated ne null)) {
                 (prevInterfaceToVport contains port) should be (true)
                 (prevInterfaceToStatus contains port) should be (true)
-                (entangler.interfaceToStatus contains port) should be (true)
+                (entangler.interfaceToDescription contains port) should be (true)
                 (prevInterfaceToDpPort contains port) should be (true)
 
                 if (controller.portUpdated ne null) {
@@ -224,8 +227,12 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                     (prevInterfaceToStatus get port).get should be (true) // prev was up
                 }
             } else {
-                (prevInterfaceToStatus get port) should be (entangler.interfaceToStatus get port)
-                (prevInterfaceToDpPort contains port) should be (entangler.interfaceToDpPort contains port)
+                (prevInterfaceToStatus get port) should be (for {
+                    ifDesc  <- entangler.interfaceToDescription.get(port)
+                } yield ifDesc.isUp)
+
+                (prevInterfaceToDpPort contains port) should be (
+                    entangler.interfaceToDpPort contains port)
             }
         }
     }
@@ -257,7 +264,8 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         try {
             history foreach { op =>
                 i += 1
-                val prevInterfaceToStatus = entangler.interfaceToStatus
+                val prevInterfaceToStatus =
+                    entangler.interfaceToDescription.mapValues(_.isUp)
                 val prevInterfaceToVport = entangler.interfaceToVport
                 val prevInterfaceToDpPort = entangler.interfaceToDpPort
                 op.act()

@@ -78,7 +78,8 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         actors.eventStream.subscribe(packetEventsProbe.ref, classOf[PacketsExecute])
 
         initializeDatapath() should not be null
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be null
+        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
+            .datapath should not be null
 
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])

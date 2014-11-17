@@ -102,7 +102,8 @@ class BridgeSimulationTestCase extends MidolmanTestCase
 
         initializeDatapath() should not be (null)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
+            .datapath should not be (null)
 
         // assert first that vports are up with their receiving flows installed
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])

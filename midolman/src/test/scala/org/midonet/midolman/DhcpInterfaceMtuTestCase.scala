@@ -177,7 +177,8 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
                        .setIp(vmIP.getAddress))
         addDhcpHost(bridge, dhcpSubnet, dhcpHost)
 
-        flowProbe().expectMsgType[DatapathController.DatapathReady].datapath should not be (null)
+        datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
+            .datapath should not be (null)
         drainProbes()
     }
 

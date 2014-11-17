@@ -44,8 +44,8 @@ object PacketsEntryPoint extends Referenceable {
     case class Workers(list: IndexedSeq[ActorRef])
 }
 
-class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
-
+class PacketsEntryPoint extends Actor with ActorLogWithoutPath
+        with DatapathReadySubscriberActor {
     import org.midonet.midolman.DatapathController.DatapathReady
     import org.midonet.midolman.DeduplicationActor._
     import org.midonet.midolman.PacketsEntryPoint._
