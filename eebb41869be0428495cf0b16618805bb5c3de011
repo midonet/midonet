@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_41a1bca8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-17T18:15:00Z",
+      "side": 1,
+      "message": "Add the list of HostToIp to the builder",
+      "range": {
+        "startLine": 140,
+        "startChar": 8,
+        "endLine": 141,
+        "endChar": 46
+      },
+      "revId": "eebb41869be0428495cf0b16618805bb5c3de011",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
