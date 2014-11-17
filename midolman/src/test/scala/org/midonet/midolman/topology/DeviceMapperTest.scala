@@ -80,7 +80,7 @@ class DeviceMapperTest extends MidolmanSpec {
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, actorsService)
+        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
     }
 
     feature("Test device observable subscription") {

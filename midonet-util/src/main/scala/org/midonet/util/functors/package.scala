@@ -15,7 +15,9 @@
  */
 package org.midonet.util
 
-import rx.functions.{Action0, Func1}
+import java.util.function.UnaryOperator
+
+import rx.functions.{Action1, Action0, Func1}
 
 package object functors {
     def makeRunnable(fn: => Unit) = new Runnable {
@@ -26,5 +28,11 @@ package object functors {
     }
     def makeAction0(fn: => Unit) = new Action0 {
         override def call(): Unit = fn
+    }
+    def makeAction1[T](fn: T => Unit) = new Action1[T] {
+        override def call(t: T) = fn(t)
+    }
+    def makeUnaryOperator[T](fn: T => T) = new UnaryOperator[T] {
+        override def apply(t: T) = fn(t)
     }
 }

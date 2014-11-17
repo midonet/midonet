@@ -23,7 +23,7 @@ import scala.util.Random
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{Port, _}
+import org.midonet.cluster.models.Topology.{Host, TunnelZone, Port}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.MapConverter
@@ -34,7 +34,7 @@ import org.midonet.packets._
 
 trait TopologyBuilder {
 
-    import org.midonet.midolman.topology.TopologyBuilder._
+    import TopologyBuilder._
 
     protected def createBridgePort(id: UUID = UUID.randomUUID,
                                    bridgeId: UUID = UUID.randomUUID,
@@ -137,23 +137,18 @@ trait TopologyBuilder {
             .setId(id.asProto)
             .setName(name)
         val converter = getConverter(classOf[HostIpConverter])
-        converter.asInstanceOf[MapConverter[UUID, IPAddr, HostToIp]]
+        val hostsList = converter.asInstanceOf[MapConverter[UUID, IPAddr, HostToIp]]
             .toProto(hosts, classOf[HostToIp])
+        builder.addAllHosts(hostsList)
+
         builder
     }
 
     protected def createHostBuilder(id: UUID,
-                                  name: String,
-                                  addresses: Set[String],
-                                  portInterfaceMapping: Map[UUID, String],
-                                  floodingProxyWeight: Int,
-                                  tunnelZoneIds: Set[UUID]): Host.Builder = {
+                                    portInterfaceMapping: Map[UUID, String],
+                                    tunnelZoneIds: Set[UUID]): Host.Builder = {
         val builder = Host.newBuilder
             .setId(id.asProto)
-            .setName(name)
-            .setFloodingProxyWeight(floodingProxyWeight)
-        addresses foreach { ip => builder.addAddresses(IPAddr.fromString(ip).asProto) }
-
         val converter = getConverter(classOf[PortInterfaceConverter])
         val portToInterfaceList = converter.asInstanceOf[MapConverter[UUID, String, PortToInterface]]
             .toProto(portInterfaceMapping, classOf[PortToInterface])
