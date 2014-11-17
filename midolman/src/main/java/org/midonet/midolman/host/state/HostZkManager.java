@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
@@ -438,6 +439,18 @@ public class HostZkManager
         }
 
         return portMappings;
+    }
+
+    @VisibleForTesting
+    public void ensureHostPathExists(UUID hostIdentifier)
+        throws StateAccessException {
+
+        if (!zk.exists(paths.getHostPath(hostIdentifier))) {
+            List<Op> operations = new ArrayList<>();
+            operations.add(zk.getPersistentCreateOp(paths.getHostPath(hostIdentifier),
+                                                    null));
+            zk.multi(operations);
+        }
     }
 
     public void addVirtualDatapathMapping(UUID hostIdentifier,

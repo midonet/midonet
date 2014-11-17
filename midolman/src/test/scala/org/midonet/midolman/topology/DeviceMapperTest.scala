@@ -18,9 +18,9 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
-import mockit.Mocked
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
@@ -30,6 +30,8 @@ import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
+
+import mockit.Mocked
 
 @RunWith(classOf[JUnitRunner])
 class DeviceMapperTest extends MidolmanSpec {
@@ -80,7 +82,7 @@ class DeviceMapperTest extends MidolmanSpec {
     implicit var vt: VirtualTopology = _
 
     override def beforeTest(): Unit = {
-        vt = new VirtualTopology(storage, actorsService)
+        vt = new VirtualTopology(storage, clusterDataClient, actorsService)
     }
 
     feature("Test device observable subscription") {
