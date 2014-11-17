@@ -53,7 +53,7 @@ object TunnelZone {
 }
 
 @ZoomClass(clazz = classOf[Topology.TunnelZone])
-class TunnelZone extends ZoomObject with Device {
+case class TunnelZone() extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
