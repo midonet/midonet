@@ -119,6 +119,7 @@ trait MidolmanSpec extends FeatureSpecLike
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
             new MockZookeeperConnectionModule(),
+            new StateStorageModule(),
             new AbstractModule {
                 def configure() {
                     bind(classOf[HostIdProviderService])
