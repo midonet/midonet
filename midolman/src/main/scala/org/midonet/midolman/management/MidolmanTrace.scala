@@ -66,7 +66,7 @@ abstract class Matcher(name: String) extends Subcommand(name) {
             descr = "match on TCP/UDP source port")
     val dstPort = opt[Int]("dst-port", noshort = true,
             descr = "match on TCP/UDP destination port")
-    val limit = opt[Int]("dst-port", short = 'l',
+    val limit = opt[Int]("limit", short = 'l',
             descr = "number of packets to match before disabling this trace")
     requireOne(debug, trace)
     mutuallyExclusive(debug, trace)
