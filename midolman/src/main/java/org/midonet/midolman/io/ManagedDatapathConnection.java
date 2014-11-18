@@ -26,7 +26,5 @@ public interface ManagedDatapathConnection {
 
     void start() throws IOException, InterruptedException, ExecutionException;
 
-    void start(Callback<Boolean> cb);
-
     void stop() throws Exception;
 }
