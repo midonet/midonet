@@ -37,7 +37,6 @@ public class OvsFlowsCreateSet_ARP_Test extends OvsFlowsCreateSetMatchTest {
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
