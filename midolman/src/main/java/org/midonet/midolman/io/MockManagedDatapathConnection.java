@@ -34,13 +34,6 @@ public class MockManagedDatapathConnection implements ManagedDatapathConnection 
         return conn;
     }
 
-
-    @Override
-    public void start(Callback<Boolean> cb) {
-        start();
-        cb.onSuccess(true);
-    }
-
     @Override
     public void start() {
         this.conn = OvsDatapathConnection.createMock();
