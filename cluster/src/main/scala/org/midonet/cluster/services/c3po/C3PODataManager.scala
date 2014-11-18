@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.services.c3po
 
+import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp, PersistenceOp}
 import org.midonet.cluster.models.Commons
 
 /**
@@ -32,25 +33,30 @@ object OpType extends Enumeration {
     def valueOf(i: Int) = ops(i - 1)
 }
 
-sealed case class C3POTransaction(txnId: String, tasks: List[C3POTask[_]]) {
+sealed case class C3POTransaction(txnId: String, tasks: Seq[C3POTask[_]]) {
     def lastTaskId = tasks.last.taskId
 }
 
-sealed case class C3POTask[T](taskId: Int, op: C3POOp[T])
+sealed case class C3POTask[T <: Object](taskId: Int, op: C3POOp[T])
 
-sealed trait C3POOp[T] {
+sealed trait C3POOp[T <: Object] {
     def opType: OpType.OpType
+    def toPersistenceOp: PersistenceOp
 }
 
-case class C3POCreate[T](model: T) extends C3POOp[T] {
+case class C3POCreate[T <: Object](model: T) extends C3POOp[T] {
     override val opType = OpType.Create
+    override def toPersistenceOp = CreateOp(model)
 }
 
-case class C3POUpdate[T](model: T) extends C3POOp[T] {
+case class C3POUpdate[T <: Object](model: T) extends C3POOp[T] {
     override val opType = OpType.Update
+    override def toPersistenceOp = UpdateOp(model)
 }
-case class C3PODelete[T](clazz: Class[T], id: Commons.UUID) extends C3POOp[T] {
+case class C3PODelete[T <: Object](clazz: Class[T], id: Commons.UUID)
+        extends C3POOp[T] {
     override val opType = OpType.Delete
+    override def toPersistenceOp = DeleteOp(clazz, id)
 }
 
 /**
@@ -58,25 +64,29 @@ case class C3PODelete[T](clazz: Class[T], id: Commons.UUID) extends C3POOp[T] {
  */
 sealed trait MidoModelOp[T <: Object] {
     def opType: OpType.OpType
+    def toPersistenceOp: PersistenceOp
 }
 
 case class MidoCreate[T <: Object](model: T) extends MidoModelOp[T] {
     override val opType = OpType.Create
+    override def toPersistenceOp = CreateOp(model)
 }
 
 case class MidoUpdate[T <: Object](model: T) extends MidoModelOp[T] {
     override val opType = OpType.Update
+    override def toPersistenceOp = UpdateOp(model)
 }
 
 case class MidoDelete[T <: Object](clazz: Class[T], id: Commons.UUID)
         extends MidoModelOp[T] {
     override val opType = OpType.Delete
+    override def toPersistenceOp = DeleteOp(clazz, id)
 }
 
 /**
  * A common interface for the API translator.
  */
-trait ApiTranslator[T] {
+trait ApiTranslator[T <: Object] {
 
     /**
      * Converts an operation on an external model into 1 or more corresponding
@@ -142,7 +152,7 @@ trait C3PODataManager {
      * internal model operation.
      */
     @throws[C3PODataManagerException]
-    def interpretAndExec[T](op: C3POTask[T]): Unit
+    def interpretAndExec[T <: Object](task: C3POTask[T]): Unit
 
     /**
      * Interprets a single transaction of external model operations and execute
