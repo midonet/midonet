@@ -2,6 +2,103 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_4cd3b338",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/c3po/C3PO.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "I think that Galo would want to move this to under brain/midonet-brain.",
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0c1a4b17",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/c3po/C3PO.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "C3PO shouldn\u0027t take CuratorFramework, which implicitly ties it to ZooKeeper.",
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ec16e7f0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "Edited by mistake?",
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2cd8ef52",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronPollingThread.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "The same point applies here. I think NeutronPollingThread should be passed a reference to C3PODataManager.",
+      "range": {
+        "startLine": 30,
+        "startChar": 27,
+        "endLine": 30,
+        "endChar": 52
+      },
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_acca1f6c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronPollingThread.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "I don\u0027t think we\u0027d need a reference to Storage.",
+      "range": {
+        "startLine": 31,
+        "startChar": 27,
+        "endLine": 31,
+        "endChar": 41
+      },
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a622d24_b9127756",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronPollingThread.scala",
         "patchSetId": 1
@@ -13,6 +110,30 @@
       "writtenOn": "2014-11-14T07:56:52Z",
       "side": 1,
       "message": "Agreed that Tomohiko will move this into his class.",
+      "range": {
+        "startLine": 63,
+        "startChar": 0,
+        "endLine": 67,
+        "endChar": 5
+      },
+      "revId": "ccc596a66131e35ed223813a3970d6661f62f033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8cdd9b45",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronPollingThread.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-18T02:21:35Z",
+      "side": 1,
+      "message": "Yes, I\u0027d move this to C3PODataManager.",
+      "parentUuid": "1a622d24_b9127756",
       "range": {
         "startLine": 63,
         "startChar": 0,
