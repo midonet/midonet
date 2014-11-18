@@ -44,7 +44,7 @@ public abstract class OvsFlowsCreateSetMatchTest
 
     public void doTest() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
+        initializeConnection();
 
         Future<Datapath> dpFuture = connection.futures.datapathsGet("bibi");
         exchangeMessage();
