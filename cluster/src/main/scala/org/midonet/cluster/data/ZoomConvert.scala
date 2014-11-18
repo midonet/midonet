@@ -290,9 +290,8 @@ object ZoomConvert {
     }
 
     /**
-     * Gets a converter instance for a pair of ZoomField and ZoomClass
-     * annotations. When both annotations are specified, the field annotation
-     * takes precedence over the class annotation.
+     * Gets a converter instance for a field with the given ZoomField
+     * annotation.
      *
      * @param pojoField The field.
      * @param protoField The message field descriptor.
@@ -302,7 +301,6 @@ object ZoomConvert {
     private def getConverter(pojoField: Field,
                              protoField: Descriptors.FieldDescriptor,
                              zoomField: ZoomField): Converter[_,_] = {
-
         if (!protoField.isRepeated) {
             return getScalarConverter(pojoField.getType, zoomField)
         }
@@ -556,8 +554,7 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
-                bufferAsJavaList(list.map(el => converter.to(el, elClass)))
+                bufferAsJavaList(value.map(el => converter.to(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
@@ -566,9 +563,8 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
-                val list = value.asInstanceOf[JList[_]]
                 bufferAsJavaList(
-                    list.map(el => converter.from(el, elClass)))
+                    value.map(el => converter.from(el, elClass)))
             case _ => throw new ConvertException(
                 s"List converter cannot convert $clazz to Protocol Buffers")
         }
@@ -580,7 +576,7 @@ object ZoomConvert {
      * @param converter The converter for the list component type.
      */
     protected[data] class SetConverter(converter: Converter[_,_])
-        extends Converter[Set[_], JList[_]] {
+            extends Converter[Set[_], JList[_]] {
 
         override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {
             case generic: ParameterizedType

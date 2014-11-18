@@ -117,7 +117,7 @@ message Port {
 
     repeated UUID port_group_ids = 12;
 
-    // interior bridge port specific
+    // Interior bridge port specific
     optional uint32 vlan_id = 13;
 
     // Router port specific
