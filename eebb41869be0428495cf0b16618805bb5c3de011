@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_a86e84c7",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 249,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-18T16:37:56Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_e78c4082",
+      "range": {
+        "startLine": 246,
+        "startChar": 0,
+        "endLine": 249,
+        "endChar": 1
+      },
+      "revId": "eebb41869be0428495cf0b16618805bb5c3de011",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_41a1bca8",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 5
@@ -59,6 +83,30 @@
       "writtenOn": "2014-11-18T10:58:32Z",
       "side": 1,
       "message": "Maybe this class is too specific to Storage subscription for midonet-util? Its function can be implemented with an AwaitableObservable. Keeping it to make the tests simpler is fine, but I would add it either to the test or to cluster util.",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 105,
+        "endChar": 1
+      },
+      "revId": "eebb41869be0428495cf0b16618805bb5c3de011",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_085fd00f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-18T16:37:56Z",
+      "side": 1,
+      "message": "I preferred keeping next to AwaitableObserver since it is used mostly in the same places.",
+      "parentUuid": "fafc7978_a7f518cd",
       "range": {
         "startLine": 76,
         "startChar": 0,
