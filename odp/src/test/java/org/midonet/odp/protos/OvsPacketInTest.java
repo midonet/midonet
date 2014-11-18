@@ -49,7 +49,7 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testPacketIn() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
+        initializeConnection();
 
         Future<Datapath> dpFuture = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data
