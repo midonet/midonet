@@ -54,26 +54,12 @@ public class BlockingTransactorDatapathConnection implements ManagedDatapathConn
     }
 
     @Override
-    public void start(Callback<Boolean> cb) {
-        try {
-            setUp();
-            conn.initialize(cb);
-        } catch (Exception e) {
-            try {
-                stop();
-            } catch (Exception ignored) {}
-            cb.onError(new NetlinkException(NetlinkException.GENERIC_IO_ERROR, e));
-        }
-    }
-
-    @Override
     public void start() throws IOException, InterruptedException, ExecutionException {
         if (conn != null)
             return;
 
         try {
             setUp();
-            conn.futures.initialize().get();
         } catch (IOException e) {
             try {
                 stop();

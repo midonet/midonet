@@ -42,4 +42,14 @@ public class FlowFamily {
         @Override
         public byte version() { return OpenVSwitch.Flow.version; }
     }
+
+    @Override
+    public String toString() {
+        return "FlowFamily{" +
+               "contextNew=" + contextNew +
+               ", contextDel=" + contextDel +
+               ", contextGet=" + contextGet +
+               ", contextSet=" + contextSet +
+               '}';
+    }
 }
