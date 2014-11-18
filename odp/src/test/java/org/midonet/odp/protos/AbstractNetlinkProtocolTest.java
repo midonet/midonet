@@ -17,6 +17,7 @@ package org.midonet.odp.protos;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,31 +30,32 @@ import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.netlink.BufferPool;
+import org.midonet.netlink.NLFlag;
+import org.midonet.netlink.NLMessageType;
 import org.midonet.netlink.Netlink;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NetlinkMessage;
+import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.Bucket;
 
 import static org.junit.Assert.fail;
 
 public abstract class AbstractNetlinkProtocolTest {
 
-    private static final Logger log = LoggerFactory
-        .getLogger(AbstractNetlinkProtocolTest.class);
-
     NetlinkChannel channel = PowerMockito.mock(NetlinkChannel.class);
     BlockingQueue<SettableFuture<ByteBuffer>> listWrites;
     OvsDatapathConnection connection = null;
 
     protected void setConnection() throws Exception {
-        connection = new OvsDatapathConnectionImpl(channel,
+        OvsNetlinkFamilies ovsNetlinkFamilies = OvsNetlinkFamilies.discover(channel);
+        connection = new OvsDatapathConnectionImpl(channel, ovsNetlinkFamilies,
             new BufferPool(128, 512, 0x1000));
     }
 
     protected void setUp(final byte[][] responses) throws Exception {
+        PowerMockito.when(channel.selector()).thenReturn(null);
 
         Netlink.Address remote = new Netlink.Address(0);
         Netlink.Address local = new Netlink.Address(uplinkPid());
@@ -64,16 +66,38 @@ public abstract class AbstractNetlinkProtocolTest {
         PowerMockito.when(channel.getLocalAddress())
                     .thenReturn(local);
 
+        final ArrayList<ByteBuffer> requests = new ArrayList<>();
         // Answer that copies the next response from responses into the
         // invocation's first argument (a ByteBuffer).
         Answer<Object> playbackResponseAnswer = new Answer<Object>() {
             int position = 0;
+            int reqPosition = 0;
 
             @Override
             public Object answer(InvocationOnMock invocation)
                 throws Throwable {
                 ByteBuffer result = (ByteBuffer)invocation.getArguments()[0];
                 result.put(responses[position]);
+
+                int resultSeq = result.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET);
+                if (resultSeq != 0) {
+                    ByteBuffer req = requests.get(reqPosition);
+                    int seq = req.getInt(NetlinkMessage.NLMSG_SEQ_OFFSET);
+
+                    int start = 0;
+                    int size = responses[position].length;
+                    while (start < size) {
+                        result.putInt(start + NetlinkMessage.NLMSG_SEQ_OFFSET, seq);
+                        start += result.getInt(start + NetlinkMessage.NLMSG_LEN_OFFSET);
+                    }
+
+                    boolean multi = NLFlag.isMultiFlagSet(
+                        result.getShort(NetlinkMessage.NLMSG_FLAGS_OFFSET));
+                    int type = result.getShort(NetlinkMessage.NLMSG_TYPE_OFFSET);
+                    if (!multi || type == NLMessageType.DONE) {
+                        reqPosition++;
+                    }
+                }
                 position++;
                 return result.position();
             }
@@ -87,13 +111,15 @@ public abstract class AbstractNetlinkProtocolTest {
         // listWrites.
         PowerMockito.when(channel.write(Matchers.<ByteBuffer>any())).then(
             new Answer<Object>() {
-
                 @Override
                 public Object answer(InvocationOnMock invocation)
                     throws Throwable {
 
+                    ByteBuffer req = ((ByteBuffer)invocation.getArguments()[0]);
+                    requests.add(req);
+
                     SettableFuture<ByteBuffer> future = SettableFuture.create();
-                    future.set(((ByteBuffer)invocation.getArguments()[0]));
+                    future.set(req);
                     listWrites.offer(future);
 
                     return null;
@@ -160,15 +186,5 @@ public abstract class AbstractNetlinkProtocolTest {
 
         return address;
 
-    }
-
-    protected void initializeConnection(Future<Boolean> initialization,
-                                        int messages) throws Exception {
-
-        while (messages-- > 0) {
-            exchangeMessage();
-        }
-
-        initialization.get();
     }
 }
