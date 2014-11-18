@@ -32,39 +32,41 @@ object OpType extends Enumeration {
     def valueOf(i: Int) = ops(i - 1)
 }
 
+sealed case class C3POTask[T](taskId: Int, op: C3POOp[T])
+
 sealed trait C3POOp[T] {
-    def opType(): OpType.OpType
+    def opType: OpType.OpType
 }
 
 case class C3POCreate[T](model: T) extends C3POOp[T] {
-    override def opType = OpType.Create
+    override val opType = OpType.Create
 }
 
 case class C3POUpdate[T](model: T) extends C3POOp[T] {
-    override def opType = OpType.Update
+    override val opType = OpType.Update
 }
 case class C3PODelete[T](clazz: Class[T], id: Commons.UUID) extends C3POOp[T] {
-    override def opType = OpType.Delete
+    override val opType = OpType.Delete
 }
 
 /**
  * Defines an operation on a MidoNet model.
  */
 sealed trait MidoModelOp[T <: Object] {
-    def opType(): OpType.OpType
+    def opType: OpType.OpType
 }
 
 case class MidoCreate[T <: Object](model: T) extends MidoModelOp[T] {
-    override def opType = OpType.Create
+    override val opType = OpType.Create
 }
 
 case class MidoUpdate[T <: Object](model: T) extends MidoModelOp[T] {
-    override def opType = OpType.Update
+    override val opType = OpType.Update
 }
 
 case class MidoDelete[T <: Object](clazz: Class[T], id: Commons.UUID)
         extends MidoModelOp[T] {
-    override def opType = OpType.Delete
+    override val opType = OpType.Delete
 }
 
 /**
@@ -121,6 +123,11 @@ class C3PODataManagerException(val msg: String, val cause: Throwable)
  */
 trait C3PODataManager {
     /**
+     * Returns the last processed C3PO task ID.
+     */
+    def lastProcessedC3POTaskId: Int
+
+    /**
      * Flushes the current topology.
      */
     @throws[C3PODataManagerException]
@@ -131,12 +138,12 @@ trait C3PODataManager {
      * internal model operation.
      */
     @throws[C3PODataManagerException]
-    def interpretAndExec[T](op: C3POOp[T]): Unit
+    def interpretAndExec[T](op: C3POTask[T]): Unit
 
     /**
      * Interprets a single transaction of external model operations and execute
      * corresponding internal model operations.
      */
     @throws[C3PODataManagerException]
-    def interpretAndExecTxn[T](txnId: String, ops: List[C3POOp[T]]): Unit
+    def interpretAndExecTxn(txnId: String, tasks: List[C3POTask[Object]]): Unit
 }
