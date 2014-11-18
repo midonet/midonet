@@ -100,12 +100,12 @@ abstract class UpcallDatapathConnectionManagerBase(
                 return Future.failed(e)
         }
 
-        initConnection(conn) zip askForWorkers() flatMap {
-            case (_, workers) =>
-                val dpConn = conn.getConnection
-                dpConn setCallbackDispatcher getDispatcher()
-                setUpcallHandler(dpConn, workers)
-                ensurePortPid(port, datapath, dpConn)
+        conn.start()
+        askForWorkers() flatMap { workers =>
+            val dpConn = conn.getConnection
+            dpConn setCallbackDispatcher getDispatcher()
+            setUpcallHandler(dpConn, workers)
+            ensurePortPid(port, datapath, dpConn)
         } andThen {
             case Success((createdPort, _)) =>
                 portToChannel.put((datapath, createdPort.getPortNo.intValue), conn)
@@ -158,13 +158,6 @@ abstract class UpcallDatapathConnectionManagerBase(
                     tbPolicy.unlink(port)
                 }
         }
-
-    protected def initConnection(conn: ManagedDatapathConnection) = {
-        val (initCb, initFuture) =
-            OvsConnectionOps.callbackBackedFuture[java.lang.Boolean]()
-        conn.start(initCb)
-        initFuture
-    }
 
     protected def makeUpcallHandler(workers: Workers)
                                    (implicit as: ActorSystem) =
