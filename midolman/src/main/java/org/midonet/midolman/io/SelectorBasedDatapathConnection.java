@@ -85,31 +85,12 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
         if (conn == null) {
             try {
                 setUp();
-                conn.futures.initialize().get();
             } catch (IOException e) {
                 try {
                     stop();
                 } catch (Exception ignored) {}
                 throw e;
             }
-        }
-    }
-
-    @Override
-    public void start(Callback<Boolean> cb) {
-        if (conn != null) {
-            cb.onSuccess(true);
-            return;
-        }
-
-        try {
-            setUp();
-            conn.initialize(cb);
-        } catch (Exception e) {
-            try {
-                stop();
-            } catch (Exception ignored) { }
-            cb.onError(new NetlinkException(NetlinkException.GENERIC_IO_ERROR, e));
         }
     }
 
