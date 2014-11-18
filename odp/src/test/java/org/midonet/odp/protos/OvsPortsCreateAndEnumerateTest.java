@@ -48,8 +48,6 @@ public class OvsPortsCreateAndEnumerateTest extends AbstractNetlinkProtocolTest 
     @Test
     public void testPortsCreate() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6); // first 6 byte msgs
-
         Future<Datapath> dpFuture = connection.futures.datapathsGet("test-port");
         exchangeMessage(); // 7th byte msg
         Datapath datapath = dpFuture.get();

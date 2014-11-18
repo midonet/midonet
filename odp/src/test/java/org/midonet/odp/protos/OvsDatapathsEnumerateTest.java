@@ -43,8 +43,6 @@ public class OvsDatapathsEnumerateTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testEnumerateDatapaths() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
-
         Future<Set<Datapath>> future = connection.futures.datapathsEnumerate();
 
         exchangeMessage(2);

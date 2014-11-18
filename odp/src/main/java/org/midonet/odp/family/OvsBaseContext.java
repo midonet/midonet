@@ -27,4 +27,12 @@ public abstract class OvsBaseContext implements NetlinkRequestContext {
     public short commandFamily() { return commandFamily; }
     public byte command() { return command; }
     abstract public byte version();
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+               "commandFamily=" + commandFamily +
+               ", command=" + command +
+               '}';
+    }
 }
