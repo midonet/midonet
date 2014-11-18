@@ -24,7 +24,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
  * Defines an abstract base class for Neutron API request translator that
  * processes operations on Neutron model (Network, Subnet, etc.).
  */
-abstract class NeutronApiTranslator[T](
+abstract class NeutronApiTranslator[T <: Object](
         val neutronModelClass: Class[T],
         val midoModelClass: Class[_],
         val storage: ReadOnlyStorage) extends ApiTranslator[T] {
