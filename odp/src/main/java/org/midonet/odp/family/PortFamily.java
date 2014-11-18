@@ -41,4 +41,14 @@ public class PortFamily {
         @Override
         public byte version() { return OpenVSwitch.Port.version; }
     }
+
+    @Override
+    public String toString() {
+        return "PortFamily{" +
+               "contextNew=" + contextNew +
+               ", contextDel=" + contextDel +
+               ", contextGet=" + contextGet +
+               ", contextSet=" + contextSet +
+               '}';
+    }
 }
