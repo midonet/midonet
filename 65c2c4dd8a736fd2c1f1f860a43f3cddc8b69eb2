@@ -177,6 +177,30 @@
       "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c7713c79",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-18T09:27:17Z",
+      "side": 1,
+      "message": "They are implemented, I think they are needed to distinguish between the abstract Port and a specific implementation such as BridgePort (I believe the manifests are not the same). In all cases, the topology is handled by the same PortMapper.",
+      "parentUuid": "fafc7978_47826c53",
+      "range": {
+        "startLine": 165,
+        "startChar": 0,
+        "endLine": 167,
+        "endChar": 78
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
