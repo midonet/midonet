@@ -222,11 +222,18 @@ public class L3ZkManager extends BaseZkManager {
         // For IPv6, this is not supported
         if (!subnet.isIpv4()) return;
 
+        int routerAddress;
+        if (port.firstIpv4Addr() != null) {
+            routerAddress = port.firstIpv4Addr().toInt();
+        } else {
+            routerAddress = subnet.gwIpInt();
+        }
+
         // Create a router port
         UUID rpId = UUID.randomUUID();
         RouterPortConfig rpConfig = new RouterPortConfig(rInt.id,
                 subnet.cidrAddressInt(), subnet.cidrAddressLen(),
-                subnet.gwIpInt(), true);
+                routerAddress, true);
         ops.addAll(portZkManager.prepareCreate(rpId, rpConfig));
 
         // Link them
