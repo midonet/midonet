@@ -46,7 +46,7 @@ public class OvsPortsGetTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testPortsGet() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
+        initializeConnection();
 
         Future<Datapath> dpFuture = connection.futures.datapathsGet("test");
         // multi containing the datapaths data
