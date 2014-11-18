@@ -70,17 +70,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
     protected void handleNotification(short type, byte cmd, int seq,
                                       int pid, ByteBuffer buffer) { /* no op */ }
 
-    @Override
-    public void initialize(Callback<Boolean> cb) {
-        initialized = true;
-        cb.onSuccess(true);
-    }
-
-    @Override
-    public boolean isInitialized() {
-        return initialized;
-    }
-
     BatchCollector<Packet> notificationHandler;
 
     @Override
