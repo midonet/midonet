@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_67469025",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-18T09:22:33Z",
+      "side": 1,
+      "message": "Why not override these as val too?",
+      "range": {
+        "startLine": 60,
+        "startChar": 13,
+        "endLine": 60,
+        "endChar": 16
+      },
+      "revId": "2bf8879009b47ab5e19bf37e82571436c0baecfc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
