@@ -41,7 +41,6 @@ public class OvsFlowsCreateSet_IPv4_UDP_Test
     @Before
     public void setUp() throws Exception {
         super.setUp(responses);
-        setConnection();
         connection.bypassSendQueue(true);
         connection.setMaxBatchIoOps(1);
     }
