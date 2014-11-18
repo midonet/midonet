@@ -37,11 +37,11 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.odp.Packet;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.util.BatchCollector;
-
 
 /**
  * OvsDatapath protocol implementation.
@@ -50,15 +50,6 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
 
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);
-
-    /** Initializes the state of this OvsDatapathConnection instance and
-     *  executes the initial discovery of command family parameters. Users
-     *  have to wait for the provided callback to be triggered before sending
-     *  any requests, as the state of the OvsDatapathConnection is not defined
-     *  during this initial setup phase . */
-    public abstract void initialize(final Callback<Boolean> cb);
-
-    public abstract boolean isInitialized();
 
     public final FuturesApi futures = new FuturesApi();
 
@@ -70,18 +61,19 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
                                                BufferPool sendPool) {
 
         NetlinkChannel channel;
-
+        OvsNetlinkFamilies ovsNetlinkFamilies;
         try {
             channel = Netlink.selectorProvider()
                 .openNetlinkSocketChannel(NetlinkProtocol.NETLINK_GENERIC);
 
             channel.connect(address);
+            ovsNetlinkFamilies = OvsNetlinkFamilies.discover(channel);
         } catch (Exception e) {
             log.error("Error connecting to Netlink");
             throw new RuntimeException(e);
         }
 
-        return new OvsDatapathConnectionImpl(channel, sendPool);
+        return new OvsDatapathConnectionImpl(channel, ovsNetlinkFamilies, sendPool);
     }
 
     public static OvsDatapathConnection create(Netlink.Address address) throws Exception {
@@ -730,13 +722,6 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
 
 
     public class FuturesApi {
-
-        public Future<Boolean> initialize() {
-            final SettableFuture<Boolean> future = SettableFuture.create();
-            final Callback<Boolean> initStatusCallback = wrapFuture(future);
-            OvsDatapathConnection.this.initialize(initStatusCallback);
-            return future;
-        }
 
         /**
          * Future based api for enumerating datapaths.

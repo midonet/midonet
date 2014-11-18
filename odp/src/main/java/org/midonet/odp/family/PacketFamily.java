@@ -42,4 +42,14 @@ public class PacketFamily {
         @Override
         public byte version() { return OpenVSwitch.Packet.version; }
     }
+
+    @Override
+    public String toString() {
+        return "PacketFamily{" +
+               "familyId=" + familyId +
+               ", contextMiss=" + contextMiss +
+               ", contextExec=" + contextExec +
+               ", contextAction=" + contextAction +
+               '}';
+    }
 }
