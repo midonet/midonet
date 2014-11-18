@@ -33,17 +33,15 @@ import org.midonet.netlink.Callback;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
-import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
+import org.midonet.odp.OpenVSwitch;
+import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.odp.OvsProtocol;
 import org.midonet.odp.Packet;
-import org.midonet.odp.family.DatapathFamily;
-import org.midonet.odp.family.FlowFamily;
 import org.midonet.odp.family.PacketFamily;
-import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeys;
@@ -58,8 +56,18 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
     private static final Logger log =
         LoggerFactory.getLogger("org.midonet.netlink.odp-conn");
 
-    public OvsDatapathConnectionImpl(NetlinkChannel channel, BufferPool sendPool) {
+    private OvsProtocol protocol;
+    private PacketFamily packetFamily;
+    private boolean initialized;
+    private BatchCollector<Packet> notificationHandler;
+
+    public OvsDatapathConnectionImpl(NetlinkChannel channel,
+                                     OvsNetlinkFamilies ovsNetlinkFamilies,
+                                     BufferPool sendPool) {
         super(channel, sendPool);
+        protocol = new OvsProtocol(channel.getLocalAddress().getPid(),
+                                   ovsNetlinkFamilies);
+        packetFamily = ovsNetlinkFamilies.packetFamily();
     }
 
     static class PacketBuilder implements AttributeHandler {
@@ -143,16 +151,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         this.notificationHandler = notificationHandler;
     }
 
-    private OvsProtocol protocol;
-    private PacketFamily packetFamily;
-
-    private int datapathMulticast;
-    private int portMulticast;
-
-    private BatchCollector<Packet> notificationHandler;
-
-    private boolean initialized = false;
-
     @Override
     protected void endBatch() {
         if (notificationHandler != null)
@@ -194,7 +192,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                          long timeoutMillis) {
         ByteBuffer buf = getBuffer();
         protocol.prepareDatapathEnumerate(buf);
-        sendMultiAnswerNetlinkMessage(buf, callback, Datapath.deserializer, timeoutMillis);
+        sendMultiAnswerNetlinkMessage(buf, callback, Datapath.deserializer,
+                                      timeoutMillis);
     }
 
     @Override
@@ -302,7 +301,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
                                      long timeoutMillis) {
         ByteBuffer buf = getBuffer();
         protocol.prepareDpPortEnum(datapath.getIndex(), buf);
-        sendMultiAnswerNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
+        sendMultiAnswerNetlinkMessage(buf, callback, DpPort.deserializer,
+                                      timeoutMillis);
     }
 
     @Override
@@ -498,115 +498,6 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         protocol.preparePacketExecute(datapathId, packet, actions,
                                       callback != null, buf);
         sendNetlinkMessage(buf, callback, alwaysTrueReader, timeoutMillis);
-    }
-
-    @Override
-    public void initialize(final Callback<Boolean> initStatusCallback) {
-        final DatapathFamily[] datapathFamily = new DatapathFamily[1];
-        final PortFamily[] portFamily = new PortFamily[1];
-        final FlowFamily[] flowFamily = new FlowFamily[1];
-
-        final Callback<Integer> portMulticastCallback =
-            new ChainedCallback<Integer>(initStatusCallback) {
-                @Override
-                public void onSuccess(Integer data) {
-
-                    log.debug("Got port multicast group: {}.", data);
-                    if (data != null) {
-                        portMulticast = data;
-                    } else {
-                        portMulticast = OpenVSwitch.Port.fallbackMCGroup;
-                        log.info(
-                            "Setting the port multicast group to fallback value: {}",
-                            portMulticast);
-
-                    }
-
-                    protocol = new OvsProtocol(pid(), datapathFamily[0],
-                                               portFamily[0], flowFamily[0],
-                                               packetFamily);
-                    initialized = true;
-                    initStatusCallback.onSuccess(true);
-                }
-            };
-
-        final Callback<Integer> datapathMulticastCallback =
-            new ChainedCallback<Integer>(initStatusCallback) {
-                @Override
-                public void onSuccess(Integer data) {
-                    log.debug("Got datapath multicast group: {}.", data);
-                    if (data != null)
-                        datapathMulticast = data;
-
-                    getMulticastGroup(OpenVSwitch.Datapath.Family,
-                                      OpenVSwitch.Datapath.MCGroup,
-                                      portMulticastCallback);
-                }
-            };
-
-        final Callback<Short> packetFamilyBuilder =
-            new ChainedCallback<Short>(initStatusCallback) {
-                @Override
-                public void onSuccess(Short data) {
-                    packetFamily = new PacketFamily(data);
-                    log.debug("Got packet family id: {}.", data);
-                    getMulticastGroup(OpenVSwitch.Datapath.Family,
-                                      OpenVSwitch.Datapath.MCGroup,
-                                      datapathMulticastCallback);
-                }
-            };
-
-        final Callback<Short> flowFamilyBuilder =
-            new ChainedCallback<Short>(initStatusCallback) {
-                @Override
-                public void onSuccess(Short data) {
-                    flowFamily[0] = new FlowFamily(data);
-                    log.debug("Got flow family id: {}.", data);
-                    getFamilyId(OpenVSwitch.Packet.Family, packetFamilyBuilder);
-                }
-            };
-
-        final Callback<Short> portFamilyBuilder =
-            new ChainedCallback<Short>(initStatusCallback) {
-                @Override
-                public void onSuccess(Short data) {
-                    portFamily[0] = new PortFamily(data);
-                    log.debug("Got port family id: {}.", data);
-                    getFamilyId(OpenVSwitch.Flow.Family, flowFamilyBuilder);
-                }
-            };
-
-        final Callback<Short> datapathFamilyBuilder =
-            new ChainedCallback<Short>(initStatusCallback) {
-                @Override
-                public void onSuccess(Short data) {
-                    datapathFamily[0] = new DatapathFamily(data);
-                    log.debug("Got datapath family id: {}.", data);
-                    getFamilyId(OpenVSwitch.Port.Family, portFamilyBuilder);
-                }
-            };
-
-        getFamilyId(OpenVSwitch.Datapath.Family, datapathFamilyBuilder);
-    }
-
-    @Override
-    public boolean isInitialized() {
-        return initialized;
-    }
-
-    private static abstract class ChainedCallback<T> implements Callback<T> {
-
-        private final Callback<Boolean> statusCallback;
-
-        public ChainedCallback(Callback<Boolean> statusCallback) {
-            this.statusCallback = statusCallback;
-        }
-
-        @Override
-        public void onError(NetlinkException ex) {
-            if (statusCallback != null)
-                statusCallback.onError(ex);
-        }
     }
 
     /** Used for debugging failing requests that do not register callbacks. */

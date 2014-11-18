@@ -67,9 +67,11 @@ class FlowTest extends FunSpec with Matchers {
             (keyLists zip actLists) foreach { case (keys, actions) =>
                 buf.clear
                 val flow = new Flow(new FlowMatch(keys), actions)
-                val protocol = new OvsProtocol(0, new DatapathFamily(0),
-                                               new PortFamily(0), new FlowFamily(0),
-                                               new PacketFamily(0))
+                val families = new OvsNetlinkFamilies(new DatapathFamily(0),
+                                                      new PortFamily(0),
+                                                      new FlowFamily(0),
+                                                      new PacketFamily(0), 0, 0)
+                val protocol = new OvsProtocol(0, families)
                 protocol.prepareFlowCreate(42, flow, false, buf)
                 buf.position(NetlinkMessage.GENL_HEADER_SIZE)
                 (Flow.deserializer deserializeFrom buf) shouldBe flow

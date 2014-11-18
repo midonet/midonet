@@ -47,8 +47,6 @@ public class OvsDatapathsDeleteTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testDeleteDatapath() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
-
         Future<Datapath> future = connection.futures.datapathsDelete("test2");
         exchangeMessage();
 

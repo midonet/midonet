@@ -33,12 +33,6 @@ object ConnectionFactory {
         manager.getConnection()
     }
 
-    def blockingConnection() = {
-        fromManager { () =>
-            new BlockingTransactorDatapathConnection("blocking", conf)
-        }
-    }
-
     def selectorBasedConnection(singleThreaded: Boolean = true) = {
         fromManager { () =>
             new SelectorBasedDatapathConnection("selector", conf, singleThreaded,
@@ -52,10 +46,6 @@ object ConnectionFactory {
         pool.start()
         pool
     }
-}
-
-object BlockingTransactorTest extends OvsIntegrationTestBase {
-    val baseConnection = ConnectionFactory.blockingConnection()
 }
 
 object OneSelectorConnectionTest extends OvsIntegrationTestBase {

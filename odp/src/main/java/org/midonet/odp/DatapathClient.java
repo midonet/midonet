@@ -72,9 +72,6 @@ public abstract class DatapathClient {
         log.info("Starting the selector loop");
         loopThread.start();
 
-        log.info("Initializing ovs connection");
-        ovsConnection.futures.initialize().get();
-
         return ovsConnection;
     }
 }

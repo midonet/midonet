@@ -41,4 +41,14 @@ public class DatapathFamily {
         @Override
         public byte version() { return OpenVSwitch.Datapath.version; }
     }
+
+    @Override
+    public String toString() {
+        return "DatapathFamily{" +
+               "contextNew=" + contextNew +
+               ", contextDel=" + contextDel +
+               ", contextGet=" + contextGet +
+               ", contextSet=" + contextSet +
+               '}';
+    }
 }
