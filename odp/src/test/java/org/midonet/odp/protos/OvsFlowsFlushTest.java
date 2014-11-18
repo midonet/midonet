@@ -57,8 +57,6 @@ public class OvsFlowsFlushTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testFlowsEnumerate() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
-
         Future<Datapath> dpResult = connection.futures.datapathsGet("bibi");
         // multi containing the datapaths data
         exchangeMessage();
