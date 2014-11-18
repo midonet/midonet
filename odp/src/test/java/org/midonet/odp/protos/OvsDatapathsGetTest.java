@@ -41,8 +41,6 @@ public class OvsDatapathsGetTest extends AbstractNetlinkProtocolTest {
     @Test
     public void testGetDatapath() throws Exception {
 
-        initializeConnection(connection.futures.initialize(), 6);
-
         Future<Datapath> future;
 
         Datapath.Stats stats = new Datapath.Stats(218, 153, 0, 0);
