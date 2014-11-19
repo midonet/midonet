@@ -22,9 +22,9 @@ import org.midonet.cluster.data.ObjId
  * ZookeeperObjectMapper or below that is not due to caller error. This
  * indicates either data corruption or a bug. See cause for details.
  */
-class InternalObjectMapperException private[storage](val message: String,
-                                                     val cause: Throwable)
-    extends RuntimeException(message, cause) {
+class InternalObjectMapperException private[storage](message: String,
+                                                     cause: Throwable)
+    extends StorageException(message, cause) {
     private[storage] def this(cause: Throwable) = this(null, cause)
 }
 
@@ -32,17 +32,17 @@ class InternalObjectMapperException private[storage](val message: String,
  * Thrown when the StorageService receives a request while it is unable to
  * service requests.
  */
-class ServiceUnavailableException(val message: String)
-    extends RuntimeException(message)
+class ServiceUnavailableException(message: String)
+    extends StorageException(message)
 
-class NotFoundException private[cluster](val clazz: Class[_], val id: ObjId)
-    extends RuntimeException(
+class NotFoundException private[storage](val clazz: Class[_], val id: ObjId)
+    extends StorageException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
         else s"There is no ${clazz.getSimpleName} with the specified ID.")
 
-class ObjectExistsException private[cluster](val clazz: Class[_],
+class ObjectExistsException private[storage](val clazz: Class[_],
                                              val id: ObjId)
-    extends RuntimeException(
+    extends StorageException(
         s"A(n) ${clazz.getSimpleName} with ID $id already exists.")
 
 /**
@@ -75,7 +75,7 @@ class ObjectReferencedException private[storage](
         val referencedClass: Class[_],
         val referencedId: ObjId,
         val referencingClass: Class[_],
-        val referencingId: ObjId) extends RuntimeException(
+        val referencingId: ObjId) extends StorageException(
     s"Cannot delete the ${referencedClass.getSimpleName} with ID " +
     s"$referencingId because it is still referenced by the " +
     s"${referencingClass.getSimpleName} with ID $referencingId.")
@@ -129,7 +129,7 @@ class ReferenceConflictException private[storage](
         val referencingClass: String, val referencingId: String,
         val referencingFieldName: String,
         val referencedClass: String, val referencedId: String)
-    extends RuntimeException(
+    extends StorageException(
         s"Operation failed because the $referencingClass with ID " +
         s"$referencingId. already references the " +
         s"$referencedClass with ID $referencedId via the field " +
