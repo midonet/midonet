@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.util.reactivex
+package org.midonet.util.reactivex.observers
 
-import rx.{Subscriber, Observer}
+import rx.{Observer, Subscriber}
 
-class RichObserver[T](observer: Observer[T]) {
+/**
+ * A class defining additional utility methods for an [[rx.Observer]].
+ */
+class RichObserver[T](val observer: Observer[T]) extends AnyVal {
 
     def asSubscriber: Subscriber[T] = new Subscriber[T]() {
         override def onCompleted(): Unit = observer.onCompleted()

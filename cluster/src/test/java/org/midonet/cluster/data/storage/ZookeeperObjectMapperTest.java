@@ -44,7 +44,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.ClassAwaitableObserver;
 import org.midonet.cluster.util.NodeCacheOrphaned;
-import org.midonet.util.reactivex.AwaitableObserver;
+import org.midonet.util.reactivex.observers.AwaitableObserver;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
