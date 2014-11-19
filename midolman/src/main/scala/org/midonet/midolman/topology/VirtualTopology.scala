@@ -89,6 +89,10 @@ object VirtualTopology extends MidolmanLogging {
         def deviceTag: FlowTag
     }
 
+    trait ConvertibleDevice {
+        def convertToOldFormat: Object
+    }
+
     type DeviceFactory = UUID => DeviceMapper[_]
 
     private var self: VirtualTopology = null

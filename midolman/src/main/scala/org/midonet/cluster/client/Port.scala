@@ -18,11 +18,13 @@ package org.midonet.cluster.client
 
 import collection.JavaConversions._
 import java.util.UUID
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-sealed trait Port extends Cloneable {
+sealed trait Port extends Cloneable
+                  with Device {
     var id: UUID = _
     var deviceID: UUID = _
     var adminStateUp: Boolean = true

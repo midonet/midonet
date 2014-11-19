@@ -17,19 +17,22 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import org.midonet.cluster.client.{Port => OldPort, BridgePort => OldBridgePort}
+import org.midonet.cluster.client.{RouterPort => OldRouterPort, VxLanPort => OldVxLanPort}
 import org.midonet.cluster.data.{ZoomConvert, ZoomField, ZoomObject, ZoomClass}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.IPSubnetUtil.{Converter => IPSubnetConverter}
 import org.midonet.cluster.util.MACUtil.{Converter => MACConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.VirtualTopology.{ConvertibleDevice, Device}
 import org.midonet.packets.{MAC, IPv4Subnet, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @ZoomClass(clazz = classOf[Topology.Port], factory = classOf[PortFactory])
-sealed trait Port extends ZoomObject with Device {
+sealed trait Port extends ZoomObject with Device
+                                     with ConvertibleDevice {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -67,6 +70,23 @@ sealed trait Port extends ZoomObject with Device {
 
     def deviceId: UUID
     override def deviceTag = _deviceTag
+
+    def convertToOldFormat[D <: OldPort](implicit m: Manifest[D]): D = {
+        val oldPort = m.erasure.newInstance().asInstanceOf[D]
+        oldPort.id = id
+        oldPort.deviceID = deviceId
+        oldPort.adminStateUp = adminStateUp
+        oldPort.inboundFilter = inboundFilter
+        oldPort.outboundFilter = outboundFilter
+        oldPort.tunnelKey = tunnelKey
+        oldPort.portGroups = portGroups
+        oldPort.hostID = hostId
+        oldPort.interfaceName = interfaceName
+        oldPort.peerID = peerId
+        oldPort.vlanId = vlanId
+        oldPort.deviceTag = deviceTag
+        oldPort
+    }
 }
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the
@@ -92,6 +112,12 @@ class VxLanPort extends Port {
     override def deviceId = null
     override def isExterior = true
     override def isInterior = false
+
+    override def convertToOldFormat: Object = {
+        //TODO(nicolas): override abstract methods of port
+        val port = super.convertToOldFormat[OldVxLanPort]
+        port
+    }
 }
 
 class BridgePort extends Port {
@@ -100,6 +126,11 @@ class BridgePort extends Port {
     var networkId: UUID = _
 
     override def deviceId = networkId
+
+    override def convertToOldFormat: Object = {
+        val port = super.convertToOldFormat[OldBridgePort]
+        port
+    }
 }
 
 class RouterPort extends Port {
@@ -124,6 +155,13 @@ class RouterPort extends Port {
 
     def portAddr = _portAddr
     def nwSubnet = _portAddr
+
+    override def convertToOldFormat: Object = {
+        val port = super.convertToOldFormat[OldRouterPort]
+        port.portAddr = _portAddr
+        port.portMac = portMac
+        port
+    }
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
