@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_de6c6239",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_a764f8e5",
+      "range": {
+        "startLine": 43,
+        "startChar": 3,
+        "endLine": 43,
+        "endChar": 10
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e75e0012",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-18T08:57:54Z",
       "side": 1,
       "message": "\"for a specific virtual device\"",
+      "range": {
+        "startLine": 48,
+        "startChar": 38,
+        "endLine": 48,
+        "endChar": 67
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_be699e27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_e75e0012",
       "range": {
         "startLine": 48,
         "startChar": 38,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_1e770a04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "I already explained part of this ScalaDoc in the DeviceMapper class, but here I wanted to provide some context on how the VT model operates.",
+      "parentUuid": "fafc7978_27a008f4",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 57,
+        "endChar": 45
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_87a57406",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_fe732613",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_87a57406",
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c7ae5ce7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
@@ -99,6 +189,30 @@
       "writtenOn": "2014-11-18T08:57:54Z",
       "side": 1,
       "message": "s/topology/virtual/ to make it consistent with the comment for tryGet (or the other way around).",
+      "range": {
+        "startLine": 117,
+        "startChar": 16,
+        "endLine": 117,
+        "endChar": 24
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9e5ada81",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_c7ae5ce7",
       "range": {
         "startLine": 117,
         "startChar": 16,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7e5f3673",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_a7ab58d5",
+      "range": {
+        "startLine": 132,
+        "startChar": 37,
+        "endLine": 132,
+        "endChar": 45
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_07b9842e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_de53c26a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_07b9842e",
+      "range": {
+        "startLine": 143,
+        "startChar": 45,
+        "endLine": 143,
+        "endChar": 48
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e388adc8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
@@ -168,6 +330,30 @@
       "writtenOn": "2014-11-19T02:47:16Z",
       "side": 1,
       "message": "Maybe I\u0027m just not seeing the obvious, but where this \"devices\" hash map is being updated?",
+      "range": {
+        "startLine": 158,
+        "startChar": 26,
+        "endLine": 158,
+        "endChar": 33
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_be507e5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-19T10:26:56Z",
+      "side": 1,
+      "message": "The device cache is updated by the DeviceMapper in the onCompleted, onNext, and onError methods.",
+      "parentUuid": "fafc7978_e388adc8",
       "range": {
         "startLine": 158,
         "startChar": 26,
