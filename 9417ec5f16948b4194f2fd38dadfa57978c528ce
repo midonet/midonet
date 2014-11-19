@@ -1,0 +1,389 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_9ed13ad0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "Does it make sense to move the leader election code into here? It\u0027s about four lines of code, and it just needs to expose a hasLeadership method of type Boolean.",
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a0469821",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "An ellipsis has three dots.",
+      "range": {
+        "startLine": 45,
+        "startChar": 35,
+        "endLine": 45,
+        "endChar": 37
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c0411c0d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "I think ConfigProvider.fromIniFile(configFile) will give you this.",
+      "range": {
+        "startLine": 53,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 70
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_606310b2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "If we intend to have several minions, it may be worth defining a Map[String, Class[CFG \u003c: MinionConfig]] and generating minionDefs from that, so that the only change to this file required to add the new minion is adding the new entry to minionDefs.",
+      "range": {
+        "startLine": 58,
+        "startChar": 0,
+        "endLine": 61,
+        "endChar": 55
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a05df8eb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "With the change described above, you could generalize this and move it into the loop below, using m.name to look up the config class in the name -\u003e class map (or add it to MinionDef).",
+      "range": {
+        "startLine": 69,
+        "startChar": 12,
+        "endLine": 69,
+        "endChar": 67
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0072047c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "I don\u0027t really see any meaningful distinction in the way these are handled. Why not just log e with an error message saying it couldn\u0027t start?",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 97,
+        "endChar": 13
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3e092e96",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "That actually makes more sense. I don\u0027t know how \"clazz\" became standard.",
+      "range": {
+        "startLine": 40,
+        "startChar": 26,
+        "endLine": 40,
+        "endChar": 31
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9e0c9a96",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "Did you change \"debug\" or \"info\" to \"error\" for debugging purposes?",
+      "range": {
+        "startLine": 41,
+        "startChar": 24,
+        "endLine": 41,
+        "endChar": 29
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7e11f6ab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "I mentioned this before in another context and don\u0027t remember what your response was: Isn\u0027t eating an Error (what a non-Exception Throwable usually is) generally not recommended?",
+      "range": {
+        "startLine": 47,
+        "startChar": 32,
+        "endLine": 47,
+        "endChar": 41
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fed7a6eb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "That looks like an error-level message to me. Also, don\u0027t forget to log t. I hate it when stuff just fails without giving a reason.",
+      "range": {
+        "startLine": 48,
+        "startChar": 32,
+        "endLine": 48,
+        "endChar": 36
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_de25820b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "This assumes that isEnabled doesn\u0027t change. Should that be formalized by declaring it as val rather than def?",
+      "range": {
+        "startLine": 69,
+        "startChar": 26,
+        "endLine": 69,
+        "endChar": 44
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5e7992fb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "This will run (and fail) in the case where m.cfg.isEnabled is true and m.cfg.minionClass is null.\n\nWhy not just create a list of minions that were successfully started in doStart() and then iterate through it here?",
+      "range": {
+        "startLine": 70,
+        "startChar": 56,
+        "endLine": 70,
+        "endChar": 59
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7eec56c8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "Why aren\u0027t these two functions defined as part of the MinionConfig trait?",
+      "range": {
+        "startLine": 101,
+        "startChar": 7,
+        "endLine": 101,
+        "endChar": 19
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5edd1214",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "If minionClass can be null, should its type be Option[String]?",
+      "range": {
+        "startLine": 103,
+        "startChar": 50,
+        "endLine": 103,
+        "endChar": 60
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3ee2ced5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "You can use replace(\"..\", \".\"). It replaces all occurrences.\n\nAlso, what is this for? Why would \"..\" be in the class name? And if you want to replace it with \".\", why not just do that in the config file?",
+      "range": {
+        "startLine": 107,
+        "startChar": 28,
+        "endLine": 107,
+        "endChar": 53
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9ee77ae4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/Daemon.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "I think foreach would be more appropriate here, since you\u0027re throwing away the return value.",
+      "range": {
+        "startLine": 116,
+        "startChar": 44,
+        "endLine": 116,
+        "endChar": 47
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7e88d6e7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-19T11:04:03Z",
+      "side": 1,
+      "message": "It says sample, but it\u0027s actually loaded in the ClusterNode implementation. Is this used for something?",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 27,
+        "endChar": 19
+      },
+      "revId": "9417ec5f16948b4194f2fd38dadfa57978c528ce",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
