@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_43ad3688",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/MtuIncreaser.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-19T16:58:13Z",
+      "side": 1,
+      "message": "can we change this to the same log source as the datapath-controller, or at least under the same hierarchy as it.\n\n(in a separate patch of course).",
+      "revId": "f7bf7fcbf6407ece1a85696e220a8937e4d12329",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
