@@ -15,16 +15,8 @@
  */
 package org.midonet.util.reactivex
 
-import rx.{Subscriber, Observer}
+trait Notification
+case class OnNext[T](value: T) extends Notification
+case class OnCompleted() extends Notification
+case class OnError(e: Throwable) extends Notification
 
-class RichObserver[T](observer: Observer[T]) {
-
-    def asSubscriber: Subscriber[T] = new Subscriber[T]() {
-        override def onCompleted(): Unit = observer.onCompleted()
-
-        override def onError(e: Throwable): Unit = observer.onError(e)
-
-        override def onNext(t: T): Unit = observer.onNext(t)
-    }
-
-}

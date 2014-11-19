@@ -35,8 +35,8 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{Chain, Network, Router}
 import org.midonet.cluster.util.{ClassAwaitableObserver, UUIDUtil}
 import org.midonet.util.eventloop.{CallingThreadReactor, Reactor}
-import org.midonet.util.reactivex.AwaitableObserver.{OnError, OnCompleted, OnNext}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.observers.AwaitableObserver
+import org.midonet.util.reactivex.{OnError, OnCompleted, OnNext}
 
 @RunWith(classOf[JUnitRunner])
 class InMemoryStorageTest extends FeatureSpec with BeforeAndAfter

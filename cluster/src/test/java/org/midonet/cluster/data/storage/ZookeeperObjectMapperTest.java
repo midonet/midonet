@@ -44,7 +44,10 @@ import org.junit.Test;
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.ClassAwaitableObserver;
-import org.midonet.util.reactivex.AwaitableObserver;
+import org.midonet.util.reactivex.OnCompleted;
+import org.midonet.util.reactivex.OnError;
+import org.midonet.util.reactivex.OnNext;
+import org.midonet.util.reactivex.observers.AwaitableObserver;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -903,7 +906,7 @@ public class ZookeeperObjectMapperTest {
         assertEquals(1, sub.notifications().size());
         assertNotNull(sub.notifications().get(0));
         PojoChain chainUpdate =
-            ((AwaitableObserver.OnNext<PojoChain>) sub.notifications().get(0).get()).value();
+            ((OnNext<PojoChain>) sub.notifications().get(0).get()).value();
         assertEquals(chain.name, chainUpdate.name);
     }
 
@@ -919,7 +922,7 @@ public class ZookeeperObjectMapperTest {
         sub.await(ONE_SECOND, 0);
         assertEquals(2, sub.notifications().size());
         PojoChain chainUpdate =
-            ((AwaitableObserver.OnNext<PojoChain>) sub.notifications().get(1).get()).value();
+            ((OnNext<PojoChain>) sub.notifications().get(1).get()).value();
         assertEquals(chain.name, chainUpdate.name);
     }
 
@@ -932,8 +935,7 @@ public class ZookeeperObjectMapperTest {
         sub.await(ONE_SECOND, 1);
         zom.delete(PojoChain.class, chain.id);
         sub.await(ONE_SECOND, 0);
-        assertTrue(sub.notifications().get(1).get() instanceof
-                       AwaitableObserver.OnCompleted);
+        assertTrue(sub.notifications().get(1).get() instanceof OnCompleted);
     }
 
     @Test
@@ -941,8 +943,7 @@ public class ZookeeperObjectMapperTest {
         UUID id = UUID.randomUUID();
         AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class, id, 1);
         sub.await(ONE_SECOND, 0);
-        AwaitableObserver.OnError onError = (AwaitableObserver.OnError)
-            sub.notifications().get(0).get();
+        OnError onError = (OnError) sub.notifications().get(0).get();
         Exception ex = (Exception) onError.e();
         assertThat(ex, instanceOf(NotFoundException.class));
         NotFoundException nfe = (NotFoundException) ex;
@@ -967,7 +968,7 @@ public class ZookeeperObjectMapperTest {
         sub2.await(ONE_SECOND, 0);
         assertEquals(1, sub2.notifications().size());
         PojoChain chainUpdate =
-            ((AwaitableObserver.OnNext<PojoChain>) sub2.notifications().get(0).get()).value();
+            ((OnNext<PojoChain>) sub2.notifications().get(0).get()).value();
         assertNotNull(chainUpdate);
         assertEquals("renamedChain", chainUpdate.name);
     }
@@ -990,7 +991,7 @@ public class ZookeeperObjectMapperTest {
         classObs.await(ONE_SECOND, 1);
         assertEquals(1, classObs.observers().size());
         AwaitableObserver<PojoChain> chainObs = classObs.observers().get(0).get();
-        PojoChain chain = ((AwaitableObserver.OnNext<PojoChain>) chainObs.notifications()
+        PojoChain chain = ((OnNext<PojoChain>) chainObs.notifications()
             .get(0).get()).value();
         assertEquals("chain1", chain.name);
 
@@ -1029,8 +1030,8 @@ public class ZookeeperObjectMapperTest {
 
         AwaitableObserver<PojoChain> obs1 = classObs1.observers().get(0).get();
         AwaitableObserver<PojoChain> obs2 = classObs1.observers().get(1).get();
-        UUID chainId = ((AwaitableObserver.OnNext<PojoChain>) obs1.notifications()
-                           .get(0).get()).value().id;
+        UUID chainId = ((OnNext<PojoChain>) obs1.notifications()
+            .get(0).get()).value().id;
         AwaitableObserver<PojoChain> chain1Obs;
         if (chainId.equals(chain1.id)) {
             chain1Obs = obs1;
@@ -1042,16 +1043,15 @@ public class ZookeeperObjectMapperTest {
         zom.delete(PojoChain.class, chain1.id);
         chain1Obs.await(ONE_SECOND, 0);
         assertTrue(
-            chain1Obs.notifications().get(1).get() instanceof
-                AwaitableObserver.OnCompleted);
+            chain1Obs.notifications().get(1).get() instanceof OnCompleted);
 
         ClassAwaitableObserver<PojoChain>
             classObs2 = subscribe(PojoChain.class, 1);
         classObs2.await(ONE_SECOND, 0);
         assertEquals(1, classObs2.observers().size());
         AwaitableObserver<PojoChain> chainObs = classObs2.observers().get(0).get();
-        assertEquals("chain2", ((AwaitableObserver.OnNext<PojoChain>) chainObs
-                                   .notifications().get(0).get()).value().name);
+        assertEquals("chain2", ((OnNext<PojoChain>) chainObs
+            .notifications().get(0).get()).value().name);
     }
 
     private <T> AwaitableObserver<T> subscribe(

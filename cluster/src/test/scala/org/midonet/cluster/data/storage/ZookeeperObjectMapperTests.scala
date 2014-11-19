@@ -30,7 +30,7 @@ import org.scalatest.{Matchers, Suite}
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
