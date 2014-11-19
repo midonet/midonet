@@ -157,6 +157,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_e388adc8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T02:47:16Z",
+      "side": 1,
+      "message": "Maybe I\u0027m just not seeing the obvious, but where this \"devices\" hash map is being updated?",
+      "range": {
+        "startLine": 158,
+        "startChar": 26,
+        "endLine": 158,
+        "endChar": 33
+      },
+      "revId": "65c2c4dd8a736fd2c1f1f860a43f3cddc8b69eb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_47826c53",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 15
