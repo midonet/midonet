@@ -30,7 +30,9 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.midonet.util.reactivex._
-import org.midonet.util.reactivex.AwaitableObserver.{OnError, OnCompleted, OnNext}
+import org.midonet.util.reactivex.observables.RichObservable
+import org.midonet.util.reactivex.observers.AwaitableObserver
+import AwaitableObserver.{OnError, OnCompleted, OnNext}
 
 import mockit.Mocked
 

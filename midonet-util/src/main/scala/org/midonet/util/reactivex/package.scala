@@ -19,6 +19,9 @@ import scala.concurrent.{Promise, Future}
 
 import rx.{Observer, Subscriber, Observable}
 
+import org.midonet.util.reactivex.observables.RichObservable
+import org.midonet.util.reactivex.observers.RichObserver
+
 package object reactivex {
 
     implicit def richObservable[T](observable: Observable[T]): RichObservable[T] =

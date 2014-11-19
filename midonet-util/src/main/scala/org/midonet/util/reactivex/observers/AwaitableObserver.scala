@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.util.reactivex
+package org.midonet.util.reactivex.observers
 
 import java.util.concurrent.CountDownLatch
 
@@ -33,7 +33,7 @@ object AwaitableObserver {
 
 class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
 
-    import org.midonet.util.reactivex.AwaitableObserver._
+    import AwaitableObserver._
 
     private val list = new mutable.MutableList[Notification]
     @volatile private var counter = new CountDownLatch(awaitCount)
