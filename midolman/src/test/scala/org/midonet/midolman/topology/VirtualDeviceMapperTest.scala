@@ -34,7 +34,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.midonet.util.functors._
-import org.midonet.util.reactivex._
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VirtualDeviceMapperTest extends MidolmanSpec {

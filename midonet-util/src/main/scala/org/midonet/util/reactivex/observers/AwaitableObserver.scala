@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.util.reactivex
+package org.midonet.util.reactivex.observers
 
 import java.util.concurrent.CountDownLatch
 

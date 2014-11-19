@@ -24,7 +24,7 @@ import scala.concurrent.duration.Duration
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable[T]] {
 

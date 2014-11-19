@@ -15,9 +15,10 @@
  */
 package org.midonet.util
 
-import scala.concurrent.{Promise, Future}
+import rx.{Observer, Observable}
 
-import rx.{Observer, Subscriber, Observable}
+import org.midonet.util.reactivex.observables.RichObservable
+import org.midonet.util.reactivex.observers.RichObserver
 
 package object reactivex {
 

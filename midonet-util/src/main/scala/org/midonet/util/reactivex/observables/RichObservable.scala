@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.util.reactivex
+package org.midonet.util.reactivex.observables
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{Future, Promise}
 
 import rx.{Observable, Subscriber}
 
@@ -23,7 +23,10 @@ object RichObservable {
     val COMPLETED_EXCEPTION = new IllegalStateException("Observable completed")
 }
 
-class RichObservable[T](observable: Observable[T]) {
+/**
+ * A class defining additional utility methods for an [[rx.Observable]].
+ */
+class RichObservable[T](val observable: Observable[T]) extends AnyVal {
 
     def asFuture: Future[T] = {
         val promise = Promise[T]()

@@ -31,7 +31,7 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
