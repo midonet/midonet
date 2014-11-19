@@ -16,14 +16,17 @@
 package org.midonet.midolman.state;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.zookeeper.KeeperException;
@@ -69,31 +72,79 @@ public class ZkOpList {
         return ZooDefs.opNames[op.getType()] + " " + op.getPath();
     }
 
-    private static int remove(List<Op> ops, String path) {
+    private static void removeStartsWith(Collection<String> col,
+                                         final String s) {
 
-        int cnt = 0;
-        for (Iterator<Op> it = ops.iterator(); it.hasNext(); ) {
-            Op op = it.next();
-            if (op.getPath().equals(path)) {
-                logger.warn("Removing path Op: {}.", getOpDesc(op));
-                it.remove();
-                cnt++;
+        Iterables.removeIf(col, new Predicate<String>() {
+
+            @Override
+            public boolean apply(String input) {
+                return input.startsWith(s);
             }
-        }
-        return cnt;
+        });
     }
 
-    private static void removeStartsWith(Map<String, Op> ops, String path) {
+    private static boolean containsStartsWith(final String s,
+                                              Collection<String> strs) {
+        return FluentIterable.from(strs)
+            .anyMatch(new Predicate<String>() {
 
-        Iterator<Map.Entry<String, Op>> it = ops.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Op> entry = it.next();
-            if (entry.getKey().startsWith(path)) {
-                logger.warn("Removing path starting with Op: {}.",
-                            getOpDesc(entry.getValue()));
-                it.remove();
+                @Override
+                public boolean apply(String str) {
+                    return s.startsWith(str);
+                }
+            });
+    }
+
+    private static void removeOpsStartsWith(Collection<Op> ops,
+                                            final Collection<String> paths) {
+
+        Iterables.removeIf(ops, new Predicate<Op>() {
+
+            @Override
+            public boolean apply(final Op op) {
+                return containsStartsWith(op.getPath(), paths);
             }
-        }
+        });
+    }
+
+    private static void removeStartsWithUnequal(Collection<String> col,
+                                                final Collection<String> strs) {
+
+        Iterables.removeIf(col, new Predicate<String>() {
+
+            @Override
+            public boolean apply(final String colElem) {
+
+                return !strs.contains(colElem) &&
+                    containsStartsWith(colElem, strs);
+            }
+        });
+    }
+
+    private static void removeEquals(Collection<String> col, final String s) {
+
+        Iterables.removeIf(col, new Predicate<String>() {
+
+            @Override
+            public boolean apply(String input) {
+                return s.equals(input);
+            }
+
+        });
+    }
+
+    private static void removeOpsWithPath(Collection<Op> ops,
+                                          final String path) {
+
+        Iterables.removeIf(ops, new Predicate<Op>() {
+
+            @Override
+            public boolean apply(Op input) {
+                return path.equals(input.getPath());
+            }
+
+        });
     }
 
     private static Op getErrorDelOpOrThrow(StateAccessException ex,
@@ -164,7 +215,12 @@ public class ZkOpList {
         List<Op> ops = new ArrayList<>();
 
         ops.addAll(this.deleteOps.values());
+
+        removeStartsWithUnequal(this.createOps.keySet(),
+                                this.deleteOps.keySet());
         ops.addAll(this.createOps.values());
+
+        removeOpsStartsWith(this.updateOps, this.deleteOps.keySet());
         ops.addAll(this.updateOps);
 
         return ops;
@@ -187,7 +243,7 @@ public class ZkOpList {
 
             // For deletion, if a node was deleted, just skip it and retry.
             Op errorOp = getErrorDelOpOrThrow(ex, ops);
-            removeStartsWith(this.deleteOps, errorOp.getPath());
+            removeStartsWith(this.deleteOps.keySet(), errorOp.getPath());
             tryCommit(delRetries);
 
         } catch (NodeNotEmptyStateException ex) {
@@ -218,30 +274,31 @@ public class ZkOpList {
         Preconditions.checkArgument(validOpType(op.getType()));
 
         int type = op.getType();
+        String path = op.getPath();
         if (type == ZooDefs.OpCode.delete) {
 
-            // Remove any updates previously added
-            remove(this.updateOps, op.getPath());
+            // Don't bother updating this path
+            removeOpsWithPath(this.updateOps, path);
 
-            // Remove any create added but if there was a create, there is no
-            // need to add the delete Op
-            if (this.createOps.containsKey(op.getPath())) {
-                this.createOps.remove(op.getPath());
-                return;
+            if (this.createOps.containsKey(path)) {
+                removeEquals(this.createOps.keySet(), path);
+            } else {
+                this.deleteOps.put(path, op);
+                logger.debug("Op added: {}", getOpDesc(op));
             }
-
-            // Replace any delete previously added
-            this.deleteOps.put(op.getPath(), op);
 
         } else if (type == ZooDefs.OpCode.create) {
 
             // Replace the previously added create
-            this.createOps.put(op.getPath(), op);
+            this.createOps.put(path, op);
+            logger.debug("Op added: {}", getOpDesc(op));
+
 
         } else if (type == ZooDefs.OpCode.setData) {
 
             // For updates, just add to the list
             this.updateOps.add(op);
+            logger.debug("Op added: {}", getOpDesc(op));
         }
     }
 
