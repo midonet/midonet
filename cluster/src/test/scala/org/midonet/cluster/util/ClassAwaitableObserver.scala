@@ -23,8 +23,8 @@ import scala.concurrent.duration.Duration
 
 import rx.{Observable, Observer}
 
-import org.midonet.util.reactivex.AwaitableObserver
-import org.midonet.util.reactivex.AwaitableObserver.{Notification, OnCompleted, OnError}
+import org.midonet.util.reactivex.{Notification, OnCompleted, OnError}
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 class ClassAwaitableObserver[T](awaitCount: Int) extends Observer[Observable[T]] {
 
