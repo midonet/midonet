@@ -29,8 +29,9 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.functors._
-import org.midonet.util.reactivex.AwaitableObserver.{OnCompleted, OnError, OnNext}
 import org.midonet.util.reactivex._
+import org.midonet.util.reactivex.observables.RichObservable
+import org.midonet.util.reactivex.observers.AwaitableObserver
 
 import mockit.Mocked
 
