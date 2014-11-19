@@ -15,11 +15,17 @@
  */
 package org.midonet.util
 
-import scala.concurrent.{Promise, Future}
+import rx.{Observer, Observable}
 
-import rx.{Observer, Subscriber, Observable}
+import org.midonet.util.reactivex.observables.RichObservable
+import org.midonet.util.reactivex.observers.RichObserver
 
 package object reactivex {
+
+    trait Notification
+    case class OnNext[T](value: T) extends Notification
+    case class OnCompleted() extends Notification
+    case class OnError(e: Throwable) extends Notification
 
     implicit def richObservable[T](observable: Observable[T]): RichObservable[T] =
         new RichObservable(observable)
