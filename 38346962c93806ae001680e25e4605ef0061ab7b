@@ -1,0 +1,176 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_63bcbd6d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "Please fix the indentation.",
+      "range": {
+        "startLine": 47,
+        "startChar": 26,
+        "endLine": 50,
+        "endChar": 67
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_43c1b9e3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 69,
+        "startChar": 26,
+        "endLine": 72,
+        "endChar": 66
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c3ac8938",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "I think you can use implicit conversion and specify just \"id\". Just \"import org.midonet.cluster.util.UUIDUtil.fromProto\".",
+      "range": {
+        "startLine": 119,
+        "startChar": 19,
+        "endLine": 119,
+        "endChar": 29
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_63631d1b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "This comment feels repetitive. The \"Then\" clause already explains it.",
+      "range": {
+        "startLine": 83,
+        "startChar": 12,
+        "endLine": 83,
+        "endChar": 52
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c373e9e5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "Likewise, the comment is somewhat confusing.",
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_434ff992",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "This is testing the same as the line above \"And\", ie. \"observer.notifications should contain only OnNext(device)\".",
+      "range": {
+        "startLine": 256,
+        "startChar": 12,
+        "endLine": 257,
+        "endChar": 41
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a344e574",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "I think those two lines are doing the same things, aren\u0027t they?",
+      "range": {
+        "startLine": 276,
+        "startChar": 12,
+        "endLine": 280,
+        "endChar": 40
+      },
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_63315d0b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-19T03:36:09Z",
+      "side": 1,
+      "message": "Should we need to reset the latch?",
+      "revId": "38346962c93806ae001680e25e4605ef0061ab7b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
