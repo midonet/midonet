@@ -412,6 +412,7 @@ class AdminStateTest extends MidolmanSpec {
             def uplinkPid: Int = 0
             def isVtepTunnellingPort(portNumber: Short): Boolean = false
             def isOverlayTunnellingPort(portNumber: Short): Boolean = false
+            override def getDescForInterface(itfName: String) = None
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
