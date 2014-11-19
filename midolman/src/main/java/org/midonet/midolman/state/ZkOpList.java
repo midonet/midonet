@@ -69,20 +69,6 @@ public class ZkOpList {
         return ZooDefs.opNames[op.getType()] + " " + op.getPath();
     }
 
-    private static int remove(List<Op> ops, String path) {
-
-        int cnt = 0;
-        for (Iterator<Op> it = ops.iterator(); it.hasNext(); ) {
-            Op op = it.next();
-            if (op.getPath().equals(path)) {
-                logger.warn("Removing path Op: {}.", getOpDesc(op));
-                it.remove();
-                cnt++;
-            }
-        }
-        return cnt;
-    }
-
     private static void removeStartsWith(Map<String, Op> ops, String path) {
 
         Iterator<Map.Entry<String, Op>> it = ops.entrySet().iterator();
@@ -95,6 +81,33 @@ public class ZkOpList {
             }
         }
     }
+
+    private static void removeStartsWith(List<Op> ops, String path) {
+
+        Iterator<Op> it = ops.iterator();
+        while (it.hasNext()) {
+            Op entry = it.next();
+            if (entry.getPath().startsWith(path)) {
+                logger.warn("Removing path starting with Op: {}.",
+                            getOpDesc(entry));
+                it.remove();
+            }
+        }
+    }
+/*
+
+    private static boolean containsPathsStartsWith(Map<String, Op> ops,
+                                                   String path) {
+        for (Map.Entry<String, Op> op : ops.entrySet()) {
+            if (path.startsWith(op.getKey())) {
+                logger.warn("Found sub-path with Op: {}.",
+                            getOpDesc(op.getValue()));
+                return true;
+            }
+        }
+        return false;
+    }
+*/
 
     private static Op getErrorDelOpOrThrow(StateAccessException ex,
                                            List<Op> ops)
@@ -220,18 +233,20 @@ public class ZkOpList {
         int type = op.getType();
         if (type == ZooDefs.OpCode.delete) {
 
-            // Remove any updates previously added
-            remove(this.updateOps, op.getPath());
+            // Remove any updates previously added containing this sub-path
+            removeStartsWith(this.updateOps, op.getPath());
 
-            // Remove any create added but if there was a create, there is no
-            // need to add the delete Op
-            if (this.createOps.containsKey(op.getPath())) {
-                this.createOps.remove(op.getPath());
-                return;
+            boolean hasCreatePath = this.createOps.containsKey(op.getPath());
+
+            // Remove any creates previous added containing this sub-path
+            removeStartsWith(this.createOps, op.getPath());
+
+            // Add this Delete Op if this path wasn't something created in same
+            // multi
+            if (!hasCreatePath) {
+                // Replace any delete previously added
+                this.deleteOps.put(op.getPath(), op);
             }
-
-            // Replace any delete previously added
-            this.deleteOps.put(op.getPath(), op);
 
         } else if (type == ZooDefs.OpCode.create) {
 

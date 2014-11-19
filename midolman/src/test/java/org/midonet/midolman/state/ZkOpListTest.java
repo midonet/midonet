@@ -73,4 +73,20 @@ public class ZkOpListTest extends ZookeeperTest {
 
         testObj.commit();
     }
+
+    @Test
+    public void testDeleteAfterCreateUpdateNoNode()
+        throws StateAccessException {
+
+        zk.addPersistent(getPath("/foo"), null);
+        zk.addPersistent(getPath("/foo/bar"), null);
+
+        // Create and update a node and delete its sub path.
+        // This needs to be tested because ZkOpList does delete ops first.
+        testObj.add(zk.getPersistentCreateOp("/foo/bar/baz", null));
+        testObj.add(zk.getSetDataOp("/foo/bar/baz", null));
+        testObj.add(zk.getDeleteOp("/foo/bar"));
+
+        testObj.commit();
+    }
 }
