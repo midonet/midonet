@@ -152,11 +152,12 @@ project.ext {
     ]
 
     timestamp = new Date().format("YYYYMMddHHmm")
-    debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}").
+    gitrev = getGitSHA()
+    debVersion = midonetVersion.replaceAll(/SNAPSHOT$/, "${timestamp}.${gitrev}").
                                 replaceAll(/-/, "~")
     rpmVersion = midonetVersion.replaceAll(/-.*$/, "")
     rpmRelease = midonetVersion.replaceAll(/^[^-]+$/, "1.0").
-                                replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}").
+                                replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
     rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
 
@@ -472,6 +473,16 @@ limitations under the License."""])
 
     copyright.appendNode('module2copyright')
              .appendNode('element', [module: 'All', copyright: 'midokura'])
+}
+
+def getGitSHA() {
+    try {
+        def cmd = "git rev-parse --short HEAD"
+        def proc = cmd.execute()
+        "g" + proc.text.trim()
+    } catch (e) {
+        return "git"
+    }
 }
 
 task wrapper(type: Wrapper) {
