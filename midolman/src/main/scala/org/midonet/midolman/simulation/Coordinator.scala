@@ -361,7 +361,8 @@ class Coordinator(context: PacketContext)
                 context.outPortId = portId
                 val chain = tryAsk[Chain](port.outboundFilter)
                 val result = Chain.apply(chain, context, port.id, true)
-                (result == RuleResult.Action.ACCEPT)
+                log.debug(s"Chain ${chain.id} on port ${port.id} returned ${result.action}")
+                (result.action == RuleResult.Action.ACCEPT)
             } else {
                 true
             }
