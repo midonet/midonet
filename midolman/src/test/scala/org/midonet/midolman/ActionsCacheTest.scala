@@ -17,6 +17,8 @@
 package org.midonet.midolman
 
 import com.typesafe.scalalogging.Logger
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
 import org.scalatest.{OneInstancePerTest, BeforeAndAfter, GivenWhenThen,
@@ -26,6 +28,7 @@ import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows.{FlowKeys, FlowAction}
 
+@RunWith(classOf[JUnitRunner])
 class ActionsCacheTest extends FeatureSpec
                        with Matchers
                        with GivenWhenThen
