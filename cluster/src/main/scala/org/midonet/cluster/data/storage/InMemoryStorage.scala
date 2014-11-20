@@ -351,6 +351,8 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
 
     override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
+    override def flush(): Unit = throw new UnsupportedOperationException
+
     override def subscribe[T](clazz: Class[T], id: ObjId,
                               obs: Observer[_ >: T]): Subscription =
             withReadLock(lock) {
