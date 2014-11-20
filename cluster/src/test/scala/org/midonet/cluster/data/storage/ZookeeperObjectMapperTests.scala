@@ -18,22 +18,22 @@ package org.midonet.cluster.data.storage
 import java.util.UUID
 import java.util.concurrent._
 
-import org.apache.curator.framework.CuratorFramework
+import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.concurrent.Await
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
 
+import org.apache.curator.framework.CuratorFramework
 import org.junit.Assert._
 import org.junit.runner.RunWith
+import org.scalatest.{Matchers, Suite}
+import org.scalatest.junit.JUnitRunner
+import rx.{Observable, Observer}
+
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
 import org.midonet.cluster.util.CuratorTestFramework
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, Suite}
-import rx.{Observable, Observer}
-
-import scala.collection.JavaConverters._
-import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
-import scala.concurrent.Await
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
@@ -45,6 +45,8 @@ class ZookeeperObjectMapperTests extends Suite
 
     private var gcRunnable: Runnable = _
     private var gcDone: Boolean = _
+
+    private class PlainScalaObj(val id: UUID, val text: String)
 
     private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
@@ -73,7 +75,8 @@ class ZookeeperObjectMapperTests extends Suite
         zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
 
         List(classOf[PojoBridge], classOf[PojoRouter], classOf[PojoPort],
-             classOf[PojoChain], classOf[PojoRule]).foreach {
+             classOf[PojoChain], classOf[PojoRule],
+             classOf[PlainScalaObj]).foreach {
             clazz => zom.registerClass(clazz)
         }
 
@@ -289,6 +292,17 @@ class ZookeeperObjectMapperTests extends Suite
         waitForGc()
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+    }
+
+    /* Tests that Zoom cannot persist a Scala object, case class or not. More
+     * precisely speaking, Json serializer fails to serialize a Scala object.
+     * Therefore, this test may break when we upgrade the version the Json
+     * serializer in use.
+     */
+    def testZoomCannotHandleScalaObject() {
+        intercept[InternalObjectMapperException] {
+            zom.create(new PlainScalaObj(UUID.randomUUID, "foo"))
+        }
     }
 }
 
