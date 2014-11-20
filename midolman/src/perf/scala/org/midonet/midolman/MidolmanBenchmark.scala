@@ -38,7 +38,7 @@ import org.midonet.midolman.guice.state.MockFlowStateStorageModule
 import org.midonet.midolman.guice.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.guice.{MidolmanActorsModule, MidolmanModule, ResourceProtectionModule, _}
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
+import org.midonet.midolman.services.{DashboardService, DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
@@ -125,13 +125,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
                             .toProvider(classOf[MidolmanModule.MidolmanConfigProvider])
                             .in(Scopes.SINGLETON)
                     expose(classOf[MidolmanConfig])
-
-                    bind(classOf[SelectLoopService])
-                    .toInstance(new SelectLoopService {
-                        override def doStart(): Unit = notifyStarted()
-                        override def doStop(): Unit = notifyStopped()
-                    })
-                    expose(classOf[SelectLoopService])
 
                     bind(classOf[DashboardService])
                             .toInstance(new DashboardService {

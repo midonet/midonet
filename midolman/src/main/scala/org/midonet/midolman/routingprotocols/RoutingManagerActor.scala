@@ -25,7 +25,6 @@ import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.guice.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
@@ -35,7 +34,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.{DatapathReadySubscriberActor, DatapathState, Referenceable}
 import org.midonet.odp.Datapath
-import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback2
 
 object RoutingManagerActor extends Referenceable {
@@ -62,9 +60,6 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
     val client: Client = null
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
-    @Inject
-    @ZEBRA_SERVER_LOOP
-    var zebraLoop: SelectLoop = null
 
     private var bgpPortIdx = 0
 
@@ -156,7 +151,7 @@ class RoutingManagerActor extends Actor with ActorLogWithoutPath
                     context.actorOf(
                         Props(new RoutingHandler(port, bgpPortIdx, datapath,
                                     dpState, upcallConnManager, client,
-                                    dataClient, config, zkConnWatcher, zebraLoop)).
+                                    dataClient, config, zkConnWatcher)).
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )

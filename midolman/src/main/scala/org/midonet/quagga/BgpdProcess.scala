@@ -26,7 +26,7 @@ import org.midonet.netlink.AfUnix
 import org.midonet.util.process.ProcessHelper
 
 class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
-                  listenAddress: String, socketAddress: AfUnix.Address,
+                  listenAddress: String, socketPath: String,
                   networkNamespace: String, val config: MidolmanConfig) {
     private final val log = LoggerFactory.getLogger(this.getClass)
     var bgpdProcess: Process = null
@@ -38,9 +38,9 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
             " " + config.pathToBGPD + "/bgpd" +
             " --vty_port " + vtyPortNumber +
             //" --vty_addr 127.0.0.1" +
+            " --socket " + socketPath +
             " --config_file " + config.pathToBGPDConfig + "/bgpd.conf" +
-            " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid " +
-            " --socket " + socketAddress.getPath
+            " --pid_file /var/run/quagga/bgpd." + vtyPortNumber + ".pid "
 
         log.debug("bgpd command line: {}", bgpdCmdLine)
 
@@ -51,8 +51,8 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
 
         //TODO(abel) it's not enough to launch the process to send a ready
         //TODO(abel) check if it succeeded
-        log.debug("Sleeping 5 seconds because we need bgpd to boot up")
-        TimeUnit.SECONDS.sleep(5)
+        log.debug("Sleeping 3 seconds because we need bgpd to boot up")
+        TimeUnit.SECONDS.sleep(3)
 
         if (bgpdProcess != null) {
             log.debug("bgpd process started. Vty: {}", vtyPortNumber)
