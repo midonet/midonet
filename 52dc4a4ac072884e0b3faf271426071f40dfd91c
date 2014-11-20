@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_69a65bc3",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T04:15:22Z",
+      "side": 1,
+      "message": "Can\u0027t we access the exception via list?",
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_49c8b774",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T04:15:22Z",
+      "side": 1,
+      "message": "I agree that this class is too specific to storage to be located here.",
+      "range": {
+        "startLine": 77,
+        "startChar": 6,
+        "endLine": 77,
+        "endChar": 28
+      },
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c9ab0788",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T04:15:22Z",
+      "side": 1,
+      "message": "If onCompleted/Error is called while awaiting on the counter, the exception is thrown on the calling thread side, practically getting ignored and counter.await quietly timing out?",
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
