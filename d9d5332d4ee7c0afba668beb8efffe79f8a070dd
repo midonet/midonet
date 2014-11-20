@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_d4471e1c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-20T11:33:03Z",
+      "side": 1,
+      "message": "unnecessary parentheses!",
+      "revId": "d9d5332d4ee7c0afba668beb8efffe79f8a070dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
