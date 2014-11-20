@@ -1,0 +1,274 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_0996af94",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 10
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Is this ever going to be sent by itself? Isn\u0027t it going to be sent as part of Host info?",
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e9924b9e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 331,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Extraneous?",
+      "range": {
+        "startLine": 331,
+        "startChar": 49,
+        "endLine": 331,
+        "endChar": 53
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_69ee5b24",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "It\u0027s just a plain string and we don\u0027t need \"s\".",
+      "range": {
+        "startLine": 345,
+        "startChar": 39,
+        "endLine": 345,
+        "endChar": 40
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e9d9ab84",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/ZoomMapConvertTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Do you need this? I think implicit conversion works.",
+      "range": {
+        "startLine": 74,
+        "startChar": 36,
+        "endLine": 74,
+        "endChar": 44
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_09dd0f71",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/ZoomMapConvertTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "You don\u0027t need this because of implicit conversion.",
+      "range": {
+        "startLine": 114,
+        "startChar": 8,
+        "endLine": 114,
+        "endChar": 26
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a9f843e6",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/ZoomMapConvertTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "You don\u0027t need this because of implicit conversion.",
+      "range": {
+        "startLine": 122,
+        "startChar": 49,
+        "endLine": 122,
+        "endChar": 65
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_49e71741",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "I don\u0027t think you need this thanks to implicit conversion.",
+      "range": {
+        "startLine": 39,
+        "startChar": 23,
+        "endLine": 39,
+        "endChar": 30
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_29e4533a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 48,
+        "startChar": 26,
+        "endLine": 48,
+        "endChar": 34
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_89d0df54",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s necessary.",
+      "range": {
+        "startLine": 88,
+        "startChar": 40,
+        "endLine": 88,
+        "endChar": 48
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_69d5bb42",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 109,
+        "startChar": 36,
+        "endLine": 109,
+        "endChar": 44
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c9cae7a0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 115,
+        "startChar": 47,
+        "endLine": 115,
+        "endChar": 55
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a9cfa3af",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HostConversionTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-20T02:41:39Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 116,
+        "startChar": 47,
+        "endLine": 116,
+        "endChar": 55
+      },
+      "revId": "f36cbc887dd5daa7e4619946ff5bcdb57b769b9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
