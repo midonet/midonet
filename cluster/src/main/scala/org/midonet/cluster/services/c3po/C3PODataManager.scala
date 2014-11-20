@@ -32,7 +32,11 @@ object OpType extends Enumeration {
     def valueOf(i: Int) = ops(i - 1)
 }
 
-sealed case class C3POTask[T](val taskId: Int, val op: C3POOp[T])
+sealed case class C3POTransaction(txnId: String, tasks: List[C3POTask[_]]) {
+    def lastTaskId = tasks.last.taskId
+}
+
+sealed case class C3POTask[T](taskId: Int, op: C3POOp[T])
 
 sealed trait C3POOp[T] {
     def opType: OpType.OpType
@@ -145,5 +149,5 @@ trait C3PODataManager {
      * corresponding internal model operations.
      */
     @throws[C3PODataManagerException]
-    def interpretAndExecTxn(txnId: String, tasks: List[C3POTask[Object]]): Unit
+    def interpretAndExecTxn(txn: C3POTransaction): Unit
 }
