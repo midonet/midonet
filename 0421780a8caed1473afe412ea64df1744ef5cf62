@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_144b66b1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/PortZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 910,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-11-20T14:54:13Z",
+      "side": 1,
+      "message": "you sure like parentheses. are you a closeted lisper? :p",
+      "revId": "0421780a8caed1473afe412ea64df1744ef5cf62",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
