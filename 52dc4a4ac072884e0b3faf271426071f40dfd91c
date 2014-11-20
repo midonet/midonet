@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_341dca67",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-20T10:56:36Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_69a65bc3",
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_49c8b774",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
         "patchSetId": 7
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7474729c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-20T10:56:36Z",
+      "side": 1,
+      "message": "ok, 2 against one I lose :-) I moved the class to cluster/util (in the test directory)",
+      "parentUuid": "fafc7978_49c8b774",
+      "range": {
+        "startLine": 77,
+        "startChar": 6,
+        "endLine": 77,
+        "endChar": 28
+      },
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c9ab0788",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
         "patchSetId": 7
@@ -53,6 +95,24 @@
       "writtenOn": "2014-11-20T04:15:22Z",
       "side": 1,
       "message": "If onCompleted/Error is called while awaiting on the counter, the exception is thrown on the calling thread side, practically getting ignored and counter.await quietly timing out?",
+      "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_54520e14",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-20T10:56:36Z",
+      "side": 1,
+      "message": "OnCompleted and onError notifications are now recorded in a list of notifications. Note that the tests always check whether onNext was called with the appropriate value. So in the case you describe, the test would fail.",
+      "parentUuid": "fafc7978_c9ab0788",
       "revId": "52dc4a4ac072884e0b3faf271426071f40dfd91c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
