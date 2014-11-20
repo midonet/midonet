@@ -46,7 +46,7 @@ class MtuIncreaser extends Actor
 
     implicit val executorContext = context.dispatcher
 
-    override def logSource = "org.midonet.mtu-increase-actor"
+    override def logSource = "org.midonet.datapath-control"
     override def subscribedClasses =
         Seq(classOf[DatapathReady], classOf[LocalPortActive])
     implicit val logger: Logger = log
@@ -71,7 +71,7 @@ class MtuIncreaser extends Actor
             case NotYetException(f, _) =>
                 Try(Await.result(f, Duration.Inf)) match {
                     case Failure(t) =>
-                        log.error(s"Failed to increase the MTU of the" +
+                        log.error("Failed to increase the MTU of the " +
                                   s"interface associated with port $portId")
                     case Success(_) =>
                         increaseMtu(portId)
