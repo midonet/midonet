@@ -22,7 +22,7 @@ import org.midonet.packets.{IPv4Addr, IPSubnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-sealed trait Port {
+sealed trait Port extends Cloneable {
     var id: UUID = _
     var deviceID: UUID = _
     var adminStateUp: Boolean = true
@@ -43,6 +43,12 @@ sealed trait Port {
     def isInterior: Boolean = this.peerID != null
 
     def isPlugged: Boolean = this.isInterior || this.isExterior
+
+    def copy(active: Boolean): this.type = {
+        val c = super.clone().asInstanceOf[this.type]
+        c.active = active
+        c
+    }
 
     def setAdminStateUp(adminStateUp: Boolean): this.type = {
         this.adminStateUp = adminStateUp

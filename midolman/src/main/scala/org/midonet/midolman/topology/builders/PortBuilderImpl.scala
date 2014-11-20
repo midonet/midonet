@@ -25,8 +25,12 @@ class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
 
     private var port: Port = null
 
-    def setPort(p: Port) {
+    override def setPort(p: Port) {
         port = p
+    }
+
+    override def setActive(active: Boolean) {
+        port = port.copy(active)
     }
 
     def build() {

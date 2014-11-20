@@ -892,12 +892,13 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     }
 
     public void setActivePort(UUID portId, UUID owner, boolean active) throws StateAccessException {
-        String path = paths.getPortActivePath(portId) + "/" + owner.toString();
+        String parentPath = paths.getPortActivePath(portId);
+        String path = parentPath + "/" + owner.toString();
 
         // NOTE(guillermo): creating this path here ensures backwards
         // compatibility for ports that were created without an 'active' subnode.
-        if (active && !zk.exists(path))
-            zk.addPersistent(path, new byte[0]);
+        if (active && !zk.exists(parentPath))
+            zk.addPersistent(parentPath, new byte[0]);
 
         if (active)
             zk.ensureEphemeral(path, new byte[0]);
@@ -906,8 +907,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     }
 
     public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
-        Set<String> children = zk.getChildren(paths.getPortActivePath(portId), watcher);
-        return children.size() > 0;
+        String path = paths.getPortActivePath(portId);
+        log.debug("checking port liveness");
+        return zk.exists(path, watcher) && (zk.getChildren(path, watcher).size() > 0);
     }
 
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(
