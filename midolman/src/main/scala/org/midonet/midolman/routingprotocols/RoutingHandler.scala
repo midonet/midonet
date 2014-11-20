@@ -43,11 +43,9 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.packets._
-import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback0
 import org.midonet.util.process.ProcessHelper
 
@@ -77,12 +75,8 @@ object RoutingHandler {
 
     private case class StopAdvertisingRoute(route: AdRoute)
 
-    private case class AddPeerRoute(ribType: RIBType.Value,
-                                    destination: IPv4Subnet, gateway: IPv4Addr)
-
-    private case class RemovePeerRoute(ribType: RIBType.Value,
-                                       destination: IPv4Subnet,
-                                       gateway: IPv4Addr)
+    case class AddPeerRoute(destination: IPv4Subnet, gateway: IPv4Addr)
+    case class RemovePeerRoute(destination: IPv4Subnet, gateway: IPv4Addr)
 
     private case class DpPortCreateSuccess(port: DpPort, pid: Int)
     private case class DpPortDeleteSuccess(port: DpPort)
@@ -121,8 +115,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val upcallConnManager: UpcallDatapathConnectionManager,
                      val client: Client, val dataClient: DataClient,
                      val config: MidolmanConfig,
-                     val connWatcher: ZkConnectionAwareWatcher,
-                     val selectLoop: SelectLoop)
+                     val connWatcher: ZkConnectionAwareWatcher)
     extends Actor with ActorLogWithoutPath with Stash with FlowTranslator {
 
     import RoutingHandler._
@@ -153,7 +146,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private final val BGP_VTY_PORT: Int = 2605 + bgpIdx
     private final val BGP_TCP_PORT: Short = 179
 
-    private var zebra: ActorRef = null
+    private final val ZEBRA_FPM_PORT: Int = 2620 + bgpIdx
+
+    private var fpm: ActorRef = null
     private var bgpVty: BgpConnection = null
 
     private val bgps = mutable.Map[UUID, BGP]()
@@ -163,6 +158,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     // At this moment we only support one bgpd process
     private var bgpdProcess: BgpdProcess = null
+
+    private var zebraProcess: ZebraProcess = null
 
     private val dpPorts = mutable.Map[String, NetDevPort]()
 
@@ -280,18 +277,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         super.postStop()
         disable()
         log.debug("({}) Stopped", phase)
-    }
-
-    private val handler = new ZebraProtocolHandler {
-        def addRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                     gateway: IPv4Addr) {
-            self ! AddPeerRoute(ribType, destination, gateway)
-        }
-
-        def removeRoute(ribType: RIBType.Value, destination: IPv4Subnet,
-                        gateway: IPv4Addr) {
-            self ! RemovePeerRoute(ribType, destination, gateway)
-        }
     }
 
     override def receive = {
@@ -520,9 +505,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     stash()
             }
 
-        case AddPeerRoute(ribType, destination, gateway) =>
+        case AddPeerRoute(destination, gateway) =>
             log.info("({}) AddPeerRoute: {}, {}, {}",
-                     phase, ribType, destination, gateway)
+                     phase, destination, gateway)
             phase match {
                 case NotStarted =>
                     log.error("({}) AddPeerRoute: unexpected", phase)
@@ -559,9 +544,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     // ignore
             }
 
-        case RemovePeerRoute(ribType, destination, gateway) =>
+        case RemovePeerRoute(destination, gateway) =>
             log.info("({}) RemovePeerRoute: {}, {}, {}",
-                     phase, ribType, destination, gateway)
+                     phase, destination, gateway)
             phase match {
                 case NotStarted =>
                     log.error("({}) RemovePeerRoute: unexpected", phase)
@@ -727,10 +712,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             socketFile.delete()
         }
 
-        log.debug("({}) Starting zebra server actor", phase)
+        log.debug("({}) Starting fpm server actor", phase)
         socketAddress = new AfUnix.Address(socketFile.getAbsolutePath)
-        zebra = ZebraServer(socketAddress, handler, rport.portAddr.getAddress,
-                            BGP_NETDEV_PORT_MIRROR_NAME, selectLoop)
+        fpm = FpmServer(ZEBRA_FPM_PORT, self)
 
 
         /* Bgp namespace configuration */
@@ -801,8 +785,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             bgpdProcess.stop()
         }
 
-        log.debug("({}) stopping zebra server", phase)
-        context.stop(zebra)
+        log.debug("({}) stopping fpm server", phase)
+        context.stop(fpm)
 
         log.debug("({}) cleaning up bgpd environment", phase)
         // delete vty interface pair
@@ -849,10 +833,18 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         bgpdProcess = new BgpdProcess(self, BGP_VTY_PORT,
             rport.portAddr.getAddress.toString, socketAddress,
             BGP_NETWORK_NAMESPACE, config)
-        val didStart = bgpdProcess.start()
-        if (didStart) {
-            self ! BGPD_READY
-            log.debug("({}) bgpd process did start", phase)
+
+        if (bgpdProcess.start()) {
+            log.debug("({}) bgpd process started", phase)
+            zebraProcess = new ZebraProcess(BGP_NETWORK_NAMESPACE,
+                                            ZEBRA_FPM_PORT, BGP_VTY_LOCAL_IP,
+                                            config)
+            if (zebraProcess.start()) {
+                log.debug("({}) zebra process started", phase)
+                self ! BGPD_READY
+            } else {
+                log.debug("({}) zebra process did not start", phase)
+            }
         } else {
             log.debug("({}) bgpd process did not start", phase)
         }
