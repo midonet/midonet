@@ -195,6 +195,12 @@ trait Storage extends ReadOnlyStorage {
     def multi(ops: JList[PersistenceOp]): Unit
 
     /**
+     * Flushes the storage, deleting all the objects stored in it.
+     */
+    @throws[StorageException]
+    def flush(): Unit
+
+    /**
      * Subscribe to the specified object asynchronously. If a cached version
      * of the requested object already exists, before the subscription method
      * returns (at t0), obs.onNext() will receive the current object's state,
