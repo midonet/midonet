@@ -98,7 +98,13 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
 
     @throws[C3PODataManagerException]
     override def flushTopology() {
-        throw new NotImplementedError()
+        try {
+            storage.flush()
+        } catch {
+            case se: StorageException =>
+                    throw new C3PODataManagerException(
+                            "Failure in flushing the storage", se)
+        }
     }
 
     @throws[C3PODataManagerException]

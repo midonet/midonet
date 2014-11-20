@@ -758,6 +758,8 @@ class ZookeeperObjectMapper(
     @throws[ReferenceConflictException]
     override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
+    override def flush(): Unit = throw new NotImplementedError
+
     private[storage] def getPath(clazz: Class[_]) =
         basePath + "/" + clazz.getSimpleName
 

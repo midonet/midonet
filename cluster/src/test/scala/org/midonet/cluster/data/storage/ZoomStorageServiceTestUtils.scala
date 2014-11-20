@@ -138,6 +138,8 @@ trait ZoomStorageTester extends StorageTester
         zoom.multi(ops)
     }
 
+    override def flush(): Unit = throw new UnsupportedOperationException
+
     override def subscribe[T](clazz: Class[T],
                               id: ObjId,
                               obs: Observer[_ >: T]): Subscription = {
