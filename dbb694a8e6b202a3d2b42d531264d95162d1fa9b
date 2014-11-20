@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_34902a95",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-20T11:20:26Z",
+      "side": 1,
+      "message": "removed unnecessary imports",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 88
+      },
+      "revId": "dbb694a8e6b202a3d2b42d531264d95162d1fa9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
