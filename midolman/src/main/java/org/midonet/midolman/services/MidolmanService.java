@@ -47,9 +47,6 @@ public class MidolmanService extends AbstractService {
     DatapathConnectionService datapathConnectionService;
 
     @Inject
-    SelectLoopService selectLoopService;
-
-    @Inject
     MetricRegistry metrics;
 
     @Inject
@@ -123,7 +120,6 @@ public class MidolmanService extends AbstractService {
     private List<AbstractService> services() {
         ArrayList<AbstractService> services = new ArrayList<>(6);
         services.add(datapathConnectionService);
-        services.add(selectLoopService);
         if (hostService != null)
             services.add(hostService);
         services.add(dashboardService);
