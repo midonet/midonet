@@ -28,7 +28,6 @@ import org.midonet.midolman.services.DashboardService;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
-import org.midonet.midolman.services.SelectLoopService;
 import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
@@ -57,9 +56,6 @@ public class MidolmanModule extends PrivateModule {
 
         bind(MetricRegistry.class).toInstance(new MetricRegistry());
         expose(MetricRegistry.class);
-
-        bind(SelectLoopService.class)
-            .asEagerSingleton();
 
         requestStaticInjection(Chain.class);
 

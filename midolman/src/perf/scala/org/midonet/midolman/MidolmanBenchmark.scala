@@ -126,13 +126,6 @@ trait MidolmanBenchmark extends MockMidolmanActors
                             .in(Scopes.SINGLETON)
                     expose(classOf[MidolmanConfig])
 
-                    bind(classOf[SelectLoopService])
-                    .toInstance(new SelectLoopService {
-                        override def doStart(): Unit = notifyStarted()
-                        override def doStop(): Unit = notifyStopped()
-                    })
-                    expose(classOf[SelectLoopService])
-
                     bind(classOf[DashboardService])
                             .toInstance(new DashboardService {
                         override def doStart(): Unit = notifyStarted()

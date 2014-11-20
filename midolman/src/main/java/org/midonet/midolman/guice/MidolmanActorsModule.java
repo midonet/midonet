@@ -80,9 +80,6 @@ public class MidolmanActorsModule extends PrivateModule {
     @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
     public @interface CRASH_STRATEGY {}
 
-    @BindingAnnotation @Target({FIELD, METHOD}) @Retention(RUNTIME)
-    public @interface ZEBRA_SERVER_LOOP {}
-
     private static final Logger log = LoggerFactory
             .getLogger(MidolmanActorsModule.class);
 
@@ -141,15 +138,6 @@ public class MidolmanActorsModule extends PrivateModule {
                 log.warn("Unknown supervisor strategy [{}], " +
                          "falling back to resume strategy", strategy);
                 return getResumeStrategy();
-        }
-    }
-
-    @Provides @Exposed @Singleton @ZEBRA_SERVER_LOOP
-    public SelectLoop provideSelectLoop() {
-        try {
-            return new SimpleSelectLoop();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
