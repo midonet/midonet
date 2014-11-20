@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.util.reactivex
+
+package org.midonet.cluster.util
 
 import java.util.concurrent.CountDownLatch
 
@@ -22,41 +23,30 @@ import scala.concurrent.duration.Duration
 
 import rx.{Observable, Observer}
 
-import org.midonet.util.reactivex.AwaitableObserver.{OnError, Notification, OnCompleted}
+import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.AwaitableObserver.{Notification, OnCompleted, OnError}
 
-object AwaitableObserver {
+class ClassAwaitableObserver[T](awaitCount: Int) extends Observer[Observable[T]] {
 
-    trait Notification
-    case class OnNext[T](value: T) extends Notification
-    case class OnCompleted() extends Notification
-    case class OnError(e: Throwable) extends Notification
-
-}
-
-class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
-
-    import org.midonet.util.reactivex.AwaitableObserver._
-
+    val observers = new mutable.MutableList[AwaitableObserver[T]]
     val list = new mutable.MutableList[Notification]
-    @volatile private var counter = new CountDownLatch(awaitCount)
+    @volatile private var counter: CountDownLatch = new CountDownLatch(awaitCount)
 
-    override def onNext(value: T): Unit = {
-        list += OnNext(value)
-        counter.countDown()
-    }
-
-    override def onCompleted(): Unit = {
+    def onCompleted {
         list += OnCompleted()
-        counter.countDown()
+        throw new IllegalStateException("Class subscription should not complete.")
     }
 
-    override def onError(e: Throwable): Unit = {
+    def onError(e: Throwable) {
         list += OnError(e)
-        counter.countDown()
+        throw new RuntimeException("Got exception from class subscription", e)
     }
 
-    def await(duration: Duration): Boolean = {
-        counter.await(duration.length, duration.unit)
+    def onNext(value: Observable[T]) {
+        val obs = new AwaitableObserver[T](1)
+        value.subscribe(obs)
+        observers += obs
+        counter.countDown()
     }
 
     def await(duration: Duration, resetCount: Int): Boolean = try {
@@ -65,10 +55,7 @@ class AwaitableObserver[T](awaitCount: Int = 1) extends Observer[T] {
         counter = new CountDownLatch(resetCount)
     }
 
-    def reset(resetCount: Int): Unit = {
-        counter = new CountDownLatch(resetCount)
+    def reset(newCounter: Int) {
+        counter = new CountDownLatch(newCounter)
     }
-
-    def notifications: Seq[Notification] = list
-
 }

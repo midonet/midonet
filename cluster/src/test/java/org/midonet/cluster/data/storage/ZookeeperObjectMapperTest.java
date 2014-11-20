@@ -26,6 +26,7 @@ import scala.collection.Iterator;
 import scala.collection.Seq;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 import scala.util.Failure;
 import scala.util.Try;
 
@@ -42,6 +43,8 @@ import org.junit.Test;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.util.ClassAwaitableObserver;
+import org.midonet.util.reactivex.AwaitableObserver;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
@@ -178,6 +181,8 @@ public class ZookeeperObjectMapperTest {
     private static final Commons.UUID NETWORK_UUID = createRandomUuidproto();
     private static final Commons.UUID CHAIN_UUID = createRandomUuidproto();
     private static final String NETWORK_NAME = "test_network";
+
+    private static final FiniteDuration ONE_SECOND = new FiniteDuration(1, TimeUnit.SECONDS);
 
     private static Commons.UUID createRandomUuidproto() {
         UUID uuid = UUID.randomUUID();
@@ -892,72 +897,78 @@ public class ZookeeperObjectMapperTest {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
 
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
-                                                      chain.id, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.updates());
-        assertNotNull(sub.event().get());
-        assertEquals(chain.name, sub.event().get().name);
+        AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class,
+                                                     chain.id, 1);
+        sub.await(ONE_SECOND, 0);
+        assertEquals(1, sub.list().size());
+        assertNotNull(sub.list().get(0));
+        PojoChain chainUpdate =
+            ((AwaitableObserver.OnNext<PojoChain>) sub.list().get(0).get()).value();
+        assertEquals(chain.name, chainUpdate.name);
     }
 
     @Test
     public void testSubscriberGetsUpdates() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
-                                                      chain.id, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        sub.reset(1);
+        AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class,
+                                                     chain.id, 1);
+        sub.await(ONE_SECOND, 1);
         chain.name = "renamedChain";
         zom.update(chain);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.updates());
-        assertEquals(chain.name, sub.event().get().name);
+        sub.await(ONE_SECOND, 0);
+        assertEquals(2, sub.list().size());
+        PojoChain chainUpdate =
+            ((AwaitableObserver.OnNext<PojoChain>) sub.list().get(1).get()).value();
+        assertEquals(chain.name, chainUpdate.name);
     }
 
     @Test
     public void testSubscriberGetsDelete() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class,
-                                                      chain.id, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        sub.reset(1);
+        AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class,
+                                                     chain.id, 1);
+        sub.await(ONE_SECOND, 1);
         zom.delete(PojoChain.class, chain.id);
-        sub.await(1, TimeUnit.SECONDS);
-        assertTrue(sub.event().isEmpty());
+        sub.await(ONE_SECOND, 0);
+        assertTrue(sub.list().get(1).get() instanceof AwaitableObserver.OnCompleted);
     }
 
     @Test
     public void testSubscribeToNonexistentObject() throws Throwable {
         UUID id = UUID.randomUUID();
-        ObjectSubscription<PojoChain> sub = subscribe(PojoChain.class, id, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        assertThat(sub.ex(), instanceOf(NotFoundException.class));
-        NotFoundException ex = (NotFoundException)sub.ex();
-        assertEquals(ex.clazz(), PojoChain.class);
-        assertEquals(None$.MODULE$, ex.id());
+        AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class, id, 1);
+        sub.await(ONE_SECOND, 0);
+        AwaitableObserver.OnError onError = (AwaitableObserver.OnError)
+            sub.list().get(0).get();
+        Exception ex = (Exception) onError.e();
+        assertThat(ex, instanceOf(NotFoundException.class));
+        NotFoundException nfe = (NotFoundException) ex;
+        assertEquals(nfe.clazz(), PojoChain.class);
+        assertEquals(None$.MODULE$, nfe.id());
     }
 
     @Test
     public void testSecondSubscriberGetsLatestVersion() throws Exception {
         PojoChain chain = new PojoChain("chain");
         zom.create(chain);
-        ObjectSubscription<PojoChain> sub1 = subscribe(PojoChain.class,
-                                                       chain.id, 1);
+        AwaitableObserver<PojoChain> sub1 = subscribe(PojoChain.class,
+                                                      chain.id, 1);
 
-        sub1.await(1, TimeUnit.SECONDS);
-        sub1.reset(1);
+        sub1.await(ONE_SECOND, 1);
         chain.name = "renamedChain";
         zom.update(chain);
-        sub1.await(1, TimeUnit.SECONDS);
+        sub1.await(ONE_SECOND, 0);
 
-        ObjectSubscription<PojoChain> sub2 = subscribe(PojoChain.class,
-                                                       chain.id, 1);
-        sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub2.updates());
-        assertNotNull(sub2.event().get());
-        assertEquals("renamedChain", sub2.event().get().name);
+        AwaitableObserver<PojoChain> sub2 = subscribe(PojoChain.class,
+                                                      chain.id, 1);
+        sub2.await(ONE_SECOND, 0);
+        assertEquals(1, sub2.list().size());
+        PojoChain chainUpdate =
+            ((AwaitableObserver.OnNext<PojoChain>) sub2.list().get(0).get()).value();
+        assertNotNull(chainUpdate);
+        assertEquals("renamedChain", chainUpdate.name);
     }
 
     @Test
@@ -965,80 +976,93 @@ public class ZookeeperObjectMapperTest {
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         createObjects(chain1, chain2);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 2);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.subs().size());
+        ClassAwaitableObserver<PojoChain> sub = subscribe(PojoChain.class, 2);
+        sub.await(ONE_SECOND, 0);
+        assertEquals(2, sub.observers().size());
     }
 
     @Test
     public void testClassSubscriberGetsNewObject() throws Exception {
         PojoChain chain1 = new PojoChain("chain1");
         zom.create(chain1);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.subs().size());
-        assertEquals("chain1", sub.subs().get(0).get().event().get().name);
+        ClassAwaitableObserver<PojoChain> classObs = subscribe(PojoChain.class, 1);
+        classObs.await(ONE_SECOND, 1);
+        assertEquals(1, classObs.observers().size());
+        AwaitableObserver<PojoChain> chainObs = classObs.observers().get(0).get();
+        PojoChain chain = ((AwaitableObserver.OnNext<PojoChain>) chainObs.list()
+            .get(0).get()).value();
+        assertEquals("chain1", chain.name);
 
         PojoChain chain2 = new PojoChain("chain2");
-        sub.reset(1);
         zom.create(chain2);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub.subs().size());
+        classObs.await(ONE_SECOND, 0);
+        assertEquals(2, classObs.observers().size());
     }
 
     @Test
     public void testSecondClassSubscriberGetsCurrentList() throws Exception {
         PojoChain chain1 = new PojoChain("chain1");
         zom.create(chain1);
-        ClassSubscription<PojoChain> sub = subscribe(PojoChain.class, 1);
-        sub.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub.subs().size());
+        ClassAwaitableObserver<PojoChain> classObs1 = subscribe(PojoChain.class, 1);
+        classObs1.await(ONE_SECOND, 1);
+        assertEquals(1, classObs1.observers().size());
 
         PojoChain chain2 = new PojoChain("chain2");
-        sub.reset(1);
         zom.create(chain2);
-        sub.await(1, TimeUnit.SECONDS);
+        classObs1.await(ONE_SECOND, 0);
 
-        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 2);
-        sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub2.subs().size());
+        ClassAwaitableObserver<PojoChain> classObs2 = subscribe(PojoChain.class, 2);
+        classObs2.await(ONE_SECOND, 0);
+        assertEquals(2, classObs2.observers().size());
     }
 
     @Test
     public void testClassObservableIgnoresDeletedInstances() throws Exception {
-        ClassSubscription<PojoChain> sub1 = subscribe(PojoChain.class, 2);
+        ClassAwaitableObserver<PojoChain> classObs1 = subscribe(PojoChain.class, 2);
         PojoChain chain1 = new PojoChain("chain1");
         PojoChain chain2 = new PojoChain("chain2");
         zom.create(chain1);
         zom.create(chain2);
-        sub1.await(1, TimeUnit.SECONDS);
-        assertEquals(2, sub1.subs().size());
+        classObs1.await(ONE_SECOND, 0);
+        assertEquals(2, classObs1.observers().size());
 
-        ObjectSubscription<PojoChain> chain1Sub =
-            (sub1.subs().get(0).get().event().get().id.equals(chain1.id)) ?
-            sub1.subs().get(0).get() : sub1.subs().get(1).get();
-        chain1Sub.reset(1);
+        AwaitableObserver<PojoChain> obs1 = classObs1.observers().get(0).get();
+        AwaitableObserver<PojoChain> obs2 = classObs1.observers().get(1).get();
+        UUID chainId = ((AwaitableObserver.OnNext<PojoChain>) obs1.list()
+                           .get(0).get()).value().id;
+        AwaitableObserver<PojoChain> chain1Obs;
+        if (chainId.equals(chain1.id)) {
+            chain1Obs = obs1;
+        } else {
+            chain1Obs = obs2;
+        }
+
+        chain1Obs.reset(1);
         zom.delete(PojoChain.class, chain1.id);
-        chain1Sub.await(1, TimeUnit.SECONDS);
-        assertTrue(chain1Sub.event().isEmpty());
+        chain1Obs.await(ONE_SECOND, 0);
+        assertTrue(
+            chain1Obs.list().get(1).get() instanceof AwaitableObserver.OnCompleted);
 
-        ClassSubscription<PojoChain> sub2 = subscribe(PojoChain.class, 1);
-        sub2.await(1, TimeUnit.SECONDS);
-        assertEquals(1, sub2.subs().size());
-        assertEquals("chain2", sub2.subs().get(0).get().event().get().name);
+        ClassAwaitableObserver<PojoChain>
+            classObs2 = subscribe(PojoChain.class, 1);
+        classObs2.await(ONE_SECOND, 0);
+        assertEquals(1, classObs2.observers().size());
+        AwaitableObserver<PojoChain> chainObs = classObs2.observers().get(0).get();
+        assertEquals("chain2", ((AwaitableObserver.OnNext<PojoChain>) chainObs
+                                   .list().get(0).get()).value().name);
     }
 
-    private <T> ObjectSubscription<T> subscribe(
+    private <T> AwaitableObserver<T> subscribe(
         Class<T> clazz, Object id, int counter) throws Exception{
 
-        ObjectSubscription<T> sub = new ObjectSubscription<>(counter);
+        AwaitableObserver<T> sub = new AwaitableObserver<>(counter);
         zom.subscribe(clazz, id, sub);
         return sub;
     }
 
-    private <T> ClassSubscription<T> subscribe(Class<T> clazz, int counter)
+    private <T> ClassAwaitableObserver<T> subscribe(Class<T> clazz, int counter)
             throws Exception {
-        ClassSubscription<T> sub = new ClassSubscription<>(counter);
+        ClassAwaitableObserver<T> sub = new ClassAwaitableObserver<>(counter);
         zom.subscribeAll(clazz, sub);
         return sub;
     }
