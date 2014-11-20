@@ -50,7 +50,7 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
 
         //TODO(abel) it's not enough to launch the process to send a ready
         //TODO(abel) check if it succeeded
-        sleepBecause("we need bgpd to boot up", 5)
+        //sleepBecause("we need bgpd to boot up", 5)
 
         if (bgpdProcess != null) {
             log.debug("bgpd process started. Vty: {}", vtyPortNumber)
