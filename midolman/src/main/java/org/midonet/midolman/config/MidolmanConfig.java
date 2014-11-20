@@ -59,8 +59,20 @@ public interface MidolmanConfig
     @ConfigString(key = "bgpd_binary", defaultValue = "/usr/sbin")
     public String pathToBGPD();
 
+    @ConfigString(key = "zebra_config", defaultValue = "/etc/quagga")
+    public String pathToZebraConfig();
+
     @ConfigString(key = "bgpd_config", defaultValue = "/etc/quagga")
     public String pathToBGPDConfig();
+
+    @ConfigString(key = "zebra_binary", defaultValue = "/usr/lib/quagga")
+    public String pathToZebra();
+
+    @ConfigString(key = "zebrad_fpm_address", defaultValue = "0.0.0.0")
+    public String zebraFpmAddress();
+
+    @ConfigInt(key = "zebrad_fpm_port", defaultValue = 2620)
+    public int zebraFpmPort();
 
     @ConfigInt(key = "dhcp_mtu", defaultValue = 1450)
     int getMidolmanDhcpMtu();
