@@ -20,20 +20,19 @@ import java.util.concurrent._
 
 import org.apache.curator.framework.CuratorFramework
 
-import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{Ignore, Matchers, Suite}
-import rx.{Observable, Observer}
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{FiniteDuration, Duration}
 import scala.concurrent.Await
+
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectMapperTests extends Suite
@@ -276,17 +275,17 @@ class ZookeeperObjectMapperTests extends Suite
 
     def testSubscribe() {
         val bridge = createBridge()
-        val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
+        val obs = new AwaitableObserver[PojoBridge](2 /* We expect two events */)
         zom.subscribe(classOf[PojoBridge], bridge.id, obs)
         addPortToBridge(bridge.id)
 
-        obs.await(1, TimeUnit.SECONDS)
+        obs.await(new FiniteDuration(1, TimeUnit.SECONDS), 0)
     }
 
     @Ignore
     def testSubscribeWithGc() = {
         val bridge = createBridge()
-        val obs = new ObjectSubscription[PojoBridge](0)
+        val obs = new AwaitableObserver[PojoBridge](0)
         val sub = zom.subscribe(classOf[PojoBridge], bridge.id, obs)
 
         zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(1))
@@ -303,15 +302,15 @@ class ZookeeperObjectMapperTests extends Suite
         createBridge()
         createBridge()
 
-        val obs = new ClassSubscription[PojoBridge](2 /* We expect two events */)
+        val obs = new ClassAwaitableObserver[PojoBridge](2 /* We expect two events */)
         zom.subscribeAll(classOf[PojoBridge], obs)
 
-        obs.await(1, TimeUnit.SECONDS)
+        obs.await(new FiniteDuration(1, TimeUnit.SECONDS), 0)
     }
 
     @Ignore
     def testSubscribeAllWithGc() {
-        val obs = new ClassSubscription[PojoBridge](0)
+        val obs = new ClassAwaitableObserver[PojoBridge](0)
         val sub = zom.subscribeAll(classOf[PojoBridge], obs)
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
@@ -322,66 +321,6 @@ class ZookeeperObjectMapperTests extends Suite
         waitForGc()
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
-    }
-}
-
-private class ObjectSubscription[T](counter: Int) extends Observer[T] {
-    private var countDownLatch = new CountDownLatch(counter)
-    var updates: Int = 0
-    var event: Option[T] = _
-    var ex: Throwable = _
-
-    override def onCompleted() {
-        event = None
-        countDownLatch.countDown()
-    }
-
-    override def onError(e: Throwable) {
-        ex = e
-        countDownLatch.countDown()
-    }
-
-    override def onNext(t: T) {
-        updates += 1
-        event = Option(t)
-        countDownLatch.countDown()
-    }
-
-    def await(timeout: Long, unit: TimeUnit) {
-        assertTrue(countDownLatch.await(timeout, unit))
-    }
-
-    def reset(newCounter: Int) {
-        countDownLatch = new CountDownLatch(newCounter)
-    }
-}
-
-private class ClassSubscription[T](counter: Int) extends Observer[Observable[T]] {
-    private var countDownLatch: CountDownLatch = new CountDownLatch(counter)
-    val subs = new mutable.MutableList[ObjectSubscription[T]]
-
-
-    override def onCompleted() {
-        fail("Class subscription should not complete.")
-    }
-
-    override def onError(e: Throwable) {
-        throw new RuntimeException("Got exception from class subscription", e)
-    }
-
-    override def onNext(observable: Observable[T]) {
-        val sub = new ObjectSubscription[T](1)
-        observable.subscribe(sub)
-        subs += sub
-        countDownLatch.countDown()
-    }
-
-    def await(timeout: Long, unit: TimeUnit) {
-        assertTrue(countDownLatch.await(timeout, unit))
-    }
-
-    def reset(newCounter: Int) {
-        countDownLatch = new CountDownLatch(newCounter)
     }
 }
 
