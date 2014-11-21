@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_a774e79c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "1 second seems small to me. The storage may be under heavy load for a brief moment. 10 seconds seems more reasonable.",
+      "range": {
+        "startLine": 59,
+        "startChar": 40,
+        "endLine": 59,
+        "endChar": 41
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_478d3b7b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "Why not giving it a transaction id?",
+      "range": {
+        "startLine": 130,
+        "startChar": 44,
+        "endLine": 130,
+        "endChar": 46
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c7f80be8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "We should probably log the fact that transaction completed successfully.",
+      "range": {
+        "startLine": 144,
+        "startChar": 12,
+        "endLine": 144,
+        "endChar": 34
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_87d56345",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "POps? Do you mean an operation in the low-level mido model?",
+      "range": {
+        "startLine": 161,
+        "startChar": 34,
+        "endLine": 161,
+        "endChar": 38
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_274bd72c",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POStorageManagerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "Do you need to repeat this? I\u0027m missing the point.",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 123,
+        "endChar": 48
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_47bb7b0e",
+        "filename": "cluster/src/main/proto/c3po.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-21T17:20:48Z",
+      "side": 1,
+      "message": "Why not C3POManagerState? By keeping C3PO in the name we know it\u0027s state related to C3PO.",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 27
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
