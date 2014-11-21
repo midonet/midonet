@@ -16,28 +16,11 @@
 package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import java.lang.{Long => JLong}
 import java.util.{ConcurrentModificationException, List => JList}
-
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ArrayListMultimap
-import com.google.protobuf.{Message, TextFormat}
-import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
-import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
-import org.apache.curator.utils.EnsurePath
-import org.apache.zookeeper.KeeperException.{BadVersionException, NoNodeException, NodeExistsException}
-import org.apache.zookeeper.OpResult.ErrorResult
-import org.apache.zookeeper.data.Stat
-import org.apache.zookeeper.{CreateMode, KeeperException}
-import org.codehaus.jackson.JsonFactory
-import org.codehaus.jackson.map.ObjectMapper
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.data.{Obj, ObjId}
-import org.midonet.util.concurrent.Locks
-import org.slf4j.LoggerFactory
-import rx.{Observable, Observer, Subscription}
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import scala.async.Async.async
 import scala.collection.JavaConverters._
@@ -45,6 +28,30 @@ import scala.collection.concurrent.TrieMap
 import scala.collection.{Set, mutable}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ArrayListMultimap
+import com.google.protobuf.{Message, TextFormat}
+
+import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
+import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
+import org.apache.curator.utils.EnsurePath
+import org.apache.zookeeper.KeeperException.{BadVersionException, NoNodeException, NodeExistsException}
+import org.apache.zookeeper.OpResult.ErrorResult
+import org.apache.zookeeper.{CreateMode, KeeperException}
+import org.apache.zookeeper.WatchedEvent
+import org.apache.zookeeper.Watcher
+import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
+import org.apache.zookeeper.data.Stat
+import org.codehaus.jackson.JsonFactory
+import org.codehaus.jackson.map.ObjectMapper
+import org.slf4j.LoggerFactory
+
+import rx.{Observable, Observer, Subscription}
+
+import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.util.concurrent.Locks
 /**
  * Object mapper that uses Zookeeper as a data store. Maintains referential
  * integrity through the use of field bindings, which must be declared
@@ -90,15 +97,38 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
  *
  * declareBinding(Port.class, "peerId", CLEAR,
  * Port.class, "peerId", CLEAR);
+ *
+ * DATA SET VERSIONING:
+ * The data sets stored in the storage are versioned by monotonically increasing
+ * ID numbers. When the storage is flushed, ZOOM just bumps the data set version
+ * by 1, keeps the data set and instead starts persisting data under a new path
+ * with the the new version number.
+ *
+ * A new ZOOM instance checks for the version number upon getting built. If it
+ * finds one, it sets its data set version number to the found value so that a
+ * new instance would be able to take over where the previous ZOOM instance left
+ * off. In addition, upon initialization a ZOOM sets a watcher to the version
+ * number node and it'd be notified if another ZOOM instances bumps the version
+ * number to switch to the new version.
  */
 class ZookeeperObjectMapper(
-    private val basePath: String,
+    private val basePathPrefix: String,
     private val curator: CuratorFramework) extends Storage {
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
     @volatile private var built = false
 
-    private val locksPath = basePath + "/zoomlocks/lock"
+    /* Monotonically increasing version number for the data set path under
+     * which all the Storage contents are stored. When we "flush" the storage,
+     * ZOOM actually just bumps the version number by 1, keeps the old data, and
+     * starts persisting data in under the new version path.
+     */
+    private val version= new AtomicLong(INITIAL_ZOOM_DATA_SET_VERSION)
+    private def basePath(version: Long = this.version.longValue) =
+        s"$basePathPrefix/$version"
+    private def versionNodePath = s"$basePathPrefix/$VERSION_NODE"
+
+    private def locksPath(version: Long) = basePath(version) + "/zoomlocks/lock"
 
     private val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
 
@@ -221,7 +251,7 @@ class ZookeeperObjectMapper(
      * added. Since updates are not incremental, the first backreference will
      * be lost.
      */
-    private class TransactionManager {
+    private class TransactionManager(val version: Long) {
         private final val NEW_OBJ_VERSION = -1
         private val objCache = new mutable.HashMap[Key[_], ObjWithVersion[_]]()
         private val objsToDelete = new mutable.HashMap[Key[_], Int]()
@@ -232,13 +262,18 @@ class ZookeeperObjectMapper(
         // us to ensure a consistent read across multiple nodes.
         private val (lockPath: String, zxid: Long) = try {
             val path = curator.create().creatingParentsIfNeeded()
-                .withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(locksPath)
+                              .withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
+                              .forPath(locksPath(version))
             val stat = new Stat()
             curator.getData.storingStatIn(stat).forPath(path)
             (path, stat.getCzxid)
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(
                 "Could not acquire current zxid.", ex)
+        }
+
+        private def getPath(clazz: Class[_], id: ObjId) = {
+            ZookeeperObjectMapper.this.getPath(clazz, id, version)
         }
 
         /**
@@ -519,6 +554,10 @@ class ZookeeperObjectMapper(
      */
     def registerClass(clazz: Class[_]) {
         assert(!built)
+        registerClassInternal(clazz)
+    }
+
+    private def registerClassInternal(clazz: Class[_]) {
         val name = clazz.getSimpleName
         simpleNameToClass.get(name) match {
             case Some(_) =>
@@ -539,6 +578,7 @@ class ZookeeperObjectMapper(
 
         // Add the instance cache map last, since we use this to verify
         // registration.
+        // TODO: Need to close all instance subscriptions.
         instanceCaches(clazz) =
             new TrieMap[String, InstanceSubscriptionCache[_]]
     }
@@ -587,8 +627,60 @@ class ZookeeperObjectMapper(
      */
     def build() {
         assert(!built)
+        initVersionNumber()
         ensureClassNodes(instanceCaches.keySet)
         built = true
+    }
+
+    private def getVersionNumberFromZkAndWatch(): Long = {
+        val watcher = new Watcher() {
+                override def process(event: WatchedEvent) {
+                    event.getType match {
+                        case NodeDataChanged =>
+                            setVersionNumberAndWatch()
+                            // TODO GC subscriptions.
+                        case _ =>  // Do nothing.
+                    }
+                }
+            }
+        JLong.parseLong(new String(
+                curator.getData.usingWatcher(watcher).forPath(versionNodePath)))
+    }
+
+    private def setVersionNumberAndWatch() {
+        version.set(getVersionNumberFromZkAndWatch())
+    }
+
+    private def initVersionNumber() {
+        val vNodePath = versionNodePath
+        try {
+            curator.create.forPath(vNodePath, version.toString.getBytes)
+            getVersionNumberFromZkAndWatch()
+        } catch {
+            case _: NodeExistsException =>
+                try {
+                    setVersionNumberAndWatch()
+                } catch {
+                    case ex: Exception =>
+                        throw new InternalObjectMapperException(
+                                "Failure in initializing version number.", ex)
+                }
+            case ex: Exception =>
+                throw new InternalObjectMapperException(
+                        "Failure in initializing version number.", ex)
+        }
+        log.info(s"Initialized the version number to $version.")
+    }
+
+    private def updateVersionNumber() {
+        try {
+            curator.setData.forPath(versionNodePath, version.toString.getBytes)
+        } catch {
+            case ex: Exception =>
+                throw new InternalObjectMapperException(
+                        "Failure in updating version number.", ex)
+        }
+        log.info(s"Updated the version number to $version.")
     }
 
     def isBuilt = built
@@ -761,7 +853,7 @@ class ZookeeperObjectMapper(
         assertBuilt()
         if (ops.isEmpty) return
 
-        val manager = new TransactionManager
+        val manager = new TransactionManager(version.longValue())
         ops.foreach {
             case CreateOp(obj) => manager.create(obj)
             case UpdateOp(obj, validator) => manager.update(obj, validator)
@@ -781,16 +873,35 @@ class ZookeeperObjectMapper(
     @throws[ReferenceConflictException]
     override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
-    /* Currently it just provides a placeholder for an flush implementation to
-     * come in a later patch.
+    /**
+     * Flushes all the data in the storage by bumping the data set path version.
      */
-    override def flush(): Unit = throw new NotImplementedError
+    @throws[StorageException]
+    override def flush(): Unit = {
+        version.incrementAndGet()
+        updateVersionNumber()
+        try {
+            simpleNameToClass.clear()
+            // TODO: Need to close all class subscriptions.
+            classCaches.clear()
+            for (c <- classToIdGetter.keySet) registerClassInternal(c)
+        } catch {
+            case th: Throwable =>
+                throw new StorageException("Failure in flushing Storage.", th)
+        }
+        log.info(s"Flushed the Storage, bumping the version to $version.")
+    }
 
-    private[storage] def getPath(clazz: Class[_]) =
-        basePath + "/" + clazz.getSimpleName
+    private[storage] def getPath(clazz: Class[_], version: Long) =
+        basePath(version) + "/" + clazz.getSimpleName
 
-    private[storage] def getPath(clazz: Class[_], id: ObjId): String = {
-        getPath(clazz) + "/" + getIdString(clazz, id)
+    private[storage] def getPath(clazz: Class[_]): String =
+        getPath(clazz, this.version.longValue)
+
+    private[storage] def getPath(
+            clazz: Class[_], id: ObjId, version: Long = this.version.longValue)
+    : String = {
+        getPath(clazz, version) + "/" + getIdString(clazz, id)
     }
 
     /**
@@ -893,6 +1004,8 @@ class ZookeeperObjectMapper(
 }
 
 object ZookeeperObjectMapper {
+    private val VERSION_NODE = "dataset_version"
+    private val INITIAL_ZOOM_DATA_SET_VERSION = 1
 
     private[storage] trait IdGetter {
         def idOf(obj: Obj): ObjId
