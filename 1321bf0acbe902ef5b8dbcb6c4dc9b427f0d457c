@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_892bbfea",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Rewrote the comments based on your sample, and renamed it to \"stateId\". Its enclosing object name contains \"C3POStorageManager\", so omitted \"storageManager\" for brevity.",
+      "parentUuid": "fafc7978_89dd7f17",
+      "range": {
+        "startLine": 34,
+        "startChar": 7,
+        "endLine": 36,
+        "endChar": 27
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_69e2dbd6",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-20T07:03:21Z",
       "side": 1,
       "message": "Since this is internal to the cluster, is there any reason to make it a protobuf message?",
+      "range": {
+        "startLine": 43,
+        "startChar": 0,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_35f144ce",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "I tried storing a Scala Object using ZOOM, but it didn\u0027t work. Having / updating a Java file just for creating a POJO for this is a pain, at least for me. On the other hand, the merit of having this as a Protobuf message is that we have a list of objects stored via ZOOM listed up in Protobuf definition files.",
+      "parentUuid": "fafc7978_69e2dbd6",
       "range": {
         "startLine": 43,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c935c747",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_c9e787e3",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 49
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_09d18ffb",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2014-11-20T07:03:21Z",
       "side": 1,
       "message": "Future.value doesn\u0027t block until completion. If the Future hasn\u0027t completed because the response from Zookeeper hasn\u0027t been received yet, get will throw a java.util.NoSuchElementException:\n\nscala\u003e Promise[String]().future.value.get\njava.util.NoSuchElementException: None.get\n  at scala.None$.get(Option.scala:344)\n  at scala.None$.get(Option.scala:342)\n  ... 33 elided\n\nTo block, you need to call Await.result().",
+      "range": {
+        "startLine": 71,
+        "startChar": 21,
+        "endLine": 71,
+        "endChar": 26
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b5b414f3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Thank you for the education :) I\u0027m still learning about my own Future :P",
+      "parentUuid": "fafc7978_09d18ffb",
       "range": {
         "startLine": 71,
         "startChar": 21,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_6965bb44",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_a9ecc3c8",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 73,
+        "endChar": 13
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e9cd2b5f",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2014-11-20T07:03:21Z",
       "side": 1,
       "message": "See above.",
+      "range": {
+        "startLine": 89,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 56
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_95b910ec",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_e9cd2b5f",
       "range": {
         "startLine": 89,
         "startChar": 0,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_a93a0334",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Haven\u0027t tested, but it\u0027s more or less just a placeholder for logic that needs to be implemented.",
+      "parentUuid": "fafc7978_49db971b",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 5
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_a9032372",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2014-11-20T07:03:21Z",
       "side": 1,
       "message": "This method doesn\u0027t store the untranslated messages, does it? We need to store those, too, in the same transaction.",
+      "range": {
+        "startLine": 112,
+        "startChar": 17,
+        "endLine": 112,
+        "endChar": 36
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_093fcf26",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Oops, I was forgetting that. Implemented it.",
+      "parentUuid": "fafc7978_a9032372",
       "range": {
         "startLine": 112,
         "startChar": 17,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_15eec0ec",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_69093b95",
+      "range": {
+        "startLine": 124,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 66
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c9fe676b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -232,6 +448,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_4949d7cf",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "That\u0027s a good idea. Thanks:)",
+      "parentUuid": "fafc7978_c9fe676b",
+      "range": {
+        "startLine": 132,
+        "startChar": 0,
+        "endLine": 137,
+        "endChar": 36
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_29d8d31c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -243,6 +483,30 @@
       "writtenOn": "2014-11-20T07:03:21Z",
       "side": 1,
       "message": "I think you can use flatMap instead of map + flatten. For example:\n\nscala\u003e List(3, 2, 5).map(i \u003d\u003e 1 to i)\nres2: List[blah blah blah] \u003d List(Range(1, 2, 3), Range(1, 2), Range(1, 2, 3, 4, 5))\n\nscala\u003e List(3, 2, 5).flatMap(i \u003d\u003e 1 to i)\nres1: List[Int] \u003d List(1, 2, 3, 1, 2, 1, 2, 3, 4, 5)",
+      "range": {
+        "startLine": 139,
+        "startChar": 14,
+        "endLine": 139,
+        "endChar": 21
+      },
+      "revId": "1321bf0acbe902ef5b8dbcb6c4dc9b427f0d457c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e93b6b36",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-21T11:26:06Z",
+      "side": 1,
+      "message": "Thanks for the idea. Changed to flatMap.",
+      "parentUuid": "fafc7978_29d8d31c",
       "range": {
         "startLine": 139,
         "startChar": 14,
