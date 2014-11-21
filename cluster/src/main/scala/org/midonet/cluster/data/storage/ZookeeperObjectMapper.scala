@@ -505,6 +505,10 @@ class ZookeeperObjectMapper(
      */
     def registerClass(clazz: Class[_]) {
         assert(!built)
+        registerClassInternal(clazz)
+    }
+
+    private def registerClassInternal(clazz: Class[_]) {
         val name = clazz.getSimpleName
         simpleNameToClass.get(name) match {
             case Some(_) =>
@@ -758,10 +762,21 @@ class ZookeeperObjectMapper(
     @throws[ReferenceConflictException]
     override def multi(ops: JList[PersistenceOp]): Unit = multi(ops.asScala)
 
-    /* Currently it just provides a placeholder for an flush implementation to
-     * come in a later patch.
+    /**
+     * Deletes all the objects stored under the base path.
      */
-    override def flush(): Unit = throw new NotImplementedError
+    @throws[StorageException]
+    override def flush(): Unit = {
+        try {
+            curator.delete.deletingChildrenIfNeeded.forPath(basePath)
+            simpleNameToClass.clear()
+            classCaches.clear()
+            for ((c, _) <- classToIdGetter) registerClassInternal(c)
+        } catch {
+            case th: Throwable =>
+                throw new StorageException("Failure in flushing Storage.", th)
+        }
+    }
 
     private[storage] def getPath(clazz: Class[_]) =
         basePath + "/" + clazz.getSimpleName

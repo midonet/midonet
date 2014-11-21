@@ -290,6 +290,25 @@ class ZookeeperObjectMapperTests extends Suite
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
     }
+
+    def testFlush() {
+        val bridge = PojoBridge()
+        val port = PojoPort(bridgeId = bridge.id)
+        zom.multi(List(CreateOp(bridge), CreateOp(port)))
+        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (true)
+        await(zom.exists(classOf[PojoPort], port.id)) should equal (true)
+
+        zom.flush()
+        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (false)
+        await(zom.exists(classOf[PojoPort], port.id)) should equal (false)
+
+        // After flushing, ZOOM should be able to store new objects again.
+        val bridge2 = PojoBridge()
+        val port2 = PojoPort(bridgeId = bridge2.id)
+        zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
+        await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
+        await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
+    }
 }
 
 private class ObjectSubscription[T](counter: Int) extends Observer[T] {
