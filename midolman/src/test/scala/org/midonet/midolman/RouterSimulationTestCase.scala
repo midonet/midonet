@@ -40,7 +40,8 @@ import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.midolman.layer3.Route.{NextHop, NO_GATEWAY}
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
-import org.midonet.midolman.simulation.{ArpTableImpl, RouteBalancer, PacketContext}
+import org.midonet.midolman.simulation.{ArpTableImpl, ArpTimeoutException,
+    RouteBalancer, PacketContext}
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.LocalPortActive
@@ -684,7 +685,9 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             extractMac(macTry)(100 milliseconds)
             fail("MAC should not be known, ARP goes unreplied")
         } catch {
-            case e: java.util.concurrent.TimeoutException =>
+            case ArpTimeoutException =>
+            case _: Throwable =>
+                fail("The thrown exception should be ArpTimeoutException.")
         }
 
     }
@@ -735,7 +738,10 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             extractMac(macTry)(2 seconds)
             fail("Future should timeout since ARP is not replied")
         } catch {
-            case e: java.util.concurrent.TimeoutException =>
+            case _: java.util.concurrent.TimeoutException =>
+            case ex: Throwable =>
+                fail("The thrown exception should be TimeoutException but it " +
+                    "was", ex)
         }
     }
 
