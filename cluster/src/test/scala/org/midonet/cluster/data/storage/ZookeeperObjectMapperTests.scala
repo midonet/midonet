@@ -68,10 +68,12 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     override protected def setup(): Unit = {
-
         gcDone = false
         zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
+        initAndBuildZoom(zom)
+    }
 
+    private def initAndBuildZoom(zom: ZookeeperObjectMapper) {
         List(classOf[PojoBridge], classOf[PojoRouter], classOf[PojoPort],
              classOf[PojoChain], classOf[PojoRule]).foreach {
             clazz => zom.registerClass(clazz)
@@ -322,6 +324,68 @@ class ZookeeperObjectMapperTests extends Suite
         waitForGc()
 
         zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+    }
+
+    def testGetPath() {
+        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
+    }
+
+    def testVersionBump() {
+        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
+        zom.flush()
+        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
+    }
+
+    def testZoomInheritsVersionNum() {
+        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
+        zom.flush()
+
+        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        initAndBuildZoom(zom2)
+        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
+    }
+
+    def testZoomNotifiedVersionNumBump() {
+        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        initAndBuildZoom(zom2)
+
+        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
+
+        zom.flush()
+
+        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/2/PojoBridge")
+    }
+
+    def testFlushResetsWatcher() {
+        print("ZOMT: testFlushResetsWatcher.\n")
+        zom.flush()
+        val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        initAndBuildZoom(zom2)
+
+        zom2.flush()
+        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/3/PojoBridge")
+
+        zom.flush()
+        zom2.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/4/PojoBridge")
+    }
+
+    def testFlush() {
+        val bridge = PojoBridge()
+        val port = PojoPort(bridgeId = bridge.id)
+        zom.multi(List(CreateOp(bridge), CreateOp(port)))
+        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (true)
+        await(zom.exists(classOf[PojoPort], port.id)) should equal (true)
+
+        zom.flush()
+        await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (false)
+        await(zom.exists(classOf[PojoPort], port.id)) should equal (false)
+
+        // After flushing, ZOOM should be able to store new objects again.
+        val bridge2 = PojoBridge()
+        val port2 = PojoPort(bridgeId = bridge2.id)
+        zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
+        await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
+        await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
     }
 }
 
