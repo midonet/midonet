@@ -170,7 +170,7 @@ assert_dependencies() {
     which midonet-cli || err_exit "midonet-cli not installed"
     which nmap || err_exit "nmap not installed"
     which rrdtool || err_exit "rrdtool not installed"
-    test -f $MIDONET_SRC_DIR/midolman/pom.xml || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
+    test -f $MIDONET_SRC_DIR/midolman/build.gradle || err_exit "directory $MIDONET_SRC_DIR not a midonet code checkout"
     test -f $HOME/.midonetrc || err_exit ".midonetrc not found in $HOME"
     test -f $UPLOAD_KEY || err_exit "upload ssh key not found at $UPLOAD_KEY"
 }
