@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_e7442f76",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "Agreed. Increased to 10 seconds.",
+      "parentUuid": "fafc7978_a774e79c",
+      "range": {
+        "startLine": 59,
+        "startChar": 40,
+        "endLine": 59,
+        "endChar": 41
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_478d3b7b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-21T17:20:48Z",
       "side": 1,
       "message": "Why not giving it a transaction id?",
+      "range": {
+        "startLine": 130,
+        "startChar": 44,
+        "endLine": 130,
+        "endChar": 46
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c7492b8d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "Removed this \"task\" version as it is not being used anyway.",
+      "parentUuid": "fafc7978_478d3b7b",
       "range": {
         "startLine": 130,
         "startChar": 44,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_275e3746",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 144,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_c7f80be8",
+      "range": {
+        "startLine": 144,
+        "startChar": 12,
+        "endLine": 144,
+        "endChar": 34
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_87d56345",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2014-11-21T17:20:48Z",
       "side": 1,
       "message": "POps? Do you mean an operation in the low-level mido model?",
+      "range": {
+        "startLine": 161,
+        "startChar": 34,
+        "endLine": 161,
+        "endChar": 38
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_075b3355",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "Sorry, POps meant \"PersistenceOp\", but I guess that\u0027s confusing. Changed to translateC3POOpsToPersistenceOps.",
+      "parentUuid": "fafc7978_87d56345",
       "range": {
         "startLine": 161,
         "startChar": 34,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_67583f57",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POStorageManagerTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "The first future returns true for exists(StorageManagerState), and the second future returns the actual state info on a get request.",
+      "parentUuid": "fafc7978_274bd72c",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 123,
+        "endChar": 48
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_47bb7b0e",
         "filename": "cluster/src/main/proto/c3po.proto",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2014-11-21T17:20:48Z",
       "side": 1,
       "message": "Why not C3POManagerState? By keeping C3PO in the name we know it\u0027s state related to C3PO.",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 27
+      },
+      "revId": "a27201a45f2d7a1f33ae3b3e81075dd299c18568",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_47553b1c",
+        "filename": "cluster/src/main/proto/c3po.proto",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-22T08:14:04Z",
+      "side": 1,
+      "message": "Its outer class name is \"C3PO\", so the fully qualified name is \"org.midonet.cluster.models.C3PO.StorageManagerState\". Having an extra \"C3PO\" seems redundant.",
+      "parentUuid": "fafc7978_47bb7b0e",
       "range": {
         "startLine": 23,
         "startChar": 8,
