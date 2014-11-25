@@ -29,4 +29,9 @@ class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
                               NetlinkProtocol protocol) {
         super(provider, protocol);
     }
+
+    public NetlinkChannelImpl(SelectorProvider provider,
+                              NetlinkProtocol protocol, int groups) {
+        super(provider, protocol, groups);
+    }
 }

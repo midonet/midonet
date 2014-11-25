@@ -53,6 +53,7 @@ public interface cLibrary extends Library {
     public static final int AF_INET = 2;
     public static final int AF_INET6 = 10;
     public static final int AF_NETLINK = 16;
+    public static final int AF_PACKET = 17;
 
     public static final int SOCK_STREAM = 1;
     public static final int SOCK_DGRAM = 2;
