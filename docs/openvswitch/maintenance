@@ -3,9 +3,9 @@
 ### Overview
 
 Midolman network controller lives on top of a programmable switch we refer to as
-"the datapath". In its current architecture, midolman knows and exploit the
+"the datapath". In its current architecture, midolman knows and exploits the
 low-level functions of this datapath module to route packets and control traffic
-in and out of virtual ports it manages. This tigthly coupled architecture
+in and out of virtual ports it manages. This tightly coupled architecture
 requires a certain level of maintenance. This document gives pointers to
 places that can break and needs monitoring.
 
