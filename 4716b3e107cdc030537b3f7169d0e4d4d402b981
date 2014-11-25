@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_dbe746e3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 385,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-25T12:08:33Z",
+      "side": 1,
+      "message": "Is there a use case for this parameter being false?",
+      "range": {
+        "startLine": 385,
+        "startChar": 45,
+        "endLine": 385,
+        "endChar": 66
+      },
+      "revId": "4716b3e107cdc030537b3f7169d0e4d4d402b981",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
