@@ -38,7 +38,9 @@ object UpdateOp {
     def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
 }
 
-case class DeleteOp(clazz: Class[_], id: ObjId) extends PersistenceOp
+case class DeleteOp(clazz: Class[_], id: ObjId,
+                    ignoreIfNotExists: Boolean = false)
+        extends PersistenceOp
 
 
 /**
@@ -173,6 +175,13 @@ trait Storage extends ReadOnlyStorage {
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
     def delete(clazz: Class[_], id: ObjId): Unit
+
+    /**
+     * Synchronous method that deletes the specified object from the storage if
+     * it exists, or silently returns if it doesn't.
+     */
+    @throws[ObjectReferencedException]
+    def deleteIfExists(clazz: Class[_], id: ObjId): Unit
 
     /**
      * Synchronous method that executes multiple create, update, and/or delete

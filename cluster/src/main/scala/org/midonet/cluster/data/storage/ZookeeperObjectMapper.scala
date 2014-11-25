@@ -378,24 +378,38 @@ class ZookeeperObjectMapper(
             updateCache(thisClass, thisId, newThisObj)
         }
 
-        def delete(clazz: Class[_], id: ObjId) {
+        /* If ignoresNeo (ignores deletion on non-existing objects) is true,
+         * the method silently returns if the specified object does not exist /
+         * has already been deleted.
+         */
+        def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean) {
             assert(isRegistered(clazz))
             val key = Key(clazz, id)
             if (objsToDelete.contains(key)) {
-                // The primary purpose of this is to throw up a red flag when
-                // the caller explicitly tries to delete the same object twice
-                // in a single multi() call, but this will throw an exception if
-                // an object is deleted twice via cascading delete. This is
-                // intentional; cascading delete implies an ownership
-                // relationship, and I don't think it makes sense for an object
-                // to have two owners. If you have a legitimate use case, let me
-                // know and I'll figure out a way to support it.
-                throw new NotFoundException(clazz, id)
+                if (!ignoresNeo)
+                    // The primary purpose of this is to throw up a red flag
+                    // when the caller explicitly tries to delete the same
+                    // object twice in a single multi() call, but this will
+                    // throw an exception if an object is deleted twice via
+                    // cascading delete. This is intentional; cascading delete
+                    // implies an ownership relationship, and it doesn't make
+                    // sense for an object to have two owners unless explicitly
+                    // requested for idempotent deletion.
+                    throw new NotFoundException(clazz, id)
+                else return
             }
 
             // Remove the object from cache if cached, otherwise load from ZK.
             val ObjWithVersion(thisObj, thisVersion) =
-                objCache.remove(key).getOrElse(getWithVersion(clazz, id))
+                objCache.remove(key).getOrElse {
+                    try {
+                        getWithVersion(clazz, id)
+                    } catch {
+                        case nfe: NotFoundException if ignoresNeo =>
+                            // Ignores deletion on a non-existing object.
+                            return
+                    }
+                }
             objsToDelete(key) = thisVersion
 
             for (bdg <- allBindings.get(clazz).asScala
@@ -415,7 +429,7 @@ class ZookeeperObjectMapper(
                         // and C, and B has a binding to C with ERROR semantics.
                         // This would be complicated to fix and probably isn't
                         // needed, so I'm leaving it as is.
-                        delete(bdg.getReferencedClass, thatId)
+                        delete(bdg.getReferencedClass, thatId, ignoresNeo)
                 }
             }
         }
@@ -639,7 +653,15 @@ class ZookeeperObjectMapper(
     @throws[NotFoundException]
     @throws[ObjectReferencedException]
     override def delete(clazz: Class[_], id: ObjId) =
-        multi(List(DeleteOp(clazz, id)))
+        multi(List(DeleteOp(clazz, id, false)))
+
+    /**
+     * Deletes the specified object from Zookeeper if it exists and ignores if
+     * it doesn't.
+     */
+    @throws[ObjectReferencedException]
+    override def deleteIfExists(clazz: Class[_], id: ObjId) =
+        multi(List(DeleteOp(clazz, id, true)))
 
     @throws[NotFoundException]
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
@@ -743,7 +765,8 @@ class ZookeeperObjectMapper(
         ops.foreach {
             case CreateOp(obj) => manager.create(obj)
             case UpdateOp(obj, validator) => manager.update(obj, validator)
-            case DeleteOp(clazz, id) => manager.delete(clazz, id)
+            case DeleteOp(clazz, id, ignores) =>
+                manager.delete(clazz, id, ignores)
         }
 
         try manager.commit() finally { manager.releaseLock() }

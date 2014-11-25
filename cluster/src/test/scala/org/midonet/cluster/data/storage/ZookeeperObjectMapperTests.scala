@@ -218,6 +218,37 @@ class ZookeeperObjectMapperTests extends Suite
         twoChains.map(_.name) should equal(List("chain0", "chain1"))
     }
 
+    def testDeleteIfExists() {
+        zom.deleteIfExists(classOf[PojoBridge], UUID.randomUUID)
+    }
+
+    def testDeleteIfExistsOnDeletedObject() {
+        val bridge = PojoBridge()
+        zom.create(bridge)
+        zom.delete(classOf[PojoBridge], bridge.id)
+        // Idempotent delete.
+        zom.deleteIfExists(classOf[PojoBridge], bridge.id)
+    }
+
+    def testDeleteIfExistsOnDeletedObjectMulti() {
+        val bridge = PojoBridge()
+        zom.create(bridge)
+        zom.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
+                       DeleteOp(classOf[PojoBridge], bridge.id, true)))
+    }
+
+    def testMultiWithRedundantDeleteIfExists() {
+        val chain = PojoChain()
+        val rule = PojoRule(chainId = chain.id)
+        // The following two multis cannot be turned into a single multi.
+        // Apparently it is a current limitation of ZOOM that in a single multi
+        // one cannot delete an object that's just been created due to a race
+        // to the backend ZooKeeper.
+        zom.multi(List(CreateOp(chain), CreateOp(rule)))
+        zom.multi(List(DeleteOp(classOf[PojoChain], chain.id),
+                       DeleteOp(classOf[PojoRule], rule.id, true)))
+    }
+
     private def createBridge() : PojoBridge = {
         val bridge = PojoBridge()
         zom.create(bridge)
