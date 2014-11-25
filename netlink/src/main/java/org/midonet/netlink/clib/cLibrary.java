@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.netlink.clib;
 
 import java.nio.ByteBuffer;
@@ -53,6 +54,7 @@ public interface cLibrary extends Library {
     public static final int AF_INET = 2;
     public static final int AF_INET6 = 10;
     public static final int AF_NETLINK = 16;
+    public static final int AF_PACKET = 17;
 
     public static final int SOCK_STREAM = 1;
     public static final int SOCK_DGRAM = 2;
