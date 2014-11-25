@@ -238,11 +238,16 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
                 .update(thisId, newThisObj)
         }
 
-        def delete(clazz: Class[_], id: ObjId): Unit = {
+        /* If ignoresNeo (ignores deletion on non-existing objects) is true,
+         * the method silently returns if the specified object does not exist /
+         * has already been deleted.
+         */
+        def delete(clazz: Class[_], id: ObjId, ignoresNeo: Boolean): Unit = {
             assert(isRegistered(clazz))
             val key = Key(clazz, getIdString(clazz, id))
             val thisObj = classes.get(clazz)(id) getOrElse {
-                throw new NotFoundException(clazz, id)
+                if (!ignoresNeo) throw new NotFoundException(clazz, id)
+                else return
             }
             objsToDelete += key
 
@@ -259,7 +264,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
                     case DeleteAction.CLEAR =>
                         clearBackreference(bdg, id, thatId)
                     case DeleteAction.CASCADE =>
-                        delete(bdg.getReferencedClass, thatId)
+                        delete(bdg.getReferencedClass, thatId, ignoresNeo)
                 }
             }
 
@@ -301,7 +306,10 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         multi(List(UpdateOp(obj, validator)))
 
     override def delete(clazz: Class[_], id: ObjId): Unit =
-        multi(List(DeleteOp(clazz, id)))
+        multi(List(DeleteOp(clazz, id, false)))
+
+    override def deleteIfExists(clazz: Class[_], id: ObjId): Unit =
+        multi(List(DeleteOp(clazz, id, true)))
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
             withReadLock(lock) {
@@ -345,7 +353,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         ops.foreach {
             case CreateOp(obj) => tr.create(obj)
             case UpdateOp(obj, validator) => tr.update(obj, validator)
-            case DeleteOp(clazz, id) => tr.delete(clazz, id)
+            case DeleteOp(clazz, id, ignores) => tr.delete(clazz, id, ignores)
         }
     }
 

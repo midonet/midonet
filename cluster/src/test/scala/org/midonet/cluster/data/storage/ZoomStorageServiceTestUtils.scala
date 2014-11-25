@@ -99,6 +99,12 @@ trait ZoomStorageTester extends StorageTester
     }
 
     @throws(classOf[NotFoundException])
+    @throws(classOf[ObjectReferencedException])
+    override def deleteIfExists(clazz: Class[_], id: ObjId) {
+        zoom.deleteIfExists(clazz, id)
+    }
+
+    @throws(classOf[NotFoundException])
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         zoom.get(clazz, id)
     }
