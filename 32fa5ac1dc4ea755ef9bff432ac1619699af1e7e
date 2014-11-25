@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_5bc4f63f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-11-25T12:03:29Z",
+      "side": 1,
+      "message": "I don\u0027t think that a tunnel zone has a flow tag. We should refactor the code to addition of both virtual devices with flow tags, and physical  without tags.",
+      "range": {
+        "startLine": 67,
+        "startChar": 4,
+        "endLine": 67,
+        "endChar": 39
+      },
+      "revId": "32fa5ac1dc4ea755ef9bff432ac1619699af1e7e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
