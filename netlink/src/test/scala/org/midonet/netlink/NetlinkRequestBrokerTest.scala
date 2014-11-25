@@ -225,7 +225,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.readReply(obs)
 
             obs.onNextCalls should be (1)
-            obs.onCompletedCalls should be (1)
+            obs.onCompletedCalls should be (0)
         }
 
         scenario ("A truncated packet is detected") {
