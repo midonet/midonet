@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,10 +55,21 @@ cobertura {
     coverageExcludes = ['.*org.midonet.odp.test.*']
 }
 
-task integrationTest(type: JavaExec, dependsOn: testClasses) {
-    main = 'org.midonet.odp.test.OvsIntegrationTest'
-    classpath sourceSets.main.runtimeClasspath
-    classpath configurations.runtime
-    jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
-    jvmArgs('-Djava.library.path=/lib:/usr/lib')
+task ovsTest(type: Exec, dependsOn: testClasses) {
+  commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+  commandLine += "-Xbootclasspath/p:${project.jdkBootstrap}"
+  commandLine += '-cp'
+  commandLine += (sourceSets.main.runtimeClasspath +
+                  configurations.runtime).collect { it.toString() }.join(':')
+  commandLine += 'org.midonet.odp.test.OvsIntegrationTest'
+}
+
+task rtnetlinkTest(type: Exec, dependsOn: testClasses) {
+  commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
+  commandLine += "-Xbootclasspath/p:${project.jdkBootstrap}"
+  commandLine += '-cp'
+  commandLine += (sourceSets.main.runtimeClasspath +
+                  configurations.runtime).collect { it.toString() }.join(':')
+  commandLine += 'org.midonet.odp.test.RtnetlinkIntegrationTest'
+  println(commandLine)
 }

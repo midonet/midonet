@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,19 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
 
     protected final NetlinkProtocol protocol;
 
+    protected final int groups;
+
     protected NetlinkChannel(SelectorProvider provider,
                              NetlinkProtocol protocol) {
+        this(provider, protocol, 0);
+    }
+
+    protected NetlinkChannel(SelectorProvider provider,
+                             NetlinkProtocol protocol,
+                             int groups) {
         super(provider);
         this.protocol = protocol;
+        this.groups = groups;
         this.state = ST_UNCONNECTED;
         initSocket();
     }
@@ -154,21 +163,20 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         IntByReference localSize = new IntByReference(local.size());
 
         if (cLibrary.lib.getsockname(fdVal, local, localSize) < 0) {
-            throw
-                new IOException("failed to connect to socket: " +
-                                    cLibrary.lib.strerror(
-                                        Native.getLastError()));
+            throw new IOException("failed to connect to socket: " +
+                    cLibrary.lib.strerror(Native.getLastError()));
         }
 
         log.debug("Netlink connection returned pid: {}.",
                   local.nl_pid);
         localAddress = new Netlink.Address(local.nl_pid);
 
+        if (this.groups != 0)
+            local.nl_groups = this.groups;
+
         if (cLibrary.lib.bind(fdVal, local, local.size()) < 0) {
-            throw
-                new IOException("failed to connect to socket: " +
-                                    cLibrary.lib.strerror(
-                                        Native.getLastError()));
+            throw new IOException("failed to connect to socket: " +
+                    cLibrary.lib.strerror(Native.getLastError()));
         }
 
         state = ST_CONNECTED;
