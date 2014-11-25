@@ -890,8 +890,8 @@ public class LocalDataClientImpl implements DataClient {
             public void run() {
                 PortConfig config = null;
                 try {
-                    config = portZkManager.get(portID);
                     portZkManager.setActivePort(portID, host, active);
+                    config = portZkManager.get(portID);
                 } catch (StateAccessException e) {
                     log.error("Error retrieving the configuration for port {}",
                             portID, e);
