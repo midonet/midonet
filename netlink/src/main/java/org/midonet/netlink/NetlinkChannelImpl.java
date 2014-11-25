@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,5 +28,10 @@ class NetlinkChannelImpl extends NetlinkChannel implements SelChImpl {
     public NetlinkChannelImpl(SelectorProvider provider,
                               NetlinkProtocol protocol) {
         super(provider, protocol);
+    }
+
+    public NetlinkChannelImpl(SelectorProvider provider,
+                              NetlinkProtocol protocol, int groups) {
+        super(provider, protocol, groups);
     }
 }

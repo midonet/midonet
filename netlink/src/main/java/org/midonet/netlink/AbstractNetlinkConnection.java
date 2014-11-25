@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public abstract class AbstractNetlinkConnection {
     private final Logger log;
 
     private static final int DEFAULT_MAX_BATCH_IO_OPS = 200;
-    private static final int NETLINK_HEADER_LEN = 20;
+    protected abstract int getHeaderLength();
     private static final int NETLINK_READ_BUFSIZE = 0x10000;
 
     protected static final long DEF_REPLY_TIMEOUT = TimeUnit.SECONDS.toMillis(1);
@@ -161,68 +161,7 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
-    public void getFamilyId(String familyName, Callback<Short> callback) {
-        getFamilyId(familyName, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    public void getFamilyId(String familyName,
-                            Callback<Short> callback, long timeoutMillis) {
-        ByteBuffer buf = getBuffer();
-        GenlProtocol.familyNameRequest(familyName, NLFlag.REQUEST, pid(),
-                                       CtrlFamily.Context.GetFamily, buf);
-        sendNetlinkMessage(
-            buf,
-            callback,
-            CtrlFamily.familyIdDeserializer,
-            timeoutMillis);
-    }
-
-    public void getMulticastGroup(String familyName,
-                                  String groupName,
-                                  Callback<Integer> callback) {
-        getMulticastGroup(familyName, groupName, callback, DEF_REPLY_TIMEOUT);
-    }
-
-    public void getMulticastGroup(String familyName,
-                                  String groupName,
-                                  Callback<Integer> callback,
-                                  long timeoutMillis) {
-        ByteBuffer buf = getBuffer();
-        GenlProtocol.familyNameRequest(familyName, NLFlag.REQUEST, pid(),
-                                       CtrlFamily.Context.GetFamily, buf);
-        sendNetlinkMessage(
-            buf,
-            callback,
-            CtrlFamily.mcastGrpDeserializer(groupName),
-            timeoutMillis);
-    }
-
-    /** Finalizes a ByteBuffer containing a msg payload and puts it in the
-     *  internal queue of messages to be writen to the nl socket by the
-     *  writing thread. It is assumed that this message will be answered by
-     *  a unique reply message. */
-    protected <T> void sendNetlinkMessage(ByteBuffer payload,
-                                          Callback<T> callback,
-                                          Reader<T> reader,
-                                          long timeoutMillis) {
-        enqueueRequest(NetlinkRequest.makeSingle(callback, reader,
-                                                 payload, timeoutMillis));
-    }
-
-    /** Same as sendNetlinkMessage(), but assumes that the message to be sent
-     *  will be answered by multiple answers (enumerate requests). The reply
-     *  handler will take care of assembling a set of answers using the given
-     *  deserialisation function, and will pass this set to the given callback
-     *  once a DONE netlink message is read for the handler seq number. */
-    protected <T> void sendMultiAnswerNetlinkMessage(ByteBuffer payload,
-                                                     Callback<Set<T>> callback,
-                                                     Reader<T> reader,
-                                                     long timeoutMillis) {
-        enqueueRequest(NetlinkRequest.makeMulti(callback, reader,
-                                                payload, timeoutMillis));
-    }
-
-    private void enqueueRequest(NetlinkRequest req) {
+    protected void enqueueRequest(NetlinkRequest req) {
         if (bypassSendQueue) {
             // If this stops being used only for testing, beware
             // of the un-synchronized write to sequenceNumber.
@@ -373,6 +312,9 @@ public abstract class AbstractNetlinkConnection {
 
     protected void endBatch() {}
 
+    protected abstract void processMessageType(Bucket bucket, short type, short flags, int seq, int pid,
+                                               ByteBuffer reply);
+
     private synchronized int processReadFromChannel(final Bucket bucket)
             throws IOException {
 
@@ -383,7 +325,7 @@ public abstract class AbstractNetlinkConnection {
         reply.mark();
         int finalLimit = reply.limit();
 
-        while (reply.remaining() >= NETLINK_HEADER_LEN) {
+        while (reply.remaining() >= getHeaderLength()) {
             // read the nlmsghdr and check for error
             int position = reply.position();
 
@@ -427,21 +369,7 @@ public abstract class AbstractNetlinkConnection {
                     break;
 
                 default:
-                    // read genl header
-                    byte cmd = reply.get();      // command
-                    byte ver = reply.get();      // version
-                    reply.getShort();            // reserved
-
-                    if (seq == 0) {
-                        // if the seq number is zero we are handling a PacketIn.
-                        if (bucket.consumeToken())
-                            handleNotification(type, cmd, seq, pid, reply);
-                        else
-                            log.debug("Failed to get token; dropping packet");
-                    } else  {
-                        // otherwise we are processing an answer to a request.
-                        processRequestAnswer(seq, flags, reply);
-                    }
+                    processMessageType(bucket, type, flags, seq, pid, reply);
             }
 
             reply.limit(finalLimit);
@@ -457,7 +385,7 @@ public abstract class AbstractNetlinkConnection {
         }
     }
 
-    private void processRequestAnswer(int seq, short flag, ByteBuffer payload) {
+    protected void processRequestAnswer(int seq, short flag, ByteBuffer payload) {
         NetlinkRequest request = removeRequest(seq);
         if (request != null) {
             if (NLFlag.isMultiFlagSet(flag)) {
@@ -506,9 +434,17 @@ public abstract class AbstractNetlinkConnection {
         return seq;
     }
 
+    protected static int seqPosition() {
+        return 4 /* nlmsg_len */ + 2 /* lnmsg_type */ + 2 /* nlmsg_flags */;
+    }
+
+    /** Obtains a send buffer from the internal buffer pool and offset the
+     *  buffer position to reserve enough space for the netlink and generic
+     *  netlink header sections. */
     protected ByteBuffer getBuffer() {
         ByteBuffer buf = requestPool.take();
         buf.clear();
+        buf.position(getHeaderLength());
         return buf;
     }
 }

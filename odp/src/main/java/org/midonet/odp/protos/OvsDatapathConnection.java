@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2014 - 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.util.concurrent.SettableFuture;
-import org.midonet.odp.ports.NetDevPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.AbstractNetlinkConnection;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.MockNetlinkChannel;
@@ -41,16 +39,18 @@ import org.midonet.odp.Datapath;
 import org.midonet.odp.DpPort;
 import org.midonet.odp.Flow;
 import org.midonet.odp.FlowMatch;
-import org.midonet.odp.OvsNetlinkFamilies;
-import org.midonet.odp.Packet;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.OvsNetlinkFamilies;
+import org.midonet.odp.Packet;
+import org.midonet.odp.ports.NetDevPort;
+import org.midonet.netlink.AbstractGenericNetlinkConnection;
 import org.midonet.util.BatchCollector;
 
 /**
  * OvsDatapath protocol implementation.
  */
-public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
+public abstract class OvsDatapathConnection extends AbstractGenericNetlinkConnection {
 
     private static final Logger log =
         LoggerFactory.getLogger(OvsDatapathConnection.class);
