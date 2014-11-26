@@ -1,0 +1,676 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_f17349e5",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 20
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Unnecessary empty lines at the end.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 18,
+        "endChar": 0
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_317e71af",
+        "filename": "brain/midonet-brain/scripts/api-client.pl",
+        "patchSetId": 20
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "An extra whitespace.",
+      "range": {
+        "startLine": 232,
+        "startChar": 24,
+        "endLine": 232,
+        "endChar": 25
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0c13525d",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/client/ClientFrontEnd.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Perhaps can be more descriptive than \"client\"?",
+      "range": {
+        "startLine": 55,
+        "startChar": 27,
+        "endLine": 55,
+        "endChar": 33
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ac0e8632",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/client/ClientFrontEnd.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"Warn\" may be more appropriate?",
+      "range": {
+        "startLine": 66,
+        "startChar": 16,
+        "endLine": 66,
+        "endChar": 20
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ec0fee2c",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/client/ClientFrontEnd.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"Warn\"?",
+      "range": {
+        "startLine": 79,
+        "startChar": 16,
+        "endLine": 79,
+        "endChar": 20
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0c419239",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/BinaryToWSFrameEncoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Is this just for debugging, and if so, can be removed?",
+      "range": {
+        "startLine": 37,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 5
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_6c52de14",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/BinaryToWSFrameEncoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Can be consolidated into a single debug line?",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 47,
+        "endChar": 40
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4c4b9a59",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/BinaryToWSFrameEncoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Can / should be in-lined.",
+      "range": {
+        "startLine": 48,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 23
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_6ca01ef5",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/PlainAdapter.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Needs a more relevant name.",
+      "range": {
+        "startLine": 34,
+        "startChar": 13,
+        "endLine": 34,
+        "endChar": 25
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cc6e6ac9",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/WSFrameToBinaryDecoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "This decoder doesn\u0027t seem to do anything particular to Protocol Buffer.",
+      "range": {
+        "startLine": 29,
+        "startChar": 3,
+        "endLine": 29,
+        "endChar": 45
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2c48d65a",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/WSFrameToBinaryDecoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "No longer needed?",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 5
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0c6872b9",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/WSFrameToBinaryDecoder.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Can be inlined in the following code?",
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0cafd2e4",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/common/WebSocketAdapter.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "65536?",
+      "range": {
+        "startLine": 67,
+        "startChar": 46,
+        "endLine": 67,
+        "endChar": 51
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cccaeaa0",
+        "filename": "brain/midonet-brain/src/main/java/org/midonet/brain/services/topology/server/ServerFrontEnd.java",
+        "patchSetId": 20
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"Warn\" may be more appropriate.",
+      "range": {
+        "startLine": 78,
+        "startChar": 16,
+        "endLine": 78,
+        "endChar": 20
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ac5de6eb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "We might also want to log if each server is started?",
+      "range": {
+        "startLine": 71,
+        "startChar": 12,
+        "endLine": 72,
+        "endChar": 64
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0c72327c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"Warn\"?",
+      "range": {
+        "startLine": 77,
+        "startChar": 20,
+        "endLine": 77,
+        "endChar": 24
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ec6ece95",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 86,
+        "endChar": 62
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4c6c3a9d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"enabled\" to make it more consistent with the rest?",
+      "range": {
+        "startLine": 99,
+        "startChar": 23,
+        "endLine": 99,
+        "endChar": 29
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2c69f68b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Please remove the tab.",
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8c0582c4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiServiceApp.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Warn?",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 20
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cc0f8ae0",
+        "filename": "cluster/src/main/proto/storage_evaluation.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Can you revert the change to this file and remove this file from the patch set?",
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ac14c6f5",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "I don\u0027t see much point in reordering these in the alphabetical order since we\u0027ll keep adding a new device and a new device will receive the next smallest available number in principle.",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 22
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0cceb283",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "s/closed/Closed/",
+      "range": {
+        "startLine": 27,
+        "startChar": 37,
+        "endLine": 27,
+        "endChar": 43
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8ca102ac",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"no more request (command) is accepted\"?",
+      "range": {
+        "startLine": 31,
+        "startChar": 44,
+        "endLine": 31,
+        "endChar": 68
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ccab0a88",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"must have a req_id field\"",
+      "range": {
+        "startLine": 35,
+        "startChar": 24,
+        "endLine": 35,
+        "endChar": 54
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ec91ae53",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "to associate",
+      "range": {
+        "startLine": 36,
+        "startChar": 51,
+        "endLine": 36,
+        "endChar": 71
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ecf40e89",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"most common\" or \"most likely\"?",
+      "range": {
+        "startLine": 50,
+        "startChar": 9,
+        "endLine": 50,
+        "endChar": 13
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0cf992c8",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "s/accomodate/accommodate/ though I\u0027d use \"represent\".",
+      "range": {
+        "startLine": 102,
+        "startChar": 11,
+        "endLine": 102,
+        "endChar": 21
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ecf52ecc",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "Remove.",
+      "range": {
+        "startLine": 102,
+        "startChar": 49,
+        "endLine": 102,
+        "endChar": 52
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4c039ab8",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 20
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-26T18:28:24Z",
+      "side": 1,
+      "message": "\"types\"?",
+      "range": {
+        "startLine": 103,
+        "startChar": 3,
+        "endLine": 103,
+        "endChar": 11
+      },
+      "revId": "3aabe2260fc59817adece1b44e437b57f5e7ad85",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
