@@ -17,7 +17,7 @@ package org.midonet.util.collection;
 
 import java.lang.ref.WeakReference;
 
-import org.jboss.netty.util.internal.ConcurrentWeakKeyHashMap;
+import org.infinispan.commons.util.concurrent.ConcurrentWeakKeyHashMap;
 
 /** A pool of shared objects that will be garbage collected when not reference
   * from outside of the pool.
