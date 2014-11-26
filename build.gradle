@@ -53,7 +53,8 @@ project.ext {
 
         scallop: "org.rogach:scallop_2.11:0.9.5",
 
-        netty: "io.netty:netty:3.7.0.Final",
+        infinispan: "org.infinispan:infinispan-commons:7.0.2.Final",
+        netty: "io.netty:netty-all:4.0.24.Final",
         guava: "com.google.guava:guava:15.0",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
@@ -369,13 +370,13 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
     dependencies {
         compile "com.google.guava:guava:15.0",
                 "com.google.code.gson:gson:2.1",
+                libraries.netty,
                 libraries.rx,
                 "org.opendaylight.controller:clustering.services:0.5.0",
                 "org.opendaylight.controller:sal.connection:0.1.1",
                 "org.opendaylight.controller:sal.networkconfiguration:0.0.2",
                 "javax.portlet:portlet-api:2.0",
                 "org.apache.httpcomponents:httpcore-nio:4.2.1",
-                "io.netty:netty-all:4.0.10.Final",
                 "commons-collections:commons-collections:1.0",
                 "commons-lang:commons-lang:2.6",
                 "com.fasterxml.jackson.core:jackson-databind:2.3.2",
