@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_eebb6370",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-27T14:41:19Z",
+      "side": 1,
+      "message": "This should come from ZK no? Here if a node dies and another one takes over the CP3O role, it\u0027ll restart from 1 but we want it to pick up the current version. I guess the version # itself should be stored in ZK so that on start the node picks up the current number (or a default) and uses it to compose the path. Whenever there is a version bump, it stores the new one. What do you think?",
+      "revId": "8ab2c9429675e50bc8115596f76fc8dc8f5b4d7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4eb0af8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-27T14:41:19Z",
+      "side": 1,
+      "message": "avoid hardcoding in a string and pick up instead from a variable?",
+      "range": {
+        "startLine": 631,
+        "startChar": 52,
+        "endLine": 631,
+        "endChar": 53
+      },
+      "revId": "8ab2c9429675e50bc8115596f76fc8dc8f5b4d7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
