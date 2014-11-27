@@ -685,7 +685,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
             extractMac(macTry)(100 milliseconds)
             fail("MAC should not be known, ARP goes unreplied")
         } catch {
-            case ArpTimeoutException =>
+            case tout: ArpTimeoutException =>
             case _: Throwable =>
                 fail("The thrown exception should be ArpTimeoutException.")
         }
