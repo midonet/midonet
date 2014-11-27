@@ -41,7 +41,7 @@ import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.{ArpTimeoutException, PacketContext}
+import org.midonet.midolman.simulation.{DeviceQueryTimeoutException, ArpTimeoutException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
@@ -325,7 +325,7 @@ class DeduplicationActor(
             workflow.drop(pktCtx)
         } catch {
             case e: Exception =>
-                log.error("Failed to drop flow", e)
+                pktCtx.log.error("Failed to drop flow", e)
         } finally {
             val dropped = removeSuspendedPackets(pktCtx.packet.getMatch).size
             metrics.packetsDropped.mark(dropped + 1)
@@ -335,7 +335,7 @@ class DeduplicationActor(
      * Deal with a completed workflow
      */
     private def complete(pktCtx: PacketContext, path: PipelinePath): Unit = {
-        log.debug("Packet processed")
+        pktCtx.log.debug("Packet processed")
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
         pktCtx.cookieOrEgressPort match {
@@ -379,13 +379,13 @@ class DeduplicationActor(
      */
     private def handleErrorOn(pktCtx: PacketContext, ex: Throwable): Unit = {
         ex match {
-            case ArpTimeoutException =>
-                log.debug("ARP timeout")
-            case ex: TimeoutException =>
-                log.info("A piece of topology could not be " +
-                    "fetched and timed out.", ex)
+            case ArpTimeoutException(router, ip) =>
+                pktCtx.log.debug(s"ARP timeout at router $router for address $ip")
+            case e: DeviceQueryTimeoutException =>
+                pktCtx.log.warn("Timeout while fetching " +
+                                s"${e.deviceType} with id ${e.deviceId}")
             case _ =>
-                log.warn("Exception while processing packet", ex)
+                pktCtx.log.warn("Exception while processing packet", ex)
         }
         drop(pktCtx)
     }
@@ -412,7 +412,7 @@ class DeduplicationActor(
             complete(pktCtx, workflow.start(pktCtx))
         } catch {
             case NotYetException(f, msg) =>
-                log.debug(s"Postponing simulation because: $msg")
+                pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
             case ex: Exception => handleErrorOn(pktCtx, ex)
         } finally {
