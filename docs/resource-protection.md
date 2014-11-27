@@ -26,28 +26,28 @@ depicted hierarchy, retrieving tokens from one of the leaf buckets operates as
 follows:
 
 <pre>
-            ┌───┐
-            │   │ root
-            └───┘
-              ↑
-           ___│___
-          │       │
-        ┌───┐   ┌───┐
- tunnel │   │   │   │ vms
-        └───┘   └───┘
-                  ↑
-               ___│___
-              │       │
-            ┌───┐   ┌───┐
-        vm0 │   │   │   │ vm1
-            └───┘   └───┘
+            +---+
+            |   | root
+            +---+
+              ^
+           ___|___
+          |       |
+        +---+   +---+
+ tunnel |   |   |   | vms
+        +---+   +---+
+                  ^
+               ___|___
+              |       |
+            +---+   +---+
+        vm0 |   |   |   | vm1
+            +---+   +---+
 </pre>
 
  * We first try to consume the specified amount of tokens from the bucket, if
    it has the sufficient amount;
 
  * If it does not, we grab the existing tokens and then trigger a distribution
-   at the root. We distribute the tokens obtained from the TokenBucketFillRate™
+   at the root. We distribute the tokens obtained from the TokenBucketFillRate(tm)
    and those accumulated at the root and at each intermediary bucket until there
    are no more tokens to give or all buckets are full;
 
