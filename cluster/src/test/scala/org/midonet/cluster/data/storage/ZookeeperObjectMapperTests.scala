@@ -21,6 +21,7 @@ import java.util.concurrent._
 import org.apache.curator.framework.CuratorFramework
 
 import org.junit.Assert._
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
@@ -107,6 +108,7 @@ class ZookeeperObjectMapperTests extends Suite
         zom.build()
     }
 
+    @Test(timeout = 10000)
     def testMultiCreate() {
         val bridge = PojoBridge()
         val port = PojoPort(bridgeId = bridge.id)
@@ -116,6 +118,7 @@ class ZookeeperObjectMapperTests extends Suite
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
 
+    @Test(timeout = 10000)
     def testMultiCreateUpdateAndDelete() {
         val chain = PojoChain(name = "chain1")
         zom.create(chain)
@@ -151,6 +154,7 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.exists(classOf[PojoChain], chain.id)) shouldBe false
     }
 
+    @Test(timeout = 10000)
     def testMultiUpdateAndCascadingDelete() {
         val chain1 = PojoChain(name = "chain1")
         val rule1 = PojoRule(name = "rule1", chainId = chain1.id)
@@ -175,6 +179,7 @@ class ZookeeperObjectMapperTests extends Suite
         updatedRule3.chainId should equal(chain2.id)
     }
 
+    @Test(timeout = 10000)
     def testMultiWithUpdateOfDeletedObject() {
         val chain = PojoChain()
         val rule = PojoRule(chainId = chain.id)
@@ -191,6 +196,7 @@ class ZookeeperObjectMapperTests extends Suite
         }
     }
 
+    @Test(timeout = 10000)
     def testMultiWithRedundantDelete() {
         val chain = PojoChain()
         val rule = PojoRule(chainId = chain.id)
@@ -207,6 +213,7 @@ class ZookeeperObjectMapperTests extends Suite
         }
     }
 
+    @Test(timeout = 10000)
     def testMultiIdGet() {
         implicit val es = ExecutionContext.global
         val chains = List("chain0", "chain1", "chain2").map(PojoChain)
@@ -218,10 +225,12 @@ class ZookeeperObjectMapperTests extends Suite
         twoChains.map(_.name) should equal(List("chain0", "chain1"))
     }
 
+    @Test(timeout = 10000)
     def testDeleteIfExists() {
         zom.deleteIfExists(classOf[PojoBridge], UUID.randomUUID)
     }
 
+    @Test(timeout = 10000)
     def testDeleteIfExistsOnDeletedObject() {
         val bridge = PojoBridge()
         zom.create(bridge)
@@ -230,6 +239,7 @@ class ZookeeperObjectMapperTests extends Suite
         zom.deleteIfExists(classOf[PojoBridge], bridge.id)
     }
 
+    @Test(timeout = 10000)
     def testDeleteIfExistsOnDeletedObjectMulti() {
         val bridge = PojoBridge()
         zom.create(bridge)
@@ -237,6 +247,7 @@ class ZookeeperObjectMapperTests extends Suite
                        DeleteOp(classOf[PojoBridge], bridge.id, true)))
     }
 
+    @Test(timeout = 10000)
     def testMultiWithRedundantDeleteIfExists() {
         val chain = PojoChain()
         val rule = PojoRule(chainId = chain.id)
@@ -274,6 +285,7 @@ class ZookeeperObjectMapperTests extends Suite
         }
     }
 
+    @Test(timeout = 10000)
     def testSubscribe() {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](2 /* We expect two events */)
@@ -283,6 +295,7 @@ class ZookeeperObjectMapperTests extends Suite
         obs.await(1, TimeUnit.SECONDS)
     }
 
+    @Test(timeout = 10000)
     def testSubscribeWithGc() = {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](0)
@@ -298,6 +311,7 @@ class ZookeeperObjectMapperTests extends Suite
         zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (None)
     }
 
+    @Test(timeout = 10000)
     def testSubscribeAll() {
         createBridge()
         createBridge()
@@ -308,6 +322,7 @@ class ZookeeperObjectMapperTests extends Suite
         obs.await(1, TimeUnit.SECONDS)
     }
 
+    @Test(timeout = 10000)
     def testSubscribeAllWithGc() {
         val obs = new ClassSubscription[PojoBridge](0)
         val sub = zom.subscribeAll(classOf[PojoBridge], obs)
