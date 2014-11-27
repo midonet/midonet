@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_11f40af1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-27T17:04:28Z",
+      "side": 1,
+      "message": "Implementing the versions as children of versionNodePath seems to me to make things more complicated than they need to be. Why not just store the version number as data of versionNodePath?\n\nThen to initialize, you can just try to create the node. If a node already exists, it will fail and you can eat the exception.\n\nThen to update, you can just set the data on the node, instead of deleting one and creating another.",
+      "range": {
+        "startLine": 624,
+        "startChar": 0,
+        "endLine": 640,
+        "endChar": 64
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_51c4d291",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 860,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-27T17:04:28Z",
+      "side": 1,
+      "message": "c \u003c- classToIdGetter.keySet",
+      "range": {
+        "startLine": 860,
+        "startChar": 17,
+        "endLine": 860,
+        "endChar": 42
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
