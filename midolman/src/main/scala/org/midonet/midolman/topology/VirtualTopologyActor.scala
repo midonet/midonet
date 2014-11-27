@@ -16,6 +16,8 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import akka.pattern.AskTimeoutException
+
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -206,7 +208,9 @@ object VirtualTopologyActor extends Referenceable {
                                           system: ActorSystem): Future[D] =
         VirtualTopologyActor
             .ask(requestsFactory(tag)(id))(deviceRequestTimeout)
-            .mapTo[D](tag).andThen {
+            .mapTo[D](tag).recoverWith {
+                case e: AskTimeoutException => Future.failed(DeviceQueryTimeoutException(id, tag))
+             }(ExecutionContext.callingThread).andThen {
                 case Failure(ex: ClassCastException) =>
                     log.error("VirtualTopologyManager didn't return a {}!",
                               tag.runtimeClass.getSimpleName)
