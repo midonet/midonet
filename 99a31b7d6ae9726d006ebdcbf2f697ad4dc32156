@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_ee49a38c",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-27T14:59:15Z",
+      "side": 1,
+      "message": "Can you add the RunWith annotation here? Otherwise Jenkins will skip it.",
+      "revId": "99a31b7d6ae9726d006ebdcbf2f697ad4dc32156",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
