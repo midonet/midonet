@@ -17,6 +17,7 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.{Callable, ExecutorService, ForkJoinPool, Future, TimeUnit}
 
+import org.junit.Test
 import rx.internal.operators.OperatorDoOnUnsubscribe
 
 import org.midonet.util.functors._
@@ -149,6 +150,7 @@ class ObservablePathChildrenCacheTest extends Suite
      * observable and continues making a bunch of updates to assert at the end
      * that both the child observable, and the direct access to the data did
      * converge to the last state. */
+    @Test(timeout = 1000)
     def testDataUpdatesReceived() {
         val nodeData = makePaths(1)
         val childData = nodeData.values.head
@@ -194,6 +196,8 @@ class ObservablePathChildrenCacheTest extends Suite
 
     /* Ensure that whenever a new child is created, its observable appears on
      * the top level observable. */
+
+    @Test(timeout = 1000)
     def testCreatedChildrenGetNewObservable() {
         val nodeData = makePaths(1)
         val oldChildData = nodeData.values.head
@@ -225,7 +229,8 @@ class ObservablePathChildrenCacheTest extends Suite
 
     /* This tests ensures that there are no gaps in child observables if
      * subscriptions and new children appear concurrently. This is focused
-     * mostly on syncing the subscribre() and newChild() handling. */
+     * mostly on syncing the subscribe() and newChild() handling. */
+    @Test(timeout = 10000)
     def testRaceConditionOnSubscription() {
 
         // Avoid spam on the Curator lib, hits performance
