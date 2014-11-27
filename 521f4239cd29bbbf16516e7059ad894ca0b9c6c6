@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d19562e5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 640,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-27T18:03:19Z",
+      "side": 1,
+      "message": "Thank you for the suggestion, Brandon. As discussed, I thought keeping the version number as a child leave would make debugging easier, but I guess that wasn\u0027t really true. Thanks, the code is simplified a lot now.",
+      "parentUuid": "fafc7978_11f40af1",
+      "range": {
+        "startLine": 624,
+        "startChar": 0,
+        "endLine": 640,
+        "endChar": 64
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_51c4d291",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-27T17:04:28Z",
       "side": 1,
       "message": "c \u003c- classToIdGetter.keySet",
+      "range": {
+        "startLine": 860,
+        "startChar": 17,
+        "endLine": 860,
+        "endChar": 42
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1a4e658",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 860,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-27T18:03:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_51c4d291",
       "range": {
         "startLine": 860,
         "startChar": 17,
