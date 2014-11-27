@@ -119,16 +119,6 @@ abstract class BaseFlowStateReplicator() {
     private[this] val pendingMessages = new ArrayList[(JSet[UUID], MessageLite)]()
     private[this] val hostId = uuidToProto(underlay.host.id)
 
-    /* Used for packet building
-     * FIXME(guillermo) - use MTU
-     */
-    private[this] val buffer = new Array[Byte](MTU - OVERHEAD)
-    private[this] val stream = new FixedArrayOutputStream(buffer)
-    private[this] val packet = {
-        val udpShell = makeUdpShell(buffer)
-        new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
-    }
-
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
@@ -286,8 +276,14 @@ abstract class BaseFlowStateReplicator() {
         var i = pendingMessages.size() - 1
         while (i >= 0) {
             val (hosts, message) = pendingMessages.remove(i)
+            val buffer = new Array[Byte](
+                message.getSerializedSize + GRE_ENCAPUSULATION_OVERHEAD)
+            val stream = new FixedArrayOutputStream(buffer)
+            val packet = {
+                val udpShell = makeUdpShell(buffer)
+                new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+            }
             if (message.getSerializedSize <= buffer.length) {
-                stream.reset()
                 message.writeDelimitedTo(stream)
                 val actions = hostsToActions(hosts)
                 if (!actions.isEmpty)
