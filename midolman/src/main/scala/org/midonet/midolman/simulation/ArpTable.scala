@@ -116,10 +116,11 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
      */
     private def promiseOnExpire[T](promise: Promise[T],
                                    timeout: Long,
-                                   onExpire: (Promise[T]) => Unit): Promise[T] = {
+                                   onExpire: (Promise[T]) => Unit,
+                                   expiration: () => ArpTimeoutException): Promise[T] = {
         val when = Duration.create(timeout, TimeUnit.MILLISECONDS)
         val exp = system.scheduler.scheduleOnce(when) {
-            if (promise tryFailure ArpTimeoutException)
+            if (promise tryFailure expiration())
                 onExpire(promise)
         }
         promise.future onComplete {
@@ -137,7 +138,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     def waitForArpEntry(ip: IPv4Addr, timeout: Long): Promise[MAC] = {
         val p = Promise[MAC]()
         arpWaiters.addBinding(ip, p)
-        promiseOnExpire[MAC](p, timeout, removeArpWaiter(ip, _))
+        promiseOnExpire[MAC](p, timeout, removeArpWaiter(ip, _),
+                             () => ArpTimeoutException(arpCache.getRouterId, ip))
     }
 
     def get(ip: IPv4Addr, port: RouterPort)

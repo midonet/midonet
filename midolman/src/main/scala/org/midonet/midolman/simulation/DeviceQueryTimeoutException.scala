@@ -18,10 +18,11 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import org.midonet.packets.IPv4Addr
-
 import scala.concurrent.TimeoutException
+import scala.reflect.ClassTag
 
-case class ArpTimeoutException(router: UUID, address: IPv4Addr) extends TimeoutException {
+case class DeviceQueryTimeoutException(deviceId: UUID, classTag: ClassTag[_]) extends TimeoutException {
     override def fillInStackTrace(): Throwable = this
+
+    def deviceType = classTag.runtimeClass.getSimpleName
 }
