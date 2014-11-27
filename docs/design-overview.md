@@ -4,53 +4,53 @@
 
 <pre>
 
-                                             ┌────────┐
-                 ┌───────────────────────────│Virtual │
-                 │                 ┌─────────│Topology│──────────┐
-                 │                 │         │ Actor  │          │
-                 │                 │         └────────┘          │
-                 │  cluster...←────│              ↑              │
-                 │          Remote │              │              │ Read-only
-                 │          State  │              │              │ Virtual Topology
-                 │          Queries│        ┌──────────┐         │ State data / Messages
-                 │                 └────────│VirtToPhys│         │
-                 │                          │ Mapper   │         │
-                 │                          └──────────┘         │
-                 │                 Host/IF/Vport ↑               │
-                 ↓                    Mappings   │               │
-                 │                               ↓               │
-                 │                      ┌───────────────────┐    │
-                 │Flow                  │ DatapathController│────│
-                 │Invalidation          └───────────────────┘    │
-                 │By Tag                          │       │      │
-                 │                                │       │      │
-                 │                        Wildcard│       │      │
-                 │                           Flows↓       │      │
-                 │                   ┌─────────────────┐  │      │
-                 └──────────────────→│ Flow Controller │──(──────┘
-                                     └─────────────────┘   ╲
-                                                     ↑  ╲    ╲ 
-                                                     │    ╲    ╲ 
-                                                     │      ╲    ╲ 
-                                                     │        ╲    ╲ 
-                                      ↑              │          ╲    │
-                           Read/Update│              │            │  │DP Port
-                           Topology & │              │        Flow│  │Ops
-STATE MANAGEMENT           State      │              │       Mgmnt│  │
-                                      │              │         Ops│  │
+                                             +--------+
+                 +---------------------------|Virtual |
+                 |                 +---------|Topology|----------+
+                 |                 |         | Actor  |          |
+                 |                 |         +--------+          |
+                 |  cluster...<----|              ^              |
+                 |          Remote |              |              | Read-only
+                 |          State  |              |              | Virtual Topology
+                 |          Queries|        +----------+         | State data / Messages
+                 |                 +--------|VirtToPhys|         |
+                 |                          | Mapper   |         |
+                 |                          +----------+         |
+                 |                 Host/IF/Vport ^               |
+                 v                    Mappings   |               |
+                 |                               v               |
+                 |                      +-------------------+    |
+                 |Flow                  | DatapathController|----|
+                 |Invalidation          +-------------------+    |
+                 |By Tag                          |       |      |
+                 |                                |       |      |
+                 |                        Wildcard|       |      |
+                 |                           Flowsv       |      |
+                 |                   +-----------------+  |      |
+                 +------------------>| Flow Controller |--(------+
+                                     +-----------------+   \
+                                                     ^  \    \ 
+                                                     |    \    \ 
+                                                     |      \    \ 
+                                                     |        \    \ 
+                                      ^              |          \    |
+                           Read/Update|              |            |  |DP Port
+                           Topology & |              |        Flow|  |Ops
+STATE MANAGEMENT           State      |              |       Mgmnt|  |
+                                      |              |         Ops|  |
 v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v^v
-                                      │              │            │  │
-FAST PATH                             │              │            │  │
-                                      │              │Wildcard    │  │
-                                      │              │Flows       │  │
-                                      │              │            ↓  ↓
-┌──────────┐                          │              │         ┌──────────┐
-│ Netlink  │┐   Packets    ┌──────────┴─────────┐  ╱           │ Netlink  │┐
-│  Input   ││┐────────────→│ DeduplicationActor │┐────────────→│  Output  ││
-│ Channels │││             └────────────────────┘│  Packets    │ Channels ││
-└──────────┘││              └────────────────────┘     &       └──────────┘│
- └──────────┘│                                       Flows      └──────────┘
-  └──────────┘
+                                      |              |            |  |
+FAST PATH                             |              |            |  |
+                                      |              |Wildcard    |  |
+                                      |              |Flows       |  |
+                                      |              |            v  v
++----------+                          |              |         +----------+
+| Netlink  |+   Packets    +--------------------+   /          | Netlink  |+
+|  Input   ||+------------>| DeduplicationActor |+------------>|  Output  ||
+| Channels |||             +--------------------+|  Packets    | Channels ||
++----------+||              +--------------------+     &       +----------+|
+ +----------+|                                       Flows      +----------+
+  +----------+
 
 </pre>
 

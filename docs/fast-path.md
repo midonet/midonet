@@ -4,29 +4,29 @@
 # Midolman fast path overview
 
 <pre>
-                              ┌─────────┐
-                              │ Device  │
-                           ┌─→│ Managers│
-                           │  └─────────┘
-                           │       ↑
-                           │       │ flow removal
-                           │       │ callbacks
-                   Device  │       │
-              book-keeping │  ┌────┴────────────┐
-           (MAC->port, etc)│  │ Flow Controller │─────────┐
-                           │  └─────────────────┘         │
-                           │        ↑                     │
-                           │        │                     │flow query /
-                           │        │ Wildcard            │flow removal
-                           │        │ Flows               │
-                           │        │                     │
-                           │        │                     ↓
-┌──────────┐              ┌┴────────┴─┐              ┌───────────┐
-│ Netlink  │┐  packets    │ Packet    │┐  packets    │ netlink   │┐
-│ upcall   ││────────────→│ processors││────────────→│ request   ││
-│ channels ││             │           ││  flows      │ channels  ││
-└──────────┘│             └───────────┘│             └───────────┘│
- └──────────┘              └───────────┘              └───────────┘
+                              +---------+
+                              | Device  |
+                           +->| Managers|
+                           |  +---------+
+                           |       ^
+                           |       | flow removal
+                           |       | callbacks
+                   Device  |       |
+              book-keeping |  +-----------------+
+           (MAC->port, etc)|  | Flow Controller |---------+
+                           |  +-----------------+         |
+                           |        ^                     |
+                           |        |                     |flow query /
+                           |        | Wildcard            |flow removal
+                           |        | Flows               |
+                           |        |                     |
+                           |        |                     v
++----------+              +-----------+              +-----------+
+| Netlink  |+  packets    | Packet    |+  packets    | netlink   |+
+| upcall   ||------------>| processors||------------>| request   ||
+| channels ||             |           ||  flows      | channels  ||
++----------+|             +-----------+|             +-----------+|
+ +----------+              +-----------+              +-----------+
 
 </pre>
 
