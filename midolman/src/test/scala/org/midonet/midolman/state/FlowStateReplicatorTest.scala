@@ -183,7 +183,7 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
             val ethernetFrame = packet.getData
-            ethernetFrame.length should be <= (FlowStatePackets.MTU -
+            ethernetFrame.length should be < (FlowStatePackets.MTU -
                 FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
         }
 
