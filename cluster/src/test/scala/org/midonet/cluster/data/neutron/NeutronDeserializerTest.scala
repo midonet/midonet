@@ -157,8 +157,8 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
 
         val pool2 = subnet.getAllocationPools(1)
         pool2.getFirstIp.getVersion shouldBe Commons.IPVersion.V6
-        pool2.getFirstIp.getAddress shouldBe "1234::1"
+        pool2.getFirstIp.getAddress shouldBe "1234:0:0:0:0:0:0:1"
         pool2.getLastIp.getVersion shouldBe Commons.IPVersion.V6
-        pool2.getLastIp.getAddress shouldBe "1234::ffff"
+        pool2.getLastIp.getAddress shouldBe "1234:0:0:0:0:0:0:ffff"
     }
 }
