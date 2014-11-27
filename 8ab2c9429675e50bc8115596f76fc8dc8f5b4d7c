@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_8e81f791",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-27T14:55:11Z",
+      "side": 1,
+      "message": "It\u0027s already reading the value from ZK inside initVersionNumber().",
+      "parentUuid": "fafc7978_eebb6370",
+      "revId": "8ab2c9429675e50bc8115596f76fc8dc8f5b4d7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_4eb0af8b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2014-11-27T14:41:19Z",
       "side": 1,
       "message": "avoid hardcoding in a string and pick up instead from a variable?",
+      "range": {
+        "startLine": 631,
+        "startChar": 52,
+        "endLine": 631,
+        "endChar": 53
+      },
+      "revId": "8ab2c9429675e50bc8115596f76fc8dc8f5b4d7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4e770fd5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-27T14:55:11Z",
+      "side": 1,
+      "message": "The line above was redundant, and changed to use the value set to the \"version\" variable.",
+      "parentUuid": "fafc7978_4eb0af8b",
       "range": {
         "startLine": 631,
         "startChar": 52,
