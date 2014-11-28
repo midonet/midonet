@@ -44,7 +44,8 @@ class ZookeeperObjectMapperTests extends Suite
     private var zom: ZookeeperObjectMapper = _
 
     private var gcRunnable: Runnable = _
-    private var gcDone: Boolean = _
+    @volatile private var gcStarted: Boolean = _
+    @volatile private var gcDone: Boolean = _
 
     private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
@@ -54,7 +55,8 @@ class ZookeeperObjectMapperTests extends Suite
             gcRunnable = new Runnable {
                 def run() = {
                     gcRunnable.synchronized {
-                        gcRunnable.wait()
+                        if (!gcStarted)
+                            gcRunnable.wait()
                     }
                     runnable.run()
                     gcRunnable.synchronized {
@@ -68,7 +70,7 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     override protected def setup(): Unit = {
-
+        gcStarted = false
         gcDone = false
         zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
 
@@ -262,6 +264,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     private def startGc() = {
         gcRunnable.synchronized {
+            gcStarted = true
             gcRunnable.notify()
         }
     }
