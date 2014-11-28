@@ -23,13 +23,13 @@ import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.IPSubnetUtil.{Converter => IPSubnetConverter}
 import org.midonet.cluster.util.MACUtil.{Converter => MACConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.packets.{MAC, IPv4Subnet, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @ZoomClass(clazz = classOf[Topology.Port], factory = classOf[PortFactory])
-sealed trait Port extends ZoomObject with Device {
+sealed trait Port extends ZoomObject with VirtualDevice {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
