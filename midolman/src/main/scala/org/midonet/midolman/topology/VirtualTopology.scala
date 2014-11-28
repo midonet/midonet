@@ -43,12 +43,15 @@ import org.midonet.util.reactivex._
  * manager subscription for virtual devices.
  *
  * A [[DeviceMapper]] is an abstract class, providing common support for
- * on-subscribe event handling, and processing per-device specific notifications
- * such as tag invalidation. Sub-classes must implement the observable() method,
- * which exposes an [[rx.Observable]] with specific virtual devices. An
- * implementation example is the [[PortMapper]], which maps the port topology
- * objects received as an observable from the storage layer to the corresponding
- * virtual device.
+ * on-subscribe event handling, and processing per-device specific notifications.
+ * The [[VirtualDeviceMapper]] abstract class subclasses [[DeviceMapper]] and
+ * performs tag invalidation upon receiving notifications from the
+ * underlying observable.
+ * Sub-classes of [[DeviceMapper]] and [[VirtualDeviceMapper]] must implement
+ * the observable() method, which exposes an [[rx.Observable]] with specific
+ * virtual devices. An implementation example is the [[PortMapper]], which maps
+ * the port topology objects received as an observable from the storage layer to
+ * the corresponding virtual device.
  *
  * It is recommended that any class implementing [[DeviceMapper]] connects to
  * storage only when the observable() method is called for the first time.
@@ -85,7 +88,9 @@ import org.midonet.util.reactivex._
  */
 object VirtualTopology extends MidolmanLogging {
 
-    trait Device {
+    trait Device
+
+    trait VirtualDevice extends Device {
         def deviceTag: FlowTag
     }
 
@@ -188,5 +193,4 @@ class VirtualTopology @Inject() (store: Storage,
         }
         observable.asInstanceOf[Observable[D]]
     }
-
 }
