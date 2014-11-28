@@ -34,12 +34,14 @@ object PacketBuilder {
     val ip4_bcast = IPv4Addr("255.255.255.255")
 
     def eth = EthBuilder()
+    def flowStateEth = EthBuilder(packet = new FlowStateEthernet)
     def arp = ArpBuilder()
     def ip4 = IPv4Builder()
     def tcp = TcpBuilder()
     def udp = UdpBuilder()
     def icmp = IcmpBuilder()
     def payload = DataBuilder()
+    def elasticPayload = ElasticDataBuilder()
 
     case class MacPair(src: MAC = eth_zero, dst: MAC = eth_zero) {
         def src(addr: MAC): MacPair = copy(src = addr)
@@ -115,6 +117,21 @@ sealed trait NonAppendable[T <: IPacket] extends PacketBuilder[T] {
 case class DataBuilder(packet: Data = new Data()) extends PacketBuilder[Data] with NonAppendable[Data] {
     def apply(str: String): DataBuilder = { packet.setData(str.getBytes) ; this }
     def apply(data: Array[Byte]): DataBuilder = { packet.setData(data) ; this }
+}
+
+case class ElasticDataBuilder(packet: ElasticData = new ElasticData())
+        extends PacketBuilder[ElasticData] with NonAppendable[ElasticData] {
+    def apply(str: String, length: Int): ElasticDataBuilder = {
+        packet.setData(str.getBytes)
+        packet.setLength(length)
+        this
+    }
+
+    def apply(data: Array[Byte], length: Int): ElasticDataBuilder = {
+        packet.setData(data)
+        packet.setLength(length)
+        this
+    }
 }
 
 case class IcmpBuilder(packet: ICMP = new ICMP()) extends PacketBuilder[ICMP]

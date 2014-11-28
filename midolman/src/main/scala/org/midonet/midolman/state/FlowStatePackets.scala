@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream
 
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
-import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
+import org.midonet.packets._
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.odp.Packet
 import org.midonet.odp.flows.FlowKeyTunnel
@@ -80,6 +80,18 @@ object FlowStatePackets {
             { ip4 addr SRC_IP --> DST_IP } <<
                 { udp ports UDP_PORT ---> UDP_PORT } <<
                     { payload(data) }
+    }
+
+    def makeFlowStateUdpShell(data: Array[Byte]): Ethernet =
+        makeFlowStateUdpShell(data, data.length)
+
+    def makeFlowStateUdpShell(data: Array[Byte],
+                              length: Int): Ethernet = {
+        import org.midonet.packets.util.PacketBuilder._
+        { flowStateEth addr SRC_MAC -> DST_MAC } <<
+            { ip4 addr SRC_IP --> DST_IP } <<
+                { udp ports UDP_PORT ---> UDP_PORT } <<
+                     { elasticPayload(data, length) }
     }
 
     implicit def ipAddressFromProto(proto: Proto.IpAddress): IPAddr = {

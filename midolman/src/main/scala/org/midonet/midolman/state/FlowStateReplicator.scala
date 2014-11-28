@@ -40,7 +40,7 @@ import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{FlowStateEthernet, Ethernet}
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.flows.FlowTagger
@@ -125,8 +125,9 @@ abstract class BaseFlowStateReplicator() {
     private[this] val buffer = new Array[Byte](MTU - OVERHEAD)
     private[this] val stream = new FixedArrayOutputStream(buffer)
     private[this] val packet = {
-        val udpShell = makeUdpShell(buffer)
-        new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+        val elasticUdpShell = makeFlowStateUdpShell(buffer)
+        new Packet(elasticUdpShell,
+            FlowMatches.fromEthernetPacket(elasticUdpShell))
     }
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
@@ -290,8 +291,14 @@ abstract class BaseFlowStateReplicator() {
                 stream.reset()
                 message.writeDelimitedTo(stream)
                 val actions = hostsToActions(hosts)
-                if (!actions.isEmpty)
+                if (!actions.isEmpty) {
+                    val length: Int =
+                        message.getSerializedSize + GRE_ENCAPUSULATION_OVERHEAD
+                    val flowStateEthernet =
+                        packet.getEthernet.asInstanceOf[FlowStateEthernet]
+                    flowStateEthernet.setElasticDataLength(length)
                     dp.packetsExecute(datapath, packet, actions)
+                }
             } else {
                 // TODO(guillermo) partition messages
                 log.warn(s"Skipping state message, too large: $message")
