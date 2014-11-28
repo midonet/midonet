@@ -16,6 +16,24 @@
       "revId": "c654a36d4bfdd800293e50b74cb69e2342427f73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_747e24b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2014-11-28T11:57:56Z",
+      "side": 1,
+      "message": "That\u0027s what I expected pretty much. It seems much harder and it could take some more time, but let me try.",
+      "parentUuid": "fafc7978_146eb801",
+      "revId": "c654a36d4bfdd800293e50b74cb69e2342427f73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
