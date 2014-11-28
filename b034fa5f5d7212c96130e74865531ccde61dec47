@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_624b022c",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-28T20:45:27Z",
+      "side": 1,
+      "message": "Would this be simpler if we start a single thread that loops constantly with an N ms pause inbetween GC processing, and gets killed from the test or test class tearDown? This way we remove the need to handle multiple threads which seems to be one of the main problems we\u0027re finding.",
+      "revId": "b034fa5f5d7212c96130e74865531ccde61dec47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
