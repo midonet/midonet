@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_e24d3274",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-28T18:04:38Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s safer to annotate gcRunnable as @volatile as it is assigned a value at line 59 in a non-synchronized way.",
+      "revId": "d9644a867e415d4dae8961f61d400635065831ea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_a234cade",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 2
