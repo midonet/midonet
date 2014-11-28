@@ -30,7 +30,7 @@ import org.midonet.util.functors._
 
 sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
                        (implicit actorSystem: ActorSystem)
-        extends DeviceMapper[SimulationPort](id, vt) {
+        extends VirtualDeviceMapper[SimulationPort](id, vt) {
 
     override def logSource = s"org.midonet.midolman.topology.port-$id"
 
