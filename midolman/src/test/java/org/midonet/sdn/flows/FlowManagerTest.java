@@ -496,7 +496,7 @@ public class FlowManagerTest {
         }
 
         @Override
-        public void removeFlow(FlowMatch flowMatch) {
+        public void removeFlow(FlowMatch flowMatch, ManagedWildcardFlow wflow) {
             if (toRemove != null)
                 toRemove.add(new Flow(flowMatch));
             else

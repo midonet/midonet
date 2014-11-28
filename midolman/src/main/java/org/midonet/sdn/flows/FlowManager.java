@@ -258,10 +258,11 @@ public class FlowManager {
             /* the flow may have been evicted already, leaving for lazy
              * clean up of the wildcard flow reference */
             if (dpFlowTable.remove(flowMatch) != null) {
-                flowManagerHelper.removeFlow(flowMatch);
+                flowManagerHelper.removeFlow(flowMatch, wildFlow);
                 removed++;
             }
         }
+
         dpFlowsToRemove.clear();
         log.debug("Removed {} datapath flows", removed);
 
@@ -396,8 +397,9 @@ public class FlowManager {
         while (it.hasNext() && nFlowsToRemove-- > 0) {
             Map.Entry<FlowMatch, ManagedWildcardFlow> entry = it.next();
             FlowMatch match = entry.getKey();
-            flowManagerHelper.removeFlow(match);
-            entry.getValue().dpFlows().remove(match);
+            ManagedWildcardFlow wflow = entry.getValue();
+            flowManagerHelper.removeFlow(match, wflow);
+            wflow.dpFlows().remove(match);
             it.remove();
         }
     }

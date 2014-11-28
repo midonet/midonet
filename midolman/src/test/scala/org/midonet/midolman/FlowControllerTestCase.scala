@@ -350,7 +350,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             val mwcFlow = testFlowAdded(flow, state)
 
             flowController.flowManager.dpFlowTable.remove(flow.flowMatch)
-            flowController.flowManagerHelper.removeFlow(flow.flowMatch)
+            flowController.flowManagerHelper.removeFlow(flow.flowMatch, null)
 
             Then("The flow should not appear in the wildcard flow table.")
             FlowController.queryWildcardFlowTable(flow.wcMatch) should not be
