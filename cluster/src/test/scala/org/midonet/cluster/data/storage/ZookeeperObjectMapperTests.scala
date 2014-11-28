@@ -44,31 +44,47 @@ class ZookeeperObjectMapperTests extends Suite
     private var zom: ZookeeperObjectMapper = _
 
     private var gcRunnable: Runnable = _
-    private var gcDone: Boolean = _
+    @volatile private var gcStarted: Boolean = _
+    @volatile private var gcDone: Boolean = _
 
+    /**
+     * Overrides ZookeeperObjectMapper.scheduleCacheGc() so that tests can
+     * control when garbage collection happens instead of waiting two minutes.
+     */
     private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
 
         override def scheduleCacheGc(scheduler: ScheduledExecutorService,
                                      runnable: Runnable) = {
-            gcRunnable = new Runnable {
-                def run() = {
-                    gcRunnable.synchronized {
-                        gcRunnable.wait()
-                    }
-                    runnable.run()
-                    gcRunnable.synchronized {
-                        gcDone = true
-                        gcRunnable.notify()
-                    }
-                }
-            }
+            gcRunnable = new SynchronizedCacheGcRunnable(runnable)
             scheduler.schedule(gcRunnable, 0, TimeUnit.SECONDS)
         }
     }
 
-    override protected def setup(): Unit = {
+    /**
+     * Wrapper around a cache garbage collector Runnable that synchronizes with
+     * startGc() and waitForGc(). Does not run the provided Runnable until
+     * startGc() has been called, and calls notify to awaken a thread waiting in
+     * waitForGc() after invoking the provided Runnable.
+     *
+     * @param runnable Runnable that performs garbage collection.
+     */
+    private class SynchronizedCacheGcRunnable(runnable: Runnable) extends Runnable {
+        def run(): Unit = {
+            gcRunnable.synchronized {
+                if (!gcStarted)
+                    gcRunnable.wait()
+            }
+            runnable.run()
+            gcRunnable.synchronized {
+                gcDone = true
+                gcRunnable.notify()
+            }
+        }
+    }
 
+    override protected def setup(): Unit = {
+        gcStarted = false
         gcDone = false
         zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
 
@@ -262,6 +278,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     private def startGc() = {
         gcRunnable.synchronized {
+            gcStarted = true
             gcRunnable.notify()
         }
     }
