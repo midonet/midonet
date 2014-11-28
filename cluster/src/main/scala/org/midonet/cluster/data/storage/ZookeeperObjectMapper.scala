@@ -97,6 +97,7 @@ class ZookeeperObjectMapper(
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
     @volatile private var built = false
+    log.debug("GC zom8 " + System.identityHashCode(this))
 
     private val locksPath = basePath + "/zoomlocks/lock"
 
@@ -119,15 +120,16 @@ class ZookeeperObjectMapper(
      * The declarations below are used to garbage collect caches for which no
      * subscribers exist.
      */
-    private val instanceCacheRWLock = new ReentrantReadWriteLock()
-    private val classCacheRWLock = new ReentrantReadWriteLock()
-    private val instanceCachesToGc = new TrieMap[String, InstanceSubscriptionCache[_]]
-    private val classCachesToGc = new TrieMap[String, ClassSubscriptionCache[_]]
+    val instanceCacheRWLock = new ReentrantReadWriteLock()
+    val classCacheRWLock = new ReentrantReadWriteLock()
+    val instanceCachesToGc = new TrieMap[String, InstanceSubscriptionCache[_]]
+    val classCachesToGc = new TrieMap[String, ClassSubscriptionCache[_]]
     private val scheduler: ScheduledExecutorService =
         Executors.newScheduledThreadPool(1)
 
     private val gcCachesRunnable = new Runnable() {
         def run() {
+           log.debug("GC zom7 " + System.identityHashCode(ZookeeperObjectMapper.this))
            gcCaches()
         }
     }
@@ -141,6 +143,8 @@ class ZookeeperObjectMapper(
          * subscribing to a cache that we are about to remove from the map.
          */
         Locks.withWriteLock(instanceCacheRWLock) {
+            log.debug("GC instanceCachesToGc2 " + System.identityHashCode(instanceCachesToGc))
+            log.debug("GC zom6 " + System.identityHashCode(ZookeeperObjectMapper.this))
             for (cache <- instanceCachesToGc.values) {
                 if (cache.closeIfNeeded()) {
                     instanceCaches(cache.clazz).remove(cache.id)
@@ -181,7 +185,10 @@ class ZookeeperObjectMapper(
          * As a consequence the cache may never be closed.
          */
         Locks.withReadLock(instanceCacheRWLock)
-            { instanceCachesToGc.put(path, cache) }
+            {
+            log.debug("GC instanceCachesToGc1 " + System.identityHashCode(instanceCachesToGc))
+            instanceCachesToGc.put(path, cache)
+            }
     }
 
     /**
