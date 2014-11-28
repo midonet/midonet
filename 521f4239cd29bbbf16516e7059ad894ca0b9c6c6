@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_2210da00",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-28T22:05:15Z",
+      "side": 1,
+      "message": "I\u0027d make this a -1, or rather UNINITIALIZED \u003d -1 to make clear that the values is not really ok, but expected to be initialized.",
+      "range": {
+        "startLine": 121,
+        "startChar": 39,
+        "endLine": 121,
+        "endChar": 41
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_62f942c8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-28T22:05:15Z",
+      "side": 1,
+      "message": "If racing with another node this will fail to start, it should retry instead?",
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_11f40af1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 4
@@ -43,6 +83,23 @@
         "endLine": 640,
         "endChar": 64
       },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_42f6bed8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-28T22:05:15Z",
+      "side": 1,
+      "message": "It should watch the child at this point in order to detect changes triggered by other nodes I guess.",
       "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
