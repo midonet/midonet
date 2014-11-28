@@ -19,6 +19,7 @@ package org.midonet.sdn.flows
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
+import org.midonet.odp.flows.FlowStats
 import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
@@ -322,6 +323,29 @@ object FlowTagger {
         var tag = segment.value
         if (tag eq null) {
             tag = new BgpTag(bgpId)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with a meter
+     */
+    case class MeterTag(meterName: String) extends FlowTag {
+        val stats = new FlowStats(0, 0)
+
+        override def toString = s"meter:$meterName"
+    }
+
+    val cachedMeterTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForMeter(meterName: String): FlowTag = {
+        val segment = cachedMeterTags.get().getOrAddSegment(meterName)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = MeterTag(meterName)
             segment.value = tag
         }
         tag

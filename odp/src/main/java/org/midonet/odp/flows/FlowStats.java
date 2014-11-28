@@ -22,22 +22,26 @@ import com.google.common.primitives.Longs;
 public class FlowStats {
 
     /** Number of matched packets. */
-    /*__u64*/ private final long n_packets;
+    /*__u64*/ public long n_packets;
 
     /** Number of matched bytes. */
-    /*__u64*/ private final long n_bytes;
+    /*__u64*/ public long n_bytes;
 
     public FlowStats(long numPackets, long numBytes) {
         n_packets = numPackets;
         n_bytes = numBytes;
     }
 
-    public long getNoPackets() {
-        return n_packets;
+    public void updateAndGetDelta(FlowStats newStats, FlowStats delta) {
+        delta.n_packets = newStats.n_packets - n_packets;
+        delta.n_bytes = newStats.n_bytes - n_bytes;
+        n_packets = newStats.n_packets;
+        n_bytes = newStats.n_bytes;
     }
 
-    public long getNoBytes() {
-        return n_packets;
+    public void add(FlowStats increment) {
+        n_packets += increment.n_packets;
+        n_bytes += increment.n_bytes;
     }
 
     @Override
