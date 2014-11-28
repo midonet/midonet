@@ -262,6 +262,7 @@ public class FlowManager {
                 removed++;
             }
         }
+
         dpFlowsToRemove.clear();
         log.debug("Removed {} datapath flows", removed);
 
@@ -396,8 +397,9 @@ public class FlowManager {
         while (it.hasNext() && nFlowsToRemove-- > 0) {
             Map.Entry<FlowMatch, ManagedWildcardFlow> entry = it.next();
             FlowMatch match = entry.getKey();
+            ManagedWildcardFlow wflow = entry.getValue();
             flowManagerHelper.removeFlow(match);
-            entry.getValue().dpFlows().remove(match);
+            wflow.dpFlows().remove(match);
             it.remove();
         }
     }

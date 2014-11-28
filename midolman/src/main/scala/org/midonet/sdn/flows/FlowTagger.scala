@@ -19,6 +19,7 @@ package org.midonet.sdn.flows
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
+import org.midonet.odp.flows.FlowStats
 import org.midonet.packets.{IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
@@ -31,6 +32,15 @@ object FlowTagger {
      * always considered, even for temporary drop flows.
      */
     trait FlowStateTag extends FlowTag
+
+    trait MeterTag extends FlowTag {
+        private[this] var _meterName: String = null
+        def meterName: String = {
+            if (_meterName eq null)
+                _meterName = s"meters:$toString"
+            _meterName
+        }
+    }
 
     class TagsTrie {
         private var wrValue: WeakReference[FlowTag] = _
@@ -57,7 +67,7 @@ object FlowTagger {
     /**
      * Tag for the flows related to the specified device.
      */
-    case class DeviceTag(device: UUID) extends FlowTag {
+    case class DeviceTag(device: UUID) extends FlowTag with MeterTag {
         override def toString = "device:" + device
     }
 
@@ -220,8 +230,8 @@ object FlowTagger {
     /**
      * Tag for the flows associated with specified tunnel route.
      */
-    case class TunnelRouteTag(srcIp: Integer, dstIp: Integer) extends FlowTag {
-        override def toString = "tunnel: (" + srcIp + "," + dstIp + ")"
+    case class TunnelRouteTag(srcIp: Integer, dstIp: Integer) extends FlowTag with MeterTag {
+        override def toString = s"tunnel:$srcIp:$dstIp"
     }
 
     val cachedTunnelRouteTags = new ThreadLocal[TagsTrie] {
@@ -322,6 +332,27 @@ object FlowTagger {
         var tag = segment.value
         if (tag eq null) {
             tag = new BgpTag(bgpId)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with a meter
+     */
+    case class UserTag(name: String) extends FlowTag with MeterTag {
+        override def toString = s"user:$name"
+    }
+
+    val cachedUserTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForUserMeter(meterName: String): FlowTag = {
+        val segment = cachedUserTags.get().getOrAddSegment(meterName)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = UserTag(meterName)
             segment.value = tag
         }
         tag

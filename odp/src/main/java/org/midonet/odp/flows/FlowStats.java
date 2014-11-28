@@ -15,6 +15,7 @@
  */
 package org.midonet.odp.flows;
 
+import java.beans.ConstructorProperties;
 import java.nio.ByteBuffer;
 
 import com.google.common.primitives.Longs;
@@ -22,22 +23,40 @@ import com.google.common.primitives.Longs;
 public class FlowStats {
 
     /** Number of matched packets. */
-    /*__u64*/ private final long n_packets;
+    /*__u64*/ public long packets;
 
     /** Number of matched bytes. */
-    /*__u64*/ private final long n_bytes;
+    /*__u64*/ public long bytes;
 
-    public FlowStats(long numPackets, long numBytes) {
-        n_packets = numPackets;
-        n_bytes = numBytes;
+    public FlowStats() {
+        packets = 0;
+        bytes = 0;
     }
 
-    public long getNoPackets() {
-        return n_packets;
+    @ConstructorProperties({"packets", "bytes"})
+    public FlowStats(long packets, long bytes) {
+        this.packets = packets;
+        this.bytes = bytes;
     }
 
-    public long getNoBytes() {
-        return n_packets;
+    public void updateAndGetDelta(FlowStats newStats, FlowStats delta) {
+        delta.packets = newStats.packets - packets;
+        delta.bytes = newStats.bytes - bytes;
+        packets = newStats.packets;
+        bytes = newStats.bytes;
+    }
+
+    public void add(FlowStats increment) {
+        packets += increment.packets;
+        bytes += increment.bytes;
+    }
+
+    public long getPackets() {
+        return packets;
+    }
+
+    public long getBytes() {
+        return bytes;
     }
 
     @Override
@@ -48,26 +67,26 @@ public class FlowStats {
         @SuppressWarnings("unchecked")
         FlowStats that = (FlowStats) o;
 
-        return (this.n_bytes == that.n_bytes)
-            && (this.n_packets == that.n_packets);
+        return (this.bytes == that.bytes)
+            && (this.packets == that.packets);
     }
 
     @Override
     public int hashCode() {
-        return 31 * Longs.hashCode(n_packets) + Longs.hashCode(n_bytes);
+        return 31 * Longs.hashCode(packets) + Longs.hashCode(bytes);
     }
 
     @Override
     public String toString() {
         return "FlowStats{" +
-            "n_packets=" + n_packets +
-            ", n_bytes=" + n_bytes +
+            "packets=" + packets +
+            ", bytes=" + bytes +
             '}';
     }
 
     public static FlowStats buildFrom(ByteBuffer buf) {
-        long n_packets = buf.getLong();
-        long n_bytes = buf.getLong();
-        return new FlowStats(n_packets, n_bytes);
+        long packets = buf.getLong();
+        long bytes = buf.getLong();
+        return new FlowStats(packets, bytes);
     }
 }

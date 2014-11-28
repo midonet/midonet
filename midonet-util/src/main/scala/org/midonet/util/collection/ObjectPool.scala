@@ -53,7 +53,7 @@ trait PooledObject {
 }
 
 sealed class ArrayObjectPool[T >: Null : Manifest](val capacity: Int,
-                                                   factory: ObjectPool[T] => T)
+                                                   val factory: ObjectPool[T] => T)
     extends ObjectPool[T] {
 
     var available = capacity
