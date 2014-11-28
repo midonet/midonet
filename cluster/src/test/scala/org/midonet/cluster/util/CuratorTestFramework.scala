@@ -17,12 +17,15 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.TimeUnit
 
+import scala.collection.concurrent.TrieMap
+
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
+import org.apache.curator.framework.state.ConnectionState
+import org.apache.curator.framework.state.ConnectionStateListener
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
 import org.scalatest.{Suite, BeforeAndAfterAll, BeforeAndAfter}
-
-import scala.collection.concurrent.TrieMap
+import org.slf4j.LoggerFactory
 
 /**
  * Provides boilerplate for:
@@ -44,8 +47,7 @@ import scala.collection.concurrent.TrieMap
  */
 trait CuratorTestFramework extends BeforeAndAfter
                            with BeforeAndAfterAll { this: Suite =>
-    import CuratorTestFramework.testServers
-
+    import CuratorTestFramework._
     protected val ZK_ROOT = "/test"
     protected val retryPolicy = new ExponentialBackoffRetry(1000, 3)
     protected var zk: TestingServer = _
@@ -71,6 +73,20 @@ trait CuratorTestFramework extends BeforeAndAfter
         zk = testServers(this.getClass)
         curator = CuratorFrameworkFactory.newClient(zk.getConnectString,
                                                     retryPolicy)
+
+        // If the connection with ZooKeeper is suspended somehow, shut down
+        // curator.
+        curator.getConnectionStateListenable.addListener(
+                new ConnectionStateListener() {
+                    override def stateChanged(curator: CuratorFramework,
+                                              newState: ConnectionState) {
+                        if (newState == ConnectionState.SUSPENDED) {
+                            log.warn("ZK connection state changed to " +
+                                     "SUSPENDED, shutting down curator.")
+                            curator.close()
+                        }
+                    }
+                })
     }
 
     before {
@@ -105,6 +121,8 @@ trait CuratorTestFramework extends BeforeAndAfter
 }
 
 object CuratorTestFramework {
+    private val log = LoggerFactory.getLogger(CuratorTestFramework.getClass)
+
     protected val testServers =
         new TrieMap[Class[_ <: CuratorTestFramework], TestingServer]
 }
