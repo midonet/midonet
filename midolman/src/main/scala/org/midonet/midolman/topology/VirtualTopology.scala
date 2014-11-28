@@ -24,6 +24,7 @@ import com.google.inject.Inject
 
 import rx.Observable
 
+import org.midonet.cluster.data.ZoomObject
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.logging.MidolmanLogging
@@ -43,12 +44,15 @@ import org.midonet.util.reactivex._
  * manager subscription for virtual devices.
  *
  * A [[DeviceMapper]] is an abstract class, providing common support for
- * on-subscribe event handling, and processing per-device specific notifications
- * such as tag invalidation. Sub-classes must implement the observable() method,
- * which exposes an [[rx.Observable]] with specific virtual devices. An
- * implementation example is the [[PortMapper]], which maps the port topology
- * objects received as an observable from the storage layer to the corresponding
- * virtual device.
+ * on-subscribe event handling, and processing per-device specific notifications.
+ * The [[VirtualDeviceMapper]] abstract class subclasses [[DeviceMapper]] and
+ * performs tag invalidation upon receiving notifications from the
+ * underlying observable.
+ * Sub-classes of [[DeviceMapper]] and [[VirtualDeviceMapper]] must implement
+ * the observable() method, which exposes an [[rx.Observable]] with specific
+ * virtual devices. An implementation example is the [[PortMapper]], which maps
+ * the port topology objects received as an observable from the storage layer to
+ * the corresponding virtual device.
  *
  * It is recommended that any class implementing [[DeviceMapper]] connects to
  * storage only when the observable() method is called for the first time.
@@ -85,7 +89,7 @@ import org.midonet.util.reactivex._
  */
 object VirtualTopology extends MidolmanLogging {
 
-    trait Device {
+    trait VirtualDevice extends ZoomObject {
         def deviceTag: FlowTag
     }
 
@@ -103,7 +107,7 @@ object VirtualTopology extends MidolmanLogging {
      */
     @throws[NotYetException]
     @throws[Exception]
-    def tryGet[D <: Device](id: UUID)
+    def tryGet[D <: ZoomObject](id: UUID)
                            (implicit m: Manifest[D]): D = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
@@ -118,7 +122,7 @@ object VirtualTopology extends MidolmanLogging {
      * @return A future for the topology device. If the topology device is
      *         available in the local cache, the future completes synchronously.
      */
-    def get[D <: Device](id: UUID)
+    def get[D <: ZoomObject](id: UUID)
                         (implicit m: Manifest[D]): Future[D] = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
@@ -134,7 +138,7 @@ object VirtualTopology extends MidolmanLogging {
      * asynchronously, the subscriber will receive updates with the current
      * state of the device.
      */
-    def observable[D <: Device](id: UUID)
+    def observable[D <: ZoomObject](id: UUID)
                                (implicit m: Manifest[D]): Observable[D] = {
         self.observableOf(id, m)
     }
@@ -156,7 +160,7 @@ class VirtualTopology @Inject() (store: Storage,
     implicit val actorSystem = actorsService.system
 
     private[topology] val devices =
-        new ConcurrentHashMap[UUID, Device]()
+        new ConcurrentHashMap[UUID, ZoomObject]()
     private[topology] val observables =
         new ConcurrentHashMap[UUID, Observable[_]]()
 
@@ -169,7 +173,7 @@ class VirtualTopology @Inject() (store: Storage,
 
     register(this)
 
-    private def observableOf[D <: Device](id: UUID,
+    private def observableOf[D <: ZoomObject](id: UUID,
                                           m: Manifest[D]): Observable[D] = {
 
         var observable = observables.get(id)

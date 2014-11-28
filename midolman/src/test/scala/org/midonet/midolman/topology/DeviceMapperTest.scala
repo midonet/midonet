@@ -23,12 +23,10 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.subscriptions.Subscriptions
 
+import org.midonet.cluster.data.ZoomObject
 import org.midonet.midolman.FlowController
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.sdn.flows.FlowTagger.DeviceTag
 import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver.{OnError, OnCompleted, OnNext}
 
@@ -58,12 +56,11 @@ class DeviceMapperTest extends MidolmanSpec {
             .doOnUnsubscribe(makeAction0 { refCount.decrementAndGet() })
     }
 
-    class TestableDevice(val id: UUID, val value: Int = 0) extends Device {
+    class TestableDevice(val id: UUID, val value: Int = 0) extends ZoomObject {
         override def equals(o: Any): Boolean = o match {
             case d: TestableDevice => (id eq d.id) && (value == d.value)
             case _ => false
         }
-        override def deviceTag = DeviceTag(id)
     }
 
     object TestableDevice {
@@ -111,7 +108,7 @@ class DeviceMapperTest extends MidolmanSpec {
             val stream = new DeviceStream()
 
             When("Creating a device observable for this stream")
-            val observable = TestableObservable(UUID.randomUUID, stream.out)
+            TestableObservable(UUID.randomUUID, stream.out)
 
             Then("The device observable should not be subscribed")
             stream.refCount.get should be (0)
@@ -696,99 +693,6 @@ class DeviceMapperTest extends MidolmanSpec {
 
             Then("The virtual topology does not contain the device")
             vt.devices.containsKey(id) should be (false)
-        }
-    }
-
-    feature("Test the flows tags are invalidated") {
-        scenario("The flow tags are not invalidated for no observers") {
-            Given("A device observable connected to a storage stream")
-            val id = UUID.randomUUID
-            val stream = new DeviceStream()
-            TestableObservable(id, stream.out)
-
-            When("The stream sends a first device update")
-            stream.in.onNext(TestableDevice(id, 0))
-
-            Then("The flow controller should not received any message")
-            fc.messages should be (empty)
-
-            When("The stream sends a second device update")
-            stream.in.onNext(TestableDevice(id, 1))
-
-            Then("The flow controller should not received any message")
-            fc.messages should be (empty)
-        }
-
-        scenario("The flow tags are invalidated for a device update") {
-            Given("A device observable connected to a storage stream")
-            val id = UUID.randomUUID
-            val stream = new DeviceStream()
-            val observable = TestableObservable(id, stream.out)
-
-            And("Any previous subscribed observer")
-            observable.subscribe(new TestableObserver()).unsubscribe()
-
-            When("The stream sends a first device update")
-            stream.in.onNext(TestableDevice(id, 0))
-
-            Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
-
-            When("The stream sends a second device update")
-            stream.in.onNext(TestableDevice(id, 1))
-
-            Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
-        }
-
-        scenario("The flow tags are invalidated on device error") {
-            Given("A device observable connected to a storage stream")
-            val id = UUID.randomUUID
-            val stream = new DeviceStream()
-            val observable = TestableObservable(id, stream.out)
-
-            And("Any previous subscribed observer")
-            observable.subscribe(new TestableObserver()).unsubscribe()
-
-            When("The stream sends a device update")
-            stream.in.onNext(TestableDevice(id, 0))
-
-            Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
-
-            When("The stream sends an error update")
-            stream.in.onError(new NullPointerException())
-
-            Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
-        }
-
-        scenario("The flow tags are invalidated on device deletion") {
-            Given("A device observable connected to a storage stream")
-            val id = UUID.randomUUID
-            val stream = new DeviceStream()
-            val observable = TestableObservable(id, stream.out)
-
-            And("Any previous subscribed observer")
-            observable.subscribe(new TestableObserver()).unsubscribe()
-
-            When("The stream sends a device update")
-            stream.in.onNext(TestableDevice(id, 0))
-
-            Then("The flow controller received one invalidation message")
-            fc.messages should contain only InvalidateFlowsByTag(DeviceTag(id))
-
-            When("The stream sends a completed update")
-            stream.in.onError(new NullPointerException())
-
-            Then("The flow controller received two invalidation messages")
-            fc.messages should contain theSameElementsInOrderAs Vector(
-                InvalidateFlowsByTag(DeviceTag(id)),
-                InvalidateFlowsByTag(DeviceTag(id)))
         }
     }
 }
