@@ -16,6 +16,24 @@
       "revId": "99a31b7d6ae9726d006ebdcbf2f697ad4dc32156",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5425e0c0",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-11-28T12:01:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_ee49a38c",
+      "revId": "99a31b7d6ae9726d006ebdcbf2f697ad4dc32156",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
