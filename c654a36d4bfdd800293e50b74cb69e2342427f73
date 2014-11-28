@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_146eb801",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-11-28T11:50:06Z",
+      "side": 1,
+      "message": "The problem with this is that we are allocating all of the packet objects (Ethernet, IP, UDP, Data, Packet, FlowMatch, byte array) every time. This code may run on every packet that we process, thus we wanted to keep this garbage-free by reusing everything.",
+      "revId": "c654a36d4bfdd800293e50b74cb69e2342427f73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
