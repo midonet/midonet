@@ -154,10 +154,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.RemoveWildcardFlow(flow.wcMatch)
 
             testFlowRemoved(flow, mwcFlow, state)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.RemoveWildcardFlow]))
         }
 
         scenario("Addition of a duplicate flow.") {
@@ -187,11 +183,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.RemoveWildcardFlow(flow.wcMatch)
 
             testFlowRemoved(flow, mwcFlow, state)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.RemoveWildcardFlow]))
         }
 
         scenario("Invalidate an existing flow by tag.") {
@@ -219,10 +210,6 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             And("The tag should appear in the invalidation history.")
             FlowController.isTagSetStillValid(1, flow.tagsSet) should be (false)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                classOf[FlowController.InvalidateFlowsByTag]))
         }
 
         scenario("Invalidate a non-existing tag.") {
@@ -237,9 +224,6 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             Then("The tag should appear in the invalidation history.")
             FlowController.isTagSetStillValid(1, Set(tag)) should be(false)
-
-            testMessages(Seq(
-                classOf[FlowController.InvalidateFlowsByTag]))
         }
 
         scenario("Check idle expired flows are removed from the flow" +
@@ -267,11 +251,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                FlowController.CheckFlowExpiration_.getClass(),
-                classOf[FlowController.FlowMissing_]))
         }
 
         scenario("Check hard expired flows are removed from the flow" +
@@ -299,10 +278,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowRemoved(flow, mwcFlow, state)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                FlowController.CheckFlowExpiration_.getClass()))
         }
 
         scenario("Check non-expired flows are not removed from the flow" +
@@ -327,10 +302,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             FlowController ! FlowController.CheckFlowExpiration_
 
             testFlowExists(flow, mwcFlow, state)
-
-            testMessages(Seq(
-                classOf[FlowController.AddWildcardFlow],
-                FlowController.CheckFlowExpiration_.getClass()))
         }
 
         scenario("Check a datapath flow is removed via the flow manager helper.") {
@@ -380,8 +351,6 @@ class FlowControllerTestCase extends MidolmanSpec {
 
             And("The flow removal callback method should not have been called.")
             flow.isFlowRemoved should be (false)
-
-            testMessages(Seq(classOf[FlowController.AddWildcardFlow]))
         }
 
         scenario("Check a wildcard flow is removed via the flow manager helper.") {
@@ -403,8 +372,6 @@ class FlowControllerTestCase extends MidolmanSpec {
             flowController.flowManagerHelper.removeWildcardFlow(mwcFlow)
 
             testFlowRemoved(flow, mwcFlow, state)
-
-            testMessages(Seq(classOf[FlowController.AddWildcardFlow]))
         }
     }
 
@@ -503,15 +470,6 @@ class FlowControllerTestCase extends MidolmanSpec {
 
         And("The flow removal callback method was not called.")
         flow.isFlowRemoved should be (false)
-    }
-
-    private def testMessages(messages: Seq[Class[_]]) {
-        And("The expected list of received messages should equal the expected.")
-        messages.length should be (FlowController.messages.length)
-
-        for ((expected, message) <- (messages zip FlowController.messages)) {
-            message.getClass should be (expected)
-        }
     }
 
     private def expireFlowHard(mwcFlow: ManagedWildcardFlow) {

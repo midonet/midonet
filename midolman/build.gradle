@@ -124,6 +124,9 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/bin/mm-trace") {
         into "usr/bin"
     }
+    from("src/deb/bin/mm-meter") {
+        into "usr/bin"
+    }
     from("src/deb/bin/mm-ctl") {
         into "usr/bin"
     }

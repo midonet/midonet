@@ -21,6 +21,9 @@ import java.util.{ArrayList, Map => JMap, Set => JSet}
 
 import javax.inject.Inject
 
+import org.midonet.midolman.management.Metering
+import org.midonet.midolman.monitoring.MeterRegistry
+
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._
 import scala.collection.mutable.{HashMap, MultiMap}
@@ -126,9 +129,17 @@ object FlowController extends Referenceable {
 
     case class FlowMissing_(flowMatch: FlowMatch, flowCallback: Callback1[Flow])
 
-    case class GetFlowSucceeded_(flow: Flow, flowCallback: Callback1[Flow])
-
+    /** NOTE(guillermo): we include an 'origMatch' here because 'userspace' keys
+      * are lost in the trip to the kernel, and that plays badly with out book
+      * keeping, in particular with that of the MetricsRegistry. */
+    case class GetFlowSucceeded_(flow: Flow, origMatch: FlowMatch, flowCallback: Callback1[Flow])
     case class GetFlowFailed_(flowCallback: Callback1[Flow])
+
+    /** NOTE(guillermo): we include an 'origMatch' here because 'userspace' keys
+      * are lost in the trip to the kernel, and that plays badly with out book
+      * keeping, in particular with that of the MetricsRegistry. */
+    case class DeleteFlowSucceeded_(flow: Flow, origMatch: FlowMatch)
+    case class DeleteFlowFailed_(flowMatch: FlowMatch)
 
     val MIN_WILDCARD_FLOW_CAPACITY = 4096
 
@@ -227,6 +238,8 @@ class FlowController extends Actor with ActorLogWithoutPath
     @Inject
     var metricsRegistry: MetricRegistry = null
 
+    var meters: MeterRegistry = null
+
     var flowManager: FlowManager = null
     var flowManagerHelper: FlowManagerHelper = null
 
@@ -245,6 +258,8 @@ class FlowController extends Actor with ActorLogWithoutPath
     override def preStart() {
         super.preStart()
         FlowController.wildcardTables.clear()
+        meters = new MeterRegistry(midolmanConfig.getDatapathMaxFlowCount)
+        Metering.registerAsMXBean(meters)
         val maxDpFlows = midolmanConfig.getDatapathMaxFlowCount
         val maxWildcardFlows = midolmanConfig.getDatapathMaxWildcardFlowCount match {
             case x if x < MIN_WILDCARD_FLOW_CAPACITY => MIN_WILDCARD_FLOW_CAPACITY
@@ -300,6 +315,8 @@ class FlowController extends Actor with ActorLogWithoutPath
                             s"idleTout=${wildFlow.getIdleExpirationMillis} " +
                             s"hardTout=${wildFlow.getHardExpirationMillis}")
 
+                        if (dpFlow ne null)
+                            meters.trackFlow(dpFlow.getMatch, managedFlow.tags)
                         metrics.wildFlowsMetric.mark()
                     } else {
                         managedFlow.unref()     // the FlowController's ref
@@ -353,17 +370,29 @@ class FlowController extends Actor with ActorLogWithoutPath
             flowManager.checkFlowsExpiration()
             metrics.currentDpFlows = flowManager.getNumDpFlows
 
-        case GetFlowSucceeded_(flow, callback) =>
+        case GetFlowSucceeded_(flow, origMatch, callback) =>
             log.debug("Retrieved flow from datapath: {}", flow.getMatch)
             context.system.eventStream.publish(FlowUpdateCompleted(flow))
             callback.call(flow)
+            if (flow.getStats ne null)
+                meters.updateFlow(origMatch, flow.getStats)
 
-        case GetFlowFailed_(callback) => callback.call(null)
+        case GetFlowFailed_(callback) =>
+            callback.call(null)
 
         case FlowMissing_(flowMatch, callback) =>
             callback.call(null)
             flowManager.flowMissing(flowMatch)
             metrics.currentDpFlows = flowManager.getNumDpFlows
+            meters.forgetFlow(flowMatch)
+
+        case DeleteFlowSucceeded_(flow, origMatch) =>
+            if (flow.getStats ne null)
+                meters.updateFlow(origMatch, flow.getStats)
+            meters.forgetFlow(flow.getMatch)
+
+        case DeleteFlowFailed_(flowMatch) =>
+            meters.forgetFlow(flowMatch)
     }
 
     private def removeWildcardFlow(wildFlow: ManagedWildcardFlow) {
@@ -393,6 +422,7 @@ class FlowController extends Actor with ActorLogWithoutPath
                 // wildcard flow is the same that the client has: the dp flow
                 // is valid anyway.
                 flowManager.add(dpFlow, wildFlow)
+                meters.trackFlow(dpFlow.getMatch, wildFlow.tags)
                 metrics.dpFlowsMetric.mark()
             case None =>
                 // The wildFlow timed out or was invalidated in the interval
@@ -443,10 +473,12 @@ class FlowController extends Actor with ActorLogWithoutPath
                         _removeFlow(flowMatch, retries - 1)
                     }
                 } else {
+                    self ! DeleteFlowFailed_(flowMatch)
                     log.error("Giving up on deleting flow with match: {}",
                               flowMatch)
                 }
             }
+
             datapathConnection(flowMatch).flowsDelete(datapath, flowMatch.getKeys,
                 new Callback[Flow] {
                     def onError(ex: NetlinkException) {
@@ -455,9 +487,9 @@ class FlowController extends Actor with ActorLogWithoutPath
                         ex.getErrorCodeEnum match {
                             // Success cases, the flow doesn't exist so userspace
                             // can take it as a successful remove:
-                            case ErrorCode.ENODEV => notifyRemoval(flowMatch)
-                            case ErrorCode.ENOENT => notifyRemoval(flowMatch)
-                            case ErrorCode.ENXIO => notifyRemoval(flowMatch)
+                            case ErrorCode.ENODEV => notifyFlowLost()
+                            case ErrorCode.ENOENT => notifyFlowLost()
+                            case ErrorCode.ENXIO => notifyFlowLost()
                             // Retry cases.
                             case ErrorCode.EBUSY => scheduleRetry()
                             case ErrorCode.EAGAIN => scheduleRetry()
@@ -466,17 +498,20 @@ class FlowController extends Actor with ActorLogWithoutPath
                             case ErrorCode.ETIMEOUT => scheduleRetry()
                             // Give up
                             case _ =>
+                                self ! DeleteFlowFailed_(flowMatch)
                                 log.error("Giving up on deleting flow with "+
                                     "match: {} due to: {}", flowMatch, ex)
                         }
                     }
 
                     def onSuccess(flow: Flow) {
-                        notifyRemoval(flow.getMatch)
+                        log.debug("DP confirmed flow removal: {}", flowMatch)
+                        self ! DeleteFlowSucceeded_(flow, flowMatch)
                     }
 
-                    def notifyRemoval(flowMatch: FlowMatch) {
-                        log.debug("DP confirmed removal of flow with match {}", flowMatch)
+                    def notifyFlowLost() {
+                        log.debug("DP flow was already deleted: {}", flowMatch)
+                        self ! DeleteFlowFailed_(flowMatch)
                     }
                 })
         }
@@ -505,7 +540,7 @@ class FlowController extends Actor with ActorLogWithoutPath
                 }
                 def onSuccess(data: Flow) {
                     val msg = if (data != null) {
-                        GetFlowSucceeded_(data, flowCallback)
+                        GetFlowSucceeded_(data, flowMatch, flowCallback)
                     } else {
                         log.warn("getFlow() returned a null flow")
                         FlowMissing_(flowMatch, flowCallback)
