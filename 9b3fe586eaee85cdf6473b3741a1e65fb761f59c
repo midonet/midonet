@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_825266db",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-11-28T20:49:41Z",
+      "side": 1,
+      "message": "Don\u0027t we need host_interface_port?",
+      "revId": "9b3fe586eaee85cdf6473b3741a1e65fb761f59c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
