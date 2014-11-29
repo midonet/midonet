@@ -44,7 +44,8 @@ class ZookeeperObjectMapperTests extends Suite
     private var zom: ZookeeperObjectMapper = _
 
     private var gcRunnable: Runnable = _
-    private var gcDone: Boolean = _
+    @volatile private var gcStarted: Boolean = _
+    @volatile private var gcDone: Boolean = _
 
     private class MockZookeeperObjectMapper(basePath: String, curator: CuratorFramework)
         extends ZookeeperObjectMapper(basePath, curator) {
@@ -54,7 +55,8 @@ class ZookeeperObjectMapperTests extends Suite
             gcRunnable = new Runnable {
                 def run() = {
                     gcRunnable.synchronized {
-                        gcRunnable.wait()
+                        if (!gcStarted)
+                            gcRunnable.wait()
                     }
                     runnable.run()
                     gcRunnable.synchronized {
@@ -68,7 +70,7 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     override protected def setup(): Unit = {
-
+        gcStarted = false
         gcDone = false
         zom = new MockZookeeperObjectMapper(ZK_ROOT, curator)
 
@@ -105,6 +107,11 @@ class ZookeeperObjectMapperTests extends Suite
                            classOf[PojoPort], "ruleIds", CLEAR)
 
         zom.build()
+    }
+
+    override protected def teardown(): Unit = {
+        startGc()
+        waitForGc()
     }
 
     def testMultiCreate() {
@@ -262,6 +269,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     private def startGc() = {
         gcRunnable.synchronized {
+            gcStarted = true
             gcRunnable.notify()
         }
     }
@@ -283,20 +291,19 @@ class ZookeeperObjectMapperTests extends Suite
         obs.await(1, TimeUnit.SECONDS)
     }
 
-    @Ignore
     def testSubscribeWithGc() = {
         val bridge = createBridge()
         val obs = new ObjectSubscription[PojoBridge](0)
         val sub = zom.subscribe(classOf[PojoBridge], bridge.id, obs)
 
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(1))
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id).get should be(1)
         sub.unsubscribe()
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (Option(0))
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id).get should be(0)
 
         startGc()
         waitForGc()
 
-        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should equal (None)
+        zom.subscriptionCount(classOf[PojoBridge], bridge.id) should be(None)
     }
 
     def testSubscribeAll() {
@@ -309,19 +316,18 @@ class ZookeeperObjectMapperTests extends Suite
         obs.await(1, TimeUnit.SECONDS)
     }
 
-    @Ignore
     def testSubscribeAllWithGc() {
         val obs = new ClassSubscription[PojoBridge](0)
         val sub = zom.subscribeAll(classOf[PojoBridge], obs)
 
-        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
+        zom.subscriptionCount(classOf[PojoBridge]).get should be(1)
         sub.unsubscribe()
-        zom.subscriptionCount(classOf[PojoBridge]) should equal (Option(0))
+        zom.subscriptionCount(classOf[PojoBridge]).get should be(0)
 
         startGc()
         waitForGc()
 
-        zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+        zom.subscriptionCount(classOf[PojoBridge]) should be(None)
     }
 }
 
@@ -415,5 +421,4 @@ private object ZookeeperObjectMapperTests {
 
     def await[T](f: Future[T]) =
         Await.result(f, Duration.create(1, TimeUnit.SECONDS))
-
 }
