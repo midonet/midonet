@@ -16,6 +16,24 @@
       "revId": "b034fa5f5d7212c96130e74865531ccde61dec47",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_627ca221",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-11-29T09:57:51Z",
+      "side": 1,
+      "message": "I think it would be better if we could try to understand what\u0027s the problem. In the tests we need to able to control when gc happens so the loop would not be a solution.",
+      "parentUuid": "fafc7978_624b022c",
+      "revId": "b034fa5f5d7212c96130e74865531ccde61dec47",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
