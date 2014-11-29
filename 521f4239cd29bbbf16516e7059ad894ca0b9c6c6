@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_a21a0a15",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-29T11:54:21Z",
+      "side": 1,
+      "message": "This value is still used as an initial value when ZOOM is used for the first time with a ZooKeeper backend. I declared a constant in the companion object and used that constant instead as you suggested earlier.",
+      "parentUuid": "fafc7978_2210da00",
+      "range": {
+        "startLine": 121,
+        "startChar": 39,
+        "endLine": 121,
+        "endChar": 41
+      },
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_62f942c8",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 4
@@ -36,6 +60,24 @@
       "writtenOn": "2014-11-28T22:05:15Z",
       "side": 1,
       "message": "If racing with another node this will fail to start, it should retry instead?",
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_821706ed",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 630,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-29T11:54:21Z",
+      "side": 1,
+      "message": "As per Brandon\u0027s suggestion, the version number is stored as binary data for the version node, and when there already exists a node, we catch NodeExistsException and set the version value to the value in ZooKeeper.",
+      "parentUuid": "fafc7978_62f942c8",
       "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -100,6 +142,24 @@
       "writtenOn": "2014-11-28T22:05:15Z",
       "side": 1,
       "message": "It should watch the child at this point in order to detect changes triggered by other nodes I guess.",
+      "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_023b163b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 646,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-11-29T11:54:21Z",
+      "side": 1,
+      "message": "Implemented version number watcher.",
+      "parentUuid": "fafc7978_42f6bed8",
       "revId": "521f4239cd29bbbf16516e7059ad894ca0b9c6c6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
