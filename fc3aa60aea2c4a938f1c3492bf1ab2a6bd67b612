@@ -71,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_48cedf5b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 816,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T15:05:34Z",
+      "side": 1,
+      "message": "I\u0027m pretty sure getOrElseUpdate() is non-atomic. This will replace another cache being inserted concurrently, both will connect, and we\u0027ll return observables backed by two different caches.",
+      "range": {
+        "startLine": 816,
+        "startChar": 34,
+        "endLine": 816,
+        "endChar": 49
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_88c1e730",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
@@ -82,6 +105,29 @@
       "writtenOn": "2014-12-01T14:08:04Z",
       "side": 1,
       "message": "Same comment as above.",
+      "range": {
+        "startLine": 837,
+        "startChar": 24,
+        "endLine": 837,
+        "endChar": 39
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e804f37f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 837,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T15:05:34Z",
+      "side": 1,
+      "message": "Ditto.",
       "range": {
         "startLine": 837,
         "startChar": 24,
