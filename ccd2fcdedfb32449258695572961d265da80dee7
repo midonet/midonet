@@ -22,6 +22,30 @@
       "revId": "ccd2fcdedfb32449258695572961d265da80dee7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a3904c96",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T17:57:41Z",
+      "side": 1,
+      "message": "I think this comment doesn\u0027t belong to here... ID\u0027s have different types and they must match the expected type according to the object being transmitted, but this mostly affect requests \u0027get\u0027 and \u0027unsubscribe\u0027 and the \u0027deletion\u0027 response...\n\nI\u0027ll fix it in the next review",
+      "parentUuid": "fafc7978_a8c82b75",
+      "range": {
+        "startLine": 174,
+        "startChar": 33,
+        "endLine": 174,
+        "endChar": 70
+      },
+      "revId": "ccd2fcdedfb32449258695572961d265da80dee7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
