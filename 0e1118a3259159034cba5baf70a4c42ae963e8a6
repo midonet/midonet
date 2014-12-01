@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_fd403758",
+        "filename": "midonet-util/src/main/java/org/midonet/util/collection/WeakObjectPool.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T09:40:22Z",
+      "side": 1,
+      "message": "Just curious: is this the same implementation that moved to infinispan, or a new one?",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 21
+      },
+      "revId": "0e1118a3259159034cba5baf70a4c42ae963e8a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
