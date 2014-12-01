@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_a8c4ab40",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 816,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T14:08:04Z",
+      "side": 1,
+      "message": "From the source code of TrieMap, it seems getOrElseUpdate is not performed atomically. Isn\u0027t that a problem if two threads concurrently call observable?",
+      "range": {
+        "startLine": 816,
+        "startChar": 34,
+        "endLine": 816,
+        "endChar": 49
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_88c1e730",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 837,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T14:08:04Z",
+      "side": 1,
+      "message": "Same comment as above.",
+      "range": {
+        "startLine": 837,
+        "startChar": 24,
+        "endLine": 837,
+        "endChar": 39
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e8dd1316",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T14:08:04Z",
+      "side": 1,
+      "message": "This will throw an AssertionException when the observer receives a single notification because the connection to the node cache is asynchronous.",
+      "range": {
+        "startLine": 286,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 38
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
