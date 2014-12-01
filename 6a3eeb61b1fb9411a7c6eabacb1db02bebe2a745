@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_48109f4e",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:05:28Z",
+      "side": 1,
+      "message": "Is it feasible to move this to the cluster module? (I suspect no, because of dependencies, but worth asking)",
+      "revId": "6a3eeb61b1fb9411a7c6eabacb1db02bebe2a745",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
