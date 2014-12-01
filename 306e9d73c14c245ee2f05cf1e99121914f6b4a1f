@@ -22,6 +22,30 @@
       "revId": "306e9d73c14c245ee2f05cf1e99121914f6b4a1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c363d0af",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T18:01:01Z",
+      "side": 1,
+      "message": "Yes they were added on purpose because testSubscribe and testSubscribeAll are flaky (see commit message). These tests will go away once Galo\u0027s patch #12067 is merged.",
+      "parentUuid": "fafc7978_a3620cd6",
+      "range": {
+        "startLine": 285,
+        "startChar": 4,
+        "endLine": 285,
+        "endChar": 11
+      },
+      "revId": "306e9d73c14c245ee2f05cf1e99121914f6b4a1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
