@@ -17,6 +17,7 @@ package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,8 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
 import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
+import org.midonet.packets.Data;
+import org.midonet.packets.FlowStateEthernet;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.functors.Callback2;
 
@@ -351,6 +354,16 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         packetsSent.add(packet);
         if (callback != null)
             callback.onSuccess(true);
+        if (packet.getEthernet() instanceof FlowStateEthernet) {
+            FlowStateEthernet flowStateEthernet =
+                    (FlowStateEthernet) packet.getEthernet();
+            byte[] slicedBytes = flowStateEthernet.getCore().getData();
+            // NOTE(tfukushima): This is a mock and I'm copying data here but we
+            // shouldn't in general and OvsDatapathConnectionImpl doesn't.
+            Data slicedData = new Data(Arrays.copyOf(
+                    slicedBytes, flowStateEthernet.getElasticDataLength()));
+            flowStateEthernet.setCore(slicedData);
+        }
         if (packetExecCb != null)
             packetExecCb.call(packet, actions);
     }

@@ -20,6 +20,7 @@ import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Objects;
 
+import org.midonet.packets.FlowStateEthernet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,9 +199,12 @@ public class Packet implements AttributeHandler {
 
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
                                     actions, FlowActions.writer);
-
-        NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
-
+        if (packet instanceof FlowStateEthernet) {
+            NetlinkMessage.writeFlowStateEthernet(buf, Attr.Packet,
+                    (FlowStateEthernet) packet);
+        } else {
+            NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
+        }
         buf.flip();
         return buf;
     }
