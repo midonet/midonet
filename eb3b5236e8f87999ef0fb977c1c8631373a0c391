@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_dd4a9382",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/observables/FunnelObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "rx?",
+      "range": {
+        "startLine": 16,
+        "startChar": 25,
+        "endLine": 16,
+        "endChar": 34
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e874f39d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/observables/RichObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "Javadoc? \n\nalso, it seems to be a duplicate with another file",
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7d7e07b0",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/observers/RichObserver.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "Seems to have a duplicate class?",
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_286f1bc7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "Why not an Observable[Observable[_ \u003c: T]] where onNext just subscribes a hidden PublishObservable that is exposed to subscribers of the funnel? That\u0027d simplify the management of stuff? Would that allow an .onBackpressureBuffer on the aggregation? (I\u0027m probably missing some context and extra subtleties)",
+      "range": {
+        "startLine": 41,
+        "startChar": 51,
+        "endLine": 41,
+        "endChar": 59
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e8823351",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "a more descriptive name would be useful, what does it count?",
+      "range": {
+        "startLine": 49,
+        "startChar": 20,
+        "endLine": 49,
+        "endChar": 27
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a8b94b30",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "This one is redundant with the CAS, no?",
+      "range": {
+        "startLine": 55,
+        "startChar": 16,
+        "endLine": 55,
+        "endChar": 28
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c8876f60",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "Is it expected that the source is actually completed at this point?",
+      "range": {
+        "startLine": 81,
+        "startChar": 24,
+        "endLine": 81,
+        "endChar": 30
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a862ebd5",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "ditto re. Observable[Observable[..]]",
+      "range": {
+        "startLine": 177,
+        "startChar": 46,
+        "endLine": 177,
+        "endChar": 49
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e89b53c7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T10:31:11Z",
+      "side": 1,
+      "message": "Locking on this is dangerous, I\u0027d have a private lock.",
+      "range": {
+        "startLine": 185,
+        "startChar": 57,
+        "endLine": 185,
+        "endChar": 61
+      },
+      "revId": "eb3b5236e8f87999ef0fb977c1c8631373a0c391",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
