@@ -16,6 +16,24 @@
       "revId": "9b3fe586eaee85cdf6473b3741a1e65fb761f59c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_63966496",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T17:26:32Z",
+      "side": 1,
+      "message": "It was removed in the master via another patch (the host_interface_port info was integrated inside the host object)",
+      "parentUuid": "fafc7978_825266db",
+      "revId": "9b3fe586eaee85cdf6473b3741a1e65fb761f59c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
