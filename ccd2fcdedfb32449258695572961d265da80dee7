@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_a8c82b75",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T11:45:59Z",
+      "side": 1,
+      "message": "What is the field id? I am a bit confused here which IDs need to match.",
+      "range": {
+        "startLine": 174,
+        "startChar": 33,
+        "endLine": 174,
+        "endChar": 70
+      },
+      "revId": "ccd2fcdedfb32449258695572961d265da80dee7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
