@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_48cb7f72",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T11:55:01Z",
+      "side": 1,
+      "message": "If gcRunnable is a val (see below), you don\u0027t need this.",
+      "range": {
+        "startLine": 46,
+        "startChar": 4,
+        "endLine": 46,
+        "endChar": 46
+      },
+      "revId": "76d0a0d4208270c703513181d5bcb20cf0c6c3aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c8a64fc1",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T11:55:01Z",
+      "side": 1,
+      "message": "Why not make this constant, too? It\u0027s the same every time. you could move it up to the outer class level and make it a val.",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 13
+      },
+      "revId": "76d0a0d4208270c703513181d5bcb20cf0c6c3aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_6895a33f",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T11:55:01Z",
+      "side": 1,
+      "message": "What is this for? The Zoom bindings should take care of this when you create the port. Also, this will remove any other ports from the bridge.",
+      "range": {
+        "startLine": 269,
+        "startChar": 0,
+        "endLine": 270,
+        "endChar": 26
+      },
+      "revId": "76d0a0d4208270c703513181d5bcb20cf0c6c3aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
