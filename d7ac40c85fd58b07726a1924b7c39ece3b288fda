@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_28f43bf1",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ClassAwaitableObserver.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T10:32:42Z",
+      "side": 1,
+      "message": "Perhaps after your patch (12067, subscribe-\u003eobservable) is merged it would be easier to rely on BlockingObservable.",
+      "parentUuid": "fafc7978_7d55671c",
+      "revId": "d7ac40c85fd58b07726a1924b7c39ece3b288fda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_9d580b58",
         "filename": "cluster/src/test/scala/org/midonet/cluster/util/ClassAwaitableObserver.scala",
         "patchSetId": 3
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_48937fa3",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ClassAwaitableObserver.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T10:32:42Z",
+      "side": 1,
+      "message": "same as above",
+      "parentUuid": "fafc7978_9d580b58",
+      "revId": "d7ac40c85fd58b07726a1924b7c39ece3b288fda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_3d5bdf55",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
         "patchSetId": 3
@@ -47,6 +83,24 @@
       "writtenOn": "2014-12-01T09:38:48Z",
       "side": 1,
       "message": "Is this class providing anything that\u0027s not provided by rx\u0027s own BlockingObservable?",
+      "revId": "d7ac40c85fd58b07726a1924b7c39ece3b288fda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_287d5b6f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T10:32:42Z",
+      "side": 1,
+      "message": "They share some similarities but zoom currently allows to subscribe to an object and does not expose observables.",
+      "parentUuid": "fafc7978_3d5bdf55",
       "revId": "d7ac40c85fd58b07726a1924b7c39ece3b288fda",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
