@@ -240,6 +240,52 @@
       "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_28cb9ba6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T15:44:58Z",
+      "side": 1,
+      "message": "Here the same comment as for ObservableNodeCache: if we connect to ZK when creating the instance, then the observable(...) method from ZOOM will block the caller, isn\u0027t it?",
+      "range": {
+        "startLine": 44,
+        "startChar": 26,
+        "endLine": 45,
+        "endChar": 71
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_082cd746",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T15:44:58Z",
+      "side": 1,
+      "message": "As in the in-mem implementation: does this have to be a write lock?",
+      "range": {
+        "startLine": 103,
+        "startChar": 8,
+        "endLine": 103,
+        "endChar": 21
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
