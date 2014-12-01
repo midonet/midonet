@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_68412339",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T10:03:45Z",
+      "side": 1,
+      "message": "As mentioned in the standup, given that the tests are executed sequentially, wouldn\u0027t it be better if the synchronization was done against a \u0027final\u0027 (val) object?",
+      "range": {
+        "startLine": 57,
+        "startChar": 20,
+        "endLine": 57,
+        "endChar": 30
+      },
+      "revId": "e59c3415ea947cd5122b3aab48386330faaae94e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
