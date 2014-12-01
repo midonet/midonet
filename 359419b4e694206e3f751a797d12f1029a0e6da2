@@ -1,0 +1,245 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_1d137b67",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Import order.",
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fd49578c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Is the write lock necessary? Moreover, shouldn\u0027t the lock be in the call() method?",
+      "range": {
+        "startLine": 143,
+        "startChar": 54,
+        "endLine": 143,
+        "endChar": 67
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1d3c1be2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "I\u0027m not an expert on rx, but when subscribing sub to stream, doesn\u0027t sub already keeps the subscription?",
+      "range": {
+        "startLine": 147,
+        "startChar": 20,
+        "endLine": 147,
+        "endChar": 50
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_dd18d386",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Missing sentence end.",
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5d0ce342",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Import order?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 42
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9d064b1f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Use makeAction0?",
+      "range": {
+        "startLine": 121,
+        "startChar": 33,
+        "endLine": 121,
+        "endChar": 46
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7d03a70f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 126,
+        "startChar": 33,
+        "endLine": 126,
+        "endChar": 46
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_881a876c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 815,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "TrieMap getOrElseUpdate is not thread-safe. This issue is documented here:\nhttps://issues.scala-lang.org/browse/SI-7943",
+      "range": {
+        "startLine": 815,
+        "startChar": 34,
+        "endLine": 815,
+        "endChar": 49
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c82bef80",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 831,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Same as above.",
+      "range": {
+        "startLine": 831,
+        "startChar": 24,
+        "endLine": 831,
+        "endChar": 39
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2858bb31",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Maybe we can remove @Inject here too.",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 7
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e84d1374",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T09:57:22Z",
+      "side": 1,
+      "message": "Previously we added the connect() method and the async call in the ZookeeperObjectMapper under the constraint that when calling subcribe() (now, observable()), that call shouldn\u0027t wait for an I/O op before returning to the caller.\n\nIsn\u0027t this now blocking any caller of the observable() method, if the ObservableNodeCache not connected to ZK?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
