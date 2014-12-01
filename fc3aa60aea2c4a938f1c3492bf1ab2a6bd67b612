@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c8092f97",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 674,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T14:26:14Z",
+      "side": 1,
+      "message": "To fix the bug discovered by Nicolas, I believe that in this patch we can simply do:\n\n  cache.observable.asFuture\n\nAlso, maybe we should remove the current() method, as in it\u0027s current form it will throw a NotFoundException if the underlying cache value is null.",
+      "range": {
+        "startLine": 674,
+        "startChar": 16,
+        "endLine": 674,
+        "endChar": 72
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_a8c4ab40",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
