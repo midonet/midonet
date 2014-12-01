@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_4851bf61",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "Any particular reason for adding the ()?",
+      "range": {
+        "startLine": 160,
+        "startChar": 20,
+        "endLine": 160,
+        "endChar": 29
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e34d3474",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "It looks to me like it actually returns an IllegalStateException.",
+      "range": {
+        "startLine": 230,
+        "startChar": 55,
+        "endLine": 230,
+        "endChar": 72
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a8930bf9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "This seems like it should be grouped with onUnsubscribe and refCount.",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 5
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_08edf7c3",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
@@ -140,6 +209,99 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c8680ff8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 837,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "I submitted my comments before I refreshed and saw Nicolas\u0027s.",
+      "parentUuid": "fafc7978_e804f37f",
+      "range": {
+        "startLine": 837,
+        "startChar": 24,
+        "endLine": 837,
+        "endChar": 39
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_28139b67",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "This needs to be under lock, right?\n\nAlso, do we need to call stream.onNext(s) in this case? Is this a situation that\u0027s expected to happen? We shouldn\u0027t get updates for children we don\u0027t know about, should we?\n\nShould log an error, as well (or instead).",
+      "range": {
+        "startLine": 125,
+        "startChar": 12,
+        "endLine": 125,
+        "endChar": 37
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e326d4b9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "Option\u0027s orNull method does this.",
+      "range": {
+        "startLine": 152,
+        "startChar": 50,
+        "endLine": 155,
+        "endChar": 9
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c352b012",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 936,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "The documentation in Storage says NotFoundException. I\u0027d prefer if we could keep that, since it\u0027s a more informative exception type.",
+      "range": {
+        "startLine": 936,
+        "startChar": 42,
+        "endLine": 936,
+        "endChar": 63
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e8dd1316",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
@@ -151,6 +313,30 @@
       "writtenOn": "2014-12-01T14:08:04Z",
       "side": 1,
       "message": "This will throw an AssertionException when the observer receives a single notification because the connection to the node cache is asynchronous.",
+      "range": {
+        "startLine": 286,
+        "startChar": 8,
+        "endLine": 286,
+        "endChar": 38
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_433ec0b9",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-01T17:08:07Z",
+      "side": 1,
+      "message": "Do you mean in the case where the connection doesn\u0027t happen until after we update the bridge, so we only get the creation event and not the update event, because the data in the creation event already includes the update?",
+      "parentUuid": "fafc7978_e8dd1316",
       "range": {
         "startLine": 286,
         "startChar": 8,
