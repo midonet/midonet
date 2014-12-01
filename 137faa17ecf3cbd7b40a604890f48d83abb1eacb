@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_0815f7f0",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T11:23:06Z",
+      "side": 1,
+      "message": "Makes sense to me. I\u0027ll move it there",
+      "parentUuid": "fafc7978_69c13be4",
+      "range": {
+        "startLine": 17,
+        "startChar": 25,
+        "endLine": 17,
+        "endChar": 31
+      },
+      "revId": "137faa17ecf3cbd7b40a604890f48d83abb1eacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c96dc706",
         "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
         "patchSetId": 19
@@ -36,6 +60,30 @@
       "writtenOn": "2014-11-20T09:23:54Z",
       "side": 1,
       "message": "has",
+      "range": {
+        "startLine": 37,
+        "startChar": 57,
+        "endLine": 37,
+        "endChar": 60
+      },
+      "revId": "137faa17ecf3cbd7b40a604890f48d83abb1eacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_68f923c8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T11:23:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_c96dc706",
       "range": {
         "startLine": 37,
         "startChar": 57,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_e82cf34c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T11:23:06Z",
+      "side": 1,
+      "message": "it seems so... Fixed.",
+      "parentUuid": "fafc7978_29a73351",
+      "range": {
+        "startLine": 43,
+        "startChar": 26,
+        "endLine": 44,
+        "endChar": 75
+      },
+      "revId": "137faa17ecf3cbd7b40a604890f48d83abb1eacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_49aa771a",
         "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
         "patchSetId": 19
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_a81aeb14",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T11:23:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_49aa771a",
+      "range": {
+        "startLine": 50,
+        "startChar": 57,
+        "endLine": 50,
+        "endChar": 68
+      },
+      "revId": "137faa17ecf3cbd7b40a604890f48d83abb1eacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_09b06f8a",
         "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
         "patchSetId": 19
@@ -105,6 +201,30 @@
       "writtenOn": "2014-11-20T09:23:54Z",
       "side": 1,
       "message": "RX java 1.0.0 has doOnUnsubscribe method that only takes an action. Hence you can write:\n\n   o.doOnUnsubscribe(makeAction0 { currentSubscription \u003d None })",
+      "range": {
+        "startLine": 53,
+        "startChar": 37,
+        "endLine": 53,
+        "endChar": 41
+      },
+      "revId": "137faa17ecf3cbd7b40a604890f48d83abb1eacb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_881727ed",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/rxutil/HermitObservable.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T11:23:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_09b06f8a",
       "range": {
         "startLine": 53,
         "startChar": 37,
