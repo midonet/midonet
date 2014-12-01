@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_e8a193aa",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_1d137b67",
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_fd49578c",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 7
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-01T09:57:22Z",
       "side": 1,
       "message": "Is the write lock necessary? Moreover, shouldn\u0027t the lock be in the call() method?",
+      "range": {
+        "startLine": 143,
+        "startChar": 54,
+        "endLine": 143,
+        "endChar": 67
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0888571e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "good point, I\u0027ll remove it, the race with the create/removal doesn\u0027t seem relevant for this case",
+      "parentUuid": "fafc7978_fd49578c",
       "range": {
         "startLine": 143,
         "startChar": 54,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_687c8321",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "no idea why I added this, probably because it was 2am.. removed",
+      "parentUuid": "fafc7978_1d3c1be2",
+      "range": {
+        "startLine": 147,
+        "startChar": 20,
+        "endLine": 147,
+        "endChar": 50
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_dd18d386",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 7
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_68ce4385",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_dd18d386",
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5d0ce342",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
         "patchSetId": 7
@@ -93,6 +177,30 @@
       "writtenOn": "2014-12-01T09:57:22Z",
       "side": 1,
       "message": "Import order?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 42
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_88ee07eb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_5d0ce342",
       "range": {
         "startLine": 24,
         "startChar": 0,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c8bf6fcf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_9d064b1f",
+      "range": {
+        "startLine": 121,
+        "startChar": 33,
+        "endLine": 121,
+        "endChar": 46
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7d03a70f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
         "patchSetId": 7
@@ -145,6 +277,47 @@
         "endLine": 126,
         "endChar": 46
       },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_28b55bee",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_7d03a70f",
+      "range": {
+        "startLine": 126,
+        "startChar": 33,
+        "endLine": 126,
+        "endChar": 46
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a8e78b3f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "remove",
       "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -220,6 +393,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_88e4473c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_2858bb31",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 7
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e84d1374",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 7
@@ -231,6 +428,30 @@
       "writtenOn": "2014-12-01T09:57:22Z",
       "side": 1,
       "message": "Previously we added the connect() method and the async call in the ZookeeperObjectMapper under the constraint that when calling subcribe() (now, observable()), that call shouldn\u0027t wait for an I/O op before returning to the caller.\n\nIsn\u0027t this now blocking any caller of the observable() method, if the ObservableNodeCache not connected to ZK?",
+      "range": {
+        "startLine": 41,
+        "startChar": 4,
+        "endLine": 41,
+        "endChar": 37
+      },
+      "revId": "359419b4e694206e3f751a797d12f1029a0e6da2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a8f14bcf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-01T23:17:26Z",
+      "side": 1,
+      "message": "It only blocks the creator, who is generally going to be the one calling connect(). \n\nAnyway, I moved the connect to a separate method. But the connect remains blocking (this enables us to report an exception if the node doesn\u0027t exist).",
+      "parentUuid": "fafc7978_e84d1374",
       "range": {
         "startLine": 41,
         "startChar": 4,
