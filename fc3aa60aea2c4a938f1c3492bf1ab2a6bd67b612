@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_08edf7c3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-01T14:12:52Z",
+      "side": 1,
+      "message": "If we invoke observable followed by a get, the get might throw an exception even though the corresponding object was created beforehand (because the instance cache exists already but it contains no data). Why not going directly to ZK in that case to fetch the object?",
+      "range": {
+        "startLine": 49,
+        "startChar": 1,
+        "endLine": 49,
+        "endChar": 75
+      },
+      "revId": "fc3aa60aea2c4a938f1c3492bf1ab2a6bd67b612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_a8c4ab40",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
