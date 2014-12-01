@@ -22,6 +22,30 @@
       "revId": "0e1118a3259159034cba5baf70a4c42ae963e8a6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8831e7ee",
+        "filename": "midonet-util/src/main/java/org/midonet/util/collection/WeakObjectPool.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-01T09:55:24Z",
+      "side": 1,
+      "message": "I haven\u0027t made a detailed comparison but, at first sight, the code looks the same (so, it seems that they just moved that code out from netty...)",
+      "parentUuid": "fafc7978_fd403758",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 21
+      },
+      "revId": "0e1118a3259159034cba5baf70a4c42ae963e8a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
