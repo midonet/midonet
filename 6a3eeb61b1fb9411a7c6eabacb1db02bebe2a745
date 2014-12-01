@@ -16,6 +16,24 @@
       "revId": "6a3eeb61b1fb9411a7c6eabacb1db02bebe2a745",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0874d797",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-01T10:08:13Z",
+      "side": 1,
+      "message": "In the end this should go to cluster, yes. Now it\u0027s not possible because of the dependency to the DataClient.",
+      "parentUuid": "fafc7978_48109f4e",
+      "revId": "6a3eeb61b1fb9411a7c6eabacb1db02bebe2a745",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
