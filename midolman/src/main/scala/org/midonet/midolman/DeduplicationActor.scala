@@ -29,6 +29,7 @@ import akka.actor._
 import com.codahale.metrics.Clock
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.config.MidolmanConfig
 import org.slf4j.MDC
 
 import org.jctools.queues.QueueFactory
@@ -138,6 +139,7 @@ class CookieGenerator(val start: Int, val increment: Int) {
 }
 
 class DeduplicationActor(
+            val config: MidolmanConfig,
             val cookieGen: CookieGenerator,
             val dpConnPool: DatapathConnectionPool,
             val clusterDataClient: DataClient,
@@ -208,7 +210,8 @@ class DeduplicationActor(
                 storage,
                 dpState,
                 FlowController ! _,
-                datapath)
+                datapath,
+                config.getControlPacketsDscp.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, cbExecutor, actionsCache,

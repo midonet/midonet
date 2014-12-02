@@ -92,7 +92,7 @@ public class FlowManagerTest {
     public void testHardTimeExpiration() throws InterruptedException {
 
         FlowMatch flowMatch =
-            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
@@ -136,7 +136,7 @@ public class FlowManagerTest {
     @Test
     public void testRemoveAddRace() {
         FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+                new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0));
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
                 WildcardFlowFactory.createIdleExpiration(wildcardMatch, timeOut);
@@ -165,7 +165,7 @@ public class FlowManagerTest {
     @Test
     public void testIdleExpiration() throws InterruptedException {
         FlowMatch flowMatch =
-            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
 
@@ -212,7 +212,7 @@ public class FlowManagerTest {
     @Test
     public void testIdleExpirationUpdate() throws InterruptedException{
         FlowMatch flowMatch =
-            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
@@ -231,7 +231,7 @@ public class FlowManagerTest {
         // add another flow that matches, that will update the LastUsedTime of a
         // value > timeOut/2
         FlowMatch flowMatch1 =
-            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200))
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0))
                            .addKey(FlowKeys.tcp(1000, 1002));
         Flow flow2 =
             new Flow(flowMatch1, actionsAsJava(wflow));
@@ -297,7 +297,7 @@ public class FlowManagerTest {
     public void wildcardFlowUpdatedBecauseOfKernelFlowUpdated()
             throws InterruptedException {
         FlowMatch flowMatch =
-            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200));
+            new FlowMatch().addKey(FlowKeys.tunnel(10L, 100, 200, (byte)0));
 
         WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
         WildcardFlow wildcardFlow =
@@ -370,7 +370,7 @@ public class FlowManagerTest {
         FlowMatch firstFlowMatch = null;
 
         FlowMatch baseDpMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200));
+                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200, (byte)0));
         WildcardMatch wcMatch =
                 WildcardMatch.fromFlowMatch(baseDpMatch);
         WildcardFlow wcFlow =
@@ -380,7 +380,7 @@ public class FlowManagerTest {
 
         for (int i=0; i<=maxAcceptedDpFlows; i++) {
             FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200));
+                new FlowMatch().addKey(FlowKeys.tunnel(1, 100, 200, (byte)0));
             flowMatch.addKey(FlowKeys.etherType((short)(23+i)));
 
             Flow flow = new Flow(flowMatch, actionsAsJava(wcFlow));
@@ -414,7 +414,7 @@ public class FlowManagerTest {
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200));
+                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200, (byte)0));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             WildcardFlow wf = WildcardFlowFactory.create(wildcardMatch);
             flows.add(ManagedWildcardFlow.create(wf));
@@ -445,7 +445,7 @@ public class FlowManagerTest {
 
         for (int counter = 0; counter < testSize; counter++) {
             FlowMatch flowMatch =
-                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200));
+                new FlowMatch().addKey(FlowKeys.tunnel(counter * 10L, 100, 200, (byte)0));
             WildcardMatch wildcardMatch = WildcardMatch.fromFlowMatch(flowMatch);
             WildcardFlow wf = WildcardFlowFactory.createHardExpiration(
                 wildcardMatch, timeOut);

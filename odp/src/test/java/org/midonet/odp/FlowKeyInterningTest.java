@@ -66,7 +66,7 @@ public class FlowKeyInterningTest {
             return FlowKeys.vlan((short) 0x03015);
         }},
         new Callable<FlowKey>() { public FlowKey call() throws Exception {
-            return FlowKeys.tunnel(11L, 101, 202);
+            return FlowKeys.tunnel(11L, 101, 202, (byte)0);
         }}
     );
 

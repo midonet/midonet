@@ -26,11 +26,9 @@ import akka.actor.ActorSystem
 import akka.util.Timeout
 
 import org.midonet.cluster.client.{VxLanPort, Port}
-import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain}
+import org.midonet.midolman.simulation.{PacketContext, Bridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
-import org.midonet.midolman.topology.VirtualToPhysicalMapper
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
+import org.midonet.sdn.flows.FlowTagger
 import FlowTagger.FlowTag
 import org.midonet.odp.flows.FlowActions.{setKey, output}
 import org.midonet.odp.flows._
@@ -124,7 +122,7 @@ trait FlowTranslator {
             dpTags += FlowTagger.tagForTunnelRoute(src, dst)
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
-            actions += setKey(FlowKeys.tunnel(key, src, dst))
+            actions += setKey(FlowKeys.tunnel(key, src, dst, 0))
             actions += routeInfo.get.output
         }
     }
@@ -145,7 +143,7 @@ trait FlowTranslator {
         }
         val localIp =  tzMembership.get.getIp.toInt
         dpTags += FlowTagger.tagForTunnelRoute(localIp, vtepIp)
-        actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
+        actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp, 0))
         actions += dpState.vtepTunnellingOutputAction
     }
 

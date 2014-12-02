@@ -538,7 +538,7 @@ class FlowControllerTestCase extends MidolmanSpec {
         private val tags = Seq.fill(tagCount)(TestableFlow.getTag(key))
 
         val flowMatch = new FlowMatch().addKey(
-            FlowKeys.tunnel(tunnelId, srcIpv4Address, dstIpv4Address))
+            FlowKeys.tunnel(tunnelId, srcIpv4Address, dstIpv4Address, 0))
 
         val wcMatch = WildcardMatch.fromFlowMatch(flowMatch)
 
