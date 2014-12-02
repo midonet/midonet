@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b5636319",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "fixed",
+      "parentUuid": "fafc7978_7520dbf7",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_55ef97b0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9568dff6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_55ef97b0",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_353f7327",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2014-12-02T10:36:14Z",
       "side": 1,
       "message": "This shouldn\u0027t be a ZoomObject, there are simulation objects such as Bridge that are not ZoomObjects. I think ZoomConvert is difficult to use with simulation devices that have to aggregate data from many different sources. Maybe we should simply have a single trait Device for this.",
+      "range": {
+        "startLine": 57,
+        "startChar": 33,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f56deb05",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "Restored the trait Device. It is now empty since the deviceTag belongs to trait VirtualDevice.",
+      "parentUuid": "fafc7978_353f7327",
       "range": {
         "startLine": 57,
         "startChar": 33,
@@ -111,6 +177,54 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_357773d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_7549fbcf",
+      "range": {
+        "startLine": 58,
+        "startChar": 40,
+        "endLine": 59,
+        "endChar": 69
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d57267e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "fafc7978_554677c0",
+      "range": {
+        "startLine": 59,
+        "startChar": 44,
+        "endLine": 59,
+        "endChar": 68
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b579a3fe",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 1
@@ -122,6 +236,30 @@
       "writtenOn": "2014-12-02T10:36:14Z",
       "side": 1,
       "message": "Now, taking a better look at these, maybe we should leave them as is, and simply override the invalidate() method in the VirtualDeviceMapper class. Otherwise, we end up accessing the vt.devices map twice for the same device.",
+      "range": {
+        "startLine": 90,
+        "startChar": 4,
+        "endLine": 106,
+        "endChar": 5
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1574efcd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_b579a3fe",
       "range": {
         "startLine": 90,
         "startChar": 4,
@@ -157,6 +295,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7581fb8e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_957e1fe3",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b51243b2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 1
@@ -174,6 +336,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_552cb7ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "fafc7978_b51243b2",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_95173fa3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 1
@@ -185,6 +365,24 @@
       "writtenOn": "2014-12-02T10:36:14Z",
       "side": 1,
       "message": "Import order",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b5188385",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_95173fa3",
       "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -214,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_951d7f76",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "fafc7978_15234f06",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 47,
+        "endChar": 49
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d511c7ad",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
         "patchSetId": 1
@@ -225,6 +447,30 @@
       "writtenOn": "2014-12-02T10:36:14Z",
       "side": 1,
       "message": "The FC may no longer be needed for this test.",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 99,
+        "endChar": 70
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f5120b61",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T13:58:06Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "fafc7978_d511c7ad",
       "range": {
         "startLine": 96,
         "startChar": 4,
