@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_186546e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T14:15:44Z",
+      "side": 1,
+      "message": "Can you remove the indent for this. I know it\u0027s my fault it\u0027s like this :S",
+      "range": {
+        "startLine": 55,
+        "startChar": 40,
+        "endLine": 55,
+        "endChar": 44
+      },
+      "revId": "44a4062b7e584548927b05f97a5d75023d2840c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f86e82c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T14:15:44Z",
+      "side": 1,
+      "message": "Make the on methods final?",
+      "revId": "44a4062b7e584548927b05f97a5d75023d2840c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_98793696",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T14:15:44Z",
+      "side": 1,
+      "message": "Make it protected, and specify return type? Btw, if we make it like this:\n\n  def invalidate(device: Device) \u003d { }\n\nwe don\u0027t need to add an implementation for this in every sub-class.",
+      "revId": "44a4062b7e584548927b05f97a5d75023d2840c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_786292d9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T14:15:44Z",
+      "side": 1,
+      "message": "If we provide a default do-nothing implementation in the DeviceMapper, then we don\u0027t need to implement this here.",
+      "revId": "44a4062b7e584548927b05f97a5d75023d2840c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
