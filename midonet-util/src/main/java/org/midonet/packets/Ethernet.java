@@ -202,6 +202,14 @@ public class Ethernet extends BasePacket {
         }
     }
 
+    protected void flush(ByteBuffer bb, byte[] payloadData) {
+        flush(bb, payloadData, payloadData.length);
+    }
+
+    protected void flush(ByteBuffer bb, byte[] payloadData, int length) {
+        bb.put(payloadData, 0, length);
+    }
+
     public byte[] serialize() {
         byte[] payloadData = null;
         if (payload != null) {
@@ -224,7 +232,7 @@ public class Ethernet extends BasePacket {
         }
         bb.putShort(etherType);
         if (payloadData != null)
-            bb.put(payloadData);
+            flush(bb, payloadData);
         if (pad) {
             Arrays.fill(data, bb.position(), data.length, (byte)0x0);
         }
