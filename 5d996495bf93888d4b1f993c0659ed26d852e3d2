@@ -1,0 +1,239 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_7520dbf7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 9
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_55ef97b0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Import order.",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_353f7327",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "This shouldn\u0027t be a ZoomObject, there are simulation objects such as Bridge that are not ZoomObjects. I think ZoomConvert is difficult to use with simulation devices that have to aggregate data from many different sources. Maybe we should simply have a single trait Device for this.",
+      "range": {
+        "startLine": 57,
+        "startChar": 33,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_554677c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "actorSystem not needed for this class",
+      "range": {
+        "startLine": 59,
+        "startChar": 44,
+        "endLine": 59,
+        "endChar": 68
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7549fbcf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Indent?",
+      "range": {
+        "startLine": 58,
+        "startChar": 40,
+        "endLine": 59,
+        "endChar": 69
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b579a3fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Now, taking a better look at these, maybe we should leave them as is, and simply override the invalidate() method in the VirtualDeviceMapper class. Otherwise, we end up accessing the vt.devices map twice for the same device.",
+      "range": {
+        "startLine": 90,
+        "startChar": 4,
+        "endLine": 106,
+        "endChar": 5
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_957e1fe3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Perhaps we should just override the invalidate method:\n\n  private override def invalidate(device: Device) \u003d device match {\n    case d: VirtualDevice \u003d\u003e FlowController.getRef ! InvalidateFlowsByTag(d.deviceTag)\n    case _ \u003d\u003e\n  }",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 55,
+        "endChar": 5
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b51243b2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Unneeded braces.",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_95173fa3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Import order",
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_15234f06",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "Do we use these anywhere? I feel I may have left them here by mistake.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 47,
+        "endChar": 49
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d511c7ad",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T10:36:14Z",
+      "side": 1,
+      "message": "The FC may no longer be needed for this test.",
+      "range": {
+        "startLine": 96,
+        "startChar": 4,
+        "endLine": 99,
+        "endChar": 70
+      },
+      "revId": "5d996495bf93888d4b1f993c0659ed26d852e3d2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
