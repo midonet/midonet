@@ -150,7 +150,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
 
         val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelKey(7001))
         val dpflow = new Flow(
-            new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
+            new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200, 0)))
         val tag = FlowTagger.tagForTunnelKey(7001)
         val tags = ROSet(tag)
 

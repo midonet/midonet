@@ -325,10 +325,10 @@ class FlowStateReplicatorTest extends FeatureSpec
 
     private def assertRecipientUnrefedAllKeys() {
         for (k <- connTrackKeys) {
-            recipient.mockConntrackTable.unrefedKeys should contain (k)
+            recipient.conntrackTable.unrefedKeys should contain (k)
         }
         for ((k, _) <- natMappings) {
-            recipient.mockNatTable.unrefedKeys should contain (k)
+            recipient.natTable.unrefedKeys should contain (k)
         }
     }
 
@@ -398,23 +398,16 @@ class FlowStateReplicatorTest extends FeatureSpec
 class TestableFlowStateReplicator(
         val ports: mutable.Map[UUID, Port],
         val portGroups: mutable.Map[UUID, PortGroup],
-        override val underlay: UnderlayResolver) extends BaseFlowStateReplicator {
-
+        val underlay: UnderlayResolver) extends {
+    val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
+    val natTable = new MockFlowStateTable[NatKey, NatBinding]()
     val invalidatedKeys = mutable.MutableList[FlowStateTag]()
+    val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
+} with BaseFlowStateReplicator(conntrackTable, natTable, new MockStateStorage,
+                               underlay, invalidateFlowsFor,
+                               new Datapath(1, "midonet", null), 0) {
 
     override val log = Logger(LoggerFactory.getLogger(this.getClass))
-
-    override val storage = new MockStateStorage()
-
-    val mockConntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
-    override def conntrackTable = mockConntrackTable
-
-    val mockNatTable = new MockFlowStateTable[NatKey, NatBinding]()
-    override def natTable = mockNatTable
-
-    override val datapath: Datapath = new Datapath(1, "midonet", null)
-
-    override val invalidateFlowsFor: (FlowStateTag) => Unit = invalidatedKeys.+=
 
     override def getPort(id: UUID): Port = ports(id)
 

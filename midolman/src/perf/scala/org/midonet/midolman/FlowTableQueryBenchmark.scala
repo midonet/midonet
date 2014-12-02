@@ -64,7 +64,7 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
         val keys = new ArrayList[FlowKey]()
         if (rand.nextInt(4) == 0) {
             keys.add(FlowKeys.tunnel(rand.nextLong(), generateIp(rand).toInt,
-                                     generateIp(rand).toInt))
+                                     generateIp(rand).toInt, 0))
         }
         keys.add(FlowKeys.ethernet(generateMac(rand), generateMac(rand)))
         if (rand.nextInt(3) == 0) {
