@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.neutron;
 
+import com.google.common.primitives.Ints;
+
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
@@ -42,15 +44,33 @@ public enum RuleProtocol {
         return number;
     }
 
-    @JsonCreator
-    public static RuleProtocol forValue(String v) {
-        if (v == null) return null;
+    private static RuleProtocol forNumValue(byte num) {
         for (RuleProtocol protocol : RuleProtocol.values()) {
-            if (v.equalsIgnoreCase(protocol.value)) {
+            if (num == protocol.number) {
                 return protocol;
             }
         }
-
         return null;
+    }
+
+    private static RuleProtocol forStrValue(String s) {
+        for (RuleProtocol protocol : RuleProtocol.values()) {
+            if (s.equalsIgnoreCase(protocol.value)) {
+                return protocol;
+            }
+        }
+        return null;
+    }
+
+    @JsonCreator
+    public static RuleProtocol forValue(String v) {
+        if (v == null) return null;
+
+        Integer num = Ints.tryParse(v);
+        if (num != null) {
+            return forNumValue(num.byteValue());
+        } else {
+            return forStrValue(v);
+        }
     }
 }
