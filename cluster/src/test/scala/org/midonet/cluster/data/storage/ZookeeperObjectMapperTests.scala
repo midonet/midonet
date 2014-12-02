@@ -369,7 +369,6 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testFlushResetsWatcher() {
-        print("ZOMT: testFlushResetsWatcher.\n")
         zom.flush()
         val zom2 = new ZookeeperObjectMapper(ZK_ROOT, curator)
         initAndBuildZoom(zom2)
