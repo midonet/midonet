@@ -34,12 +34,14 @@ object PacketBuilder {
     val ip4_bcast = IPv4Addr("255.255.255.255")
 
     def eth = EthBuilder()
+    def flowStateEth = EthBuilder(packet = new FlowStateEthernet)
     def arp = ArpBuilder()
     def ip4 = IPv4Builder()
     def tcp = TcpBuilder()
     def udp = UdpBuilder()
     def icmp = IcmpBuilder()
     def payload = DataBuilder()
+    def elasticPayload = ElasticDataBuilder()
 
     case class MacPair(src: MAC = eth_zero, dst: MAC = eth_zero) {
         def src(addr: MAC): MacPair = copy(src = addr)
@@ -115,6 +117,21 @@ sealed trait NonAppendable[T <: IPacket] extends PacketBuilder[T] {
 case class DataBuilder(packet: Data = new Data()) extends PacketBuilder[Data] with NonAppendable[Data] {
     def apply(str: String): DataBuilder = { packet.setData(str.getBytes) ; this }
     def apply(data: Array[Byte]): DataBuilder = { packet.setData(data) ; this }
+}
+
+case class ElasticDataBuilder(packet: ElasticData = new ElasticData())
+        extends PacketBuilder[ElasticData] with NonAppendable[ElasticData] {
+    def apply(str: String, length: Int): ElasticDataBuilder = {
+        packet.setData(str.getBytes)
+        packet.setLength(length)
+        this
+    }
+
+    def apply(data: Array[Byte], length: Int): ElasticDataBuilder = {
+        packet.setData(data)
+        packet.setLength(length)
+        this
+    }
 }
 
 case class IcmpBuilder(packet: ICMP = new ICMP()) extends PacketBuilder[ICMP]
@@ -275,7 +292,8 @@ case class ArpBuilder() extends PacketBuilder[ARP] with NonAppendable[ARP] {
     def reply: ArpBuilder = { packet.setOpCode(ARP.OP_REPLY) ; this }
 }
 
-case class EthBuilder(packet: Ethernet = new Ethernet()) extends PacketBuilder[Ethernet] {
+case class EthBuilder[T <: Ethernet](packet: T = new Ethernet())
+        extends PacketBuilder[T] {
     import PacketBuilder._
 
     override protected def setPayload(b: PacketBuilder[_ <: IPacket]): this.type = {
@@ -284,15 +302,15 @@ case class EthBuilder(packet: Ethernet = new Ethernet()) extends PacketBuilder[E
         this
     }
 
-    def addr(pair: MacPair): EthBuilder = mac(pair)
-    def mac(pair: MacPair): EthBuilder = { src(pair.src) ; dst(pair.dst) }
-    def src(addr: String): EthBuilder = src(stringToMac(addr))
-    def src(addr: MAC): EthBuilder = { packet.setSourceMACAddress(addr) ; this }
-    def dst(addr: String): EthBuilder = dst(stringToMac(addr))
-    def dst(addr: MAC): EthBuilder = { packet.setDestinationMACAddress(addr) ; this }
-    def with_pad: EthBuilder = { packet.setPad(true) ; this }
-    def vlan(vid: Short): EthBuilder = { packet.setVlanID(vid); this }
-    def vlans(vids: List[java.lang.Short]): EthBuilder = { packet.setVlanIDs(vids.asJava); this }
-    def priority(prio: Byte): EthBuilder = { packet.setPriorityCode(prio) ; this }
-    def ether_type(t: Short): EthBuilder = { packet.setEtherType(t) ; this }
+    def addr(pair: MacPair): EthBuilder[T] = mac(pair)
+    def mac(pair: MacPair): EthBuilder[T] = { src(pair.src) ; dst(pair.dst) }
+    def src(addr: String): EthBuilder[T] = src(stringToMac(addr))
+    def src(addr: MAC): EthBuilder[T] = { packet.setSourceMACAddress(addr) ; this }
+    def dst(addr: String): EthBuilder[T] = dst(stringToMac(addr))
+    def dst(addr: MAC): EthBuilder[T] = { packet.setDestinationMACAddress(addr) ; this }
+    def with_pad: EthBuilder[T] = { packet.setPad(true) ; this }
+    def vlan(vid: Short): EthBuilder[T] = { packet.setVlanID(vid); this }
+    def vlans(vids: List[java.lang.Short]): EthBuilder[T] = { packet.setVlanIDs(vids.asJava); this }
+    def priority(prio: Byte): EthBuilder[T] = { packet.setPriorityCode(prio) ; this }
+    def ether_type(t: Short): EthBuilder[T] = { packet.setEtherType(t) ; this }
 }
