@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_f5584bfc",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:18:29Z",
+      "side": 1,
+      "message": "\"...will just call onError ...\" ?",
+      "range": {
+        "startLine": 75,
+        "startChar": 19,
+        "endLine": 75,
+        "endChar": 36
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_75557bc5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:18:29Z",
+      "side": 1,
+      "message": "By removing the read lock you, some caches may never be gc\u0027ed. Was that done on purpose? The scenario is the following:\n\n        /*\n         * We obtain a read lock on instanceCacheRWLock to prevent\n         * the following undesired scenario from occurring:\n         *  -A cache has no subscriber and is added to the set\n         *   of caches to gc.\n         *  -Before the gc kicks in, the cache gets a subscriber.\n         *  -As a consequence the cache is not closed by the gc.\n         *  -Before instanceCachesToGc is cleared by the gc,\n         *   the subscriber unsubscribes.\n         *  -The gc clears instanceCachesToGc.\n         *\n         * As a consequence the cache may never be closed.\n         */",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 43
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5552f7dd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:18:29Z",
+      "side": 1,
+      "message": "Same comment as above.",
+      "range": {
+        "startLine": 170,
+        "startChar": 7,
+        "endLine": 170,
+        "endChar": 40
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f5268b67",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:18:29Z",
+      "side": 1,
+      "message": "The lock part of Brandon\u0027s comment has been addressed, what about the rest?",
+      "range": {
+        "startLine": 132,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 37
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f5ddeb43",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:18:29Z",
+      "side": 1,
+      "message": "extra blank line",
+      "range": {
+        "startLine": 172,
+        "startChar": 0,
+        "endLine": 174,
+        "endChar": 1
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
