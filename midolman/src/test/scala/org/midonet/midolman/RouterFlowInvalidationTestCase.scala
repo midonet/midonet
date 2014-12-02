@@ -18,7 +18,6 @@ package org.midonet.midolman
 import java.util.{ArrayList, UUID}
 import java.util.concurrent.TimeUnit
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
 import scala.collection.{Set => ROSet}
 import scala.concurrent.duration.Duration
 
@@ -140,7 +139,7 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
 
         val wflow = WildcardFlow(wcmatch = new FlowMatch().setTunnelKey(7001))
         val dpflow = new Flow(
-            new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
+            new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200, 0)))
         val tag = FlowTagger.tagForTunnelKey(7001L)
         val tags = ROSet(tag)
 

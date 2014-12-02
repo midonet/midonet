@@ -62,4 +62,7 @@ public interface DatapathConfig {
 
     @ConfigInt(key = "vtep_incoming_burst_capacity", defaultValue = 2000)
     public int getVtepIncomingBurstCapacity();
+
+    @ConfigInt(key = "control_packets_tos", defaultValue = 46 << 2 /* Expedited Forwarding*/)
+    public int getControlPacketsTos();
 }

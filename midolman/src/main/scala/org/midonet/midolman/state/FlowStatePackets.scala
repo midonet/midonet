@@ -24,8 +24,8 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.odp.Packet
-import org.midonet.odp.flows.FlowKeyTunnel
+import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyTunnel}
 
 object FlowStatePackets {
     /**

@@ -26,6 +26,7 @@ import scala.util.{Failure, Success}
 import akka.actor._
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.config.MidolmanConfig
 import org.slf4j.MDC
 
 import org.midonet.Util
@@ -132,6 +133,7 @@ class CookieGenerator(val start: Int, val increment: Int) {
 }
 
 class DeduplicationActor(
+            val config: MidolmanConfig,
             val cookieGen: CookieGenerator,
             val dpConnPool: DatapathConnectionPool,
             val clusterDataClient: DataClient,
@@ -199,7 +201,8 @@ class DeduplicationActor(
                 storage,
                 dpState,
                 FlowController ! _,
-                datapath)
+                datapath,
+                config.getControlPacketsTos.toByte)
             pendingFlowStateBatches foreach (self ! _)
             workflow = new PacketWorkflow(dpState, datapath, clusterDataClient,
                                           dpConnPool, cbExecutor, actionsCache,

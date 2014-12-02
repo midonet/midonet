@@ -159,7 +159,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx peer remoteHost -> (1, 2)
 
             ctx translate FlowActionOutputToVrnPort(port.getId)
-            ctx verify (List(setKey(FlowKeys.tunnel(port.getTunnelKey, 1, 2)),
+            ctx verify (List(setKey(FlowKeys.tunnel(port.getTunnelKey, 1, 2, 0)),
                                    output(1342)),
                         Set(FlowTagger.tagForTunnelRoute(1, 2)))
         }
@@ -269,9 +269,9 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             val brPorts = brPortIds(port0, port1)
             ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
-            ctx verify (List(setKey(FlowKeys.tunnel(port0.getTunnelKey, 1, 2)),
+            ctx verify (List(setKey(FlowKeys.tunnel(port0.getTunnelKey, 1, 2, 0)),
                              output(1342),
-                             setKey(FlowKeys.tunnel(port1.getTunnelKey, 3, 4)),
+                             setKey(FlowKeys.tunnel(port1.getTunnelKey, 3, 4, 0)),
                              output(1342)),
                         Set(FlowTagger.tagForTunnelRoute(1, 2),
                             FlowTagger.tagForTunnelRoute(3, 4)))
@@ -325,7 +325,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     output(8),
                     setKey(
                         FlowKeys.tunnel(vni.toLong, hostTunIp.toInt,
-                                        vtepTunIp.toInt)
+                                        vtepTunIp.toInt, 0)
                     ),
                     output(666)
                 ),
@@ -365,9 +365,9 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             ctx verify (List(output(2),
                              output(3),
-                             setKey(FlowKeys.tunnel(rport0.getTunnelKey, 1, 2)),
+                             setKey(FlowKeys.tunnel(rport0.getTunnelKey, 1, 2, 0)),
                              output(1342),
-                             setKey(FlowKeys.tunnel(rport1.getTunnelKey, 3, 4)),
+                             setKey(FlowKeys.tunnel(rport1.getTunnelKey, 3, 4, 0)),
                              output(1342)),
                         Set(FlowTagger.tagForDpPort(2),
                             FlowTagger.tagForDpPort(3),
@@ -459,7 +459,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx translate List(FlowActionOutputToVrnPort(port0),
                                FlowActionOutputToVrnPort(port1.getId))
             ctx verify (List(output(3),
-                             setKey(FlowKeys.tunnel(port1.getTunnelKey, 1, 2)),
+                             setKey(FlowKeys.tunnel(port1.getTunnelKey, 1, 2, 0)),
                              output(1342)),
                         Set(FlowTagger.tagForDpPort(3),
                             FlowTagger.tagForTunnelRoute(1, 2)))

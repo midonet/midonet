@@ -167,8 +167,8 @@ public class FlowKeys {
         return intern(new FlowKeyEncap(keys));
     }
 
-    public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4) {
-        return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4));
+    public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4, byte tos) {
+        return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4, tos));
     }
 
     public static FlowKey newBlankInstance(short type) {

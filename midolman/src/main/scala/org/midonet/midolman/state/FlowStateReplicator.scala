@@ -33,8 +33,7 @@ import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
-import org.midonet.midolman.topology.{VirtualTopologyActor => VTA,
-                                      VirtualToPhysicalMapper => VTPM}
+import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
@@ -43,7 +42,6 @@ import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.packets.Ethernet
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
@@ -95,16 +93,16 @@ import org.midonet.util.functors.Callback0
  *   5 Other threads' read operations will spill over to this shard for the
  *     received keys.
  */
-abstract class BaseFlowStateReplicator() {
+abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+                                       natTable: FlowStateTable[NatKey, NatBinding],
+                                       storage: FlowStateStorage,
+                                       underlay: UnderlayResolver,
+                                       invalidateFlowsFor: (FlowStateKey) => Unit,
+                                       datapath: Datapath,
+                                       tos: Byte) {
     import FlowStatePackets._
 
-    def conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue]
-    def natTable: FlowStateTable[NatKey, NatBinding]
-    def storage: FlowStateStorage
-    def underlay: UnderlayResolver
-    def datapath: Datapath
     protected def log: Logger
-    protected def invalidateFlowsFor: (FlowStateKey) => Unit
     protected def getPort(id: UUID): Port
     protected def getPortGroup(id: UUID): PortGroup
 
@@ -126,7 +124,8 @@ abstract class BaseFlowStateReplicator() {
     private[this] val stream = new FixedArrayOutputStream(buffer)
     private[this] val packet = {
         val udpShell = makeUdpShell(buffer)
-        new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+        val flowMatch = FlowMatches.fromEthernetPacket(udpShell)
+        new Packet(udpShell, flowMatch)
     }
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
@@ -262,7 +261,8 @@ abstract class BaseFlowStateReplicator() {
         while (hostsIt.hasNext) {
             underlay.peerTunnelInfo(hostsIt.next()) match {
                 case Some(route) =>
-                    actions.add(setKey(tunnel(TUNNEL_KEY, route.srcIp, route.dstIp)))
+                    val key = setKey(tunnel(TUNNEL_KEY, route.srcIp, route.dstIp, tos))
+                    actions.add(key)
                     actions.add(route.output)
                 case None =>
             }
@@ -399,13 +399,15 @@ abstract class BaseFlowStateReplicator() {
 }
 
 class FlowStateReplicator(
-        override val conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
-        override val natTable: FlowStateTable[NatKey, NatBinding],
-        override val storage: FlowStateStorage,
-        override val underlay: UnderlayResolver,
-        override val invalidateFlowsFor: (FlowStateKey) => Unit,
-        override val datapath: Datapath)(implicit as: ActorSystem)
-        extends BaseFlowStateReplicator {
+        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+        natTable: FlowStateTable[NatKey, NatBinding],
+        storage: FlowStateStorage,
+        underlay: UnderlayResolver,
+        invalidateFlowsFor: (FlowStateKey) => Unit,
+        datapath: Datapath,
+        tso: Byte)(implicit as: ActorSystem)
+        extends BaseFlowStateReplicator(conntrackTable, natTable, storage, underlay,
+                                        invalidateFlowsFor, datapath, tso) {
 
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 

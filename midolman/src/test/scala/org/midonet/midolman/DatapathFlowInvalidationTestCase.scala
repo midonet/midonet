@@ -18,7 +18,6 @@ package org.midonet.midolman
 import java.util.UUID
 
 import scala.collection.immutable.HashMap
-import scala.collection.mutable
 import scala.concurrent.duration._
 
 import akka.testkit.TestProbe
@@ -31,10 +30,8 @@ import org.midonet.cluster.data.{Router, TunnelZone}
 import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
-import org.midonet.midolman.util.{MidolmanTestCase, RouterHelper, TestHelpers}
+import org.midonet.midolman.util.{MidolmanTestCase, RouterHelper}
 import org.midonet.odp.Datapath
-import org.midonet.odp.flows.FlowAction
-import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge

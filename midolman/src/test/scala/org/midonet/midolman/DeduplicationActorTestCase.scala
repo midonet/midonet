@@ -23,7 +23,10 @@ import scala.concurrent.Promise
 import akka.actor.Props
 import akka.testkit.TestActorRef
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
+import org.midonet.config.ConfigProvider
+import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.DeduplicationActor.ActionsCache
@@ -286,7 +289,8 @@ class DeduplicationActorTestCase extends MidolmanSpec {
                       metrics: PacketPipelineMetrics,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
+            extends DeduplicationActor(injector.getInstance(classOf[MidolmanConfig]),
+                                       cookieGen, dpConnPool, clusterDataClient,
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
                                        new MockStateStorage(),

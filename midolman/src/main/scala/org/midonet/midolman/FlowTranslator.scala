@@ -122,7 +122,7 @@ trait FlowTranslator {
             dpTags += FlowTagger.tagForTunnelRoute(src, dst)
             // Each FlowActionSetKey must be followed by a corresponding
             // FlowActionOutput.
-            actions += setKey(FlowKeys.tunnel(key, src, dst))
+            actions += setKey(FlowKeys.tunnel(key, src, dst, 0))
             actions += routeInfo.get.output
         }
     }
@@ -143,7 +143,7 @@ trait FlowTranslator {
         }
         val localIp =  tzMembership.get.getIp.toInt
         dpTags += FlowTagger.tagForTunnelRoute(localIp, vtepIp)
-        actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp))
+        actions += setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIp, 0))
         actions += dpState.vtepTunnellingOutputAction
     }
 

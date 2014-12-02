@@ -107,7 +107,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              new MockStateStorage,
                                              underlayResolver, _ => { },
-                                             new Datapath(1, "midonet", null))
+                                             new Datapath(1, "midonet", null), 0)
     }
 
     @Benchmark
