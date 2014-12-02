@@ -46,6 +46,30 @@
       "revId": "306e9d73c14c245ee2f05cf1e99121914f6b4a1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d5b547ce",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-02T09:36:59Z",
+      "side": 1,
+      "message": "I ended up reintroducing them.",
+      "parentUuid": "fafc7978_c363d0af",
+      "range": {
+        "startLine": 285,
+        "startChar": 4,
+        "endLine": 285,
+        "endChar": 11
+      },
+      "revId": "306e9d73c14c245ee2f05cf1e99121914f6b4a1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
