@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_f8fe826a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-02T17:06:33Z",
+      "side": 1,
+      "message": "why not move this case below and just do throw new Device...? This also seems to conflict with the generic case below.",
+      "revId": "9be2d1cdc501eaef6863102f87e7659933d64923",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
