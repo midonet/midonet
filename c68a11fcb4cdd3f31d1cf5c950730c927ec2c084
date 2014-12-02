@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b837daaf",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-02T14:51:07Z",
+      "side": 1,
+      "message": "I think this is a justified concern. However, do the lists of GC-able caches have to be TrieMap at all, forcing us to iterate over the collection and then clear them? Since we only write to these lists when the last subscriber disconnects, and only ready during GC, why not use a concurrent queue or something similar?\n\nIf for example:\n\n  private val cacheToGc \u003d new ConcurrentLinkedQueue[SubscriptionCache[_]]\n\nThen adding to the GC collection becomes:\n\n  cacheToGc.add(cache)\n\nAnd GC becomes:\n\n        var cache: InstanceSubscriptionCache[_] \u003d null\n        do {\n            cache \u003d cacheToGc.poll()\n            if ((cache ne null) \u0026\u0026 cache.closeIfNeeded()) {\n                instanceCaches(cache.clazz).remove(cache.id)\n            }\n        } while (cache ne null)\n\nTo prevent adding a cache to the collection, each cache can maintain a val isGcAble: Boolean \u003d true. When adding this to the GC list, we set this to false, when the cache is garbage collected with closeIfNeeded, we set it to true.",
+      "parentUuid": "fafc7978_75557bc5",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 43
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5552f7dd",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 10
