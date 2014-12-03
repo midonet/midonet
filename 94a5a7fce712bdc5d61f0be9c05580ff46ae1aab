@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_ceb5b4ce",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/RuleProtocol.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-03T11:48:23Z",
+      "side": 1,
+      "message": "If you make all the constant names uppercase (basically, make the v a V in ICMPv6) you can spare forStrValue altogether and use valueOf.\n\nE.g.: RuleProtocol.valueOf(someString.toUpperCase())",
+      "revId": "94a5a7fce712bdc5d61f0be9c05580ff46ae1aab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
