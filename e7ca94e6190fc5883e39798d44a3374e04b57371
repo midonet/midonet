@@ -16,6 +16,24 @@
       "revId": "e7ca94e6190fc5883e39798d44a3374e04b57371",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2ea3a09f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-03T10:36:20Z",
+      "side": 1,
+      "message": "The name of this method should rather be onDeviceChanged, and let the sub-classes override it as needed, e.g. invalidation. I suggested to keep this method here, so we don\u0027t have to override the rx on* methods.",
+      "parentUuid": "fafc7978_8e944c38",
+      "revId": "e7ca94e6190fc5883e39798d44a3374e04b57371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
