@@ -34,6 +34,24 @@
       "revId": "e7ca94e6190fc5883e39798d44a3374e04b57371",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2e02803e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-03T13:54:08Z",
+      "side": 1,
+      "message": "This is defined here so that in VirtualDevice we don\u0027t have to reimplement the on* methods as Alex said. It\u0027s also an empty method so that subclasses of DeviceMapper don\u0027t need to reimplement it.\n\nI renamed the name of the method as suggested.",
+      "parentUuid": "fafc7978_2ea3a09f",
+      "revId": "e7ca94e6190fc5883e39798d44a3374e04b57371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
