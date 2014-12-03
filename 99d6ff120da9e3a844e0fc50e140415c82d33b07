@@ -37,6 +37,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_0e921c57",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-03T09:22:31Z",
+      "side": 1,
+      "message": "I\u0027m not sure if this solves the deadlock. The problem is the following: if the waitForGc method enters the critical section below:\n\n        gcSynchronization.synchronized {\n            while (!gcDone) {\n                gcSynchronization.wait()\n            }\n        }\n\nbefore the selected block here, then the runnable cannot notify the completion of the GC because it cannot enter its own critical section to set gcDone\u003dtrue and call notify().\n\nCorrect me if I\u0027m wrong, but it looks like there is a strong possibility of the waitForGc holding a lock on gcSynchronization indefinitely. Is there something that I\u0027m missing?",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_aebaf0de",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
