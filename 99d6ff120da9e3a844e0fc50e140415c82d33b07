@@ -73,6 +73,47 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_a4a04ff5",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-03T18:44:36Z",
+      "side": 1,
+      "message": "I\u0027d have to see more in detail, but we\u0027re talking of a difference of 5 lines at best :D I\u0027d merge as it is.",
+      "parentUuid": "fafc7978_2e89e0ca",
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8490ab96",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-03T18:44:36Z",
+      "side": 1,
+      "message": "should be a while to cover for spurious wakeups",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 18
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_0e921c57",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
@@ -179,6 +220,30 @@
       "side": 1,
       "message": "To make sure the gc thread is not blocked and unusable in future tests. This was causing the previous flakiness of gc-based tests.",
       "parentUuid": "fafc7978_aebaf0de",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 15
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4496c395",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-03T18:44:36Z",
+      "side": 1,
+      "message": "Ah ok, so you\u0027re just letting it run and then waiting for it to finish right?\n\nI guess maybe an easier alternative could be to interrupt it?",
+      "parentUuid": "fafc7978_aea150ab",
       "range": {
         "startLine": 117,
         "startChar": 8,
