@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_8e944c38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-03T10:12:14Z",
+      "side": 1,
+      "message": "I wonder if this should be defined only for VirtualDevices. It seems that\u0027s the distinction, no?",
+      "revId": "e7ca94e6190fc5883e39798d44a3374e04b57371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
