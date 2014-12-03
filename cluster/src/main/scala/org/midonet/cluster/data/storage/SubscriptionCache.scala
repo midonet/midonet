@@ -25,7 +25,7 @@ import org.apache.curator.framework.recipes.cache.ChildData
 import rx.functions.Func1
 import rx.internal.operators.OperatorDoOnUnsubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject}
-import rx.{Observable, Observer, Subscription}
+import rx.{Subscriber, Observable, Observer, Subscription}
 
 import org.midonet.cluster.util.{ObservableNodeCache, ObservablePathChildrenCache}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
@@ -81,7 +81,12 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
 
     def subscribe(observer: Observer[_ >: T]): Subscription = {
         refCount.incrementAndGet()
-        unsubscribeObservable.subscribe(observer)
+        observer match {
+            case sub: Subscriber[_] =>
+                unsubscribeObservable.subscribe(sub)
+            case _ =>
+                unsubscribeObservable.subscribe(observer)
+        }
     }
 
     /**

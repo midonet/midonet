@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.Objects
+
 import org.midonet.cluster.data.ObjId
 
 /**
@@ -22,8 +24,7 @@ import org.midonet.cluster.data.ObjId
  * ZookeeperObjectMapper or below that is not due to caller error. This
  * indicates either data corruption or a bug. See cause for details.
  */
-class InternalObjectMapperException private[storage](message: String,
-                                                     cause: Throwable)
+class InternalObjectMapperException(message: String, cause: Throwable)
     extends StorageException(message, cause) {
     private[storage] def this(cause: Throwable) = this(null, cause)
 }
@@ -35,15 +36,32 @@ class InternalObjectMapperException private[storage](message: String,
 class ServiceUnavailableException(message: String)
     extends StorageException(message)
 
-class NotFoundException private[storage](val clazz: Class[_], val id: ObjId)
+class NotFoundException(val clazz: Class[_], val id: ObjId)
     extends StorageException(
         if (id != None) s"There is no ${clazz.getSimpleName} with ID $id."
-        else s"There is no ${clazz.getSimpleName} with the specified ID.")
+        else s"There is no ${clazz.getSimpleName} with the specified ID.") {
 
-class ObjectExistsException private[storage](val clazz: Class[_],
-                                             val id: ObjId)
+    override def equals(obj: Any) = obj match {
+        case e: NotFoundException =>
+            Objects.equals(clazz, e.clazz) &&
+            Objects.equals(id, e.id)
+        case _ => false
+    }
+    override def hashCode = Objects.hashCode(clazz, id)
+}
+
+class ObjectExistsException(val clazz: Class[_], val id: ObjId)
     extends StorageException(
-        s"A(n) ${clazz.getSimpleName} with ID $id already exists.")
+        s"A(n) ${clazz.getSimpleName} with ID $id already exists.") {
+
+    override def equals(obj: Any) = obj match {
+        case e: ObjectExistsException =>
+            Objects.equals(clazz, e.clazz) &&
+            Objects.equals(id, e.id)
+        case _ => false
+    }
+    override def hashCode = Objects.hashCode(clazz, id)
+}
 
 /**
  * Thrown by the ZookeeperObjectMapper when a caller attempts to delete
@@ -71,14 +89,26 @@ class ObjectExistsException private[storage](val clazz: Class[_],
  * // Port -> Bridge binding has a CLEAR DeleteAction.
  * mapper.delete(port);
  */
-class ObjectReferencedException private[storage](
+class ObjectReferencedException(
         val referencedClass: Class[_],
         val referencedId: ObjId,
         val referencingClass: Class[_],
         val referencingId: ObjId) extends StorageException(
     s"Cannot delete the ${referencedClass.getSimpleName} with ID " +
     s"$referencingId because it is still referenced by the " +
-    s"${referencingClass.getSimpleName} with ID $referencingId.")
+    s"${referencingClass.getSimpleName} with ID $referencingId.") {
+
+    override def equals(obj: Any) = obj match {
+        case e: ObjectReferencedException =>
+            Objects.equals(referencedClass, e.referencedClass) &&
+            Objects.equals(referencedId, e.referencedId) &&
+            Objects.equals(referencingClass, e.referencingClass) &&
+            Objects.equals(referencingId, e.referencingId)
+        case _ => false
+    }
+    override def hashCode = Objects.hashCode(referencedClass, referencedId,
+                                             referencingClass, referencingId)
+}
 
 /**
  * Thrown by the ZookeeperObjectMapper in response to a create or update
@@ -125,7 +155,7 @@ class ObjectReferencedException private[storage](
  *        ID of object referenced by referencingObj. This is p1.id in the
  *        example above.
  */
-class ReferenceConflictException private[storage](
+class ReferenceConflictException(
         val referencingClass: String, val referencingId: String,
         val referencingFieldName: String,
         val referencedClass: String, val referencedId: String)
@@ -134,4 +164,18 @@ class ReferenceConflictException private[storage](
         s"$referencingId. already references the " +
         s"$referencedClass with ID $referencedId via the field " +
         s"$referencingFieldName. This field can accommodate only one " +
-        "reference.")
+        "reference.") {
+
+    override def equals(obj: Any) = obj match {
+        case e: ReferenceConflictException =>
+            Objects.equals(referencedClass, e.referencedClass) &&
+            Objects.equals(referencedId, e.referencedId) &&
+            Objects.equals(referencingClass, e.referencingClass) &&
+            Objects.equals(referencingId, e.referencingId) &&
+            Objects.equals(referencingFieldName, e.referencingFieldName)
+        case _ => false
+    }
+    override def hashCode = Objects.hashCode(referencedClass, referencedId,
+                                             referencingClass, referencingId,
+                                             referencingFieldName)
+}
