@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e95fd270",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/reactivex/InstanceObservable.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-03T17:11:08Z",
+      "side": 1,
+      "message": "Check done is false.",
+      "range": {
+        "startLine": 62,
+        "startChar": 31,
+        "endLine": 62,
+        "endChar": 48
+      },
+      "revId": "c413800a4e1e3500d863c73f58f13aa778bef192",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
