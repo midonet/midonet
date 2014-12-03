@@ -60,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_2e7c4020",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-03T09:36:57Z",
+      "side": 1,
+      "message": "When a thread calls gcSynchronization.wait() it releases ownership of the monitor that it had previously acquired by entering the gcSynchronization.synchronized block:\nhttps://docs.oracle.com/javase/7/docs/api/java/lang/Object.html#wait()",
+      "parentUuid": "fafc7978_0e921c57",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_aebaf0de",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
