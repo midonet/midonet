@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_64b6673f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-03T19:36:54Z",
+      "side": 1,
+      "message": "maxFlows + buffer space",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c4d0f355",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-03T19:36:54Z",
+      "side": 1,
+      "message": "how many meters will there be?",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_64e4a73b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-03T19:36:54Z",
+      "side": 1,
+      "message": "I think you should check whether a flowMatch is already being tracked. Image you are processing a packet with match X and there are 300.000 HandlePackets messages in the DDA where match X appears in them, following the fibonacci sequence. Somewhere in between the actions cache will be cleared and all those packets will result in a FlowAdded message that will call this method.",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c49bd3c7",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowStats.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-03T19:36:54Z",
+      "side": 1,
+      "message": ":(",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
