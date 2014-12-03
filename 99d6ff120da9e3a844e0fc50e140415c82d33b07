@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_8ea60cc0",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-03T08:58:14Z",
+      "side": 1,
+      "message": "Locks would not be sufficient you need synchronization too. What class in particular were you referring to?",
+      "parentUuid": "fafc7978_8ebf2cd0",
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_aebaf0de",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-03T08:35:49Z",
       "side": 1,
       "message": "why is it needed to gc on teardown?",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 15
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_aea150ab",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-03T08:58:14Z",
+      "side": 1,
+      "message": "To make sure the gc thread is not blocked and unusable in future tests. This was causing the previous flakiness of gc-based tests.",
+      "parentUuid": "fafc7978_aebaf0de",
       "range": {
         "startLine": 117,
         "startChar": 8,
