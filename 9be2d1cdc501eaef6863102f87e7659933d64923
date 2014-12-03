@@ -16,6 +16,24 @@
       "revId": "9be2d1cdc501eaef6863102f87e7659933d64923",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c95e4ee9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-03T15:22:04Z",
+      "side": 1,
+      "message": "you mean with this:\n\n                case Failure(ex) \u003d\u003e\n                    log.warn(\"Failed to get {}: {} - {}\",\n                             tag.runtimeClass.getSimpleName, id, ex)\n\nmmmm. Yeah, I\u0027ll add a no-op branch for the DeviceQueryTimeoutException.\n\n\nWRT \"move this case below and just throw\", where below are you referring to? Inside the andThen() ??? That doesn\u0027t make sense to me but I see no other place.",
+      "parentUuid": "fafc7978_f8fe826a",
+      "revId": "9be2d1cdc501eaef6863102f87e7659933d64923",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
