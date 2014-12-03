@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.io
 
+import scala.concurrent.duration._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{OneInstancePerTest, ShouldMatchers, BeforeAndAfter, FeatureSpec}
@@ -25,7 +27,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.{DatapathConfig, MidolmanConfig}
 import org.midonet.odp.ports.{NetDevPort, VxLanTunnelPort, GreTunnelPort}
-import org.midonet.util.{TokenBucket, Bucket, TokenBucketTestRate}
+import org.midonet.util._
 import java.util
 
 @RunWith(classOf[JUnitRunner])
@@ -103,6 +105,56 @@ class TokenBucketPolicyTest extends FeatureSpec
             policy unlink port
 
             tb.underlyingTokenBucket.getNumTokens should be (TokenBucket.UNLINKED)
+        }
+    }
+
+    feature("Full system simulation") {
+        scenario("Token bucket simulation") {
+            val configuration = new HierarchicalConfiguration
+            configuration.addNodes(DatapathConfig.GROUP_NAME, util.Arrays.asList(
+                new HierarchicalConfiguration.Node("global_incoming_burst_capacity", 256),
+                new HierarchicalConfiguration.Node("vm_incoming_burst_capacity", 8),
+                new HierarchicalConfiguration.Node("tunnel_incoming_burst_capacity", 16),
+                new HierarchicalConfiguration.Node("vtep_incoming_burst_capacity", 1)))
+
+            val provider = ConfigProvider.providerForIniConfig(configuration)
+
+            val multiplier = 8
+            val counter = new StatisticalCounter(3)
+            val rate = new TokenBucketSystemRate(counter, multiplier)
+            val policy = new TokenBucketPolicy(
+                provider.getConfig(classOf[MidolmanConfig]),
+                rate, multiplier, new Bucket(_, multiplier, counter, 2, false))
+
+            val tb1 = policy link (new NetDevPort("vm1"), VirtualMachine)
+            val tb2 = policy link (new NetDevPort("vm2"), VirtualMachine)
+
+            @volatile var running = true
+            val addingThreads = (0 to 1) map { i =>
+                new Thread() {
+                    override def run(): Unit =
+                        while (running) {
+                            counter.addAndGet(i, 1)
+                            Thread.sleep(1)
+                        }
+                }
+            }
+
+            var totalTokens = 0L
+            val end = System.nanoTime() + (1 second).toNanos
+            addingThreads foreach (_.start())
+            tb1.prepare()
+            do {
+                if (tb1.consumeToken()) {
+                    totalTokens += 1
+                }
+            } while (System.nanoTime() <= end)
+            tb1.done()
+
+            running = false
+            addingThreads foreach (_.join())
+
+            totalTokens should be <= (counter.getValue + 256)
         }
     }
 }
