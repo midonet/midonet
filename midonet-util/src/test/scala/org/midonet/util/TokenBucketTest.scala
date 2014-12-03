@@ -16,8 +16,11 @@
 
 package org.midonet.util
 
+import java.util.concurrent.ThreadLocalRandom
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 import org.slf4j.LoggerFactory
 
@@ -253,6 +256,43 @@ class TokenBucketTest extends FeatureSpec with Matchers {
 
             c.getValue should be (3 * multiplier * 2)
             r.getNewTokens should be (1)
+        }
+
+        scenario ("Concurrent TokenBucketSystemRate") {
+            val multiplier = 8
+            val c = new StatisticalCounter(2)
+            val r = new TokenBucketSystemRate(c, multiplier)
+            val privateCounters = new Array[Long](2)
+            var totalTokens = 0L
+            @volatile var running = true
+            val addingThreads = (0 to 1) map { i =>
+                new Thread() {
+                    override def run(): Unit = {
+                        var sum = 0L
+                        while (running) {
+                            val x = ThreadLocalRandom.current().nextInt(1000)
+                            sum += x
+                            c.addAndGet(i, x)
+                        }
+                        privateCounters(i) = sum
+                    }
+                }
+            }
+
+            val end = System.nanoTime() + (1 second).toNanos
+            addingThreads foreach (_.start())
+            do {
+                totalTokens += r.getNewTokens
+            } while (System.nanoTime() <= end)
+
+            running = false
+            addingThreads foreach (_.join())
+
+            totalTokens += r.getNewTokens
+
+            privateCounters.sum should be (c.getValue)
+            privateCounters.sum / multiplier - totalTokens should be >= 0L
+            privateCounters.sum / multiplier - totalTokens should be < multiplier.toLong
         }
     }
 }
