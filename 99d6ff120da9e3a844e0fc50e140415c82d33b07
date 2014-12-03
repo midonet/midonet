@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_6edbe81b",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-03T12:13:36Z",
+      "side": 1,
+      "message": "Mm for example a java.lang.util.Condition which would replace gcDone, gcStarted and gcSynchronization (I think).",
+      "parentUuid": "fafc7978_8ea60cc0",
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_0e921c57",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
