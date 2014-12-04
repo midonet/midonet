@@ -110,6 +110,7 @@ trait DatapathPortEntangler {
     var dpPortNumToInterface = Map[Integer, String]()
     var interfaceToVport = new Bimap[String, UUID]()
     var bindings = Map[String, PortBinding]()
+    var keysForLocalPorts = Map[Long, DpPort]()
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
@@ -249,7 +250,7 @@ trait DatapathPortEntangler {
         log.info(s"Interface $itf is now ${if (isUp) "up" else "down"}")
         val vportId = interfaceToVport.get(itf.getName)
         if (vportId.isDefined) { // This can be a registered port with no binding
-            controller.setVportStatus(dpPort, bindings(itf.getName), isUp)
+            setVportStatus(dpPort, bindings(itf.getName), isUp)
         } else {
             Future successful null
         }
@@ -305,7 +306,7 @@ trait DatapathPortEntangler {
         val name = port.getName
         if (interfaceToDescription(name).isUp) {
             val vport = interfaceToVport.get(name).get
-            controller.setVportStatus(port, bindings(name), isActive = true)
+            setVportStatus(port, bindings(name), active = true)
         } else {
             Future successful null
         }
@@ -328,9 +329,17 @@ trait DatapathPortEntangler {
         val desc = interfaceToDescription get name
 
         if (vportId.isDefined && desc.isDefined && desc.get.isUp) {
-            controller.setVportStatus(dpPort, bindings(name), isActive = false)
+            setVportStatus(dpPort, bindings(name), active = false)
         } else {
             Future successful null
         }
+    }
+
+    private def setVportStatus(port: DpPort, binding: PortBinding, active: Boolean): Future[_] = {
+        if (active)
+            keysForLocalPorts += binding.tunnelKey -> port
+        else
+            keysForLocalPorts -= binding.tunnelKey
+        controller.setVportStatus(port, binding, active)
     }
 }
