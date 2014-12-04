@@ -24,7 +24,9 @@ import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron._
 import org.midonet.cluster.data.storage.Storage
+import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.services.c3po._
+import org.midonet.cluster.services.neutron.NetworkTranslator
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
@@ -33,8 +35,7 @@ class NeutronImporter @Inject()(config: NeutronImporterConfig,
                                 leaderLatch: LeaderLatch)
     extends ScheduledClusterMinion(config) {
 
-    val dataMgr = new C3POStorageManager(storage)
-    dataMgr.init()
+    val dataMgr = initDataManager()
 
     val neutron = new RemoteNeutronService(config.jdbcDriver,
                                            config.connectionString,
@@ -86,6 +87,14 @@ class NeutronImporter @Inject()(config: NeutronImporterConfig,
                     "Flush operation not in its own transaction: " + task)
         }
         C3POTask(task.taskId, c3poOp)
+    }
+
+    private def initDataManager(): C3PODataManager = {
+        val dataMgr = new C3POStorageManager(storage)
+        dataMgr.registerTranslator(classOf[NeutronNetwork],
+                                   new NetworkTranslator(storage))
+        dataMgr.init()
+        dataMgr
     }
 }
 
