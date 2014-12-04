@@ -39,6 +39,8 @@ public class WildcardMatch implements Cloneable {
 
     public enum Field {
         InputPortNumber,
+        TunnelSrc,
+        TunnelDst,
         TunnelKey,
         EthSrc,
         EthDst,
@@ -80,6 +82,8 @@ public class WildcardMatch implements Cloneable {
                 return 4;
             case InputPortNumber:
             case TunnelKey:
+            case TunnelSrc:
+            case TunnelDst:
             default:
                 return 1;
         }
@@ -118,6 +122,8 @@ public class WildcardMatch implements Cloneable {
 
     private short inputPortNumber = 0;
     private long tunnelKey = 0L;
+    private int tunnelSrc = 0;
+    private int tunnelDst = 0;
     private MAC ethSrc;
     private MAC ethDst;
     private short etherType = 0;
@@ -204,6 +210,8 @@ public class WildcardMatch implements Cloneable {
     public void reset(WildcardMatch that) {
         inputPortNumber = that.inputPortNumber;
         tunnelKey = that.tunnelKey;
+        tunnelSrc = that.tunnelSrc;
+        tunnelDst = that.tunnelDst;
         ethSrc = that.ethSrc;
         ethDst = that.ethDst;
         etherType = that.etherType;
@@ -234,6 +242,8 @@ public class WildcardMatch implements Cloneable {
      */
     public void clear() {
         this.usedFields.clear();
+        this.tunnelSrc = 0;
+        this.tunnelDst = 0;
         this.icmpData = null;
         this.networkSrc = null;
         this.networkDst = null;
@@ -279,6 +289,42 @@ public class WildcardMatch implements Cloneable {
 
     public long getTunnelKey() {
         return tunnelKey;
+    }
+
+    @Nonnull
+    public WildcardMatch setTunnelSrc(int src) {
+        this.tunnelSrc = src;
+        usedFields.add(Field.TunnelSrc);
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetTunnelSrc() {
+        usedFields.remove(Field.TunnelSrc);
+        this.tunnelSrc = 0;
+        return this;
+    }
+
+    public int getTunnelSrc() {
+        return tunnelSrc;
+    }
+
+    @Nonnull
+    public WildcardMatch setTunnelDst(int dst) {
+        this.tunnelDst = dst;
+        usedFields.add(Field.TunnelDst);
+        return this;
+    }
+
+    @Nonnull
+    public WildcardMatch unsetTunnelDst() {
+        usedFields.remove(Field.TunnelDst);
+        this.tunnelDst = 0;
+        return this;
+    }
+
+    public int getTunnelDst() {
+        return tunnelDst;
     }
 
     public boolean isFromTunnel() {
@@ -670,6 +716,16 @@ public class WildcardMatch implements Cloneable {
                         return false;
                     break;
 
+                case TunnelSrc:
+                    if (!isEqual(field, that, tunnelSrc, that.tunnelSrc))
+                        return false;
+                    break;
+
+                case TunnelDst:
+                    if (!isEqual(field, that, tunnelDst, that.tunnelDst))
+                        return false;
+                    break;
+
                 case IcmpId:
                     if (!isEqual(field, that, icmpId, that.icmpId))
                         return false;
@@ -743,6 +799,12 @@ public class WildcardMatch implements Cloneable {
                     break;
                 case TunnelKey:
                     result = 31 * result + (int)(tunnelKey ^ tunnelKey >>> 32);
+                    break;
+                case TunnelSrc:
+                    result = 31 * result + tunnelSrc;
+                    break;
+                case TunnelDst:
+                    result = 31 * result + tunnelDst;
                     break;
                 case IcmpId:
                     result = 31 * result + icmpId;
@@ -853,6 +915,16 @@ public class WildcardMatch implements Cloneable {
                     str.append(tunnelKey);
                     break;
 
+                case TunnelSrc:
+                    str.append("tunnel_src=");
+                    str.append(IPv4Addr.intToString(tunnelSrc));
+                    break;
+
+                case TunnelDst:
+                    str.append("tunnel_dst=");
+                    str.append(IPv4Addr.intToString(tunnelDst));
+                    break;
+
                 case IcmpId:
                     str.append("icmp_id=");
                     str.append(icmpId);
@@ -942,6 +1014,14 @@ public class WildcardMatch implements Cloneable {
 
                     case TunnelKey:
                         newClone.tunnelKey = tunnelKey;
+                        break;
+
+                    case TunnelSrc:
+                        newClone.tunnelSrc = tunnelSrc;
+                        break;
+
+                    case TunnelDst:
+                        newClone.tunnelDst = tunnelDst;
                         break;
 
                     case IcmpId:
@@ -1105,7 +1185,10 @@ public class WildcardMatch implements Cloneable {
                     // since ovs 1.9, required for ovs 1.10+
                     // matched in "nested" flagged type id:
                     // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )
-                    setTunnelKey(as(flowKey, FlowKeyTunnel.class).getTunnelID());
+                    FlowKeyTunnel tunnel = as(flowKey, FlowKeyTunnel.class);
+                    setTunnelKey(tunnel.getTunnelID());
+                    setTunnelSrc(tunnel.getIpv4SrcAddr());
+                    setTunnelDst(tunnel.getIpv4DstAddr());
                     break;
             }
         }
