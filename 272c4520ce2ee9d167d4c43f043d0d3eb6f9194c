@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_dfd600c5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateReplicatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002814
+      },
+      "writtenOn": "2014-12-04T17:20:02Z",
+      "side": 1,
+      "message": "Inconsistent indentation",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3fdbccee",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeyTunnel.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002814
+      },
+      "writtenOn": "2014-12-04T17:20:02Z",
+      "side": 1,
+      "message": "Are you passing full TOS field or just DSCP bits? It appears that in code base you\u0027re passing DSCP bits, so some extra math may be necessary here to populate TOS field",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7fe554a7",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeys.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002814
+      },
+      "writtenOn": "2014-12-04T17:20:02Z",
+      "side": 1,
+      "message": "Feel free to ignore this comment, since tos comes before IPs in IP header, it would be more friendly to have tos before src/dstIpv4 parameters",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
