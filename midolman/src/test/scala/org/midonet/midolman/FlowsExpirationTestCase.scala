@@ -91,9 +91,6 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         dpProbe().testActor ! "stop"
         dpProbe().expectMsg("stop")
 
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-
         askAndAwait(VirtualTopologyActor, PortRequest(port1.getId))
         askAndAwait(VirtualTopologyActor, PortRequest(port2.getId))
         askAndAwait(VirtualTopologyActor, BridgeRequest(bridge.getId))
