@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9f9ab812",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateReplicatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T17:30:21Z",
+      "side": 1,
+      "message": "it\u0027s correct i think",
+      "parentUuid": "fafc7978_dfd600c5",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_3fdbccee",
         "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeyTunnel.java",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_3f890ccb",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeyTunnel.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T17:30:21Z",
+      "side": 1,
+      "message": "I\u0027m passing a byte, so full TOS. callers should provide the full value and do the actual interpretation of the meaning. I think that\u0027s the simplest protocol. \n\nI\u0027m passing 46 (the default value in the configuration value), but users can change it to include ECN bits as well.",
+      "parentUuid": "fafc7978_3fdbccee",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7fe554a7",
         "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeys.java",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2014-12-04T17:20:02Z",
       "side": 1,
       "message": "Feel free to ignore this comment, since tos comes before IPs in IP header, it would be more friendly to have tos before src/dstIpv4 parameters",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1fad2832",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowKeys.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T17:30:21Z",
+      "side": 1,
+      "message": "oh, i see. i was actually following the order of the OVS struct, which is the one we use all over the code base:\n\nstruct ovs_key_ipv4_tunnel {\n  __be64 tun_id;\n  __be32 ipv4_src;\n  __be32 ipv4_dst;\n  u16  tun_flags;\n  u8   ipv4_tos;\n  u8   ipv4_ttl;\n};",
+      "parentUuid": "fafc7978_7fe554a7",
       "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
