@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c995aee5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-04T10:50:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_f5584bfc",
+      "range": {
+        "startLine": 75,
+        "startChar": 19,
+        "endLine": 75,
+        "endChar": 36
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_75557bc5",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 10
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_dfcf20af",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-04T10:50:23Z",
+      "side": 1,
+      "message": "I\u0027ll propose some changes here in the next patch",
+      "parentUuid": "fafc7978_b837daaf",
+      "range": {
+        "startLine": 161,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 43
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5552f7dd",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 10
@@ -83,6 +131,30 @@
       "writtenOn": "2014-12-02T09:18:29Z",
       "side": 1,
       "message": "Same comment as above.",
+      "range": {
+        "startLine": 170,
+        "startChar": 7,
+        "endLine": 170,
+        "endChar": 40
+      },
+      "revId": "c68a11fcb4cdd3f31d1cf5c950730c927ec2c084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ffcae49f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-04T10:50:23Z",
+      "side": 1,
+      "message": "Some tweaks here, they\u0027ll show in my next patch",
+      "parentUuid": "fafc7978_5552f7dd",
       "range": {
         "startLine": 170,
         "startChar": 7,
