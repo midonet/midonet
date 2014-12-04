@@ -16,10 +16,11 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 
+import rx.Observable.OnSubscribe
+import rx.{Observable, Subscriber}
 import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.ZoomConvert
@@ -28,21 +29,27 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.util.functors._
 
-sealed class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
+final class PortMapper(id: UUID, store: Storage, vt: VirtualTopology)
                        (implicit actorSystem: ActorSystem)
         extends DeviceMapper[SimulationPort](id, vt) {
 
+    final class OnMapperSubscribe extends OnSubscribe[SimulationPort] {
+
+        private val inStream = BehaviorSubject.create[TopologyPort]()
+        private val outStream = inStream.map[SimulationPort](makeFunc1(
+            port => ZoomConvert.fromProto(port, classOf[SimulationPort])))
+
+        override def call(child: Subscriber[_ >: SimulationPort]): Unit = {
+            store.subscribe(classOf[TopologyPort], id, inStream)
+            outStream.subscribe(child)
+        }
+    }
+
     override def logSource = s"org.midonet.midolman.topology.port-$id"
 
-    private val subscribed = new AtomicBoolean(false)
-    private val inStream = BehaviorSubject.create[TopologyPort]()
-    private val outStream = inStream.map[SimulationPort](makeFunc1(
-        port => ZoomConvert.fromProto(port, classOf[SimulationPort])))
+    private val onSubscribe = new OnMapperSubscribe
 
     protected override def observable = {
-        if (subscribed.compareAndSet(false, true)) {
-            store.subscribe(classOf[TopologyPort], id, inStream)
-        }
-        outStream
+        Observable.create[SimulationPort](onSubscribe)
     }
 }
