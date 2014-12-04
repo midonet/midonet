@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.services.neutron
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.services.c3po.OpType.OpType
 import org.midonet.cluster.services.c3po.{ApiTranslator, TranslationException}
@@ -27,6 +29,8 @@ abstract class NeutronApiTranslator[T <: Object](
         val neutronModelClass: Class[T],
         val midoModelClass: Class[_],
         val storage: ReadOnlyStorage) extends ApiTranslator[T] {
+
+    protected val log = LoggerFactory.getLogger(this.getClass)
 
     /**
      * Unified exception handling.
