@@ -106,9 +106,6 @@ class BridgeSimulationTestCase extends MidolmanTestCase
             .datapath should not be (null)
 
         // assert first that vports are up with their receiving flows installed
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])
         portsProbe.expectMsgClass(classOf[LocalPortActive])

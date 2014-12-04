@@ -60,9 +60,6 @@ class InstallWildcardFlowTestCase extends MidolmanTestCase {
 
         val vrnPortOutput = new FlowActionOutputToVrnPort(outputPort.getId)
         val dpPortOutput = output(outputPortNo)
-
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
         drainProbes()
 
         addVirtualWildcardFlow(inputPort.getId, vrnPortOutput)

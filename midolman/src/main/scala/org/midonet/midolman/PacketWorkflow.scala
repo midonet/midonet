@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.{UUID, List => JList}
 
+import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, PipelinePath}
+
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
@@ -37,7 +39,7 @@ import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge,
                                              FlowActionOutputToVrnPort}
 
@@ -77,6 +79,59 @@ object PacketWorkflow {
     case object Error extends PipelinePath
 }
 
+trait UnderlayTrafficHandler { this: PacketWorkflow =>
+
+    def handleFromTunnel(context: PacketContext): PipelinePath = {
+        if (dpState isOverlayTunnellingPort context.wcmatch.getInputPortNumber) {
+            if (context.isStateMessage)
+                handleStateMessage(context)
+            else
+                handleFromUnderlay(context)
+        } else {
+            handleFromVtep(context)
+        }
+    }
+
+    private def handleFromVtep(context: PacketContext): PipelinePath = {
+        val portIdOpt = VxLanPortMapper uuidOf context.wcmatch.getTunnelKey.toInt
+        context.inputPort = portIdOpt.orNull
+        processSimulationResult(context, simulatePacketIn(context))
+    }
+
+    private def wildflowForTunnelPacket(context: PacketContext,
+                                        forwardTo: DpPort): WildcardFlow = {
+        val wmatch = new WildcardMatch()
+        wmatch setTunnelSrc context.origMatch.getTunnelSrc
+        wmatch setTunnelDst context.origMatch.getTunnelDst
+        wmatch setTunnelKey context.origMatch.getTunnelKey
+
+        context.addFlowTag(FlowTagger.tagForTunnelKey(wmatch.getTunnelKey))
+        context.addFlowTag(FlowTagger.tagForDpPort(forwardTo.getPortNo))
+        context.addFlowTag(FlowTagger.tagForTunnelRoute(
+                            wmatch.getTunnelSrc, wmatch.getTunnelDst))
+
+        WildcardFlow(
+            wcmatch = wmatch,
+            hardExpirationMillis = 0,
+            idleExpirationMillis = 300 * 1000,
+            actions =  forwardTo.toOutputActions,
+            cbExecutor = cbExecutor)
+    }
+
+    private def handleFromUnderlay(context: PacketContext): PipelinePath = {
+        val tunnelKey = context.wcmatch.getTunnelKey
+        dpState.dpPortNumberForTunnelKey(tunnelKey) match {
+            case Some(dpPort) =>
+                addTranslatedFlow(context, wildflowForTunnelPacket(context, dpPort))
+                PacketWorkflow.WildcardTableHit
+
+            case None =>
+                processSimulationResult(context, TemporaryDrop)
+                PacketWorkflow.Error
+        }
+    }
+}
+
 class PacketWorkflow(protected val dpState: DatapathState,
                      val datapath: Datapath,
                      val dataClient: DataClient,
@@ -85,7 +140,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                      val actionsCache: ActionsCache,
                      val replicator: FlowStateReplicator)
                     (implicit val system: ActorSystem)
-        extends FlowTranslator with PacketHandler {
+        extends FlowTranslator with PacketHandler with UnderlayTrafficHandler {
 
     import PacketWorkflow._
     import DeduplicationActor._
@@ -177,8 +232,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
-    private def addTranslatedFlow(context: PacketContext,
-                                  wildFlow: WildcardFlow): Unit = {
+    protected def addTranslatedFlow(context: PacketContext,
+                                    wildFlow: WildcardFlow): Unit = {
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
             resultLogger.debug("packet came up due to userspace dp action, " +
                                s"match ${wildFlow.getMatch}")
@@ -315,20 +370,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
       * virtual network and we'll simulate it.
       */
     private def handleWildcardTableMiss(context: PacketContext): PipelinePath = {
-        val wmatch = context.origMatch
-        if (wmatch.isFromTunnel) {
-            if (dpState isOverlayTunnellingPort wmatch.getInputPortNumber) {
-                if (context.isStateMessage) {
-                    handleStateMessage(context)
-                } else {
-                    processSimulationResult(context, TemporaryDrop)
-                    Error
-                }
-            } else {
-                val portIdOpt = VxLanPortMapper uuidOf wmatch.getTunnelKey.toInt
-                context.inputPort = portIdOpt.orNull
-                processSimulationResult(context, simulatePacketIn(context))
-            }
+        if (context.origMatch.isFromTunnel) {
+            handleFromTunnel(context)
         } else {
             setVportForLocalTraffic(context)
             processSimulationResult(context, simulatePacketIn(context))
@@ -379,7 +422,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
         Simulation
     }
 
-    private def simulatePacketIn(context: PacketContext): SimulationResult =
+    protected def simulatePacketIn(context: PacketContext): SimulationResult =
         if (context.inputPort ne null) {
             val packet = context.packet
             system.eventStream.publish(
@@ -406,7 +449,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                          idleExpirationMillis = flow.idleExpirationMillis,
                          cbExecutor = cbExecutor))
 
-    private def handleStateMessage(context: PacketContext): PipelinePath = {
+    protected def handleStateMessage(context: PacketContext): PipelinePath = {
         context.log.debug("Accepting a state push message")
         replicator.accept(context.ethernet)
         StateMessage
