@@ -440,8 +440,7 @@ final class RootTokenBucket extends TokenBucket {
                 }
 
                 int excess = doDistribution(newTokens);
-                if (excess > 0)
-                    numTokens.set(Math.min(excess, capacity));
+                numTokens.set(Math.min(excess, capacity));
 
                 for (TokenBucket tb : children) {
                     if (tb != null)
