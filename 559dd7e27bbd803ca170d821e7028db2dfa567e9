@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_ba886a23",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_7fe71441",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5fe4d03a",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
         "patchSetId": 18
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-04T11:15:17Z",
       "side": 1,
       "message": "dst.",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5a9cde69",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_5fe4d03a",
       "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7a9f2260",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "it appears so: only the position index is changed by read.",
+      "parentUuid": "fafc7978_9fd59845",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_1fc1a880",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
         "patchSetId": 18
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9a8da634",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_1fc1a880",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_9f63d8b0",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
         "patchSetId": 18
@@ -81,6 +153,24 @@
       "writtenOn": "2014-12-04T11:18:03Z",
       "side": 1,
       "message": "reorder",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fa82f2fe",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_9f63d8b0",
       "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -110,6 +200,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_da872e0e",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "There\u0027s already a NetlinkRequestContext, so I renamed to RequestContext.",
+      "parentUuid": "fafc7978_1f48882c",
+      "range": {
+        "startLine": 34,
+        "startChar": 21,
+        "endLine": 34,
+        "endChar": 32
+      },
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7f5554c5",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
         "patchSetId": 18
@@ -121,6 +235,24 @@
       "writtenOn": "2014-12-04T11:15:17Z",
       "side": 1,
       "message": "remove.",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3a7c7a20",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_7f5554c5",
       "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -150,6 +282,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_1a79b62f",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_5f5210de",
+      "range": {
+        "startLine": 155,
+        "startChar": 16,
+        "endLine": 155,
+        "endChar": 17
+      },
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7fbef400",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
         "patchSetId": 18
@@ -161,6 +317,24 @@
       "writtenOn": "2014-12-04T11:15:17Z",
       "side": 1,
       "message": "move out",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7a760240",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T23:22:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_7fbef400",
       "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
