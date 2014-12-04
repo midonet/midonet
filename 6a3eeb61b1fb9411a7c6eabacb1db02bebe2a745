@@ -34,6 +34,29 @@
       "revId": "6a3eeb61b1fb9411a7c6eabacb1db02bebe2a745",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1fcec85a",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-04T15:20:42Z",
+      "side": 1,
+      "message": "unused",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 86
+      },
+      "revId": "6a3eeb61b1fb9411a7c6eabacb1db02bebe2a745",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
