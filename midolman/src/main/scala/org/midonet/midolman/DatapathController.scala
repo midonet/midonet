@@ -104,6 +104,9 @@ trait VirtualPortsResolver {
     def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
 
     /** Returns bounded datapath port or None if port not found */
+    def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort]
+
+    /** Returns bounded datapath port or None if port not found */
     def getDpPortForInterface(itfName: String): Option[DpPort]
 
     /** Returns vport UUID of bounded datapath port, or None if not found */
@@ -241,7 +244,7 @@ class DatapathController extends Actor
                 log.info(s"Port ${port.getPortNo}/${port.getName}/${binding.portId} " +
                          s"became ${if (isActive) "active" else "inactive"}")
                 VirtualToPhysicalMapper ! LocalPortActive(binding.portId, isActive)
-                invalidateAndInstallTunnelKeyFlow(port, binding.tunnelKey, isActive)
+                invalidateTunnelKeyFlows(port, binding.tunnelKey, isActive)
             }
         }
     )(singleThreadExecutionContext, log)
@@ -477,41 +480,17 @@ class DatapathController extends Actor
 
     }
 
-    private def installTunnelKeyFlow(port: DpPort, tunnelKey: Long): Unit = {
-        val fc = FlowController
-
-        val wMatch = new WildcardMatch().setTunnelKey(tunnelKey)
-        val actions = List[FlowAction](port.toOutputAction)
-        val tags = Set(FlowTagger.tagForDpPort(port.getPortNo))
-        fc ! AddWildcardFlow(WildcardFlow(wcmatch = wMatch, actions = actions),
-                             null, new ArrayList[Callback0](), tags)
-
-        // Packets for the port may have arrived before the port came up and
-        // made us install temporary drop flows, so we invalidate those flows.
-        // The order of these two messages to the FlowController is strict, as
-        // we want to invalidate the flows after the new WildcarFlow is in place.
-        fc ! FlowController.InvalidateFlowsByTag(
-                FlowTagger.tagForTunnelKey(tunnelKey))
-
-        log.info(s"Added flow for tunnelkey ${tunnelKey}")
-    }
-
-    private def updateTunnelKeyFlow(dpPort: DpPort, tunnelKey: Long,
-                                    active: Boolean): Unit = {
+    private def invalidateTunnelKeyFlows(port: DpPort, tunnelKey: Long,
+                                         active: Boolean): Future[_] = {
         // Trigger invalidation. This is done regardless of whether we are
         // activating or deactivating:
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        FlowController ! InvalidateFlowsByTag(FlowTagger.tagForDpPort(dpPort.getPortNo))
-
-        if (active)
-            installTunnelKeyFlow(dpPort, tunnelKey)
-    }
-
-    private def invalidateAndInstallTunnelKeyFlow(port: DpPort, tunnelKey: Long,
-                                                  active: Boolean): Future[_] = {
-        updateTunnelKeyFlow(port, tunnelKey, active)
+        FlowController ! FlowController.InvalidateFlowsByTag(
+            FlowTagger.tagForTunnelKey(tunnelKey))
+        FlowController ! InvalidateFlowsByTag(
+            FlowTagger.tagForDpPort(port.getPortNo))
         Future.successful[Any](null)
     }
 
@@ -745,6 +724,10 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
         interfaceToVport.inverse.get(vportId) flatMap { itfName =>
             interfaceToDpPort.get(itfName) map { _.getPortNo }
         }
+
+    override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = {
+        keysForLocalPorts.get(tunnelKey)
+    }
 
     override def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
         dpPortNumToInterface get portNum flatMap { interfaceToVport.get }

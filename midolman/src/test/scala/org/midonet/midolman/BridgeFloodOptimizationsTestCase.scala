@@ -81,9 +81,6 @@ class BridgeFloodOptimizationsTestCase extends MidolmanTestCase
         datapathEventsProbe.expectMsgType[DatapathController.DatapathReady]
             .datapath should not be null
 
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
-        flowEventsProbe.expectMsgClass(classOf[WildcardFlowAdded])
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])
         portEventsProbe.expectMsgClass(classOf[LocalPortActive])

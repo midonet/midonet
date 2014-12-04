@@ -16,9 +16,12 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
 import java.math.BigInteger;
+
+import scala.collection.JavaConversions;
 
 import com.google.common.primitives.Longs;
 
@@ -26,6 +29,7 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
 import org.midonet.odp.OpenVSwitch.Port.Attr;
+import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
 
@@ -60,6 +64,8 @@ public abstract class DpPort {
     private final String name;
     private Integer portNo;
     private Stats stats;
+    private FlowActionOutput outputAction;
+    private scala.collection.immutable.List<FlowAction> outputActions;
 
     abstract public Type getType();
 
@@ -75,8 +81,20 @@ public abstract class DpPort {
         return stats;
     }
 
+    private void setPortNo(int portNo) {
+        this.portNo = portNo;
+        outputAction = output(portNo);
+        ArrayList<FlowAction> actions = new ArrayList<>(1);
+        actions.add(outputAction);
+        outputActions = JavaConversions.collectionAsScalaIterable(actions).toList();
+    }
+
     public FlowActionOutput toOutputAction() {
-      return output(this.portNo.shortValue());
+      return outputAction;
+    }
+
+    public scala.collection.immutable.List<FlowAction> toOutputActions() {
+        return outputActions;
     }
 
     public void serializeInto(ByteBuffer buf) {
@@ -96,7 +114,7 @@ public abstract class DpPort {
     protected void deserializeFrom(ByteBuffer buf) {
         int portNoPos = NetlinkMessage.seekAttribute(buf, Attr.PortNo);
         if (portNoPos >= 0) {
-            this.portNo = buf.getInt(portNoPos);
+            this.setPortNo(buf.getInt(portNoPos));
         }
         int statPos = NetlinkMessage.seekAttribute(buf, Attr.Stats);
         if (statPos >= 0) {
@@ -325,7 +343,7 @@ public abstract class DpPort {
     /** mock method used in MockOvsDatapathConnection. */
     public static DpPort fakeFrom(DpPort port, int portNo) {
         DpPort fake = newPortByTypeId(port.getType().typeId, port.getName());
-        fake.portNo = portNo;
+        fake.setPortNo(portNo);
         fake.stats = new DpPort.Stats();
         return fake;
     }
@@ -342,7 +360,7 @@ public abstract class DpPort {
         DpPort port = newPortByTypeId(type, name);
         if (port.getType() == Type.VXLan)
             port = VxLanTunnelPort.make(name, r.nextInt(30000));
-        port.portNo = r.nextInt(100);
+        port.setPortNo(r.nextInt(100));
         port.stats = Stats.random();
         return port;
     }
