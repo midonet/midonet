@@ -496,6 +496,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         def getDpPortForInterface(itfName: String): Option[DpPort] = None
         def getVportForDpPortNumber(portNum: Integer): Option[UUID] = None
+        def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = None
         def getDpPortName(num: Integer): Option[String] = None
         def isVtepTunnellingPort(portNumber: Short): Boolean =
             portNumber == vxlanPortNumber
