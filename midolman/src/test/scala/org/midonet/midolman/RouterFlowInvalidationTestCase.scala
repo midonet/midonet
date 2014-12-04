@@ -121,16 +121,6 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         materializePort(outPort, host, outPortName)
         mapPortNameShortNumber += outPortName -> 2
         requestOfType[LocalPortActive](eventProbe)
-
-        // this is added when the port becomes active. A flow that takes care of
-        // the tunnelled packets to this port
-        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(inPortName)))))
-        wflowAddedProbe.expectMsgPF(Duration(3, TimeUnit.SECONDS),
-            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(outPortName)))))
-
     }
 
     // Test that invalidations during packet processing are taken into account:
