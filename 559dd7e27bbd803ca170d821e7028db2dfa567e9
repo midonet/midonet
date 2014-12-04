@@ -70,6 +70,23 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9f63d8b0",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T11:18:03Z",
+      "side": 1,
+      "message": "reorder",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_1f48882c",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
         "patchSetId": 18
