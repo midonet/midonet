@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_1f10884d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T09:21:46Z",
+      "side": 1,
+      "message": "What\u0027s buffer space?",
+      "parentUuid": "fafc7978_64b6673f",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c4d0f355",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-03T19:36:54Z",
       "side": 1,
       "message": "how many meters will there be?",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_bfffbc00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T09:21:46Z",
+      "side": 1,
+      "message": "The number is impossible to predict, but it\u0027s going to be proportional to virtual topology size.",
+      "parentUuid": "fafc7978_c4d0f355",
       "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_df0e0034",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T09:21:46Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "fafc7978_64e4a73b",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_c49bd3c7",
         "filename": "odp/src/main/java/org/midonet/odp/flows/FlowStats.java",
         "patchSetId": 2
@@ -64,6 +118,24 @@
       "writtenOn": "2014-12-03T19:36:54Z",
       "side": 1,
       "message": ":(",
+      "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7f1d5466",
+        "filename": "odp/src/main/java/org/midonet/odp/flows/FlowStats.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T09:21:46Z",
+      "side": 1,
+      "message": "JMX mandates this unless you want to write marshalling code yourself. Are you volunteering?",
+      "parentUuid": "fafc7978_c49bd3c7",
       "revId": "ef1d5d65a01d106a89ef8aef13382ce8b6e08f64",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
