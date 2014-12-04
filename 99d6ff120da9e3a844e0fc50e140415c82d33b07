@@ -209,6 +209,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7f1a7418",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-04T12:17:45Z",
+      "side": 1,
+      "message": "In fact, you\u0027re not supposed to call wait() or notify() without holding the object\u0027s monitor. Without holding the monitor. If you don\u0027t check/update the monitor in the same atomic block in which you wait/notify, you\u0027re almost guaranteed to have a race condition.",
+      "parentUuid": "fafc7978_6e764840",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 60,
+        "endChar": 13
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_aebaf0de",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
@@ -292,6 +316,30 @@
       "side": 1,
       "message": "Since the gc thread now loops until gcStarted is true, it seems simpler to just call startGc() since we also have to set gcStarted to true.\n\nI added a comment to explain why this is done in teardown()",
       "parentUuid": "fafc7978_4496c395",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 15
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ffddc443",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-04T12:17:45Z",
+      "side": 1,
+      "message": "Interrupting the thread would cause it to throw an exception, which would break out of the loop. Maybe it would also fail the test? Or not, since it\u0027s not in the main thread. I don\u0027t know.\n\nMaybe you could call the shutdown (or whatever it\u0027s called) method on the scheduler to make it shut down the GC thread.",
+      "parentUuid": "fafc7978_84aa6b17",
       "range": {
         "startLine": 117,
         "startChar": 8,
