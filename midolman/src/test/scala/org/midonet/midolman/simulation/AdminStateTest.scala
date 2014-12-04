@@ -402,6 +402,7 @@ class AdminStateTest extends MidolmanSpec {
             val host = rcu.ResolvedHost(hostId(), true, 0, "mido", Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
+            def dpPortNumberForTunnelKey(key: Long) = None
             def vtepTunnellingOutputAction: FlowActionOutput = null
             def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
                 Some(1)
