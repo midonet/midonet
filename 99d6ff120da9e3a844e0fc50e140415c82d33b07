@@ -114,6 +114,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_24ad7f32",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-04T08:27:42Z",
+      "side": 1,
+      "message": "I did not know the thread could wake up although notify hasn\u0027t been called. Added the while loop.",
+      "parentUuid": "fafc7978_8490ab96",
+      "range": {
+        "startLine": 53,
+        "startChar": 16,
+        "endLine": 53,
+        "endChar": 18
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_0e921c57",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 8
@@ -244,6 +268,30 @@
       "side": 1,
       "message": "Ah ok, so you\u0027re just letting it run and then waiting for it to finish right?\n\nI guess maybe an easier alternative could be to interrupt it?",
       "parentUuid": "fafc7978_aea150ab",
+      "range": {
+        "startLine": 117,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 15
+      },
+      "revId": "99d6ff120da9e3a844e0fc50e140415c82d33b07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_84aa6b17",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-04T08:27:42Z",
+      "side": 1,
+      "message": "Since the gc thread now loops until gcStarted is true, it seems simpler to just call startGc() since we also have to set gcStarted to true.\n\nI added a comment to explain why this is done in teardown()",
+      "parentUuid": "fafc7978_4496c395",
       "range": {
         "startLine": 117,
         "startChar": 8,
