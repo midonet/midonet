@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_bf2b3cea",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "Doesn\u0027t ctor injection work with scala?",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ff35c446",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "new CallingThreadReactor()?",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3f3f4c27",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/StorageModule.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "ah! it does :)",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9f1758a3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "This will deprecate VirtualConfigurationBuilders, right? I\u0027m afraid we\u0027re significantly changing the api.",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_bf121cb2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "BridgePort?",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ff0ca496",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-04T15:58:34Z",
+      "side": 1,
+      "message": "Nice!",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
