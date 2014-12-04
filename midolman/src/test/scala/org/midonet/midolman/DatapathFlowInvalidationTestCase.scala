@@ -120,16 +120,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             outPort, host1, outPortName).asInstanceOf[RouterPort]
         mapPortNameShortNumber += outPortName -> 2
         requestOfType[LocalPortActive](portsProbe)
-
-        // this is added when the port becomes active. A flow that takes care of
-        // the tunnelled packets to this port
-        wflowAddedProbe.expectMsgPF(3 seconds,
-            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(inPortName)))))
-        wflowAddedProbe.expectMsgPF(3 seconds,
-            "WildcardFlowAdded")(TestHelpers.matchActionsFlowAddedOrRemoved(
-            mutable.Buffer[FlowAction](output(mapPortNameShortNumber(outPortName)))))
-
     }
 
     def testDpInPortDeleted() {
@@ -156,10 +146,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         deletePort(inPort, host1)
 
-        // We expect 2 flows to be invalidated: the one created automatically
-        // when the port becomes active to handle tunnelled packets for that port
-        // and the second installed after the packet it
-        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+        // We expect the flow to be invalidated
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
     }
 
@@ -186,7 +173,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         deletePort(outPort, host1)
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
         /*addRemoveFlowsProbe.fishForMessage(3 seconds,
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(flowAddedMessage.f.getActions.asScala))
         addRemoveFlowsProbe.fishForMessage(3 seconds,
@@ -209,9 +195,6 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         materializePort(port1OnHost1, host1, "port1")
         materializePort(portOnHost2, host2, "port2")
-
-        // flows installed for tunnel key = port when the port becomes active.
-        wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
         // Wait for LocalPortActive messages - they prove the
         // VirtualToPhysicalMapper has the correct information for the port.
