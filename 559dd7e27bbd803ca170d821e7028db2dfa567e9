@@ -1,0 +1,152 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_7fe71441",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "move out.",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5fe4d03a",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "dst.",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9fd59845",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "is it needed?",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1fc1a880",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkReader.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "else if (nbytes \u003e 0) { throw MessageTruncated } ?",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1f48882c",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "NetlinkRequestContext",
+      "range": {
+        "startLine": 34,
+        "startChar": 21,
+        "endLine": 34,
+        "endChar": 32
+      },
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7f5554c5",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "remove.",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5f5210de",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestReply.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "s/process/read/",
+      "range": {
+        "startLine": 155,
+        "startChar": 16,
+        "endLine": 155,
+        "endChar": 17
+      },
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7fbef400",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkWriter.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-04T11:15:17Z",
+      "side": 1,
+      "message": "move out",
+      "revId": "559dd7e27bbd803ca170d821e7028db2dfa567e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
