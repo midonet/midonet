@@ -67,7 +67,12 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
     private val apiTranslators = new JHashMap[Class[_], ApiTranslator[_]]()
     private var initialized = false
 
-    def registerTranslators(translators: JMap[Class[_], ApiTranslator[_]])  = {
+    def registerTranslator[T <: Object](clazz: Class[T],
+                                        translator: ApiTranslator[T]): Unit = {
+        apiTranslators.put(clazz, translator)
+    }
+
+    def registerTranslators(translators: JMap[Class[_], ApiTranslator[_]]) = {
         apiTranslators.putAll(translators)
     }
 
