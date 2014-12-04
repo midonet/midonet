@@ -66,6 +66,12 @@ public class ProjectedWildcardMatch extends WildcardMatch {
                 case TunnelKey:
                     setTunnelKey(source.getTunnelKey());
                     break;
+                case TunnelSrc:
+                    setTunnelSrc(source.getTunnelSrc());
+                    break;
+                case TunnelDst:
+                    setTunnelDst(source.getTunnelDst());
+                    break;
                 case IcmpData:
                     setIcmpData(source.getIcmpData());
                     break;
