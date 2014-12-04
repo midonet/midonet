@@ -15,9 +15,11 @@
  */
 package org.midonet.cluster.services.neutron
 
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.services.c3po._
 import org.midonet.cluster.services.c3po.OpType.OpType
-import org.midonet.cluster.services.c3po.{ApiTranslator, TranslationException}
 
 /**
  * Defines an abstract base class for Neutron API request translator that
@@ -28,11 +30,48 @@ abstract class NeutronApiTranslator[T <: Object](
         val midoModelClass: Class[_],
         val storage: ReadOnlyStorage) extends ApiTranslator[T] {
 
+    protected val log = LoggerFactory.getLogger(this.getClass)
+
     /**
      * Unified exception handling.
      */
     protected def processExceptions(e: Exception,
                                     op: OpType) = {
         throw new TranslationException(op, neutronModelClass, e)
+    }
+}
+
+/**
+ * Factors out boilerplate for translation of Neutron operations that
+ * correspond to a single Midonet operation.
+ * @param neutronModelClass Neutron model class.
+ * @param midoModelClass Midonet model class.
+ * @param converter Function to convert Neutron model to Midonet model.
+ * @param storage
+ * @tparam N Neutron model class.
+ * @tparam M Midonet model class.
+ */
+class OneToOneNeutronApiTranslator[N <: Object, M <: Object](
+                                                                neutronModelClass: Class[N],
+                                                                midoModelClass: Class[M],
+                                                                converter: (N) => M,
+                                                                storage: ReadOnlyStorage)
+    extends NeutronApiTranslator[N](neutronModelClass,
+                                    midoModelClass, storage) {
+
+    /**
+     * Converts an operation on an external model into the corresponding
+     * operation on an internal MidoNet model.
+     */
+    @throws[TranslationException]
+    override def toMido(op: C3POOp[N]): List[MidoModelOp[_ <: Object]] = {
+        try op match {
+            case c: C3POCreate[N] => List(MidoCreate(converter(c.model)))
+            case u: C3POUpdate[N] => List(MidoUpdate(converter(u.model)))
+            case d: C3PODelete[N] => List(MidoDelete(midoModelClass, d.id))
+        } catch {
+            case ex: Exception =>
+                processExceptions(ex, op.opType)
+        }
     }
 }
