@@ -357,6 +357,10 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
         return principalDto.getPosition();
     }
 
+    public String getMeterName() {
+        return principalDto.getMeterName();
+    }
+
     /**
      * Gets properties for this rule.
      *
@@ -445,6 +449,11 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      */
     public Rule position(int position) {
         principalDto.setPosition(position);
+        return this;
+    }
+
+    public Rule meterName(String meterName) {
+        principalDto.setMeterName(meterName);
         return this;
     }
 

@@ -99,6 +99,15 @@ public abstract class Rule
         return self();
     }
 
+    public Self setMeterName(String meterName) {
+        getData().meterName = meterName;
+        return self();
+    }
+
+    public String getMeterName() {
+        return getData().meterName;
+    }
+
     public Self setProperty(Property property, String value) {
         getData().properties.put(property.name(), value);
         return self();
@@ -123,6 +132,7 @@ public abstract class Rule
         public RuleResult.Action action;
         public UUID chainId;
         public int position;
+        public String meterName;
         public Map<String, String> properties = new HashMap<String, String>();
 
         @Override
@@ -134,6 +144,10 @@ public abstract class Rule
             Data r = (Data) other;
             if (!condition.equals(r.condition))
                 return false;
+            if (meterName == null && r.meterName != null)
+                return false;
+            if (meterName != null && !meterName.equals(r.meterName))
+                return false;
             if (null == action || null == r.action) {
                 return action == r.action;
             } else {
@@ -143,9 +157,11 @@ public abstract class Rule
 
         @Override
         public int hashCode() {
-            int hash = condition.hashCode() * 23;
+            int hash = condition.hashCode();
             if (null != action)
-                hash += action.hashCode();
+                hash = hash * 23 + action.hashCode();
+            if (null != meterName)
+                hash = hash * 23 + meterName.hashCode();
             return hash;
         }
 
@@ -156,6 +172,8 @@ public abstract class Rule
             sb.append(", action=").append(action);
             sb.append(", chainId=").append(chainId);
             sb.append(", position=").append(position);
+            if (meterName != null)
+                sb.append(", meterName=").append(meterName);
             return sb.toString();
         }
 
