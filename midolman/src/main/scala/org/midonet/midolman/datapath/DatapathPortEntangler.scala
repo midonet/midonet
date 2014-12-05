@@ -27,8 +27,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.collection.Bimap
-import org.midonet.util.concurrent.{SingleThreadExecutionContext, MultiLaneConveyorBelt}
-import org.midonet.cluster.client.Port
+import org.midonet.util.concurrent._
 
 object DatapathPortEntangler {
     trait Controller {
@@ -151,8 +150,8 @@ trait DatapathPortEntangler {
      * We assume each vport ID and interface will occur in at most one binding.
      */
     def updateVPortInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
-        val vportToInterface = bindings map { case (id, p) => (id, p.iface)}
         log.debug(s"updating vport to interface bindings: $bindings")
+        val vportToInterface = bindings map { case (id, p) => (id, p.iface)}
 
         for ((vportId, ifname) <- vportToInterface if !interfaceToVport.contains(ifname)) {
             conveyor handle (ifname, () => {
@@ -214,6 +213,7 @@ trait DatapathPortEntangler {
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
     private def updateInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
+        log.debug(s"Updating interface: $itf")
         val isUp = itf.isUp
         val wasUp = interfaceToDescription(ifname).isUp
         interfaceToDescription += ifname -> itf
@@ -239,11 +239,9 @@ trait DatapathPortEntangler {
         isUp
 
     private def updateDangling(dpPort: DpPort, name: String): Future[_] = {
-        log.debug(s"Recreating port $name because it was removed and the dp" +
+        log.debug(s"Recreating port $name because it was removed and the DP " +
                    "didn't request the removal")
-        interfaceToDpPort -= name
-        dpPortNumToInterface -= dpPort.getPortNo
-        tryCreateDpPort(name)
+        deleteInterface(name) continue { _ => tryCreateDpPort(name) } unwrap
     }
 
     private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,
