@@ -17,7 +17,7 @@ package org.midonet.midolman.datapath
 
 import java.util.{UUID, Set => JSet}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.Future
 
 import com.typesafe.scalalogging.Logger
 
@@ -25,7 +25,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.collection.Bimap
-import org.midonet.util.concurrent.{SingleThreadExecutionContext, MultiLaneConveyorBelt}
+import org.midonet.util.concurrent._
 
 object DatapathPortEntangler {
     trait Controller {
@@ -200,6 +200,7 @@ trait DatapathPortEntangler {
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
     private def updateInterface(itf: InterfaceDescription, port: String): Future[_] = {
+        log.debug(s"Updating interface: $itf")
         val name = itf.getName
         val isUp = itf.isUp
         val wasUp = interfaceToStatus(port)
@@ -226,11 +227,9 @@ trait DatapathPortEntangler {
         isUp
 
     private def updateDangling(dpPort: DpPort, name: String): Future[_] = {
-        log.debug(s"Recreating port $name because it was removed and the dp" +
+        log.debug(s"Recreating port $name because it was removed and the DP " +
                    "didn't request the removal")
-        interfaceToDpPort -= name
-        dpPortNumToInterface -= dpPort.getPortNo
-        tryCreateDpPort(name)
+        deleteInterface(name, () => { }) continue { _ => tryCreateDpPort(name) } unwrap
     }
 
     private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,
