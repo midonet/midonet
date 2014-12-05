@@ -93,4 +93,19 @@ class FutureOpsTest extends FeatureSpec with Matchers {
             Await.result(f2, 500 millis)
         }
     }
+
+    feature("FutureOps::unwrap returns the inner future's result") {
+        val sem = new Semaphore(0)
+        val f = Future { sem.acquire() } continue { _ =>
+            Future { sem.acquire(); 42 }
+        } unwrap
+
+        sem.release()
+        intercept[TimeoutException] {
+            Await.result(f, 500 millis)
+        }
+
+        sem.release()
+        Await.result(f, 500 millis) should be (42)
+    }
 }

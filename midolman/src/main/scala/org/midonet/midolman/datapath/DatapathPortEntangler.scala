@@ -17,7 +17,7 @@ package org.midonet.midolman.datapath
 
 import java.util.{UUID, Set => JSet}
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.Future
 
 import com.typesafe.scalalogging.Logger
 
@@ -25,7 +25,7 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
 import org.midonet.util.collection.Bimap
-import org.midonet.util.concurrent.{SingleThreadExecutionContext, MultiLaneConveyorBelt}
+import org.midonet.util.concurrent._
 
 object DatapathPortEntangler {
     trait Controller {
@@ -199,24 +199,24 @@ trait DatapathPortEntangler {
      * that this is a dangling tap. We need to recreate the dp port. Use case:
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
-    private def updateInterface(itf: InterfaceDescription, port: String): Future[_] = {
-        val name = itf.getName
+    private def updateInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
+        log.debug(s"Updating interface: $itf")
         val isUp = itf.isUp
-        val wasUp = interfaceToStatus(port)
+        val wasUp = interfaceToStatus(ifname)
         interfaceToStatus += itf.getName -> isUp
 
-        val dpPort = interfaceToDpPort get name
-        val vPort = interfaceToVport get name
+        val dpPort = interfaceToDpPort get ifname
+        val vPort = interfaceToVport get ifname
         if (dpPort.isDefined && vPort.isDefined) {
             if (isDangling(itf, isUp)) {
-                updateDangling(dpPort.get, name)
+                updateDangling(dpPort.get, ifname)
             } else if (isUp != wasUp) {
                 changeStatus(dpPort.get, itf, isUp)
             } else {
                 Future successful null
             }
         } else {
-            tryCreateDpPort(name) // In case we failed to create it before
+            tryCreateDpPort(ifname) // In case we failed to create it before
         }
     }
 
@@ -226,11 +226,9 @@ trait DatapathPortEntangler {
         isUp
 
     private def updateDangling(dpPort: DpPort, name: String): Future[_] = {
-        log.debug(s"Recreating port $name because it was removed and the dp" +
+        log.debug(s"Recreating port $name because it was removed and the DP " +
                    "didn't request the removal")
-        interfaceToDpPort -= name
-        dpPortNumToInterface -= dpPort.getPortNo
-        tryCreateDpPort(name)
+        deleteInterface(name, () => { }) continue { _ => tryCreateDpPort(name) } unwrap
     }
 
     private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,
