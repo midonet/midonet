@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7fda7179",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T16:57:31Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "fafc7978_bc73474c",
+      "range": {
+        "startLine": 31,
+        "startChar": 44,
+        "endLine": 31,
+        "endChar": 64
+      },
+      "revId": "3677fcba286f7e04e84eeb26a1231e97d02a8028",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_1ca253ae",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
         "patchSetId": 12
@@ -36,6 +60,24 @@
       "writtenOn": "2014-12-05T11:33:57Z",
       "side": 1,
       "message": "Import order.",
+      "revId": "3677fcba286f7e04e84eeb26a1231e97d02a8028",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9fdd9573",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T16:57:31Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_1ca253ae",
       "revId": "3677fcba286f7e04e84eeb26a1231e97d02a8028",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_dfe71d3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T16:57:31Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_dc760b3e",
+      "revId": "3677fcba286f7e04e84eeb26a1231e97d02a8028",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7c79df2e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
         "patchSetId": 12
@@ -70,6 +130,30 @@
       "writtenOn": "2014-12-05T11:33:57Z",
       "side": 1,
       "message": "Should we add this to object TunnelZone? I don\u0027t think it matters much though, up to you.",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 1
+      },
+      "revId": "3677fcba286f7e04e84eeb26a1231e97d02a8028",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ffd5c143",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T16:57:31Z",
+      "side": 1,
+      "message": "I don\u0027t have any strong opinions about this so I added this class to object TunnelZone.",
+      "parentUuid": "fafc7978_7c79df2e",
       "range": {
         "startLine": 33,
         "startChar": 0,
