@@ -45,6 +45,11 @@ public class RuleBuilder {
         return r;
     }
 
+    public Rule meter(String name) {
+        r.setMeterName(name);
+        return r;
+    }
+
     public Rule accept() {
         r = new LiteralRule(c, RuleResult.Action.ACCEPT);
         r.chainId = chainId;
