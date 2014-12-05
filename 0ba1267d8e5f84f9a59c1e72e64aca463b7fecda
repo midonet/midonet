@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_3ce3d708",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-05T11:19:16Z",
+      "side": 1,
+      "message": "chain?",
+      "range": {
+        "startLine": 124,
+        "startChar": 39,
+        "endLine": 124,
+        "endChar": 43
+      },
+      "revId": "0ba1267d8e5f84f9a59c1e72e64aca463b7fecda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9ce76312",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-05T11:19:16Z",
+      "side": 1,
+      "message": "is",
+      "range": {
+        "startLine": 125,
+        "startChar": 59,
+        "endLine": 125,
+        "endChar": 61
+      },
+      "revId": "0ba1267d8e5f84f9a59c1e72e64aca463b7fecda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fcd82f55",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-05T11:19:16Z",
+      "side": 1,
+      "message": "MetricAttachments need only be understood as a high level model, right? The cluster can create low level, specific metrics, so the Agent has to do less work.",
+      "revId": "0ba1267d8e5f84f9a59c1e72e64aca463b7fecda",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
