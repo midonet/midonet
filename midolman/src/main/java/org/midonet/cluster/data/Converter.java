@@ -494,7 +494,7 @@ public class Converter {
             ruleConfig = new org.midonet.midolman.rules.JumpRule(
                     typedRule.getCondition(),
                     typedRule.getJumpToChainId(),
-                    typedRule.getJumpToChainName()
+                    typedRule.getMeterName()
             );
         }
 
@@ -524,6 +524,7 @@ public class Converter {
 
         if (ruleConfig != null) {
             ruleConfig.chainId = rule.getChainId();
+            ruleConfig.setMeterName(rule.getMeterName());
             ruleConfig.setProperties(rule.getProperties());
         }
 
@@ -575,7 +576,8 @@ public class Converter {
 
         return rule
                 .setChainId(ruleConfig.chainId)
-                .setProperties(ruleConfig.getProperties());
+                .setProperties(ruleConfig.getProperties())
+                .setMeterName(ruleConfig.getMeterName());
     }
 
     public static BridgeDhcpZkManager.Host toDhcpHostConfig(
