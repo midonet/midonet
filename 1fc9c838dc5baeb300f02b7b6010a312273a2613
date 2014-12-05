@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_fc094f96",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T12:49:20Z",
+      "side": 1,
+      "message": "I guess since portIds is private to this function, it would be fine if portIds would be a mutable.ArrayBuffer right?",
+      "parentUuid": "fafc7978_9c4be32a",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 75
+      },
+      "revId": "1fc9c838dc5baeb300f02b7b6010a312273a2613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_9caf63e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 1
