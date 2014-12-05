@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_dc6c4b9f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "It would be better to either close both instance and class caches in Zoom or here. At the moment cache closing is not symmetric.",
+      "range": {
+        "startLine": 68,
+        "startChar": 52,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_dc1a8b16",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "The gc does not exist anymore snif... ;-(",
+      "range": {
+        "startLine": 98,
+        "startChar": 62,
+        "endLine": 99,
+        "endChar": 31
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_bc17c7ec",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "GC RIP",
+      "range": {
+        "startLine": 155,
+        "startChar": 7,
+        "endLine": 155,
+        "endChar": 61
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_bc69878d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 482,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "Isn\u0027t this a matter of two loops and calling close on the instance cache?",
+      "range": {
+        "startLine": 482,
+        "startChar": 11,
+        "endLine": 482,
+        "endChar": 58
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9cf923cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "Isn\u0027t this simple to do? (same comment as for the instance caches)",
+      "range": {
+        "startLine": 786,
+        "startChar": 12,
+        "endLine": 786,
+        "endChar": 59
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7c6f1f93",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "Why not calling close here to make it symmetric wrt the class cache?",
+      "range": {
+        "startLine": 823,
+        "startChar": 12,
+        "endLine": 823,
+        "endChar": 69
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fc314fa3",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "You can use AwaitableObserver instead (this way we don\u0027t have two classes doing the same thing). Another option is to just use this class but place it somewhere else.",
+      "range": {
+        "startLine": 896,
+        "startChar": 8,
+        "endLine": 896,
+        "endChar": 41
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5c27bb64",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T11:17:53Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we just use one class for this. AwaitableObserver does pretty much the same thing.",
+      "range": {
+        "startLine": 347,
+        "startChar": 14,
+        "endLine": 347,
+        "endChar": 75
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
