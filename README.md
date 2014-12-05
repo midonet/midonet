@@ -1,6 +1,3 @@
-*RPM Packages* [ ![Download](https://api.bintray.com/packages/midonet/midonet-rpm/midonet/images/download.svg)](https://bintray.com/midonet/midonet-rpm/midonet/_latestVersion)
-
-*DEB Packages* [ ![Download](https://api.bintray.com/packages/midonet/midonet-ubuntu/midonet/images/download.svg)](https://bintray.com/midonet/midonet-ubuntu/midonet/_latestVersion)
 
 ## Precis
 
