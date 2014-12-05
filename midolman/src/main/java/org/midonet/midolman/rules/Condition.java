@@ -27,6 +27,7 @@ import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Unsigned;
+import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 
@@ -64,6 +65,8 @@ public class Condition extends BaseConfig {
     public boolean nwDstInv;
     public boolean tpSrcInv;
     public boolean tpDstInv;
+    public UUID traversedDevice;
+    public boolean traversedDeviceInv;
 
     // In production, this should always be initialized via the API, but there
     // are a bunch of tests that bypass the API and create conditions directly.
@@ -207,6 +210,8 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchIpToGroup(ipAddrGroupDst, pmDstIP, invIpAddrGroupIdDst))
             return conjunctionInv;
+        if (!matchTraversedDevice(pktCtx))
+            return conjunctionInv;
         return !conjunctionInv;
     }
 
@@ -247,6 +252,12 @@ public class Condition extends BaseConfig {
             IPAddrGroup ipAddrGroup, IPAddr ipAddr, boolean negate) {
         return ipAddrGroup == null ||
                 negate ^ ipAddrGroup.contains(ipAddr);
+    }
+
+    private boolean matchTraversedDevice(PacketContext pktCtx) {
+        return traversedDevice == null ||
+                traversedDeviceInv ^ pktCtx.flowTags().contains(
+                                        FlowTagger.tagForDevice(traversedDevice));
     }
 
     // This works a bit differently from how one might expect. The packet
@@ -359,6 +370,11 @@ public class Condition extends BaseConfig {
             if(tpDstInv)
                 sb.append("tpDstInv").append(tpDstInv).append(", ");
         }
+        if (null != traversedDevice) {
+            sb.append("traversedDev=").append(traversedDevice).append(", ");
+            if(traversedDeviceInv)
+                sb.append("traversedDevInv").append(traversedDeviceInv).append(", ");
+        }
         sb.append("]");
         return sb.toString();
     }
@@ -377,6 +393,7 @@ public class Condition extends BaseConfig {
                 invPortGroup == c.invPortGroup &&
                 invIpAddrGroupIdDst == c.invIpAddrGroupIdDst &&
                 invIpAddrGroupIdSrc == c.invIpAddrGroupIdSrc &&
+                traversedDeviceInv == c.traversedDeviceInv &&
                 invDlType == c.invDlType &&
                 invDlSrc == c.invDlSrc && invDlDst == c.invDlDst &&
                 ethSrcMask == c.ethSrcMask && dlDstMask == c.dlDstMask &&
@@ -388,6 +405,7 @@ public class Condition extends BaseConfig {
                 Objects.equals(portGroup, c.portGroup) &&
                 Objects.equals(ipAddrGroupIdDst, c.ipAddrGroupIdDst) &&
                 Objects.equals(ipAddrGroupIdSrc, c.ipAddrGroupIdSrc) &&
+                Objects.equals(traversedDevice, c.traversedDevice) &&
                 Objects.equals(etherType, c.etherType) &&
                 Objects.equals(ethSrc, c.ethSrc) &&
                 Objects.equals(ethDst, c.ethDst) &&
@@ -409,6 +427,6 @@ public class Condition extends BaseConfig {
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
                 inPortIds, outPortIds, portGroup,
                 ipAddrGroupIdDst, ipAddrGroupIdSrc, etherType, ethSrc, ethDst,
-                nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst);
+                nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst, traversedDevice);
     }
 }
