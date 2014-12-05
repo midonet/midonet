@@ -55,6 +55,7 @@ public abstract class Rule extends Condition {
 
     private UUID id;
     private UUID chainId;
+    private String meterName;
 
     @Min(1)
     private int position = 1;
@@ -68,6 +69,7 @@ public abstract class Rule extends Condition {
         this.chainId = data.getChainId();
         this.position = data.getPosition();
         this.properties = data.getProperties();
+        this.meterName = data.getMeterName();
         setFromCondition(data.getCondition());
     }
 
@@ -82,6 +84,7 @@ public abstract class Rule extends Condition {
         data.setPosition(position);
         data.setProperties(properties);
         data.setCondition(makeCondition());
+        data.setMeterName(meterName);
     }
 
     public UUID getId() {
@@ -106,6 +109,14 @@ public abstract class Rule extends Condition {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public void setMeterName(String meterName) {
+        this.meterName = meterName;
+    }
+
+    public String getMeterName() {
+        return meterName;
     }
 
     public Map<String, String> getProperties() {

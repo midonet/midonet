@@ -348,14 +348,14 @@ object FlowTagger {
         override def initialValue = new TagsTrie
     }
 
-    def tagForUserMeter(meterName: String): FlowTag = {
+    def tagForUserMeter(meterName: String): UserTag = {
         val segment = cachedUserTags.get().getOrAddSegment(meterName)
         var tag = segment.value
         if (tag eq null) {
             tag = UserTag(meterName)
             segment.value = tag
         }
-        tag
+        tag.asInstanceOf[UserTag]
     }
 }
 
