@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_5cb17be0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "True. I\u0027ll do it here so the caching layer and its logic remains all in the same place.",
+      "parentUuid": "fafc7978_dc6c4b9f",
+      "range": {
+        "startLine": 68,
+        "startChar": 52,
+        "endLine": 68,
+        "endChar": 69
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_dc1a8b16",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
         "patchSetId": 14
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_5c9a1b64",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "It must mutated! :P I\u0027ll update this.",
+      "parentUuid": "fafc7978_dc1a8b16",
+      "range": {
+        "startLine": 98,
+        "startChar": 62,
+        "endLine": 99,
+        "endChar": 31
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_bc17c7ec",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
         "patchSetId": 14
@@ -59,6 +107,30 @@
       "writtenOn": "2014-12-05T11:17:53Z",
       "side": 1,
       "message": "GC RIP",
+      "range": {
+        "startLine": 155,
+        "startChar": 7,
+        "endLine": 155,
+        "endChar": 61
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3cb637da",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/SubscriptionCache.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "Transformed!",
+      "parentUuid": "fafc7978_bc17c7ec",
       "range": {
         "startLine": 155,
         "startChar": 7,
@@ -117,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9ccac34d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "I\u0027m not totally sure we need to, we could replug them to the new paths so it\u0027d be seamless for subscribers.",
+      "parentUuid": "fafc7978_9cf923cb",
+      "range": {
+        "startLine": 786,
+        "startChar": 12,
+        "endLine": 786,
+        "endChar": 59
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7c6f1f93",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -128,6 +224,30 @@
       "writtenOn": "2014-12-05T11:17:53Z",
       "side": 1,
       "message": "Why not calling close here to make it symmetric wrt the class cache?",
+      "range": {
+        "startLine": 823,
+        "startChar": 12,
+        "endLine": 823,
+        "endChar": 69
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3c9f5754",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 823,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "Yeah, sounds reasonable.",
+      "parentUuid": "fafc7978_7c6f1f93",
       "range": {
         "startLine": 823,
         "startChar": 12,
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9ca3e39d",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "Is that addressed in another patch now in review?",
+      "parentUuid": "fafc7978_fc314fa3",
+      "range": {
+        "startLine": 896,
+        "startChar": 8,
+        "endLine": 896,
+        "endChar": 41
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5c27bb64",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 14
@@ -174,6 +318,30 @@
       "writtenOn": "2014-12-05T11:17:53Z",
       "side": 1,
       "message": "Shouldn\u0027t we just use one class for this. AwaitableObserver does pretty much the same thing.",
+      "range": {
+        "startLine": 347,
+        "startChar": 14,
+        "endLine": 347,
+        "endChar": 75
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7ca0bf90",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-05T11:53:06Z",
+      "side": 1,
+      "message": "Ditto, do we have a review for that already?",
+      "parentUuid": "fafc7978_5c27bb64",
       "range": {
         "startLine": 347,
         "startChar": 14,
