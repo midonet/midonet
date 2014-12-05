@@ -16,6 +16,24 @@
       "revId": "c5265821515b5f8e4ac009fa5b8493fb39fc70ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7cf55f82",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-05T13:06:21Z",
+      "side": 1,
+      "message": "added",
+      "parentUuid": "fafc7978_7c1d5f0f",
+      "revId": "c5265821515b5f8e4ac009fa5b8493fb39fc70ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
