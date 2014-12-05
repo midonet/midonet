@@ -80,6 +80,7 @@ public class DtoRule {
     private String flowAction;
     private DtoNatTarget[] natTargets;
     private int position;
+    private String meterName;
     private Map<String, String> properties = new HashMap<String, String>();
 
     public URI getUri() {
@@ -447,8 +448,16 @@ public class DtoRule {
         return position;
     }
 
+    public String getMeterName() {
+        return meterName;
+    }
+
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public void setMeterName(String meterName) {
+        this.meterName = meterName;
     }
 
     public Map<String, String> getProperties() {
