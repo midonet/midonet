@@ -18,8 +18,11 @@ package org.midonet.midolman.rules;
 
 import java.util.*;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+import org.midonet.sdn.flows.FlowTagger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +43,8 @@ public abstract class Rule {
     private Condition condition;
     public Action action;
     public UUID chainId;
+    @JsonIgnore
+    public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<String, String>();
 
     public Rule(Condition condition, Action action) {
@@ -51,6 +56,16 @@ public abstract class Rule {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;
+    }
+
+    @JsonProperty
+    public void setMeterName(String meterName) {
+        meter = FlowTagger.tagForUserMeter(meterName);
+    }
+
+    @JsonProperty
+    public String getMeterName() {
+        return meter != null ? meter.name() : null;
     }
 
     // Default constructor for the Jackson deserialization.
@@ -79,6 +94,8 @@ public abstract class Rule {
                         boolean isPortFilter) {
         if (condition.matches(pktCtx, isPortFilter)) {
             log.debug("Condition matched");
+            if (meter != null)
+                pktCtx.addFlowTag(meter);
             apply(pktCtx, res, ownerId);
         }
     }
@@ -108,9 +125,11 @@ public abstract class Rule {
 
     @Override
     public int hashCode() {
-        int hash = condition.hashCode() * 23;
+        int hash = condition.hashCode();
         if (null != action)
-            hash += action.hashCode();
+            hash = hash * 23 + action.hashCode();
+        if (null != meter)
+            hash = hash * 23 + meter.hashCode();
         return hash;
     }
 
@@ -122,6 +141,10 @@ public abstract class Rule {
             return false;
         Rule r = (Rule) other;
         if (!condition.equals(r.condition))
+            return false;
+        if (meter == null && r.meter != null)
+            return false;
+        if (meter != null && !meter.equals(r.meter))
             return false;
         if (null == action || null == r.action) {
             return action == r.action;
@@ -136,6 +159,8 @@ public abstract class Rule {
         sb.append("condition=").append(condition);
         sb.append(", action=").append(action);
         sb.append(", chainId=").append(chainId);
+        if (meter != null)
+            sb.append(", meter=").append(meter);
         sb.append("]");
         return sb.toString();
     }
