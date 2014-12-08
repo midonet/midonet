@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e5552ec7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "May be unnecessary as similar logs would also be generated from C3POStorageManager or NeutronService, but did you consider turning this into INFO? This also applies to the following two more log statements.",
+      "range": {
+        "startLine": 48,
+        "startChar": 12,
+        "endLine": 48,
+        "endChar": 21
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_85c1c282",
+        "filename": "cluster/src/main/proto/commons.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "Those are enum values, so shouldn\u0027t we keep in upper cases? Or are you changing them to make them consistent with the json field names? If so, you should probably upper-case them when passing to desc.findValueByName().",
+      "range": {
+        "startLine": 48,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e5becefe",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "These seem to be out-of-order. Could you please sort them?",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 42
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2538d69f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "Can we collapse those into 1 line for readability?",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 39
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_6542de11",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "Those org.midonet imports should come at the end.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 43
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8548a22e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "Can / should this also be passed via a constructor argument? Is there anything specific to mysql with this implementation?",
+      "range": {
+        "startLine": 122,
+        "startChar": 31,
+        "endLine": 122,
+        "endChar": 54
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_4547da1f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-08T05:58:05Z",
+      "side": 1,
+      "message": "Should be called in side a try-finally clause?",
+      "range": {
+        "startLine": 198,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 19
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
