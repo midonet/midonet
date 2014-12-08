@@ -25,6 +25,53 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_0564b2b7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T06:15:30Z",
+      "side": 1,
+      "message": "This is definitely debug-level, and might be worth removing completely. I was using this for actual debugging when it was crashing and I couldn\u0027t figure out where. This will run once per second, and it isn\u0027t useful unless there\u0027s a crash in lastProcessedC3POTaskId, since we log the result immediately afterwards. Hence debug.",
+      "parentUuid": "fafc7978_e5552ec7",
+      "range": {
+        "startLine": 48,
+        "startChar": 12,
+        "endLine": 48,
+        "endChar": 21
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_65593efe",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T06:15:30Z",
+      "side": 1,
+      "message": "This and the next one might be info-worthy, depending on what our threshold for info is.",
+      "range": {
+        "startLine": 50,
+        "startChar": 16,
+        "endLine": 50,
+        "endChar": 21
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_85c1c282",
         "filename": "cluster/src/main/proto/commons.proto",
         "patchSetId": 2
@@ -36,6 +83,30 @@
       "writtenOn": "2014-12-08T05:58:05Z",
       "side": 1,
       "message": "Those are enum values, so shouldn\u0027t we keep in upper cases? Or are you changing them to make them consistent with the json field names? If so, you should probably upper-case them when passing to desc.findValueByName().",
+      "range": {
+        "startLine": 48,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 11
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_455ebae7",
+        "filename": "cluster/src/main/proto/commons.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T06:15:30Z",
+      "side": 1,
+      "message": "Consistency with JSON. I guess I could upper-case it, though.",
+      "parentUuid": "fafc7978_85c1c282",
       "range": {
         "startLine": 48,
         "startChar": 4,
@@ -82,6 +153,30 @@
       "writtenOn": "2014-12-08T05:58:05Z",
       "side": 1,
       "message": "Can we collapse those into 1 line for readability?",
+      "range": {
+        "startLine": 67,
+        "startChar": 12,
+        "endLine": 68,
+        "endChar": 39
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e51a4e16",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T06:15:30Z",
+      "side": 1,
+      "message": "Sure.",
+      "parentUuid": "fafc7978_2538d69f",
       "range": {
         "startLine": 67,
         "startChar": 12,
