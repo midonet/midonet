@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_65d2ded3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-08T12:57:43Z",
+      "side": 1,
+      "message": "I would change this method name to \"invalidate\", \"invalidateFlow\" or something similar. The BridgeBuilderImpl class shows several use cases for flow invalidation. However, I agree to leave this change for a future patch.",
+      "range": {
+        "startLine": 43,
+        "startChar": 24,
+        "endLine": 43,
+        "endChar": 39
+      },
+      "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
