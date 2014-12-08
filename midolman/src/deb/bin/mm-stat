@@ -58,7 +58,7 @@ if [ ! -d "$MIDO_HOME" ]; then
    exit 1
 fi
 
-MAIN_CLASS='org.midonet.midolman.tools.MmStat'
+MAIN_CLASS='org.midonet.midolman.management.MidolmanStat'
 CLASSPATH=$MIDO_HOME/*:$MIDO_HOME/dep/*
 
 $JAVA -cp $CLASSPATH $MAIN_CLASS $*
