@@ -281,4 +281,55 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             throw new Exception(s"Failed with history = ${history.take(i).toList}", e)
         }
     }
+
+    "A failed DP port create operation" should "be retried" in {
+        val failOnceController = new DatapathPortEntangler.Controller {
+            var shouldFail = true
+            var portActive = false
+
+            override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] =
+                if (shouldFail) {
+                    shouldFail = false
+                    Future.failed(new Exception)
+                } else {
+                    val dpPort = DpPort.fakeFrom(new NetDevPort(interfaceName), 1)
+                    Future.successful((dpPort, 1))
+                }
+
+            override def removeFromDatapath(port: DpPort): Future[Boolean] = {
+                Future.successful(true)
+            }
+
+            override def setVportStatus(port: DpPort, binding: PortBinding,
+                                        isActive: Boolean): Future[_] = {
+                portActive = isActive
+                Future.successful(null)
+            }
+        }
+
+        val entangler = new DatapathPortEntangler {
+            val controller = failOnceController
+            val log = Logger(NOPLogger.NOP_LOGGER)
+            val ec = ExecutionContext.callingThread
+        }
+
+        val id = UUID.randomUUID()
+        val binding = new PortBinding(id, 1, "eth1")
+        val desc = new InterfaceDescription("eth1")
+        entangler.updateVPortInterfaceBindings(Map(id -> binding))
+        entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
+
+        controller.portActive should be (false)
+        entangler.interfaceToDescription("eth1") should be (desc)
+        entangler.bindings("eth1") should be (binding)
+        entangler.interfaceToVport.get("eth1") should be (Some(id))
+        entangler.dpPortNumToInterface.get(1) should be (None)
+        entangler.interfaceToDpPort.get("eth1") should be (None)
+
+        entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
+
+        entangler.dpPortNumToInterface(1) should be ("eth1")
+        entangler.interfaceToDpPort("eth1") should be (
+            DpPort.fakeFrom(new NetDevPort("eth1"), 1))
+    }
 }
