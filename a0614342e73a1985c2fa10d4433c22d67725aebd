@@ -235,6 +235,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_85cb8271",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T07:52:31Z",
+      "side": 1,
+      "message": "You mean just the driver class name? I guess, but since we\u0027re very unlikely to change to a different relational database, there doesn\u0027t seem to be much point.",
+      "parentUuid": "fafc7978_8548a22e",
+      "range": {
+        "startLine": 122,
+        "startChar": 31,
+        "endLine": 122,
+        "endChar": 54
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_4547da1f",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 2
@@ -246,6 +270,30 @@
       "writtenOn": "2014-12-08T05:58:05Z",
       "side": 1,
       "message": "Should be called in side a try-finally clause?",
+      "range": {
+        "startLine": 198,
+        "startChar": 8,
+        "endLine": 198,
+        "endChar": 19
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c5c58a5c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-08T07:52:31Z",
+      "side": 1,
+      "message": "Yes. I did it for the other one but missed this one.",
+      "parentUuid": "fafc7978_4547da1f",
       "range": {
         "startLine": 198,
         "startChar": 8,
