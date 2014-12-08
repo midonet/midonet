@@ -307,6 +307,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_05bcb2ba",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-08T09:26:43Z",
+      "side": 1,
+      "message": "This should be renamed since there is not GC anymore.",
+      "range": {
+        "startLine": 252,
+        "startChar": 8,
+        "endLine": 252,
+        "endChar": 27
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5c27bb64",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 14
