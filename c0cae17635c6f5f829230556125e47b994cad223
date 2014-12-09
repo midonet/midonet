@@ -25,6 +25,23 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d1626cd7",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/StateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-09T13:23:55Z",
+      "side": 1,
+      "message": "break this line",
+      "revId": "c0cae17635c6f5f829230556125e47b994cad223",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_0ba203ae",
         "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
         "patchSetId": 3
@@ -42,6 +59,23 @@
         "endLine": 43,
         "endChar": 44
       },
+      "revId": "c0cae17635c6f5f829230556125e47b994cad223",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_11835457",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/StateStorageModule.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-09T13:23:55Z",
+      "side": 1,
+      "message": "I tend to recommend people consolidate binding and exposing of components in pre-existing modules, otherwise we get a hard-to-track module explosion.\n\nI\u0027m saying that while not knowing whether that advice makes sense in this case, just throwing it out there for you to consider.",
       "revId": "c0cae17635c6f5f829230556125e47b994cad223",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
