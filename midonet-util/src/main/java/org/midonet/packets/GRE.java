@@ -27,6 +27,10 @@ public class GRE extends BasePacket {
     public static final short PTYPE_BRIDGING = 0x6558;
     public static final short PTYPE_IP = IPv4.ETHERTYPE;
 
+    public static final int MIN_HEADER_LEN = 8;
+    public static final int KEY_LEN = 4;
+    public static final int SEQUENCE_NUMBER_LEN = 4;
+
     static final int CKSUM_PRESENT = 0x80;
     static final int KEY_PRESENT = 0x20;
     static final int SEQNUM_PRESENT = 0x10;
