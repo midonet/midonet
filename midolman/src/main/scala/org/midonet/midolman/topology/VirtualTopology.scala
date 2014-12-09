@@ -166,11 +166,12 @@ class VirtualTopology @Inject() (store: Storage,
     private[topology] val observables =
         new ConcurrentHashMap[UUID, Observable[_]]()
 
-    private val factories = Map[ClassTag[_], DeviceFactory](
+   private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
         classTag[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
         classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
+        classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this)),
+        classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, store, this))
     )
 
     register(this)
