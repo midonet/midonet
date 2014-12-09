@@ -89,19 +89,19 @@ trait TopologyBuilder {
                                   interfaceName: String = "",
                                   adminStateUp: Boolean = true,
                                   portGroupIds: Set[UUID] = Set.empty,
-                                  vxLanMgmtIp: IPAddr = IPv4Addr.random,
-                                  vxLanMgmtPort: Int = random.nextInt(),
-                                  vxLanVni: Int = random.nextInt(),
-                                  vxLanTunnelIp: IPAddr = IPv4Addr.random,
-                                  vxLanTunnelZoneId: UUID = UUID.randomUUID): Port = {
+                                  vtepMgmtIp: IPAddr = IPv4Addr.random,
+                                  vtepMgmtPort: Int = random.nextInt(),
+                                  vtepVni: Int = random.nextInt(),
+                                  vtepTunnelIp: IPAddr = IPv4Addr.random,
+                                  vtepTunnelZoneId: UUID = UUID.randomUUID): Port = {
         createPortBuilder(id, bridgeId, inboundFilterId, outboundFilterId,
                           tunnelKey, peerId, vifId, hostId, interfaceName,
                           adminStateUp, portGroupIds)
-            .setVxlanMgmtIp(vxLanMgmtIp.asProto)
-            .setVxlanMgmtPort(vxLanMgmtPort)
-            .setVxlanVni(vxLanVni)
-            .setVxlanTunnelIp(vxLanTunnelIp.asProto)
-            .setVxlanTunnelZoneId(vxLanTunnelZoneId.asProto)
+            .setVtepMgmtIp(vtepMgmtIp.asProto)
+            .setVtepMgmtPort(vtepMgmtPort)
+            .setVtepVni(vtepVni)
+            .setVtepTunnelIp(vtepTunnelIp.asProto)
+            .setVtepTunnelZoneId(vtepTunnelZoneId.asProto)
             .build
     }
 
