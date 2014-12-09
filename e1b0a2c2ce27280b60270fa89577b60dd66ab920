@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_b6551e1f",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/OneToOneNeutronApiTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T12:08:56Z",
+      "side": 1,
+      "message": "Maybe worth moving into the NeutronTranslator file, just to spare additional files. But won\u0027t -1 for this",
+      "revId": "e1b0a2c2ce27280b60270fa89577b60dd66ab920",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
