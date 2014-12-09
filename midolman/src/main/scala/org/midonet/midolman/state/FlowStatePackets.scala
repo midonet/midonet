@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream
 
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
-import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
+import org.midonet.packets._
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.odp.Packet
 import org.midonet.odp.flows.FlowKeyTunnel
@@ -50,16 +50,6 @@ object FlowStatePackets {
     val DST_IP = IPv4Addr.fromString("169.254.15.2")
     val UDP_PORT: Short = 2925
 
-    val MTU = 1500
-    // Ethernet(IEE 802.3): http://standards.ieee.org/about/get/802/802.3.html
-    // IP: https://tools.ietf.org/html/rfc791
-    // UDP: http://tools.ietf.org/html/rfc768
-    // GRE: http://tools.ietf.org/html/rfc2784
-    // 20(IP) + 8(GRE+Key)
-    val GRE_ENCAPUSULATION_OVERHEAD = 28
-    // 20(IP) + 8(GRE+Key) + 14(Ethernet w/o preamble and CRC) + 20(IP) + 8(UDP)
-    val OVERHEAD = 70
-
     def isStateMessage(packet: Packet): Boolean = {
         var i = 0
         val flowKeys = packet.getMatch.getKeys
@@ -80,6 +70,18 @@ object FlowStatePackets {
             { ip4 addr SRC_IP --> DST_IP } <<
                 { udp ports UDP_PORT ---> UDP_PORT } <<
                     { payload(data) }
+    }
+
+    def makeFlowStateUdpShell(data: Array[Byte]): FlowStateEthernet =
+        makeFlowStateUdpShell(data, data.length)
+
+    def makeFlowStateUdpShell(data: Array[Byte],
+                              length: Int): FlowStateEthernet = {
+        import org.midonet.packets.util.PacketBuilder._
+        { flowStateEth addr SRC_MAC -> DST_MAC } <<:
+            { ip4 addr SRC_IP --> DST_IP } <<:
+                { udp ports UDP_PORT ---> UDP_PORT } <<:
+                     { elasticPayload(data, length) }
     }
 
     implicit def ipAddressFromProto(proto: Proto.IpAddress): IPAddr = {
