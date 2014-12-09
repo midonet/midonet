@@ -29,7 +29,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.midonet.midolman.guice.cluster.MidostoreModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +38,9 @@ import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
 import org.midonet.midolman.guice.ResourceProtectionModule;
+import org.midonet.midolman.guice.StateStorageModule;
 import org.midonet.midolman.guice.cluster.ClusterClientModule;
+import org.midonet.midolman.guice.cluster.MidostoreModule;
 import org.midonet.midolman.guice.config.ConfigProviderModule;
 import org.midonet.midolman.guice.datapath.DatapathModule;
 import org.midonet.midolman.guice.serialization.SerializationModule;
@@ -123,6 +124,7 @@ public class Midolman {
             new HostModule(),
             new ConfigProviderModule(configFilePath),
             new MidostoreModule(),
+            new StateStorageModule(),
             new DatapathModule(),
             new ClusterClientModule(),
             new SerializationModule(),
