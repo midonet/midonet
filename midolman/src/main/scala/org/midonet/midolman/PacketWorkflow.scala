@@ -28,11 +28,11 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
