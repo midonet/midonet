@@ -22,8 +22,7 @@ import scala.collection.mutable
 
 import akka.actor.ActorSystem
 
-import com.google.protobuf.MessageLite
-
+import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
@@ -40,7 +39,7 @@ import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.packets.Ethernet
+import org.midonet.packets.{FlowStateEthernet, Ethernet}
 import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -120,14 +119,13 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     /* Used for packet building
      * FIXME(guillermo) - use MTU
      */
-    private[this] val buffer = new Array[Byte](MTU - OVERHEAD)
+    private[this] val buffer =
+        new Array[Byte](FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
     private[this] val stream = new FixedArrayOutputStream(buffer)
-    private[this] val packet = {
-        val udpShell = makeUdpShell(buffer)
-        val flowMatch = FlowMatches.fromEthernetPacket(udpShell)
-        new Packet(udpShell, flowMatch)
-    }
-
+    private[this] val udpShell: FlowStateEthernet =
+        makeFlowStateUdpShell(buffer)
+    private[this] val packet: Packet =
+        new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
                            v: ConnTrackValue): ArrayList[Callback0] = {
@@ -286,9 +284,15 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         var i = pendingMessages.size() - 1
         while (i >= 0) {
             val (hosts, message) = pendingMessages.remove(i)
-            if (message.getSerializedSize <= buffer.length) {
+            val messageSizeVariantLength: Int =
+                CodedOutputStream.computeRawVarint32Size(
+                    message.getSerializedSize)
+            val messageLength: Int =
+                message.getSerializedSize + messageSizeVariantLength
+            if (messageLength <= buffer.length) {
                 stream.reset()
                 message.writeDelimitedTo(stream)
+                udpShell.setElasticDataLength(messageLength)
                 dpChannel.executePacket(packet, hostsToActions(hosts))
             } else {
                 // TODO(guillermo) partition messages
