@@ -23,12 +23,12 @@ import scala.collection.immutable.HashMap
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.client.BridgePort
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets.{IPv4Addr, MAC, Ethernet}
@@ -57,7 +57,7 @@ class ConntrackStateTest extends MidolmanSpec {
     override def beforeTest(): Unit = {
         val port = new BridgePort
         port.id = portId
-        port.deviceID = ingressDevice
+        port.networkId = ingressDevice
         VirtualTopologyActor ! PortRequest(portId)
         VirtualTopologyActor ! port
     }

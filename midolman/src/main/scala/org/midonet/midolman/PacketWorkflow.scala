@@ -15,31 +15,32 @@
  */
 package org.midonet.midolman
 
-import java.util.{UUID, List => JList}
-
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, PipelinePath}
+import java.util.{List => JList, UUID}
 
 import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 import akka.actor._
+
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.client.Port
-import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.PacketWorkflow.{PipelinePath, TemporaryDrop}
+import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath

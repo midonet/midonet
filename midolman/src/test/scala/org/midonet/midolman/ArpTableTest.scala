@@ -26,7 +26,6 @@ import org.junit.runner.RunWith
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.simulation._
@@ -34,6 +33,7 @@ import org.midonet.midolman.simulation.Coordinator.ConsumedAction
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets._
