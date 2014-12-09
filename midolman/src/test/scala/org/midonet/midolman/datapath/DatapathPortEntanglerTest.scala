@@ -26,8 +26,8 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
@@ -168,9 +168,10 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class VportBindingAdded(port: String, uuid: UUID, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            val bridgePort = new BridgePort()
-            bridgePort.setID(uuid)
-            bridgePort.setInterfaceName(port)
+            val bridgePort = new BridgePort() {
+                id = uuid
+                interfaceName = port
+            }
             entangler.updateVPortInterfaceBindings(Map(uuid -> PortBinding(uuid, 1L, port)))
         }
 

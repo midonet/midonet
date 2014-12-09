@@ -25,16 +25,16 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.client.BridgePort;
-import org.midonet.cluster.client.Port;
 import org.midonet.cluster.client.PortBuilder;
-import org.midonet.cluster.client.RouterPort;
-import org.midonet.cluster.client.VxLanPort;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
+import org.midonet.midolman.topology.devices.BridgePort;
+import org.midonet.midolman.topology.devices.Port;
+import org.midonet.midolman.topology.devices.RouterPort;
+import org.midonet.midolman.topology.devices.VxLanPort;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.util.functors.Callback1;
@@ -84,14 +84,18 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         Port port;
 
         if (config instanceof PortDirectory.BridgePortConfig) {
-            port = new BridgePort();
+            BridgePort p = new BridgePort();
+            p.networkId_$eq(config.device_id);
+            port = p;
         } else if (config instanceof PortDirectory.RouterPortConfig) {
             PortDirectory.RouterPortConfig cfg =
                 (PortDirectory.RouterPortConfig) config;
-            port = new RouterPort()
-                .setPortAddr(new IPv4Subnet(
-                    IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength))
-                .setPortMac(cfg.getHwAddr());
+            RouterPort p = new RouterPort();
+            p.routerId_$eq(config.device_id);
+            p.portIp_$eq(IPv4Addr.fromString(cfg.getPortAddr()));
+            p.portSubnet_$eq(new IPv4Subnet(cfg.nwAddr, cfg.nwLength));
+            p.portMac_$eq(cfg.getHwAddr());
+            port = p;
         } else if (config instanceof PortDirectory.VxLanPortConfig) {
             PortDirectory.VxLanPortConfig cfg =
                 (PortDirectory.VxLanPortConfig) config;
@@ -99,32 +103,36 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
             final IPv4Addr vtepTunAddr = IPv4Addr.fromString(cfg.tunIpAddr);
             final UUID tzId = cfg.tunnelZoneId;
             final int vni = cfg.vni;
-            port = new VxLanPort() {
-                public IPv4Addr vtepAddr() { return vtepAddr; }
-                public IPv4Addr vtepTunAddr() { return vtepTunAddr; }
-                public UUID tunnelZoneId() { return tzId; }
-                public int vni() { return vni; }
-            };
+            VxLanPort p = new VxLanPort();
+            p.vxlanMgmtIp_$eq(vtepAddr);
+            p.vxlanTunnelIp_$eq(vtepTunAddr);
+            p.vxlanTunnelZoneId_$eq(tzId);
+            p.vxlanVni_$eq(vni);
+            port = p;
         } else {
             throw new IllegalArgumentException("unknown Port type");
         }
 
 
-        port.setTunnelKey(config.tunnelKey);
-        port.setAdminStateUp(config.adminStateUp);
-        port.setDeviceID(config.device_id);
-        port.setInFilter(config.inboundFilter);
-        port.setOutFilter(config.outboundFilter);
-        port.setProperties(config.properties);
-        port.setID(id);
-        port.setPeerID(config.getPeerId());
-        port.setHostID(config.getHostId());
-        port.setInterfaceName(config.getInterfaceName());
+        port.tunnelKey_$eq(config.tunnelKey);
+        port.adminStateUp_$eq(config.adminStateUp);
+        port.inboundFilter_$eq(config.inboundFilter);
+        port.outboundFilter_$eq(config.outboundFilter);
+        port.id_$eq(id);
+        port.peerId_$eq(config.getPeerId());
+        port.hostId_$eq(config.getHostId());
+        port.interfaceName_$eq(config.getInterfaceName());
         if (config.portGroupIDs != null) {
-            port.setPortGroups(config.portGroupIDs);
+            scala.collection.immutable.Set<UUID> set = scala.collection
+                .JavaConverters
+                .asScalaSetConverter(config.portGroupIDs)
+                .asScala().toSet();
+            port.portGroups_$eq(set);
         }
+        port.afterFromProto();
 
         PortBuilder builder = getBuilder(id);
+        port.active_$eq(isActive(id, builder));
         if (builder != null) {
             builder.setPort(port);
             log.debug("Build port {}, id {}", port, id);
