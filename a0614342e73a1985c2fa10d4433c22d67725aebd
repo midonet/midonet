@@ -247,6 +247,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b6487e5c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-09T06:59:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_6542de11",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 43
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_8548a22e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 2
@@ -282,6 +306,30 @@
       "side": 1,
       "message": "You mean just the driver class name? I guess, but since we\u0027re very unlikely to change to a different relational database, there doesn\u0027t seem to be much point.",
       "parentUuid": "fafc7978_8548a22e",
+      "range": {
+        "startLine": 122,
+        "startChar": 31,
+        "endLine": 122,
+        "endChar": 54
+      },
+      "revId": "a0614342e73a1985c2fa10d4433c22d67725aebd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_2b3b873b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-09T06:59:48Z",
+      "side": 1,
+      "message": "I asked Ryu, and it turns out that they already do support other RDBMS\u0027s. I\u0027ll change it.",
+      "parentUuid": "fafc7978_85cb8271",
       "range": {
         "startLine": 122,
         "startChar": 31,
