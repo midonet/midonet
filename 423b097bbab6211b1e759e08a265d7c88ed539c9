@@ -1,0 +1,479 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_f6368602",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "It would be nice to comment these options explaining purpose, etc.",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_563cb2e2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "if it imports too (which I guess it does) I\u0027d rename to -importer",
+      "range": {
+        "startLine": 68,
+        "startChar": 37,
+        "endLine": 68,
+        "endChar": 43
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_96257ac4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/ScheduledClusterMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "This will cancel currently executing tasks, which may break things. Should we instead shutdown() first, then only shutdownNow() if the !pool.awaitTermination() happens?\n\nSee solution proposed at http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/ExecutorService.html",
+      "range": {
+        "startLine": 40,
+        "startChar": 13,
+        "endLine": 40,
+        "endChar": 24
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_762296ba",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "does it need to be public?",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d62f02a0",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "this one shouldn\u0027t be",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b62cfeac",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "Ditto re. visibility, also for the others below.",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_56131266",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "some line break here would be nice",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_960c5a44",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "needed?",
+      "range": {
+        "startLine": 64,
+        "startChar": 11,
+        "endLine": 64,
+        "endChar": 43
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7609f630",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "It looks like a Try[Int] would make things simpler here. You can wrap the exception below and error handling is clearer at the neutron minion",
+      "range": {
+        "startLine": 97,
+        "startChar": 42,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d606e21f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "importer?",
+      "range": {
+        "startLine": 31,
+        "startChar": 13,
+        "endLine": 31,
+        "endChar": 20
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b6035e0e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "\"from neutron\"?",
+      "range": {
+        "startLine": 55,
+        "startChar": 30,
+        "endLine": 55,
+        "endChar": 42
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9113c45b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "why not \n\ntranslateTxn(txn) match {\n  case Some(C3POFlush) \u003d\u003e dataMgr.flushTopology() ...\n  case Some(c3poTask) \u003d\u003e dataMgr.interpretAndExecTxn(c3poTask)\n  case None \u003d\u003e error\n}\n\n?\n\nThis would save the added throw inside translateTask, and the if() case here that prevents the unhandled subcases.",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f104d016",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "I think this should be hardcoded to 1. We never want more than 1 process importing stuff.",
+      "range": {
+        "startLine": 100,
+        "startChar": 3,
+        "endLine": 100,
+        "endChar": 53
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7110e04e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "nice!",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d11d4c68",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "This one seems like an internal tool for the importer, so it seems to me better located into the brain module.",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9168e4bb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "trace, if anything",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31749898",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "trace?",
+      "range": {
+        "startLine": 97,
+        "startChar": 20,
+        "endLine": 97,
+        "endChar": 25
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_716580e0",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "the Try idiom seems fitting here",
+      "range": {
+        "startLine": 135,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 25
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b15fe80d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "Do the uses for this make more sense using pattern matching?",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1a050f6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "Is this easily mockable?",
+      "range": {
+        "startLine": 124,
+        "startChar": 30,
+        "endLine": 124,
+        "endChar": 45
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_71ac60ee",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "is the false ever used?",
+      "range": {
+        "startLine": 64,
+        "startChar": 55,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b1b6c83b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NetworkTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "wrap?",
+      "range": {
+        "startLine": 23,
+        "startChar": 86,
+        "endLine": 23,
+        "endChar": 96
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f187b05f",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-09T13:23:14Z",
+      "side": 1,
+      "message": "random q: is this case-sensitive? if so, is this easy to make -insensitive?",
+      "range": {
+        "startLine": 84,
+        "startChar": 41,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
