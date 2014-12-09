@@ -35,7 +35,7 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets._
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
@@ -160,6 +160,25 @@ class FlowStateReplicatorTest extends FeatureSpec
     }
 
     feature("L4 flow state replication") {
+        scenario("Flow state packets") {
+            Given("A conntrack key in a transaction")
+            connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
+
+            When("A flow state packet is generated")
+            val (packet, _) = sendAndAcceptTransactions().head
+
+            Then("Packet has the appropriate structure")
+            val ethernetFrame = packet.getData
+            ethernetFrame.length should be > (FlowStateEthernet.MTU -
+                FlowStateEthernet.GRE_ENCAPUSULATION_OVERHEAD)
+            // val ethernet: Ethernet = packet.getEthernet
+            // val elasticData = ethernet.getPayload.asInstanceOf[ElasticData]
+            // val ip = ethernet.getPayload.asInstanceOf[IPv4]
+            // val udp = ip.getPayload.asInstanceOf[UDP]
+            // udp.getChecksum should equal (0)
+            // val elasticData = udp.getPayload.asInstanceOf[ElasticData]
+        }
+
         scenario("Replicates conntrack keys") {
             Given("A conntrack key in a transaction")
             connTrackTx.putAndRef(connTrackKeys.head, ConnTrackState.RETURN_FLOW)
@@ -183,8 +202,8 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
             val ethernetFrame = packet.getData
-            ethernetFrame.length should be <= (FlowStatePackets.MTU -
-                FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
+            ethernetFrame.length should be < (FlowStateEthernet.MTU -
+                FlowStateEthernet.GRE_ENCAPUSULATION_OVERHEAD)
         }
 
         scenario("Replicates Nat keys") {
