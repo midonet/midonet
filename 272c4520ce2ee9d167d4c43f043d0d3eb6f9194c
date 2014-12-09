@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_f1c170e5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/DatapathConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002814
+      },
+      "writtenOn": "2014-12-09T17:14:53Z",
+      "side": 1,
+      "message": "Could you call this \"control_packets_tos\" as you\u0027re passing the whole TOS field?\n\nThis value should be 46 \u003c\u003c 2 or 184 if you\u0027re encoding \"46\" into DSCP field.",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31bc9869",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002814
+      },
+      "writtenOn": "2014-12-09T17:14:53Z",
+      "side": 1,
+      "message": "Could you call this field \"tos\" instead of \"dscp\" to avoid confusion?",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_dfd600c5",
         "filename": "midolman/src/test/scala/org/midonet/midolman/state/FlowStateReplicatorTest.scala",
         "patchSetId": 1
