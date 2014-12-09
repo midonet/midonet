@@ -29,9 +29,9 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription.Endpoint
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 
 /**

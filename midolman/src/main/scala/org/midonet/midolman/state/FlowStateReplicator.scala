@@ -26,8 +26,8 @@ import com.google.protobuf.MessageLite
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
@@ -352,8 +352,8 @@ abstract class BaseFlowStateReplicator() {
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
                                     ports: JSet[UUID], tags: mutable.Set[FlowTag]) {
         def addPeerFor(port: Port) {
-            if ((port.hostID ne null) && (port.hostID != underlay.host.id))
-                hosts.add(port.hostID)
+            if ((port.hostId ne null) && (port.hostId != underlay.host.id))
+                hosts.add(port.hostId)
             tags.add(port.deviceTag)
         }
 
