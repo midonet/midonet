@@ -29,7 +29,7 @@ import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 @ZoomClass(clazz = classOf[Topology.Port], factory = classOf[PortFactory])
-sealed trait Port extends ZoomObject with VirtualDevice {
+sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -52,6 +52,8 @@ sealed trait Port extends ZoomObject with VirtualDevice {
     @ZoomField(name = "vlan_id")
     var vlanId: Short = _
 
+    var active: Boolean = false
+
     private var _deviceTag: FlowTag = _
 
     def isExterior: Boolean = this.hostId != null && this.interfaceName != null
@@ -65,8 +67,15 @@ sealed trait Port extends ZoomObject with VirtualDevice {
         super.afterFromProto()
     }
 
-    def deviceId: UUID
     override def deviceTag = _deviceTag
+
+    def deviceId: UUID
+
+    def copy(active: Boolean): this.type = {
+        val port = super.clone().asInstanceOf[this.type]
+        port.active = active
+        port
+    }
 }
 
 /** Logical port connected to a peer vtep gateway. This subtype holds the

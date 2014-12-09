@@ -18,10 +18,10 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import org.midonet.cluster.Client
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.PortBuilderImpl
 import org.midonet.midolman.topology.PortManager.TriggerUpdate
+import org.midonet.midolman.topology.devices.Port
 
 object PortManager{
     case class TriggerUpdate(port: Port)
