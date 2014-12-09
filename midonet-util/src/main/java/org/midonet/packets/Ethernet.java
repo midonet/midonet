@@ -231,6 +231,12 @@ public class Ethernet extends BasePacket {
         return data;
     }
 
+    public int serialize(ByteBuffer bb) {
+        byte[] bytes = serialize();
+        bb.put(bytes);
+        return bytes.length;
+    }
+
     public static Ethernet deserialize(byte[] data)
             throws MalformedPacketException {
         ByteBuffer bb = ByteBuffer.wrap(data, 0, data.length);
