@@ -21,7 +21,6 @@ import scala.collection.mutable
 
 import akka.actor._
 import com.google.inject.Inject
-import org.midonet.cluster.client.{Port, RouterPort}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.DatapathController.DatapathReady
 import org.midonet.midolman.config.MidolmanConfig
@@ -33,6 +32,7 @@ import org.midonet.midolman.routingprotocols.RoutingManagerActor.{BgpStatus, Sho
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.{DatapathReadySubscriberActor, DatapathState, Referenceable}
 import org.midonet.odp.Datapath
 import org.midonet.util.eventloop.SelectLoop

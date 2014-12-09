@@ -23,8 +23,8 @@ import scala.concurrent.duration._
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.client._
 import org.midonet.cluster.data.dhcp.{Subnet, Host, Opt121}
+import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
 import org.midonet.packets._
 
 object DhcpImpl {
@@ -77,7 +77,7 @@ class DhcpImpl(val dataClient: DataClient,
 
     private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
         // TODO(pino): use an async API
-        val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceID)
+        val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceId)
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Host = null
@@ -87,7 +87,7 @@ class DhcpImpl(val dataClient: DataClient,
                       sourceMac, sub.getId)
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
-                host = dataClient.dhcpHostsGet(port.deviceID,
+                host = dataClient.dhcpHostsGet(port.deviceId,
                                                sub.getSubnetAddr,
                                                sourceMac.toString)
                 (host != null) && (host.getIp != null)

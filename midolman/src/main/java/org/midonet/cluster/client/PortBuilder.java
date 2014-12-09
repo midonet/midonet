@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.client;
 
+import org.midonet.midolman.topology.devices.Port;
+
 public interface PortBuilder extends Builder<PortBuilder> {
     void setPort(Port p);
     void setActive(boolean active);

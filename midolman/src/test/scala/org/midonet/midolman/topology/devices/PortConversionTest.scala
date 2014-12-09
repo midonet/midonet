@@ -100,11 +100,11 @@ class PortConversionTest extends FeatureSpec with Matchers {
     feature("Conversion for VXLAN port") {
         scenario("Test conversion from Protocol Buffers message") {
             val proto = newProto
-                .setVxlanMgmtIp(newAddress)
-                .setVxlanMgmtPort(random.nextInt())
-                .setVxlanTunnelIp(newAddress)
-                .setVxlanTunnelZoneId(UUID.randomUUID.asProto)
-                .setVxlanVni(random.nextInt())
+                .setVtepMgmtIp(newAddress)
+                .setVtepMgmtPort(random.nextInt())
+                .setVtepTunnelIp(newAddress)
+                .setVtepTunnelZoneId(UUID.randomUUID.asProto)
+                .setVtepVni(random.nextInt())
                 .build()
 
             val pojo = ZoomConvert.fromProto(proto, classOf[Port])
@@ -120,11 +120,11 @@ class PortConversionTest extends FeatureSpec with Matchers {
 
         scenario("Test conversion to Protocol Buffers message") {
             val port = init(new VxLanPort())
-            port.vxlanMgmtIp = new IPv4Addr(random.nextInt())
-            port.vxlanMgmtPort = random.nextInt()
-            port.vxlanTunnelIp = new IPv4Addr(random.nextInt())
-            port.vxlanTunnelZoneId = UUID.randomUUID
-            port.vxlanVni = random.nextInt()
+            port.vtepMgmtIp = new IPv4Addr(random.nextInt())
+            port.vtepMgmtPort = random.nextInt()
+            port.vtepTunnelIp = new IPv4Addr(random.nextInt())
+            port.vtepTunnelZoneId = UUID.randomUUID
+            port.vtepVni = random.nextInt()
 
             val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
 
@@ -210,10 +210,10 @@ class PortConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(port: VxLanPort, proto: Topology.Port): Unit = {
         assertEquals(port.asInstanceOf[Port], proto)
-        port.vxlanMgmtIp.toString should be (proto.getVxlanMgmtIp.getAddress)
-        port.vxlanMgmtPort should be (proto.getVxlanMgmtPort)
-        port.vxlanTunnelIp.toString should be (proto.getVxlanTunnelIp.getAddress)
-        port.vxlanTunnelZoneId should be (proto.getVxlanTunnelZoneId.asJava)
-        port.vxlanVni should be (proto.getVxlanVni)
+        port.vtepMgmtIp.toString should be (proto.getVtepMgmtIp.getAddress)
+        port.vtepMgmtPort should be (proto.getVtepMgmtPort)
+        port.vtepTunnelIp.toString should be (proto.getVtepTunnelIp.getAddress)
+        port.vtepTunnelZoneId should be (proto.getVtepTunnelZoneId.asJava)
+        port.vtepVni should be (proto.getVtepVni)
     }
 }
