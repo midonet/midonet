@@ -25,6 +25,7 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
+
 import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult

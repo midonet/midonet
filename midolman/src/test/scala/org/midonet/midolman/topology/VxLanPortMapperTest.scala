@@ -22,10 +22,10 @@ import akka.actor._
 import akka.testkit._
 import org.apache.zookeeper.KeeperException
 import org.junit.runner.RunWith
-import org.midonet.cluster.client._
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
+import org.midonet.midolman.topology.devices.{Port, VxLanPort, BridgePort}
 import org.midonet.packets.IPv4Addr
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
@@ -119,17 +119,16 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
 
                 val nPorts = 5
                 val ports: Seq[VxLanPort] = List.tabulate(nPorts) { idx =>
-                    val p = new VxLanPort {
-                      override def vni = idx
-                      override def vtepAddr = IPv4Addr(idx)
-                      override def vtepTunAddr: IPv4Addr = IPv4Addr(idx+1)
-                      override def tunnelZoneId: UUID = UUID.randomUUID()
+                    new VxLanPort {
+                        id = UUID.randomUUID
+                        vtepVni = idx
+                        vtepMgmtIp = IPv4Addr(idx)
+                        vtepTunnelIp = IPv4Addr(idx+1)
+                        vtepTunnelZoneId = UUID.randomUUID()
                     }
-                    p.id = UUID.randomUUID
-                    p
                 }
                 val ids: Seq[UUID] = ports map { _.id }
-                val vnis: Seq[Int] = ports map { _.vni }
+                val vnis: Seq[Int] = ports map { _.vtepVni }
                 val id2port = (ids zip ports).foldLeft(Map[UUID,Port]()) { _ + _ }
                 val mapping = (vnis zip ids).foldLeft(Map[Int,UUID]()) { _ + _ }
 

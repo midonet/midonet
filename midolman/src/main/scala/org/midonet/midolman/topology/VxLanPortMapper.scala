@@ -23,7 +23,6 @@ import akka.event.LoggingReceive
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
 import org.apache.zookeeper.KeeperException
-import org.midonet.cluster.client.VxLanPort
 import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.VxLanPortMapper.{VxLanPorts, VxLanMapping, PortsIDRequest}
@@ -31,6 +30,8 @@ import org.midonet.midolman.topology.VxLanPortMapper.{VxLanPorts, VxLanMapping, 
 import scala.collection.JavaConversions.asScalaSet
 import scala.concurrent.Future
 import scala.concurrent.duration._
+
+import org.midonet.midolman.topology.devices.VxLanPort
 
 /** Adapter trait around the DataClient interface which exposes the unique
  *  setter method needed by the VxLanMapper. */
@@ -44,7 +45,6 @@ object VxLanPortMapper {
     var vniUUIDMap: Map[Int,UUID] = Map.empty
 
     /** Synchronous query method to retrieve the uuid of an external vxlan port
-      * b
      *  associated to the given vni key. The vni key is 24bits and its highest
      *  byte is ignored. */
     def uuidOf(vni: Int): Option[UUID] = vniUUIDMap get (vni & (1 << 24) - 1)
@@ -123,6 +123,6 @@ class VxLanPortMapper(val vta: ActorRef,
     }
 
     private def assembleMap(ports: Seq[Any]) =
-        ports.collect { case p: VxLanPort => (p.vni, p.id) }
+        ports.collect { case p: VxLanPort => (p.vtepVni, p.id) }
              .foldLeft(Map[Int,UUID]()) { _ + _ }
 }

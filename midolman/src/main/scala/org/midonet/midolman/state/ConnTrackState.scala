@@ -20,13 +20,13 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPv4, ICMP, UDP, TCP, IPAddr}
-import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.devices.Port
+import org.midonet.odp.FlowMatch
+import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
+import org.midonet.sdn.state.FlowStateTransaction
 
 object ConnTrackState {
     type ConnTrackValue = java.lang.Boolean
@@ -143,6 +143,6 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
 
     protected def fetchIngressDevice(): UUID = {
         implicit val actorSystem: ActorSystem = null
-        VirtualTopologyActor.tryAsk[Port](inputPort).deviceID
+        VirtualTopologyActor.tryAsk[Port](inputPort).deviceId
     }
 }
