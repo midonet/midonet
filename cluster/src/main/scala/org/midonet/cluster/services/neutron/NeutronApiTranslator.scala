@@ -27,7 +27,6 @@ import org.midonet.cluster.services.c3po.OpType.OpType
  */
 abstract class NeutronApiTranslator[T <: Object](
         val neutronModelClass: Class[T],
-        val midoModelClass: Class[_],
         val storage: ReadOnlyStorage) extends ApiTranslator[T] {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
@@ -52,12 +51,11 @@ abstract class NeutronApiTranslator[T <: Object](
  * @tparam M Midonet model class.
  */
 class OneToOneNeutronApiTranslator[N <: Object, M <: Object](
-                                                                neutronModelClass: Class[N],
-                                                                midoModelClass: Class[M],
-                                                                converter: (N) => M,
-                                                                storage: ReadOnlyStorage)
-    extends NeutronApiTranslator[N](neutronModelClass,
-                                    midoModelClass, storage) {
+        neutronModelClass: Class[N],
+        midoModelClass: Class[M],
+        converter: (N) => M,
+        storage: ReadOnlyStorage)
+    extends NeutronApiTranslator[N](neutronModelClass, storage) {
 
     /**
      * Converts an operation on an external model into the corresponding

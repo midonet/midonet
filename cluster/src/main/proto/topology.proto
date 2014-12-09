@@ -84,7 +84,7 @@ message Network {
     }
     repeated DhcpV6 dhcp_v6_subnets = 10;
 
-    // Back references
+    // Backreferences
     repeated UUID port_ids = 101;
 }
 
@@ -97,7 +97,7 @@ message Router {
     optional UUID outbound_filter_id = 6;
     optional UUID load_balancer_id = 7;
 
-    // Back references
+    // Backreferences
     repeated UUID port_ids = 101;
 }
 
@@ -131,7 +131,7 @@ message Port {
     optional IPAddress vxlan_tunnel_ip = 20;
     optional UUID vxlan_tunnel_zone_id = 21;
 
-    // Back references
+    // Backreferences
     repeated UUID rule_ids = 101;
     repeated UUID port_ids = 102;
 }
@@ -141,20 +141,26 @@ message PortGroup {
     optional string name = 2;
     optional string tenant_id = 3;
 
-    // Back references
+    // Backreferences
     repeated UUID port_ids = 101;
 }
 
 message IpAddrGroup {
     optional UUID id = 1;
     optional string name = 2;
+    repeated IPAddress ip_addrs = 3;
+    optional UUID inbound_chain_id = 4;
+    optional UUID outbound_chain_id = 5;
+
+    // Backreferences
+    repeated UUID rule_ids = 6;
 }
 
 message Chain {
     optional UUID id = 1;
     optional string name = 2;
 
-    // Back references
+    // Backreferences
     repeated UUID rule_ids = 101;
     repeated UUID network_ids = 102;
     repeated UUID router_ids = 103;
