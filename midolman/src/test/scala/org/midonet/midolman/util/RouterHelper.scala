@@ -20,10 +20,10 @@ import java.util.UUID
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets._
 import org.midonet.midolman.NotYetException
 
@@ -81,7 +81,7 @@ trait RouterHelper extends SimulationHelper { this: MidolmanTestCase =>
             Await.result(f.mapTo[RouterPort], 1 second)
         }
         val router = try {
-            tryAsk[SimRouter](port.deviceID)
+            tryAsk[SimRouter](port.deviceId)
         } catch { case NotYetException(f, _) =>
             Await.result(f.mapTo[SimRouter], 1 second)
         }
