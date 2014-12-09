@@ -27,13 +27,13 @@ import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.client.{BridgePort => ClientPort}
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
 import org.midonet.cluster.data.{Bridge, Chain, Port, TunnelZone}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.topology.devices.{BridgePort => ClientPort}
 import org.midonet.midolman.topology.rcu.{Host, PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{LocalPortActive,
                                       VirtualToPhysicalMapper,
@@ -297,8 +297,14 @@ class FlowTranslatorTest extends MidolmanSpec {
             bridge = clusterDataClient().bridgesGet(bridge.getId)
             activatePorts(List(inPort, port0))
 
-            val clientPort0 = new ClientPort().setID(port0.getId).setInterfaceName("port0")
-            val clientInPort = new ClientPort().setID(inPort.getId).setInterfaceName("in")
+            val clientPort0 = new ClientPort() {
+                id = port0.getId
+                interfaceName = "port0"
+            }
+            val clientInPort = new ClientPort() {
+                id = inPort.getId
+                interfaceName = "in"
+            }
             val rcuHost = new ResolvedHost(
                 hostId(), true, 0L, "midonet",
                 Map(inPort.getId -> PortBinding(inPort.getId, clientInPort.tunnelKey, "inPort"),

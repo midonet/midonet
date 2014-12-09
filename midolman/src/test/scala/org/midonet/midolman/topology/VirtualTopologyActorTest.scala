@@ -22,12 +22,12 @@ import akka.actor.{Actor, Props}
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 
-import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation.{Chain, IPAddrGroup, LoadBalancer, Bridge => SimulationBridge, Router => SimulationRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, DeviceRequest, PortRequest, Unsubscribe}
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 
