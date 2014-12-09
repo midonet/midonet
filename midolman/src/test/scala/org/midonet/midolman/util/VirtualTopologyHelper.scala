@@ -16,17 +16,16 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
+
 import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
+import scala.reflect.ClassTag
 
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
 
-import org.scalatest.Assertions
-
-import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -45,9 +44,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
 import org.midonet.midolman.state.NatState.NatBinding
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import scala.util.{Failure, Success, Try}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
-import scala.reflect.ClassTag
 
 trait VirtualTopologyHelper {
 
