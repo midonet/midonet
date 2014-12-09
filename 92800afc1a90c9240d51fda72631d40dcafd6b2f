@@ -93,6 +93,30 @@
       "revId": "92800afc1a90c9240d51fda72631d40dcafd6b2f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_96c45a93",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:08:22Z",
+      "side": 1,
+      "message": "Oh, I missed this one. In Scala, if you import\n\n  import scala.concurrent.duration._\n\nyou can write:\n\n  1.second\n  5.seconds",
+      "parentUuid": "fafc7978_f6ee8621",
+      "range": {
+        "startLine": 292,
+        "startChar": 18,
+        "endLine": 292,
+        "endChar": 57
+      },
+      "revId": "92800afc1a90c9240d51fda72631d40dcafd6b2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
