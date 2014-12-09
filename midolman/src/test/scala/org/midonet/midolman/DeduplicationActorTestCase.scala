@@ -109,7 +109,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
     def makeUniqueFrame(variation: Short) =
         makeFrame(variation) << payload(UUID.randomUUID().toString)
 
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder): Packet = {
+    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
         val frame: Ethernet = ethBuilder
         new Packet(frame, FlowMatches.fromEthernetPacket(frame))
               .setReason(Packet.Reason.FlowTableMiss)
