@@ -58,6 +58,8 @@ public class IPv4 extends BasePacket {
     public final static int IP_FLAGS_DF = 0x02;
     public final static int IP_FLAGS_MF = 0x01;
 
+    public final static int IP_CHECKSUM_OFFSET = 10;
+
     protected byte version;
     protected byte headerLength;
     protected byte diffServ;
