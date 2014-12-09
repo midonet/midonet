@@ -16,10 +16,10 @@
 
 package org.midonet.midolman.topology.builders
 
-import org.midonet.cluster.client.{Port, PortBuilder}
+import org.midonet.cluster.client.PortBuilder
 import akka.actor.ActorRef
 import org.midonet.midolman.topology.PortManager
-
+import org.midonet.midolman.topology.devices.Port
 
 class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
 

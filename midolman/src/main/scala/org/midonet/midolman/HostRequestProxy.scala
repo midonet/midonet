@@ -21,6 +21,7 @@ import scala.util.{Failure, Success}
 
 import akka.actor.{Stash, Actor, ActorRef}
 
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost, Host}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.FlowStateStorage
@@ -30,7 +31,6 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostUnsubscribe, H
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.util.concurrent._
-import org.midonet.cluster.client.Port
 
 object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
