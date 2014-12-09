@@ -24,6 +24,7 @@ import scala.Predef._
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController._
@@ -153,27 +154,50 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
     def testIdleTimeExpiration() {
         triggerPacketIn("port1", ethPkt)
 
-        val timeAdded: Long = System.currentTimeMillis()
-
         val pktInMsg = fishForRequestOfType[PacketIn](packetInProbe)
+        val wflow = wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded]).f
+        flowProbe().testActor ! RemoveWildcardFlow(wflow.getMatch)
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
+
+        val flow = new Flow(FlowMatches.fromEthernetPacket(ethPkt))
+        eventually {
+            dpConn().futures.flowsGet(datapath, flow.getMatch).get should be (null)
+        }
+
+        dpConn().futures.flowsCreate(datapath, flow)
+
+        val newMatch = wflow.getMatch
+        newMatch.unsetInputPortNumber()
+        val newWildFlow = WildcardFlow(
+            newMatch,
+            idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
+
+        // we take a timestamp just before sending the AddWcF msg
+        val timeAdded: Long = System.currentTimeMillis()
+        flowProbe().testActor !
+            AddWildcardFlow(newWildFlow, flow, new ArrayList[Callback0],
+                Set.empty)
+
         wflowAddedProbe.expectMsgClass(classOf[WildcardFlowAdded])
 
+        // we have to wait because adding the flow into the dp is async
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get should not be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should not be (null)
 
-        // wait to get a FlowRemoved message that will be triggered by invalidation
+        // we wait for the flow removed message that will be triggered because
+        // the flow expired
+        wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
 
-        ackWCRemoved(Duration(timeOutFlow, TimeUnit.SECONDS))
-
+        // we take a time stamp just after getting the del event
         val timeDeleted: Long = System.currentTimeMillis()
 
         dilatedSleep(delayAsynchAddRemoveInDatapath)
 
-        dpConn().futures.flowsGet(datapath, pktInMsg.dpMatch).get should be (null)
+        dpConn().futures.flowsGet(datapath, flow.getMatch).get should be (null)
         // check that the invalidation happened in the right time frame
         (timeDeleted - timeAdded) should (be >= timeOutFlow)
-
+        (timeDeleted - timeAdded) should (be < timeOutFlow + timeOutFlow/3)
     }
 
 
