@@ -17,6 +17,7 @@ package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,10 @@ import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.*;
 import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
+import org.midonet.packets.ElasticData;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.FlowStateEthernet;
+import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.functors.Callback2;
 
@@ -340,11 +345,32 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
                                      @Nonnull List<FlowAction> actions,
                                      Callback<Boolean> callback,
                                      long timeoutMillis) {
+        Packet sentPacket = packet;
         packetsSent.add(packet);
         if (callback != null)
             callback.onSuccess(true);
+
+        if (packet.getEthernet() instanceof FlowStateEthernet) {
+            FlowStateEthernet flowStateEthernet =
+                    (FlowStateEthernet) packet.getEthernet();
+            try {
+                Ethernet deserializedFlowStateEthenet =
+                        FlowStateEthernet.deserialize(
+                                flowStateEthernet.serialize());
+                sentPacket = new Packet(deserializedFlowStateEthenet,
+                        FlowMatches.fromEthernetPacket(
+                                deserializedFlowStateEthenet));
+            } catch (MalformedPacketException ex) {
+                byte[] originalBytes = flowStateEthernet.getCore().getData();
+                // NOTE(tfukushima): This is a mock and I'm copying data here but we
+                // shouldn't in general and OvsDatapathConnectionImpl doesn't.
+                ElasticData slicedData = new ElasticData(Arrays.copyOf(
+                        originalBytes, flowStateEthernet.getElasticDataLength()));
+                flowStateEthernet.setCore(slicedData);
+            }
+        }
         if (packetExecCb != null)
-            packetExecCb.call(packet, actions);
+            packetExecCb.call(sentPacket, actions);
     }
 
     public void packetsExecuteSubscribe(Callback2<Packet,List<FlowAction>> cb) {
