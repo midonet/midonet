@@ -21,9 +21,8 @@ import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
 
-import org.midonet.cluster.client.Port
+import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
-import org.midonet.cluster.client.RouterPort
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
@@ -207,7 +206,7 @@ class Router(override val id: UUID,
     }
 
     private def getPeerMac(rtrPort: RouterPort): MAC =
-        tryAsk[Port](rtrPort.peerID) match {
+        tryAsk[Port](rtrPort.peerId) match {
            case rtPort: RouterPort => rtPort.portMac
            case _ => null
         }
@@ -237,7 +236,7 @@ class Router(override val id: UUID,
         if (outPort == null)
             return null
 
-        if (outPort.isInterior && outPort.peerID == null) {
+        if (outPort.isInterior && outPort.peerId == null) {
             context.log.warn("Packet sent to dangling interior port {}",
                         rt.nextHopPort)
             return null
