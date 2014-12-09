@@ -17,7 +17,6 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.List;
 import java.util.Objects;
 
 import org.slf4j.Logger;
@@ -199,7 +198,7 @@ public class Packet implements AttributeHandler {
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions,
                                     actions, FlowActions.writer);
 
-        NetlinkMessage.writeRawAttribute(buf, Attr.Packet, packet.serialize());
+        NetlinkMessage.writeEthernetAttribute(buf, Attr.Packet, packet);
 
         buf.flip();
         return buf;
