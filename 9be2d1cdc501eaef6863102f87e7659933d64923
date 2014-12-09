@@ -34,6 +34,24 @@
       "revId": "9be2d1cdc501eaef6863102f87e7659933d64923",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_51e95c7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T16:56:43Z",
+      "side": 1,
+      "message": "You are doing recoverWith returning a failed future. That\u0027s the same as doing recover and throwing the exception. Also notice that we are logging the failed futures in the DDA. so we can simply write:\n\nVirtualTopologyActor\n            .ask(requestsFactory(tag)(id))(deviceRequestTimeout)\n            .mapTo[D](tag).recover {\n                case Failure(AskTimeoutException) \u003d\u003e\n                    throw DeviceQueryTimeoutException(id, tag)\n                case Failure(ex: ClassCastException) \u003d\u003e\n                    throw new Exception(\"VirtualTopologyManager didn\u0027t return a ${\n                                     tag.runtimeClass.getSimpleName}!\")\n                case Failure(ex) \u003d\u003e\n                     throw new Exception(s\"Failed to get  \n                                                  ${tag.runtimeClass.getSimpleName} - $id\", ex)\n            }(ExecutionContext.callingThread)",
+      "parentUuid": "fafc7978_c95e4ee9",
+      "revId": "9be2d1cdc501eaef6863102f87e7659933d64923",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
