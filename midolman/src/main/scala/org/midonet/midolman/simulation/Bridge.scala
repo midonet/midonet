@@ -23,6 +23,7 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.data
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.rules.RuleResult

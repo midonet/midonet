@@ -24,11 +24,12 @@ import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.cluster.client.{ArpCache, RouterPort}
+import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.state.ArpCacheEntry
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
 import org.midonet.util.UnixClock
 import org.midonet.util.functors.Callback3
