@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_6bcbcf72",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-09T00:24:03Z",
+      "side": 1,
+      "message": "s/dictionary/directory/",
+      "range": {
+        "startLine": 18,
+        "startChar": 27,
+        "endLine": 18,
+        "endChar": 37
+      },
+      "revId": "c0cae17635c6f5f829230556125e47b994cad223",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_0ba203ae",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-09T00:24:03Z",
+      "side": 1,
+      "message": "As Brandon also pointed out, these parameters should be aligned with the beginning of \"@Nonnull\".",
+      "range": {
+        "startLine": 42,
+        "startChar": 26,
+        "endLine": 43,
+        "endChar": 44
+      },
+      "revId": "c0cae17635c6f5f829230556125e47b994cad223",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
