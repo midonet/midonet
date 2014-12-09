@@ -25,7 +25,6 @@ import org.scalatest.{BeforeAndAfter, Matchers, Suite}
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
-import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
