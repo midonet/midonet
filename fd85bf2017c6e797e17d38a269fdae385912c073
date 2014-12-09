@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_1c4ed36f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/services/StorageService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": "Moved these to the constructor.",
+      "parentUuid": "fafc7978_bf2b3cea",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_ff35c446",
         "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
         "patchSetId": 9
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-04T15:58:34Z",
       "side": 1,
       "message": "new CallingThreadReactor()?",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fc52ef11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": "In MidolmanSpec yes, but here I left the option to set the reactor via Guice. Is it better to just set it to CallingThreadReactor()?",
+      "parentUuid": "fafc7978_ff35c446",
       "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_9c41233c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/StorageModule.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": ":) I just renamed the other class, was too lazy to change the arguments.",
+      "parentUuid": "fafc7978_3f3f4c27",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_9f1758a3",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
         "patchSetId": 9
@@ -64,6 +118,24 @@
       "writtenOn": "2014-12-04T15:58:34Z",
       "side": 1,
       "message": "This will deprecate VirtualConfigurationBuilders, right? I\u0027m afraid we\u0027re significantly changing the api.",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9c6803bc",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": "The intention is to keep the old methods as much as possible. However, many take as arguments the old Data objects (ClusterBridge, ClusterRouter, BridgePort, etc.), which I believe we deprecate in favor of Protobufs.\n\nShould we rather allow protobuf messages as arguments? I thought it may be to cumbersome to construct protobuf messages in any test.\n\nI would have renamed: create -\u003e new to keep the same methods, but that would conflict with the old topology builder methods while we maintain both APIs.",
+      "parentUuid": "fafc7978_9f1758a3",
       "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_7c655fe0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_bf121cb2",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_ff0ca496",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
         "patchSetId": 9
@@ -98,6 +188,24 @@
       "writtenOn": "2014-12-04T15:58:34Z",
       "side": 1,
       "message": "Nice!",
+      "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_bc5fc70d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-09T09:32:31Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "fafc7978_ff0ca496",
       "revId": "fd85bf2017c6e797e17d38a269fdae385912c073",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
