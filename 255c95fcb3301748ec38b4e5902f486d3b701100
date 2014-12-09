@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d1fc2c41",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/WakerUpper.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T16:58:19Z",
+      "side": 1,
+      "message": "This thread referes to the WakerUpper. I was avoiding repeating the name, but maybe I\u0027ve made it harder to understand.",
+      "parentUuid": "fafc7978_31d778c3",
+      "revId": "255c95fcb3301748ec38b4e5902f486d3b701100",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_91dbc4ec",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/WakerUpper.scala",
         "patchSetId": 13
