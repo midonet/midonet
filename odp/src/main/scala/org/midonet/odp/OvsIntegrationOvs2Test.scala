@@ -27,6 +27,7 @@ import org.midonet.odp.flows.FlowKeys.{inPort, priority}
 import org.midonet.odp.flows._
 import org.midonet.odp.ports._
 import org.midonet.odp.util.TapWrapper
+import org.midonet.packets.Ethernet
 import org.midonet.packets.MAC
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{tcp, _}
@@ -94,7 +95,7 @@ trait FlowMatchesTcpHeadersTest extends TapTrafficInjectBase {
         def stats() = counter.getAndSet(0)
     }
 
-    def tcpPacketWithFlags(flags: JArrayList[TCP.Flag]): EthBuilder = {
+    def tcpPacketWithFlags(flags: JArrayList[TCP.Flag]): EthBuilder[Ethernet] = {
         eth addr srcMac -> dstMac                      } << {
         ip4 addr srcIp --> dstIp ttl (-1)              } << {
         tcp ports srcPort.toShort ---> dstPort.toShort flags (TCP.Flag.allOf(flags))
@@ -280,7 +281,7 @@ trait WildcardFlowTest extends TapTrafficInjectBase {
                 }
             }
 
-        val allPackets: IndexedSeq[EthBuilder] = increasingEthPackets ++
+        val allPackets: IndexedSeq[EthBuilder[Ethernet]] = increasingEthPackets ++
             increasingIpsPackets ++ increasingPortsPackets
 
         def commonMatch: FlowMatch = new FlowMatch().
