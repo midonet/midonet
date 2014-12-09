@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_b6699e8d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T09:38:58Z",
+      "side": 1,
+      "message": "device: D",
+      "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_cb1abb16",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
         "patchSetId": 11
@@ -13,6 +30,40 @@
       "writtenOn": "2014-12-09T00:10:10Z",
       "side": 1,
       "message": "A nit. This is out of order.",
+      "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_766f3693",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T09:38:58Z",
+      "side": 1,
+      "message": "shouldn\u0027t the type of the parameter be D? then we wouldn\u0027t need the check",
+      "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1606aace",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualDeviceMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T09:38:58Z",
+      "side": 1,
+      "message": "if you want, it will help future changes if sending an invalidation is passed in, namely as a closure over the FlowController and the ActorSystem.",
       "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -60,6 +111,23 @@
         "endLine": 43,
         "endChar": 39
       },
+      "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_96729a7a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T09:38:58Z",
+      "side": 1,
+      "message": "val?",
       "revId": "7dc641c1e7397bfd4c40a603e43e35717f16a79c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
