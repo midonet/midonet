@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.simulation
 
-import org.midonet.cluster.client.RouterPort
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
 import org.midonet.sdn.flows.WildcardMatch

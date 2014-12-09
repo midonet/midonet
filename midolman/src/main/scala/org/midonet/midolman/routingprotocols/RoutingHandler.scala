@@ -24,7 +24,7 @@ import scala.util.{Failure, Success}
 import akka.actor.{Stash, Actor, ActorRef}
 import akka.pattern.pipe
 
-import org.midonet.cluster.client.{Port, RouterPort, BGPListBuilder}
+import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{Route, AdRoute, BGP}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
@@ -37,6 +37,7 @@ import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessExceptio
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
+import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.netlink.AfUnix
 import org.midonet.odp.{DpPort, Datapath}
 import org.midonet.odp.flows.FlowAction
@@ -542,7 +543,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
                 case Started =>
                     val route = new Route()
-                    route.setRouterId(rport.deviceID)
+                    route.setRouterId(rport.deviceId)
                     route.setDstNetworkAddr(destination.getAddress.toString)
                     route.setDstNetworkLength(destination.getPrefixLen)
                     route.setNextHopGateway(gateway.toString)
@@ -552,7 +553,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     peerRoutes.put(route, routeId)
                     log.debug("({}) announcing we've added a peer route", phase)
                     context.system.eventStream.publish(
-                        new PEER_ROUTE_ADDED(rport.deviceID, route))
+                        new PEER_ROUTE_ADDED(rport.deviceId, route))
 
                 case _ =>
                     log.debug("({}) AddPeerRoute: ignoring", phase)
@@ -570,7 +571,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     stash()
                 case Started =>
                     val route = new Route()
-                    route.setRouterId(rport.deviceID)
+                    route.setRouterId(rport.deviceId)
                     route.setDstNetworkAddr(destination.getAddress.toString)
                     route.setDstNetworkLength(destination.getPrefixLen)
                     route.setNextHopGateway(gateway.toString)

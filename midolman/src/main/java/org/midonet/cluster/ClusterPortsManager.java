@@ -25,18 +25,13 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.client.BridgePort;
-import org.midonet.cluster.client.Port;
 import org.midonet.cluster.client.PortBuilder;
-import org.midonet.cluster.client.RouterPort;
-import org.midonet.cluster.client.VxLanPort;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
-import org.midonet.midolman.state.PortDirectory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv4Subnet;
+import org.midonet.midolman.topology.devices.Port;
+import org.midonet.midolman.topology.devices.PortFactory;
 import org.midonet.util.functors.Callback1;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
@@ -81,50 +76,9 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
         if (config == null)
             return;
 
-        Port port;
-
-        if (config instanceof PortDirectory.BridgePortConfig) {
-            port = new BridgePort();
-        } else if (config instanceof PortDirectory.RouterPortConfig) {
-            PortDirectory.RouterPortConfig cfg =
-                (PortDirectory.RouterPortConfig) config;
-            port = new RouterPort()
-                .setPortAddr(new IPv4Subnet(
-                    IPv4Addr.fromString(cfg.getPortAddr()), cfg.nwLength))
-                .setPortMac(cfg.getHwAddr());
-        } else if (config instanceof PortDirectory.VxLanPortConfig) {
-            PortDirectory.VxLanPortConfig cfg =
-                (PortDirectory.VxLanPortConfig) config;
-            final IPv4Addr vtepAddr = IPv4Addr.fromString(cfg.mgmtIpAddr);
-            final IPv4Addr vtepTunAddr = IPv4Addr.fromString(cfg.tunIpAddr);
-            final UUID tzId = cfg.tunnelZoneId;
-            final int vni = cfg.vni;
-            port = new VxLanPort() {
-                public IPv4Addr vtepAddr() { return vtepAddr; }
-                public IPv4Addr vtepTunAddr() { return vtepTunAddr; }
-                public UUID tunnelZoneId() { return tzId; }
-                public int vni() { return vni; }
-            };
-        } else {
-            throw new IllegalArgumentException("unknown Port type");
-        }
-
-
-        port.setTunnelKey(config.tunnelKey);
-        port.setAdminStateUp(config.adminStateUp);
-        port.setDeviceID(config.device_id);
-        port.setInFilter(config.inboundFilter);
-        port.setOutFilter(config.outboundFilter);
-        port.setProperties(config.properties);
-        port.setID(id);
-        port.setPeerID(config.getPeerId());
-        port.setHostID(config.getHostId());
-        port.setInterfaceName(config.getInterfaceName());
-        if (config.portGroupIDs != null) {
-            port.setPortGroups(config.portGroupIDs);
-        }
-
         PortBuilder builder = getBuilder(id);
+        Port port = PortFactory.fromPortConfig(config);
+
         if (builder != null) {
             builder.setPort(port);
             log.debug("Build port {}, id {}", port, id);
