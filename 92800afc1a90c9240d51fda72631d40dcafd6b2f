@@ -117,6 +117,30 @@
       "revId": "92800afc1a90c9240d51fda72631d40dcafd6b2f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_964bba2a",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-09T09:16:09Z",
+      "side": 1,
+      "message": "I\u0027ll keep that for a future patch ;-)",
+      "parentUuid": "fafc7978_96c45a93",
+      "range": {
+        "startLine": 292,
+        "startChar": 18,
+        "endLine": 292,
+        "endChar": 57
+      },
+      "revId": "92800afc1a90c9240d51fda72631d40dcafd6b2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
