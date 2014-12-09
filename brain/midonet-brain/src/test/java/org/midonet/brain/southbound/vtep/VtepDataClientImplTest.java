@@ -35,7 +35,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.opendaylight.controller.sal.connection.ConnectionConstants;
 import org.opendaylight.controller.sal.core.Node;
@@ -534,10 +533,8 @@ public class VtepDataClientImplTest {
         assertEquals(StatusCode.NOSERVICE, status.getCode());
     }
 
-    /**
-     * Tests the connection lifecycle without using lazy disconnect.
-     */
-    @Ignore @Test
+    /** Tests the connection lifecycle without using lazy disconnect. */
+    @Test
     public void testConnectionLifecycleWithoutWait() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -557,10 +554,8 @@ public class VtepDataClientImplTest {
         assertTrue(VtepDataClient.State.DISPOSED == client.getState());
     }
 
-    /**
-     * Tests the connection lifecycle using lazy disconnect.
-     */
-    @Ignore @Test
+    /** Tests the connection lifecycle using lazy disconnect. */
+    @Test
     public void testConnectionLifecycleWithLazyDisconnect() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -578,7 +573,7 @@ public class VtepDataClientImplTest {
         assertTrue(VtepDataClient.State.DISPOSED == client.getState());
     }
 
-    @Ignore @Test
+    @Test
     public void testMultipleConnections() throws Exception {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
@@ -598,7 +593,7 @@ public class VtepDataClientImplTest {
         client2.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testMultipleConnectionsLazyDisconnect() throws Exception {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
@@ -618,7 +613,7 @@ public class VtepDataClientImplTest {
         client2.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testConnectionDisposal() throws Exception {
         java.util.UUID owner1 = java.util.UUID.randomUUID();
         java.util.UUID owner2 = java.util.UUID.randomUUID();
@@ -637,7 +632,7 @@ public class VtepDataClientImplTest {
         client2.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testConnectionStress() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -659,10 +654,8 @@ public class VtepDataClientImplTest {
         }
     }
 
-    /**
-     * Tests connection establishment, when the VTEP is disconnected.
-     */
-    @Ignore @Test
+    /** Tests connection establishment, when the VTEP is disconnected. */
+    @Test
     public void testConnectionFailure() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -683,7 +676,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListPhysicalSwitchesAndPorts() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -704,7 +697,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListLogicalSwitches() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -723,7 +716,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListUcastMacsLocal() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -740,7 +733,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListMcastMacLocal() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -757,7 +750,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListUcastMacsRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -774,7 +767,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepListMcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -791,7 +784,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepGetAddDeleteLogicalSwitch() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -812,7 +805,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testClearLogicalSwitches() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -837,7 +830,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepAddDeleteBinding() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -873,7 +866,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepAddDeleteUcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
@@ -903,7 +896,7 @@ public class VtepDataClientImplTest {
         client.awaitDisconnected();
     }
 
-    @Ignore @Test
+    @Test
     public void testVtepAddDeleteMcastMacRemote() throws Exception {
         java.util.UUID owner = java.util.UUID.randomUUID();
 
