@@ -25,11 +25,11 @@ import scala.collection.mutable
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import org.midonet.cluster.client.{VxLanPort, Port}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.{PacketContext, Bridge, Chain}
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
+import org.midonet.midolman.topology.devices.{VxLanPort, Port}
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import FlowTagger.FlowTag
 import org.midonet.odp.flows.FlowActions.{setKey, output}
@@ -156,7 +156,7 @@ trait FlowTranslator {
             while (!ports.isEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostID == dpState.host.id) {
+                if (port.hostId == dpState.host.id) {
                     val portNo = dpState.getDpPortNumberForVport(port.id)
                     if (portNo.isDefined) {
                         context.outPorts.add(port.id)
@@ -171,9 +171,9 @@ trait FlowTranslator {
             while (!ports.isEmpty) {
                 val port = ports.head
                 ports = ports.tail
-                if (port.hostID != dpState.host.id) {
+                if (port.hostId != dpState.host.id) {
                     context.outPorts.add(port.id)
-                    outputActionsToPeer(port.tunnelKey, port.hostID, actions,
+                    outputActionsToPeer(port.tunnelKey, port.hostId, actions,
                         context.flowTags, context)
                 }
             }
@@ -193,8 +193,8 @@ trait FlowTranslator {
                 val vxlanPortId = br.vxlanPortId.get
                 tryAsk[Port](vxlanPortId) match {
                     case p: VxLanPort =>
-                        outputActionsToVtep(p.vni, p.vtepTunAddr.addr,
-                            p.tunnelZoneId, actions,
+                        outputActionsToVtep(p.vtepVni, p.vtepTunnelIp.addr,
+                            p.vtepTunnelZoneId, actions,
                             context.flowTags, context)
                     case _ =>
                         context.log.warn("could not find VxLanPort {} of bridge {}",
@@ -226,11 +226,12 @@ trait FlowTranslator {
             // therefore it needs to be matched first.
             tryAsk[Port](port) match {
                 case p: VxLanPort =>
-                    towardsVtepPeer(p.vni, p.vtepTunAddr, p.tunnelZoneId,
+                    towardsVtepPeer(p.vtepVni, p.vtepTunnelIp,
+                                    p.vtepTunnelZoneId,
                                     context.flowTags, context)
                 case p: Port if p.isExterior =>
                     context.outPorts.add(port)
-                    towardsRemoteHost(p.tunnelKey, p.hostID,
+                    towardsRemoteHost(p.tunnelKey, p.hostId,
                                       context.flowTags, context)
                 case _ =>
                     context.log.warn("Port {} was not exterior", port)

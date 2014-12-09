@@ -34,8 +34,6 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
-import org.midonet.cluster.client
-import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
 import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag

@@ -18,7 +18,6 @@ package org.midonet.midolman.topology.rcu
 import java.util.UUID
 import scala.collection.immutable
 
-import org.midonet.cluster.client.Port
 import org.midonet.cluster.data.TunnelZone
 
 case class PortBinding(portId: UUID, tunnelKey: Long, iface: String)
