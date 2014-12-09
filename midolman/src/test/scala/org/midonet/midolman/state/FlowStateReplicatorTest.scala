@@ -16,7 +16,10 @@
 
 package org.midonet.midolman.state
 
+import java.nio.ByteBuffer
 import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
+import org.midonet.util.FixedArrayOutputStream
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -32,10 +35,10 @@ import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.odp.{Packet, Datapath}
+import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets._
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
@@ -159,6 +162,40 @@ class FlowStateReplicatorTest extends FeatureSpec
         passedPacketsSeen
     }
 
+    feature("State packets serialization") {
+        scenario("the one") {
+            import FlowStatePackets._
+
+            val buffer = new Array[Byte](
+                FlowStateEthernet.FLOW_STATE_MAX_PAYLOAD_LENGTH)
+            val stream = new FixedArrayOutputStream(buffer)
+            val packet = {
+                val udpShell = makeFlowStateUdpShell(buffer)
+                new Packet(udpShell, FlowMatches.fromEthernetPacket(udpShell))
+            }
+
+            val msg = "this is the message"
+            val msglen = msg.length
+
+            stream.reset()
+            stream.write(msg.getBytes)
+            val fse =  packet.getEthernet.asInstanceOf[FlowStateEthernet]
+            fse.setElasticDataLength(msglen)
+
+            val bb = ByteBuffer.allocate(1500)
+            fse.serialize(bb)
+            bb.position should be (
+                msg.length + FlowStateEthernet.FLOW_STATE_ETHERNET_OVERHEAD)
+
+            bb.flip()
+            val deserialized = Ethernet.deserialize(bb.array())
+            val data =
+                deserialized.getPayload.getPayload.getPayload.asInstanceOf[Data]
+            data.getData should be (msg.getBytes)
+            System.out.println(deserialized.toString)
+        }
+    }
+
     feature("L4 flow state replication") {
         scenario("Replicates conntrack keys") {
             Given("A conntrack key in a transaction")
@@ -183,8 +220,8 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
             val ethernetFrame = packet.getData
-            ethernetFrame.length should be <= (FlowStatePackets.MTU -
-                FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
+            ethernetFrame.length should be < (FlowStateEthernet.MTU -
+                FlowStateEthernet.GRE_ENCAPUSULATION_OVERHEAD)
         }
 
         scenario("Replicates Nat keys") {
