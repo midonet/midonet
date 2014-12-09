@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f16850f7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/DatapathConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T17:17:24Z",
+      "side": 1,
+      "message": "oh! is that network order or native order? I was actually unsure of what to put here and was waiting to test. I\u0027ll change it!",
+      "parentUuid": "fafc7978_f1c170e5",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31bc9869",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-09T17:14:53Z",
       "side": 1,
       "message": "Could you call this field \"tos\" instead of \"dscp\" to avoid confusion?",
+      "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_516e7c02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-09T17:17:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_31bc9869",
       "revId": "272c4520ce2ee9d167d4c43f043d0d3eb6f9194c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
