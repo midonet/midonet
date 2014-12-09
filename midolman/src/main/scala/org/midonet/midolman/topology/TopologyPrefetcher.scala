@@ -22,7 +22,6 @@ import scala.collection.breakOut
 
 import akka.actor.Actor
 
-import org.midonet.cluster.client.Port
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopologyActor._
@@ -33,6 +32,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.LoadBalancerRequest
+import org.midonet.midolman.topology.devices.Port
 
 /*
  * Implementers of this trait gain the ability to prefetch virtual devices

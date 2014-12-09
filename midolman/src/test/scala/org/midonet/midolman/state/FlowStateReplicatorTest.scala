@@ -26,11 +26,11 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{BridgePort, Port}
 import org.midonet.midolman.UnderlayResolver
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
@@ -64,11 +64,10 @@ class FlowStateReplicatorTest extends FeatureSpec
     val egressGroupId = UUID.randomUUID()
 
     def makePort(host: UUID): Port = {
-        val p = new BridgePort()
-        p.setID(UUID.randomUUID())
-        p.hostID = host
-        p.portGroups = Set[UUID]()
-        p
+        new BridgePort() {
+            id = UUID.randomUUID
+            hostId = host
+        }
     }
 
     def makePort(host: UUID, group: UUID): Port = {
