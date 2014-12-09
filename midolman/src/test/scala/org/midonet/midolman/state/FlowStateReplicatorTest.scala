@@ -35,7 +35,7 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.odp.{Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets._
 import org.midonet.sdn.state.{IdleExpiration, FlowStateTransaction, FlowStateTable}
 import org.midonet.sdn.flows.FlowTagger.{FlowTag, FlowStateTag}
 import org.midonet.util.collection.Reducer
@@ -183,8 +183,8 @@ class FlowStateReplicatorTest extends FeatureSpec
             recipient.conntrackTable.get(
                 connTrackKeys.head) should equal (ConnTrackState.RETURN_FLOW)
             val ethernetFrame = packet.getData
-            ethernetFrame.length should be <= (FlowStatePackets.MTU -
-                FlowStatePackets.GRE_ENCAPUSULATION_OVERHEAD)
+            ethernetFrame.length should be < (FlowStateEthernet.MTU -
+                FlowStateEthernet.GRE_ENCAPUSULATION_OVERHEAD)
         }
 
         scenario("Replicates Nat keys") {
