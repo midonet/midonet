@@ -22,13 +22,13 @@ import scala.collection.JavaConversions._
 
 import akka.actor.ActorSystem
 
-import org.midonet.cluster.client._
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
 import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -151,12 +151,12 @@ class Coordinator(context: PacketContext)
 
     private def packetIngressesDevice(port: Port): SimulationResult = {
         val device = port match {
-            case _: BridgePort => tryAsk[Bridge](port.deviceID)
-            case _: VxLanPort => tryAsk[Bridge](port.deviceID)
-            case _: RouterPort => tryAsk[Router](port.deviceID)
+            case _: BridgePort => tryAsk[Bridge](port.deviceId)
+            case _: VxLanPort => tryAsk[Bridge](port.deviceId)
+            case _: RouterPort => tryAsk[Router](port.deviceId)
         }
         numDevicesSimulated += 1
-        log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceID}")
+        log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceId}")
         handleAction(device.process(context))
     }
 
@@ -326,7 +326,7 @@ class Coordinator(context: PacketContext)
                     case p: Port if p.isExterior =>
                         emitFromPort(p)
                     case p: Port if p.isInterior =>
-                        packetIngressesPort(p.peerID, getPortGroups = false)
+                        packetIngressesPort(p.peerId, getPortGroups = false)
                     case _ =>
                         log.warn("Port {} is unplugged", portID)
                         TemporaryDrop
@@ -343,7 +343,7 @@ class Coordinator(context: PacketContext)
         val actions = context.actionsFromMatchDiff()
         log.debug("Emitting packet from vport {}", port.id)
         actions.append(FlowActionOutputToVrnPort(port.id))
-        emit(port.deviceID, actions.toList)
+        emit(port.deviceId, actions.toList)
     }
 
     /**

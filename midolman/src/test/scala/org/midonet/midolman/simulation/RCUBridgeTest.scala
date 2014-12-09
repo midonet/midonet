@@ -27,8 +27,9 @@ import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.topology._
-import org.midonet.cluster.client.{BridgePort, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.cluster.VlanPortMapImpl
@@ -86,9 +87,10 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
                             rtrMacToLogicalPortId, rtrIpToMac, vlanToPort,
                             List(brPort.id))
 
-        brPort.setHostID(UUID.randomUUID())
-        brPort.setInterfaceName("eth0")
-        brPort.setDeviceID(bridge.id)
+        brPort.hostId = UUID.randomUUID()
+        brPort.interfaceName = "eth0"
+        brPort.networkId = bridge.id
+        brPort.afterFromProto()
     }
 
     override def afterAll() {

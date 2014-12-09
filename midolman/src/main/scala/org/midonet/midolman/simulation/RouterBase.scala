@@ -19,7 +19,7 @@ import java.util.UUID
 
 import akka.actor.ActorSystem
 
-import org.midonet.cluster.client.RouterPort
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.{NotYetException, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.layer3.Route
