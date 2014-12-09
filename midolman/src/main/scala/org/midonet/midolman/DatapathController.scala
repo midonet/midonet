@@ -18,7 +18,7 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.{UUID, Set => JSet}
+import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -29,8 +29,8 @@ import akka.actor._
 import akka.pattern.{after, pipe}
 
 import com.google.inject.Inject
-
 import com.typesafe.scalalogging.Logger
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
@@ -54,8 +54,8 @@ import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -182,10 +182,10 @@ class DatapathController extends Actor
                          with ActorLogWithoutPath
                          with SingleThreadExecutionContextProvider {
 
-    import context.system
     import org.midonet.midolman.DatapathController._
-    import org.midonet.midolman.FlowController.AddWildcardFlow
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
+
+import context.system
 
     override def logSource = "org.midonet.datapath-control"
 
