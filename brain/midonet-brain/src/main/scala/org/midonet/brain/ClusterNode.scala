@@ -23,7 +23,7 @@ import com.google.inject.{AbstractModule, Guice}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.config.ConfigProvider
+import org.midonet.config.{ConfigString, ConfigGroup, ConfigProvider}
 
 /**
  * Base exception for all MidoNet Cluster errors.
@@ -57,6 +57,7 @@ object ClusterNode extends App {
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
     // Load configurations for all supported Minions
+    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
@@ -104,4 +105,17 @@ object ClusterNode extends App {
                     log error(".. actually, not. See error trace", e)
             }
     }
+}
+
+/** Configuration for the Heartbeat Minion. */
+@ConfigGroup("cluster_node")
+trait ClusterNodeConfig {
+
+    val configGroup = "cluster_node"
+
+    @ConfigString(key = "node_uuid", defaultValue = "")
+    def nodeUuid: String
+
+    @ConfigString(key = "properties_file", defaultValue = "")
+    def propertiesFile: String
 }
