@@ -18,8 +18,8 @@ package org.midonet.brain
 
 import java.nio.file.{Files, Paths}
 
+import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.{AbstractModule, Guice}
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
@@ -42,6 +42,9 @@ object ClusterNode extends App {
 
     private val log = LoggerFactory.getLogger(this.getClass)
 
+    private val metrics = new MetricRegistry()
+    private val jmxReporter = JmxReporter.forRegistry(metrics).build()
+
     log info "Cluster node starting.." // TODO show build.properties
 
     private val configFile = args(0)
@@ -51,7 +54,6 @@ object ClusterNode extends App {
         System.exit(1)
     }
     private val cfg = ConfigProvider fromConfigFile configFile
-
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
     // Load configurations for all supported Minions
@@ -65,12 +67,16 @@ object ClusterNode extends App {
     private val daemon = new Daemon(minionDefs)
     protected[brain] val injector = Guice.createInjector(new AbstractModule {
         override def configure(): Unit = {
+
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            bind(classOf[MetricRegistry]).toInstance(metrics)
+
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
             minionDefs foreach { m =>
                 log.info(s"Register minion: ${m.name}")
                 install(MinionConfig.module(m.cfg))
             }
+
             bind(classOf[Daemon]).toInstance(daemon)
         }
     })
@@ -79,12 +85,14 @@ object ClusterNode extends App {
     sys addShutdownHook {
         if (daemon.isRunning) {
             log.info("Shutting down..")
+            jmxReporter.stop()
             daemon.stopAsync().awaitTerminated()
         }
     }
 
     log info "MidoNet Cluster daemon starts.."
     try {
+        jmxReporter.start()
         daemon.startAsync().awaitRunning()
         log info "MidoNet Cluster is up"
     } catch {

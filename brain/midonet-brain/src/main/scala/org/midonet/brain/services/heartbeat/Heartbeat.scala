@@ -16,12 +16,16 @@
 
 package org.midonet.brain.services.heartbeat
 
+import java.util
 import java.util.concurrent.{Executors, TimeUnit}
 
+import scala.collection.JavaConversions._
+
+import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{MinionConfig, ClusterMinion}
+import org.midonet.brain.{ClusterMinion, MinionConfig}
 import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigString}
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
@@ -31,10 +35,24 @@ class Heartbeat extends ClusterMinion {
     @Inject
     private var cfg: HeartbeatConfig = _
 
+    @Inject
+    private var metrics: MetricRegistry = _
+
     private val log = LoggerFactory.getLogger(classOf[Heartbeat])
     private val pool = Executors.newSingleThreadScheduledExecutor()
 
+    private val counter = new Counter()
+
+    private val metricSet = new MetricSet {
+        override def getMetrics: util.Map[String, Metric] = Map (
+            "beats" -> counter
+        )
+    }
+
     override def doStart(): Unit = {
+
+        metrics.register("heartbeat", metricSet)
+
         log.info("Live")
         val schedule = new Runnable {
             override def run(): Unit = {
@@ -56,6 +74,7 @@ class Heartbeat extends ClusterMinion {
 
     private def beat(): Unit = {
         log.info("Beat")
+        counter.inc()
     }
 
     override def doStop(): Unit = {
