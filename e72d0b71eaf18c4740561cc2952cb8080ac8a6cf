@@ -59,6 +59,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_17d0614f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-10T16:46:56Z",
+      "side": 1,
+      "message": "Here, I had the same in the PortMapper patch. I shall review your Zoom observable patch, since once merged it will solve the problem.\n\nThe reason for the BehaviorSubject here is that, while Zoom will repeat the last emitted item, it shall do so before the mapper\u0027s observable receives any subscribers.",
+      "parentUuid": "fafc7978_fc182486",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_9731f1ee",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
         "patchSetId": 15
