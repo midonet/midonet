@@ -32,7 +32,6 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
@@ -46,20 +45,16 @@ class HostMapperTest extends MidolmanSpec
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
 
-    registerActors(FlowController -> (() => new FlowController))
+    protected override def fillConfig(config: HierarchicalConfiguration)
+    : HierarchicalConfiguration = {
+        super.fillConfig(config)
+        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config
+    }
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
-    }
-
-    override protected def fillConfig(config: HierarchicalConfiguration) = {
-        super.fillConfig(config)
-
-        // Tests to cover the cases when the new cluster is disabled are
-        // present in VirtualToPhysicalMapperTest
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
-        config
     }
 
     feature("A host should come with its tunnel zones membership") {

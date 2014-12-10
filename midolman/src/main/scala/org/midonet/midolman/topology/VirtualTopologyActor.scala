@@ -35,7 +35,6 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
@@ -208,7 +207,8 @@ object VirtualTopologyActor extends Referenceable {
                                           system: ActorSystem): Future[D] =
         VirtualTopologyActor
             .ask(requestsFactory(tag)(id))(deviceRequestTimeout)
-            .mapTo[D](tag).recover{
+            .mapTo[D](tag)
+            .recover{
                 case ex: AskTimeoutException =>
                     throw DeviceQueryTimeoutException(id, tag)
                 case ex =>
@@ -264,7 +264,7 @@ object VirtualTopologyActor extends Referenceable {
         getDeviceManagerPath(parentActorName, poolHealthMonitorManagerName())
 }
 
-class VirtualTopologyActor extends Actor {
+class VirtualTopologyActor extends VirtualTopologyRedirector {
     import VirtualTopologyActor._
     import context.system
 
@@ -285,43 +285,49 @@ class VirtualTopologyActor extends Actor {
     val config: MidolmanConfig = null
 
     /** Build a manager for a device */
-    private def manageDevice(r: DeviceRequest): Unit = {
-        if (managedDevices(r.id))
+
+    /** Manages the device, by adding the request sender to the set of
+      * unanswered clients and subscribers, if needed.
+      * @param createManager If true, it creates a legacy device manager for
+      *                      this device.
+      */
+    protected override def manageDevice(req: DeviceRequest,
+                                        createManager: Boolean) : Unit = {
+        if (managedDevices.contains(req.id)) {
             return
+        }
 
-        log.info("Build a manager for {}", r)
+        log.info("Manage device {}", req.id)
+        if (createManager) {
+            val mgrFactory = req.managerFactory(clusterClient, config)
+            val props = Props { mgrFactory() }
+                .withDispatcher(context.props.dispatcher)
+            context.actorOf(props, req.managerName)
+        }
 
-        val mgrFactory = r.managerFactory(clusterClient, config)
-        val props = Props { mgrFactory() }.withDispatcher(context.props.dispatcher)
-        context.actorOf(props, r.managerName)
-
-        managedDevices.add(r.id)
-        idToUnansweredClients.put(r.id, mutable.Set[ActorRef]())
-        idToSubscribers.put(r.id, mutable.Set[ActorRef]())
+        managedDevices += req.id
+        idToUnansweredClients.put(req.id, mutable.Set[ActorRef]())
+        idToSubscribers.put(req.id, mutable.Set[ActorRef]())
     }
 
-    private def deviceRequested(req: DeviceRequest) {
+    protected override def deviceRequested(req: DeviceRequest): Unit = {
         val device = topology.get(req.id)
         if (device eq null) {
             log.debug("Adding requester {} to unanswered clients for {}",
-                      sender, req)
-            idToUnansweredClients(req.id).add(sender)
+                      sender(), req)
+            idToUnansweredClients(req.id).add(sender())
         } else {
             sender ! device
         }
 
         if (req.update) {
             log.debug("Adding requester {} to subscribed clients for {}",
-                      sender, req)
-            idToSubscribers(req.id).add(sender)
+                      sender(), req)
+            idToSubscribers(req.id).add(sender())
         }
     }
 
-    private def updated[D <: AnyRef{def id: UUID}](device: D) {
-        updated(device.id, device)
-    }
-
-    private def updated(id: UUID, device: AnyRef) {
+    protected override def deviceUpdated(id: UUID, device: AnyRef) {
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, id)
@@ -339,7 +345,25 @@ class VirtualTopologyActor extends Actor {
         topology.put(id, device)
     }
 
-    private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
+    protected override def deviceDeleted(id: UUID): Unit = {
+        topology.remove(id)
+    }
+
+    protected override def deviceError(id: UUID, e: Throwable): Unit = {
+        // Notify the error to promise sender actors that are not subscribers:
+        // this allows tryAsk() futures to complete immediately with an error.
+        for (client <- idToUnansweredClients(id)
+             if !idToSubscribers(id).contains(client) &&
+                 client.getClass.getName == "akka.pattern.PromiseActorRef") {
+            log.debug("Send unanswered client {} device error for {} " +
+                      ": e", client, id, e)
+            client ! Status.Failure(e)
+        }
+        idToUnansweredClients(id).clear()
+        topology.remove(id)
+    }
+
+    protected override def unsubscribe(id: UUID, actor: ActorRef): Unit = {
         def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
             case Some(actorSet) => actorSet.remove(actor)
             case None =>
@@ -350,42 +374,49 @@ class VirtualTopologyActor extends Actor {
         remove(idToSubscribers.get(id))
     }
 
-    def receive = {
+    protected override def hasSubscribers(id: UUID): Boolean = {
+        idToSubscribers get id match {
+            case Some(set) => set.nonEmpty
+            case None => false
+        }
+    }
+
+    override def receive = super.receive orElse {
         case null =>
             log.warn("Received null device?")
         case r: DeviceRequest =>
             log.debug("Received {}", r)
-            manageDevice(r)
+            manageDevice(r, createManager = true)
             deviceRequested(r)
-        case u: Unsubscribe => unsubscribe(u.id, sender)
+        case u: Unsubscribe => unsubscribe(u.id, sender())
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
-            updated(bridge)
+            deviceUpdated(bridge.id, bridge)
         case chain: Chain =>
             log.debug("Received a Chain for {}", chain.id)
-            updated(chain.id, chain)
+            deviceUpdated(chain.id, chain)
         case ipAddrGroup: IPAddrGroup =>
             log.debug("Received an IPAddrGroup for {}", ipAddrGroup.id)
-            updated(ipAddrGroup)
+            deviceUpdated(ipAddrGroup.id, ipAddrGroup)
         case loadBalancer: LoadBalancer =>
             log.debug("Received a LoadBalancer for {}", loadBalancer.id)
-            updated(loadBalancer)
+            deviceUpdated(loadBalancer.id, loadBalancer)
         case pool: Pool =>
             log.debug("Received a Pool for {}", pool.id)
-            updated(pool)
+            deviceUpdated(pool.id, pool)
         case port: Port =>
             log.debug("Received a Port for {}", port.id)
-            updated(port)
+            deviceUpdated(port.id, port)
         case router: Router =>
             log.debug("Received a Router for {}", router.id)
-            updated(router)
+            deviceUpdated(router.id, router)
         case pg: PortGroup =>
             log.debug("Received a PortGroup for {}", pg.id)
-            updated(pg)
+            deviceUpdated(pg.id, pg)
         case PoolHealthMonitorMap(mappings) =>
             log.info("Received PoolHealthMonitorMappings")
-            updated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
-                    PoolHealthMonitorMap(mappings))
+            deviceUpdated(PoolConfig.POOL_HEALTH_MONITOR_MAP_KEY,
+                          PoolHealthMonitorMap(mappings))
         case invalidation: InvalidateFlowsByTag =>
             log.debug("Invalidating flows for tag {}", invalidation.tag)
             FlowController ! invalidation
