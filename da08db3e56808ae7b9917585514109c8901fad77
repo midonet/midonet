@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_fc4ae481",
+        "filename": "midolman/src/main/java/org/midonet/cluster/ClusterPortsManager.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:04:51Z",
+      "side": 1,
+      "message": "this is the scala setter? weird..",
+      "range": {
+        "startLine": 109,
+        "startChar": 32,
+        "endLine": 109,
+        "endChar": 35
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1c4a4880",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:04:51Z",
+      "side": 1,
+      "message": "remove?",
+      "range": {
+        "startLine": 47,
+        "startChar": 27,
+        "endLine": 47,
+        "endChar": 31
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5c5b3054",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:04:51Z",
+      "side": 1,
+      "message": "is this not stored in zoom? doesn\u0027t it need to be?",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
