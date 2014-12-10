@@ -33,7 +33,6 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.FlowController
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketsEntryPoint
 import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
@@ -263,7 +262,7 @@ object VirtualTopologyActor extends Referenceable {
         getDeviceManagerPath(parentActorName, poolHealthMonitorManagerName())
 }
 
-class VirtualTopologyActor extends Actor {
+class VirtualTopologyActor extends VirtualTopologyRedirector {
     import VirtualTopologyActor._
     import context.system
 
@@ -299,20 +298,20 @@ class VirtualTopologyActor extends Actor {
         idToSubscribers.put(r.id, mutable.Set[ActorRef]())
     }
 
-    private def deviceRequested(req: DeviceRequest) {
+    protected override def deviceRequested(req: DeviceRequest): Unit = {
         val device = topology.get(req.id)
         if (device eq null) {
             log.debug("Adding requester {} to unanswered clients for {}",
-                      sender, req)
-            idToUnansweredClients(req.id).add(sender)
+                      sender(), req)
+            idToUnansweredClients(req.id).add(sender())
         } else {
             sender ! device
         }
 
         if (req.update) {
             log.debug("Adding requester {} to subscribed clients for {}",
-                      sender, req)
-            idToSubscribers(req.id).add(sender)
+                      sender(), req)
+            idToSubscribers(req.id).add(sender())
         }
     }
 
@@ -320,7 +319,7 @@ class VirtualTopologyActor extends Actor {
         updated(device.id, device)
     }
 
-    private def updated(id: UUID, device: AnyRef) {
+    protected override def updated(id: UUID, device: AnyRef) {
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, id)
@@ -338,7 +337,7 @@ class VirtualTopologyActor extends Actor {
         topology.put(id, device)
     }
 
-    private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
+    protected override def unsubscribe(id: UUID, actor: ActorRef): Unit = {
         def remove(setOption: Option[mutable.Set[ActorRef]]) = setOption match {
             case Some(actorSet) => actorSet.remove(actor)
             case None =>
@@ -349,14 +348,14 @@ class VirtualTopologyActor extends Actor {
         remove(idToSubscribers.get(id))
     }
 
-    def receive = {
+    override def receive = super.receive orElse {
         case null =>
             log.warn("Received null device?")
         case r: DeviceRequest =>
             log.debug("Received {}", r)
             manageDevice(r)
             deviceRequested(r)
-        case u: Unsubscribe => unsubscribe(u.id, sender)
+        case u: Unsubscribe => unsubscribe(u.id, sender())
         case bridge: Bridge =>
             log.debug("Received a Bridge for {}", bridge.id)
             updated(bridge)

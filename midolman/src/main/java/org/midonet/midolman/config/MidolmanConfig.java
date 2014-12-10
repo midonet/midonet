@@ -95,4 +95,7 @@ public interface MidolmanConfig
 
     @ConfigString(key = "input_channel_threading", defaultValue = "one_to_many")
     public String getInputChannelThreading();
+
+    @ConfigBool(key = "cluster_storage", defaultValue = false)
+    public Boolean getClusterStorage();
 }
