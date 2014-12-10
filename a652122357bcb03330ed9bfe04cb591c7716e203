@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d97e12e4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-10T12:15:06Z",
+      "side": 1,
+      "message": "Ah, yes, you are right. It depends on the operator, for many the nested subscribers share the same subscription list, but this may not be the case.",
+      "parentUuid": "fafc7978_99c12a31",
+      "range": {
+        "startLine": 57,
+        "startChar": 46,
+        "endLine": 57,
+        "endChar": 67
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_3983de05",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
         "patchSetId": 1
