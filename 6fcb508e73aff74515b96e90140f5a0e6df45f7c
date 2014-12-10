@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_f904b67f",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-10T11:58:13Z",
+      "side": 1,
+      "message": "16 should probably be relative to the position that the bytebuffer was at when serialize(bb) was called, you can\u0027t assume that the position was zero when the caller called serialize(). it\u0027s unlikely because the caller is in the middle of serializing a larger message, a netlink message.",
+      "revId": "6fcb508e73aff74515b96e90140f5a0e6df45f7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d909f296",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-10T11:58:13Z",
+      "side": 1,
+      "message": "is it necessary to override this, why not keep the classic Ethernet behavior for this version?",
+      "revId": "6fcb508e73aff74515b96e90140f5a0e6df45f7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_39ff5e69",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-10T11:58:13Z",
+      "side": 1,
+      "message": "why not return ElasticData, after all that\u0027s all that we support as a payload. It avoids casts in callers.",
+      "revId": "6fcb508e73aff74515b96e90140f5a0e6df45f7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_79f8c67c",
+        "filename": "odp/src/main/java/org/midonet/odp/Packet.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-10T11:58:13Z",
+      "side": 1,
+      "message": "reorder.",
+      "revId": "6fcb508e73aff74515b96e90140f5a0e6df45f7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
