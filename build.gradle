@@ -55,7 +55,7 @@ project.ext {
 
         infinispan: "org.infinispan:infinispan-commons:7.0.2.Final",
         netty: "io.netty:netty-all:4.0.24.Final",
-        guava: "com.google.guava:guava:15.0",
+        guava: "com.google.guava:guava:16.0",
         slf4j: "org.slf4j:slf4j-api:1.7.7",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.0.1",
@@ -368,7 +368,7 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
     targetCompatibility = 1.7
 
     dependencies {
-        compile "com.google.guava:guava:15.0",
+        compile "com.google.guava:guava:16.0",
                 "com.google.code.gson:gson:2.1",
                 libraries.netty,
                 libraries.rx,
