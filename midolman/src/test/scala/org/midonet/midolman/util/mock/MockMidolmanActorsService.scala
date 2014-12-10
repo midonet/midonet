@@ -15,6 +15,8 @@
  */
 package org.midonet.midolman.util.mock
 
+import java.util.concurrent.CountDownLatch
+
 import scala.collection.mutable
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
@@ -29,6 +31,21 @@ import org.midonet.midolman.services.MidolmanActorsService
 
 class EmptyActor extends Actor {
     def receive: PartialFunction[Any, Unit] = Actor.emptyBehavior
+}
+
+class AwaitableActor(count: Int = 1) extends Actor {
+    private var counter = new CountDownLatch(count)
+
+    override def receive: PartialFunction[Any, Unit] = {
+        case msg =>
+            counter.countDown()
+    }
+
+    def await(timeout: Duration, count: Int = 1): Boolean = {
+        val result = counter.await(timeout.length, timeout.unit)
+        counter = new CountDownLatch(count)
+        result
+    }
 }
 
 trait MessageAccumulator extends Actor {
@@ -61,9 +78,9 @@ sealed class MockMidolmanActorsService extends MidolmanActorsService {
     var dispatcher: String = _
 
     def actor(actor: Referenceable): TestActorRef[Actor] =
-        actors.get(actor.Name) getOrElse {
-            throw new IllegalArgumentException(s"No actor named ${actor.Name}")
-        }
+        actors.getOrElse(
+            actor.Name,
+            throw new IllegalArgumentException(s"No actor named ${actor.Name}"))
 
     def register(actors: Seq[(Referenceable, () => Actor)]): Unit = {
         actors foreach { case (ref, f) =>
