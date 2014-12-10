@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.services.StorageModule
 import org.midonet.brain.services.c3po.NeutronImporterConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.config.ConfigProvider
+import org.midonet.config.{ConfigString, ConfigGroup, ConfigProvider}
 
 /**
  * Base exception for all MidoNet Cluster errors.
@@ -116,4 +116,16 @@ object ClusterNode extends App {
                     log error(".. actually, not. See error trace", e)
             }
     }
+}
+
+/** Configuration for the Heartbeat Minion. */
+@ConfigGroup("cluster_node")
+trait ClusterNodeConfig {
+
+    @ConfigString(key = "node_uuid", defaultValue = "")
+    def nodeUuid: String
+
+    @ConfigString(key = "properties_file",
+                  defaultValue = "/tmp/midonet_cluster_node.properties")
+    def propertiesFile: String
 }
