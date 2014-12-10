@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_f98f9621",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-10T11:39:57Z",
+      "side": 1,
+      "message": "A minor comment, but not necessary to change. I think that if you do:\n\n  subscriber.add(Subscriptions.create(makeAction0 { ... }))\n\nit would add the unsubscribe action directly to the subscriber, without creating the additional observable. But this is fine too :)",
+      "range": {
+        "startLine": 56,
+        "startChar": 24,
+        "endLine": 56,
+        "endChar": 39
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_19889a1e",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
         "patchSetId": 1
