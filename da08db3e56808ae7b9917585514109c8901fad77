@@ -68,6 +68,30 @@
       "revId": "da08db3e56808ae7b9917585514109c8901fad77",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7c2554c1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-10T16:06:51Z",
+      "side": 1,
+      "message": "it needs to. We need to track port activation. This is ephemeral, so it probably needs to be separated from the rest of the data. (it is a subdirectory in zk).",
+      "parentUuid": "fafc7978_5c5b3054",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
