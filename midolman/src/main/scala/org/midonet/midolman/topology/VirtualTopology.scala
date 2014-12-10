@@ -19,6 +19,7 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.concurrent.{Future, Promise}
+import scala.reflect.{ClassTag, classTag}
 
 import com.google.inject.Inject
 
@@ -109,10 +110,10 @@ object VirtualTopology extends MidolmanLogging {
     @throws[NotYetException]
     @throws[Exception]
     def tryGet[D <: Device](id: UUID)
-                           (implicit m: Manifest[D]): D = {
+                           (implicit tag: ClassTag[D]): D = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            throw new NotYetException(self.observableOf(id, m).asFuture,
+            throw new NotYetException(self.observableOf(id, tag).asFuture,
                                       s"Device $id not yet available")
         }
         device
@@ -124,10 +125,10 @@ object VirtualTopology extends MidolmanLogging {
      *         available in the local cache, the future completes synchronously.
      */
     def get[D <: Device](id: UUID)
-                        (implicit m: Manifest[D]): Future[D] = {
+                        (implicit tag: ClassTag[D]): Future[D] = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            self.observableOf(id, m).asFuture
+            self.observableOf(id, tag).asFuture
         } else {
             Promise[D]().success(device).future
         }
@@ -140,8 +141,8 @@ object VirtualTopology extends MidolmanLogging {
      * state of the device.
      */
     def observable[D <: Device](id: UUID)
-                               (implicit m: Manifest[D]): Observable[D] = {
-        self.observableOf(id, m)
+                               (implicit tag: ClassTag[D]): Observable[D] = {
+        self.observableOf(id, tag)
     }
 
     /**
@@ -165,26 +166,26 @@ class VirtualTopology @Inject() (store: Storage,
     private[topology] val observables =
         new ConcurrentHashMap[UUID, Observable[_]]()
 
-    private val factories = Map[Manifest[_], DeviceFactory](
-        manifest[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
-        manifest[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
+    private val factories = Map[ClassTag[_], DeviceFactory](
+        classTag[Port] -> ((id: UUID) => new PortMapper(id, store, this)),
+        classTag[RouterPort] -> ((id: UUID) => new PortMapper(id, store, this)),
+        classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, store, this)),
+        classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, store, this))
     )
 
     register(this)
 
     private def observableOf[D <: Device](id: UUID,
-                                          m: Manifest[D]): Observable[D] = {
+                                          tag: ClassTag[D]): Observable[D] = {
 
         var observable = observables.get(id)
         if (observable eq null) {
-            observable = factories get m match {
+            observable = factories get tag match {
                 case Some(factory) =>
                     Observable.create(
                         factory(id).asInstanceOf[DeviceMapper[D]])
                 case None =>
-                    throw new RuntimeException(s"Unknown factory for $m")
+                    throw new RuntimeException(s"Unknown factory for $tag")
             }
             observable = observables.putIfAbsent(id, observable) match {
                 case null => observable

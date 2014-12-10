@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
+import scala.reflect.ClassTag
+
 import rx.Observable.OnSubscribe
 import rx.observers.Subscribers
 import rx.subjects.BehaviorSubject
@@ -52,7 +54,7 @@ object DeviceMapper {
  *    subscribers are notified.
  */
 abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
-                                        (implicit m: Manifest[D])
+                                        (implicit tag: ClassTag[D])
         extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
     import org.midonet.midolman.topology.DeviceMapper.SUBSCRIPTION_EXCEPTION
@@ -84,14 +86,14 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
     }
 
     override final def onCompleted() = {
-        log.debug("Device {}/{} deleted", m, id)
+        log.debug("Device {}/{} deleted", tag, id)
         val device = vt.devices.remove(id)
         vt.observables.remove(id)
         onDeviceChanged(device)
     }
 
     override final def onError(e: Throwable) = {
-        log.error("Device {}/{} error", m, id, e)
+        log.error("Device {}/{} error", tag, id, e)
         error.set(e)
         val device = vt.devices.remove(id)
         vt.observables.remove(id)
@@ -99,7 +101,7 @@ abstract class DeviceMapper[D <: Device](id: UUID, vt: VirtualTopology)
     }
 
     override final def onNext(device: D) = {
-        log.debug("Device {}/{} notification: {}", m, id, device)
+        log.debug("Device {}/{} notification: {}", tag, id, device)
         vt.devices.put(id, device)
         onDeviceChanged(device)
     }
