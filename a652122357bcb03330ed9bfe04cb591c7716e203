@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_19889a1e",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-10T11:33:09Z",
+      "side": 1,
+      "message": "Is this necessary?",
+      "range": {
+        "startLine": 57,
+        "startChar": 46,
+        "endLine": 57,
+        "endChar": 67
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3983de05",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-10T11:33:09Z",
+      "side": 1,
+      "message": "Is this okay here, since we subscribe to the original observable? I thought unsafeSubscribe should be used only for nested subscriptions, where we provide the error handling.",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 39
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_999c8a6b",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
         "patchSetId": 1
