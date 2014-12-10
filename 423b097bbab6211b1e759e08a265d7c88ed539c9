@@ -235,6 +235,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f9a156aa",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "Hum.. no idea what this would do with the current xml.. Nevermind, I don\u0027t mind line length in imports.",
+      "parentUuid": "fafc7978_d9045217",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_960c5a44",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 4
@@ -282,6 +300,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_19b1baf8",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "Do these need to be nested? I guess we can just collapse the case clause?",
+      "range": {
+        "startLine": 77,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 17
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7609f630",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 4
@@ -317,6 +358,30 @@
       "side": 1,
       "message": "I don\u0027t understand. How would this make things simpler? If I want to move exception handling up to the Neutron minion, couldn\u0027t I just not catch the exception here?",
       "parentUuid": "fafc7978_7609f630",
+      "range": {
+        "startLine": 97,
+        "startChar": 42,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_199ffa53",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "Not much in this class, but it seems to simplify the bigger chunk of NeutronPollingMinion.runnable:\n\n            dataMgr.lastProcessedC3POTaskId.map (\n                neutron.getTasksSince(_).foreach {\n                    case txn if txn.isFlushTxn \u003d\u003e\n                        dataMgr.flushTopology()\n                        neutron.deleteTask(txn.lastTaskId)\n                    case txn \u003d\u003e\n                        dataMgr.interpretAndExecTxn(translateTxn(txn))\n            })\n\n\nWhich also yields a Try that can be further composed if necessary.\n\nA suggestion anyway, keen on hearing opinions on these idioms.",
+      "parentUuid": "fafc7978_f9ff96ff",
       "range": {
         "startLine": 97,
         "startChar": 42,
@@ -562,6 +627,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_59a06290",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "removal sounds good to me",
+      "parentUuid": "fafc7978_5937c2e3",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31749898",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
         "patchSetId": 4
@@ -761,6 +850,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b9ad0e8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "cool thx",
+      "parentUuid": "fafc7978_b9622ed6",
+      "range": {
+        "startLine": 64,
+        "startChar": 55,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b1b6c83b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NetworkTranslator.scala",
         "patchSetId": 4
@@ -843,6 +956,30 @@
       "side": 1,
       "message": "It\u0027s insensitive now. If not in this patch, then in the next.",
       "parentUuid": "fafc7978_f187b05f",
+      "range": {
+        "startLine": 84,
+        "startChar": 41,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_99aaca6e",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T11:46:19Z",
+      "side": 1,
+      "message": "k",
+      "parentUuid": "fafc7978_f99b16c7",
       "range": {
         "startLine": 84,
         "startChar": 41,
