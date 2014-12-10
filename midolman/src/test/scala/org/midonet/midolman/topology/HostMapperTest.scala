@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -30,7 +31,6 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.FlowController
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
@@ -45,14 +45,16 @@ class HostMapperTest extends MidolmanSpec
     private implicit var store: Storage = _
     private var dataClient: DataClient = _
 
-    registerActors(FlowController -> (() => new FlowController))
+    protected override def fillConfig(config: HierarchicalConfiguration)
+    : HierarchicalConfiguration = {
+        super.fillConfig(config)
+        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config
+    }
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
-        List(classOf[Host], classOf[TunnelZone]).foreach(clazz =>
-            store.registerClass(clazz)
-        )
         dataClient = clusterDataClient
     }
 

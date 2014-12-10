@@ -63,11 +63,11 @@ public interface ZookeeperConfig {
      * If true, it starts the Curator client.
      */
     @ConfigBool(key = "curator_enabled", defaultValue = false)
-    boolean getCuratorEnabled();
+    boolean isCuratorEnabled();
 
     /**
      * If true, it builds the cluster storage.
      */
     @ConfigBool(key = "cluster_storage_enabled", defaultValue = false)
-    boolean getClusterStorageEnabled();
+    boolean isClusterStorageEnabled();
 }

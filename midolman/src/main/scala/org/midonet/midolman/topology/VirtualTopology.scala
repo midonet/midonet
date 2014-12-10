@@ -159,6 +159,8 @@ class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
 
     import org.midonet.midolman.topology.VirtualTopology._
 
+    override def logSource = "org.midonet.devices.devices-service"
+
     private implicit val actorSystem = actorsService.system
 
     private[topology] val devices =
@@ -167,12 +169,12 @@ class VirtualTopology @Inject() (val store: Storage, dataClient: DataClient,
         new ConcurrentHashMap[UUID, Observable[_]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
-        classTag[Port] -> ((id: UUID) => new PortMapper(id, this)),
-        classTag[RouterPort] -> ((id: UUID) => new PortMapper(id, this)),
-        classTag[BridgePort] -> ((id: UUID) => new PortMapper(id, this)),
-        classTag[VxLanPort] -> ((id: UUID) => new PortMapper(id, this)),
-        classTag[TunnelZone] -> ((id: UUID) => new TunnelZoneMapper(id, this)),
-        classTag[Host] -> ((id: UUID) => new HostMapper(id, this, dataClient))
+        classTag[Port] -> (new PortMapper(_, this)),
+        classTag[RouterPort] -> (new PortMapper(_, this)),
+        classTag[BridgePort] -> (new PortMapper(_, this)),
+        classTag[VxLanPort] -> (new PortMapper(_, this)),
+        classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
+        classTag[Host] -> (new HostMapper(_, this, dataClient))
     )
 
     register(this)
