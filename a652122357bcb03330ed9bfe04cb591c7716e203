@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_79ca8650",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T12:02:50Z",
+      "side": 1,
+      "message": "Oh nice!",
+      "parentUuid": "fafc7978_f98f9621",
+      "range": {
+        "startLine": 56,
+        "startChar": 24,
+        "endLine": 56,
+        "endChar": 39
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_19889a1e",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-10T11:33:09Z",
       "side": 1,
       "message": "Is this necessary?",
+      "range": {
+        "startLine": 57,
+        "startChar": 46,
+        "endLine": 57,
+        "endChar": 67
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_99c12a31",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T12:02:50Z",
+      "side": 1,
+      "message": "after applying your suggestion no, but in here I guess it is since we have an observable in the middle so we need to unsubscribe from the parent source no?",
+      "parentUuid": "fafc7978_19889a1e",
       "range": {
         "startLine": 57,
         "startChar": 46,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_79d1e6fa",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T12:02:50Z",
+      "side": 1,
+      "message": "True",
+      "parentUuid": "fafc7978_3983de05",
+      "range": {
+        "startLine": 61,
+        "startChar": 24,
+        "endLine": 61,
+        "endChar": 39
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_999c8a6b",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-10T11:29:42Z",
       "side": 1,
       "message": "I think this is not needed, as a subscriber object automatically registers its subscriptions (unless the \u0027unsafe\u0027 version behaves differently)",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 35
+      },
+      "revId": "a652122357bcb03330ed9bfe04cb591c7716e203",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_19ed3ac4",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/HermitObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T12:02:50Z",
+      "side": 1,
+      "message": "I\u0027ll apply Alex\u0027s suggestion so this should go",
+      "parentUuid": "fafc7978_999c8a6b",
       "range": {
         "startLine": 62,
         "startChar": 0,
