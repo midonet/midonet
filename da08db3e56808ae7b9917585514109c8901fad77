@@ -92,6 +92,30 @@
       "revId": "da08db3e56808ae7b9917585514109c8901fad77",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b71d1569",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:32:45Z",
+      "side": 1,
+      "message": "Yeah, it just adds trickiness in that a change on this node needs to trigger a new publication on the port, but this should be easily doable in the new model (Alex / Nicolas please confirm)",
+      "parentUuid": "fafc7978_7c2554c1",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 14
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
