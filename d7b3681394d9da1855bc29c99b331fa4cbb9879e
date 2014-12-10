@@ -213,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_975f310e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 786,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-10T16:43:07Z",
+      "side": 1,
+      "message": "I meant closing the class subscriptions. If it\u0027s not done, subscribers won\u0027t realize that their subscriptions are invalid...",
+      "parentUuid": "fafc7978_9ccac34d",
+      "range": {
+        "startLine": 786,
+        "startChar": 12,
+        "endLine": 786,
+        "endChar": 59
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7c6f1f93",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 14
@@ -307,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b7b99530",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 14
+      },
+      "lineNbr": 896,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-10T16:43:07Z",
+      "side": 1,
+      "message": "The patch has been merged:\nObjectSubscription -\u003e AwaitableObserver\nClassSubscription -\u003e ClassAwaitableObserver",
+      "parentUuid": "fafc7978_9ca3e39d",
+      "range": {
+        "startLine": 896,
+        "startChar": 8,
+        "endLine": 896,
+        "endChar": 41
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_05bcb2ba",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
         "patchSetId": 14
@@ -389,6 +437,30 @@
       "side": 1,
       "message": "Ditto, do we have a review for that already?",
       "parentUuid": "fafc7978_5c27bb64",
+      "range": {
+        "startLine": 347,
+        "startChar": 14,
+        "endLine": 347,
+        "endChar": 75
+      },
+      "revId": "d7b3681394d9da1855bc29c99b331fa4cbb9879e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7c543454",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTests.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 347,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-10T16:43:07Z",
+      "side": 1,
+      "message": "The code has been merged yesterday. It gets rid of Object and Class Subscription. These are replaced by AwaitableObserver and ClassAwaitableObserver.",
+      "parentUuid": "fafc7978_7ca0bf90",
       "range": {
         "startLine": 347,
         "startChar": 14,
