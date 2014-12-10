@@ -62,9 +62,14 @@ abstract class ClusterManager<T> {
                     log.debug("Registering new builder for device {}", id);
                     builderMap.put(id, builder);
                     getConfig(id);
+                    onNewBuilder(id);
                 }
             }
         });
+    }
+
+    protected void onNewBuilder(final UUID id) {
+        // default: do nothing
     }
 
     protected T getBuilder(UUID id){
