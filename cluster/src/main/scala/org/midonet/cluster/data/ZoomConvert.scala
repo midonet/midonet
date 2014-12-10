@@ -17,7 +17,7 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList, UUID}
+import java.util.{List => JList}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
