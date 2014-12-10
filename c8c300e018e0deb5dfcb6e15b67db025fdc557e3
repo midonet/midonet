@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_66230106",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "nit: wrap the line",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c69f4d5e",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "nit white space",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_067af5f0",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "seems inconsistent to allow a space here.  Shouldn\u0027t this be \u0027ip-protocol\u0027?",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c620edf9",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "How do you differentiate among ports, routers and bridges?  Isn\u0027t this already expressed in attachment_template field as \u0027router:\u003crouter_id\u003e\u0027?\n\nIs it also true that at least one of attachment_point or attachment_template must be provided for this object to be successfully created?",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a61de9bf",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "Perhaps but my feeling is that we can leave this out until the next phase as an additional feature.",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_061315b9",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "So Neutron API, I assume we\u0027ll have CRUD to manage these templates?\n\nI have a question about these defaults.  Is it always the case that these need to be monitored?  We could instead enable these when the provider router is first created or at the startup of the Neutron service, but otherwise treat them as just like other metric templates.   What do you think?",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_460d1d90",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "Is this something that you can change while the services are already running?  If you change from Ceilometer -\u003e Ganglia, do you expect this switch to happen based on an API event?  Is it possible to have multiple backend monitoring storage?",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8626e514",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "nit: wrap the line",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_86f8a57d",
+        "filename": "specs/2015.02/overlay_time_series.rst",
+        "patchSetId": 3
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:02:23Z",
+      "side": 1,
+      "message": "nit: white space",
+      "revId": "c8c300e018e0deb5dfcb6e15b67db025fdc557e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
