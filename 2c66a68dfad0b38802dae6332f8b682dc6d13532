@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_c6774d01",
+        "filename": "specs/2015.02/service_chaining.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:23:48Z",
+      "side": 1,
+      "message": "how about an optional name field to describe the actual function?  Also, do you see this as something owned by a tenant?  In that case, we should have \u0027tenant_id\u0027 here.",
+      "revId": "2c66a68dfad0b38802dae6332f8b682dc6d13532",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_c64e2dc1",
+        "filename": "specs/2015.02/service_chaining.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:23:48Z",
+      "side": 1,
+      "message": "What does it mean to insert to a router?  Are the traffic re-directed before or after the routing takes place?  The use case for this is to redirect irregardless of which port the traffic ingressed from or about to egress to?  Perhaps we should make it explicit the insertion points as \u0027pre-route\u0027 and \u0027post-route\u0027?  \u0027direction\u0027 could be used but that feels more like a classifier attribute than an insertion point.",
+      "revId": "2c66a68dfad0b38802dae6332f8b682dc6d13532",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a64b29af",
+        "filename": "specs/2015.02/service_chaining.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2014-12-10T06:23:48Z",
+      "side": 1,
+      "message": "How about \u0027direction\u0027?\n\nHow does a classifer get attached to the insertion point?",
+      "revId": "2c66a68dfad0b38802dae6332f8b682dc6d13532",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
