@@ -263,7 +263,7 @@ object MidolmanStat extends App {
         val metrics = new MidolmanMetricCatalog.AllMetrics(conn)
         metrics.run(opts.delay.get.get, opts.count.get.get)
     } catch {
-        case e =>
+        case e: Throwable =>
             System.err.println("[mm-stat] " + e.getMessage)
             System.exit(1)
     }
