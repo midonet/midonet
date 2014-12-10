@@ -104,7 +104,6 @@ trait MidolmanSpec extends FeatureSpecLike
             : HierarchicalConfiguration = {
         config.setProperty("midolman.midolman_root_key", "/test/v3/midolman")
         config.setProperty("cassandra.servers", "localhost:9171")
-        config.setProperty("zookeeper.cluster_storage_enabled", true)
         config
     }
 

@@ -103,4 +103,5 @@ public interface MidolmanConfig
 
     @ConfigString(key = "datapath", defaultValue = "midonet")
     public String getDatapath();
+
 }
