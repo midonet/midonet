@@ -1,0 +1,163 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_9c2c78ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "given that we already have the Sim one, I think we can keep TunnelZone here",
+      "range": {
+        "startLine": 28,
+        "startChar": 44,
+        "endLine": 28,
+        "endChar": 75
+      },
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_1c41a85a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "Javadoc?",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_fc182486",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "Not sure I understand why we need the intermediate Subject here. Zoom already guarantees that store.subscribe(tzId) will repeat the last emitted element to new subscribers?\n\nWould it be enough to make observable() return  store.subscribe(tzId).map(makeFunc1..) ?",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9731f1ee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "I\u0027d eliminate these checks, proto.getType will fail, so this case is covered implicitly",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f74ddd73",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d7525912",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_37580532",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "shouldBe eliminates the need for brackets",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_175d0122",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "protobuf.getHostsList should have size .. also works (and might be more readable).",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7741ed38",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/TunnelZoneConversionTest.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-10T16:31:21Z",
+      "side": 1,
+      "message": "Ditto (shouldBe)",
+      "revId": "e72d0b71eaf18c4740561cc2952cb8080ac8a6cf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
