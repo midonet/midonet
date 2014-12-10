@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d9a0d2f6",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 4
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Okay.",
+      "parentUuid": "fafc7978_f6368602",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_563cb2e2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "if it imports too (which I guess it does) I\u0027d rename to -importer",
+      "range": {
+        "startLine": 68,
+        "startChar": 37,
+        "endLine": 68,
+        "endChar": 43
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_39a63e11",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Okay.",
+      "parentUuid": "fafc7978_563cb2e2",
       "range": {
         "startLine": 68,
         "startChar": 37,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_79af26e4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/ScheduledClusterMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Hm...all right, I\u0027ll do that. NeutronPollingMinion is designed to be tolerant of a crash or other disruption at any time, but other scheduled minions may not.",
+      "parentUuid": "fafc7978_96257ac4",
+      "range": {
+        "startLine": 40,
+        "startChar": 13,
+        "endLine": 40,
+        "endChar": 24
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_762296ba",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
         "patchSetId": 4
@@ -76,6 +142,24 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "does it need to be public?",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f982f650",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/StorageModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "I seem to have forgotten about access modifiers when writing this file.",
+      "parentUuid": "fafc7978_762296ba",
       "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -133,6 +217,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d9045217",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Isn\u0027t the policy to accept whatever ctrl-alt-o produces in IDEA?",
+      "parentUuid": "fafc7978_56131266",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_960c5a44",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 4
@@ -144,6 +246,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "needed?",
+      "range": {
+        "startLine": 64,
+        "startChar": 11,
+        "endLine": 64,
+        "endChar": 43
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a603290e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Eh...I don\u0027t know. I think this got added when I ran \"Optimize Imports.\"",
+      "parentUuid": "fafc7978_960c5a44",
       "range": {
         "startLine": 64,
         "startChar": 11,
@@ -179,6 +305,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f9ff96ff",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "I don\u0027t understand. How would this make things simpler? If I want to move exception handling up to the Neutron minion, couldn\u0027t I just not catch the exception here?",
+      "parentUuid": "fafc7978_7609f630",
+      "range": {
+        "startLine": 97,
+        "startChar": 42,
+        "endLine": 97,
+        "endChar": 45
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d606e21f",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
         "patchSetId": 4
@@ -190,6 +340,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "importer?",
+      "range": {
+        "startLine": 31,
+        "startChar": 13,
+        "endLine": 31,
+        "endChar": 20
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_793a86ce",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Sure, that works.",
+      "parentUuid": "fafc7978_d606e21f",
       "range": {
         "startLine": 31,
         "startChar": 13,
@@ -242,6 +416,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_1926dab7",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "There is no C3POFlush. If there were, then you could pass a transaction containing a Flush operation together with other operations to C3PODataManager.interpretAndExecTxn(), which would then have to figure out how to deal with that, even if only by detecting and rejecting it. Since this isn\u0027t expected to happen anyway, that would be wasted effort.\n\nSo it\u0027s probably better that C3PODataManager accepts flush requests via a completely different function, which makes it impossible to submit requests that are invalid in that particular way. Hence no C3POFlush.\n\nNote that translateTxn produces and interpretAndExecTxn accepts a transaction which has a list of operations, and flush is a single operation. Txn.isFlushTxn returns true iff txn has one operation, and that operation is a flush operation. Having flush appear in a transaction with other operations is invalid, so we need to detect that and reject it somewhere. Here seems as good a place as any.",
+      "parentUuid": "fafc7978_9113c45b",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f104d016",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
         "patchSetId": 4
@@ -253,6 +445,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "I think this should be hardcoded to 1. We never want more than 1 process importing stuff.",
+      "range": {
+        "startLine": 100,
+        "startChar": 3,
+        "endLine": 100,
+        "endChar": 53
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_190ffa31",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronPollingMinion.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Ah, right. That makes sense.",
+      "parentUuid": "fafc7978_f104d016",
       "range": {
         "startLine": 100,
         "startChar": 3,
@@ -322,6 +538,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_5937c2e3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "I can probably just take these out. I needed them for debugging when the code was really, really broken and just didn\u0027t work, which should never be the case with checked-in code.",
+      "parentUuid": "fafc7978_9168e4bb",
+      "range": {
+        "startLine": 70,
+        "startChar": 16,
+        "endLine": 70,
+        "endChar": 21
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31749898",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
         "patchSetId": 4
@@ -368,6 +608,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f94dd673",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Which Try idiom?",
+      "parentUuid": "fafc7978_716580e0",
+      "range": {
+        "startLine": 135,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 25
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b15fe80d",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 4
@@ -385,6 +649,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_19741a98",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "I don\u0027t see any strong arguments either way.",
+      "parentUuid": "fafc7978_b15fe80d",
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f1a050f6",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 4
@@ -396,6 +678,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "Is this easily mockable?",
+      "range": {
+        "startLine": 124,
+        "startChar": 30,
+        "endLine": 124,
+        "endChar": 45
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_396f5ec7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "It\u0027s a bit complicated. The data source has to produce connections, which have to produce prepared statements, which have to produce result sets, which have to produce the actual results.\n\nProbably better just to mock the whole NeutronService implementation and only test this class against an actual database.",
+      "parentUuid": "fafc7978_f1a050f6",
       "range": {
         "startLine": 124,
         "startChar": 30,
@@ -431,6 +737,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b9622ed6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/c3po/C3PODataManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "Yes. In ZookeeperObjectMapper, for one. I didn\u0027t change that because I didn\u0027t see an IDE warning about an unnamed Boolean argument.",
+      "parentUuid": "fafc7978_71ac60ee",
+      "range": {
+        "startLine": 64,
+        "startChar": 55,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b1b6c83b",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NetworkTranslator.scala",
         "patchSetId": 4
@@ -454,6 +784,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_995f6a0e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NetworkTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "That\u0027s what IntelliJ did. Shouldn\u0027t we leave it this way, to avoid merge conflicts?",
+      "parentUuid": "fafc7978_b1b6c83b",
+      "range": {
+        "startLine": 23,
+        "startChar": 86,
+        "endLine": 23,
+        "endChar": 96
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f187b05f",
         "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
         "patchSetId": 4
@@ -465,6 +819,30 @@
       "writtenOn": "2014-12-09T13:23:14Z",
       "side": 1,
       "message": "random q: is this case-sensitive? if so, is this easy to make -insensitive?",
+      "range": {
+        "startLine": 84,
+        "startChar": 41,
+        "endLine": 84,
+        "endChar": 48
+      },
+      "revId": "423b097bbab6211b1e759e08a265d7c88ed539c9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f99b16c7",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/data/neutron/NeutronDeserializerTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-10T10:01:07Z",
+      "side": 1,
+      "message": "It\u0027s insensitive now. If not in this patch, then in the next.",
+      "parentUuid": "fafc7978_f187b05f",
       "range": {
         "startLine": 84,
         "startChar": 41,
