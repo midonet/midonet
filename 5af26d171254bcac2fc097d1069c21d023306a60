@@ -45,6 +45,30 @@
       "revId": "5af26d171254bcac2fc097d1069c21d023306a60",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8a2a632a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-11T16:48:07Z",
+      "side": 1,
+      "message": "True but why is this called in Port then? In any case I\u0027ll leave this for a future patch.",
+      "parentUuid": "fafc7978_68774ad5",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 5
+      },
+      "revId": "5af26d171254bcac2fc097d1069c21d023306a60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
