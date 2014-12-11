@@ -22,6 +22,7 @@ import scala.concurrent.Future
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.{Obj, ObjId}
 
 /* Op classes for ZookeeperObjectMapper.multi */
@@ -29,10 +30,22 @@ sealed trait PersistenceOp
 
 case class CreateOp(obj: Obj) extends PersistenceOp
 
-case class UpdateOp[T <: Obj](
-    obj: T, validator: UpdateValidator[T]) extends PersistenceOp {
-    def this(obj: T) = this(obj, null)
-}
+private[storage]
+case class CreateWithOwnerOp(obj: Obj, owner: String)
+    extends PersistenceOp
+
+case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
+    extends PersistenceOp
+
+private[storage]
+case class UpdateWithOwnerOp[T <: Obj](obj: T, owner: String, overwrite: Boolean,
+                                       validator: UpdateValidator[T])
+    extends PersistenceOp
+
+private[storage]
+case class UpdateOwnerOp(clazz: Class[_], id: ObjId, owner: String,
+                         overwrite: Boolean)
+    extends PersistenceOp
 
 object UpdateOp {
     def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
@@ -40,7 +53,24 @@ object UpdateOp {
 
 case class DeleteOp(clazz: Class[_], id: ObjId,
                     ignoreIfNotExists: Boolean = false)
-        extends PersistenceOp
+    extends PersistenceOp
+
+private[storage]
+case class DeleteWithOwnerOp(clazz: Class[_], id: ObjId, owner: String)
+    extends PersistenceOp
+
+private[storage]
+case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
+    extends PersistenceOp
+
+/* Object ownership types */
+object OwnershipType extends Enumeration {
+    class OwnershipType(val isExclusive: Boolean) extends Val
+    val Exclusive = new OwnershipType(true)
+    val Shared = new OwnershipType(false)
+}
+
+case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
 /**
  * Used in update operations to perform validation that depends on knowing the
@@ -267,5 +297,98 @@ trait Storage extends ReadOnlyStorage {
     def build()
 
     def isBuilt: Boolean
+
+}
+
+/**
+ * A trait defining the methods for ownership-based storage.
+ */
+trait StorageWithOwnership extends Storage {
+
+    /**
+     * Registers an object class with support for ownership. The ownership type
+     * can be one of the following:
+     * - [[OwnershipType.Exclusive]] Every object in this class supports only
+     * one owner at a time. The owner identifier is specified when the object
+     * is created, and ownership is released either when the object is deleted,
+     * or when the current owner disconnects from storage, orphaning the object.
+     * It is possible to update the ownership both by the current owner, and
+     * when an object has been orphaned.
+     * - [[OwnershipType.Shared]] Every object in this class supports multiple
+     * owners, where all owners are peers. Ownership is optional for objects
+     * with shared ownership. Owners can be added using the update() or
+     * updateOwner() methods, where the former also updates the object data.
+     * Owners are removed with the delete() or deleteOwner() methods.
+     */
+    def registerClass(clazz: Class[_], ownershipType: OwnershipType): Unit
+
+    /**
+     * Gets the set of owners for the given object.
+     */
+    @throws[NotFoundException]
+    def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]]
+
+    /**
+     * Creates an object with the specified owner.
+     */
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def create(obj: Obj, owner: ObjId): Unit
+
+    /**
+     * Updates an object and/or its owner. For [[OwnershipType.Exclusive]], the
+     * update succeeds only if the specified owner is the current owner of the
+     * object, or if the object has been orphaned and it has no owner.
+     * @param overwriteOwner The update overwrites the current ownership node
+     *                       in storage, if otherwise the conditions for an
+     *                       update are met. This deletes and recreates the
+     *                       ownership node in storage, allowing a new client
+     *                       to reclaim an existing ownership.
+     */
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def update[T <: Obj](obj: T, owner: ObjId, overwriteOwner: Boolean,
+                         validator: UpdateValidator[T]): Unit
+
+    /**
+     * Updates the owner for the specified object. This method is similar to
+     * [[update()]], except the only the object ownership is modified and not
+     * the object data.
+     * @param overwriteOwner The update overwrites the current ownership node
+     *                       in storage, if otherwise the conditions for an
+     *                       update are met. This deletes and recreates
+     */
+    @throws[NotFoundException]
+    @throws[OwnershipConflictException]
+    def updateOwner(clazz: Class[_], id: ObjId, owner: ObjId,
+                    overwriteOwner: Boolean): Unit
+
+    /**
+     * Deletes an object and/or removes an ownership. The specified identifier
+     * must be a current owner of the object. For [[OwnershipType.Exclusive]],
+     * the operation either fails or the object is deleted. For
+     * [[OwnershipType.Shared]], the object is not deleted if there are one or
+     * more remaining owners for the object, in which case only the specified
+     * identifier is removed as owner.
+     */
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit
+
+    @throws[NotFoundException]
+    @throws[OwnershipConflictException]
+    def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit
+
+    /**
+     * Returns an observable, which emits the current set of owners for
+     * a given object. The observable emits an
+     * [[org.midonet.cluster.util.ParentDeletedException]] if the object
+     * does not exist, or when the object is deleted.
+     */
+    def ownersObservable(clazz: Class[_], id: ObjId): Observable[Set[String]]
 
 }
