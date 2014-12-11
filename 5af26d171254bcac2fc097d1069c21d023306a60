@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_887eeeac",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-11T15:44:11Z",
+      "side": 1,
+      "message": "Just a nit-pick, feel free to ignore: you can replace tunnelZone with _, then:\n\n  tunnelZone \u003d\u003e\n\nis not needed.",
+      "range": {
+        "startLine": 39,
+        "startChar": 48,
+        "endLine": 39,
+        "endChar": 58
+      },
+      "revId": "5af26d171254bcac2fc097d1069c21d023306a60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_68774ad5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-11T15:44:11Z",
+      "side": 1,
+      "message": "This one is not necessary now, is it?",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 5
+      },
+      "revId": "5af26d171254bcac2fc097d1069c21d023306a60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
