@@ -28,10 +28,10 @@ import rx.Observable
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.midolman.topology.devices._
+import org.midonet.midolman.{FlowController, NotYetException}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.reactivex._
 
