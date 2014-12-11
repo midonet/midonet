@@ -36,7 +36,10 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
+
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
+import org.midonet.midolman.topology.devices.{TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
 
 object HostConfigOperation extends Enumeration {
@@ -100,7 +103,7 @@ object VirtualToPhysicalMapper extends Referenceable {
                             members + change.hostConfig
                         case HostConfigOperation.Deleted =>
                             members - change.hostConfig
-                    }
+                      }
         )
     }
 
@@ -213,7 +216,8 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
         }
     }
 
-    def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean) {
+    def addSubscriber(deviceId: UUID, subscriber: ActorRef, updates: Boolean,
+                      createHandlerIfNeeded: Boolean) {
         (subscriberStatus(deviceId, subscriber), updates, retrieve(deviceId))
             match {
                 case (None, _, None) =>
@@ -233,20 +237,26 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
                 case _ => // do nothing
             }
 
-        ensureHandler(deviceId)
+        if (createHandlerIfNeeded)
+            ensureHandler(deviceId)
     }
 
-    def updateAndNotifySubscribers(deviceId: UUID, device: T) {
-        updateAndNotifySubscribers(deviceId, device, device)
+    def updateAndNotifySubscribers(deviceId: UUID, device: T,
+                                   createHandlerIfNeeded: Boolean) {
+        updateAndNotifySubscribers(deviceId, device, device, createHandlerIfNeeded)
     }
 
-    def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef) {
+    def updateAndNotifySubscribers(deviceId: UUID, device: T, message: AnyRef,
+                                   createHandlerIfNeeded: Boolean) {
         update(deviceId, device)
-        notifySubscribers(deviceId, message)
+        notifySubscribers(deviceId, message, createHandlerIfNeeded)
     }
 
-    def notifySubscribers(deviceId: UUID, message: AnyRef) {
-        ensureHandler(deviceId)
+    def notifySubscribers(deviceId: UUID, message: AnyRef,
+                          createHandlerIfNeeded: Boolean) {
+
+        if (createHandlerIfNeeded)
+            ensureHandler(deviceId)
 
         for {
             source <- List(deviceSubscribers, deviceOneShotSubscribers)
@@ -257,8 +267,11 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
         deviceOneShotSubscribers.remove(deviceId)
     }
 
+    def hasSubscribers(id: UUID): Boolean = !deviceSubscribers(id).isEmpty
+    def removeAllSubscriptions(id: UUID) = deviceSubscribers.remove(id)
+
     @inline
-    private[this] def ensureHandler(deviceId: UUID) {
+    protected[topology] def ensureHandler(deviceId: UUID) {
         if (!deviceHandlers.contains(deviceId)) {
             handler.handle(deviceId)
             deviceHandlers.add(deviceId)
@@ -310,7 +323,7 @@ trait DeviceManagement {
  * </li>
  * </ul>
  */
-abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPath {
+abstract class VirtualToPhysicalMapperBase extends VTPMRedirector with ActorLogWithoutPath {
 
     val cluster: DataClient
 
@@ -319,10 +332,10 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
 
     override def logSource = "org.midonet.devices.underlay"
 
-    def notifyLocalPortActive(vportID: UUID, active: Boolean) : Unit
+    def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
 
-    def makeHostManager(actor: ActorRef) : DeviceHandler
-    def makeTunnelZoneManager(actor: ActorRef) : DeviceHandler
+    def makeHostManager(actor: ActorRef): DeviceHandler
+    def makeTunnelZoneManager(actor: ActorRef): DeviceHandler
 
     private lazy val hostsMgr =
         new DeviceHandlersManager[Host](
@@ -337,7 +350,6 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
             DeviceCaches.tunnelZone,
             DeviceCaches.putTunnelZone
         )
-
 
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
@@ -360,45 +372,110 @@ abstract class VirtualToPhysicalMapperBase extends Actor with ActorLogWithoutPat
         context actorOf (props, "VxLanPortMapper")
     }
 
-    override def receive = {
-        case HostRequest(hostId, updates) =>
-            hostsMgr.addSubscriber(hostId, sender, updates)
+    protected override def deviceUpdated(update: AnyRef, createHandlerIfNeeded: Boolean)
+    : Unit = update match {
 
-        case host: Host =>
-            hostsMgr.updateAndNotifySubscribers(host.id, host)
-
-        case HostUnsubscribe(hostId) =>
-            hostsMgr.removeSubscriber(hostId, sender)
-
-        case TunnelZoneRequest(zoneId) =>
-            tunnelZonesMgr.addSubscriber(zoneId, sender, updates = true)
-
-        case TunnelZoneUnsubscribe(zoneId) =>
-            tunnelZonesMgr.removeSubscriber(zoneId, sender)
-
+        /* If this is the first time we get a NewTunnelZone or a ZoneChanged
+         * for this tunnel zone we will send a complete list of members to our
+         * observers. From the second time on we will just send diffs
+         * and forward a ZoneChanged message to the observers so that
+         * they can update the list of members they stored. */
+        case tunnelZone: NewTunnelZone =>
+            val newMembers = tunnelZone.toZoneMembers
+            val oldZone = DeviceCaches.tunnelZone(tunnelZone.id)
+                .getOrElse(ZoneMembers(tunnelZone.id, newMembers.zoneType))
+            val msg = if (DeviceCaches.tunnelZone(tunnelZone.id).isEmpty) newMembers
+                      else tunnelZone.diffMembers(oldZone)
+            tunnelZonesMgr.updateAndNotifySubscribers(tunnelZone.id, newMembers,
+                                                      msg, createHandlerIfNeeded)
         case zoneChanged: ZoneChanged =>
-            /* If this is the first time we get a ZoneChanged for this
-             * tunnel zone we will send a complete list of members to our
-             * observers. From the second time on we will just send diffs
-             * and forward a ZoneChanged message to the observers so that
-             * they can update the list of members they stored. */
-
             val zId = zoneChanged.zone
             val zoneType = zoneChanged.zoneType
             val oldZone = DeviceCaches.tunnelZone(zId)
-                                      .getOrElse(ZoneMembers(zId, zoneType))
+                .getOrElse(ZoneMembers(zId, zoneType))
             val newMembers = oldZone.change(zoneChanged)
             val msg = if (DeviceCaches.tunnelZone(zId).isEmpty) newMembers
                       else zoneChanged
+            tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg,
+                                                      createHandlerIfNeeded)
 
-            tunnelZonesMgr.updateAndNotifySubscribers(zId, newMembers, msg)
+        case host: Host =>
+            hostsMgr.updateAndNotifySubscribers(host.id, host, createHandlerIfNeeded)
+
+        case _ => throw new IllegalArgumentException("Unsupported update in VTPM"
+                                                     + s" $update")
+    }
+
+    protected override def deviceRequested(request: VTPMRequest[_],
+                                           createHandlerIfNeeded: Boolean)
+        : Unit = request match {
+
+            case HostRequest(hostId, updates) =>
+                hostsMgr.addSubscriber(hostId, sender, updates, createHandlerIfNeeded)
+            case TunnelZoneRequest(zoneId) =>
+                tunnelZonesMgr.addSubscriber(zoneId, sender, updates=true,
+                                             createHandlerIfNeeded)
+            case _ => throw new IllegalArgumentException("Unsupported request in VTPM:"
+                                                         + s" $request")
+    }
+
+    protected override def unsubscribeClient(unsubscription: AnyRef, sender: ActorRef)
+        : Unit = unsubscription match {
+
+        case HostUnsubscribe(hostId) =>
+            hostsMgr.removeSubscriber(hostId, sender)
+        case TunnelZoneUnsubscribe(zoneId) =>
+            tunnelZonesMgr.removeSubscriber(zoneId, sender)
+        case _ => throw new IllegalArgumentException("Unsupported unsubscription in VTPM:"
+                                                     + s" $unsubscription")
+    }
+
+    protected override def hasSubscribers[T <: Device](id: UUID)
+                                                      (implicit t: ClassTag[T])
+    : Boolean = {
+        if (t.runtimeClass == classOf[NewTunnelZone] ||
+            t.runtimeClass == classOf[TunnelZone])
+            tunnelZonesMgr.hasSubscribers(id)
+        else if (t.runtimeClass == classOf[Host])
+            hostsMgr.hasSubscribers(id)
+        else
+            throw new IllegalArgumentException("The VTPM does not support"
+                                               + s" devices of type $t")
+    }
+
+    protected override def removeAllClientSubscriptions[T <: Device](deviceId: UUID)
+                                                                    (implicit t: ClassTag[T]) = {
+        if (t.runtimeClass == classOf[TunnelZone])
+            tunnelZonesMgr.removeAllSubscriptions(deviceId)
+        else if (t.runtimeClass == classOf[Host])
+            hostsMgr.removeAllSubscriptions(deviceId)
+        else
+            throw new IllegalArgumentException("The VTPM does not support"
+                                               + s" devices of type $t")
+    }
+
+    override def receive = super.receive orElse {
+        case request: VTPMRequest[_] =>
+            deviceRequested(request, createHandlerIfNeeded=true)
+
+        case host: Host =>
+            deviceUpdated(host, createHandlerIfNeeded=true)
+
+        case zoneChanged: ZoneChanged =>
+            deviceUpdated(zoneChanged, createHandlerIfNeeded=true)
+
+        case HostUnsubscribe(hostId) =>
+            unsubscribeClient(HostUnsubscribe(hostId), sender)
+
+        case TunnelZoneUnsubscribe(zoneId) =>
+            unsubscribeClient(TunnelZoneUnsubscribe(zoneId), sender)
 
         case msg@LocalPortActive(id, active) =>
             notifyLocalPortActive(id, active)
             context.system.eventStream.publish(msg)
 
         case value =>
-            log.warn("Unknown message: " + value)
+            log.warn("Unknown message: {}" + value)
     }
 }
 
