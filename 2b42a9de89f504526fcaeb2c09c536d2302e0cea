@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_8a48a388",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-11T19:52:00Z",
+      "side": 1,
+      "message": "this seems to break the build",
+      "range": {
+        "startLine": 6,
+        "startChar": 28,
+        "endLine": 6,
+        "endChar": 31
+      },
+      "revId": "2b42a9de89f504526fcaeb2c09c536d2302e0cea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
