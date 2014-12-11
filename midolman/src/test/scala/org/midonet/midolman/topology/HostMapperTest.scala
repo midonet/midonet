@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -50,10 +51,16 @@ class HostMapperTest extends MidolmanSpec
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
-        List(classOf[Host], classOf[TunnelZone]).foreach(clazz =>
-            store.registerClass(clazz)
-        )
         dataClient = clusterDataClient()
+    }
+
+    override protected def fillConfig(config: HierarchicalConfiguration) = {
+        super.fillConfig(config)
+
+        // Tests to cover the cases when the new cluster is disabled are
+        // present in VirtualToPhysicalMapperTest
+        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config
     }
 
     feature("A host should come with its tunnel zones membership") {
