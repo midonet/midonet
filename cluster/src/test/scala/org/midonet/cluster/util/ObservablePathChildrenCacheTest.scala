@@ -252,7 +252,7 @@ class ObservablePathChildrenCacheTest extends Suite
 
         // Let the OPCC catch up to the initial state
         var maxRetries = 20
-        while (opcc.allChildren().size < nInitial) {
+        while (opcc.allChildren.size < nInitial) {
             if (maxRetries <= 0) {
                 fail("Timeout waiting for storage preseeding")
             }
@@ -308,7 +308,7 @@ class ObservablePathChildrenCacheTest extends Suite
         }
 
         maxRetries = 20
-        while (opcc.allChildren().size < nTotal) {
+        while (opcc.allChildren.size < nTotal) {
             if (maxRetries <= 0) {
                 fail("Timeout waiting for child nodes to be created")
             }
@@ -319,7 +319,7 @@ class ObservablePathChildrenCacheTest extends Suite
         opcc.allChildren should have size nTotal
 
         // Extract all elements present in the cache
-        val children = opcc.allChildren()
+        val children = opcc.allChildren
                            .map(childData => new String(childData.getData))
 
         children should have size nTotal
