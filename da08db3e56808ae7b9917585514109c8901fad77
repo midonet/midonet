@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_6d2759b7",
+        "filename": "midolman/src/main/java/org/midonet/cluster/ClusterPortsManager.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-11T21:16:32Z",
+      "side": 1,
+      "message": "As far as I read, this this a setter method for a Scala var, as seen from Java. I shall add new methods to increase readability.",
+      "parentUuid": "fafc7978_2a21b7fb",
+      "range": {
+        "startLine": 109,
+        "startChar": 32,
+        "endLine": 109,
+        "endChar": 35
+      },
+      "revId": "da08db3e56808ae7b9917585514109c8901fad77",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_1c4a4880",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 2
