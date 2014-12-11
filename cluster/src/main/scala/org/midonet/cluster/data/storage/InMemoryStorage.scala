@@ -37,6 +37,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.{Key, copyObj}
+import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
@@ -208,6 +209,8 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             classes.get(thisClass).create(thisId, obj)
         }
 
+        def create(obj: Obj, owner: ObjId, overwrite: Boolean): Unit = ???
+
         def update(obj: Obj, validator: UpdateValidator[Obj]): Unit = {
             val thisClass = obj.getClass
             assert(isRegistered(thisClass))
@@ -219,7 +222,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             val newThisObj = if (null == validator) obj else {
                 val modified = validator.validate(oldThisObj, obj)
                 val thisObj = if (modified != null) modified else obj
-                if (getObjectId(thisObj) != thisId) {
+                if (!getObjectId(thisObj).equals(thisId)) {
                     throw new IllegalArgumentException(
                         "Modifying newObj.id in UpdateValidator.validate() " +
                         "is not supported.")
@@ -239,6 +242,9 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             classes.get(thisClass).asInstanceOf[ClassNode[Obj]]
                 .update(thisId, newThisObj)
         }
+
+        def update(obj: Obj, owner: ObjId, overwrite: Boolean,
+                   validator: UpdateValidator[Obj]): Unit = ???
 
         /* If ignoresNeo (ignores deletion on non-existing objects) is true,
          * the method silently returns if the specified object does not exist /
@@ -273,6 +279,8 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             classes.get(clazz).delete(id)
         }
 
+        def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit = ???
+
         private def addBackreference(binding: FieldBinding,
                                      thisId: ObjId, thatId: ObjId): Unit = {
             get(binding.getReferencedClass, thatId) foreach { thatObj =>
@@ -298,7 +306,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
     private val lock = new ReentrantReadWriteLock()
 
-    private val classToIdGetter = new mutable.HashMap[Class[_], IdGetter]()
+    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     override def create(obj: Obj): Unit = multi(List(CreateOp(obj)))
 
@@ -354,8 +362,14 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
 
         ops.foreach {
             case CreateOp(obj) => tr.create(obj)
+            case CreateWithOwnerOp(obj, owner) => tr.create(obj, owner)
             case UpdateOp(obj, validator) => tr.update(obj, validator)
+            case UpdateWithOwnerOp(obj, owner, overwrite, validator) =>
+                tr.update(obj, owner, overwrite, validator)
             case DeleteOp(clazz, id, ignores) => tr.delete(clazz, id, ignores)
+            case DeleteWithOwnerOp(clazz, id, owner) =>
+                tr.delete(clazz, id, owner)
+            case _ =>
         }
     }
 
@@ -376,13 +390,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     }
 
     override def registerClass(clazz: Class[_]): Unit = {
-        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
-            case c: ClassNode[_] => throw new IllegalStateException(
-                s"Class $clazz is already registered.")
-            case _ =>
-        }
-
-        classToIdGetter += clazz -> makeIdGetter(clazz)
+        registerClassInternal(clazz, OwnershipType.Shared)
     }
 
     override def isRegistered(clazz: Class[_]): Boolean = {
@@ -390,9 +398,9 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     }
 
     override def declareBinding(leftClass: Class[_], leftFieldName: String,
-                                onDeleteLeft: DeleteAction,
-                                rightClass: Class[_], rightFieldName: String,
-                                onDeleteRight: DeleteAction): Unit = {
+                                     onDeleteLeft: DeleteAction,
+                                     rightClass: Class[_], rightFieldName: String,
+                                     onDeleteRight: DeleteAction): Unit = {
         assert(!built)
         assert(isRegistered(leftClass))
         assert(isRegistered(rightClass))
@@ -430,7 +438,18 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             "Data operation received before call to build().")
     }
 
-    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
+    private def registerClassInternal(clazz: Class[_],
+                                      ownershipType: OwnershipType): Unit = {
+        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
+            case c: ClassNode[_] => throw new IllegalStateException(
+                s"Class $clazz is already registered.")
+            case _ =>
+        }
+
+        classInfo += clazz -> makeInfo(clazz, ownershipType)
+    }
+
+    private def getObjectId(obj: Obj) = classInfo(obj.getClass).idOf(obj)
 }
 
 object InMemoryStorage {
