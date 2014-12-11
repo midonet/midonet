@@ -310,7 +310,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
 
 }
 /**
- * The ObservablePathChildrenCache provides a wrapper around a ordinary
+ * The ObservablePathChildrenCache provides a wrapper around an ordinary
  * Curator's PathChildrenCache, exposing an API that allows retrieving an
  * Observable stream that emits Observables for each child node that is found
  * under the parent node. The child observables will emit the state of their
@@ -337,7 +337,7 @@ class ObservablePathChildrenCache(onSubscribe: OnSubscribeToPathChildren)
     def observableChild(path: String) = onSubscribe.observableChild(path)
 
     /** Returns a view of all children currently known to the cache */
-    def allChildren(): Seq[ChildData] = onSubscribe.allChildren
+    def allChildren: Seq[ChildData] = onSubscribe.allChildren
 }
 
 /** Signals that the parent node has been deleted */
