@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_28e8a2b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-11T15:01:09Z",
+      "side": 1,
+      "message": "With the Store now exposing an observable, shouldn\u0027t this be:\n\n  store.observable(classOf[TunnelZone], id).map(...)\n\n?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "9ff5f6e65ff9bc0a4174931cae000c9f973fe853",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
