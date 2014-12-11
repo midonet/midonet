@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_aae807b5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/State.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-11T17:53:49Z",
+      "side": 1,
+      "message": "seems like a trait, no?",
+      "revId": "cef61848cf5cce35aad508ccaf8c4d0a16e1c534",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
