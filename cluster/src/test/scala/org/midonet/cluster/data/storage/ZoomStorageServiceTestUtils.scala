@@ -17,17 +17,16 @@ package org.midonet.cluster.data.storage
 
 import java.util.{List => JList}
 
-import org.midonet.cluster.data.{ObjId, Obj}
-
 import scala.concurrent.Future
 
 import org.apache.curator.utils.EnsurePath
 import org.apache.zookeeper.KeeperException
 import org.scalatest.Suite
 
-import rx.{Observable, Observer, Subscription}
+import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.models.Topology.{Chain, Network, Port, Router, Rule}
 import org.midonet.cluster.util.CuratorTestFramework
 
@@ -46,7 +45,7 @@ class ZoomBinding(val leftClass: Class[_],
  * A trait implementing the common API for testing ZOOM-based Storage Service.
  */
 trait ZoomStorageTester extends StorageTester
-                               with CuratorTestFramework { this: Suite =>
+                                with CuratorTestFramework { this: Suite =>
     var zoom: ZookeeperObjectMapper = null
     val deviceClasses: Array[Class[_]] =
         Array(classOf[Network], classOf[Chain], classOf[Port], classOf[Router],
@@ -80,6 +79,14 @@ trait ZoomStorageTester extends StorageTester
         zoom.create(o)
     }
 
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def create(obj: Obj, owner: ObjId): Unit = {
+        zoom.create(obj, owner)
+    }
+
     @throws(classOf[NotFoundException])
     @throws(classOf[ReferenceConflictException])
     override def update(o: Obj) {
@@ -92,10 +99,25 @@ trait ZoomStorageTester extends StorageTester
         zoom.update(o)
     }
 
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def update[T <: Obj](obj: T, owner: ObjId, overwriteOwner: Boolean,
+                         validator: UpdateValidator[T]): Unit = {
+        zoom.update(obj, owner, overwriteOwner, validator)
+    }
+
     @throws(classOf[NotFoundException])
     @throws(classOf[ObjectReferencedException])
     override def delete(clazz: Class[_], id: ObjId) {
         zoom.delete(clazz, id)
+    }
+
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit = {
+        zoom.delete(clazz, id, owner)
     }
 
     @throws(classOf[ObjectReferencedException])
@@ -153,7 +175,9 @@ trait ZoomStorageTester extends StorageTester
         zoom.observable(clazz)
     }
 
-    override def isRegistered(c: Class[_]): Boolean = zoom.isRegistered(c)
+    override def isRegistered(c: Class[_]): Boolean = {
+        zoom.isRegistered(c)
+    }
 
     override def registerClass(c: Class[_]): Unit = zoom.registerClass(c)
 
@@ -197,9 +221,9 @@ trait ZoomStorageTester extends StorageTester
     }
 
     override def declareBinding(leftClass: Class[_], leftFieldName: String,
-                       onDeleteLeft: DeleteAction,
-                       rightClass: Class[_], rightFieldName: String,
-                       onDeleteRight: DeleteAction): Unit = {
+                                onDeleteLeft: DeleteAction,
+                                rightClass: Class[_], rightFieldName: String,
+                                onDeleteRight: DeleteAction): Unit = {
         zoom.declareBinding(leftClass, leftFieldName, onDeleteLeft,
                             rightClass, rightFieldName, onDeleteRight)
     }
