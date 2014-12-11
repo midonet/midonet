@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_6daf5ce4",
+        "filename": "midolman/src/main/java/org/midonet/midolman/config/MidolmanConfig.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-11T10:11:11Z",
+      "side": 1,
+      "message": "getNewClusterEnabled()? getClusterStorage sounds like it\u0027s going to return the storage itself.",
+      "range": {
+        "startLine": 100,
+        "startChar": 19,
+        "endLine": 100,
+        "endChar": 36
+      },
+      "revId": "1759eee499e9289bb325c779aadf7bc2ecbe49b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ed822c51",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyRedirector.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-11T10:11:11Z",
+      "side": 1,
+      "message": "why not just having a boolean flag telling us if this is a one time subscription (when update is false)? When on next is called we check if this is true, in which case we unsubscribe.",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 57
+      },
+      "revId": "1759eee499e9289bb325c779aadf7bc2ecbe49b4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
