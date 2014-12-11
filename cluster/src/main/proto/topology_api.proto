@@ -3,7 +3,7 @@
 import "commons.proto";
 import "topology.proto";
 
-package org.midonet.cluster.models;
+package org.midonet.cluster.rpc;
 
 option java_package = "org.midonet.cluster.rpc";
 option java_outer_classname = "Commands";
