@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_72257bc1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-11T09:36:17Z",
+      "side": 1,
+      "message": "This should be replaced by something like:\n\nPromise[T]().failure(new NotFoundException(clazz, id)).future\n\nto make it consistent with the ZoomObjectMapper behaviour. \nBut you may change that in another patch (I was including this in the netty patch, as I needed it for testing)",
+      "range": {
+        "startLine": 113,
+        "startChar": 29,
+        "endLine": 113,
+        "endChar": 67
+      },
+      "revId": "abee18385bf3aa43caf3c812ec44875b680f55b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_12734fea",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 20
