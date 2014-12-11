@@ -43,9 +43,9 @@ import org.junit.Test;
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
 import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.ClassAwaitableObserver;
-import org.midonet.cluster.util.NodeCacheOrphaned;
 import org.midonet.util.reactivex.AwaitableObserver;
 
+import static org.apache.zookeeper.KeeperException.*;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
@@ -291,7 +291,7 @@ public class ZookeeperObjectMapperTest {
         // Clear ZK data from last test.
         try {
             client.delete().deletingChildrenIfNeeded().forPath(ZK_ROOT_DIR);
-        } catch (KeeperException.NoNodeException ex) {
+        } catch (NoNodeException ex) {
             // Won't exist for first test.
         }
 
@@ -935,7 +935,7 @@ public class ZookeeperObjectMapperTest {
         AwaitableObserver<PojoChain> sub = subscribe(PojoChain.class, id, 1);
         sub.await(ONE_SECOND, 0);
         assertFalse(sub.getOnErrorEvents().isEmpty());
-        assertTrue(sub.getOnErrorEvents().get(0) instanceof NodeCacheOrphaned);
+        assertTrue(sub.getOnErrorEvents().get(0) instanceof NoNodeException);
         assertTrue(sub.getOnNextEvents().isEmpty());
     }
 
