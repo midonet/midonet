@@ -108,11 +108,13 @@ trait TopologyBuilder {
 
 
     protected def createTunnelZone(id: UUID = UUID.randomUUID,
+                                   tzType: TunnelZone.Type,
                                    name: String = "tunnel-zone",
                                    hosts: Map[UUID, IPAddr] = Map.empty)
     : TunnelZone = {
         TunnelZone.newBuilder
             .setId(id.asProto)
+            .setType(tzType)
             .setName(name)
             .addAllHosts(hosts.map(e => HostToIp.newBuilder
             .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
