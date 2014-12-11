@@ -17,9 +17,8 @@ package org.midonet.cluster.util
 
 import java.util.concurrent._
 
-import rx.internal.operators.OperatorDoOnUnsubscribe
-
-import org.midonet.util.functors._
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
@@ -27,11 +26,8 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
-import rx.{Subscriber, Observable}
 import rx.observers.{TestObserver, TestSubscriber}
-
-import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+import rx.{Observable, Subscriber}
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
@@ -108,7 +104,7 @@ class ObservablePathChildrenCacheTest extends Suite
     }
 
     /** Verifies that an ObservablePathChildrenCache completes the observable
-      * when close() is invoked. */
+      * when close() is invoked, as well as the child observables. */
     def testCloseCompletesObservable() {
         val nItems = 10
         val c = new CountDownLatch(10)
@@ -126,6 +122,20 @@ class ObservablePathChildrenCacheTest extends Suite
         ts.getOnNextEvents should have size nItems
         ts.getOnErrorEvents shouldBe empty
         ts.getOnCompletedEvents should have size 1
+
+        // Review all the emitted observables and ensure that they are all
+        // completed
+        ts.getOnNextEvents.map ( o => {
+            val latch = new CountDownLatch(1)
+            o.subscribe(new Subscriber[ChildData] {
+                override def onCompleted(): Unit = { latch.countDown() }
+                override def onError(e: Throwable): Unit = fail("Unexpected onError")
+                override def onNext(t: ChildData): Unit = fail("Unexpected onNext")
+            })
+            latch
+        }).foreach {
+            _.getCount shouldBe 0
+        }
     }
 
     /* Ensures that deleted children get their observables completed */

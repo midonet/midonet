@@ -477,9 +477,7 @@ class ZookeeperObjectMapper(
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
 
-        // Add the instance cache map last, since we use this to verify
-        // registration.
-        // TODO: Need to close all instance subscriptions.
+        // Add the instance map last, since it's used to verify registration
         instanceCaches(clazz) =
             new TrieMap[String, InstanceSubscriptionCache[_]]
     }
@@ -687,8 +685,8 @@ class ZookeeperObjectMapper(
         }
     }
 
-    override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]):
-            Seq[Future[T]] = {
+    override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId])
+    : Seq[Future[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
         ids.map { id => get(clazz, id) }
@@ -783,7 +781,10 @@ class ZookeeperObjectMapper(
         updateVersionNumber()
         try {
             simpleNameToClass.clear()
-            // TODO: Need to close all class subscriptions.
+            instanceCaches.values.foreach { _.values.foreach { _.close() } }
+            instanceCaches.clear()
+
+            classCaches.values.foreach { _.close() }
             classCaches.clear()
             for (c <- classToIdGetter.keySet) registerClassInternal(c)
         } catch {
@@ -810,8 +811,8 @@ class ZookeeperObjectMapper(
      *         corresponding entry does not exist, None is returned.
      */
     @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T],
-                                                id: ObjId): Option[Int] = {
+    protected[storage] def subscriptionCount[T](clazz: Class[T], id: ObjId)
+    : Option[Int] = {
         instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
     }
 
@@ -833,6 +834,12 @@ class ZookeeperObjectMapper(
         }).observable.asInstanceOf[Observable[T]]
     }
 
+    /**
+     * Refer to the interface documentation for functionality.
+     *
+     * This implementation involves a BLOCKING call when the observable is first
+     * created, as we initialize the the connection to ZK.
+     */
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -843,8 +850,7 @@ class ZookeeperObjectMapper(
             }
             val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
                                                 onLastUnsubscribe)
-            classCaches.putIfAbsent(clazz, cc)
-            classCaches.get(clazz).orNull
+            classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
 

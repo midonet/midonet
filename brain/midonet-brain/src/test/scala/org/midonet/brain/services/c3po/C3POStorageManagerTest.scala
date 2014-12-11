@@ -108,7 +108,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         storage = mock(classOf[Storage])
         storageManager = new C3POStorageManager(storage)
         val statePromise = Promise[StorageManagerState]()
-        statePromise.success(storageManagerState(2))
+        statePromise.success(storageManagerState
+                                 (2))
         when(storage.get(classOf[StorageManagerState], stateId))
                 .thenReturn(statePromise.future)
         storageManager.init()
