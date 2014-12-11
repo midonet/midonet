@@ -29,11 +29,11 @@ import scala.concurrent.{Future, Promise}
 import com.google.common.collect.ArrayListMultimap
 import com.google.inject.Inject
 import com.google.protobuf.Message
-
+import rx.Observable.OnSubscribe
 import rx.Scheduler.Worker
+import rx._
 import rx.functions.Action0
 import rx.subjects.{BehaviorSubject, PublishSubject}
-import rx.{Observable, Observer, Scheduler, Subscription}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.{Key, copyObj}
@@ -41,7 +41,6 @@ import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.functors.makeRunnable
 
 /**
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
@@ -87,8 +86,8 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     private class ClassNode[T](val clazz: Class[T]) {
 
         private val instances = new TrieMap[String, InstanceNode[T]]()
-        private val stream = PublishSubject.create[Observable[T]]()
         private val lock = new ReentrantReadWriteLock()
+        private val stream = PublishSubject.create[Observable[T]]()
 
         def create(id: ObjId, obj: Obj): Unit = withWriteLock(lock) {
             val node = new InstanceNode(clazz, obj.asInstanceOf[T])
@@ -131,21 +130,22 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             }
         }
 
-        def subscribe(id: ObjId, obs: Observer[_ >: T]): Subscription = {
+        def observable(id: ObjId): Observable[T] = {
             instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.subscribe(obs)
+                case Some(node) => node.observable
                 case None => Observable.error(new NotFoundException(clazz, id))
-                                       .subscribe(obs)
             }
         }
 
-        def subscribeAll(obs: Observer[_ >: Observable[T]]): Subscription =
-                withReadLock(lock) {
-            instances.values.foreach(node => reactor.submit( makeRunnable {
-                obs.onNext(node.observable)
-            }))
-            stream.subscribeOn(scheduler).subscribe(obs)
-        }
+        def observable(): Observable[Observable[T]] = Observable.create(
+            new OnSubscribe[Observable[T]] {
+                override def call(sub: Subscriber[_ >: Observable[T]]): Unit =
+                    withReadLock(lock) {
+                        instances.values.foreach { i => sub.onNext(i.observable) }
+                        sub.add(stream unsafeSubscribe sub)
+                    }
+            }
+        )
     }
 
     private class InstanceNode[T](val clazz: Class[T],
@@ -361,22 +361,16 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
 
     override def flush(): Unit = throw new UnsupportedOperationException
 
-    override def subscribe[T](clazz: Class[T], id: ObjId,
-                              obs: Observer[_ >: T]): Subscription =
-            withReadLock(lock) {
+    override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
-
-        classes.get(clazz).asInstanceOf[ClassNode[T]].subscribe(id, obs)
+        classes.get(clazz).asInstanceOf[ClassNode[T]].observable(id)
     }
 
-    override def subscribeAll[T](clazz: Class[T],
-                                 obs: Observer[_ >: Observable[T]]):
-            Subscription = withReadLock(lock) {
+    override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
-
-        classes.get(clazz).asInstanceOf[ClassNode[T]].subscribeAll(obs)
+        classes.get(clazz).asInstanceOf[ClassNode[T]].observable()
     }
 
     override def registerClass(clazz: Class[_]): Unit = {
