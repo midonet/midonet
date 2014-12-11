@@ -45,8 +45,6 @@ class HostConversionTest extends FeatureSpec with Matchers {
             val proto = newProto
             val zoomObj = ZoomConvert.fromProto(proto, classOf[Host])
 
-            zoomObj should not be null
-            zoomObj.deviceTag should be(deviceTag(proto))
             assertEquals(proto, zoomObj)
         }
 
@@ -54,7 +52,6 @@ class HostConversionTest extends FeatureSpec with Matchers {
             val zoomObj = newZoomObj
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.Host])
 
-            proto should not be null
             assertEquals(proto, zoomObj)
         }
     }

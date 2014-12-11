@@ -25,6 +25,7 @@ import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddrConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.IPAddr
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -52,7 +53,7 @@ class PortInterfaceConverter extends MapConverter[UUID, String, PortToInterface]
 }
 
 @ZoomClass(clazz = classOf[Topology.Host])
-class Host extends ZoomObject {
+class Host extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -74,13 +75,4 @@ class Host extends ZoomObject {
 
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = _
-
-    private var _deviceTag: FlowTag = _
-
-    override def afterFromProto(): Unit = {
-        _deviceTag = FlowTagger.tagForDevice(id)
-        super.afterFromProto()
-    }
-
-    def deviceTag = _deviceTag
 }

@@ -54,20 +54,20 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
 
         handler.subscriberStatus(id, self) should be (None)
 
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
         handler.subscriberStatus(id, self) should be (Some(false))
 
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         handler.subscriberStatus(id, self) should be (Some(true))
 
         handler.removeSubscriber(id, self)
         handler.subscriberStatus(id, self) should be (None)
 
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         handler.subscriberStatus(id, self) should be (Some(true))
 
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         handler.subscriberStatus(id, self) should be (Some(false))
 
         handler.removeSubscriber(id, self)
@@ -79,21 +79,21 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self and expect handle msg
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
 
         // notify subscribers and expect one msg
-        handler.notifySubscribers(id, "whatever")
+        handler.notifySubscribers(id, "whatever", createHandlerIfNeeded=true)
         expectMsg("whatever")
 
         // notify subscribers again but don't expect anything
-        handler.notifySubscribers(id, "somethingelse")
+        handler.notifySubscribers(id, "somethingelse", createHandlerIfNeeded=true)
 
         assertNoMsg
 
         // resubcribe, notify, and expect a msg
-        handler.addSubscriber(id, self, false)
-        handler.notifySubscribers(id, "yetonemsg")
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
+        handler.notifySubscribers(id, "yetonemsg", createHandlerIfNeeded=true)
         expectMsg("yetonemsg")
         assertNoMsg
     }
@@ -103,12 +103,12 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self for updates and expect handle msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
 
         // notify subscribers and expect all msg
         val msgs = List("foo1","foo2","foo3")
-        for (m <- msgs) { handler.notifySubscribers(id, m) }
+        for (m <- msgs) { handler.notifySubscribers(id, m, createHandlerIfNeeded=true) }
         for (m <- msgs) { expectMsg(m) }
         assertNoMsg
     }
@@ -121,27 +121,27 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         handler.removeSubscriber(id, self)
 
         // register self and expect handle msg
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
 
         // unregister, notify, dont get msg
         handler.removeSubscriber(id, self)
-        handler.notifySubscribers(id, "wontreceive")
+        handler.notifySubscribers(id, "wontreceive", createHandlerIfNeeded=true)
         assertNoMsg
 
         // reregister with update, next msg should be from next notify
-        handler.addSubscriber(id, self, true)
-        handler.notifySubscribers(id, "willreceive")
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
+        handler.notifySubscribers(id, "willreceive", createHandlerIfNeeded=true)
         expectMsg("willreceive")
 
         // unregister, notify, dont get msg
         handler.removeSubscriber(id, self)
-        handler.notifySubscribers(id, "wontreceive2")
+        handler.notifySubscribers(id, "wontreceive2", createHandlerIfNeeded=true)
         assertNoMsg
 
         // rereregister with update, next msg should be from next notify
-        handler.addSubscriber(id, self, true)
-        handler.notifySubscribers(id, "willreceive2")
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
+        handler.notifySubscribers(id, "willreceive2", createHandlerIfNeeded=true)
         expectMsg("willreceive2")
         assertNoMsg
     }
@@ -151,17 +151,17 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // register self as one shot and expect handle msg
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
 
         assertNoMsg
 
         // changfe subscription to update=true
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
 
         // notify on id and expect all msg only once
         val msgs = List("foo1","foo2","foo3")
-        for (m <- msgs) { handler.notifySubscribers(id, m) }
+        for (m <- msgs) { handler.notifySubscribers(id, m, createHandlerIfNeeded=true) }
         for (m <- msgs) { expectMsg(m) }
         assertNoMsg
     }
@@ -171,15 +171,15 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         val handler = new DeviceHandlersManager[String](this, devices.get, devices.put)
 
         // subscribe with update and expect handle msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         expectMsg(HandleMsg(id))
 
         // change subsciption to one shot
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
 
         // notify on id and expect only first msg once
         val msgs = List("foo1","foo2","foo3")
-        for (m <- msgs) { handler.notifySubscribers(id, m) }
+        for (m <- msgs) { handler.notifySubscribers(id, m, createHandlerIfNeeded=true) }
         expectMsg(msgs(0))
         assertNoMsg
     }
@@ -193,11 +193,11 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         expectMsg(HandleMsg(id))
 
         // subscribe with update, receive msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         expectMsg("message1")
 
         // subscribe with update again, don't get msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         assertNoMsg
 
         // update a device, get the msg
@@ -210,16 +210,16 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         assertNoMsg
 
         // resubscribe with update, get msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         expectMsg("message3")
 
         // resubscribe without update, don't get msg
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         assertNoMsg
 
         // send 3 msgs, only receive first one
         val msgs = List("foo1","foo2","foo3")
-        for (m <- msgs) { handler.notifySubscribers(id, m) }
+        for (m <- msgs) { handler.notifySubscribers(id, m, createHandlerIfNeeded=true) }
         expectMsg(msgs(0))
         assertNoMsg
     }
@@ -233,23 +233,29 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
 
         // register self for two different ids
         for (i <- ids) {
-            handler.addSubscriber(i, self, true)
+            handler.addSubscriber(i, self, updates=true, createHandlerIfNeeded=true)
             expectMsg(HandleMsg(i))
         }
 
         // notify on both ids and get both msg
-        for ((i,m) <- ids zip msgs) { handler.notifySubscribers(i, m) }
+        for ((i,m) <- ids zip msgs) {
+            handler.notifySubscribers(i, m, createHandlerIfNeeded=true)
+        }
         for (m <- msgs) { expectMsg(m) }
 
         // unsubscribe from first id, only get msg from second id
         handler.removeSubscriber(ids(0), self)
-        for ((i,m) <- ids zip msgs) { handler.notifySubscribers(i, m + "foo") }
+        for ((i,m) <- ids zip msgs) {
+            handler.notifySubscribers(i, m + "foo", createHandlerIfNeeded=true)
+        }
         expectMsg(msgs(1) + "foo")
         assertNoMsg
 
         // resubscribe, notify and gets both msgs
-        handler.addSubscriber(ids(0), self, true)
-        for ((i,m) <- ids zip msgs) { handler.notifySubscribers(i, m + "bar") }
+        handler.addSubscriber(ids(0), self, updates=true, createHandlerIfNeeded=true)
+        for ((i,m) <- ids zip msgs) {
+            handler.notifySubscribers(i, m + "bar", createHandlerIfNeeded=true)
+        }
         for (m <- msgs) { expectMsg(m + "bar") }
         assertNoMsg
     }
@@ -265,7 +271,7 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         assertNoMsg
 
         // subscribe as one shot, expect the msg
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg("message1")
 
         // reupdate the device
@@ -274,7 +280,7 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         assertNoMsg
 
         // subscribe with updates, expect the msg
-        handler.addSubscriber(id, self, true)
+        handler.addSubscriber(id, self, updates=true, createHandlerIfNeeded=true)
         expectMsg("message2")
 
         assertNoMsg
@@ -290,7 +296,7 @@ class DeviceHandlerTest extends TestKit(ActorSystem("DeviceHandlerTests"))
         assertNoMsg
 
         // resubscribe as oneshot, get last message
-        handler.addSubscriber(id, self, false)
+        handler.addSubscriber(id, self, updates=false, createHandlerIfNeeded=true)
         expectMsg("message4")
         assertNoMsg
     }

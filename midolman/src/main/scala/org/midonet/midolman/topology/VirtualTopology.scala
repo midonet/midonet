@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.concurrent.{Future, Promise}
 import scala.reflect.{ClassTag, classTag}
 
+
 import com.google.inject.Inject
 
 import rx.Observable
@@ -83,6 +84,7 @@ object VirtualTopology extends MidolmanLogging {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
             self.observableOf(id, tag).asFuture
+
         } else {
             Promise[D]().success(device).future
         }
