@@ -17,8 +17,9 @@ package org.midonet.cluster.util
 
 import java.util.concurrent.TimeUnit
 
+import org.apache.curator.RetryPolicy
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
-import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.curator.retry.{RetryNTimes, ExponentialBackoffRetry}
 import org.apache.curator.test.TestingServer
 import org.scalatest.{Suite, BeforeAndAfterAll, BeforeAndAfter}
 
@@ -47,9 +48,10 @@ trait CuratorTestFramework extends BeforeAndAfter
     import CuratorTestFramework.testServers
 
     protected val ZK_ROOT = "/test"
-    protected val retryPolicy = new ExponentialBackoffRetry(1000, 3)
     protected var zk: TestingServer = _
-    protected var curator: CuratorFramework = _
+    implicit protected var curator: CuratorFramework = _
+
+    protected def retryPolicy: RetryPolicy = new RetryNTimes(2, 1000)
 
     override protected def beforeAll(): Unit = {
         super.beforeAll()

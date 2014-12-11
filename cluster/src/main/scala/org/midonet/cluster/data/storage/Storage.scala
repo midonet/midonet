@@ -22,6 +22,7 @@ import scala.concurrent.Future
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
+import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.{Obj, ObjId}
 
 /* Op classes for ZookeeperObjectMapper.multi */
@@ -29,10 +30,17 @@ sealed trait PersistenceOp
 
 case class CreateOp(obj: Obj) extends PersistenceOp
 
-case class UpdateOp[T <: Obj](
-    obj: T, validator: UpdateValidator[T]) extends PersistenceOp {
-    def this(obj: T) = this(obj, null)
-}
+private[storage]
+case class CreateWithOwnerOp(obj: Obj, owner: String)
+    extends PersistenceOp
+
+case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
+    extends PersistenceOp
+
+private[storage]
+case class UpdateWithOwnerOp[T <: Obj](obj: T, owner: String, overwrite: Boolean,
+                                       validator: UpdateValidator[T])
+    extends PersistenceOp
 
 object UpdateOp {
     def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
@@ -40,7 +48,22 @@ object UpdateOp {
 
 case class DeleteOp(clazz: Class[_], id: ObjId,
                     ignoreIfNotExists: Boolean = false)
-        extends PersistenceOp
+    extends PersistenceOp
+
+private[storage]
+case class DeleteWithOwnerOp(clazz: Class[_], id: ObjId, owner: String)
+    extends PersistenceOp
+
+/* Object ownership types */
+object OwnershipType extends Enumeration {
+    class OwnershipType(val isSupported: Boolean,
+                        val isExclusive: Boolean) extends Val
+    val None = new OwnershipType(false, false)
+    val Exclusive = new OwnershipType(true, true)
+    val Shared = new OwnershipType(true, false)
+}
+
+case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
 
 /**
  * Used in update operations to perform validation that depends on knowing the
@@ -137,10 +160,41 @@ trait ReadOnlyStorage {
 }
 
 /**
+ * A trait defining the methods for ownership-based storage.
+ */
+trait StorageWithOwnership {
+
+    def registerClass(clazz: Class[_], ownershipType: OwnershipType): Unit
+
+    @throws[NotFoundException]
+    def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]]
+
+    @throws[NotFoundException]
+    @throws[ObjectExistsException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def create(obj: Obj, owner: ObjId): Unit
+
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def update[T <: Obj](obj: T, owner: ObjId, overwriteOwner: Boolean,
+                         validator: UpdateValidator[T]): Unit
+
+    @throws[NotFoundException]
+    @throws[ReferenceConflictException]
+    @throws[OwnershipConflictException]
+    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit
+
+    def ownersObservable(clazz: Class[_], id: ObjId): Observable[Set[String]]
+
+}
+
+/**
  * A trait that extends the read-only storage service API and provides storage
  * write service API.
  */
-trait Storage extends ReadOnlyStorage {
+trait Storage extends ReadOnlyStorage with StorageWithOwnership {
     /**
      * Synchronous method that persists the specified object to the storage. The
      * object must have a field named "id", and an appropriate unique ID must
