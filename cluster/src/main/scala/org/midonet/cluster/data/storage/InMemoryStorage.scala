@@ -37,6 +37,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.{Key, copyObj}
+import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
@@ -219,7 +220,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             val newThisObj = if (null == validator) obj else {
                 val modified = validator.validate(oldThisObj, obj)
                 val thisObj = if (modified != null) modified else obj
-                if (getObjectId(thisObj) != thisId) {
+                if (!getObjectId(thisObj).equals(thisId)) {
                     throw new IllegalArgumentException(
                         "Modifying newObj.id in UpdateValidator.validate() " +
                         "is not supported.")
@@ -298,7 +299,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
     private val lock = new ReentrantReadWriteLock()
 
-    private val classToIdGetter = new mutable.HashMap[Class[_], IdGetter]()
+    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     override def create(obj: Obj): Unit = multi(List(CreateOp(obj)))
 
@@ -376,13 +377,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     }
 
     override def registerClass(clazz: Class[_]): Unit = {
-        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
-            case c: ClassNode[_] => throw new IllegalStateException(
-                s"Class $clazz is already registered.")
-            case _ =>
-        }
-
-        classToIdGetter += clazz -> makeIdGetter(clazz)
+        registerClassInternal(clazz, OwnershipType.Shared)
     }
 
     override def isRegistered(clazz: Class[_]): Boolean = {
@@ -430,7 +425,18 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             "Data operation received before call to build().")
     }
 
-    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
+    private def registerClassInternal(clazz: Class[_],
+                                      ownershipType: OwnershipType): Unit = {
+        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
+            case c: ClassNode[_] => throw new IllegalStateException(
+                s"Class $clazz is already registered.")
+            case _ =>
+        }
+
+        classInfo += clazz -> makeInfo(clazz, ownershipType)
+    }
+
+    private def getObjectId(obj: Obj) = classInfo(obj.getClass).idOf(obj)
 }
 
 object InMemoryStorage {
