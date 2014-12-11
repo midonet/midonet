@@ -529,10 +529,12 @@ public class ZookeeperObjectMapperTest {
         zom2.registerClass(PojoBridge.class);
         zom2.registerClass(PojoChain.class);
         zom2.registerClass(PojoRule.class);
-        zom2.declareBinding(PojoBridge.class, "inChainId", DeleteAction.CASCADE,
-                           PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
-        zom2.declareBinding(PojoChain.class, "ruleIds", DeleteAction.ERROR,
-                           PojoRule.class, "chainId", DeleteAction.CLEAR);
+        zom2.declareBinding(
+            PojoBridge.class, "inChainId", DeleteAction.CASCADE,
+            PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
+        zom2.declareBinding(
+            PojoChain.class, "ruleIds", DeleteAction.ERROR,
+            PojoRule.class, "chainId", DeleteAction.CLEAR);
         zom2.build();
 
         PojoChain chain = new PojoChain("chain");
