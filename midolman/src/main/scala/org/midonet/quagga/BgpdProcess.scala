@@ -16,12 +16,13 @@
 
 package org.midonet.quagga
 
+import java.util.concurrent.TimeUnit
+
 import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.netlink.AfUnix
-import org.midonet.util.Waiters.sleepBecause
 import org.midonet.util.process.ProcessHelper
 
 class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
@@ -50,7 +51,8 @@ class BgpdProcess(routingHandler: ActorRef, vtyPortNumber: Int,
 
         //TODO(abel) it's not enough to launch the process to send a ready
         //TODO(abel) check if it succeeded
-        sleepBecause("we need bgpd to boot up", 5)
+        log.debug("Sleeping 5 seconds because we need bgpd to boot up")
+        TimeUnit.SECONDS.sleep(5)
 
         if (bgpdProcess != null) {
             log.debug("bgpd process started. Vty: {}", vtyPortNumber)
