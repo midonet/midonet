@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e8d33a36",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/observers/IncrementalSubscriber.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-11T14:02:11Z",
+      "side": 1,
+      "message": "This a subscriber used for unit tests, to test backpressure. I\u0027m not familiar of any subscriber implementation from rxjava that allows this. Should I search for a better name (e.g. BackPressureSubscruber)?",
+      "range": {
+        "startLine": 24,
+        "startChar": 6,
+        "endLine": 24,
+        "endChar": 27
+      },
+      "revId": "5ec8b1df1ac660510ed36013cb0fa872118204e8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
