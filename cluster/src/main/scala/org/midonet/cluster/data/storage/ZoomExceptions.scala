@@ -135,3 +135,20 @@ class ReferenceConflictException private[storage](
         s"$referencedClass with ID $referencedId via the field " +
         s"$referencingFieldName. This field can accommodate only one " +
         "reference.")
+
+/**
+ * Thrown by [[ZookeeperObjectMapper]] when a state object is being acquired
+ * by a new owner, when previously acquired by a different owner.
+ */
+class OwnershipConflictException private[storage](val clazz: String,
+                                                  val id: String,
+                                                  val currentOwner: Set[String],
+                                                  val newOwner: String,
+                                                  msg: String)
+    extends StorageException(msg) {
+    def this(clazz: String, id: String, currentOwner: Set[String], newOwner: String)
+    = this(
+        clazz, id, currentOwner, newOwner,
+        s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
+        s"because it has owner(s) $currentOwner")
+}
