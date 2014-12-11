@@ -23,14 +23,11 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.midonet.util.Timed;
 
 import static org.midonet.util.process.ProcessOutputDrainer.DrainTarget;
 
@@ -201,77 +198,6 @@ public class ProcessHelper {
                 }
             }
         };
-    }
-
-    public static void killProcess(final Process process) {
-        if (process == null)
-            return;
-
-        // try to kill it naturally. If that fails we will try the hard way.
-        process.destroy();
-
-        // wait to see if the process exists for a short period of time
-        if (checkForProcessExit(process))
-            return;
-
-        log.warn(
-            "Process wasn't destroyed by Process.destroy(). We we will " +
-                "try to actually do a kill by hand");
-
-        int pid = getProcessPid(process);
-        if (pid != -1) {
-            log.debug("Found pid. Trying kill SIGTEM {}.", pid);
-
-            // try to send a kill -15 signal first.
-            newProcess("kill -15 " + pid)
-                .setDrainTarget(DrainTargets.noneTarget())
-                .runAndWait();
-
-            if (!checkForProcessExit(process)) {
-                log.warn("Process didn't exit.  Trying: kill SIGKILL {}.",
-                         pid);
-
-                newProcess("kill -9 " + pid)
-                    .setDrainTarget(DrainTargets.noneTarget())
-                    .runAndWait();
-
-                boolean processExited = checkForProcessExit(process);
-                log.debug("Process exit status: {}", processExited);
-            }
-        }
-
-        IOUtils.closeQuietly(process.getInputStream());
-        IOUtils.closeQuietly(process.getErrorStream());
-        IOUtils.closeQuietly(process.getOutputStream());
-    }
-
-    private static boolean checkForProcessExit(final Process process) {
-        try {
-            Timed.ExecutionResult<Integer> waitResult =
-                Timed.newTimedExecution()
-                     .waiting(TimeUnit.MILLISECONDS.toMillis(100))
-                     .until(TimeUnit.SECONDS.toMillis(5))
-                     .execute(new Timed.Execution<Integer>() {
-                         @Override
-                         protected void _runOnce() throws Exception {
-                             try {
-                                 setResult(process.exitValue());
-                                 setCompleted(true);
-                             } catch (IllegalThreadStateException e) {
-                                 // this exception is thrown if the process has not
-                                 // existed yet
-                             }
-                         }
-                     });
-
-            return waitResult.completed();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (Exception e) {
-            log.error("This exception wasn't supposed to be thrown here!", e);
-            return true;
-        }
     }
 
     public static int getProcessPid(Process process) {
