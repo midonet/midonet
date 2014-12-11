@@ -53,6 +53,9 @@ class ZookeeperObjectMapperTests extends Suite
             clazz => zom.registerClass(clazz)
         }
 
+        zom.registerClass(classOf[ExclusiveState], OwnershipType.Exclusive)
+        zom.registerClass(classOf[SharedState], OwnershipType.Shared)
+
         zom.declareBinding(classOf[PojoBridge], "inChainId", CLEAR,
                            classOf[PojoChain], "bridgeIds", CLEAR)
         zom.declareBinding(classOf[PojoBridge], "outChainId", CLEAR,
@@ -82,10 +85,10 @@ class ZookeeperObjectMapperTests extends Suite
 
         zom.build()
     }
-
+/*
     def testMultiCreate() {
-        val bridge = PojoBridge()
-        val port = PojoPort(bridgeId = bridge.id)
+        val bridge = pojoBridge()
+        val port = pojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
 
         val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
@@ -94,16 +97,16 @@ class ZookeeperObjectMapperTests extends Suite
 
 
     def testMultiCreateUpdateAndDelete() {
-        val chain = PojoChain(name = "chain1")
+        val chain = pojoChain(name = "chain1")
         zom.create(chain)
 
-        val chain2 = PojoChain(name = "chain2")
-        val bridge = PojoBridge(inChainId = chain.id)
-        val bridgeUpdate = PojoBridge(id = bridge.id,
+        val chain2 = pojoChain(name = "chain2")
+        val bridge = pojoBridge(inChainId = chain.id)
+        val bridgeUpdate = pojoBridge(id = bridge.id,
                                       inChainId = chain.id,
                                       outChainId = chain2.id)
-        val router = PojoRouter(outChainId = chain.id)
-        val routerUpdate = PojoRouter(id = router.id,
+        val router = pojoRouter(outChainId = chain.id)
+        val routerUpdate = pojoRouter(id = router.id,
                                       inChainId = chain2.id,
                                       outChainId = chain.id)
         zom.multi(List(CreateOp(chain2),
@@ -129,14 +132,14 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiUpdateAndCascadingDelete() {
-        val chain1 = PojoChain(name = "chain1")
-        val rule1 = PojoRule(name = "rule1", chainId = chain1.id)
-        val rule2 = PojoRule(name = "rule2", chainId = chain1.id)
-        val rule3 = PojoRule(name = "rule3", chainId = chain1.id)
+        val chain1 = pojoChain(name = "chain1")
+        val rule1 = pojoRule(name = "rule1", chainId = chain1.id)
+        val rule2 = pojoRule(name = "rule2", chainId = chain1.id)
+        val rule3 = pojoRule(name = "rule3", chainId = chain1.id)
         zom.multi(List(CreateOp(chain1), CreateOp(rule1),
                        CreateOp(rule2), CreateOp(rule3)))
 
-        val chain2 = PojoChain(name = "chain2")
+        val chain2 = pojoChain(name = "chain2")
         rule3.chainId = chain2.id
         zom.multi(List(CreateOp(chain2), UpdateOp(rule3),
                        DeleteOp(classOf[PojoChain], chain1.id)))
@@ -153,8 +156,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiWithUpdateOfDeletedObject() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         try {
             zom.multi(List(CreateOp(chain), CreateOp(rule),
                            DeleteOp(classOf[PojoChain], chain.id),
@@ -169,8 +172,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiWithRedundantDelete() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         try {
             zom.multi(List(CreateOp(chain), CreateOp(rule),
                            DeleteOp(classOf[PojoChain], chain.id),
@@ -186,7 +189,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     def testMultiIdGet() {
         implicit val es = ExecutionContext.global
-        val chains = List("chain0", "chain1", "chain2").map(PojoChain)
+        val chains = List("chain0", "chain1", "chain2").map(pojoChain)
         zom.multi(chains.map(CreateOp))
         val twoIds = chains.take(2).map(_.id).asJava
         val twoChains = await(
@@ -200,7 +203,7 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testDeleteIfExistsOnDeletedObject() {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         zom.delete(classOf[PojoBridge], bridge.id)
         // Idempotent delete.
@@ -208,15 +211,15 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testDeleteIfExistsOnDeletedObjectMulti() {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         zom.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
                        DeleteOp(classOf[PojoBridge], bridge.id, true)))
     }
 
     def testMultiWithRedundantDeleteIfExists() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         // The following two multis cannot be turned into a single multi.
         // Apparently it is a current limitation of ZOOM that in a single multi
         // one cannot delete an object that's just been created due to a race
@@ -227,13 +230,13 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     private def createBridge() : PojoBridge = {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         bridge
     }
 
     private def addPortToBridge(bId: UUID) = {
-        val port = PojoPort(bridgeId = bId)
+        val port = pojoPort(bridgeId = bId)
         zom.create(port)
     }
 
@@ -323,8 +326,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testFlush() {
-        val bridge = PojoBridge()
-        val port = PojoPort(bridgeId = bridge.id)
+        val bridge = pojoBridge()
+        val port = pojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
         await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port.id)) should equal (true)
@@ -334,37 +337,66 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.exists(classOf[PojoPort], port.id)) should equal (false)
 
         // After flushing, ZOOM should be able to store new objects again.
-        val bridge2 = PojoBridge()
-        val port2 = PojoPort(bridgeId = bridge2.id)
+        val bridge2 = pojoBridge()
+        val port2 = pojoPort(bridgeId = bridge2.id)
         zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
         await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
     }
+*/
+    def testCreateExclusiveOwner(): Unit = {
+        val state = new ExclusiveState()
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(owner.toString)
+    }
+
+    def testUpdateExclusiveSameOwnerNoOverwrite(): Unit = {
+        val state = new ExclusiveState()
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        intercept[OwnershipConflictException] {
+            zom.update(state, owner, false, null)
+        }
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+    }
+
+    def testUpdateExclusiveSameOwnerWithOverwrite(): Unit = {
+        val state = new ExclusiveState()
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        zom.update(state, owner, true, null)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+    }
+
 }
 
 private object ZookeeperObjectMapperTests {
 
-    def PojoBridge(id: UUID = UUID.randomUUID, name: String = null,
+    def pojoBridge(id: UUID = UUID.randomUUID, name: String = null,
                    inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoBridge(id, name, inChainId, outChainId)
     }
 
-    def PojoRouter(id: UUID = UUID.randomUUID, name: String = null,
+    def pojoRouter(id: UUID = UUID.randomUUID, name: String = null,
                    inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoRouter(id, name, inChainId, outChainId)
     }
 
-    def PojoPort(name: String = null, peerId: UUID = null,
+    def pojoPort(name: String = null, peerId: UUID = null,
                  bridgeId: UUID = null, routerId: UUID = null,
                  inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoPort(name, bridgeId, routerId, peerId, inChainId, outChainId)
     }
 
-    def PojoChain(name: String = null) = {
+    def pojoChain(name: String = null) = {
         new PojoChain(name)
     }
 
-    def PojoRule(name: String = null, chainId: UUID = null,
+    def pojoRule(name: String = null, chainId: UUID = null,
                  portIds: List[UUID] = null) = {
         if (portIds == null) new PojoRule(name, chainId)
         else new PojoRule(name, chainId, portIds:_*)
