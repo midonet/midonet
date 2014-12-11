@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_2a309700",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 41
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-11T21:03:01Z",
+      "side": 1,
+      "message": "I\u0027d have a custom handler for whatever we can tell the client about. Afaik our only reply is now NACK, so it looks ok as it is. \n\nI\u0027d log.debug something though.",
+      "range": {
+        "startLine": 301,
+        "startChar": 23,
+        "endLine": 303,
+        "endChar": 63
+      },
+      "revId": "a57c40691b8b11cc10524d785e4933d50fd6ab0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
