@@ -78,6 +78,7 @@ class StorageService @Inject() (directory: Directory,
         store.registerClass(classOf[Port])
         store.registerClass(classOf[Host])
         store.registerClass(classOf[TunnelZone])
+
         store.build()
     }
 
