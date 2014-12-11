@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,30 +17,30 @@ package org.midonet.util.concurrent
 
 import akka.actor.Actor
 
-import rx.Observer
+import rx.{Subscriber, Observer}
 
 object ReactiveActor {
-
     sealed trait ReactiveAction
-    case class OnNext[+D <: AnyRef](value: D)
+    case class OnNext[+I <: AnyRef, +D <: AnyRef](id: I, value: D)
         extends ReactiveAction
-    case class OnError(e: Throwable) extends ReactiveAction
-    case class OnCompleted() extends ReactiveAction
-
+    case class OnError[+I <: AnyRef](id: I, e: Throwable) extends ReactiveAction
+    case class OnCompleted[+I <: AnyRef](id: I) extends ReactiveAction
 }
 
-trait ReactiveActor[D <: AnyRef] extends Actor with Observer[D] {
+trait ReactiveActor[D <: AnyRef] extends Actor {
 
     import org.midonet.util.concurrent.ReactiveActor._
 
-    protected[this] implicit val observer: Observer[D] = this
-
-    override def onCompleted(): Unit =
-        self ! OnCompleted
-
-    override def onError(e: Throwable): Unit =
-        self ! OnError(e)
-
-    override def onNext(t: D): Unit = if (null != t)
-        self ! OnNext(t)
+    protected class ReactiveSubscriber[+I <: AnyRef](id: I)
+        extends Subscriber[D] {
+        final override def onCompleted(): Unit = {
+            self ! OnCompleted(id)
+        }
+        final override def onError(e: Throwable): Unit = {
+            self ! OnError(id, e)
+        }
+        final override def onNext(t: D): Unit = {
+            self ! OnNext(id, t)
+        }
+    }
 }
