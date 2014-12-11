@@ -169,6 +169,24 @@ public class ZookeeperObjectMapperTest {
         public List<UUID> refIds;
     }
 
+    protected static class ExclusiveState {
+        public UUID id = UUID.randomUUID();
+    }
+
+    protected static class SharedState {
+        public UUID id;
+        public Integer value;
+
+        public SharedState() {
+            id = UUID.randomUUID();
+            value = 0;
+        }
+        public SharedState(UUID id, Integer value) {
+            this.id = id;
+            this.value = value;
+        }
+    }
+
     private ZookeeperObjectMapper zom;
     private static TestingServer testingServer;
 
