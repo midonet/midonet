@@ -103,7 +103,7 @@ class ObservableNodeCache(zk: CuratorFramework, path: String) {
 }
 
 /** Signals that the underlying NodeCache has lost the connection to ZK. */
-class NodeCacheDisconnected(s: String) extends RuntimeException
+class NodeCacheDisconnected(s: String) extends RuntimeException(s)
 
 /** Signals that the underlying NodeCache relies on a non existent path */
 class NodeCacheOrphaned(s: String) extends RuntimeException(s)

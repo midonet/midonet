@@ -833,6 +833,12 @@ class ZookeeperObjectMapper(
         }).observable.asInstanceOf[Observable[T]]
     }
 
+    /**
+     * Refer to the interface documentation for functionality.
+     *
+     * This implementation involves a BLOCKING call when the observable is first
+     * created, as we will require to initialize the connection to ZK.
+     */
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -843,8 +849,7 @@ class ZookeeperObjectMapper(
             }
             val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
                                                 onLastUnsubscribe)
-            classCaches.putIfAbsent(clazz, cc)
-            classCaches.get(clazz).orNull
+            classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
 
