@@ -2,7 +2,6 @@
 # Try to keep these to a minimum, and use a minimum of wildcards,
 # since they can obscure bugs in the build system.
 #
-logback.xml
 *.log
 *.swp
 *.iml
