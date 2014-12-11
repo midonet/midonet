@@ -21,6 +21,7 @@ import scala.concurrent.Await.{ready, result}
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
+import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -42,6 +43,15 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[Storage])
+    }
+
+    override protected def fillConfig(config: HierarchicalConfiguration) = {
+        super.fillConfig(config)
+
+        // Tests to cover the cases when the new cluster is disabled are
+        // present in VirtualToPhysicalMapperTest
+        config.setProperty("zookeeper.cluster_storage_enabled", true)
+        config
     }
 
     feature("The topology returns a port with tryGet()") {
