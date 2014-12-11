@@ -148,10 +148,11 @@ class OnSubscribeToPathChildren(val zk: CuratorFramework, val path: String)
         }
     }
 
-    /** Terminate the connection and complete the observable */
+    /** Terminate the connection and complete the observable. */
     def close(): Unit = {
         cache.close()
         stream.onCompleted()
+        childStreams.values foreach ( _ onCompleted() )
     }
 
     /** Expose the ChildData */
