@@ -80,43 +80,55 @@ class ObservableNodeCacheTest extends Suite
     def testNonExistentPathOnErrors(): Unit = {
         val c = new CountDownLatch(1)
         val onc = new ObservableNodeCache(curator, "/nonExistent")
-        onc.observable.subscribe(new Subscriber[ChildData]() {
-            override def onCompleted(): Unit = fail("unexpected onComplete")
+        val s = new TestObserver[ChildData]() {
             override def onError(e: Throwable): Unit = {
+                super.onError(e)
                 c.countDown()
                 e match {
                     case _: NodeCacheOrphaned => // ok
                     case _ => fail("Unexpected error " + e)
                 }
             }
-            override def onNext(t: ChildData): Unit = fail("unexpected onNext")
-        })
+        }
+        onc.observable.subscribe(s)
         onc.connect()
         assertTrue(c.await(500, TimeUnit.MILLISECONDS))
+        s.getOnNextEvents shouldBe empty
+        s.getOnCompletedEvents shouldBe empty
     }
 
     def testTwoConnectsAreOk(): Unit = {
         val n = new CountDownLatch(1)
         val path = makePath("3")
         val onc = new ObservableNodeCache(curator, path)
-        onc.observable.subscribe(new Subscriber[ChildData]() {
-            override def onError(e: Throwable): Unit = fail("Unexpected " + e)
-            override def onCompleted(): Unit = fail()
-            override def onNext(t: ChildData): Unit = n.countDown()
-        })
+        val sub = new TestObserver[ChildData]() {
+            override def onNext(t: ChildData): Unit = {
+                super.onNext(t)
+                n.countDown()
+            }
+        }
+        onc.observable.subscribe(sub)
         onc.connect()
         onc.connect()
         assertTrue(n.await(500, TimeUnit.MILLISECONDS))
+        sub.getOnErrorEvents shouldBe empty
+        sub.getOnCompletedEvents shouldBe empty
+
     }
 
     def testClosedCacheNotifiesOnError(): Unit = {
         val n = new CountDownLatch(1)
         val e = new CountDownLatch(1)
-        val s = new TestSubscriber[ChildData](new Subscriber[ChildData]() {
-            override def onError(t: Throwable): Unit = e.countDown()
-            override def onCompleted(): Unit = fail("Unexpected onComplete")
-            override def onNext(t: ChildData): Unit = n.countDown()
-        })
+        val s = new TestObserver[ChildData]() {
+            override def onError(t: Throwable): Unit = {
+                super.onError(t)
+                e.countDown()
+            }
+            override def onNext(t: ChildData): Unit = {
+                super.onNext(t)
+                n.countDown()
+            }
+        }
         val path = makePath("3")
         val onc = new ObservableNodeCache(curator, path)
         onc.observable.subscribe(s)

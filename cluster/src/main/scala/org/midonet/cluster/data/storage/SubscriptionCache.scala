@@ -57,7 +57,6 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
                                    val onLastUnsubscribe:
                                        (InstanceSubscriptionCache[_]) => Unit) {
 
-    private val log = LoggerFactory.getLogger(classOf[InstanceSubscriptionCache[_]])
     private val nodeCache = new ObservableNodeCache(curator, path)
 
     // Auxiliary stuff for GC
@@ -94,6 +93,8 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
     /** Retrieve the last known value of the watched entity. */
     def current: T = DeserializerCache.deserializer(clazz)
                                       .call(nodeCache.current)
+
+    def close() = nodeCache.close()
 
 }
 
@@ -138,6 +139,8 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
                               .doOnUnsubscribe(decSubscribers)
 
     def subscriptionCount = refCount.get
+
+    def close() = pathCache.close()
 
 }
 
