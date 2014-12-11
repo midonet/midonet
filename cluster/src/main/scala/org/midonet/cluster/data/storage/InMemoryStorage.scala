@@ -37,6 +37,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.{Key, copyObj}
+import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
@@ -47,7 +48,7 @@ import org.midonet.util.eventloop.Reactor
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
 @Inject
-class InMemoryStorage(reactor: Reactor) extends Storage {
+class InMemoryStorage(reactor: Reactor) extends StorageWithOwnership {
 
     private class ReactorScheduler extends Scheduler {
         private val worker = new ReactorWorker()
@@ -219,7 +220,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             val newThisObj = if (null == validator) obj else {
                 val modified = validator.validate(oldThisObj, obj)
                 val thisObj = if (modified != null) modified else obj
-                if (getObjectId(thisObj) != thisId) {
+                if (!getObjectId(thisObj).equals(thisId)) {
                     throw new IllegalArgumentException(
                         "Modifying newObj.id in UpdateValidator.validate() " +
                         "is not supported.")
@@ -298,20 +299,38 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
     private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
     private val lock = new ReentrantReadWriteLock()
 
-    private val classToIdGetter = new mutable.HashMap[Class[_], IdGetter]()
+    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     override def create(obj: Obj): Unit = multi(List(CreateOp(obj)))
+
+    override def create(obj: Obj, owner: ObjId): Unit =
+        multi(List(CreateWithOwnerOp(obj, owner.toString)))
 
     override def update(obj: Obj): Unit = multi(List(UpdateOp(obj)))
 
     override def update[T <: Obj](obj: T, validator: UpdateValidator[T]): Unit =
         multi(List(UpdateOp(obj, validator)))
 
+    override def update[T <: Obj](obj: T, owner: ObjId, overwriteOwner: Boolean,
+                                     validator: UpdateValidator[T]): Unit =
+        multi(List(UpdateWithOwnerOp(obj, owner.toString, overwriteOwner,
+                                     validator)))
+
+    override def updateOwner(clazz: Class[_], id: ObjId, owner: ObjId,
+                             overwriteOwner: Boolean): Unit =
+        multi(List(UpdateOwnerOp(clazz, id, owner.toString, overwriteOwner)))
+
     override def delete(clazz: Class[_], id: ObjId): Unit =
         multi(List(DeleteOp(clazz, id)))
 
+    override def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
+        multi(List(DeleteWithOwnerOp(clazz, id, owner.toString)))
+
     override def deleteIfExists(clazz: Class[_], id: ObjId): Unit =
         multi(List(DeleteOp(clazz, id, ignoreIfNotExists = true)))
+
+    override def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
+        multi(List(DeleteOwnerOp(clazz, id, owner.toString)))
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] =
             withReadLock(lock) {
@@ -338,6 +357,9 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll
     }
 
+    override def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]] =
+        ???
+
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] =
             withReadLock(lock) {
         assertBuilt()
@@ -356,6 +378,7 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             case CreateOp(obj) => tr.create(obj)
             case UpdateOp(obj, validator) => tr.update(obj, validator)
             case DeleteOp(clazz, id, ignores) => tr.delete(clazz, id, ignores)
+            case _ => ???
         }
     }
 
@@ -375,15 +398,15 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
         classes.get(clazz).asInstanceOf[ClassNode[T]].observable()
     }
 
-    override def registerClass(clazz: Class[_]): Unit = {
-        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
-            case c: ClassNode[_] => throw new IllegalStateException(
-                s"Class $clazz is already registered.")
-            case _ =>
-        }
+    override def ownersObservable(clazz: Class[_], id: ObjId)
+    : Observable[Set[String]] = ???
 
-        classToIdGetter += clazz -> makeIdGetter(clazz)
+    override def registerClass(clazz: Class[_]): Unit = {
+        registerClassInternal(clazz, OwnershipType.Shared)
     }
+
+    override def registerClass(clazz: Class[_], ownershipType: OwnershipType)
+    : Unit = ???
 
     override def isRegistered(clazz: Class[_]): Boolean = {
         classes.containsKey(clazz)
@@ -430,7 +453,18 @@ class InMemoryStorage(reactor: Reactor) extends Storage {
             "Data operation received before call to build().")
     }
 
-    private def getObjectId(obj: Obj) = classToIdGetter(obj.getClass).idOf(obj)
+    private def registerClassInternal(clazz: Class[_],
+                                      ownershipType: OwnershipType): Unit = {
+        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
+            case c: ClassNode[_] => throw new IllegalStateException(
+                s"Class $clazz is already registered.")
+            case _ =>
+        }
+
+        classInfo += clazz -> makeInfo(clazz, ownershipType)
+    }
+
+    private def getObjectId(obj: Obj) = classInfo(obj.getClass).idOf(obj)
 }
 
 object InMemoryStorage {
