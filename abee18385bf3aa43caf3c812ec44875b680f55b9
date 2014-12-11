@@ -142,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_cd048817",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 847,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-11T10:03:16Z",
+      "side": 1,
+      "message": "Just to be sure we\u0027re on the same page, putIfAbsent returns the value that was already in the table (or None). So it would have to be classCaches.putIfAbsent(clazz, cc).getOrElse(cc)",
+      "parentUuid": "fafc7978_72dbbbed",
+      "range": {
+        "startLine": 847,
+        "startChar": 12,
+        "endLine": 847,
+        "endChar": 41
+      },
+      "revId": "abee18385bf3aa43caf3c812ec44875b680f55b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d21d4775",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
         "patchSetId": 20
