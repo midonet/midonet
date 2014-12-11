@@ -246,32 +246,43 @@ public class ZookeeperObjectMapperTest {
     /* Initializes Bindings for ZOM. */
     private void initBindings() {
         // Bindings for POJOs.
-        zom.declareBinding(PojoBridge.class, "inChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
-        zom.declareBinding(PojoBridge.class, "outChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoBridge.class, "inChainId", DeleteAction.CLEAR,
+            PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoBridge.class, "outChainId", DeleteAction.CLEAR,
+            PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
 
-        zom.declareBinding(PojoRouter.class, "inChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "routerIds", DeleteAction.CLEAR);
-        zom.declareBinding(PojoRouter.class, "outChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "routerIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoRouter.class, "inChainId", DeleteAction.CLEAR,
+            PojoChain.class, "routerIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoRouter.class, "outChainId", DeleteAction.CLEAR,
+            PojoChain.class, "routerIds", DeleteAction.CLEAR);
 
-        zom.declareBinding(PojoPort.class, "bridgeId", DeleteAction.CLEAR,
-                           PojoBridge.class, "portIds", DeleteAction.ERROR);
-        zom.declareBinding(PojoPort.class, "routerId", DeleteAction.CLEAR,
-                           PojoRouter.class, "portIds", DeleteAction.ERROR);
-        zom.declareBinding(PojoPort.class, "inChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "portIds", DeleteAction.CLEAR);
-        zom.declareBinding(PojoPort.class, "outChainId", DeleteAction.CLEAR,
-                           PojoChain.class, "portIds", DeleteAction.CLEAR);
-        zom.declareBinding(PojoPort.class, "peerId", DeleteAction.CLEAR,
-                           PojoPort.class, "peerId", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoPort.class, "bridgeId", DeleteAction.CLEAR,
+            PojoBridge.class, "portIds", DeleteAction.ERROR);
+        zom.declareBinding(
+            PojoPort.class, "routerId", DeleteAction.CLEAR,
+            PojoRouter.class, "portIds", DeleteAction.ERROR);
+        zom.declareBinding(
+            PojoPort.class, "inChainId", DeleteAction.CLEAR,
+            PojoChain.class, "portIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoPort.class, "outChainId", DeleteAction.CLEAR,
+            PojoChain.class, "portIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoPort.class, "peerId", DeleteAction.CLEAR,
+            PojoPort.class, "peerId", DeleteAction.CLEAR);
 
-        zom.declareBinding(PojoChain.class, "ruleIds", DeleteAction.CASCADE,
-                           PojoRule.class, "chainId", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoChain.class, "ruleIds", DeleteAction.CASCADE,
+            PojoRule.class, "chainId", DeleteAction.CLEAR);
 
-        zom.declareBinding(PojoRule.class, "portIds", DeleteAction.CLEAR,
-                           PojoPort.class, "ruleIds", DeleteAction.CLEAR);
+        zom.declareBinding(
+            PojoRule.class, "portIds", DeleteAction.CLEAR,
+            PojoPort.class, "ruleIds", DeleteAction.CLEAR);
 
         // Bindings for proto-backed objects.
         zom.declareBinding(
@@ -529,10 +540,12 @@ public class ZookeeperObjectMapperTest {
         zom2.registerClass(PojoBridge.class);
         zom2.registerClass(PojoChain.class);
         zom2.registerClass(PojoRule.class);
-        zom2.declareBinding(PojoBridge.class, "inChainId", DeleteAction.CASCADE,
-                           PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
-        zom2.declareBinding(PojoChain.class, "ruleIds", DeleteAction.ERROR,
-                           PojoRule.class, "chainId", DeleteAction.CLEAR);
+        zom2.declareBinding(
+            PojoBridge.class, "inChainId", DeleteAction.CASCADE,
+            PojoChain.class, "bridgeIds", DeleteAction.CLEAR);
+        zom2.declareBinding(
+            PojoChain.class, "ruleIds", DeleteAction.ERROR,
+            PojoRule.class, "chainId", DeleteAction.CLEAR);
         zom2.build();
 
         PojoChain chain = new PojoChain("chain");

@@ -141,6 +141,11 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
 
 }
 
+//private[storage]
+//class StateSubscriptionCache[T](val clazz: Class[T], access: StateAccess) {
+
+//}
+
 /**
  * Caches deserializer objects on a per-class basis.
  */

@@ -44,6 +44,7 @@ import java.util.List;
  */
 abstract public class FieldBinding {
     public static final String ID_FIELD = "id";
+    public static final String OWNER_FIELD = "owner";
     public enum DeleteAction {
         CASCADE,
         CLEAR,
