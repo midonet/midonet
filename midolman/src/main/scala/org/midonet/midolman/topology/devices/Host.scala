@@ -18,13 +18,15 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology.Host.PortToInterface
 import org.midonet.cluster.util.MapConverter
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.packets.IPAddr
+import org.midonet.midolman.topology.rcu
+import org.midonet.packets.{IPv4Addr, IPAddr}
 
 /**
  * This class implements the MapConverter trait to do the conversion between
@@ -74,5 +76,16 @@ class Host extends ZoomObject with Device {
         hostCopy.tunnelZones = tunnelZones
         hostCopy.alive = alive
         hostCopy
+    }
+
+    def toOldHost: rcu.Host = {
+        val zones = tunnelZones.map(idIp => {
+            val uuid = idIp._1
+            val hostConfig = new HostConfig(uuid).setIp(idIp._2.asInstanceOf[IPv4Addr])
+            (uuid, hostConfig)
+        })
+        new rcu.Host(id, alive, 0L /*epoch is never set*/,
+                     "midonet" /*the datapath is hardcoded*/, portInterfaceMapping,
+                     zones)
     }
 }
