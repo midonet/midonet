@@ -22,6 +22,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
+import org.apache.zookeeper.data.Stat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -53,6 +54,9 @@ class ZookeeperObjectMapperTests extends Suite
             clazz => zom.registerClass(clazz)
         }
 
+        zom.registerClass(classOf[ExclusiveState], OwnershipType.Exclusive)
+        zom.registerClass(classOf[SharedState], OwnershipType.Shared)
+
         zom.declareBinding(classOf[PojoBridge], "inChainId", CLEAR,
                            classOf[PojoChain], "bridgeIds", CLEAR)
         zom.declareBinding(classOf[PojoBridge], "outChainId", CLEAR,
@@ -83,27 +87,34 @@ class ZookeeperObjectMapperTests extends Suite
         zom.build()
     }
 
+    private case class OwnerSnapshot(id: String, version: Int) {
+        override def equals(obj: Any) = obj match {
+            case os: OwnerSnapshot => id.equals(os.id)
+            case _ => false
+        }
+        override def hashCode: Int = id.hashCode
+    }
+
     def testMultiCreate() {
-        val bridge = PojoBridge()
-        val port = PojoPort(bridgeId = bridge.id)
+        val bridge = pojoBridge()
+        val port = pojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
 
         val updatedBridge = await(zom.get(classOf[PojoBridge], bridge.id))
         updatedBridge.portIds.asScala should equal(List(port.id))
     }
 
-
     def testMultiCreateUpdateAndDelete() {
-        val chain = PojoChain(name = "chain1")
+        val chain = pojoChain(name = "chain1")
         zom.create(chain)
 
-        val chain2 = PojoChain(name = "chain2")
-        val bridge = PojoBridge(inChainId = chain.id)
-        val bridgeUpdate = PojoBridge(id = bridge.id,
+        val chain2 = pojoChain(name = "chain2")
+        val bridge = pojoBridge(inChainId = chain.id)
+        val bridgeUpdate = pojoBridge(id = bridge.id,
                                       inChainId = chain.id,
                                       outChainId = chain2.id)
-        val router = PojoRouter(outChainId = chain.id)
-        val routerUpdate = PojoRouter(id = router.id,
+        val router = pojoRouter(outChainId = chain.id)
+        val routerUpdate = pojoRouter(id = router.id,
                                       inChainId = chain2.id,
                                       outChainId = chain.id)
         zom.multi(List(CreateOp(chain2),
@@ -129,14 +140,14 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiUpdateAndCascadingDelete() {
-        val chain1 = PojoChain(name = "chain1")
-        val rule1 = PojoRule(name = "rule1", chainId = chain1.id)
-        val rule2 = PojoRule(name = "rule2", chainId = chain1.id)
-        val rule3 = PojoRule(name = "rule3", chainId = chain1.id)
+        val chain1 = pojoChain(name = "chain1")
+        val rule1 = pojoRule(name = "rule1", chainId = chain1.id)
+        val rule2 = pojoRule(name = "rule2", chainId = chain1.id)
+        val rule3 = pojoRule(name = "rule3", chainId = chain1.id)
         zom.multi(List(CreateOp(chain1), CreateOp(rule1),
                        CreateOp(rule2), CreateOp(rule3)))
 
-        val chain2 = PojoChain(name = "chain2")
+        val chain2 = pojoChain(name = "chain2")
         rule3.chainId = chain2.id
         zom.multi(List(CreateOp(chain2), UpdateOp(rule3),
                        DeleteOp(classOf[PojoChain], chain1.id)))
@@ -153,8 +164,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiWithUpdateOfDeletedObject() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         try {
             zom.multi(List(CreateOp(chain), CreateOp(rule),
                            DeleteOp(classOf[PojoChain], chain.id),
@@ -169,8 +180,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testMultiWithRedundantDelete() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         try {
             zom.multi(List(CreateOp(chain), CreateOp(rule),
                            DeleteOp(classOf[PojoChain], chain.id),
@@ -186,7 +197,7 @@ class ZookeeperObjectMapperTests extends Suite
 
     def testMultiIdGet() {
         implicit val es = ExecutionContext.global
-        val chains = List("chain0", "chain1", "chain2").map(PojoChain)
+        val chains = List("chain0", "chain1", "chain2").map(pojoChain)
         zom.multi(chains.map(CreateOp))
         val twoIds = chains.take(2).map(_.id).asJava
         val twoChains = await(
@@ -200,7 +211,7 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testDeleteIfExistsOnDeletedObject() {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         zom.delete(classOf[PojoBridge], bridge.id)
         // Idempotent delete.
@@ -208,15 +219,15 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testDeleteIfExistsOnDeletedObjectMulti() {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         zom.multi(List(DeleteOp(classOf[PojoBridge], bridge.id),
                        DeleteOp(classOf[PojoBridge], bridge.id, true)))
     }
 
     def testMultiWithRedundantDeleteIfExists() {
-        val chain = PojoChain()
-        val rule = PojoRule(chainId = chain.id)
+        val chain = pojoChain()
+        val rule = pojoRule(chainId = chain.id)
         // The following two multis cannot be turned into a single multi.
         // Apparently it is a current limitation of ZOOM that in a single multi
         // one cannot delete an object that's just been created due to a race
@@ -227,13 +238,13 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     private def createBridge() : PojoBridge = {
-        val bridge = PojoBridge()
+        val bridge = pojoBridge()
         zom.create(bridge)
         bridge
     }
 
     private def addPortToBridge(bId: UUID) = {
-        val port = PojoPort(bridgeId = bId)
+        val port = pojoPort(bridgeId = bId)
         zom.create(port)
     }
 
@@ -323,8 +334,8 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testFlush() {
-        val bridge = PojoBridge()
-        val port = PojoPort(bridgeId = bridge.id)
+        val bridge = pojoBridge()
+        val port = pojoPort(bridgeId = bridge.id)
         zom.multi(List(CreateOp(bridge), CreateOp(port)))
         await(zom.exists(classOf[PojoBridge], bridge.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port.id)) should equal (true)
@@ -334,37 +345,440 @@ class ZookeeperObjectMapperTests extends Suite
         await(zom.exists(classOf[PojoPort], port.id)) should equal (false)
 
         // After flushing, ZOOM should be able to store new objects again.
-        val bridge2 = PojoBridge()
-        val port2 = PojoPort(bridgeId = bridge2.id)
+        val bridge2 = pojoBridge()
+        val port2 = pojoPort(bridgeId = bridge2.id)
         zom.multi(List(CreateOp(bridge2), CreateOp(port2)))
         await(zom.exists(classOf[PojoBridge], bridge2.id)) should equal (true)
         await(zom.exists(classOf[PojoPort], port2.id)) should equal (true)
+    }
+
+    def testCreateExclusiveOwner(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        val path = zom.getOwnerPath(classOf[ExclusiveState], state.id, owner)
+        val stat = new Stat
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+    }
+
+    def testUpdateExclusiveSameOwnerNoOverwrite(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        val e = intercept[OwnershipConflictException] {
+            zom.update(state, owner, false, null)
+        }
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            owner.toString)
+        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(owner.toString)
+        e.newOwner shouldBe owner.toString
+    }
+
+    def testUpdateExclusiveSameOwnerWithOverwrite(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        val path = zom.getOwnerPath(classOf[ExclusiveState], state.id, owner)
+        val stat = new Stat
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        val mzxid = stat.getMzxid
+        zom.update(state, owner, true, null)
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        stat.getMzxid should be > mzxid
+    }
+
+    def testUpdateExclusiveDifferentOwnerNoOverwrite(): Unit = {
+        val state = new ExclusiveState
+        val oldOwner = UUID.randomUUID
+        val newOwner = UUID.randomUUID
+        zom.create(state, oldOwner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        val e = intercept[OwnershipConflictException] {
+            zom.update(state, newOwner, false, null)
+        }
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            oldOwner.toString)
+        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(oldOwner.toString)
+        e.newOwner shouldBe newOwner.toString
+    }
+
+    def testUpdateExclusiveDifferentOwnerWithOverwrite(): Unit = {
+        val state = new ExclusiveState
+        val oldOwner = UUID.randomUUID
+        val newOwner = UUID.randomUUID
+        zom.create(state, oldOwner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        val e = intercept[OwnershipConflictException] {
+            zom.update(state, newOwner, true, null)
+        }
+        await(zom.getOwners(classOf[ExclusiveState], state.id)) shouldBe Set(
+            oldOwner.toString)
+        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(oldOwner.toString)
+        e.newOwner shouldBe newOwner.toString
+    }
+
+    def testDeleteExclusiveSameOwner(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        zom.delete(classOf[ExclusiveState], state.id, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe false
+    }
+
+    def testDeleteExclusiveDifferentOwner(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        val otherOwner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        val e = intercept[OwnershipConflictException] {
+            zom.delete(classOf[ExclusiveState], state.id, otherOwner)
+        }
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        e.clazz shouldBe classOf[ExclusiveState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(owner.toString)
+        e.newOwner shouldBe otherOwner.toString
+    }
+
+    def testCreateSingleSharedOwner(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        val path = zom.getOwnerPath(classOf[SharedState], state.id, owner)
+        val stat = new Stat
+        zom.create(state, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+    }
+
+    def testCreateMultipleSharedOwners(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        val path1 = zom.getOwnerPath(classOf[SharedState], state.id, owner1)
+        val path2 = zom.getOwnerPath(classOf[SharedState], state.id, owner2)
+        val stat = new Stat
+        zom.create(state, owner1)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString)
+        zom.update(state, owner2, false, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString)
+        curator.getData.storingStatIn(stat).forPath(path1)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        val mzxid = stat.getMzxid
+        curator.getData.storingStatIn(stat).forPath(path2)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        stat.getMzxid should be > mzxid
+    }
+
+    def testMultipleCreateFailsForSharedOwners(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        zom.create(state, owner1)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        val e = intercept[ObjectExistsException] {
+            zom.create(state, owner2)
+        }
+        e.clazz shouldBe classOf[SharedState]
+        e.id shouldBe state.id
+    }
+
+    def testUpdateSharedExistingOwnerNoOverwrite(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        val e = intercept[OwnershipConflictException] {
+            zom.update(state, owner, false, null)
+        }
+        e.clazz shouldBe classOf[SharedState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(owner.toString)
+        e.newOwner shouldBe owner.toString
+    }
+
+    def testUpdateSharedExistingOwnerWithOverwrite(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        val path = zom.getOwnerPath(classOf[SharedState], state.id, owner)
+        val stat = new Stat
+        zom.create(state, owner)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        val mzxid = stat.getMzxid
+        zom.update(state, owner, true, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        curator.getData.storingStatIn(stat).forPath(path)
+        stat.getEphemeralOwner should not be 0L
+        stat.getVersion shouldBe 0
+        stat.getMzxid should be > mzxid
+    }
+
+    def testUpdateSharedNonExistingOwnerNoOverwrite(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        zom.create(state, owner1)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString)
+        zom.update(state, owner2, false, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString)
+    }
+
+    def testUpdateSharedNonExistingOwnerWithOverwrite(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        zom.create(state, owner1)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString)
+        zom.update(state, owner2, true, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString)
+    }
+
+    def testDeleteSharedExistingSingleOwner(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        zom.delete(classOf[SharedState], state.id, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe false
+    }
+
+    def testDeleteSharedExistingMultipleOwner(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        zom.create(state, owner1)
+        zom.update(state, owner2, false, null)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString)
+        zom.delete(classOf[SharedState], state.id, owner1)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner2.toString)
+        zom.delete(classOf[SharedState], state.id, owner2)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe false
+    }
+
+    def testDeleteSharedNonExistingOwner(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        val otherOwner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        val e = intercept[OwnershipConflictException] {
+            zom.delete(classOf[SharedState], state.id, otherOwner)
+        }
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner.toString)
+        e.clazz shouldBe classOf[SharedState].getSimpleName
+        e.id shouldBe state.id.toString
+        e.currentOwner shouldBe Set(owner.toString)
+        e.newOwner shouldBe otherOwner.toString
+    }
+
+    def testSharedOwnershipLifecycle(): Unit = {
+        val state = new SharedState
+        val owner1 = UUID.randomUUID
+        val owner2 = UUID.randomUUID
+        val owner3 = UUID.randomUUID
+        val owner4 = UUID.randomUUID
+        zom.create(state, owner1)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString)
+        zom.update(state, owner2, false, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString)
+        zom.update(state, owner3, false, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner1.toString, owner2.toString, owner3.toString)
+        zom.delete(classOf[SharedState], state.id, owner1)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner2.toString, owner3.toString)
+        zom.update(state, owner4, false, null)
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner2.toString, owner3.toString, owner4.toString)
+        zom.delete(classOf[SharedState], state.id, owner2)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner3.toString, owner4.toString)
+        zom.delete(classOf[SharedState], state.id, owner3)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        await(zom.getOwners(classOf[SharedState], state.id)) shouldBe Set(
+            owner4.toString)
+        zom.delete(classOf[SharedState], state.id, owner4)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe false
+        val e = intercept[NotFoundException] {
+            await(zom.getOwners(classOf[SharedState], state.id))
+        }
+        e.clazz shouldBe classOf[SharedState]
+        e.id shouldBe state.id
+    }
+
+    def testOwnershipCreateOnNoneOwnershipType(): Unit = {
+        val bridge = pojoBridge(name = "bridge")
+        val owner = UUID.randomUUID
+        intercept[UnsupportedOperationException] {
+            zom.create(bridge, owner)
+        }
+    }
+
+    def testRegularCreateOnExclusiveOwnershipType(): Unit = {
+        val state = new ExclusiveState
+        intercept[UnsupportedOperationException] {
+            zom.create(state)
+        }
+    }
+
+    def testRegularCreateOnSharedOwnershipType(): Unit = {
+        val state = new SharedState
+        intercept[UnsupportedOperationException] {
+            zom.create(state)
+        }
+    }
+
+    def testOwnershipUpdateNoOverwriteOnNoneOwnershipType(): Unit = {
+        val bridge = pojoBridge(name = "bridge")
+        val owner = UUID.randomUUID
+        zom.create(bridge)
+        await(zom.exists(classOf[PojoBridge], bridge.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.update(pojoBridge(id = bridge.id), owner, false, null)
+        }
+    }
+
+    def testOwnershipUpdateWithOverwriteOnNoneOwnershipType(): Unit = {
+        val bridge = pojoBridge(name = "bridge")
+        val owner = UUID.randomUUID
+        zom.create(bridge)
+        await(zom.exists(classOf[PojoBridge], bridge.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.update(pojoBridge(id = bridge.id), owner, true, null)
+        }
+    }
+
+    def testRegularUpdateOnExclusiveOwnershipType(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.update(state)
+        }
+    }
+
+    def testRegularUpdateOnSharedOwnershipType(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.update(state)
+        }
+    }
+
+    def testOwnershipDeleteOnNoneOwnershipType(): Unit = {
+        val bridge = pojoBridge(name = "bridge")
+        val owner = UUID.randomUUID
+        zom.create(bridge)
+        await(zom.exists(classOf[PojoBridge], bridge.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.delete(classOf[PojoBridge], bridge.id, owner)
+        }
+    }
+
+    def testRegularDeleteOnExclusiveOwnershipType(): Unit = {
+        val state = new ExclusiveState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[ExclusiveState], state.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.delete(classOf[ExclusiveState], state.id)
+        }
+    }
+
+    def testRegularDeleteOnSharedOwnershipType(): Unit = {
+        val state = new SharedState
+        val owner = UUID.randomUUID
+        zom.create(state, owner)
+        await(zom.exists(classOf[SharedState], state.id)) shouldBe true
+        intercept[UnsupportedOperationException] {
+            zom.delete(classOf[SharedState], state.id)
+        }
     }
 }
 
 private object ZookeeperObjectMapperTests {
 
-    def PojoBridge(id: UUID = UUID.randomUUID, name: String = null,
+    def pojoBridge(id: UUID = UUID.randomUUID, name: String = null,
                    inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoBridge(id, name, inChainId, outChainId)
     }
 
-    def PojoRouter(id: UUID = UUID.randomUUID, name: String = null,
+    def pojoRouter(id: UUID = UUID.randomUUID, name: String = null,
                    inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoRouter(id, name, inChainId, outChainId)
     }
 
-    def PojoPort(name: String = null, peerId: UUID = null,
+    def pojoPort(name: String = null, peerId: UUID = null,
                  bridgeId: UUID = null, routerId: UUID = null,
                  inChainId: UUID = null, outChainId: UUID = null) = {
         new PojoPort(name, bridgeId, routerId, peerId, inChainId, outChainId)
     }
 
-    def PojoChain(name: String = null) = {
+    def pojoChain(name: String = null) = {
         new PojoChain(name)
     }
 
-    def PojoRule(name: String = null, chainId: UUID = null,
+    def pojoRule(name: String = null, chainId: UUID = null,
                  portIds: List[UUID] = null) = {
         if (portIds == null) new PojoRule(name, chainId)
         else new PojoRule(name, chainId, portIds:_*)
