@@ -31,15 +31,6 @@ class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable
     val observers = new mutable.MutableList[AwaitableObserver[T]]
     @volatile private var counter: CountDownLatch = new CountDownLatch(awaitCount)
 
-    override def onCompleted() {
-        super.onCompleted()
-    }
-
-    override def onError(e: Throwable) {
-        super.onError(e)
-        throw new RuntimeException("Got exception from class subscription", e)
-    }
-
     override def onNext(value: Observable[T]) {
         super.onNext(value)
         val obs = new AwaitableObserver[T](1)

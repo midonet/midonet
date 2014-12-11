@@ -29,7 +29,7 @@ import org.scalatest.{Matchers, Suite}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest._
-import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework}
+import org.midonet.cluster.util.{PathCacheDisconnectedException, ClassAwaitableObserver, CuratorTestFramework}
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -276,8 +276,10 @@ class ZookeeperObjectMapperTests extends Suite
         sub.unsubscribe()
         zom.subscriptionCount(classOf[PojoBridge]) should equal (None)
 
-        obs.getOnCompletedEvents should have size 1
-        obs.getOnErrorEvents shouldBe empty
+        obs.getOnCompletedEvents should have size 0
+        obs.getOnErrorEvents should have size 1
+        assert(obs.getOnErrorEvents.get(0)
+                  .isInstanceOf[PathCacheDisconnectedException])
     }
 
     def testGetPath() {
