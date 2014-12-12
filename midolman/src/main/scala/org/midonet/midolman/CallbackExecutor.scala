@@ -15,15 +15,18 @@
  */
 package org.midonet.midolman
 
-import java.util.concurrent.locks.LockSupport
-import java.util.{ArrayList, LinkedList, Queue}
+import java.util.ArrayList
 
 import akka.actor.ActorRef
+
+import org.jctools.queues.SpscArrayQueue
+
+import org.midonet.util.concurrent.WakerUpper.Parkable
 import org.midonet.util.functors.Callback0
 
 // A wrapper class that enqueues callbacks in the specified queue.
 object CallbackExecutor {
-    val Immediate = new CallbackExecutor(new LinkedList(), null) {
+    val Immediate = new CallbackExecutor(4, null) {
         override def schedule(callbacks: ArrayList[Callback0]): Unit = {
             var i = 0
             while (i < callbacks.size()) {
@@ -36,30 +39,22 @@ object CallbackExecutor {
     case object CheckCallbacks
 }
 
-sealed class CallbackExecutor(queue: Queue[Callback0], alert: ActorRef) {
+sealed class CallbackExecutor(capacity: Int, alert: ActorRef)
+    extends Parkable {
+
+    private val queue = new SpscArrayQueue[Callback0](capacity)
+
     def schedule(callbacks: ArrayList[Callback0]): Unit = {
-        var retries = 200
         var i = 0
         while (i < callbacks.size()) {
             val cb = callbacks.get(i)
-            while (!queue.add(cb)) {
-                retries = doWait(retries)
+            while (!queue.offer(cb)) {
+                park()
             }
             i += 1
         }
         alert ! CallbackExecutor.CheckCallbacks
     }
-
-    private def doWait(retries: Int): Int =
-        if (retries > 100) {
-            retries - 1
-        } else if (retries > 0) {
-            Thread.`yield`()
-            retries - 1
-        } else {
-            LockSupport.parkNanos(1L)
-            retries
-        }
 
     def run(): Unit = {
         var cb: Callback0 = null
@@ -67,4 +62,6 @@ sealed class CallbackExecutor(queue: Queue[Callback0], alert: ActorRef) {
             cb.call()
         }
     }
+
+    override def shouldWakeUp(): Boolean = queue.size < capacity
 }
