@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_6dbd9968",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-12T11:42:09Z",
+      "side": 1,
+      "message": "Isn\u0027t this the \u0027Synchronizer\u0027 instead of the \u0027Translator\u0027?",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
