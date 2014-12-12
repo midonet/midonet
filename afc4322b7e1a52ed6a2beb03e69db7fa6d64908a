@@ -1,0 +1,123 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_13d7ceee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 302,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "I would cache a reference elasticData: elasticData in this class (taken from the udpShell in line 129), so we don\u0027t always having to do the pattern matching.",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d33a6633",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/ElasticData.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "should return an int",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_13c4ee5d",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "change to vxlan, as it\u0027s bigger (and we have both types of encapsulation)",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_53a5d6b3",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "it would be nice to replace this by the already defined constants (encapsulation_overhead above, ipv4.min_header_length, etc)",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d390a650",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "necessary?",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b3ac02a2",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "I don\u0027t think we need to cache at this layer, because we alrady cache the shell in FlowStateReplicator",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_334ad2c5",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T18:05:24Z",
+      "side": 1,
+      "message": "call super.serialize() so it serializes the ethernet headers, the ip headers, the udp headers and finally the elasticdata",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
