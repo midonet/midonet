@@ -40,7 +40,7 @@ class ActionsCacheTest extends FeatureSpec
     feature("ActionsCache implements a cache that can be expired") {
         scenario("expiration ring buffer circles around") {
             Given("an empty actions cache")
-            val ac = new ActionsCache(4, logger)
+            val ac = new ActionsCache(4, CallbackExecutor.Immediate, logger)
 
             When("adding and expiring FlowMatches")
             (1 to 4 * 2) foreach { _ =>
@@ -57,7 +57,7 @@ class ActionsCacheTest extends FeatureSpec
 
         scenario("all expired FlowMatches are cleaned") {
             Given("a full actions cache")
-            val ac = new ActionsCache(4, logger)
+            val ac = new ActionsCache(4, CallbackExecutor.Immediate, logger)
             1 to 4 foreach { i =>
                 val fm = new FlowMatch().addKey(FlowKeys.inPort(i))
                 val idx = ac.getSlot()
@@ -75,7 +75,7 @@ class ActionsCacheTest extends FeatureSpec
 
         scenario("thread spins waiting for cache entries to expire") {
             Given("a full actions cache")
-            val ac = new ActionsCache(2, logger)
+            val ac = new ActionsCache(2, CallbackExecutor.Immediate, logger)
             val fm1 = new FlowMatch
             val idx1 = ac.getSlot()
             ac.actions.put(fm1, new java.util.LinkedList[FlowAction]())
