@@ -20,15 +20,40 @@ import java.util.UUID
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-
+import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.cluster.util.{IPAddressUtil, MapConverter}
+import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
 import org.midonet.packets.IPAddr
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
 
+object TunnelZone {
+
+    /**
+     * This class implements the MapConverter trait to do the conversion between
+     * tuples of type (UUID, IPAddr) and HostToIp protos.
+     */
+    class HostIpConverter extends MapConverter[UUID, IPAddr, HostToIp] {
+
+        override def toKey(proto: HostToIp): UUID = {
+            proto.getHostId.asJava
+        }
+
+        def toValue(proto: HostToIp): IPAddr = {
+            IPAddressUtil.toIPAddr(proto.getIp)
+        }
+
+        def toProto(key: UUID, value: IPAddr): HostToIp = {
+            HostToIp.newBuilder
+                .setHostId(key.asProto)
+                .setIp(IPAddressUtil.toProto(value))
+                .build()
+        }
+    }
+}
 
 @ZoomClass(clazz = classOf[Topology.TunnelZone])
-class TunnelZone extends ZoomObject {
+class TunnelZone extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
@@ -36,21 +61,10 @@ class TunnelZone extends ZoomObject {
     var name: String = _
     @ZoomField(name = "type")
     var zoneType: TunnelZoneType = _
-    @ZoomField(name = "host_ids", converter = classOf[UUIDConverter])
-    var hostIds: Set[UUID] = _
-
-    /* IP addresses in this tunnel zone.
-     * This information is not present in the corresponding proto
-     * but will rather be filled in by the TunnelZoneManager.
-     */
-    var IPs: Set[IPAddr] = _
-
-    private var _deviceTag: FlowTag = _
+    @ZoomField(name = "hosts", converter = classOf[HostIpConverter])
+    var hosts: Map[UUID, IPAddr] = _
 
     override def afterFromProto(): Unit = {
-        _deviceTag = FlowTagger.tagForDevice(id)
         super.afterFromProto()
     }
-
-    def deviceTag = _deviceTag
 }

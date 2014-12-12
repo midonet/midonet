@@ -25,9 +25,11 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.packets.IPAddr
 
 @RunWith(classOf[JUnitRunner])
 class TunnelZoneConversionTest extends FeatureSpec with Matchers {
@@ -43,9 +45,7 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be null
-            zoomObj.deviceTag should be(deviceTag(proto))
-            zoomObj.zoneType should be(TunnelZoneType.GRE)
+            zoomObj.zoneType shouldBe TunnelZoneType.GRE
             assertEquals(proto, zoomObj)
         }
 
@@ -55,8 +55,7 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
             setZoomObjFields(zoomObj)
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.TunnelZone])
 
-            proto should not be None
-            proto.getType should be(Topology.TunnelZone.Type.GRE)
+            proto.getType shouldBe Topology.TunnelZone.Type.GRE
             assertEquals(proto, zoomObj)
         }
     }
@@ -68,9 +67,7 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be null
-            zoomObj.deviceTag should be(deviceTag(proto))
-            zoomObj.zoneType should be(TunnelZoneType.VXLAN)
+            zoomObj.zoneType shouldBe TunnelZoneType.VXLAN
             assertEquals(proto, zoomObj)
         }
 
@@ -80,8 +77,7 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
             setZoomObjFields(zoomObj)
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.TunnelZone])
 
-            proto should not be None
-            proto.getType should be(Topology.TunnelZone.Type.VXLAN)
+            proto.getType shouldBe Topology.TunnelZone.Type.VXLAN
             assertEquals(proto, zoomObj)
         }
     }
@@ -93,9 +89,7 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
                 .build()
             val zoomObj = ZoomConvert.fromProto(proto, classOf[TunnelZone])
 
-            zoomObj should not be null
-            zoomObj.deviceTag should be(deviceTag(proto))
-            zoomObj.zoneType should be(TunnelZoneType.VTEP)
+            zoomObj.zoneType shouldBe TunnelZoneType.VTEP
             assertEquals(proto, zoomObj)
         }
 
@@ -105,33 +99,39 @@ class TunnelZoneConversionTest extends FeatureSpec with Matchers {
             setZoomObjFields(zoomObj)
             val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.TunnelZone])
 
-            proto should not be None
-            proto.getType should be(Topology.TunnelZone.Type.VTEP)
+            proto.getType shouldBe Topology.TunnelZone.Type.VTEP
             assertEquals(proto, zoomObj)
         }
     }
 
     private def assertEquals(protoBuf: Topology.TunnelZone,
                             zoomObj: TunnelZone) = {
-        protoBuf.getId.asJava should be (zoomObj.id)
-        protoBuf.getName should be (zoomObj.name)
-        protoBuf.getHostIdsList.size() should be(zoomObj.hostIds.size)
-        protoBuf.getHostIdsList foreach(id => {
-            zoomObj.hostIds should contain(id.asJava)
+        protoBuf.getId.asJava shouldBe zoomObj.id
+        protoBuf.getName shouldBe zoomObj.name
+        protoBuf.getHostsList should have size zoomObj.hosts.size
+        protoBuf.getHostsList foreach(host => {
+            val ip = IPAddressUtil.toIPAddr(host.getIp)
+            zoomObj.hosts.get(host.getHostId.asJava) shouldBe Some(ip)
         })
     }
 
-   private def newProto = {
-       Topology.TunnelZone.newBuilder
-       .setId(UUID.randomUUID.asProto)
-       .setName("toto")
-       .addHostIds(UUID.randomUUID().asProto)
-       .addHostIds(UUID.randomUUID().asProto)
+    private def newProto = {
+        Topology.TunnelZone.newBuilder
+            .setId(UUID.randomUUID.asProto)
+            .setName("toto")
+            .addHosts(newHostToIp("192.168.0.1"))
     }
 
-   private def setZoomObjFields(zoomObj: TunnelZone) = {
-       zoomObj.id = UUID.randomUUID()
-       zoomObj.name = "toto"
-       zoomObj.hostIds = Set(UUID.randomUUID(), UUID.randomUUID())
-   }
+    private def newHostToIp(ip: String) = {
+        Topology.TunnelZone.HostToIp.newBuilder()
+            .setHostId(UUID.randomUUID().asProto)
+            .setIp(IPAddressUtil.toProto(ip))
+            .build()
+    }
+
+    private def setZoomObjFields(zoomObj: TunnelZone) = {
+        zoomObj.id = UUID.randomUUID()
+        zoomObj.name = "toto"
+        zoomObj.hosts = Map(UUID.randomUUID() -> IPAddr.fromString("192.168.0.1"))
+    }
 }
