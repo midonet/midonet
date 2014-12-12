@@ -35,6 +35,7 @@ import java.util.UUID;
 public class ExternalNetZkManager extends BaseZkManager {
 
     private final NetworkZkManager networkZkManager;
+    private final L3ZkManager l3ZkManager;
     private final ProviderRouterZkManager providerRouterZkManager;
     private final PortZkManager portZkManager;
     private final RouteZkManager routeZkManager;
@@ -43,11 +44,13 @@ public class ExternalNetZkManager extends BaseZkManager {
     public ExternalNetZkManager(ZkManager zk, PathBuilder paths,
                                 Serializer serializer,
                                 NetworkZkManager networkZkManager,
+                                L3ZkManager l3ZkManager,
                                 ProviderRouterZkManager providerRouterZkManager,
                                 PortZkManager portZkManager,
                                 RouteZkManager routeZkManager) {
         super(zk, paths, serializer);
         this.networkZkManager = networkZkManager;
+        this.l3ZkManager = l3ZkManager;
         this.providerRouterZkManager = providerRouterZkManager;
         this.portZkManager = portZkManager;
         this.routeZkManager = routeZkManager;
@@ -90,11 +93,19 @@ public class ExternalNetZkManager extends BaseZkManager {
      * When a network is deleted, the corresponding bridge is deleted, which
      * removes all of its ports.  However, it does not remove their peer ports
      * that belong to the provider router.  When external network is removed,
-     * call this method to clean up the dangling peer ports.
+     * call this method to clean up the dangling peer ports.  In addition,
+     * all the floating IPs allocated on this network should be deleted.
      */
-    public void prepareDeleteDanglingProviderPorts(List<Op> ops,
-                                                         Network net)
+    public void prepareDeleteExternalNetwork(List<Op> ops, Network net)
             throws SerializationException, StateAccessException {
+
+        // Delete floating IPs belonging to the ports on this network
+        List<Port> ports = networkZkManager.getPorts(net.id);
+        for (Port port : ports) {
+            if (port.isFloatingIp()) {
+                l3ZkManager.prepareDeleteFloatingIp(ops, port.deviceIdUuid());
+            }
+        }
 
         UUID prId = providerRouterZkManager.getId();
         List<IPv4Subnet> ipv4Subs = networkZkManager.getIPv4Subnets(net.id);
