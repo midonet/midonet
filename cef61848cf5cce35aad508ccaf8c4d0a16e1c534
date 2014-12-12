@@ -34,6 +34,24 @@
       "revId": "cef61848cf5cce35aad508ccaf8c4d0a16e1c534",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cdfda53d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/State.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-12T10:25:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_4a16bba8",
+      "revId": "cef61848cf5cce35aad508ccaf8c4d0a16e1c534",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
