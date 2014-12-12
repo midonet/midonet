@@ -29,6 +29,14 @@ class BufferPoolTest extends FunSpec with Matchers {
      *  temporary pools so that they don't get GCed during the unit tests. */
     val buffers = new ListBuffer[ByteBuffer]()
 
+    def refAndReleaseFrom(pool: BufferPool): (ByteBuffer) => Unit = {
+        b =>
+            buffers.synchronized {
+                buffers += b
+                pool release b
+            }
+    }
+
     describe("BufferPool") {
         it("can be created with valid parameters") {
             new BufferPool(10,20,1024).allocated shouldBe 10
@@ -74,7 +82,7 @@ class BufferPoolTest extends FunSpec with Matchers {
             List(2,5,10) foreach { n =>
                 val bufs = List.fill(n) { pool.take }
                 pool.available shouldBe (10 - n)
-                bufs foreach { b => buffers += b; pool release b }
+                bufs foreach refAndReleaseFrom(pool)
                 pool.available shouldBe 10
             }
         }
@@ -83,7 +91,7 @@ class BufferPoolTest extends FunSpec with Matchers {
             it("should recycle buffers") {
                 val pool = new BufferPool(10,10,128)
                 val bufs1 = List.fill(10) { pool.take }
-                bufs1 foreach { b => buffers += b; pool release b }
+                bufs1 foreach refAndReleaseFrom(pool)
                 val bufs2 = List.fill(10) { pool.take }
                 bufs1.toSet shouldBe bufs2.toSet
             }
@@ -110,7 +118,7 @@ class BufferPoolTest extends FunSpec with Matchers {
                         def run() {
                             (1 to 1000) foreach { _ =>
                                 List.fill(5) { pool.take }
-                                    .foreach { b => buffers += b; pool release b }
+                                    .foreach(refAndReleaseFrom(pool))
                             }
 
                         }
