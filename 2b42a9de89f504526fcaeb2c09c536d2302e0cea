@@ -22,6 +22,30 @@
       "revId": "2b42a9de89f504526fcaeb2c09c536d2302e0cea",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cd2125fe",
+        "filename": "cluster/src/main/proto/topology_api.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-12T09:01:54Z",
+      "side": 1,
+      "message": "Mmm... Probably it\u0027s because of the protobuf compiler: changing the packages requires specifying the fully qualified message name. It\u0027s a little bit weird having different package names for protobuf and rpc, but we can fix that in another patch.\n\nThanks for catching it!",
+      "parentUuid": "fafc7978_8a48a388",
+      "range": {
+        "startLine": 6,
+        "startChar": 28,
+        "endLine": 6,
+        "endChar": 31
+      },
+      "revId": "2b42a9de89f504526fcaeb2c09c536d2302e0cea",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
