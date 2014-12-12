@@ -18,7 +18,6 @@ package org.midonet.midolman.simulation
 import java.util.concurrent.TimeUnit
 
 import scala.collection.mutable
-import scala.compat.Platform
 import scala.concurrent._
 import scala.concurrent.duration.Duration
 
@@ -31,6 +30,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.state.ArpCacheEntry
 import org.midonet.packets.{ARP, Ethernet, IPv4Addr, MAC}
+import org.midonet.util.UnixClock
 import org.midonet.util.functors.Callback3
 
 /* The ArpTable is called from the Coordinators' actors and
@@ -63,6 +63,8 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                    val observer: (IPv4Addr, MAC, MAC) => Unit)
                   (implicit system: ActorSystem,
                             ec: ExecutionContext) extends ArpTable {
+
+    val clock = UnixClock.get
 
     private val log = Logger(org.slf4j.LoggerFactory.getLogger(
         "org.midonet.devices.arp-table.arp-table-" + arpCache.getRouterId))
@@ -157,7 +159,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
          * be postponed (on a future that waits for the mac's notification).
          */
         val arpCacheEntry = arpCache.get(ip)
-        val now = Platform.currentTime
+        val now = clock.time
 
         if (arpCacheEntry == null
             || (arpCacheEntry.stale < now &&
@@ -169,7 +171,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         // macPromise may complete with a Left(TimeoutException). Use
         // fallbackTo so that exceptions don't escape the ArpTable class.
         if (arpCacheEntry != null && arpCacheEntry.macAddr != null &&
-            arpCacheEntry.expiry >= Platform.currentTime) {
+            arpCacheEntry.expiry >= clock.time) {
             arpCacheEntry.macAddr
         } else {
             throw new NotYetException(waitForArpEntry(ip, ARP_TIMEOUT_MILLIS).future,
@@ -184,7 +186,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
         val entry = arpCache.get(ip)
 
         if (entry != null && entry.macAddr != null &&
-                entry.expiry >= Platform.currentTime) {
+                entry.expiry >= clock.time) {
             Future.successful(entry.macAddr)
         } else {
             macFuture
@@ -192,7 +194,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     }
 
     def set(ip: IPv4Addr, mac: MAC) {
-        val now = Platform.currentTime
+        val now = clock.time
         val entry = arpCache.get(ip)
         if (entry != null &&
             entry.macAddr != null && entry.stale > now &&
@@ -233,7 +235,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
     private def expireCacheEntry(ip: IPv4Addr) {
         val entry = arpCache.get(ip)
         if (entry != null) {
-            if (entry.expiry <= Platform.currentTime)
+            if (entry.expiry <= clock.time)
                 arpCache.remove(ip)
         }
         // TODO(pino): else retry the removal?
@@ -244,7 +246,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                              (implicit pktContext: PacketContext) {
         def retryLoopBottomHalf(cacheEntry: ArpCacheEntry, arp: Ethernet,
                                 previous: Long) {
-            val now = Platform.currentTime
+            val now = clock.time
             // expired, no retries left.
             if (cacheEntry == null || cacheEntry.expiry <= now)
                 return
@@ -282,7 +284,7 @@ class ArpTableImpl(val arpCache: ArpCache, cfg: MidolmanConfig,
                 retryLoopBottomHalf(entry.clone(), arp, previous)
         }
 
-        val now = Platform.currentTime
+        val now = clock.time
         // this is open to races with other nodes
         // for now we take over sending ARPs if no ARP has been sent
         // in RETRY_INTERVAL * 2. And, obviously, the MAC is null or stale.
