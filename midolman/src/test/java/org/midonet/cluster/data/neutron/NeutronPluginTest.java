@@ -113,6 +113,14 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         UUID.randomUUID(), TENANT_ID, router.id, "200.0.0.5", port.id,
         "10.0.0.5");
 
+    // Floating IP port
+    protected static final Port floatingIpPort = new Port(
+        UUID.randomUUID(), extNetwork.id, ADMIN_ID, "fip_port",
+        MAC.random().toString(),
+        Arrays.asList(new IPAllocation("200.0.0.5", extSubnet.id)),
+        DeviceOwner.FLOATINGIP, floatingIp.id.toString(), null);
+
+
     protected NeutronPlugin plugin;
 
     @Override
@@ -166,6 +174,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         plugin.addRouterInterface(router.id, routerInterface);
 
         // Create a floating IP to associate with a fixed IP
+        plugin.createPort(floatingIpPort);
         plugin.createFloatingIp(floatingIp);
     }
 }
