@@ -161,8 +161,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                 // For external networks, deleting the bridge is not enough.
                 // The ports on the bridge are all deleted but the peer ports on
                 // the provider router are not.  Delete them here.
-                externalNetZkManager.prepareDeleteDanglingProviderPorts(ops,
-                                                                        net);
+                externalNetZkManager.prepareDeleteExternalNetwork(ops, net);
             }
 
             commitOps(ops);
