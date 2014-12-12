@@ -25,13 +25,8 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor._
-
 import com.typesafe.scalalogging.Logger
-import org.slf4j.MDC
-
-import org.jctools.queues.QueueFactory
-import org.jctools.queues.spec.ConcurrentQueueSpec._
-
+import org.midonet.Util
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -49,10 +44,9 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.Util
-import org.midonet.util.concurrent._
 import org.midonet.util.collection.Reducer
-import org.midonet.util.functors.Callback0
+import org.midonet.util.concurrent._
+import org.slf4j.MDC
 
 object DeduplicationActor {
     // Messages
@@ -172,10 +166,7 @@ class DeduplicationActor(
     protected var replicator: FlowStateReplicator = _
 
     protected var workflow: PacketHandler = _
-    private val cbExecutor: CallbackExecutor = new CallbackExecutor(
-        QueueFactory.newQueue[Callback0](createBoundedSpsc(2048)),
-        self
-    )
+    private val cbExecutor = new CallbackExecutor(2048, self)
 
     private var pendingFlowStateBatches = List[FlowStateBatch]()
 
