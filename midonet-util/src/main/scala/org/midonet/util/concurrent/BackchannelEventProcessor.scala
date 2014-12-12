@@ -77,7 +77,7 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             while (running.get()) {
                 poller.poll(eventHandler) match {
                     case PollState.GATING | PollState.IDLE =>
-                        retries = applyWait(retries)
+                        retries = park(retries)
                     case _ =>
                         retries = DEFAULT_RETRIES
                 }
@@ -87,15 +87,4 @@ class BackchannelEventProcessor[T >: Null](ringBuffer: RingBuffer[T],
             running.set(false)
         }
     }
-
-    private def applyWait(counter: Int): Int =
-        if (counter > 100) {
-            counter - 1
-        } else if (counter > 0) {
-            Thread.`yield`()
-            counter - 1
-        } else {
-            park()
-            counter
-        }
 }
