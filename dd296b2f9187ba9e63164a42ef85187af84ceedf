@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "fafc7978_4d3535f6",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2014-12-12T17:04:49Z",
+      "side": 1,
+      "message": "2.0 has little meaning in OSS MidoNet. How about we rename this spec to \"New topology propagation pipeline\" or something like that?\n\nMore, banal point, but would you mind moving this file to specs/2015.02/cluster_design.md?",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_6dbd9968",
         "filename": "specs/cluster_design.md",
         "patchSetId": 1
@@ -43,6 +60,81 @@
         "endLine": 45,
         "endChar": 14
       },
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_8d3f1dd6",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2014-12-12T17:04:49Z",
+      "side": 1,
+      "message": "It looks like the distinction made here is that the Synchronizer works at the same level of the Importer. The Translator sits below them both.\n\nBut do the names Synchronizer, Importer and Translator match the current work-in-progress?",
+      "parentUuid": "fafc7978_6dbd9968",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_cd2005b3",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2014-12-12T17:04:49Z",
+      "side": 1,
+      "message": "Trailing space.",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3059285b",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2014-12-12T17:04:49Z",
+      "side": 1,
+      "message": "\"As part of Phase 2...\"\n\nI\u0027d like this phrase removed from the spec for two reasons:\n- It implies that this particular spec will be implemented in two phases. This spec is self contained and none of its goals require removing ZOOM from the Agent.\n- What we\u0027ve been referring to as \"Phase 2\" deserves its own spec and discussion.",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3391329a",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2014-12-12T17:04:49Z",
+      "side": 1,
+      "message": "Same comments as above. I would like to leave this discussion for a separate spec. The changes described so far stand on their own merits, regardless of what happens next.",
       "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
