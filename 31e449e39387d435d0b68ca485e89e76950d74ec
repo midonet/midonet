@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_b05b5886",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T15:54:59Z",
+      "side": 1,
+      "message": "Ditto. Maybe can be moved into the VirtualTopology",
+      "revId": "31e449e39387d435d0b68ca485e89e76950d74ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_5064ac48",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TunnelZoneMapper.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T15:54:59Z",
+      "side": 1,
+      "message": "Given the current state, I\u0027m wondering whether it\u0027s worth having its own file for this, or we could just move it into VirtualTopology",
+      "revId": "31e449e39387d435d0b68ca485e89e76950d74ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
