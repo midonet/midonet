@@ -45,7 +45,7 @@ class WakerUpperTest extends FeatureSpec with Matchers {
                     @volatile var timesWokenUp = 0
 
                     override def run(): Unit =
-                            park()
+                            park(0)
 
                     override def shouldWakeUp(): Boolean =
                         if (this eq Thread.currentThread()) {
@@ -74,7 +74,7 @@ class WakerUpperTest extends FeatureSpec with Matchers {
                     override def run(): Unit =
                         while (timesWokenUp < timesToWakeUp) {
                             try {
-                                park()
+                                park(0)
                             } catch { case _: InterruptedException =>
                             }
                         }

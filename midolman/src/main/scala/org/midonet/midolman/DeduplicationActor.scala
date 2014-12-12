@@ -16,7 +16,6 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.TimeoutException
 import java.util.{UUID, HashMap => JHashMap, List => JList}
 
 import scala.collection.mutable
@@ -29,9 +28,7 @@ import akka.actor._
 import com.typesafe.scalalogging.Logger
 import org.slf4j.MDC
 
-import org.jctools.queues.QueueFactory
-import org.jctools.queues.spec.ConcurrentQueueSpec._
-
+import org.midonet.Util
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
@@ -39,7 +36,7 @@ import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.{DhcpException, DeviceQueryTimeoutException, ArpTimeoutException, PacketContext}
+import org.midonet.midolman.simulation.{ArpTimeoutException, DeviceQueryTimeoutException, DhcpException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
@@ -49,10 +46,8 @@ import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.Util
-import org.midonet.util.concurrent._
 import org.midonet.util.collection.Reducer
-import org.midonet.util.functors.Callback0
+import org.midonet.util.concurrent._
 
 object DeduplicationActor {
     // Messages
@@ -73,7 +68,8 @@ object DeduplicationActor {
     // the WildcardFlowTable. After updating the table, the FlowController
     // will place the FlowMatch in the pending ring buffer so the DDA can
     // evict the entry from the cache.
-    sealed class ActionsCache(var size: Int = 1024, log: Logger) {
+    sealed class ActionsCache(var size: Int = 1024, cbExecutor: CallbackExecutor,
+                              log: Logger) {
         size = Util.findNextPositivePowerOfTwo(size)
         private val mask = size - 1
         val actions = new JHashMap[FlowMatch, JList[FlowAction]]()
@@ -103,6 +99,10 @@ object DeduplicationActor {
                 log.debug("Waiting for the FlowController to catch up")
                 var retries = 200
                 while (clearProcessedFlowMatches() == 0) {
+                    // While we wait on the FlowController, we must avoid the
+                    // deadlock that would ensue if the FlowController were to
+                    // begin waiting on us due to lots of flows being invalidated.
+                    cbExecutor.run()
                     if (retries > 100) {
                         retries -= 1
                     } else if (retries > 0) {
@@ -165,17 +165,14 @@ class DeduplicationActor(
     private val waitingRoom = new WaitingRoom[PacketContext](
                                         (simulationExpireMillis millis).toNanos)
 
-    protected val actionsCache = new ActionsCache(log = log)
+    private val cbExecutor = new CallbackExecutor(2048, self)
+    protected val actionsCache = new ActionsCache(cbExecutor = cbExecutor, log = log)
 
     protected val connTrackTx = new FlowStateTransaction(connTrackStateTable)
     protected val natTx = new FlowStateTransaction(natStateTable)
     protected var replicator: FlowStateReplicator = _
 
     protected var workflow: PacketHandler = _
-    private val cbExecutor: CallbackExecutor = new CallbackExecutor(
-        QueueFactory.newQueue[Callback0](createBoundedSpsc(2048)),
-        self
-    )
 
     private var pendingFlowStateBatches = List[FlowStateBatch]()
 

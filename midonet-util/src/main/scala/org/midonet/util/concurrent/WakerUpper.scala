@@ -16,7 +16,7 @@
 
 package org.midonet.util.concurrent
 
-import java.util.concurrent.atomic.{AtomicReferenceArray, AtomicInteger}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReferenceArray}
 import java.util.concurrent.locks.LockSupport
 
 object WakerUpper {
@@ -33,15 +33,30 @@ object WakerUpper {
     trait Parkable {
         private[WakerUpper] var thread: Thread = _
 
-        final def park(): Unit =
+        final def park(retries: Int = 200): Int = {
+            var remainingRetries = retries
             while (!shouldWakeUp()) {
-                WakerUpper.register(this)
+                remainingRetries = applyParkMethod(remainingRetries)
+            }
+            remainingRetries
+        }
+
+        private def applyParkMethod(counter: Int): Int = {
+            if (counter > 100) {
+                counter - 1
+            } else if (counter > 0) {
+                Thread.`yield`()
+                counter - 1
+            } else {
+                 WakerUpper.register(this)
                 try {
                     LockSupport.park()
                 } finally {
                     WakerUpper.deregister(this)
                 }
+                counter
             }
+        }
 
         /**
          * This function tells the WakerUpper whether the blocked thread should
