@@ -44,6 +44,8 @@ object C3POStorageManager {
      */
     private[c3po] val stateId = toProto(new JUUID(0, 1))
 
+    private[c3po] val NO_C3PO_TASKS_PROCESSED = 0
+
     /* A utility method to generate a C3POStorageManager Proto holding the last
      * processed C3PO task ID.
      */
@@ -78,17 +80,23 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
 
     def clearTranslators(): Unit = apiTranslators.clear()
 
-    def init(): Unit = {
+    private def initStorageManagerState(): Unit = {
         try {
-            storage.create(storageManagerState(0))
-            log.info("Initialized last processed task ID to 0.")
+            storage.create(storageManagerState(NO_C3PO_TASKS_PROCESSED))
+            log.info("Initialized last processed task ID to " +
+                     s"$NO_C3PO_TASKS_PROCESSED.")
         } catch {
             case _: ObjectExistsException =>
                 log.info(s"Found last processed task ID: $lastProcessed")
             case e: Throwable =>
-                    throw new C3PODataManagerException(
-                            "Failure initializing C3PODataManager.", e)
+                throw new C3PODataManagerException(
+                        "Failure initializing C3PODataManager.", e)
         }
+    }
+
+    @throws[C3PODataManagerException]
+    def init() {
+        initStorageManagerState()
         initialized = true
     }
 
@@ -117,6 +125,7 @@ class C3POStorageManager(val storage: Storage) extends C3PODataManager {
     override def flushTopology() {
         try {
             storage.flush()
+            initStorageManagerState()
         } catch {
             case e: Throwable =>
                     throw new C3PODataManagerException(
