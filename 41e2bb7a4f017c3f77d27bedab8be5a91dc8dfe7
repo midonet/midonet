@@ -1,0 +1,370 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_93457e19",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "Moving these to the constructor would be nice, and allows the val",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f34b2a29",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "TODO: make configurable (it\u0027s actually pretty easy using the cfg you already have)",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d346e620",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "I guess they are ok hardcoded in the annotations above.",
+      "range": {
+        "startLine": 128,
+        "startChar": 7,
+        "endLine": 128,
+        "endChar": 31
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b327e263",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "Check Alex\u0027s implementation on a separate CR. If it\u0027s easy to reuse that one feel free to do it. Otherwise we can iterate later.",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d36d469b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "ID?",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_336db299",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "TYPE?",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 16
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f3720a7b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "nit: I noted that the rx people use observe on these methods, which do seem better, I was considering to move our naming to that. What do you think?",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 18
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_935c5eef",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "nit: ignore(source) seems clearer?",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 12
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f3f96ac9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "I\u0027m concerned about the fact that we will never remove completed ones from the map. Should we add a doOnComplete() hook to remove the subscription from the map?",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d3f426d1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "SUFFER NO MORE!",
+      "range": {
+        "startLine": 64,
+        "startChar": 6,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_732d7a46",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "who uses this?",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 14
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_33f2d2d2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "private?",
+      "range": {
+        "startLine": 29,
+        "startChar": 28,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f3ce8a82",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "It doesn\u0027t seem necessary to abstract the factory to a separate class for now. Also explaining the reason for the Future etc. would be nice.",
+      "range": {
+        "startLine": 30,
+        "startChar": 12,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_93af3e94",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "wow this one was tough :D I suggest something like this to make it a bit more readable? Also, it looks like the Option is not really necessary.\n\n    type InitialState \u003d (State, Future[Subscription])\n    override def start(output: Observer[Message]): InitialState \u003d {\n\n        val subs \u003d Promise[Subscription]()\n        val sessionFactory: SessionFactory \u003d (id, successMsg) \u003d\u003e try {\n            val session \u003d sMgr.claim(UUIDUtil.fromProto(id))\n            subs success session.observable.subscribe(output)\n            output.onNext(successMsg)\n            Some(session)\n        } catch {\n            case e: Exception \u003d\u003e\n                subs failure e\n                None\n        }\n\n        (Ready(sessionFactory), subs.future)\n    }\n}",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f395ea40",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "private?",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7389fa25",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "Turn these into static maps?",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_13722e49",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "fixed!",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_73de1a13",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T17:47:23Z",
+      "side": 1,
+      "message": "Ditto!",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
