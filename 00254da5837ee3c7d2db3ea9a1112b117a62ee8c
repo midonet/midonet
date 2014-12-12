@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_6d191988",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ClassAwaitableObserver.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-12T12:19:44Z",
+      "side": 1,
+      "message": "is this necessary?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 5
+      },
+      "revId": "00254da5837ee3c7d2db3ea9a1112b117a62ee8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
