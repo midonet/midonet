@@ -29,6 +29,7 @@ import org.mockito.Matchers.argThat
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.when
 import org.scalatest.BeforeAndAfterEach
@@ -200,6 +201,15 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         verify(storage).multi(startsWith(
                 DeleteOp(classOf[NeutronNetwork], networkId, true),
                 DeleteOp(classOf[Network], networkId, true)))
+    }
+
+    "A flush request" should "call Storage.flush() and initialize " +
+    "Storage Manager state" in {
+        setUpNetworkTranslator()
+        storageManager.flushTopology()
+
+        verify(storage).flush()
+        verify(storage, times(2)).create(storageManagerState(0))
     }
 
     "Neutron transaction" should "produce a single equivalent ZOOM.multi " +
