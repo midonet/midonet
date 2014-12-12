@@ -68,7 +68,8 @@ object PacketWorkflowTest {
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     CallbackExecutor.Immediate,
-                                    new ActionsCache(log = NoLogging), null) {
+                                    new ActionsCache(4, CallbackExecutor.Immediate,
+                                                     log = NoLogging), null) {
             override def runSimulation(pktCtx: PacketContext) =
                 throw new Exception("no Coordinator")
             override def executePacket(pktCtx: PacketContext,
