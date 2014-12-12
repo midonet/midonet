@@ -22,6 +22,30 @@
       "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b0a07844",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-12T16:18:51Z",
+      "side": 1,
+      "message": "I was taking terminology from Pino\u0027s document here. He distinguishes between the component that pulls the recent changes from the db, and the component that actually translates and stores these in MN.\n\nIn practise, the difference is small once we look into the code. But I\u0027m not sure if keeping this distinction in documents may make it more understandable for people.",
+      "parentUuid": "fafc7978_6dbd9968",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
