@@ -17,10 +17,11 @@ package org.midonet.cluster.data
 
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList, UUID}
+import java.util.{List => JList}
 
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
+import scala.reflect.ClassTag
 
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
@@ -45,7 +46,7 @@ object ZoomConvert {
     private val BYTE_ARRAY = classOf[Array[Byte]]
 
     private val converters =
-        new TrieMap[Class[_ <: Converter[_,_]], Converter[_,_]]()
+        new TrieMap[Class[_ <: ConverterBase], ConverterBase]()
     converters += classOf[DefaultConverter] -> new DefaultConverter()
     converters += classOf[ObjectConverter] -> new ObjectConverter()
 
@@ -300,7 +301,7 @@ object ZoomConvert {
      */
     private def getConverter(pojoField: Field,
                              protoField: Descriptors.FieldDescriptor,
-                             zoomField: ZoomField): Converter[_,_] = {
+                             zoomField: ZoomField): ConverterBase = {
         if (!protoField.isRepeated) {
             return getScalarConverter(pojoField.getType, zoomField)
         }
@@ -338,7 +339,7 @@ object ZoomConvert {
      * @param zoomField The ZoomField annotation.
      * @return The converter instance.
      */
-    private def getMapConverter(zoomField: ZoomField): Converter[_,_] = {
+    private def getMapConverter(zoomField: ZoomField): ConverterBase = {
         val converter = if (zoomField.converter != classOf[DefaultConverter]) {
             zoomField.converter
         } else {
@@ -362,7 +363,7 @@ object ZoomConvert {
      * @return The converter instance.
      */
     private def getScalarConverter(clazz: Class[_],
-                                   zoomField: ZoomField): Converter[_,_] = {
+                                   zoomField: ZoomField): ConverterBase = {
         val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
         val converter = if (zoomField.converter != classOf[DefaultConverter]) {
             zoomField.converter
@@ -374,33 +375,38 @@ object ZoomConvert {
         converters.getOrElseUpdate(converter, converter.newInstance())
     }
 
+    trait ConverterBase {
+        protected[data] def to(value: Any, clazz: Type): Any
+        protected[data] def from(value: Any, clazz: Type): Any
+    }
+
     /**
      * Abstract class for converting values between Java and Protocol Buffers
      * data types.
      */
-    abstract class Converter[T <: Any, U <: Any] {
+    abstract class Converter[T <: Any, U <: Any]()(implicit mt: ClassTag[T],
+                                                            mu: ClassTag[U])
+            extends ConverterBase {
         def toProto(value: T, clazz: Type): U
         def fromProto(value: U, clazz: Type): T
 
-        protected[data] def to(value: Any, clazz: Type)
-                              (implicit m: Manifest[T]): Any = {
-            if (m.runtimeClass.isAssignableFrom(value.getClass)) {
+        protected[data] override def to(value: Any, clazz: Type): Any = {
+            if (mt.runtimeClass.isAssignableFrom(value.getClass)) {
                 toProto(value.asInstanceOf[T], clazz)
             } else {
                 throw new ConvertException(
                     s"Value type ${value.getClass} does not match converter " +
-                    s"type ${m.runtimeClass}")
+                    s"type ${mt.runtimeClass}")
             }
         }
 
-        protected[data] def from(value: Any, clazz: Type)
-                                (implicit m: Manifest[U]): Any = {
-            if (m.runtimeClass.isAssignableFrom(value.getClass)) {
+        protected[data] override def from(value: Any, clazz: Type): Any = {
+            if (mu.runtimeClass.isAssignableFrom(value.getClass)) {
                 fromProto(value.asInstanceOf[U], clazz)
             } else {
                 throw new ConvertException(
                     s"Value type ${value.getClass} does not match converter " +
-                    s"type ${m.runtimeClass}")
+                    s"type ${mu.runtimeClass}")
             }
         }
     }
@@ -540,7 +546,7 @@ object ZoomConvert {
      * Converter class for arrays.
      * @param converter The converter for the array component type.
      */
-    protected[data] class ArrayConverter(converter: Converter[_,_])
+    protected[data] class ArrayConverter(converter: ConverterBase)
             extends Converter[Array[_], JList[_]] {
 
         override def toProto(value: Array[_], clazz: Type): JList[_] = {
@@ -569,7 +575,7 @@ object ZoomConvert {
      * Converter class for lists.
      * @param converter The converter for the list component type.
      */
-    protected[data] class ListConverter(converter: Converter[_,_])
+    protected[data] class ListConverter(converter: ConverterBase)
             extends Converter[JList[_], JList[_]] {
 
         override def toProto(value: JList[_], clazz: Type): JList[_] = clazz match {
@@ -597,7 +603,7 @@ object ZoomConvert {
      * Converter class for set.
      * @param converter The converter for the list component type.
      */
-    protected[data] class SetConverter(converter: Converter[_,_])
+    protected[data] class SetConverter(converter: ConverterBase)
             extends Converter[Set[_], JList[_]] {
 
         override def toProto(value: Set[_], clazz: Type): JList[_] = clazz match {

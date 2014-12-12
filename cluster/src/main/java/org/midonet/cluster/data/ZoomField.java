@@ -38,6 +38,6 @@ public @interface ZoomField {
     /**
      * Specifies the converter for this field.
      */
-    Class<? extends ZoomConvert.Converter<?,?>> converter()
+    Class<? extends ZoomConvert.ConverterBase> converter()
         default ZoomConvert.DefaultConverter.class;
 }
