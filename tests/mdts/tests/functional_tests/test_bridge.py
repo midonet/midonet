@@ -146,6 +146,8 @@ def test_mac_learning():
     # Get the bridge to learn the mac address
     iface_with_the_hw_addr.ping4(sender, sync=True)
 
+    time.sleep(1)
+
     # only iface_with_the_hw_addr should receives the ehternet unicast
     f1 = async_assert_that(iface_with_the_hw_addr,
                            receives(match_on_the_hw_addr, within_sec(5)))
