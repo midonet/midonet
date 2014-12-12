@@ -18,6 +18,8 @@ package org.midonet.midolman
 
 import java.util.concurrent.ThreadFactory
 
+import org.midonet.util.UnixClock
+
 import scala.annotation.tailrec
 import scala.collection.mutable.PriorityQueue
 import scala.concurrent.duration.FiniteDuration
@@ -58,6 +60,7 @@ class MockScheduler(config: Config,
     private case class ScheduledRunnable(runnable: Runnable, shouldStartAt: Long,
                                          interval: Option[FiniteDuration] = None) {
         var cancelled: Boolean = false
+        def isReady = UnixClock.timeNanos >= shouldStartAt
     }
 
     implicit private val ordering = new Ordering[ScheduledRunnable] {
@@ -69,7 +72,7 @@ class MockScheduler(config: Config,
             else if (y eq null)
                 -1
             else
-                implicitly[Ordering[Long]].compare(x.shouldStartAt, y.shouldStartAt)
+                implicitly[Ordering[Long]].compare(y.shouldStartAt, x.shouldStartAt)
         }
     }
 
@@ -84,6 +87,16 @@ class MockScheduler(config: Config,
                 Some(sr.runnable)
             }
         }
+
+    final def runOverdueTasks(): Unit = {
+        while (scheduledRunnables.nonEmpty && scheduledRunnables.head.isReady) {
+            val sr = scheduledRunnables.dequeue()
+            if (! sr.cancelled) {
+                ensureReschedule(sr)
+                sr.runnable.run()
+            }
+        }
+    }
 
     final def runAll(): Unit =
         scheduledRunnables.dequeueAll filterNot (_.cancelled) foreach { sr =>
@@ -114,7 +127,7 @@ class MockScheduler(config: Config,
 
     private def doSchedule(runnable: Runnable, delay: FiniteDuration,
                            interval: Option[FiniteDuration]): Cancellable = {
-        val sr = ScheduledRunnable(runnable, System.nanoTime() + delay.toNanos,
+        val sr = ScheduledRunnable(runnable, UnixClock.timeNanos + delay.toNanos,
                                    interval)
         scheduledRunnables += sr
         new Cancellable {
