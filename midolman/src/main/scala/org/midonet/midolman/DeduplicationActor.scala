@@ -39,7 +39,7 @@ import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
-import org.midonet.midolman.simulation.{DeviceQueryTimeoutException, ArpTimeoutException, PacketContext}
+import org.midonet.midolman.simulation.{DhcpException, DeviceQueryTimeoutException, ArpTimeoutException, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
@@ -376,6 +376,7 @@ class DeduplicationActor(
         ex match {
             case ArpTimeoutException(router, ip) =>
                 pktCtx.log.debug(s"ARP timeout at router $router for address $ip")
+            case _: DhcpException =>
             case e: DeviceQueryTimeoutException =>
                 pktCtx.log.warn("Timeout while fetching " +
                                 s"${e.deviceType} with id ${e.deviceId}")
