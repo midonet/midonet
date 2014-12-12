@@ -118,6 +118,24 @@
       "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d3ab861c",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 15
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-12T19:02:03Z",
+      "side": 1,
+      "message": "okay, so after the chat with Guillermo I guess we\u0027ll want to avoid calculating the checksums. I still don\u0027t think we should have the bytes hardcoded: we can use the existing classes so to get the byte[] and then replace the checksums with 0. Furthermore, we can try and avoid serializing the header every time, instead skipping its length by setting ByteBuffer::position",
+      "parentUuid": "fafc7978_334ad2c5",
+      "revId": "afc4322b7e1a52ed6a2beb03e69db7fa6d64908a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
