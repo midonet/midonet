@@ -17,8 +17,12 @@
 package org.midonet.packets;
 
 
+import java.util.Objects;
+
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
+
+import org.midonet.Util;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -26,15 +30,70 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
     @JsonSubTypes.Type(value = IPv4Subnet.class, name = "IPv4"),
     @JsonSubTypes.Type(value = IPv6Subnet.class, name = "IPv6")
 })
-public interface IPSubnet<T extends IPAddr> {
-    T getAddress();
-    int getPrefixLen();
-    boolean containsAddress(IPAddr addr);
-    String toString();
-    String toZkString();
+public abstract class IPSubnet<T extends IPAddr> {
+
+    protected T address;
+    protected int prefixLen;
+
+    protected IPSubnet() {}
+
+    protected IPSubnet(T address, int prefixLen) {
+        this.address = address;
+        this.prefixLen = prefixLen;
+    }
+
+    public T getAddress() {
+        return address;
+    }
+
+    public int getPrefixLen() {
+        return prefixLen;
+    }
+
+    public abstract boolean containsAddress(IPAddr addr);
+
     /* Required for deserialization */
-    void setAddress(T address);
+    public void setAddress(T address) {
+        this.address = address;
+    }
+
     /* Required for deserialization */
-    void setPrefixLen(int prefixLen);
-    short ethertype();
+    public void setPrefixLen(int prefixLen) {
+        this.prefixLen = prefixLen;
+    }
+
+    public abstract short ethertype();
+
+    @Override
+    public String toString() {
+        return address.toString() + "/" + prefixLen;
+    }
+
+    public String toZkString() {
+        return address.toString() + "_" + prefixLen;
+    }
+
+    public String toUnicastString() {
+        return getAddress().toString();
+    }
+
+    public static IPSubnet<?> fromString(String cidr) {
+        return cidr.contains(".") ?
+               IPv4Subnet.fromString(cidr) : IPv6Subnet.fromString(cidr);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (this.getClass() != o.getClass()) return false;
+
+        IPSubnet<T> that = Util.uncheckedCast(o);
+        return prefixLen == that.prefixLen &&
+               Objects.equals(address, that.address);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, prefixLen);
+    }
 }
