@@ -17,11 +17,13 @@
 package org.midonet.util.concurrent
 
 import java.lang.Thread.State
+import scala.concurrent.duration._
 
 import com.lmax.disruptor._
 
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{OneInstancePerTest, FeatureSpec, Matchers}
 
@@ -61,8 +63,8 @@ class BackchannelEventProcessorTest extends FeatureSpec
         t.start()
 
         scenario ("Processor reacts to new events") {
-            eventually {
-                backchannel.processed should be (BackchannelEventProcessor.DEFAULT_RETRIES)
+            eventually(new Timeout(1 minute)) {
+                backchannel.processed should be (0)
                 t.getState should be (State.WAITING)
             }
             backchannel.shouldProcess should be (false)
@@ -72,13 +74,13 @@ class BackchannelEventProcessorTest extends FeatureSpec
             ringBuffer.isPublished(0) should be (true)
             eventually {
                 handler.handled should be (1)
-                backchannel.processed should be ((BackchannelEventProcessor.DEFAULT_RETRIES + 1) * 2)
+                backchannel.processed should be (2) /* 1 after wake-up and 1 after the event being handled */
             }
         }
 
         scenario ("Thread reacts to work from backchannel") {
-            eventually {
-                backchannel.processed should be (BackchannelEventProcessor.DEFAULT_RETRIES)
+            eventually(new Timeout(1 minute)) {
+                backchannel.processed should be (0)
                 t.getState should be (State.WAITING)
             }
             backchannel.shouldProcess should be (false)
@@ -86,13 +88,13 @@ class BackchannelEventProcessorTest extends FeatureSpec
             backchannel.hasWork = true
             eventually {
                 handler.handled should be (0)
-                backchannel.processed should be >= BackchannelEventProcessor.DEFAULT_RETRIES * 3
+                backchannel.processed should be >= 1024
             }
         }
 
         scenario ("Thread reacts to processor shutdown") {
-            eventually {
-                backchannel.processed should be (BackchannelEventProcessor.DEFAULT_RETRIES)
+            eventually(new Timeout(1 minute)) {
+                backchannel.processed should be (0)
                 t.getState should be (State.WAITING)
             }
             backchannel.shouldProcess should be (false)
@@ -102,8 +104,8 @@ class BackchannelEventProcessorTest extends FeatureSpec
         }
 
         scenario ("Backchannel is queried at batch boundary") {
-            eventually {
-                backchannel.processed should be (BackchannelEventProcessor.DEFAULT_RETRIES)
+            eventually(new Timeout(1 minute)) {
+                backchannel.processed should be (0)
                 t.getState should be (State.WAITING)
             }
             backchannel.shouldProcess should be (false)
@@ -113,8 +115,9 @@ class BackchannelEventProcessorTest extends FeatureSpec
             ringBuffer.isPublished(1) should be (true)
             eventually {
                 handler.handled should be (2)
-                backchannel.processed should be ((BackchannelEventProcessor.DEFAULT_RETRIES + 1) * 2)
+                backchannel.processed should be (2)
             }
         }
     }
 }
+

@@ -61,25 +61,13 @@ class WakerUpperWaitStrategy(retries: Int = 200) extends WaitStrategy {
         var counter = retries
         while ({ availableSequence = dependentSequence.get
                  availableSequence } < sequence) {
-            counter = applyWaitMethod(sequence, dependentSequence, barrier, counter)
-        }
-        availableSequence
-    }
+            barrier.checkAlert()
 
-    private def applyWaitMethod(sequence: Long, dependentSequence: Sequence,
-                                barrier: SequenceBarrier, counter: Int): Int = {
-        barrier.checkAlert()
-        if (counter > 100) {
-            counter - 1
-        } else if (counter > 0) {
-            Thread.`yield`()
-            counter - 1
-        } else {
             val waitCtx = waitContext.get()
             waitCtx.prepare(sequence, dependentSequence, barrier)
-            waitCtx.park()
-            counter
+            counter = waitCtx.park(counter)
         }
+        availableSequence
     }
 
     override def signalAllWhenBlocking(): Unit = { }
