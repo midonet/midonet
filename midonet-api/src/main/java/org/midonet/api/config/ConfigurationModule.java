@@ -36,10 +36,6 @@ public class ConfigurationModule extends AbstractModule {
         this.provider = new ServletContextConfigProvider(context);
     }
 
-    public ConfigurationModule(String filePath) {
-        this.provider = ConfigProvider.fromIniFile(filePath);
-    }
-
     @Override
     protected void configure() {
         bind(ConfigProvider.class).toInstance(provider);
