@@ -16,15 +16,15 @@
 
 package org.midonet.brain.services.c3po
 
-import javax.sql.DataSource
-
 import com.google.inject.Inject
 import com.google.protobuf.Message
+import org.apache.commons.dbcp2.BasicDataSource
 import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
-import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
@@ -33,13 +33,21 @@ import org.midonet.config._
 
 /** The service that translates and imports neutron models into the MidoNet
   * backend storage */
-class C3PO @Inject()(config: C3POConfig,
-                     dataSrc: DataSource,
-                     storage: Storage,
-                     leaderLatch: LeaderLatch)
-    extends ScheduledClusterMinion(config) {
+class NeutronImporter @Inject()(nodeContext: ClusterNode.Context,
+                                config: NeutronImporterConfig,
+                                storage: Storage, leaderLatch: LeaderLatch)
+    extends ScheduledClusterMinion(nodeContext, config) {
+
+    private val log = LoggerFactory.getLogger(this.getClass)
 
     val dataMgr = initDataManager()
+
+    // The Neutron data source
+    private val dataSrc = new BasicDataSource()
+    dataSrc.setDriverClassName(config.jdbcDriver)
+    dataSrc.setUrl(config.connectionString)
+    dataSrc.setUsername(config.user)
+    dataSrc.setPassword(config.password)
 
     val neutronImporter = new SqlNeutronImporter(dataSrc)
 
@@ -115,7 +123,7 @@ class C3PO @Inject()(config: C3POConfig,
 }
 
 @ConfigGroup("neutron-importer")
-trait C3POConfig extends ScheduledMinionConfig[C3PO] {
+trait NeutronImporterConfig extends ScheduledMinionConfig[NeutronImporter] {
     @ConfigBool(key = "enabled")
     override def isEnabled: Boolean
 

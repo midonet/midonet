@@ -17,40 +17,31 @@
 package org.midonet.brain
 
 import java.io.PrintWriter
-import java.sql.Connection
-import java.sql.DriverManager
+import java.sql.{Connection, DriverManager}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import scala.util.Random
 import scala.util.control.NonFatal
 
-import com.google.inject.AbstractModule
-import com.google.inject.Guice
-
+import com.google.inject.{AbstractModule, Guice}
 import org.apache.commons.configuration.HierarchicalConfiguration
-import org.apache.commons.dbcp2.BasicDataSource
 import org.apache.curator.test.TestingServer
 import org.junit.runner.RunWith
-import org.scalatest.BeforeAndAfter
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.MinionDef
 import org.midonet.brain.services.StorageModule
-import org.midonet.brain.services.c3po.C3POConfig
-import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.cluster.data.neutron.NeutronResourceType
+import org.midonet.brain.services.c3po.NeutronImporterConfig
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, NoData}
-import org.midonet.cluster.data.neutron.TaskType
 import org.midonet.cluster.data.neutron.TaskType._
+import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.data.storage.Storage
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config.ConfigProvider
 import org.midonet.util.concurrent.toFutureOps
 
@@ -86,11 +77,10 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
     private val cfg = fillConfig(new HierarchicalConfiguration)
     private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
-    private val c3poCfg =
-        cfgProvider.getConfig(classOf[C3POConfig])
+    private val c3poCfg = cfgProvider.getConfig(classOf[NeutronImporterConfig])
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("neutron-importer", c3poCfg))
-    private val daemon = new Daemon(minionDefs)
+    private val daemon = new Daemon(UUID.randomUUID(), minionDefs)
     private val zk: TestingServer = new TestingServer(zkPort)
 
     // Adapt the DriverManager interface to DataSource interface.
@@ -98,11 +88,11 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
     private val dataSrc = new DataSource() {
         override def getConnection() = DriverManager.getConnection(dbConnectStr)
         override def getConnection(username: String, password: String) = null
-        override def getLoginTimeout() = -1
-        override def getLogWriter() = null
+        override def getLoginTimeout = -1
+        override def getLogWriter = null
         override def setLoginTimeout(seconds: Int) {}
         override def setLogWriter(out: PrintWriter) {}
-        override def getParentLogger() = null
+        override def getParentLogger = null
         override def isWrapperFor(clazz: Class[_]) = false
         override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
     }
@@ -114,7 +104,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
     private val clusterNodeTestModule = new AbstractModule {
         override def configure(): Unit = {
             bind(classOf[ConfigProvider]).toInstance(cfgProvider)
-            bind(classOf[C3POConfig]).toInstance(c3poCfg)
+            bind(classOf[NeutronImporterConfig]).toInstance(c3poCfg)
             minionDefs foreach { m =>
                 install(MinionConfig.module(m.cfg))
             }
@@ -149,7 +139,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
         var c: Connection = null
         try {
             c = dataSrc.getConnection()
-            val stmt = c.createStatement();
+            val stmt = c.createStatement()
             sqls.foreach { sql => stmt.executeUpdate(sql) }
             stmt.close()
         } finally {
@@ -245,18 +235,18 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
     "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
         val sleadSleepMs = 2000
         // Initially the Storage is empty.
-        storage.exists(classOf[Network], network1Uuid).await() should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe false
 
         // Creates Network 1
         executeSqlStmts(insertMidoNetTaskSql(
                 2, Create, NetworkType, network1Json, network1Uuid, "tx1"))
         Thread.sleep(sleadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (true)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe true
         val network1 = storage.get(classOf[Network], network1Uuid).await()
-        network1.getId should be (UUIDUtil.toProto(network1Uuid))
-        network1.getName should be ("private-network")
-        network1.getAdminStateUp should be (true)
+        network1.getId shouldBe UUIDUtil.toProto(network1Uuid)
+        network1.getName shouldBe "private-network"
+        network1.getAdminStateUp shouldBe true
 
         // Creates Network 2 and updates Network 1
         executeSqlStmts(
@@ -266,21 +256,21 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                      network1Uuid, "tx2"))
         Thread.sleep(sleadSleepMs)
 
-        storage.exists(classOf[Network], network2Uuid).await() should be (true)
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe true
         val network2 = storage.get(classOf[Network], network2Uuid).await()
         network2.getId should be (UUIDUtil.toProto(network2Uuid))
         network2.getName should be ("corporate-network")
         val network1a = storage.get(classOf[Network], network1Uuid).await()
         network1a.getId should be (UUIDUtil.toProto(network1Uuid))
         network1a.getName should be ("public-network")
-        network1a.getAdminStateUp should be (false)
+        network1a.getAdminStateUp shouldBe false
 
         // Deletes Network 1
         executeSqlStmts(insertMidoNetTaskSql(
                 5, Delete, NetworkType, "", network1Uuid, "tx3"))
         Thread.sleep(sleadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (false)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe false
 
         // Truncates the Task table and flushes the Storage.
         executeSqlStmts(TRUNCATE_TASK_TABLE,
@@ -288,7 +278,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                 1, Flush, NoData, "", null, "tx4"))
         Thread.sleep(sleadSleepMs)
 
-        storage.exists(classOf[Network], network2Uuid).await() should be (false)
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe false
 
         // Can create Network 1 & 2 again.
         executeSqlStmts(
@@ -298,7 +288,7 @@ class C3PODaemonTest extends FlatSpec with BeforeAndAfter with Matchers {
                                      network2Uuid, "tx5"))
         Thread.sleep(sleadSleepMs)
 
-        storage.exists(classOf[Network], network1Uuid).await() should be (true)
-        storage.exists(classOf[Network], network2Uuid).await() should be (true)
+        storage.exists(classOf[Network], network1Uuid).await() shouldBe true
+        storage.exists(classOf[Network], network2Uuid).await() shouldBe true
     }
 }

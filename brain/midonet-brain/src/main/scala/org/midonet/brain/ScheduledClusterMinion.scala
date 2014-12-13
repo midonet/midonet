@@ -19,10 +19,12 @@ import java.util.concurrent.{Executors, TimeUnit}
 
 import org.slf4j.LoggerFactory
 
-abstract class ScheduledClusterMinion(config: ScheduledMinionConfig[_])
-    extends ClusterMinion {
+abstract class ScheduledClusterMinion(nodeContext: ClusterNode.Context,
+                                      config: ScheduledMinionConfig[_])
+    extends ClusterMinion(nodeContext) {
 
-    protected val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(this.getClass)
+
     protected val pool = Executors.newScheduledThreadPool(config.numThreads)
     protected val runnable: Runnable
 

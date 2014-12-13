@@ -16,27 +16,34 @@
 
 package org.midonet.brain.services.heartbeat
 
+import java.util
 import java.util.{Map => JMap}
-
-import scala.collection.JavaConversions._
 
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
+import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.config._
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration. */
-class Heartbeat @Inject()(config: HeartbeatConfig, metrics: MetricRegistry)
-    extends ScheduledClusterMinion(config) {
+class Heartbeat @Inject()(override val nodeContext: ClusterNode.Context,
+                          metrics: MetricRegistry, cfg: HeartbeatConfig)
+    extends ScheduledClusterMinion(nodeContext, cfg) {
 
-    protected override val runnable = makeRunnable(beat())
+    private val log = LoggerFactory.getLogger(this.getClass)
     private val counter = new Counter()
 
+    protected override val runnable = makeRunnable(beat())
+
     private val metricSet = new MetricSet {
-        override def getMetrics: JMap[String, Metric] = Map("beats" -> counter)
+        override def getMetrics: JMap[String, Metric] = {
+            val m = new util.HashMap[String, Metric]()
+            m.put("beats", counter)
+            m
+        }
     }
 
     override def doStart(): Unit = {

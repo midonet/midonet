@@ -15,15 +15,25 @@
  */
 package org.midonet.brain;
 
+import java.util.UUID;
+
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.brain.configuration.EmbeddedClusterNodeConfig;
 import org.midonet.config.ConfigProvider;
+import org.midonet.config.HostIdGenerator;
+import org.midonet.config.HostIdGenerator.PropertiesFileNotWritableException;
 import org.midonet.midolman.config.MidolmanConfig;
 
 public class MidoBrainModule extends PrivateModule {
+
+    private static final Logger
+        log = LoggerFactory.getLogger(MidoBrainModule.class);
 
     @Override
     protected void configure() {
@@ -39,15 +49,31 @@ public class MidoBrainModule extends PrivateModule {
             .asEagerSingleton();
         expose(MidolmanConfig.class);
 
-        bind(MidoBrainConfig.class)
-            .toProvider(MidoBrainModule.MidoBrainConfigProvider.class)
-            .asEagerSingleton();
-        expose(MidoBrainConfig.class);
-
+        bind(ClusterNode.Context.class).toProvider(
+            new Provider<ClusterNode.Context>() {
+                @Inject
+                ConfigProvider configProvider;
+                @Override public ClusterNode.Context get() {
+                    EmbeddedClusterNodeConfig cfg = configProvider.getConfig(
+                        EmbeddedClusterNodeConfig.class);
+                    try {
+                        UUID clusterNodeId = HostIdGenerator.getHostId(cfg);
+                        boolean embeddingEnabled = cfg.isEmbeddingEnabled();
+                        return new ClusterNode.Context(
+                            clusterNodeId,
+                            embeddingEnabled
+                        );
+                    } catch (PropertiesFileNotWritableException e) {
+                        log.error("Could not register cluster node host id", e);
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        );
+        expose(ClusterNode.Context.class);
     }
 
-    public static class MidolmanConfigProvider
-                  implements Provider<MidolmanConfig> {
+    public static class MidolmanConfigProvider implements Provider<MidolmanConfig> {
         @Inject
         ConfigProvider configProvider;
 
@@ -57,14 +83,4 @@ public class MidoBrainModule extends PrivateModule {
         }
     }
 
-    public static class MidoBrainConfigProvider
-        implements Provider<MidoBrainConfig> {
-        @Inject
-        ConfigProvider configProvider;
-
-        @Override
-        public MidoBrainConfig get() {
-            return configProvider.getConfig(MidoBrainConfig.class);
-        }
-    }
 }
