@@ -22,7 +22,7 @@
         <file>${midonet-brain.log.dir}midonet-brain.log</file>
         <append>true</append>
         <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>${midonet-brain.log.dir}midonet-brain.%d{yyyy-MM-dd}.log</fileNamePattern>
@@ -32,12 +32,29 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
         </encoder>
     </appender>
 
-    <!-- Fine grained settings for specific classes, sample-->
+    <!-- Fine grained settings for specific packages -->
+    <logger name="org.apache.cassandra" level="INFO" />
     <!-- logger name="org.eclipse.jetty" level="INFO" / -->
+
+    <!-- Service loggers -->
+
+    <!-- Top level logger for the VxGW HA service -->
+    <!-- <logger name="org.midonet.vxgw" level="DEBUG" /> -->
+    <!-- Information about hardware VTEP controllers bound to networks  -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-vtep-controller" level="DEBUG"/> -->
+    <!-- Information about the controller of networks bound to VTEPs -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-midonet-controller" level="DEBUG" /> -->
+    <!-- Information about MAC table syncing among hardware VTEPs and networks
+         inside MidoNet -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-mac-syncing" level="DEBUG" /> -->
+    <!-- Information about the control process that monitors newly bound to
+         VTEPs -->
+    <!-- <logger name="org.midonet.vxgw.vxgw-manager" level="DEBUG"/> -->
+
 
     <!-- OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
     <root level="INFO">
