@@ -19,12 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.junit.Before;
@@ -35,7 +30,7 @@ import rx.Observable;
 import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.ClusterNode;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
@@ -50,6 +45,11 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.util.functors.Callback;
 
+import static com.google.inject.Guice.createInjector;
+import static java.util.UUID.randomUUID;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -67,17 +67,15 @@ public class VxLanFailoverTest {
 
     @Mocked
     private VtepDataClient vtepClient;
+
     @Mocked
     private VtepDataClientFactory vtepDataClientFactory;
-    @Mocked
-    private MidoBrainConfig config;
 
     @Before
     public void setup() throws Exception {
         HierarchicalConfiguration config = new HierarchicalConfiguration();
         BrainTestUtils.fillTestConfig(config);
-        Injector injector = Guice.createInjector(
-            BrainTestUtils.modules(config));
+        Injector injector = createInjector(BrainTestUtils.modules(config));
 
         Directory directory = injector.getInstance(Directory.class);
         BrainTestUtils.setupZkTestDirectory(directory);
@@ -342,8 +340,10 @@ public class VxLanFailoverTest {
     }
 
     public VxLanGatewayService createService() {
-        return new VxLanGatewayService(midoClient, vtepDataClientFactory,
-                                       zkConnWatcher, config);
+        return new VxLanGatewayService(new ClusterNode.Context(randomUUID(),
+                                                               false),
+                                       midoClient, vtepDataClientFactory,
+                                       zkConnWatcher);
     }
 
     public UUID createTunnelZone(int index)

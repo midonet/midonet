@@ -22,6 +22,7 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.c3po.translators._
@@ -48,13 +49,15 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            curator: CuratorFramework)
     extends ScheduledClusterMinion(nodeContext, config) {
 
-    val dataMgr = initDataManager()
+    private val log = LoggerFactory.getLogger(classOf[C3POMinion])
 
-    val LEADER_LATCH_PATH = "/leader-latch"
+    private val dataMgr = initDataManager()
 
-    val neutronImporter = new SqlNeutronImporter(dataSrc)
-    val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
-                                      nodeContext.nodeId.toString)
+    private val LEADER_LATCH_PATH = "/leader-latch"
+
+    private val neutronImporter = new SqlNeutronImporter(dataSrc)
+    private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
+                                              nodeContext.nodeId.toString)
     leaderLatch.start()
 
     protected override val runnable = new Runnable {
