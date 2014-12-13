@@ -17,6 +17,7 @@
 package org.midonet.brain.services.heartbeat
 
 import java.util
+import java.util.UUID
 import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.JavaConversions._
@@ -26,14 +27,14 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterMinion, MinionConfig}
+import org.midonet.brain.{ClusterNode, MinionConfig, ClusterMinion}
 import org.midonet.config.{ConfigBool, ConfigGroup, ConfigInt, ConfigString}
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
   * configuration. */
-class Heartbeat extends ClusterMinion {
-
-    @Inject
-    private var cfg: HeartbeatConfig = _
+class Heartbeat @Inject()(override val nodeContext: ClusterNode.Context,
+                          val cfg: HeartbeatConfig)
+    extends ClusterMinion(nodeContext) {
 
     @Inject
     private var metrics: MetricRegistry = _
@@ -79,7 +80,7 @@ class Heartbeat extends ClusterMinion {
 
     override def doStop(): Unit = {
         log.info("Dead")
-        pool.shutdownNow()  // cancel running tasks
+        pool.shutdownNow()  // cancels running tasks
         try {
             if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.error("Unable to shut down")

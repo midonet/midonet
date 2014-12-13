@@ -22,6 +22,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.brain.ClusterNode;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;

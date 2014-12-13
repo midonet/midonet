@@ -15,41 +15,34 @@
  */
 package org.midonet.brain.configuration;
 
+import org.midonet.brain.ClusterNodeConfig;
 import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigString;
-import org.midonet.config.HostIdConfig;
-import org.midonet.cluster.config.CassandraConfig;
-import org.midonet.cluster.config.ZookeeperConfig;
 
-@ConfigGroup(MidoBrainConfig.GROUP_NAME)
-public interface MidoBrainConfig
-    extends ZookeeperConfig, CassandraConfig, HostIdConfig {
+/**
+ * This class is used to configure the Cluster Node embedded in the REST API
+ * and will be removed as soon as the Cluster becomes a first-class service
+ * in MidoNet.
+ */
+@Deprecated
+@ConfigGroup(EmbeddedClusterNodeConfig.GROUP_NAME)
+public interface EmbeddedClusterNodeConfig extends ClusterNodeConfig {
 
     public final static String GROUP_NAME = "midobrain";
 
     /**
-     * Gets a flag indicating whether the VXGW service is enabled.
-     *
-     * @return True if the VXGW service is enabled, false otherwise.
+     * Used to tell the REST API whether the Cluster services should be
+     * ran as part of the REST API server. The key name is confusing, but
+     * kept to respect backwards compatibility with existing deployments.
      */
     @ConfigBool(key = "vxgw_enabled", defaultValue = false)
-    public boolean getVxGwEnabled();
+    public boolean isEmbeddingEnabled();
 
-    /**
-     * Gets the unique identifier stored in the configuration file.
-     *
-     * @return The unique identifier.
-     */
-    @ConfigString(key = "host_uuid", defaultValue = "")
+    @ConfigString(key = "host_id", defaultValue = "")
     public String getHostId();
 
-    /**
-     * Gets the path of the properties file.
-     *
-     * @return The path of the properties file.
-     */
     @ConfigString(key = "properties_file",
-                  defaultValue = "/var/lib/tomcat7/webapps/host_uuid.properties")
+                  defaultValue = "/midonet_cluster_node_id.properties")
     public String getHostPropertiesFilePath();
 }
