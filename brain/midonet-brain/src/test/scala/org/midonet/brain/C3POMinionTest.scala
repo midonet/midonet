@@ -42,7 +42,6 @@ import org.midonet.cluster.models.C3PO
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.storage.ZoomProvider
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.util.concurrent.toFutureOps
 
 /** Tests the service that synces the Neutron DB into Midonet's backend. */
 @RunWith(classOf[JUnitRunner])
