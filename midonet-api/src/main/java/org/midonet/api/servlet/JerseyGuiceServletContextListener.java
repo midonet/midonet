@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.ClusterNode;
 import org.midonet.brain.services.vxgw.VxLanGatewayService;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
 
@@ -65,38 +65,39 @@ public class JerseyGuiceServletContextListener extends
     protected void initializeApplication() {
         log.debug("initializeApplication: entered");
 
-        // TODO: Once the cluster work is completed, RestApiService may not be
-        // needed since currently it only initializes the ZK root directories.
-
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
-
-        if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
-            log.info("initializeApplication: starting VxLAN gateway");
+        ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
+        if (ctx.embed()) {
+            log.info("initializeApplication: starting embedded Cluster node");
             injector.getInstance(VxLanGatewayService.class)
-                .startAsync()
-                .awaitRunning();
+                    .startAsync()
+                    .awaitRunning();
         } else {
-            log.info("initializeApplication: skipping VxLAN gateway");
+            log.info("initializeApplication: skipping embedded Cluster node");
         }
 
-        log.debug("initializeApplication: exiting");
     }
 
     protected void destroyApplication() {
         log.debug("destroyApplication: entered");
 
-        // TODO: Check if we need to do this after the cluster is completed.
-        if (injector.getInstance(MidoBrainConfig.class).getVxGwEnabled()) {
-            log.info("Stopping VxLanGatewayService");
+        ClusterNode.Context ctx = injector
+                                  .getInstance(ClusterNode.Context.class);
+        if (ctx.embed()) {
+            log.info("Stopping embedded Cluster service for node {}",
+                     ctx.nodeId());
             injector.getInstance(VxLanGatewayService.class)
+                    .stopAsync()
+                    .awaitTerminated();
+        } else {
+            log.info("destroyApplication: skipping embedded Cluster node");
+        }
+
+        injector.getInstance(RestApiService.class)
                 .stopAsync()
                 .awaitTerminated();
-        }
-        injector.getInstance(RestApiService.class)
-            .stopAsync()
-            .awaitTerminated();
         injector.getInstance(VtepDataClientFactory.class)
-            .dispose();
+                .dispose();
 
         log.debug("destroyApplication: exiting");
     }

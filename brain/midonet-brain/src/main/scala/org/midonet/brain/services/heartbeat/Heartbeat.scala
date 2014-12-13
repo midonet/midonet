@@ -22,6 +22,7 @@ import scala.collection.JavaConversions._
 
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
+import org.slf4j.LoggerFactory
 
 import org.midonet.brain.{ClusterNode, ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.config._
@@ -33,11 +34,14 @@ class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
                           config: HeartbeatConfig, metrics: MetricRegistry)
     extends ScheduledClusterMinion(nodeContext, config) {
 
-    protected override val runnable = makeRunnable(beat())
+    private val log = LoggerFactory.getLogger(this.getClass)
     private val counter = new Counter()
 
+    protected override val runnable = makeRunnable(beat())
+
     private val metricSet = new MetricSet {
-        override def getMetrics: JMap[String, Metric] = Map("beats" -> counter)
+        val metrics = Map[String, Metric]("beats" -> counter)
+        override def getMetrics: JMap[String, Metric] = metrics
     }
 
     override def doStart(): Unit = {

@@ -68,9 +68,8 @@ object C3POStorageManager {
                                  s"${if (msg == null) "" else ": " + msg}",
                                  cause)
 
-    /* A utility method to generate a C3PO.C3POState Proto holding the last
-     * processed task ID.
-     */
+    /* A utility method to generate the C3POState object holding the last
+     * processed task ID. */
     private[c3po] def c3poState(lastProcessed: Int) =
         C3POState.newBuilder
                  .setId(C3PO_STATE_ID)

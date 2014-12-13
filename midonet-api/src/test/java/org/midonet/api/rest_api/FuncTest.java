@@ -33,7 +33,7 @@ import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.api.version.VersionParser;
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.configuration.EmbeddedClusterNodeConfig;
 import org.midonet.cluster.config.ZookeeperConfig;
 
 public class FuncTest {
@@ -95,7 +95,7 @@ public class FuncTest {
                 .contextParam(getConfigKey(ZookeeperConfig.GROUP_NAME,
                                            "midolman_root_key"),
                               ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID())
-                .contextParam(getConfigKey(MidoBrainConfig.GROUP_NAME,
+                .contextParam(getConfigKey(EmbeddedClusterNodeConfig.GROUP_NAME,
                                            "properties_file"),
                               "/tmp/" + testRunUuid + "_host_uuid.properties")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
