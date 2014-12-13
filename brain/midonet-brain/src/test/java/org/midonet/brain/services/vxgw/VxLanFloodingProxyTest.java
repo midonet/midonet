@@ -33,7 +33,7 @@ import rx.Observable;
 import rx.Subscription;
 
 import org.midonet.brain.BrainTestUtils;
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.ClusterNode;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepConstants;
 import org.midonet.brain.southbound.vtep.VtepDataClient;
@@ -57,7 +57,6 @@ import org.midonet.util.functors.Callback;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.integration.junit4.JMockit;
-
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JMockit.class)
@@ -85,8 +84,9 @@ public class VxLanFloodingProxyTest {
     private VtepDataClient vtepClient;
     @Mocked
     private VtepDataClientFactory vtepDataClientFactory;
-    @Mocked
-    private MidoBrainConfig brainConfig;
+
+    private ClusterNode.Context nodeCtx =
+        new ClusterNode.Context(UUID.randomUUID(), false);
 
     private VxLanGatewayService vxgwService;
 
@@ -104,9 +104,9 @@ public class VxLanFloodingProxyTest {
         zkConnWatcher = new ZookeeperConnectionWatcher();
         hostZkManager = injector.getInstance(HostZkManager.class);
 
-        vxgwService = new VxLanGatewayService(
-            midoClient, vtepDataClientFactory, zkConnWatcher, brainConfig,
-            new MockRandom());
+        vxgwService = new VxLanGatewayService(nodeCtx, midoClient,
+                                              vtepDataClientFactory,
+                                              zkConnWatcher, new MockRandom());
     }
 
     /**
