@@ -16,6 +16,8 @@
 
 package org.midonet.brain
 
+import java.util.UUID
+
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
 import com.google.inject.{AbstractModule, Module, Singleton}
@@ -25,23 +27,24 @@ import org.slf4j.LoggerFactory
 import org.midonet.brain.ClusterNode.MinionDef
 
 /** Models the base class that orchestrates the various sub services inside a
-  * Midonet Cluster node.
-  */
-final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
+  * Midonet Cluster node. */
+final protected class Daemon(val nodeId: UUID,
+                             val minions: List[MinionDef[ClusterMinion]])
     extends AbstractService {
 
     private val log = LoggerFactory.getLogger(classOf[Daemon])
 
     /** Start summmoning our Minions */
     override def doStart(): Unit = {
+        log.info(s"MidoNet cluster daemon starting on host $nodeId")
         var nMinions = 0
         minions foreach { m =>
             MinionConfig.minionClass(m.cfg) match {
                 case Some(klass) if m.cfg.isEnabled =>
-                    log.info(s"Minion '${m.name}' enabled with $klass")
                     try {
+                        log.info(s"Minion '${m.name}' enabled with $klass")
                         ClusterNode.injector.getInstance(klass)
-                            .startAsync().awaitRunning()
+                                            .startAsync().awaitRunning()
                         nMinions = nMinions + 1
                     } catch {
                         case t: Throwable =>
@@ -62,6 +65,7 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
             notifyStarted()
         }
     }
+
 
     /** Disband Minions */
     override def doStop(): Unit = {
@@ -89,7 +93,8 @@ final protected class Daemon(minions: List[MinionDef[ClusterMinion]])
 /** Define a sub-service that runs as part of the Midonet Cluster. This
   * should expose the necessary API to let the Daemon babysit its minions.
   */
-abstract class ClusterMinion extends AbstractService
+abstract class ClusterMinion(val nodeContext: ClusterNode.Context)
+    extends AbstractService {}
 
 /** Base configuration mixin for a Cluster Minion. */
 trait MinionConfig[+D <: ClusterMinion] {

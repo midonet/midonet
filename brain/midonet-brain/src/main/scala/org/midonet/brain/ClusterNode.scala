@@ -17,16 +17,17 @@
 package org.midonet.brain
 
 import java.nio.file.{Files, Paths}
+import java.util.UUID
 
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.{AbstractModule, Guice}
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.StorageModule
 import org.midonet.brain.services.c3po.NeutronImporterConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
-import org.midonet.config.{ConfigString, ConfigGroup, ConfigProvider}
+import org.midonet.brain.services.vxgw.VxLanGatewayService.VxGWServiceConfig
+import org.midonet.config._
 
 /**
  * Base exception for all MidoNet Cluster errors.
@@ -43,6 +44,14 @@ object ClusterNode extends App {
     /** Defines a Minion with a name, config, and implementing class */
     case class MinionDef[D <: ClusterMinion](name: String, cfg: MinionConfig[D])
 
+    /** Encapsulates node-wide context that might be of use for minions
+      *
+      * @param nodeId the UUID of this cluster node
+      * @param embed whether this service is enabled as an embedded service (
+      *              this is legacy for the REST API)
+      */
+    case class Context(nodeId: UUID, embed: Boolean = false)
+
     private val log = LoggerFactory.getLogger(this.getClass)
 
     private val metrics = new MetricRegistry()
@@ -56,28 +65,34 @@ object ClusterNode extends App {
         System.err.println("OH NO! configuration file is not readable")
         System.exit(1)
     }
-    private val cfg = ConfigProvider fromConfigFile configFile
-    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
 
     // Load configurations for all supported Minions
+    private val cfg = ConfigProvider fromConfigFile configFile
+    private val cfgProvider = ConfigProvider.providerForIniConfig(cfg)
+    private val nodeCfg = cfgProvider.getConfig(classOf[ClusterNodeConfig])
+    private val nodeId = HostIdGenerator.getHostId(nodeCfg)
+
+    // Prepare configuration and definitions for all supported Minions
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
+    private val vxgwCfg = cfgProvider.getConfig(classOf[VxGWServiceConfig])
     private val neutronPollingCfg =
         cfgProvider.getConfig(classOf[NeutronImporterConfig])
+    private val minionDefs: List[MinionDef[ClusterMinion]] = List (
+        new MinionDef("heartbeat", heartbeatCfg),
+        new MinionDef("vxgw", vxgwCfg),
+        new MinionDef("neutron-importer", neutronPollingCfg)
+    )
 
-    private val minionDefs: List[MinionDef[ClusterMinion]] =
-        List (new MinionDef("heartbeat", heartbeatCfg),
-              new MinionDef("neutron-importer", neutronPollingCfg))
-
+    // Expose the known minions to the Daemon, without starting any of them yet
     log.info("Initialising MidoNet Cluster..")
-    // Expose the known minions to the Daemon, without starting them
-    private val daemon = new Daemon(minionDefs)
-
-    private val clusterNodeModule = new AbstractModule {
+    private val daemon = new Daemon(nodeId, minionDefs)
+        private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
 
-            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
             bind(classOf[MetricRegistry]).toInstance(metrics)
 
+            bind(classOf[ConfigProvider]).toInstance(cfgProvider)
+            bind(classOf[Context]).toInstance(new Context(nodeId))
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
             bind(classOf[NeutronImporterConfig]).toInstance(neutronPollingCfg)
             minionDefs foreach { m =>
@@ -110,22 +125,23 @@ object ClusterNode extends App {
     } catch {
         case e: Throwable =>
             e.getCause match {
-                case _: ClusterException =>
+                case e: ClusterException =>
                     log error("The Daemon was not able to start", e.getCause)
                 case _ =>
                     log error(".. actually, not. See error trace", e)
             }
     }
+
 }
 
 /** Configuration for the Heartbeat Minion. */
 @ConfigGroup("cluster_node")
-trait ClusterNodeConfig {
+trait ClusterNodeConfig extends HostIdConfig {
 
     @ConfigString(key = "node_uuid", defaultValue = "")
-    def nodeUuid: String
+    override def getHostId: String
 
     @ConfigString(key = "properties_file",
                   defaultValue = "/tmp/midonet_cluster_node.properties")
-    def propertiesFile: String
+    override def getHostPropertiesFilePath: String
 }

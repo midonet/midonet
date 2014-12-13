@@ -21,12 +21,14 @@ import com.codahale.metrics.MetricRegistry
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.brain.{ClusterMinion, MinionConfig}
+import org.midonet.brain.{ClusterNode, ClusterNodeConfig, ClusterMinion, MinionConfig}
 
-abstract class ScheduledClusterMinion(config: ScheduledMinionConfig[_])
-    extends ClusterMinion {
+abstract class ScheduledClusterMinion(nodeContext: ClusterNode.Context,
+                                      config: ScheduledMinionConfig[_])
+    extends ClusterMinion(nodeContext) {
 
-    protected val log = LoggerFactory.getLogger(this.getClass)
+    private val log = LoggerFactory.getLogger(this.getClass)
+
     protected val pool = Executors.newScheduledThreadPool(config.numThreads)
     protected val runnable: Runnable
 

@@ -19,7 +19,9 @@ package org.midonet.brain.services.c3po
 import com.google.inject.Inject
 
 import org.apache.curator.framework.recipes.leader.LeaderLatch
+import org.slf4j.LoggerFactory
 
+import org.midonet.brain.ClusterNode
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.cluster.data.neutron._
@@ -30,10 +32,12 @@ import org.midonet.cluster.services.neutron.NetworkTranslator
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
-class NeutronImporter @Inject()(config: NeutronImporterConfig,
-                                storage: Storage,
-                                leaderLatch: LeaderLatch)
-    extends ScheduledClusterMinion(config) {
+class NeutronImporter @Inject()(nodeContext: ClusterNode.Context,
+                                config: NeutronImporterConfig,
+                                storage: Storage, leaderLatch: LeaderLatch)
+    extends ScheduledClusterMinion(nodeContext, config) {
+
+    private val log = LoggerFactory.getLogger(this.getClass)
 
     val dataMgr = initDataManager()
 
