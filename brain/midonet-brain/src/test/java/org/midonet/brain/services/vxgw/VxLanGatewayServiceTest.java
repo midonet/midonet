@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 import rx.Observable;
 
 import org.midonet.brain.BrainTestUtils;
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.ClusterNode;
 import org.midonet.brain.southbound.midonet.MidoVxLanPeer;
 import org.midonet.brain.southbound.vtep.VtepBroker;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
@@ -75,14 +75,12 @@ public class VxLanGatewayServiceTest {
 
     @Mocked
     private VtepDataClientFactory vtepDataClientFactory;
-    @Mocked
-    private MidoBrainConfig config;
 
-    private VTEP vtep = null;
+    private ClusterNode.Context nodeCtx =
+        new ClusterNode.Context(UUID.randomUUID(), false);
+
 
     private UUID tzId = null;
-    private UUID hostId = null;
-    private Host host = null;
 
     /*
      * Midonet data client
@@ -162,10 +160,11 @@ public class VxLanGatewayServiceTest {
             vtepClient.getTunnelIp(); times = 1;
         }};
 
-        VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientFactory, zkConnWatcher, config);
-        gwsrv.startAsync().awaitRunning();
-        gwsrv.stopAsync().awaitTerminated();
+        VxLanGatewayService s= new VxLanGatewayService(nodeCtx, dataClient,
+                                                       vtepDataClientFactory,
+                                                       zkConnWatcher);
+        s.startAsync().awaitRunning();
+        s.stopAsync().awaitTerminated();
     }
 
     /**
@@ -223,14 +222,15 @@ public class VxLanGatewayServiceTest {
             mP.stop();
         }};
 
-        VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientFactory, zkConnWatcher, config);
-        gwsrv.startAsync().awaitRunning();
+        VxLanGatewayService s = new VxLanGatewayService(nodeCtx, dataClient,
+                                                        vtepDataClientFactory,
+                                                        zkConnWatcher);
+        s.startAsync().awaitRunning();
 
         // add a new bridge with a binding
         makeBoundBridge("bridge1", "vtepPort", (short)666);
 
-        gwsrv.stopAsync().awaitTerminated();
+        s.stopAsync().awaitTerminated();
     }
 
     /**
@@ -296,10 +296,11 @@ public class VxLanGatewayServiceTest {
         UUID id = makeBoundBridge("bridge1", "vtepPort", (short)666);
         preexistingBridgeIds.add(id);
 
-        VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientFactory, zkConnWatcher, config);
-        gwsrv.startAsync().awaitRunning();
-        gwsrv.stopAsync().awaitTerminated();
+        VxLanGatewayService s = new VxLanGatewayService(nodeCtx, dataClient,
+                                                        vtepDataClientFactory,
+                                                        zkConnWatcher);
+        s.startAsync().awaitRunning();
+        s.stopAsync().awaitTerminated();
     }
 
     /**
@@ -350,9 +351,10 @@ public class VxLanGatewayServiceTest {
             mP.stop();
         }};
 
-        VxLanGatewayService gwsrv = new VxLanGatewayService(
-            dataClient, vtepDataClientFactory, zkConnWatcher, config);
-        gwsrv.startAsync().awaitRunning();
+        VxLanGatewayService s = new VxLanGatewayService(nodeCtx, dataClient,
+                                                        vtepDataClientFactory,
+                                                        zkConnWatcher);
+        s.startAsync().awaitRunning();
 
         // add a new bridge without a binding
         UUID bridgeId = makeUnboundBridge("bridge1");
@@ -364,7 +366,7 @@ public class VxLanGatewayServiceTest {
         // remove binding from the bridge
         dataClient.bridgeDeleteVxLanPort(bridgeId);
 
-        gwsrv.stopAsync().awaitTerminated();
+        s.stopAsync().awaitTerminated();
     }
 
     /**
@@ -406,11 +408,11 @@ public class VxLanGatewayServiceTest {
             vtepClient2.getTunnelIp(); times = 1;
         }};
 
-        VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientFactory, zkConnWatcher, config);
+        VxLanGatewayService s1 = new VxLanGatewayService(nodeCtx, dataClient,
+                                                         vtepDataClientFactory,
+                                                         zkConnWatcher);
         // the initial vtep should be detected
-        gwsrv1.startAsync().awaitRunning();
+        s1.startAsync().awaitRunning();
 
         // this should be also caught by the service
         VTEP vtepAlt = new VTEP();
@@ -419,7 +421,7 @@ public class VxLanGatewayServiceTest {
         vtepAlt.setTunnelZone(tzId);
         dataClient.vtepCreate(vtepAlt);
 
-        gwsrv1.stopAsync().awaitTerminated();
+        s1.stopAsync().awaitTerminated();
     }
 
     /**
@@ -447,16 +449,16 @@ public class VxLanGatewayServiceTest {
             vtepClient.getTunnelIp(); times = 1;
         }};
 
-        VxLanGatewayService gwsrv1 =
-            new VxLanGatewayService(
-                dataClient, vtepDataClientFactory, zkConnWatcher, config);
+        VxLanGatewayService s = new VxLanGatewayService(nodeCtx, dataClient,
+                                                        vtepDataClientFactory,
+                                                        zkConnWatcher);
         // the initial vtep should be detected
-        gwsrv1.startAsync().awaitRunning();
+        s.startAsync().awaitRunning();
 
         // the removal of the vtep should also be detected
         dataClient.vtepDelete(vtepMgmtIp);
 
-        gwsrv1.stopAsync().awaitTerminated();
+        s.stopAsync().awaitTerminated();
     }
 
     private VtepDataClientMock createVtepClient(IPv4Addr mgmtIp, int mgmtPort) {

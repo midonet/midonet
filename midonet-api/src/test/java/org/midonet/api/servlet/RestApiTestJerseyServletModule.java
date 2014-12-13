@@ -17,9 +17,6 @@ package org.midonet.api.servlet;
 
 import javax.servlet.ServletContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
@@ -29,9 +26,6 @@ import org.midonet.midolman.guice.InMemoryStorageModule;
  * Jersey servlet module for MidoNet REST API application.
  */
 public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
-
-    private final static Logger log = LoggerFactory
-            .getLogger(RestApiTestJerseyServletModule.class);
 
     public RestApiTestJerseyServletModule(ServletContext servletContext) {
         super(servletContext);

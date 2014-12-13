@@ -27,7 +27,6 @@ import javax.annotation.Nonnull;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
@@ -36,7 +35,9 @@ import org.slf4j.LoggerFactory;
 import rx.Subscription;
 import rx.functions.Action1;
 
-import org.midonet.brain.configuration.MidoBrainConfig;
+import org.midonet.brain.ClusterMinion;
+import org.midonet.brain.ClusterNode;
+import org.midonet.brain.MinionConfig;
 import org.midonet.brain.services.vxgw.monitor.BridgeMonitor;
 import org.midonet.brain.services.vxgw.monitor.DeviceMonitor;
 import org.midonet.brain.southbound.vtep.VtepConstants;
@@ -49,7 +50,9 @@ import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
 import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.config.HostIdGenerator;
+import org.midonet.config.ConfigBool;
+import org.midonet.config.ConfigGroup;
+import org.midonet.config.ConfigString;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -59,7 +62,7 @@ import org.midonet.packets.IPv4Addr;
 /**
  * A service to integrate a Midonet cloud with hardware VTEPs.
  */
-public class VxLanGatewayService extends AbstractService {
+public class VxLanGatewayService extends ClusterMinion {
 
     private static final Logger log =
         LoggerFactory.getLogger(VxLanGatewayService.class);
@@ -85,42 +88,33 @@ public class VxLanGatewayService extends AbstractService {
     // Subscription observables
     private List<Subscription> subscriptions = new ArrayList<>();
 
-    // Service identifier.
-    private final UUID serviceId;
-
     // Random number generator.
     private final Random random;
 
+    // Cluster Node context
+    private final ClusterNode.Context nodeCtx;
+
     @Inject
     public VxLanGatewayService(
+        @Nonnull ClusterNode.Context nodeCtx,
         @Nonnull DataClient midoClient,
         @Nonnull VtepDataClientFactory vtepDataClientFactory,
-        @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
-        @Nonnull MidoBrainConfig config) {
-        this(midoClient, vtepDataClientFactory, zkConnWatcher, config,
-             new Random());
+        @Nonnull ZookeeperConnectionWatcher zkConnWatcher) {
+        this(nodeCtx, midoClient, vtepDataClientFactory, zkConnWatcher, new Random());
     }
 
     public VxLanGatewayService(
+        @Nonnull ClusterNode.Context nodeCtx,
         @Nonnull DataClient midoClient,
         @Nonnull VtepDataClientFactory vtepDataClientFactory,
         @Nonnull ZookeeperConnectionWatcher zkConnWatcher,
-        @Nonnull MidoBrainConfig config,
         @Nonnull Random random) {
+        super(nodeCtx); // Scala-induced awkwardness
+        this.nodeCtx = nodeCtx;
         this.midoClient = midoClient;
         this.zkConnWatcher = zkConnWatcher;
         this.vtepDataClientFactory = vtepDataClientFactory;
         this.random = random;
-
-        // Set the service identifier.
-        serviceId = HostIdGenerator.readHostId(config);
-        log.info("The VXLAN gateway service identifier: {}", serviceId);
-        try {
-            HostIdGenerator.writeHostId(serviceId, config);
-        } catch (HostIdGenerator.PropertiesFileNotWritableException e) {
-            log.warn("The VXLAN gateway service cannot write to the " +
-                      "configuration file; will continue anyway.", e);
-        }
     }
 
     @Override
@@ -130,12 +124,13 @@ public class VxLanGatewayService extends AbstractService {
         // Set-up monitoring
         try {
             hostMonitor = new HostStatePublisher(midoClient, zkConnWatcher);
-            tunnelZoneMonitor = new TunnelZoneStatePublisher(
-                midoClient, zkConnWatcher, hostMonitor, random);
-            vtepMonitor = new VtepStatePublisher(
-                this.midoClient, this.zkConnWatcher, serviceId);
-            bridgeMonitor = new BridgeMonitor(
-                this.midoClient, this.zkConnWatcher);
+            tunnelZoneMonitor = new TunnelZoneStatePublisher(midoClient,
+                                                             zkConnWatcher,
+                                                             hostMonitor,
+                                                             random);
+            vtepMonitor = new VtepStatePublisher(midoClient, zkConnWatcher,
+                                                 nodeCtx.nodeId());
+            bridgeMonitor = new BridgeMonitor(midoClient, zkConnWatcher);
         } catch (DeviceMonitor.DeviceMonitorException e) {
             log.error("Service failed: cannot set up the device monitors.", e);
             shutdown();
@@ -238,7 +233,7 @@ public class VxLanGatewayService extends AbstractService {
                      vtepIp, e);
             zkConnWatcher.handleError(
                 String.format("VxLanGatewayService %s pairing VTEP %s",
-                              serviceId, vtepIp),
+                              nodeCtx.nodeId(), vtepIp),
                 new Runnable() {
                     @Override
                     public void run() {
@@ -302,7 +297,7 @@ public class VxLanGatewayService extends AbstractService {
      * @param vtepIp The VTEP management address.
      */
     private void onVtepReleased(IPv4Addr vtepIp) {
-        log.info("Release VTEP {} by {}", vtepIp, serviceId);
+        log.info("Release VTEP {} by {}", vtepIp, nodeCtx.nodeId());
         VxLanGwBroker broker = vxlanGwBrokers.remove(vtepIp);
         if (broker != null) {
             try {
@@ -334,7 +329,7 @@ public class VxLanGatewayService extends AbstractService {
                      id, e);
             zkConnWatcher.handleError(
                 String.format("VxLanGatewayService %s assigning bridge %s",
-                              serviceId, id),
+                              nodeCtx.nodeId(), id),
                 new Runnable() {
                     @Override
                     public void run() {
@@ -436,5 +431,18 @@ public class VxLanGatewayService extends AbstractService {
      */
     protected Set<IPv4Addr> getOwnedVteps() {
         return vxlanGwBrokers.keySet();
+    }
+
+    /** Configuration for the VxGWService Minion. */
+    @ConfigGroup(VxGWServiceConfig.configGroup)
+    public interface VxGWServiceConfig extends MinionConfig<VxLanGatewayService> {
+
+        public static final String configGroup = "vxgw";
+
+        @ConfigBool(key = "enabled", defaultValue = false)
+        public boolean isEnabled();
+
+        @ConfigString(key = "with")
+        public String minionClass();
     }
 }

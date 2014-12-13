@@ -169,6 +169,8 @@
       <emptyLine />
       <package name="memetic" withSubpackages="true" static="false" />
       <emptyLine />
+      <package name="mockito" withSubpackages="true" static="false" />
+      <emptyLine />
       <package name="mt" withSubpackages="true" static="false" />
       <emptyLine />
       <package name="mx4j" withSubpackages="true" static="false" />
