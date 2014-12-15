@@ -23,7 +23,7 @@ session_gracetime = 30000
 
 [cassandra]
 # The minimum recommended cassandra setup is a 3-node cluster with a
-# replication factor of 3. Midolman uses Quorum as consistency policy, which
+# replication factor of 3. Midolman uses Quorum as consistency policy, which
 # would translate to 2 in the suggested setup.
 #
 # Refer to the docs/cassandra-cache.md documentation for more specific details
@@ -63,10 +63,10 @@ top_level_actor_supervisor = crash
 #bgpd_config = /etc/quagga  # default value
 
 # number of threads dedicated to packet processing
-simulation_threads = 1
+simulation_threads = 4
 
 # number of datapath output channels
-output_channels = 1
+output_channels = 2
 
 # threading model for datapath input channels. There is one channel per port.
 # Allowed values are:
@@ -78,9 +78,6 @@ input_channel_threading = one_to_many
 enable_dashboard=false
 jetty_xml=/etc/midolman/jetty/etc/jetty.xml
 
-# location of the exterior vxlan vport uuid to vni key map (as a json object)
-#uuid_vni_json_mapping_file=/etc/midolman/uuidtovni.json
-
 [host]
 # This file holds the host UUID across reboots. It is created when
 # midolman is first executed in the host, by default it will be stored
@@ -90,21 +87,16 @@ wait_time_between_scans = 5000       # 5 * 1000 millis
 
 [datapath]
 
-# This option specifies the value of the udp port used for vxlan tunnelling
-# to peer vteps. By default it is set to the standardized vxlan udp port value
-# which is 4789.
-#vxlan_vtep_udp_port = 4789
-
-# This option specifies the value of the udp port used for vxlan tunnelling
-# of overlay traffic from midolman hosts to other midolman hosts. The value
-# needs to be the same across the cluster. It also needs to be different from
-# the vxlan_vtep_udp_port value.
-vxlan_overlay_udp_port = 6677
+# Uncommenting this option will make midolman creates a vxlan tunnel port in
+# the 'midonet' datapath at startup, with the specified given udp port. If the
+# port value is out of range, the vxlan tunnel port will not be created.
+# This feature requires openvswitch-datapath-dkms version 1.10 or above.
+#vxlan_udp_port = 4789
 
 # Maximum number of flows a given datapath will be able to contain.
-max_flow_count = 20000
+max_flow_count = 700000
 # Maximum number of wildcard flows a given datapath will be able to contain.
-max_wildcard_flow_count = 20000
+max_wildcard_flow_count = 700000
 # Midolman uses a pool of reusable buffers to send requests to the
 # datapath. The options below tune the pool's size and that of its
 # buffers. One pool is created for each output channel, the settings
@@ -112,9 +104,9 @@ max_wildcard_flow_count = 20000
 # max_size: maximum number of buffers to hold in the pool. When the
 #           pool is empty (all buffers are in use) and has reached
 #           its maximum size, temporary buffers will be allocated.
-send_buffer_pool_max_size = 4096
+send_buffer_pool_max_size = 24576
 # initial_size: initial number of buffers to allocate in the pool
-send_buffer_pool_initial_size = 2048
+send_buffer_pool_initial_size = 4096
 # buf_size_kb: size of each buffer, in kb. Maximum total pool size would thus
 #              be: max_size * buf_size_kb. Beware that the buffer size puts a
 #              limit on the packet size that Midolman can send. In a network
@@ -150,16 +142,16 @@ msgs_per_batch = 200
 # Bucket size is measured in packets.
 
 # global_incoming_burts_capacity: size of the root bucket in the HTB.
-global_incoming_burst_capacity = 128
+global_incoming_burst_capacity = 256
 
 # tunnel_incoming_burst_capacity: bucket size for tunnel ports (GRE, VxLAN)
-tunnel_incoming_burst_capacity = 64
+tunnel_incoming_burst_capacity = 128
 
 # vm_incoming_burst_capacity: bucket size for VM ports
-vm_incoming_burst_capacity = 16
+vm_incoming_burst_capacity = 32
 
 # vtep_incoming_burst_capacity: bucket size for VTEP (VxLAN) ports.
-vtep_incoming_burst_capacity = 64
+vtep_incoming_burst_capacity = 128
 
 [haproxy_health_monitor]
 # Health monitor is disabled by default. Please change the following value to
