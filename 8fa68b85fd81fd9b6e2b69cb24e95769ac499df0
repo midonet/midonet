@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_b4afc593",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T17:53:45Z",
+      "side": 1,
+      "message": "I see these weren\u0027t renamed in this patch, but don\u0027t you think it\u0027s important to distinguish between vxlan, the tunnel protocol between agents, and vtep?",
+      "revId": "8fa68b85fd81fd9b6e2b69cb24e95769ac499df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
