@@ -19,29 +19,35 @@ package org.midonet.cluster.data.neutron
 import java.sql.{Connection, ResultSet}
 import java.util.UUID
 
+import javax.sql.DataSource
+
 import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
-import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.neutron.TaskType.TaskType
 import org.midonet.cluster.data.neutron.importer.Transaction
 import org.midonet.cluster.models.Neutron
 import org.midonet.cluster.models.Neutron._
 
 /**
  * Neutron task type. The value is the ID used to represent the task type
- * in Neutron's task table. Create, Delete, and Update are self-explanatory,
- * while Flush is a command to delete the Cluster's topology data and rebuild
- * from Neutron.
+ * in Neutron's task table. (Note: the second parameter "name" is needed just to
+ * make the Scala compiler happy otherwise it'd complain it's trying to override
+ * the apply function.)
  */
-protected[cluster] object TaskType extends Enumeration {
-    type TaskType = Value
-    val Create = Value(1)
-    val Delete = Value(2)
-    val Update = Value(3)
-    val Flush = Value(4)
+case class TaskType(id: Int, name: String)
+
+/**
+ * Declares supported Neutron Task types. Create, Delete, and Update are
+ * self-explanatory, while Flush is a command to delete the Cluster's topology
+ * data and rebuild from Neutron.
+ */
+object TaskType extends Enumeration {
+    val Create = TaskType(1, "Create")
+    val Delete = TaskType(2, "Delete")
+    val Update = TaskType(3, "Update")
+    val Flush = TaskType(4, "Flush")
 
     private val vals = Array(Create, Delete, Update, Flush)
     def valueOf(i: Int) = vals(i - 1)
@@ -54,7 +60,10 @@ protected[cluster] object TaskType extends Enumeration {
 case class NeutronResourceType[M <: Message](id: Int, clazz: Class[M])
 
 /** Declares the different types of supported Neutron types. */
-protected[cluster] object NeutronResourceType extends Enumeration {
+object NeutronResourceType extends Enumeration {
+    // The NoData type is used only for Flush operations, which have no data
+    // and are not associated with any particular resource type.
+    val NoData = NeutronResourceType(0, classOf[Null])
     val Network = NeutronResourceType(1, classOf[NeutronNetwork])
     val Subnet = NeutronResourceType(2, classOf[NeutronSubnet])
     val Router = NeutronResourceType(3, classOf[NeutronRouter])
@@ -66,9 +75,9 @@ protected[cluster] object NeutronResourceType extends Enumeration {
     val RouterInterface =
         NeutronResourceType(8, classOf[NeutronRouterInterface])
 
-    private val vals = Array(Network, Subnet, Router, Port, FloatingIp,
+    private val vals = Array(NoData, Network, Subnet, Router, Port, FloatingIp,
                              SecurityGroup, SecurityGroupRule, RouterInterface)
-    def valueOf(i: Int) = vals(i - 1)
+    def valueOf(i: Int) = vals(i)
 }
 
 /** Interface for access to Neutron database. */
@@ -83,10 +92,7 @@ trait NeutronImporter {
 
 /** Implementation of NeutronService that obtains data from a remote
   * SQL database using the provided JDBC connection. */
-class SqlNeutronImporter(val jdbcDriverClassName: String,
-                         val cnxnStr: String,
-                         val user: String,
-                         private val password: String) extends NeutronImporter {
+class SqlNeutronImporter(dataSrc: DataSource) extends NeutronImporter {
 
     private val log = LoggerFactory.getLogger(classOf[SqlNeutronImporter])
 
@@ -95,12 +101,6 @@ class SqlNeutronImporter(val jdbcDriverClassName: String,
                                    "from midonet_tasks where id > ? or " +
                                    s"(id = 1 and type_id = ${TaskType.Flush.id}) " +
                                    "order by id"
-
-    private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(jdbcDriverClassName)
-    dataSrc.setUrl(cnxnStr)
-    dataSrc.setUsername(user)
-    dataSrc.setPassword(password)
 
     private val idCol = 1
     private val typeIdCol = 2
