@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_311647f2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T14:01:54Z",
+      "side": 1,
+      "message": "can we cache FlowTagger.tagForDevice(traversedDevice)?",
+      "revId": "c11351d039dd85e2146f06e28273cd14af4fdbee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
