@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_7478bd8f",
+        "filename": "midolman/conf/midolman-env.sh.compute",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T16:54:15Z",
+      "side": 1,
+      "message": "this one i feel uneasy about, I get the feeling that while for some users 6G in a compute is fine. Asking for them by default may feel too demanding for other users.\n\nThoughts?",
+      "revId": "4a3797598d76f4381cab9f583e77aea91055cca5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_544c9970",
+        "filename": "midolman/conf/midolman.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T16:54:15Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "4a3797598d76f4381cab9f583e77aea91055cca5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b45b452d",
+        "filename": "midolman/conf/midolman.conf.compute",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T16:54:15Z",
+      "side": 1,
+      "message": "aren\u0027t jumbo frames up to 9k?",
+      "revId": "4a3797598d76f4381cab9f583e77aea91055cca5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f43cadc1",
+        "filename": "midolman/conf/midolman.conf.gateway",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T16:54:15Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "4a3797598d76f4381cab9f583e77aea91055cca5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
