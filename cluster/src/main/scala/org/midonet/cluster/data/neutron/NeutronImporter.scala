@@ -19,10 +19,11 @@ package org.midonet.cluster.data.neutron
 import java.sql.{Connection, ResultSet}
 import java.util.UUID
 
+import javax.sql.DataSource
+
 import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
-import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.TaskType.TaskType
@@ -83,10 +84,7 @@ trait NeutronImporter {
 
 /** Implementation of NeutronService that obtains data from a remote
   * SQL database using the provided JDBC connection. */
-class SqlNeutronImporter(val jdbcDriverClassName: String,
-                         val cnxnStr: String,
-                         val user: String,
-                         private val password: String) extends NeutronImporter {
+class SqlNeutronImporter(dataSrc: DataSource) extends NeutronImporter {
 
     private val log = LoggerFactory.getLogger(classOf[SqlNeutronImporter])
 
@@ -95,12 +93,6 @@ class SqlNeutronImporter(val jdbcDriverClassName: String,
                                    "from midonet_tasks where id > ? or " +
                                    s"(id = 1 and type_id = ${TaskType.Flush.id}) " +
                                    "order by id"
-
-    private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(jdbcDriverClassName)
-    dataSrc.setUrl(cnxnStr)
-    dataSrc.setUsername(user)
-    dataSrc.setPassword(password)
 
     private val idCol = 1
     private val typeIdCol = 2
