@@ -16,8 +16,9 @@
 
 package org.midonet.brain.services.c3po
 
-import com.google.inject.Inject
+import javax.sql.DataSource
 
+import com.google.inject.Inject
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
@@ -31,15 +32,14 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
 class NeutronImporter @Inject()(config: NeutronImporterConfig,
+                                dataSrc: DataSource,
                                 storage: Storage,
                                 leaderLatch: LeaderLatch)
     extends ScheduledClusterMinion(config) {
 
     val dataMgr = initDataManager()
 
-    val neutron = new RemoteNeutronService(config.jdbcDriver,
-                                           config.connectionString,
-                                           config.user, config.password)
+    val neutron = new RemoteNeutronService(dataSrc)
 
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
