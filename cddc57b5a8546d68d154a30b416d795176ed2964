@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_74befdd5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:46:26Z",
+      "side": 1,
+      "message": "Is this actually correct? If the TASK ID comes from an autoincrement field in NeutronDB the next task id is never going to be 0. \n\nIf this is just a counter of tasks unrelated to the actual id it seems ok, but then the log messages seem very confusing.",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 50
+      },
+      "revId": "cddc57b5a8546d68d154a30b416d795176ed2964",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
