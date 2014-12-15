@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_d1b53bef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T14:56:05Z",
+      "side": 1,
+      "message": "id should be val, vt and dataClient probably private?",
+      "range": {
+        "startLine": 38,
+        "startChar": 16,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1c95f7a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T14:56:05Z",
+      "side": 1,
+      "message": "Having an immutable simHost, and cloning instead of mutating, would probably avoid the need for synchronization.",
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31c4875e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T14:56:05Z",
+      "side": 1,
+      "message": "All notifications coming from ZK should be running on a single thread so we shouldn\u0027t need to synchronise here. Rather, ensure that the ZOOM notifications all run in a dedicated thread.\n\nIsn\u0027t this in essence a .map on the TunnelZone observable? In practise you\u0027re reimplementing:\n\nzoom.subscribe(TunnelZone, id).map(...)\n\nby creating an observer, doing the map, and then dumping the results on onStream, which forces you to deal with the subscriptions etc.\n\nWhy not just .map it?",
+      "range": {
+        "startLine": 122,
+        "startChar": 17,
+        "endLine": 122,
+        "endChar": 29
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
