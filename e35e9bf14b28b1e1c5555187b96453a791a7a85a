@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_1f8fcfcd",
+        "filename": "brain/midonet-brain/src/test/java/org/midonet/brain/southbound/vtep/VtepDataClientImplTest.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-15T09:24:48Z",
+      "side": 1,
+      "message": "These tests require a VTEP emulator to check the actual connection. I left them here just in case we added a testable VTEP emulator in the future (or simply to keep the code for testing with the VTEP). But otherwise, won\u0027t pass by themselves. Maybe we should remove them?",
+      "range": {
+        "startLine": 537,
+        "startChar": 4,
+        "endLine": 537,
+        "endChar": 9
+      },
+      "revId": "e35e9bf14b28b1e1c5555187b96453a791a7a85a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
