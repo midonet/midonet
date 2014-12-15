@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_717d6fe7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-15T15:31:32Z",
+      "side": 1,
+      "message": "+1",
+      "parentUuid": "fafc7978_f1c95f7a",
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31c4875e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 2
@@ -58,6 +76,29 @@
         "startChar": 17,
         "endLine": 122,
         "endChar": 29
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d10d3b92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-15T15:31:32Z",
+      "side": 1,
+      "message": "This is a Device not a VirtualDevice. This class should replace:\n\n  case class org.midonet.midolman.topology.rcu.Host\n\nTherefore, I would examine the usage of the original class in order to expose the necessary parameters. For instance, I see that this class contains some fields that in the original are not needed, yet others are absent.\n\nSince the original class is a case class, it might also be used in pattern matching, something that the new Host class will not support in its current form.",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 10
       },
       "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
