@@ -34,6 +34,24 @@
       "revId": "8fa68b85fd81fd9b6e2b69cb24e95769ac499df0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_748c3d36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-15T17:59:53Z",
+      "side": 1,
+      "message": "I kept the same names from the Protobuf, but yes maybe we should have used VTEP here. If it\u0027s fine i\u0027ll add it on the todo list and change the name if necessary.",
+      "parentUuid": "fafc7978_b4afc593",
+      "revId": "8fa68b85fd81fd9b6e2b69cb24e95769ac499df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
