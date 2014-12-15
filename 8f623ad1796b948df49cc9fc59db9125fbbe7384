@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_315e4713",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Not convinced about removing the \u0027services\u0027 part... now it is consistent with the other services (but I don\u0027t have a strong opinion about that).\n\nProtecting the classes looks like a good idea: I\u0027ll protect the internal ones.",
+      "parentUuid": "fafc7978_53edd624",
+      "range": {
+        "startLine": 17,
+        "startChar": 28,
+        "endLine": 17,
+        "endChar": 36
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b0135865",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
         "patchSetId": 5
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_919c53c2",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_b0135865",
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_13b50e31",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
         "patchSetId": 5
@@ -53,6 +95,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "This class is identical to the ApiServerHandler except for 1 line (I think). It seems fitting to unify them. Once this is done, I\u0027d argue that the CommEvent file with case classs could move here to and spare a file.",
+      "range": {
+        "startLine": 36,
+        "startChar": 13,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_719f2fb5",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Merged. There were a couple of details that were different, but it looks like they can be merged.\n\nAlso moved the CommEvent case classes to here.",
+      "parentUuid": "fafc7978_13b50e31",
       "range": {
         "startLine": 36,
         "startChar": 13,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_11b06342",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Yes it was, but it can be changed so they are the same (passing the completion responsibilities to the client :-)\nThe other differences are the types being read and produced, but that can be solved using a typed class (a bit uglier, but less code).",
+      "parentUuid": "fafc7978_7383ba56",
+      "range": {
+        "startLine": 57,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 16
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_501cac77",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
         "patchSetId": 5
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f1aaffd0",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ApiClientHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_501cac77",
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f00cc044",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ClientFrontEnd.java",
         "patchSetId": 5
@@ -116,6 +224,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "sounds odd for a ClientFrontEnd?",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 27
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_318c877f",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ClientFrontEnd.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "It *is* odd (... and wrong, this is client service :-)\nFixed.",
+      "parentUuid": "fafc7978_f00cc044",
       "range": {
         "startLine": 33,
         "startChar": 21,
@@ -151,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_91ea930d",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/client/ClientFrontEnd.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "I don\u0027t think so (but I don\u0027t trust my English too much): host and port are the target server parameters, not the host and port where the client is running at.",
+      "parentUuid": "fafc7978_3007681e",
+      "range": {
+        "startLine": 55,
+        "startChar": 47,
+        "endLine": 55,
+        "endChar": 50
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5303160d",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ApiServerHandler.java",
         "patchSetId": 5
@@ -162,6 +318,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "applicable?",
+      "range": {
+        "startLine": 35,
+        "startChar": 34,
+        "endLine": 35,
+        "endChar": 53
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_3147674d",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ApiServerHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Nop, old remains... removed.",
+      "parentUuid": "fafc7978_5303160d",
       "range": {
         "startLine": 35,
         "startChar": 34,
@@ -191,6 +371,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b17237ab",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ApiServerHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Javadoc added.\n\nRegarding the observer vs. observable, it may make sense, but I think the observer approach is more convenient here. The subject provided by the server multiplexes communication events from several api handlers (socket and websocket pipelines) and, for each handler, from several connections at the same time, which will end up at the request handler. As it is now, the simplest solution is just dropping the communication events (CommEvent) into a single subject; the observable solution would probably require creating an observable of observables (for each connection) that should be merged again with the appropriate filtering of \u0027complete\u0027 and \u0027error\u0027 events (that would result in more code than the actual model).\n\nOf course, that can be re-discussed :-)",
+      "parentUuid": "fafc7978_9380de47",
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b30a421f",
         "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ApiServerHandler.java",
         "patchSetId": 5
@@ -202,6 +400,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "seems too verbose",
+      "range": {
+        "startLine": 65,
+        "startChar": 12,
+        "endLine": 65,
+        "endChar": 17
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_116983be",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ApiServerHandler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "It is. Removed.\nAlso, the msg release is also done here (any user must explicitly retain the message if it wants to keep it).",
+      "parentUuid": "fafc7978_b30a421f",
       "range": {
         "startLine": 65,
         "startChar": 12,
@@ -237,6 +459,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f1915f9b",
+        "filename": "cluster/src/main/java/org/midonet/cluster/services/topology/server/ServerFrontEnd.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Not sure, it is kind of generic. If moved, it should be in the other patch (let me change this in the next iteration)",
+      "parentUuid": "fafc7978_d36386db",
+      "range": {
+        "startLine": 17,
+        "startChar": 46,
+        "endLine": 17,
+        "endChar": 52
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_3363f2dd",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/CommEvent.scala",
         "patchSetId": 5
@@ -248,6 +494,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "this was private to the topology service and thus more fitting in brain no?",
+      "range": {
+        "startLine": 17,
+        "startChar": 20,
+        "endLine": 17,
+        "endChar": 27
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_51914b98",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/CommEvent.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Not really... the client side also exports CommEvents, so I think it fits better in here\n\nBtw, the contents of this file have been moved to ApiHandler (case classes) and generic State (Interruption) files",
+      "parentUuid": "fafc7978_3363f2dd",
       "range": {
         "startLine": 17,
         "startChar": 20,
@@ -283,6 +553,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_b12a372a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ConnectionManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Fixed using a future, which is completed only if no previous value exists.",
+      "parentUuid": "fafc7978_13306ee7",
+      "range": {
+        "startLine": 41,
+        "startChar": 8,
+        "endLine": 41,
+        "endChar": 48
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_935bbe2d",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ConnectionManager.scala",
         "patchSetId": 5
@@ -300,6 +594,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d1cb7ba3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ConnectionManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "If not unregistered, the stale connection will remain in the map (it won\u0027t be used, but it will use space).",
+      "parentUuid": "fafc7978_935bbe2d",
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f3416a3a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
         "patchSetId": 5
@@ -311,6 +623,30 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "Does it make more sense to just complete the Future with a failure? Does it ever happen that we have a successful future with a None?",
+      "range": {
+        "startLine": 33,
+        "startChar": 57,
+        "endLine": 33,
+        "endChar": 64
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_71d44f47",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ProtocolFactory.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Yes, it may happen if the protocol never subscribes to anything that needs an explicit unsubscribe (that happens in some tests, if I remember well).\nBut I guess that can also be represented by an uncompleted future (then we cannot distinguish the case in which we will never have a subscription - but maybe it doesn\u0027t matter anyway...)\nAny strong opinion in either direction?",
+      "parentUuid": "fafc7978_f3416a3a",
       "range": {
         "startLine": 33,
         "startChar": 57,
@@ -346,6 +682,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f1bf9ffa",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/State.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "Yes, the server protocol implementation is in the other patch. I\u0027ve unified the factory and the generic state (I think it must be kept separated from the actual implementation)",
+      "parentUuid": "fafc7978_b37d2271",
+      "range": {
+        "startLine": 23,
+        "startChar": 6,
+        "endLine": 23,
+        "endChar": 11
+      },
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d33c26c2",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
         "patchSetId": 5
@@ -357,6 +717,24 @@
       "writtenOn": "2014-12-12T17:05:11Z",
       "side": 1,
       "message": "The subject seems redundant, why not make this an Observer?",
+      "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_51bf8bfb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T14:47:26Z",
+      "side": 1,
+      "message": "good point.\nchanged.",
+      "parentUuid": "fafc7978_d33c26c2",
       "revId": "8f623ad1796b948df49cc9fc59db9125fbbe7384",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
