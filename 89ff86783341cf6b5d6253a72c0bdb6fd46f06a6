@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_7f2d3b46",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/ScheduledClusterMinion.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T01:30:15Z",
+      "side": 1,
+      "message": "An unused import.",
+      "revId": "89ff86783341cf6b5d6253a72c0bdb6fd46f06a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_9f2a9f2a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T01:30:15Z",
+      "side": 1,
+      "message": "I know that IDEA sorts like this, but I believe that this import should come after the one below.",
+      "revId": "89ff86783341cf6b5d6253a72c0bdb6fd46f06a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_ff200b4b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T01:30:15Z",
+      "side": 1,
+      "message": "I think that this is better to be info when txns.size \u003e 0.",
+      "revId": "89ff86783341cf6b5d6253a72c0bdb6fd46f06a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_df1b871a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronImporter.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T01:30:15Z",
+      "side": 1,
+      "message": "We should log here, too?",
+      "revId": "89ff86783341cf6b5d6253a72c0bdb6fd46f06a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
