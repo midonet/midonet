@@ -88,6 +88,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_31ee47b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T15:16:31Z",
+      "side": 1,
+      "message": "i think it does. otherwise we wouldn\u0027t be able to install a flow, if the kernel doesn\u0027t understand the flow match.\n\nif you check FlowMatch::addKey you\u0027ll see that adding any of the userspace enriched keys will mark the whole flow match as userspace only, which will prevent us from creating flows.",
+      "parentUuid": "fafc7978_31a9277c",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f1f4bfd0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 13
