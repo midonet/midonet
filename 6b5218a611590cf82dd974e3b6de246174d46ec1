@@ -22,6 +22,30 @@
       "revId": "6b5218a611590cf82dd974e3b6de246174d46ec1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_71ba8fc1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 784,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T15:09:30Z",
+      "side": 1,
+      "message": "Oops. Ok to merge and fix later? If i have to rebase manually, I\u0027ll do it anyway.",
+      "parentUuid": "fafc7978_f1d83f81",
+      "range": {
+        "startLine": 784,
+        "startChar": 44,
+        "endLine": 784,
+        "endChar": 48
+      },
+      "revId": "6b5218a611590cf82dd974e3b6de246174d46ec1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
