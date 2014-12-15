@@ -48,6 +48,7 @@ import org.midonet.api.zookeeper.ZookeeperModule;
 import org.midonet.brain.MidoBrainModule;
 import org.midonet.brain.guice.BrainModule;
 import org.midonet.cluster.data.neutron.NeutronClusterModule;
+import org.midonet.midolman.guice.StorageModule;
 import org.midonet.midolman.guice.cluster.DataClientModule;
 import org.midonet.midolman.version.guice.VersionModule;
 
@@ -126,6 +127,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     }
 
     protected void installRestApiModule() {
+        install(new StorageModule());
         install(new RestApiModule());
     }
 

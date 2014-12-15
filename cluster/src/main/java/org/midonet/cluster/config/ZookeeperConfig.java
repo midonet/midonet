@@ -60,8 +60,14 @@ public interface ZookeeperConfig {
     String getZkRootPath();
 
     /**
-     * Whether to start the Curator client.
+     * If true, it starts the Curator client.
      */
     @ConfigBool(key = "curator_enabled", defaultValue = false)
     Boolean getCuratorEnabled();
+
+    /**
+     * If true, it builds the cluster storage.
+     */
+    @ConfigBool(key = "cluster_storage_enabled", defaultValue = false)
+    Boolean getClusterStorageEnabled();
 }
