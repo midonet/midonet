@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_11b1838f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_93457e19",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f34b2a29",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
         "patchSetId": 42
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "TODO: make configurable (it\u0027s actually pretty easy using the cfg you already have)",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1ab1f1c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Mmm... I think it already is (maybe I did not understand what you mean by \u0027making it configurable\u0027)",
+      "parentUuid": "fafc7978_f34b2a29",
       "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_51ab0b1d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/TopologyApiService.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "I prefer leaving it this way (unless there is a strong reason against...)",
+      "parentUuid": "fafc7978_d346e620",
+      "range": {
+        "startLine": 128,
+        "startChar": 7,
+        "endLine": 128,
+        "endChar": 31
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b327e263",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
         "patchSetId": 42
@@ -70,6 +130,24 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "Check Alex\u0027s implementation on a separate CR. If it\u0027s easy to reuse that one feel free to do it. Otherwise we can iterate later.",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d13c1be5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "I had a look at it, but there are enough differences to make the substitution non-trivial (mainly, the ability to unsubscribe, and the processing of sub-observable errors and completions). Probably it can be converted without much effort, but I prefer leaving if for the next iteration.",
+      "parentUuid": "fafc7978_b327e263",
       "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +200,54 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_110d033f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_d36d469b",
+      "range": {
+        "startLine": 37,
+        "startChar": 13,
+        "endLine": 37,
+        "endChar": 14
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_711c4f78",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_336db299",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 16
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f3720a7b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
         "patchSetId": 42
@@ -133,6 +259,30 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "nit: I noted that the rx people use observe on these methods, which do seem better, I was considering to move our naming to that. What do you think?",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 18
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f435cddb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "For me observable is clearer (returning something observable does not mean that we are actually going to observe it...). But I don\u0027t have a strong opinion on that.",
+      "parentUuid": "fafc7978_f3720a7b",
       "range": {
         "startLine": 46,
         "startChar": 8,
@@ -168,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_3447554d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Mmm... \u0027ignore\u0027 suggests that we are still connected to the source, but we do not do anything about it; on the contrary, \u0027drop\u0027 makes more explicit that we unsubscribe.\nBut again, that\u0027s just an opinion. I can change it :-)",
+      "parentUuid": "fafc7978_935c5eef",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 12
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f3f96ac9",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
         "patchSetId": 42
@@ -185,6 +359,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_345e3513",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "I think the \u0027valves\u0027 at SessionInventory already do that, but it may be a good idea moving it here. Let me check it and see if it doesn\u0027t break anything.",
+      "parentUuid": "fafc7978_f3f96ac9",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d3f426d1",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
         "patchSetId": 42
@@ -196,6 +388,30 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "SUFFER NO MORE!",
+      "range": {
+        "startLine": 64,
+        "startChar": 6,
+        "endLine": 64,
+        "endChar": 72
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_749f1db5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "REMOVED!",
+      "parentUuid": "fafc7978_d3f426d1",
       "range": {
         "startLine": 64,
         "startChar": 6,
@@ -231,6 +447,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_d4a6c90f",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Funnel.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "It is used to inject the nack messages when setting the observables fail. The alternative would be creating an observable with the message on the fly, adding it to the funnel, and removing it afterwards (just injecting the value looks simpler...)",
+      "parentUuid": "fafc7978_732d7a46",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 14
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_33f2d2d2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
         "patchSetId": 42
@@ -242,6 +482,30 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "private?",
+      "range": {
+        "startLine": 29,
+        "startChar": 28,
+        "endLine": 29,
+        "endChar": 31
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_91645323",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "probably yes. Fixed.",
+      "parentUuid": "fafc7978_33f2d2d2",
       "range": {
         "startLine": 29,
         "startChar": 28,
@@ -277,6 +541,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f172ffe1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "The abstraction facilitates testing the connection layer separately (e.g. by implementing a protocol factory that returns a simpler test protocol).\nBut I agree that more information about the Future is needed (hopefully fixed now).",
+      "parentUuid": "fafc7978_f3ce8a82",
+      "range": {
+        "startLine": 30,
+        "startChar": 12,
+        "endLine": 30,
+        "endChar": 27
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_93af3e94",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
         "patchSetId": 42
@@ -300,6 +588,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_f1595f5c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerProtocolFactory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Not sure if yours is much more readable :-p \nAnyway, I\u0027ve changed it.\nRegarding the Option, I\u0027ve left it because it may make sense for protocols that don\u0027t provide a backend subscription (by now, only tests). But I can be convinced otherwise... (see the comments for ProtocolFactory in the other patch).",
+      "parentUuid": "fafc7978_93af3e94",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 5
+      },
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f395ea40",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
         "patchSetId": 42
@@ -311,6 +623,24 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "private?",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_31a64754",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/ServerState.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:18:54Z",
+      "side": 1,
+      "message": "Yes. Done.",
+      "parentUuid": "fafc7978_f395ea40",
       "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
