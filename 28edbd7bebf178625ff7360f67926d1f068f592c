@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_31680787",
+        "filename": "midolman/src/deb/bin/mm-meter",
+        "patchSetId": 13
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "this seems old",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_910613cd",
+        "filename": "midolman/src/deb/bin/mm-meter",
+        "patchSetId": 13
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "this seems old too :p",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7109efdc",
+        "filename": "midolman/src/main/java/org/midonet/midolman/management/MeteringMXBean.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "why not Iterable\u003cString\u003e?",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b113570c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "hum.. we don\u0027t create a dp flow for flow matches with userspace only keys and we don\u0027t seem to meter non-dp flows. so why is origMatch needed?",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f1f4bfd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "can this be moved to handleFlowAddedForNewWildcard, where there\u0027s already a check for dpFlow ne null?",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_7130cf9e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-15T13:55:33Z",
+      "side": 1,
+      "message": "(java\u0027s concurrenthashmap is faster than scala\u0027s map, in particular for gets)",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
