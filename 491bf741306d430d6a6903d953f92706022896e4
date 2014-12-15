@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_54bad923",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ConnectionManager.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:08:55Z",
+      "side": 1,
+      "message": "The blocking stuff would be worth documenting.",
+      "revId": "491bf741306d430d6a6903d953f92706022896e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b4a985e1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:08:55Z",
+      "side": 1,
+      "message": "is it always an error?",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "491bf741306d430d6a6903d953f92706022896e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
