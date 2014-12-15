@@ -46,6 +46,23 @@
       "revId": "00254da5837ee3c7d2db3ea9a1112b117a62ee8c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b4b865e6",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ClassAwaitableObserver.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T20:28:06Z",
+      "side": 1,
+      "message": "No, this shouldn\u0027t be here either. You can just remove these 2 overrides.",
+      "revId": "00254da5837ee3c7d2db3ea9a1112b117a62ee8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
