@@ -19,11 +19,12 @@ package org.midonet.cluster.data.neutron
 import java.sql.{Connection, ResultSet}
 import java.util.UUID
 
+import javax.sql.DataSource
+
 import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.TaskType.TaskType
@@ -115,17 +116,8 @@ trait NeutronService {
  * TODO: Use something smarter than a plain JDBC connection that will retry
  * and attempt to reconnect if the connection fails.
  */
-class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
-                           user: String, password: String)
-    extends NeutronService {
-
+class RemoteNeutronService(dataSrc: DataSource) extends NeutronService {
     private val log = LoggerFactory.getLogger(classOf[RemoteNeutronService])
-
-    private val dataSrc = new BasicDataSource()
-    dataSrc.setDriverClassName(jdbcDriverClassName)
-    dataSrc.setUrl(cnxnStr)
-    dataSrc.setUsername(user)
-    dataSrc.setPassword(password)
 
     private val idCol = 1
     private val typeIdCol = 2
