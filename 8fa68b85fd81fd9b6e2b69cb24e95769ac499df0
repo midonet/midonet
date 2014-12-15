@@ -16,6 +16,24 @@
       "revId": "8fa68b85fd81fd9b6e2b69cb24e95769ac499df0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_54a0199f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:58:19Z",
+      "side": 1,
+      "message": "yes, this is wrong, we should revert tunnel ip and tunnel zone id to vtep",
+      "parentUuid": "fafc7978_b4afc593",
+      "revId": "8fa68b85fd81fd9b6e2b69cb24e95769ac499df0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
