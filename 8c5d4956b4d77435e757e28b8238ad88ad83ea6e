@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_1f16aff1",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NeutronApiTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T01:36:34Z",
+      "side": 1,
+      "message": "A bit weird indentation?",
+      "range": {
+        "startLine": 55,
+        "startChar": 64,
+        "endLine": 58,
+        "endChar": 88
+      },
+      "revId": "8c5d4956b4d77435e757e28b8238ad88ad83ea6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
