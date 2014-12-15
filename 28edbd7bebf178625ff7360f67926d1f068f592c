@@ -70,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_31a9277c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T14:59:01Z",
+      "side": 1,
+      "message": "because there are flow matches that have userspace-enriched keys in userspace but not in the kernel. That doesn\u0027t mean the flows are \u0027userspace\u0027 only.",
+      "parentUuid": "fafc7978_b113570c",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f1f4bfd0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 13
@@ -81,6 +99,24 @@
       "writtenOn": "2014-12-15T13:55:33Z",
       "side": 1,
       "message": "can this be moved to handleFlowAddedForNewWildcard, where there\u0027s already a check for dpFlow ne null?",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_91b733d8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-15T14:59:01Z",
+      "side": 1,
+      "message": "will check.",
+      "parentUuid": "fafc7978_f1f4bfd0",
       "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
