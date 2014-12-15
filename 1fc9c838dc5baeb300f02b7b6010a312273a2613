@@ -166,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_147851c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:12:25Z",
+      "side": 1,
+      "message": "Do keep them! We\u0027ll need this at large scale for the overall system, but even newcomers WILL find this very useful.",
+      "parentUuid": "fafc7978_3cd0f74f",
+      "range": {
+        "startLine": 81,
+        "startChar": 4,
+        "endLine": 96,
+        "endChar": 49
+      },
+      "revId": "1fc9c838dc5baeb300f02b7b6010a312273a2613",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_5c217b9e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
         "patchSetId": 1
