@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_341635f2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/ConnectionManager.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:41:20Z",
+      "side": 1,
+      "message": "Done.\nIn normal conditions, Await will never block... (we complete the promise just before calling Await, but scala forces us to use it anyway...)",
+      "parentUuid": "fafc7978_54bad923",
+      "revId": "491bf741306d430d6a6903d953f92706022896e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_b4a985e1",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
         "patchSetId": 8
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-15T17:08:55Z",
       "side": 1,
       "message": "is it always an error?",
+      "range": {
+        "startLine": 61,
+        "startChar": 12,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "491bf741306d430d6a6903d953f92706022896e4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_b413450c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-15T17:41:20Z",
+      "side": 1,
+      "message": "Yes, the connection provider should send a \u0027Disconnect(ctx)\u0027 instead of completing (the same observer may be subscribed to different channels, and completing one of them should not have any effect).",
+      "parentUuid": "fafc7978_b4a985e1",
       "range": {
         "startLine": 61,
         "startChar": 12,
