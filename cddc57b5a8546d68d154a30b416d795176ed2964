@@ -22,6 +22,30 @@
       "revId": "cddc57b5a8546d68d154a30b416d795176ed2964",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_47dce912",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-15T23:47:24Z",
+      "side": 1,
+      "message": "It is correct as an initial value where Zoom is initialized with an empty ZooKeeper backend. If the ZooKeeper backend already contains the data, the last processed task ID will be initialized to the value stored in the backend. By the way, it can be initialized to -1 or some other value if you think that\u0027s better.\n\nIn case of the flush operation, it is correct, but that depends on the external spec that Neutron Importer requires the Neutron side to first truncate the Task DB before flush and that after the successful flush operation, Importer will delete the flush task from the Task DB.\n\nTherefore, I agree if you say that the correct thing to do is to make C3POStorageManager also take  a task ID. Please note that, however, in practice that flush task ID will always be 1 as required by the Neutron Importer Spec.",
+      "parentUuid": "fafc7978_74befdd5",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 50
+      },
+      "revId": "cddc57b5a8546d68d154a30b416d795176ed2964",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
