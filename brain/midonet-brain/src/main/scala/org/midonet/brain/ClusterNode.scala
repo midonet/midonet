@@ -18,9 +18,12 @@ package org.midonet.brain
 
 import java.nio.file.{Files, Paths}
 
+import javax.sql.DataSource
+
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.{AbstractModule, Guice}
 
+import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.StorageModule
@@ -68,6 +71,12 @@ object ClusterNode extends App {
         List (new MinionDef("heartbeat", heartbeatCfg),
               new MinionDef("neutron-importer", neutronPollingCfg))
 
+    private val dataSrc = new BasicDataSource()
+    dataSrc.setDriverClassName(neutronPollingCfg.jdbcDriver)
+    dataSrc.setUrl(neutronPollingCfg.connectionString)
+    dataSrc.setUsername(neutronPollingCfg.user)
+    dataSrc.setPassword(neutronPollingCfg.password)
+
     log.info("Initialising MidoNet Cluster..")
     // Expose the known minions to the Daemon, without starting them
     private val daemon = new Daemon(minionDefs)
@@ -85,11 +94,13 @@ object ClusterNode extends App {
                 install(MinionConfig.module(m.cfg))
             }
 
+            bind(classOf[DataSource]).toInstance(dataSrc)
+
             bind(classOf[Daemon]).toInstance(daemon)
         }
     }
 
-    protected[brain] val injector = Guice.createInjector(
+    protected[brain] var injector = Guice.createInjector(
         clusterNodeModule,
         new StorageModule(cfgProvider))
 
