@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_b4ece590",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "reflect what it counts in the name?",
+      "range": {
+        "startLine": 61,
+        "startChar": 20,
+        "endLine": 61,
+        "endChar": 27
+      },
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f484adb2",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "A bound would be a good idea here.",
+      "range": {
+        "startLine": 63,
+        "startChar": 20,
+        "endLine": 63,
+        "endChar": 25
+      },
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_949601ef",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "Not sure if done feels a bit cryptic unless you\u0027ve read rx internals :D\n\nA more descriptive name would help, but I don\u0027t have a great suggestion so this is in practise a nitpick... maybe terminated, since it\u0027s the same terminology rx uses for stuff that is not going to emit anything else (e.g., see the accept() javadoc?",
+      "range": {
+        "startLine": 65,
+        "startChar": 30,
+        "endLine": 65,
+        "endChar": 34
+      },
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f4fdcd3c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "Maybe \n\nif (requested.get \u003c\u003d 0 \u0026\u0026 counter.getAndIncrement \u003d\u003d 0 \u0026\u0026 !done) {\n  return;\n}\n\nto reduce nesting",
+      "range": {
+        "startLine": 113,
+        "startChar": 11,
+        "endLine": 114,
+        "endChar": 60
+      },
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_34f8f548",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/operators/OnSubscribeFunnel.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "nit: subscribers",
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_54abf91c",
+        "filename": "midonet-util/src/test/scala/org/midonet/util/reactivex/FunnelObservableTest.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T21:02:49Z",
+      "side": 1,
+      "message": "One note. A problem in these tests might be that we\u0027re basically using the same thread to carry the notifications all the way through to the subscribers. An approach that seems nice from the rx tests themselves is to declare an infinite observable, then use infinite.subscribeOn(Schedulers.computation(), and request() to control emissions from source. This is nice because it decouples the test own thread from the producer thread, and probably exposes the implementation to concurrency. Not sure if it makes sense here, but just in case. See https://github.com/ReactiveX/RxJava/blob/1.x/src/test/java/rx/internal/operators/OperatorOnBackpressureBufferTest.java",
+      "revId": "5322723b8cd2555842a5765b81d107bfff5fddbe",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
