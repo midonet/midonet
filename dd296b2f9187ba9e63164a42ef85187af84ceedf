@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_54913998",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:32:46Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_4d3535f6",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_6dbd9968",
         "filename": "specs/cluster_design.md",
         "patchSetId": 1
@@ -90,6 +108,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_348c757f",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:32:46Z",
+      "side": 1,
+      "message": "Not quite. There is a component our side (C3PO) for which the one-off sync and a full import are in fact the same. The full import is just many single updates.\n\nThe components vary mostly in Neutron. There is no synchronizer (the plugin just logs every change in the db), and the importer is a dedicated script that triggers a FLUSH and repopulates the recent changes table with the full content of the DB.\n\nUpdated to reflect this",
+      "parentUuid": "fafc7978_8d3f1dd6",
+      "range": {
+        "startLine": 45,
+        "startChar": 4,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_cd2005b3",
         "filename": "specs/cluster_design.md",
         "patchSetId": 1
@@ -101,6 +143,24 @@
       "writtenOn": "2014-12-12T17:04:49Z",
       "side": 1,
       "message": "Trailing space.",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_74627dae",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:32:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_cd2005b3",
       "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -124,6 +184,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_940601cd",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 200,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:32:46Z",
+      "side": 1,
+      "message": "Rewording all around",
+      "parentUuid": "fafc7978_3059285b",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_3391329a",
         "filename": "specs/cluster_design.md",
         "patchSetId": 1
@@ -135,6 +213,24 @@
       "writtenOn": "2014-12-12T17:04:49Z",
       "side": 1,
       "message": "Same comments as above. I would like to leave this discussion for a separate spec. The changes described so far stand on their own merits, regardless of what happens next.",
+      "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_d4108903",
+        "filename": "specs/cluster_design.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 223,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-15T17:32:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_3391329a",
       "revId": "dd296b2f9187ba9e63164a42ef85187af84ceedf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
