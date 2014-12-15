@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_14b05142",
+        "filename": "midolman/conf/midolman.conf.compute",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002803
+      },
+      "writtenOn": "2014-12-15T17:10:53Z",
+      "side": 1,
+      "message": "right (9000 bytes), it was 8 originally so I didn\u0027t touch it, let\u0027s raise it",
+      "parentUuid": "fafc7978_b45b452d",
+      "revId": "4a3797598d76f4381cab9f583e77aea91055cca5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f43cadc1",
         "filename": "midolman/conf/midolman.conf.gateway",
         "patchSetId": 1
