@@ -66,9 +66,11 @@ dependencies {
             libraries.rx,
             libraries.zookeeper
 
-    testCompile libraries.hamcrest_lib,
+    testCompile libraries.curator_test,
+                libraries.hamcrest_lib,
                 libraries.mockit,
-                libraries.scalatest
+                libraries.scalatest,
+                libraries.sqlite
 }
 
 // Runs the cluster daemon, locally. use -Pconf=conf/cluster.conf to

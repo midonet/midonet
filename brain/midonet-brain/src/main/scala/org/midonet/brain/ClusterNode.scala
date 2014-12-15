@@ -89,7 +89,7 @@ object ClusterNode extends App {
         }
     }
 
-    protected[brain] val injector = Guice.createInjector(
+    protected[brain] var injector = Guice.createInjector(
         clusterNodeModule,
         new StorageModule(cfgProvider))
 

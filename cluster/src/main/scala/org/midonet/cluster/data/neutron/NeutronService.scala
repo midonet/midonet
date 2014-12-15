@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.data.neutron
 
-import java.sql.{Connection, ResultSet}
+import java.sql.{Connection, DriverManager, ResultSet}
 import java.util.UUID
 
 import scala.collection.mutable.ListBuffer
@@ -135,7 +135,9 @@ class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
     private val dataCol = 6
 
     override def getTasksSince(lastTaskId: Int): List[Transaction] = {
-        val con = dataSrc.getConnection
+        // Temporary hack. Make it work with both MySql and SQLite.
+        //val con = dataSrc.getConnection
+        val con = DriverManager.getConnection("jdbc:sqlite:taskdb")
         try getTasksSince(lastTaskId, con) finally con.close()
     }
 

@@ -147,6 +147,7 @@ project.ext {
                 exclude group: 'junit', module: 'junit'},
 
         mysql_jdbc: "mysql:mysql-connector-java:5.1.34",
+        sqlite: "org.xerial:sqlite-jdbc:3.8.7",
 
         vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
         jcabi: "com.jcabi:jcabi-aspects:0.15.1",
