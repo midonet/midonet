@@ -20,32 +20,33 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
-public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
-
-    private IPv4Addr address;
-    private int prefixLen;
+public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
 
     /* Default constructor for deserialization. */
     public IPv4Subnet() {
     }
 
-    public IPv4Subnet(IPv4Addr addr_, int prefixLen_) {
-        address = addr_;
-        prefixLen = prefixLen_;
+    public IPv4Subnet(IPv4Addr addr, int prefixLen) {
+        super(addr, prefixLen);
     }
 
-    public IPv4Subnet(int addr_, int prefixLen_) {
-        this(new IPv4Addr(addr_), prefixLen_);
+    public IPv4Subnet(int addr, int prefixLen) {
+        super(new IPv4Addr(addr), prefixLen);
     }
 
-    public IPv4Subnet(String addr_, int prefixLen_) {
-        this(IPv4Addr.fromString(addr_), prefixLen_);
+    public IPv4Subnet(String addr, int prefixLen) {
+        super(IPv4Addr.fromString(addr), prefixLen);
     }
 
     public IPv4Subnet(String zkCidr) {
         String[] parts = zkCidr.split("_");
         this.address = IPv4Addr.fromString(parts[0]);
         this.prefixLen = Integer.parseInt(parts[1]);
+    }
+
+    @Override
+    public void setAddress(IPv4Addr addr) {
+        this.address = addr;
     }
 
     /**
@@ -74,34 +75,14 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
         return new IPv4Subnet(IPv4Addr.fromString(parts[0]), prefixLen);
     }
 
-    @Override
-    public IPv4Addr getAddress() {
-        return address;
-    }
-
     public int getIntAddress() {
         return address.addr();
-    }
-
-    @Override
-    public void setAddress(IPv4Addr address) {
-        this.address = IPv4Addr.fromIPv4(address);
-    }
-
-    @Override
-    public void setPrefixLen(int prefixLen) {
-        this.prefixLen = prefixLen;
     }
 
     @Override
     @JsonIgnore
     public short ethertype() {
         return IPv4.ETHERTYPE;
-    }
-
-    @Override
-    public int getPrefixLen() {
-        return prefixLen;
     }
 
     public IPv4Addr toBroadcastAddress() {
@@ -124,41 +105,6 @@ public final class IPv4Subnet implements IPSubnet<IPv4Addr> {
 
         IPv4Addr that =  (IPv4Addr) other;
         return addrMatch(address.toInt(), that.toInt(), prefixLen);
-    }
-
-    public String toUnicastString() {
-        return getAddress().toString();
-    }
-
-    @Override
-    public String toString() {
-        return address.toString() + "/" + prefixLen;
-    }
-
-    @Override
-    public String toZkString() {
-        return address.toString() + "_" + prefixLen;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof IPv4Subnet)) return false;
-
-        IPv4Subnet that = (IPv4Subnet) o;
-        if (prefixLen != that.prefixLen) return false;
-        if (address != null ? !address.equals(that.address)
-            : that.address != null)
-            return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = address != null ? address.hashCode() : 0;
-        result = 31 * result + prefixLen;
-        return result;
     }
 
     /**
