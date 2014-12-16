@@ -37,7 +37,7 @@ public class Port {
     public Port(UUID id, UUID netId, String tenantId, String name,
                 String macAddress, List<IPAllocation> fixedIps,
                 DeviceOwner deviceOwner, String deviceId,
-                List<UUID> sgIds) {
+                List<UUID> sgIds, List<ExtraDhcpOpt> extraDhcpOpts) {
         this.id = id;
         this.networkId = netId;
         this.tenantId = tenantId;
@@ -48,6 +48,7 @@ public class Port {
         this.deviceOwner = deviceOwner;
         this.deviceId = deviceId;
         this.securityGroups = sgIds;
+        this.extraDhcpOpts = extraDhcpOpts;
     }
 
     public UUID id;
@@ -80,6 +81,9 @@ public class Port {
     @JsonProperty("security_groups")
     public List<UUID> securityGroups = new ArrayList<>();
 
+    @JsonProperty("extra_dhcp_opts")
+    public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
+
     @Override
     public final boolean equals(Object obj) {
 
@@ -98,7 +102,8 @@ public class Port {
                 && Objects.equal(tenantId, other.tenantId)
                 && Objects.equal(status, other.status)
                 && ListUtils.isEqualList(fixedIps, other.fixedIps)
-                && ListUtils.isEqualList(securityGroups, other.securityGroups);
+                && ListUtils.isEqualList(securityGroups, other.securityGroups)
+                && ListUtils.isEqualList(extraDhcpOpts, other.extraDhcpOpts);
     }
 
     @Override
@@ -106,7 +111,8 @@ public class Port {
         return Objects.hashCode(id, name, networkId, adminStateUp, macAddress,
                 deviceId, deviceOwner, tenantId, status,
                 ListUtils.hashCodeForList(fixedIps),
-                ListUtils.hashCodeForList(securityGroups));
+                ListUtils.hashCodeForList(securityGroups),
+                ListUtils.hashCodeForList(extraDhcpOpts));
     }
 
     @Override
@@ -124,6 +130,7 @@ public class Port {
                 .add("status", status)
                 .add("fixedIps", ListUtil.toString(fixedIps))
                 .add("securityGroups", ListUtil.toString(securityGroups))
+                .add("dhcpExtraOpts", ListUtil.toString(extraDhcpOpts))
                 .toString();
     }
 

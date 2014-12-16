@@ -27,6 +27,7 @@ import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.cluster.data.neutron.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -207,22 +208,27 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         IPv4Addr ip;
         String name;
 
+        @Since("1.7")
+        List<ExtraDhcpOpt> extraDhcpOpts;
+
         /* Default constructor for deserialization. */
         public Host() {
         }
 
-        public Host(MAC mac, IPv4Addr ip, String name) {
+        public Host(MAC mac, IPv4Addr ip, String name,
+                    List<ExtraDhcpOpt> extraDhcpOpts) {
             this.mac = mac;
             this.ip = ip;
             this.name = name;
+            this.extraDhcpOpts = extraDhcpOpts;
         }
 
-        public Host(MAC mac, IPv4Addr ip) {
-            this(mac, ip, null);
+        public Host(MAC mac, IPv4Addr ip, List<ExtraDhcpOpt> extraDhcpOpts) {
+            this(mac, ip, null, extraDhcpOpts);
         }
 
-        public Host(String mac, String ip) {
-            this(MAC.fromString(mac), IPv4Addr.fromString(ip));
+        public Host(String mac, String ip, List<ExtraDhcpOpt> extraDhcpOpts) {
+            this(MAC.fromString(mac), IPv4Addr.fromString(ip), extraDhcpOpts);
         }
 
         public MAC getMac() {
@@ -261,6 +267,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             if (mac != null ? !mac.equals(host.mac) : host.mac != null)
                 return false;
             if (name != null ? !name.equals(host.name) : host.name != null)
+                return false;
+            if (extraDhcpOpts != null ?
+                !extraDhcpOpts.equals(host.extraDhcpOpts) :
+                host.extraDhcpOpts != null)
                 return false;
 
             return true;
