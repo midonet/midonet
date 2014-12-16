@@ -130,7 +130,7 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
     override def getType(proto: Topology.Port): Class[_ <: Port] = {
         if (proto.hasNetworkId) classOf[BridgePort]
         else if (proto.hasRouterId) classOf[RouterPort]
-        else if (proto.hasVxlanMgmtIp) classOf[VxLanPort]
+        else if (proto.hasVtepMgmtIp) classOf[VxLanPort]
         else throw new IllegalArgumentException("Unknown port type")
     }
 }
