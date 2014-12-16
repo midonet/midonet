@@ -17,27 +17,27 @@
 package org.midonet.brain.services.c3po
 
 import com.google.inject.Inject
-
+import com.google.protobuf.Message
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 
 import org.midonet.brain.services.c3po.NeutronDeserializer.toMessage
-import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
-import org.midonet.cluster.data.neutron._
+import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.cluster.data.neutron.{SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.services.c3po._
-import org.midonet.cluster.services.neutron.NetworkTranslator
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.config._
 
-class NeutronImporter @Inject()(config: NeutronImporterConfig,
-                                storage: Storage,
-                                leaderLatch: LeaderLatch)
+/** The service in charge of loading Neutron models, translate and import them
+  * into the MidoNet backend storage. */
+class C3PO @Inject()(val config: C3POConfig,
+                     val storage: Storage,
+                     val leaderLatch: LeaderLatch)
     extends ScheduledClusterMinion(config) {
 
     val dataMgr = initDataManager()
 
-    val neutron = new RemoteNeutronService(config.jdbcDriver,
+    val neutronSrvc = new SqlNeutronImporter(config.jdbcDriver,
                                            config.connectionString,
                                            config.user, config.password)
 
@@ -49,17 +49,17 @@ class NeutronImporter @Inject()(config: NeutronImporterConfig,
                 return
             }
 
-            val lastTaskId = dataMgr.lastProcessedC3POTaskId
+            val lastTaskId = dataMgr.lastProcessedTaskId
             log.debug("Got last processed task ID: {}.", lastTaskId)
 
-            val txns = neutron.getTasksSince(lastTaskId)
+            val txns = neutronSrvc.getTasksSince(lastTaskId)
             log.debug("Got {} transaction(s) from Neutron: {}", txns.size, txns)
 
             for (txn <- txns) {
                 if (txn.isFlushTxn) {
                     dataMgr.flushTopology()
                     log.info("Deleting flush task from Neutron database.")
-                    neutron.deleteTask(txn.lastTaskId)
+                    neutronSrvc.deleteTask(txn.lastTaskId)
                 } else {
                     dataMgr.interpretAndExecTxn(translateTxn(txn))
                 }
@@ -70,36 +70,36 @@ class NeutronImporter @Inject()(config: NeutronImporterConfig,
         }
     }
 
-    private def translateTxn(txn: Transaction) =
-        C3POTransaction(txn.id, txn.tasks.map(translateTask))
+    private def translateTxn(txn: importer.Transaction) =
+        neutron.Transaction(txn.id, txn.tasks.map(translateTask))
 
-    private def translateTask(task: Task): C3POTask[_] = {
-        val c3poOp: C3POOp[_ <: Object] = task match {
-            case Create(_, rsrcType, json) =>
-                C3POCreate(toMessage(json, rsrcType.clazz))
-            case Update(_, rsrcType, json) =>
-                C3POUpdate(toMessage(json, rsrcType.clazz))
-            case Delete(_, rsrcType, objId) =>
-                C3PODelete(rsrcType.clazz, UUIDUtil.toProto(objId))
-            case Flush(_) =>
+    private def translateTask(task: importer.Task): org.midonet.brain.services.c3po.neutron.Task[_ <: Message] = {
+        val c3poOp: org.midonet.brain.services.c3po.neutron.NeutronOp[_ <: Message] = task match {
+            case importer.Create(_, rsrcType, json) =>
+                neutron.Create(toMessage(json, rsrcType.clazz))
+            case importer.Update(_, rsrcType, json) =>
+                neutron.Update(toMessage(json, rsrcType.clazz))
+            case importer.Delete(_, rsrcType, objId) =>
+                neutron.Delete(rsrcType.clazz, UUIDUtil.toProto(objId))
+            case importer.Flush(_) =>
                 // TODO: Trigger a rebuild, because this shouldn't happen.
                 throw new IllegalArgumentException(
                     "Flush operation not in its own transaction: " + task)
         }
-        C3POTask(task.taskId, c3poOp)
+        neutron.Task(task.taskId, c3poOp)
     }
 
-    private def initDataManager(): C3PODataManager = {
+    private def initDataManager(): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
         dataMgr.registerTranslator(classOf[NeutronNetwork],
-                                   new NetworkTranslator(storage))
+                                   new NetworkTranslator)
         dataMgr.init()
         dataMgr
     }
 }
 
 @ConfigGroup("neutron-importer")
-trait NeutronImporterConfig extends ScheduledMinionConfig[NeutronImporter] {
+trait C3POConfig extends ScheduledMinionConfig[C3PO] {
     @ConfigBool(key = "enabled")
     override def isEnabled: Boolean
 
