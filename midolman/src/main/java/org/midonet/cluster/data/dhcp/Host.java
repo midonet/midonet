@@ -15,9 +15,16 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.base.Preconditions;
 import org.midonet.cluster.data.Entity;
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+
+import javax.annotation.Nonnull;
 
 /**
  * DHCP host
@@ -64,11 +71,23 @@ public class Host extends Entity.Base<MAC, Host.Data, Host> {
         return self();
     }
 
-    public static class Data {
+    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
+        return getData().extraDhcpOpts;
+    }
 
+    public Host setExtraDhcpOpts(@Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+        Preconditions.checkNotNull(extraDhcpOpts,
+                "Extra DHCP options should not be null. Use an empty list to" +
+                        "express the absense of them.");
+        getData().extraDhcpOpts = extraDhcpOpts;
+        return self();
+    }
+
+    public static class Data {
         public MAC mac;
         public IPv4Addr ip;
         public String name;
-
+        @Nonnull
+        public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
     }
 }
