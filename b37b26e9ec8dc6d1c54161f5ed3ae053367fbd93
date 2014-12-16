@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_20fa6bbd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T11:41:24Z",
+      "side": 1,
+      "message": "Is this used/should it be static?",
+      "range": {
+        "startLine": 114,
+        "startChar": 4,
+        "endLine": 114,
+        "endChar": 36
+      },
+      "revId": "b37b26e9ec8dc6d1c54161f5ed3ae053367fbd93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_e0106303",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 2
