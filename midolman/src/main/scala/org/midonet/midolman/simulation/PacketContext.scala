@@ -20,12 +20,8 @@ import java.util.{ArrayList, Arrays, UUID, Set => JSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-
-import akka.actor.ActorSystem
 
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.odp.{FlowMatch, Packet}
@@ -34,6 +30,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.functors.Callback0
+import org.slf4j.LoggerFactory
 
 object PacketContext {
     val defaultLog =
@@ -42,6 +39,151 @@ object PacketContext {
         Logger(LoggerFactory.getLogger("org.midonet.packets.debug.packet-processor"))
     val traceLog =
         Logger(LoggerFactory.getLogger("org.midonet.packets.trace.packet-processor"))
+}
+
+/**
+ * Part of the PacketContext, contains flow related fields that are commonly
+ * accessed together, so that they are also grouped together when laid out
+ * in memory.
+ */
+
+trait FlowContext { this: PacketContext =>
+    val virtualFlowActions = new ArrayList[FlowAction]()
+    val flowActions = new ArrayList[FlowAction]()
+    // This Set stores the tags by which the flow may be indexed.
+    // The index can be used to remove flows associated with the given tag.
+    val flowTags = mutable.Set[FlowTag]()
+    var hardExpirationMillis = 0
+    var idleExpirationMillis = 0
+
+    def isDrop: Boolean = flowActions.isEmpty
+
+    def clear(): Unit = {
+        virtualFlowActions.clear()
+        flowActions.clear()
+        flowTags.clear()
+        hardExpirationMillis = 0
+        idleExpirationMillis = 0
+    }
+
+    def addFlowTag(tag: FlowTag): Unit =
+        flowTags.add(tag)
+
+    def clearFlowTags(): Unit = {
+        val it = flowTags.iterator
+        while (it.hasNext) {
+            if (it.next().isInstanceOf[FlowStateTag]) {
+                it.remove()
+            }
+        }
+    }
+
+    def addVirtualAction(action: FlowAction): Unit =
+        virtualFlowActions.add(action)
+
+    def addFlowAction(action: FlowAction): Unit =
+        flowActions.add(action)
+
+    def calculateActionsFromMatchDiff(): Unit = {
+        wcmatch.doNotTrackSeenFields()
+        origMatch.doNotTrackSeenFields()
+        diffEthernet()
+        diffIp()
+        diffVlan()
+        diffIcmp()
+        diffL4()
+        wcmatch.doTrackSeenFields()
+        origMatch.doTrackSeenFields()
+    }
+
+    private def diffEthernet(): Unit =
+        if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
+            !origMatch.getEthDst.equals(wcmatch.getEthDst)) {
+            virtualFlowActions.add(setKey(FlowKeys.ethernet(
+                wcmatch.getEthSrc.getAddress,
+                wcmatch.getEthDst.getAddress)))
+        }
+
+    private def diffIp(): Unit =
+        if (origMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
+            origMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
+            origMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
+
+            virtualFlowActions.add(setKey(
+                wcmatch.getNetworkSrcIP match {
+                    case srcIP: IPv4Addr =>
+                        FlowKeys.ipv4(srcIP,
+                            wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
+                            wcmatch.getNetworkProto,
+                            wcmatch.getNetworkTOS,
+                            wcmatch.getNetworkTTL,
+                            wcmatch.getIpFragmentType)
+                    case srcIP: IPv6Addr =>
+                        FlowKeys.ipv6(srcIP,
+                            wcmatch.getNetworkDstIP.asInstanceOf[IPv6Addr],
+                            wcmatch.getNetworkProto,
+                            wcmatch.getNetworkTTL,
+                            wcmatch.getIpFragmentType)
+                }
+            ))
+        }
+
+    private def diffVlan(): Unit =
+        if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
+            val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
+            val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
+            log.debug("Vlan tags to pop {}, vlan tags to push {}",
+                vlansToRemove, vlansToAdd)
+
+            for (vlan <- vlansToRemove) {
+                virtualFlowActions.add(popVLAN())
+            }
+
+            var count = vlansToAdd.size
+            for (vlan <- vlansToAdd) {
+                count -= 1
+                val protocol = if (count == 0) Ethernet.VLAN_TAGGED_FRAME
+                else Ethernet.PROVIDER_BRIDGING_TAG
+                virtualFlowActions.add(FlowActions.pushVLAN(vlan, protocol))
+            }
+        }
+
+    private def diffIcmp(): Unit = {
+        val icmpData = wcmatch.getIcmpData
+        if ((icmpData ne null) &&
+            !Arrays.equals(icmpData, origMatch.getIcmpData)) {
+
+            val icmpType = wcmatch.getSrcPort
+            if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
+                    icmpType == ICMP.TYPE_UNREACH ||
+                    icmpType == ICMP.TYPE_TIME_EXCEEDED) {
+
+                virtualFlowActions.add(setKey(FlowKeys.icmpError(
+                    wcmatch.getSrcPort.byteValue(),
+                    wcmatch.getDstPort.byteValue(),
+                    wcmatch.getIcmpData
+                )))
+            }
+        }
+    }
+
+    private def diffL4(): Unit =
+        if (origMatch.getSrcPort != wcmatch.getSrcPort ||
+            origMatch.getDstPort != wcmatch.getDstPort) {
+            wcmatch.getNetworkProto match {
+                case TCP.PROTOCOL_NUMBER =>
+                    virtualFlowActions.add(setKey(FlowKeys.tcp(
+                        wcmatch.getSrcPort,
+                        wcmatch.getDstPort)))
+                case UDP.PROTOCOL_NUMBER =>
+                    virtualFlowActions.add(setKey(FlowKeys.udp(
+                        wcmatch.getSrcPort,
+                        wcmatch.getDstPort)))
+                case ICMP.PROTOCOL_NUMBER =>
+                // this case would only happen if icmp id in ECHO req/reply
+                // were translated, which is not the case, so leave alone
+            }
+        }
 }
 
 /**
@@ -54,8 +196,7 @@ object PacketContext {
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val parentCookie: Option[Int],
-                    val origMatch: FlowMatch)
-                   (implicit actorSystem: ActorSystem) {
+                    val origMatch: FlowMatch) extends FlowContext {
     var log = PacketContext.defaultLog
 
     def jlog = log.underlying
@@ -73,10 +214,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     val outPorts = new ArrayList[UUID]()
 
     val wcmatch = origMatch.clone()
-
-    private var traceID: UUID = null
-    private var traceStep = 0
-    private var isTraced = false
 
     var inputPort: UUID = _
 
@@ -106,16 +243,6 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     def cookieStr = (if (isGenerated) "[genPkt:" else "[cookie:") +
                     flowCookie.getOrElse(parentCookie.getOrElse("No Cookie")) + "]"
 
-    // This Set stores the tags by which the flow may be indexed.
-    // The index can be used to remove flows associated with the given tag.
-    var flowTags = mutable.Set[FlowTag]()
-
-    def addFlowTag(tag: FlowTag): Unit =
-        flowTags.add(tag)
-
-    def clearFlowTags(): Unit =
-        flowTags = flowTags filter (_.isInstanceOf[FlowStateTag])
-
     def prepareForSimulation(lastInvalidationSeen: Long) {
         idle = false
         runs += 1
@@ -125,132 +252,19 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     def prepareForDrop(lastInvalidationSeen: Long) {
         idle = false
         lastInvalidation = lastInvalidationSeen
-        flowTags.clear()
+        clear()
         state.clear()
         runFlowRemovedCallbacks()
     }
 
     def postpone() {
         idle = true
-        flowTags.clear()
+        clear()
         state.clear()
         runFlowRemovedCallbacks()
         wcmatch.reset(origMatch)
         inputPort = null
     }
-
-    def actionsFromMatchDiff(): ArrayBuffer[FlowAction] = {
-        val actions = new ArrayBuffer[FlowAction]()
-        wcmatch.doNotTrackSeenFields()
-        origMatch.doNotTrackSeenFields()
-        diffEthernet(actions)
-        diffIp(actions)
-        diffVlan(actions)
-        diffIcmp(actions)
-        diffL4(actions)
-        wcmatch.doTrackSeenFields()
-        origMatch.doTrackSeenFields()
-        actions
-    }
-
-    /*
-     * Compares two objects, which may be null, to determine if they should
-     * cause flow actions.
-     * The catch here is that if `modif` is null, the verdict is true regardless
-     * because we don't create actions that set values to null.
-     */
-    private def matchObjectsSame(orig: AnyRef, modif: AnyRef) =
-        (modif eq null) || orig == modif
-
-    private def diffEthernet(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
-            !origMatch.getEthDst.equals(wcmatch.getEthDst)) {
-            actions.append(setKey(FlowKeys.ethernet(
-                wcmatch.getEthSrc.getAddress,
-                wcmatch.getEthDst.getAddress)))
-        }
-
-    private def diffIp(actions: ArrayBuffer[FlowAction]): Unit =
-        if (origMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
-            origMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
-            origMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
-
-            actions.append(setKey(
-                wcmatch.getNetworkSrcIP match {
-                    case srcIP: IPv4Addr =>
-                        FlowKeys.ipv4(srcIP,
-                            wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
-                            wcmatch.getNetworkProto,
-                            wcmatch.getNetworkTOS,
-                            wcmatch.getNetworkTTL,
-                            wcmatch.getIpFragmentType)
-                    case srcIP: IPv6Addr =>
-                        FlowKeys.ipv6(srcIP,
-                            wcmatch.getNetworkDstIP.asInstanceOf[IPv6Addr],
-                            wcmatch.getNetworkProto,
-                            wcmatch.getNetworkTTL,
-                            wcmatch.getIpFragmentType)
-                }
-            ))
-        }
-
-    private def diffVlan(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
-            val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
-            val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
-            log.debug("Vlan tags to pop {}, vlan tags to push {}",
-                vlansToRemove, vlansToAdd)
-
-            for (vlan <- vlansToRemove) {
-                actions.append(popVLAN())
-            }
-
-            var count = vlansToAdd.size
-            for (vlan <- vlansToAdd) {
-                count -= 1
-                val protocol = if (count == 0) Ethernet.VLAN_TAGGED_FRAME
-                else Ethernet.PROVIDER_BRIDGING_TAG
-                actions.append(FlowActions.pushVLAN(vlan, protocol))
-            }
-        }
-
-    private def diffIcmp(actions: ArrayBuffer[FlowAction]): Unit = {
-        val icmpData = wcmatch.getIcmpData
-        if ((icmpData ne null) &&
-            !Arrays.equals(icmpData, origMatch.getIcmpData)) {
-
-            val icmpType = wcmatch.getSrcPort
-            if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
-                    icmpType == ICMP.TYPE_UNREACH ||
-                    icmpType == ICMP.TYPE_TIME_EXCEEDED) {
-
-                actions.append(setKey(FlowKeys.icmpError(
-                    wcmatch.getSrcPort.byteValue(),
-                    wcmatch.getDstPort.byteValue(),
-                    wcmatch.getIcmpData
-                )))
-            }
-        }
-    }
-
-    private def diffL4(actions: ArrayBuffer[FlowAction]): Unit =
-        if (origMatch.getSrcPort != wcmatch.getSrcPort ||
-            origMatch.getDstPort != wcmatch.getDstPort) {
-
-            wcmatch.getNetworkProto match {
-                case TCP.PROTOCOL_NUMBER =>
-                    actions.append(setKey(FlowKeys.tcp(
-                        wcmatch.getSrcPort,
-                        wcmatch.getDstPort)))
-                case UDP.PROTOCOL_NUMBER =>
-                    actions.append(setKey(FlowKeys.udp(
-                        wcmatch.getSrcPort,
-                        wcmatch.getDstPort)))
-                case ICMP.PROTOCOL_NUMBER =>
-                // this case would only happen if icmp id in ECHO req/reply
-                // were translated, which is not the case, so leave alone
-            }
-        }
 
     override def toString = s"PacketContext[$cookieStr]"
 }

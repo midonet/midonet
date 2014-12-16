@@ -30,7 +30,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import akka.actor.ActorSystem$;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParser;
@@ -83,7 +82,7 @@ public class TestCondition {
         pktMatch.setDstPort(1234);
         rand = new Random();
         pktCtx = new PacketContext(new Left<Object, UUID>(1),
-                null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
+                null, Option.empty(), pktMatch);
     }
 
     @Test

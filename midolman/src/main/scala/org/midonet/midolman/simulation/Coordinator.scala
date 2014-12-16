@@ -33,7 +33,6 @@ import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
-import org.midonet.sdn.flows.WildcardFlow
 
 object Coordinator {
 
@@ -165,13 +164,6 @@ class Coordinator(context: PacketContext)
                                        second: SimulationResult)
     : SimulationResult = {
         val result = (first, second) match {
-            case (SendPacket(acts1), SendPacket(acts2)) =>
-                SendPacket(acts1 ++ acts2)
-
-            case (AddVirtualWildcardFlow(wcf1), AddVirtualWildcardFlow(wcf2)) =>
-                //TODO(rossella) set the other fields Priority
-                AddVirtualWildcardFlow(wcf1.combine(wcf2))
-
             case (PacketWorkflow.Drop, action) => action
             case (action, PacketWorkflow.Drop) => action
 
@@ -184,10 +176,8 @@ class Coordinator(context: PacketContext)
                 if (clazz1 != clazz2) {
                     log.error("Matching actions of different types {} & {}!",
                         clazz1, clazz2)
-                } else {
-                    log.debug("unrecognized action {}", firstAction)
                 }
-                TemporaryDrop
+                firstAction
         }
         log.debug(s"Forked action merged results $result")
         result
@@ -198,12 +188,10 @@ class Coordinator(context: PacketContext)
         action match {
             case DoFlowAction(act) => act match {
                 case b: FlowActionPopVLAN =>
-                    val flow = WildcardFlow(
-                        wcmatch = context.origMatch,
-                        actions = List(b))
+                    context.addVirtualAction(b)
                     val vlanId = context.wcmatch.getVlanIds.get(0)
                     context.wcmatch.removeVlanId(vlanId)
-                    virtualWildcardFlowResult(flow)
+                    AddVirtualWildcardFlow
                 case _ => NoOp
             }
 
@@ -222,10 +210,6 @@ class Coordinator(context: PacketContext)
                 }
 
                 context.origMatch.reset(originalMatch)
-
-                // Merge the completed results of the simulations. The
-                // resulting pair (SimulationResult, WildcardMatch) contains
-                // the merge action resulting from the other partial ones
                 results reduceLeft mergeSimulationResults
 
             case FloodBridgeAction(brId, ports) =>
@@ -253,17 +237,14 @@ class Coordinator(context: PacketContext)
                     } else {
                         val notIPv4Match =
                             new FlowMatch()
-                                .setEthSrc(
-                                        context.origMatch.getEthSrc)
-                                .setEthDst(
-                                        context.origMatch.getEthDst)
-                                .setEtherType(
-                                        context.origMatch.getEtherType)
-                        virtualWildcardFlowResult(
-                            WildcardFlow(wcmatch = notIPv4Match))
+                                .setEthSrc(context.origMatch.getEthSrc)
+                                .setEthDst(context.origMatch.getEthDst)
+                                .setEtherType(context.origMatch.getEtherType)
+                        context.origMatch.reset(notIPv4Match)
+                        AddVirtualWildcardFlow
                     }
 
-            case action =>
+            case _ =>
                 log.error(s"Device returned unexpected action - $action")
                 TemporaryDrop
         } // end action match
@@ -340,10 +321,10 @@ class Coordinator(context: PacketContext)
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
      */
     private def emitFromPort(port: Port): SimulationResult = {
-        val actions = context.actionsFromMatchDiff()
+        context.calculateActionsFromMatchDiff()
         log.debug("Emitting packet from vport {}", port.id)
-        actions.append(FlowActionOutputToVrnPort(port.id))
-        emit(port.deviceID, actions.toList)
+        context.addVirtualAction(FlowActionOutputToVrnPort(port.id))
+        emit(port.deviceID)
     }
 
     /**
@@ -362,7 +343,7 @@ class Coordinator(context: PacketContext)
                 val chain = tryAsk[Chain](port.outboundFilter)
                 val result = Chain.apply(chain, context, port.id, true)
                 log.debug(s"Chain ${chain.id} on port ${port.id} returned ${result.action}")
-                (result.action == RuleResult.Action.ACCEPT)
+                result.action == RuleResult.Action.ACCEPT
             } else {
                 true
             }
@@ -377,38 +358,31 @@ class Coordinator(context: PacketContext)
      * this will do a SendPacket, otherwise it will do an AddWildcardFlow.
      */
     private def floodBridge(deviceId: UUID, ports: List[UUID]): SimulationResult = {
-        val actions = context.actionsFromMatchDiff()
+        context.calculateActionsFromMatchDiff()
         val filteredPorts = ports filter applyExteriorPortFilter
         if (filteredPorts.size > 0) {
             log.debug(s"Flooding $deviceId, ports $filteredPorts")
-            actions.append(FlowActionOutputToVrnBridge(deviceId, filteredPorts))
-            emit(deviceId, actions.toList)
+            context.addVirtualAction(FlowActionOutputToVrnBridge(deviceId, filteredPorts))
+            emit(deviceId)
         } else {
             log.debug(s"Flooding $deviceId but no ports to forward to, dropping")
             Drop
         }
     }
 
-    private def emit(deviceId: UUID, actions: List[FlowAction]): SimulationResult = {
+    private def emit(deviceId: UUID): SimulationResult = {
         if (context.isGenerated) {
-            log.debug("SendPacket with actions {}", actions)
-            SendPacket(actions)
+            SendPacket
         } else {
-            log.debug("Add a flow with actions {}", actions)
             context.state.trackConnection(deviceId)
 
-            var hardExp = 0
-            var idleExp = 0
-            if (context.state.containsForwardStateKeys)
-                hardExp = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
-            else
-                idleExp = IDLE_EXPIRATION_MILLIS
+            if (context.state.containsForwardStateKeys) {
+                context.hardExpirationMillis = (FlowState.DEFAULT_EXPIRATION.toMillis / 2).toInt
+            } else {
+                context.idleExpirationMillis = IDLE_EXPIRATION_MILLIS
+            }
 
-            virtualWildcardFlowResult(WildcardFlow(
-                wcmatch = context.origMatch,
-                actions = actions,
-                idleExpirationMillis = idleExp,
-                hardExpirationMillis = hardExp))
+            AddVirtualWildcardFlow
         }
     }
 
@@ -434,11 +408,5 @@ class Coordinator(context: PacketContext)
         if (ethOpt.nonEmpty)
             PacketsEntryPoint !
                 EmitGeneratedPacket(port.id, ethOpt.get, context.flowCookie)
-    }
-
-    /** Generates a final AddVirtualWildcardFlow simulation result */
-    private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
-        wcFlow.wcmatch.propagateUserspaceFieldsOf(context.wcmatch)
-        AddVirtualWildcardFlow(wcFlow)
     }
 }
