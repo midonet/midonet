@@ -16,14 +16,20 @@
 
 package org.midonet.api.dhcp;
 
+import com.google.common.base.Preconditions;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.data.dhcp.Host;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.version.Since;
 
+import javax.annotation.Nonnull;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 @XmlRootElement
 public class DhcpHost extends RelativeUriResource {
@@ -31,10 +37,19 @@ public class DhcpHost extends RelativeUriResource {
     protected String ipAddr; // DHCP "your ip address"
     protected String name; // DHCP option 12 - host name
 
-    public DhcpHost(String macAddr, String ipAddr, String name) {
+    @Since("2")
+    @Nonnull
+    protected List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
+
+    public DhcpHost(String macAddr, String ipAddr, String name,
+                    @Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+        Preconditions.checkNotNull(extraDhcpOpts,
+                "Extra DHCP options should not be null. Use an empty list to" +
+                        "express the absense of them.");
         this.macAddr = macAddr;
         this.ipAddr = ipAddr;
         this.name = name;
+        this.extraDhcpOpts = extraDhcpOpts;
     }
 
     /* Default constructor - for deserialization. */
@@ -45,6 +60,7 @@ public class DhcpHost extends RelativeUriResource {
         this.ipAddr = host.getIp().toString();
         this.macAddr = host.getMAC().toString();
         this.name = host.getName();
+        this.extraDhcpOpts = host.getExtraDhcpOpts();
     }
 
     /**
@@ -83,11 +99,23 @@ public class DhcpHost extends RelativeUriResource {
         this.name = name;
     }
 
+    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
+        return extraDhcpOpts;
+    }
+
+    public void setExtraDhcpOpts(@Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+        Preconditions.checkNotNull(extraDhcpOpts,
+                "Extra DHCP options should not be null. Use an empty list to" +
+                        "express the absense of them.");
+        this.extraDhcpOpts = extraDhcpOpts;
+    }
+
     public Host toData() {
         return new Host()
                 .setIp(IPv4Addr.fromString(this.ipAddr))
                 .setMAC(MAC.fromString(this.macAddr))
-                .setName(this.name);
+                .setName(this.name)
+                .setExtraDhcpOpts(this.extraDhcpOpts);
     }
 
 }
