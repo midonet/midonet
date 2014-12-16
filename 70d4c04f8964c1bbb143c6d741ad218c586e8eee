@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_31d05053",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T17:08:09Z",
+      "side": 1,
+      "message": "It is not clear to me why this subject is needed. Can\u0027t we subscribe this subscriber directly to the protocol factory, and unsubscribe in both terminate() and disconnect()?\n\nIs is possible that the ProtocolFactory does not respect the rx contract and keeps sending on* messages even after disconnect?",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 28
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_11d54c43",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T17:08:09Z",
+      "side": 1,
+      "message": "Then, this wouldn\u0027t be needed since any terminal event (onCompleted, onError) means this subscriber unsubscribes. An:\n\n  assert(isUnusbscribed)\n\nshould be enough",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 64,
+        "endChar": 26
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_f16b6883",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/TopologyMappings.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T17:08:09Z",
+      "side": 1,
+      "message": "This could be replaced by:\n  .map(_._1)",
+      "range": {
+        "startLine": 47,
+        "startChar": 35,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_91c01c7e",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T17:08:09Z",
+      "side": 1,
+      "message": "Rather, it is an observer, isn\u0027t it?",
+      "range": {
+        "startLine": 30,
+        "startChar": 3,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_71cad8a2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T17:08:09Z",
+      "side": 1,
+      "message": "Add ( ) after disconnect",
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
