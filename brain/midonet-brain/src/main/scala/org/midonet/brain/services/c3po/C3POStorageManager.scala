@@ -19,167 +19,164 @@ package org.midonet.brain.services.c3po
 import java.util.concurrent.TimeUnit
 import java.util.{HashMap => JHashMap, Map => JMap, UUID => JUUID}
 
+import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+
+import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.storage.{ObjectExistsException, Storage, StorageException, UpdateOp}
-import org.midonet.cluster.models.C3PO.StorageManagerState
-import org.midonet.cluster.services.c3po.{ApiTranslator, C3POCreate, C3PODataManager, C3PODataManagerException, C3PODelete, C3POTask, C3POTransaction, C3POUpdate, TranslationException}
+import org.midonet.cluster.data.storage._
+import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.util.UUIDUtil.toProto
 
 object C3POStorageManager {
+
     /* A constant indicating how many seconds C3POStorageManager waits on the
      * future returned from Storage. 10 seconds for now, which we think is
-     * sufficient.
-     */
-    private val FUTURE_TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
+     * sufficient. */
+    private val TIMEOUT = Duration.create(10, TimeUnit.SECONDS)
 
-    /* C3PO.StorageManagerState is a container Protobuf message for storing the
-     * last processed C3PO task ID in Storage, which is used to tell the next
-     * cluster node where to pick up if this one fails. It is needed because the
-     * Storage service only accepts objects with an ID property, and this
-     * "stateId" is used to access that common state object in Storage.
-     */
-    private[c3po] val stateId = toProto(new JUUID(0, 1))
+    // ID for the singleton C3POState object. All objects persisted via
+    // the Storage interface need a property named id.
+    private[c3po] val C3PO_STATE_ID = toProto(new JUUID(0L, 1L))
 
     private[c3po] val NO_C3PO_TASKS_PROCESSED = 0
+
+    /** Defines types of operations on a single entity. */
+    object OpType extends Enumeration {
+        type OpType = Value
+
+        val Create = Value(1)
+        val Delete = Value(2)
+        val Update = Value(3)
+
+        private val ops = Array(Create, Delete, Update)
+        def valueOf(i: Int) = ops(i - 1)
+    }
+
+    /** A generic operation on a model */
+    trait Operation[T <: Message] {
+        def opType: OpType.OpType
+        def toPersistenceOp: PersistenceOp
+    }
+
+    /** A failure occurred when interpreting or executing an operation. */
+    class ProcessingException(msg: String = "", cause: Throwable = null)
+        extends RuntimeException("Failed to interpret/execute operation" +
+                                 s"${if (msg == null) "" else ": " + msg}",
+                                 cause)
 
     /* A utility method to generate a C3POStorageManager Proto holding the last
      * processed C3PO task ID.
      */
-    private[c3po] def storageManagerState(lastProcessed: Int) =
-        StorageManagerState.newBuilder
-                           .setId(stateId)
-                           .setLastProcessedTaskId(lastProcessed)
-                           .build
-
-    private def await[T](f: Future[T]) = Await.result(f, FUTURE_TIMEOUT)
+    def c3poState(lastProcessed: Int) =
+        C3POState.newBuilder
+                 .setId(C3PO_STATE_ID)
+                 .setLastProcessedTaskId(lastProcessed)
+                 .build
 }
 
-/**
- * C3PO that translates an operation on an external model into corresponding
- * storage operations on internal Mido models.
- */
-class C3POStorageManager(val storage: Storage) extends C3PODataManager {
-    import C3POStorageManager._
-    val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
+/** C3PO that translates an operation on an external model into corresponding
+  * storage operations on internal Mido models. */
+final class C3POStorageManager(storage: Storage) {
+    import org.midonet.brain.services.c3po.C3POStorageManager._
 
-    private val apiTranslators = new JHashMap[Class[_], ApiTranslator[_]]()
+    private val log = LoggerFactory.getLogger(classOf[C3POStorageManager])
+
+    private val apiTranslators = new JHashMap[Class[_], NeutronTranslator[_]]()
     private var initialized = false
 
-    def registerTranslator[T <: Object](clazz: Class[T],
-                                        translator: ApiTranslator[T]): Unit = {
-        apiTranslators.put(clazz, translator)
-    }
+    def registerTranslator[T <: Message](clazz: Class[T],
+                                         translator: NeutronTranslator[T])
+    : Unit = apiTranslators.put(clazz, translator)
 
-    def registerTranslators(translators: JMap[Class[_], ApiTranslator[_]]) = {
-        apiTranslators.putAll(translators)
-    }
+    def registerTranslators(translators: JMap[Class[_], NeutronTranslator[_]])
+    : Unit = apiTranslators.putAll(translators)
 
     def clearTranslators(): Unit = apiTranslators.clear()
 
     private def initStorageManagerState(): Unit = {
         try {
-            storage.create(storageManagerState(NO_C3PO_TASKS_PROCESSED))
-            log.info("Initialized last processed task ID to " +
-                     s"$NO_C3PO_TASKS_PROCESSED.")
+            storage.create(c3poState(NO_C3PO_TASKS_PROCESSED))
+            log.info("Initialized last processed task ID")
         } catch {
-            case _: ObjectExistsException =>
-                log.info(s"Found last processed task ID: $lastProcessed")
+            case _: ObjectExistsException => // ok
             case e: Throwable =>
-                throw new C3PODataManagerException(
+                throw new ProcessingException(
                         "Failure initializing C3PODataManager.", e)
         }
     }
 
-    @throws[C3PODataManagerException]
-    def init() {
+    @throws[ProcessingException]
+    def init(): Unit = try {
         initStorageManagerState()
         initialized = true
+        log.info("Initialized last processed task ID.")
+    } catch {
+        case _: ObjectExistsException =>
+            log.info(s"State node already exists")
+            initialized = true
+        case e: Throwable =>
+            throw new ProcessingException("C3PODataManager initialisation", e)
     }
 
-    /**
-     * Returns the last processed C3PO task ID.
-     */
-    @throws[C3PODataManagerException]
-    override def lastProcessedC3POTaskId: Int = {
+    /** Returns the ID of the last Task that was processed by the cluster */
+    @throws[ProcessingException]
+    def lastProcessedTaskId: Int = {
         assert(initialized)
-        lastProcessed
+        Await.result(storage.get(classOf[C3POState], C3PO_STATE_ID), TIMEOUT)
+             .getLastProcessedTaskId
     }
 
-    private def lastProcessed: Int = {
-        try {
-            await(storage.get(classOf[StorageManagerState], stateId))
-                    .getLastProcessedTaskId
-        } catch {
-            case e: Throwable =>
-                    throw new C3PODataManagerException(
-                            "Failure in looking up the last processed C3PO ID.",
-                            e)
-        }
+    /** Flushes the current storage preparing for a reimport. */
+    @throws[ProcessingException]
+    def flushTopology(): Unit = try {
+        storage.flush()
+        initStorageManagerState()
+    } catch {
+        case e: Throwable => throw new ProcessingException("Flushing failed", e)
     }
 
-    @throws[C3PODataManagerException]
-    override def flushTopology() {
-        try {
-            storage.flush()
-            initStorageManagerState()
-        } catch {
-            case e: Throwable =>
-                    throw new C3PODataManagerException(
-                        "Failure in flushing the storage.", e)
-        }
-    }
-
-    /* This method is NOT idemponent on DELETE.
-     * TODO Implement idempotent DELETE.
-     */
-    @throws[C3PODataManagerException]
-    override def interpretAndExecTxn(txn: C3POTransaction) {
+    /** Interprets a single transaction of external model operations,
+      * translating into the corresponding operations in the internal model, and
+      * executing them. */
+    @throws[ProcessingException]
+    def interpretAndExecTxn(txn: neutron.Transaction): Unit = {
         assert(initialized)
         try {
-            val newState = storageManagerState(txn.lastTaskId)
+            val newState = c3poState(txn.lastTaskId)
             val midoOps = txn.tasks.flatMap { task =>
-                translateC3POOpsToPersistenceOps(
-                        task.asInstanceOf[C3POTask[Object]])
+                toPersistenceOps(task.asInstanceOf[neutron.Task[Message]])
             } ++ List(UpdateOp(newState))
 
             storage.multi(midoOps)
             log.info(s"Executed a C3PO transaction with ID: ${txn.txnId}.")
         } catch {
-            case te: TranslationException =>
-                    throw new C3PODataManagerException(
-                            "Failure in translating for a transaction " +
-                            s"${txn.txnId}", te)
-            case se: StorageException =>
-                    throw new C3PODataManagerException(
-                            "Failure in persisting for a transaction " +
-                            s"${txn.txnId}", se)
-            case e: Throwable =>
-                    throw new C3PODataManagerException(
-                            "Failure in executing a transaction", e)
+            case te: TranslationException => throw new ProcessingException(
+                        s"Failed to translate transaction: ${txn.txnId}", te)
+            case se: StorageException => throw new ProcessingException(
+                        s"Failed to persist transaction: ${txn.txnId}", se)
+            case e: Throwable => throw new ProcessingException(
+                        s"Failed to execute transaction: ${txn.txnId}", e)
         }
     }
 
-    @throws[C3PODataManagerException]
-    private def translateC3POOpsToPersistenceOps[T <: Object](
-            task: C3POTask[T]) = {
+    @throws[ProcessingException]
+    private def toPersistenceOps[T <: Message](task: neutron.Task[T]) = {
         val modelClass = task.op match {
-            case c: C3POCreate[T] => c.model.getClass
-            case u: C3POUpdate[T] => u.model.getClass
-            case d: C3PODelete[T] => d.clazz
+            case c: neutron.Create[T] => c.model.getClass
+            case u: neutron.Update[T] => u.model.getClass
+            case d: neutron.Delete[T] => d.clazz
         }
         if (!apiTranslators.containsKey(modelClass)) {
-            throw new C3PODataManagerException (
-                    s"No translator for $modelClass.", null)
+            throw new ProcessingException(s"No translator for $modelClass.")
         }
 
         Seq(task.op.toPersistenceOp) ++  // Persists the original model
                 apiTranslators.get(modelClass)
-                              .asInstanceOf[ApiTranslator[T]]
-                              .toMido(task.op)
+                              .asInstanceOf[NeutronTranslator[T]]
+                              .translate(task.op)
                               .map { midoOp => midoOp.toPersistenceOp }
     }
 }
