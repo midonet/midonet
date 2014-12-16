@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_31e9701b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T16:25:00Z",
+      "side": 1,
+      "message": "IMO this should move to brain, it\u0027s not anything common to MidoNet component interaction with the  cluster but a private service.",
+      "range": {
+        "startLine": 90,
+        "startChar": 6,
+        "endLine": 90,
+        "endChar": 24
+      },
+      "revId": "a98a73d35770875062d690cc71801e3537efed7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
