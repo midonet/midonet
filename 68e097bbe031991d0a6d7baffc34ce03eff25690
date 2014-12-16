@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_003be738",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/MockScheduler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-16T14:43:05Z",
+      "side": 1,
+      "message": "we need to invert these too :/",
+      "revId": "68e097bbe031991d0a6d7baffc34ce03eff25690",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
