@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_800997df",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T11:39:23Z",
+      "side": 1,
+      "message": "across",
+      "range": {
+        "startLine": 5,
+        "startChar": 32,
+        "endLine": 5,
+        "endChar": 39
+      },
+      "revId": "b37b26e9ec8dc6d1c54161f5ed3ae053367fbd93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_e0106303",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-16T11:39:23Z",
+      "side": 1,
+      "message": "If the properties_file is not specified in the config, will there be a default, or in that case the file is not used?",
+      "range": {
+        "startLine": 119,
+        "startChar": 58,
+        "endLine": 119,
+        "endChar": 60
+      },
+      "revId": "b37b26e9ec8dc6d1c54161f5ed3ae053367fbd93",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
