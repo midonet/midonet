@@ -24,7 +24,7 @@ import com.google.inject.{AbstractModule, Guice}
 import org.slf4j.LoggerFactory
 
 import org.midonet.brain.services.StorageModule
-import org.midonet.brain.services.c3po.NeutronImporterConfig
+import org.midonet.brain.services.c3po.C3POConfig
 import org.midonet.brain.services.heartbeat.HeartbeatConfig
 import org.midonet.config.ConfigProvider
 
@@ -62,7 +62,7 @@ object ClusterNode extends App {
     // Load configurations for all supported Minions
     private val heartbeatCfg = cfgProvider.getConfig(classOf[HeartbeatConfig])
     private val neutronPollingCfg =
-        cfgProvider.getConfig(classOf[NeutronImporterConfig])
+        cfgProvider.getConfig(classOf[C3POConfig])
 
     private val minionDefs: List[MinionDef[ClusterMinion]] =
         List (new MinionDef("heartbeat", heartbeatCfg),
@@ -79,7 +79,7 @@ object ClusterNode extends App {
             bind(classOf[MetricRegistry]).toInstance(metrics)
 
             bind(classOf[HeartbeatConfig]).toInstance(heartbeatCfg)
-            bind(classOf[NeutronImporterConfig]).toInstance(neutronPollingCfg)
+            bind(classOf[C3POConfig]).toInstance(neutronPollingCfg)
             minionDefs foreach { m =>
                 log.info(s"Register minion: ${m.name}")
                 install(MinionConfig.module(m.cfg))
