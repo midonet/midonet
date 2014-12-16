@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_d14aa4ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-16T21:29:28Z",
+      "side": 1,
+      "message": "extra space",
+      "revId": "5ecc9b021cda818555dfed29d13cbecae3a31842",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
