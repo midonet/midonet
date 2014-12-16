@@ -284,7 +284,8 @@ public class NetworkZkManager extends BaseZkManager {
             if (subnet.isIpv4()) {
                 dhcpZkManager.prepareAddHost(ops, subnet,
                                              new Host(port.macAddress,
-                                                      fixedIp.ipAddress));
+                                                      fixedIp.ipAddress,
+                                                      port.extraDhcpOpts));
             } else if (subnet.isIpv6()) {
                 dhcpV6ZkManager.prepareAddHost(ops, subnet.networkId,
                                                subnet.ipv6Subnet(),

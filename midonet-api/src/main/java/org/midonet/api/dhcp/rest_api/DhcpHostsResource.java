@@ -82,6 +82,7 @@ public class DhcpHostsResource extends AbstractResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
+                VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response create(DhcpHost host)
             throws StateAccessException, SerializationException {
@@ -115,6 +116,7 @@ public class DhcpHostsResource extends AbstractResource {
     @PermitAll
     @Path("/{mac}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
+                VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
             MediaType.APPLICATION_JSON })
     public DhcpHost get(@PathParam("mac") String mac)
             throws StateAccessException, SerializationException {
@@ -153,6 +155,7 @@ public class DhcpHostsResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
+                VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("mac") String mac, DhcpHost host)
             throws StateAccessException, SerializationException {
@@ -219,7 +222,8 @@ public class DhcpHostsResource extends AbstractResource {
      */
     @GET
     @PermitAll
-    @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON })
+    @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON,
+                VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2})
     public List<DhcpHost> list()
             throws StateAccessException, SerializationException {
 
