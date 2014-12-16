@@ -16,12 +16,9 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Random;
 import java.math.BigInteger;
-
-import scala.collection.JavaConversions;
 
 import com.google.common.primitives.Longs;
 
@@ -29,7 +26,6 @@ import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Reader;
 import org.midonet.netlink.Translator;
 import org.midonet.odp.OpenVSwitch.Port.Attr;
-import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowActionOutput;
 import org.midonet.odp.ports.*;
 
@@ -65,7 +61,6 @@ public abstract class DpPort {
     private Integer portNo;
     private Stats stats;
     private FlowActionOutput outputAction;
-    private scala.collection.immutable.List<FlowAction> outputActions;
 
     abstract public Type getType();
 
@@ -84,17 +79,10 @@ public abstract class DpPort {
     private void setPortNo(int portNo) {
         this.portNo = portNo;
         outputAction = output(portNo);
-        ArrayList<FlowAction> actions = new ArrayList<>(1);
-        actions.add(outputAction);
-        outputActions = JavaConversions.collectionAsScalaIterable(actions).toList();
     }
 
     public FlowActionOutput toOutputAction() {
       return outputAction;
-    }
-
-    public scala.collection.immutable.List<FlowAction> toOutputActions() {
-        return outputActions;
     }
 
     public void serializeInto(ByteBuffer buf) {

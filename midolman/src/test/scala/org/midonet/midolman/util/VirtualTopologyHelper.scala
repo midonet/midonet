@@ -120,7 +120,6 @@ trait VirtualTopologyHelper {
         }
         commitTransactions(conntrackTx, natTx)
         flushTransactions(conntrackTx, natTx)
-        pktCtx.clear()
         (r, pktCtx)
     }
 

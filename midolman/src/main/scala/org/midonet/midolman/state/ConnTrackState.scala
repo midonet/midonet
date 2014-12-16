@@ -104,6 +104,7 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
     override def clear(): Unit = {
         connKey = null
         isConnectionTracked = false
+        super.clear()
     }
 
     def isForwardFlow: Boolean =

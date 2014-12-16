@@ -17,13 +17,14 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
 import scala.collection.immutable.List
 import scala.collection.{mutable, Set => ROSet}
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import akka.event.{Logging, LoggingAdapter}
 
+import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -35,9 +36,7 @@ import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.devices.{BridgePort => ClientPort}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
-import org.midonet.midolman.topology.{LocalPortActive,
-                                      VirtualToPhysicalMapper,
-                                      VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
@@ -45,9 +44,8 @@ import org.midonet.odp.{FlowMatch, DpPort, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
-                                             FlowActionOutputToVrnBridge}
 import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
@@ -477,10 +475,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         implicit override protected def executor = ExecutionContext.callingThread
         val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
 
-        override def translateActions(
-                            pktCtx: PacketContext,
-                            actions: Seq[FlowAction]) : Seq[FlowAction] =
-            super.translateActions(pktCtx, actions)
+        override def translateActions(pktCtx: PacketContext): Unit =
+            super.translateActions(pktCtx)
     }
 
     class TestDatapathState extends DatapathState {
@@ -512,11 +508,6 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def translationScenario(name: String)
                            (testFun: TranslationContext => Unit): Unit = {
-        translateWithAndWithoutTags(name, testFun)
-    }
-
-    def translateWithAndWithoutTags(name: String,
-                                    testFun: TranslationContext => Unit): Unit = {
         scenario(name) {
             var translatedActions: Seq[FlowAction] = null
             var pktCtx: PacketContext = null
@@ -527,14 +518,16 @@ class FlowTranslatorTest extends MidolmanSpec {
                 def translate(actions: List[FlowAction],
                               ethernet: Ethernet): Unit = {
                     translatedActions = null
-                    do {
+                    val id = UUID.randomUUID()
+                    force {
                         pktCtx = packetContext(ethernet, inPortUUID)
-                        val id = UUID.randomUUID()
+                        pktCtx.virtualFlowActions.addAll(actions)
                         pktCtx.outPortId = id
                         val ft = new TestFlowTranslator(dpState)
-                        translatedActions = force(ft.translateActions(pktCtx, actions))
-                        pktCtx.outPortId should be (id)
-                    } while (translatedActions == null)
+                        ft.translateActions(pktCtx)
+                    }
+                    pktCtx.outPortId should be (id)
+                    translatedActions = pktCtx.flowActions.toList
                 }
 
                 def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {

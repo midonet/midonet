@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.simulation
 
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 import akka.util.Timeout
@@ -527,8 +528,8 @@ class PoolTest extends MidolmanSpec {
                 val srcPort = (10000 + i).toShort
                 val flow = sendPacket(
                     (exteriorClientPort, clientToVipPkt(srcPort)))
-                val wc = flow._1.asInstanceOf[AddVirtualWildcardFlow]
-                val action = wc.flow.actions(1).asInstanceOf[FlowActionSetKey]
+
+                val action = flow._2.virtualFlowActions.get(1).asInstanceOf[FlowActionSetKey]
                 val ip = action.getFlowKey.asInstanceOf[FlowKeyIPv4].ipv4_dst
                 val index = (ip & 0xff00) >> 8
                 dstCounts(index) += 1
@@ -598,8 +599,8 @@ class PoolTest extends MidolmanSpec {
     private[this] def getDestIpsFromResult(simResult: (SimulationResult, PacketContext))
     : Seq[Int] = {
         simResult._1 match {
-            case AddVirtualWildcardFlow(flow) =>
-                flow.actions flatMap {
+            case AddVirtualWildcardFlow =>
+                simResult._2.virtualFlowActions.toList flatMap {
                     case f: FlowActionSetKey =>
                         f.getFlowKey match {
                             case k: FlowKeyIPv4 => Some(k.ipv4_dst)

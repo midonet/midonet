@@ -23,6 +23,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.sdn.flows.FlowTagger.FlowStateTag
 import org.midonet.sdn.state.IdleExpiration
+import org.midonet.util.Clearable
 
 object FlowState {
     val DEFAULT_EXPIRATION = 60 seconds
@@ -35,11 +36,4 @@ object FlowState {
  * Base trait for flow state management during a simulation. Implementers of
  * this trait must ensure it is stackable with other state traits.
  */
-trait FlowState {
-
-    /**
-     * Eventually reset any state associated with this instance for
-     * future reuse.
-     */
-    def clear(): Unit = { }
-}
+trait FlowState extends Clearable { this: PacketContext => }
