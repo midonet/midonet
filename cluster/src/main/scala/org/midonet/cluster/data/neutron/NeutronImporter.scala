@@ -22,11 +22,11 @@ import java.util.UUID
 import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
-
 import org.apache.commons.dbcp2.BasicDataSource
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.neutron.TaskType.TaskType
+import org.midonet.cluster.data.neutron.importer.Transaction
 import org.midonet.cluster.models.Neutron
 import org.midonet.cluster.models.Neutron._
 
@@ -53,6 +53,7 @@ protected[cluster] object TaskType extends Enumeration {
  */
 case class NeutronResourceType[M <: Message](id: Int, clazz: Class[M])
 
+/** Declares the different types of supported Neutron types. */
 protected[cluster] object NeutronResourceType extends Enumeration {
     val Network = NeutronResourceType(1, classOf[NeutronNetwork])
     val Subnet = NeutronResourceType(2, classOf[NeutronSubnet])
@@ -70,56 +71,30 @@ protected[cluster] object NeutronResourceType extends Enumeration {
     def valueOf(i: Int) = vals(i - 1)
 }
 
-/**
- * Case classes representing Neutron tasks.
- */
-sealed trait Task {
-    val taskId: Int
-}
-case class Create(taskId: Int,
-                  rsrcType: NeutronResourceType[_ <: Message],
-                  json: String) extends Task
-case class Delete(taskId: Int,
-                  rsrcType: NeutronResourceType[_ <: Message],
-                  objId: UUID) extends Task
-case class Update(taskId: Int,
-                  rsrcType: NeutronResourceType[_ <: Message],
-                  json: String) extends Task
-case class Flush(taskId: Int) extends Task
+/** Interface for access to Neutron database. */
+trait NeutronImporter {
+    /** Gets all tasks with task ID greater than taskId, ordered by task ID and
+      * grouped into Transactions according to transaction ID. */
+    def getTasksSince(taskId: Int): List[importer.Transaction]
 
-class Transaction(val id: String, val tasks: List[Task]) {
-    val lastTaskId = tasks.last.taskId
-    val isFlushTxn = tasks.size == 1 && tasks(0).isInstanceOf[Flush]
-}
-
-/**
- * Interface for access to Neutron database.
- */
-trait NeutronService {
-    /**
-     * Gets all tasks with task ID greater than lastTaskId, ordered by task ID
-     * and grouped into Transactions according to transaction ID.
-     */
-    def getTasksSince(lastTaskId: Int): List[Transaction]
-
-    /**
-     * Deletes the specified task.
-     */
+    /** Deletes the specified task. */
     def deleteTask(taskId: Int)
 }
 
-/**
- * Implementation of NeutronService that obtains data from a remote
- * SQL database using the provided JDBC connection.
- *
- * TODO: Use something smarter than a plain JDBC connection that will retry
- * and attempt to reconnect if the connection fails.
- */
-class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
-                           user: String, password: String)
-    extends NeutronService {
+/** Implementation of NeutronService that obtains data from a remote
+  * SQL database using the provided JDBC connection. */
+class SqlNeutronImporter(val jdbcDriverClassName: String,
+                         val cnxnStr: String,
+                         val user: String,
+                         private val password: String) extends NeutronImporter {
 
-    private val log = LoggerFactory.getLogger(classOf[RemoteNeutronService])
+    private val log = LoggerFactory.getLogger(classOf[SqlNeutronImporter])
+
+    private val NEW_TASKS_QUERY = "select id, type_id, data_type_id," +
+                                   "resource_id, transaction_id, data " +
+                                   "from midonet_tasks where id > ? or " +
+                                   s"(id = 1 and type_id = ${TaskType.Flush.id}) " +
+                                   "order by id"
 
     private val dataSrc = new BasicDataSource()
     dataSrc.setDriverClassName(jdbcDriverClassName)
@@ -134,18 +109,18 @@ class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
     private val txnIdCol = 5
     private val dataCol = 6
 
-    override def getTasksSince(lastTaskId: Int): List[Transaction] = {
+    override def getTasksSince(taskId: Int): List[Transaction] = {
         val con = dataSrc.getConnection
-        try getTasksSince(lastTaskId, con) finally con.close()
+        try getTasksSince(taskId, con) finally con.close()
     }
 
-    private def getTasksSince(lastTaskId: Int,
+    private def getTasksSince(taskId: Int,
                               con: Connection): List[Transaction] = {
-        log.debug("Querying Neutron DB for tasks with ID > {}", lastTaskId)
-        val rslt = queryTasksSince(lastTaskId, con)
+        log.debug("Querying Neutron DB for tasks with ID > {}", taskId)
+        val rslt = queryTasksSince(taskId, con)
         val txns = ListBuffer[Transaction]()
         var lastTxnId: String = null
-        val txnTasks = ListBuffer[Task]()
+        val txnTasks = ListBuffer[importer.Task]()
 
         def buildTxn(): Transaction = {
             val tasks = txnTasks.toList
@@ -181,12 +156,7 @@ class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
     }
 
     private def queryTasksSince(lastTaskId: Int, con: Connection): ResultSet = {
-        val stmt = con.prepareStatement(
-            "select id, type_id, data_type_id," +
-            "resource_id, transaction_id, data " +
-            "from midonet_tasks where id > ? or " +
-            s"(id = 1 and type_id = ${TaskType.Flush.id}) " +
-            "order by id")
+        val stmt = con.prepareStatement(NEW_TASKS_QUERY)
         stmt.setInt(1, lastTaskId)
         val rslt = stmt.executeQuery()
         rslt
@@ -206,10 +176,10 @@ class RemoteNeutronService(jdbcDriverClassName: String, cnxnStr: String,
                                rsrcType: NeutronResourceType[_ <: Message],
                                rsrcId: UUID, txnId: String, json: String) {
         def toTask = taskType match {
-            case TaskType.Create => Create(id, rsrcType, json)
-            case TaskType.Delete => Delete(id, rsrcType, rsrcId)
-            case TaskType.Update => Update(id, rsrcType, json)
-            case TaskType.Flush => Flush(id)
+            case TaskType.Create => importer.Create(id, rsrcType, json)
+            case TaskType.Delete => importer.Delete(id, rsrcType, rsrcId)
+            case TaskType.Update => importer.Update(id, rsrcType, json)
+            case TaskType.Flush  => importer.Flush(id)
         }
     }
 
