@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_40ffafaa",
+        "filename": "midolman/src/deb/bin/mm-meter",
+        "patchSetId": 13
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T12:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_31680787",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_910613cd",
         "filename": "midolman/src/deb/bin/mm-meter",
         "patchSetId": 13
@@ -47,6 +65,24 @@
       "writtenOn": "2014-12-15T13:55:33Z",
       "side": 1,
       "message": "why not Iterable\u003cString\u003e?",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_a02dbb48",
+        "filename": "midolman/src/main/java/org/midonet/midolman/management/MeteringMXBean.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T12:12:31Z",
+      "side": 1,
+      "message": "I could be wrong, but I don\u0027t think it\u0027s a JMX basic type.",
+      "parentUuid": "fafc7978_7109efdc",
       "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -106,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_e027c362",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T12:12:31Z",
+      "side": 1,
+      "message": "No, really. Trust me. It\u0027s not like that. I added the origMatch parameter explicitly because I was getting nulls when queryin g my table of flow matches.\n\nAsk @galo.",
+      "parentUuid": "fafc7978_31ee47b5",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f1f4bfd0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 13
@@ -141,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_c02a7f2b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T12:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_f1f4bfd0",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_7130cf9e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
         "patchSetId": 13
@@ -152,6 +224,24 @@
       "writtenOn": "2014-12-15T13:55:33Z",
       "side": 1,
       "message": "(java\u0027s concurrenthashmap is faster than scala\u0027s map, in particular for gets)",
+      "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_601bd31b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/MeterRegistry.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T12:12:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_7130cf9e",
       "revId": "28edbd7bebf178625ff7360f67926d1f068f592c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
