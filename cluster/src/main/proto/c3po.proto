@@ -20,7 +20,7 @@ package org.midonet.cluster.models;
 option java_package = "org.midonet.cluster.models";
 option java_outer_classname = "C3PO";
 
-message StorageManagerState {
+message C3POState {
     optional UUID id = 1;
     optional int32 last_processed_task_id = 2;
 }

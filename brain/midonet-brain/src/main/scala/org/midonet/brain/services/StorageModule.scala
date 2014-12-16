@@ -16,13 +16,13 @@
 package org.midonet.brain.services
 
 import com.google.inject.AbstractModule
-
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
+import org.midonet.brain.services.c3po.C3POStorageManager
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
-import org.midonet.cluster.models.C3PO.StorageManagerState
+import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigProvider, ConfigString}
@@ -51,7 +51,7 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
         val storage = new ZookeeperObjectMapper(basePath, curator)
         List(classOf[Network],
              classOf[NeutronNetwork],
-             classOf[StorageManagerState]).foreach(storage.registerClass)
+             classOf[C3POState]).foreach(storage.registerClass)
         storage.build()
         storage
     }

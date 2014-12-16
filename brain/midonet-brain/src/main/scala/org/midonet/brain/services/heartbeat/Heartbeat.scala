@@ -23,7 +23,7 @@ import scala.collection.JavaConversions._
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 
-import org.midonet.brain.services.{ScheduledClusterMinion, ScheduledMinionConfig}
+import org.midonet.brain.{ScheduledClusterMinion, ScheduledMinionConfig}
 import org.midonet.config._
 import org.midonet.util.functors.makeRunnable
 
