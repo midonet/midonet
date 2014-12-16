@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_f10248b3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/neutron/NeutronApiTranslator.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T17:29:11Z",
+      "side": 1,
+      "message": "I\u0027m actually not sure that this is even a common use case beyond 1 or 2. Even in network we need to consider external network which generates a provider router so the benefit of this one seems very limited..",
+      "range": {
+        "startLine": 54,
+        "startChar": 6,
+        "endLine": 54,
+        "endChar": 34
+      },
+      "revId": "f4c9d6a866a0e93b4b5ff5fc8980fcacf030a875",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
