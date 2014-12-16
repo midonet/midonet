@@ -192,11 +192,8 @@ public class WildcardMatch implements Cloneable {
         return false;
     }
 
-    public void propagateUserspaceFieldsOf(WildcardMatch that) {
-        for (Field f : IcmpFields) {
-            if (that.seenFields.contains(f))
-                this.seenFields.add(f);
-        }
+    public void propagateSeenFieldsFrom(WildcardMatch that) {
+        this.seenFields.addAll(that.getSeenFields());
     }
 
     /**
