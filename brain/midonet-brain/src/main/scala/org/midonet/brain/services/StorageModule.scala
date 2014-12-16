@@ -16,11 +16,11 @@
 package org.midonet.brain.services
 
 import com.google.inject.AbstractModule
+
 import org.apache.curator.framework.recipes.leader.LeaderLatch
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
-import org.midonet.brain.services.c3po.C3POStorageManager
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
 import org.midonet.cluster.models.Neutron.NeutronNetwork

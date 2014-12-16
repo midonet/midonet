@@ -22,6 +22,7 @@ import java.util.{Map => JMap}
 import scala.concurrent.Promise
 
 import com.google.protobuf.Message
+
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.{any, anyObject, argThat}
@@ -179,8 +180,8 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
                 txn("txn1", c3poDelete(2, classOf[NeutronNetwork], networkId)))
 
         verify(storage).multi(startsWith(
-                DeleteOp(classOf[NeutronNetwork], networkId, true),
-                DeleteOp(classOf[Network], networkId, true)))
+                DeleteOp(classOf[NeutronNetwork], networkId, ignoreIfNotExists = true),
+                DeleteOp(classOf[Network], networkId, ignoreIfNotExists = true)))
     }
 
     "A flush request" should "call Storage.flush() and initialize " +
