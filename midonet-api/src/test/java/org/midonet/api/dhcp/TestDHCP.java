@@ -16,6 +16,9 @@
 
 package org.midonet.api.dhcp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
@@ -29,14 +32,16 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
+import org.midonet.client.dto.DtoExtraDhcpOpt;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
@@ -345,7 +350,7 @@ public class TestDHCP extends JerseyTest {
                 "identical to the one passed to create", subnet1, subnet2);
     }
 
-    //@Test
+    @Test
     public void testHosts() {
         // In this test remember that there will be multiple host definitions.
         // The system enforces that there is only one host def per mac address.
@@ -364,35 +369,47 @@ public class TestDHCP extends JerseyTest {
                 .get(DtoDhcpSubnet.class);
 
         DtoDhcpHost host1 = new DtoDhcpHost();
+        List<DtoExtraDhcpOpt> opts = new ArrayList<>();
+        opts.add(new DtoExtraDhcpOpt("name1", "val1"));
+        opts.add(new DtoExtraDhcpOpt("name2", "val2"));
+        opts.add(new DtoExtraDhcpOpt("name3", "val3"));
         host1.setMacAddr("02:33:44:55:00:00");
         host1.setIpAddr("172.31.0.11");
         host1.setName("saturn");
+        host1.setExtraDhcpOpts(opts);
         response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCP_HOST_JSON)
+                .type(APPLICATION_DHCP_HOST_JSON_V2)
                 .post(ClientResponse.class, host1);
         assertEquals(201, response.getStatus());
         host1 = resource().uri(response.getLocation())
-                .accept(APPLICATION_DHCP_HOST_JSON).get(DtoDhcpHost.class);
+                .accept(APPLICATION_DHCP_HOST_JSON_V2).get(DtoDhcpHost.class);
         assertEquals("02:33:44:55:00:00", host1.getMacAddr());
         assertEquals("172.31.0.11", host1.getIpAddr());
         assertEquals("saturn", host1.getName());
+        assertEquals(opts, host1.getExtraDhcpOpts());
 
         DtoDhcpHost host2 = new DtoDhcpHost();
         host2.setMacAddr("02:33:44:55:00:01");
         host2.setIpAddr("172.31.0.12");
         host2.setName("jupiter");
+        List<DtoExtraDhcpOpt> opts2 = new ArrayList<>();
+        opts2.add(new DtoExtraDhcpOpt("name1", "val1"));
+        opts2.add(new DtoExtraDhcpOpt("name2", "val2"));
+        opts2.add(new DtoExtraDhcpOpt("name3", "val3"));
+        host2.setExtraDhcpOpts(opts2);
         response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCP_HOST_JSON).post(ClientResponse.class, host2);
+                .type(APPLICATION_DHCP_HOST_JSON_V2).post(ClientResponse.class, host2);
         assertEquals(201, response.getStatus());
         host2 = resource().uri(response.getLocation())
-                .accept(APPLICATION_DHCP_HOST_JSON).get(DtoDhcpHost.class);
+                .accept(APPLICATION_DHCP_HOST_JSON_V2).get(DtoDhcpHost.class);
         assertEquals("02:33:44:55:00:01", host2.getMacAddr());
         assertEquals("172.31.0.12", host2.getIpAddr());
         assertEquals("jupiter", host2.getName());
+        assertEquals(opts, host2.getExtraDhcpOpts());
 
         // Now list all the host static assignments.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON)
+                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON_V2)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
 
@@ -405,17 +422,17 @@ public class TestDHCP extends JerseyTest {
         // fail.
         host1.setIpAddr("172.31.0.13");
         response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCP_HOST_JSON)
+                .type(APPLICATION_DHCP_HOST_JSON_V2)
                 .post(ClientResponse.class, host1);
         assertEquals(500, response.getStatus());
 
         // Try again, this time using an UPDATE operation.
         response =resource().uri(host1.getUri())
-                .type(APPLICATION_DHCP_HOST_JSON)
+                .type(APPLICATION_DHCP_HOST_JSON_V2)
                 .put(ClientResponse.class, host1);
         assertEquals(200, response.getStatus());
         host1 = resource().uri(host1.getUri())
-                .accept(APPLICATION_DHCP_HOST_JSON)
+                .accept(APPLICATION_DHCP_HOST_JSON_V2)
                 .get(DtoDhcpHost.class);
         assertEquals("02:33:44:55:00:00", host1.getMacAddr());
         assertEquals("172.31.0.13", host1.getIpAddr());
@@ -423,7 +440,7 @@ public class TestDHCP extends JerseyTest {
 
         // There should still be exactly 2 host assignments.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON)
+                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON_V2)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         hosts = response.getEntity(DtoDhcpHost[].class);
@@ -436,7 +453,7 @@ public class TestDHCP extends JerseyTest {
         assertEquals(204, response.getStatus());
         // There should now be only 1 host assignment.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON)
+                .accept(APPLICATION_DHCP_HOST_COLLECTION_JSON_V2)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         hosts = response.getEntity(DtoDhcpHost[].class);
