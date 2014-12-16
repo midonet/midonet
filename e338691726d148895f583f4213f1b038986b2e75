@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fafc7978_e05983ff",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T11:33:52Z",
+      "side": 1,
+      "message": "why? \n\nDoes it need to be protected?",
+      "range": {
+        "startLine": 92,
+        "startChar": 21,
+        "endLine": 92,
+        "endChar": 24
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_20738b81",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T11:33:52Z",
+      "side": 1,
+      "message": "There are examples in midolman on how to inject config values without needing the conf file I believe. Not that it\u0027s a big deal anyway.",
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_606d9398",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T11:33:52Z",
+      "side": 1,
+      "message": "Randomize \u0026 use a non standard one?",
+      "range": {
+        "startLine": 82,
+        "startChar": 56,
+        "endLine": 82,
+        "endChar": 60
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_006e4796",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T11:33:52Z",
+      "side": 1,
+      "message": "why launch all the services cluster? you can just start the NeutronImporter service.",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 33
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_806237ab",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-16T11:33:52Z",
+      "side": 1,
+      "message": "I guess it\u0027s enough with moving this to a config file?",
+      "range": {
+        "startLine": 140,
+        "startChar": 46,
+        "endLine": 140,
+        "endChar": 66
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
