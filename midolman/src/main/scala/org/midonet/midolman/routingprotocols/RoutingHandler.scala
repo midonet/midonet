@@ -886,9 +886,10 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             val pktCtx = new PacketContext(Left(-1), null, None, wcMatch)
             pktCtx.addFlowTag(FlowTagger.tagForBgp(bgp.getId))
             pktCtx.inputPort = inputPort
+            pktCtx.virtualFlowActions.addAll(actions)
             try {
-                val translated = translateActions(pktCtx, actions)
-                val flow = WildcardFlow(wcMatch, translated.toList)
+                translateActions(pktCtx)
+                val flow = WildcardFlow(wcMatch, pktCtx.flowActions.toList)
                 log.debug("({}) Installing: {}", phase, flow)
                 FlowController ! AddWildcardFlow(flow, null,
                                                  new ArrayList[Callback0],
