@@ -16,35 +16,36 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+
+import scala.collection.JavaConversions._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import akka.actor._
 import akka.actor.Actor.emptyBehavior
+import akka.actor._
 import akka.pattern.ask
 import akka.testkit.TestActorRef
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{Router => ClusterRouter, Bridge => ClusterBridge, Entity}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.midolman._
-import org.midonet.midolman.PacketWorkflow.{SimulationResult, AddVirtualWildcardFlow}
+import org.midonet.cluster.data.{Entity, Bridge => ClusterBridge, Router => ClusterRouter}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
+import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
+import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.DpPort
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.flows.FlowActions.output
+import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
 import org.midonet.odp.protos.OvsDatapathConnection
-import org.midonet.packets._
 import org.midonet.packets.ICMP.UNREACH_CODE
+import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
+import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AdminStateTest extends MidolmanSpec {
@@ -417,9 +418,11 @@ class AdminStateTest extends MidolmanSpec {
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {
-            val actions = simRes._1.asInstanceOf[AddVirtualWildcardFlow]
-                                .flow.actions
-            force(translateActions(simRes._2, actions))
+            force {
+                simRes._2.flowActions.clear()
+                translateActions(simRes._2)
+            }
+            simRes._2.flowActions.toList
         }
 
         def receive = emptyBehavior

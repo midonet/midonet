@@ -19,16 +19,14 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
-import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
+import scala.collection.JavaConversions._
 
-import org.midonet.midolman.PacketWorkflow._
-import org.midonet.packets.{IPv4, Ethernet}
-import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.odp.flows.{FlowKeyIPv4, FlowKeyEthernet, FlowActionSetKey}
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket}
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SendPacket, _}
+import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
+import org.midonet.packets.{Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
+import org.scalatest.matchers.{BePropertyMatchResult, BePropertyMatcher}
 
 trait CustomMatchers {
 
@@ -47,11 +45,11 @@ trait CustomMatchers {
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult((simRes._1 match {
-                    case AddVirtualWildcardFlow(flow) =>
+                    case AddVirtualWildcardFlow =>
                         if (expectedTags forall simRes._2.flowTags.contains)
-                            flow.actions
+                            simRes._2.virtualFlowActions.toList
                         else Nil
-                    case SendPacket(actions) => actions
+                    case SendPacket => simRes._2.virtualFlowActions.toList
                     case _ => Nil
                 }).exists({
                     case FlowActionOutputToVrnPort(id) => id == portId
@@ -63,11 +61,11 @@ trait CustomMatchers {
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult((simRes._1 match {
-                        case AddVirtualWildcardFlow(flow) =>
+                        case AddVirtualWildcardFlow =>
                             if (expectedTags forall simRes._2.flowTags.contains)
-                                flow.actions
+                                simRes._2.virtualFlowActions.toList
                             else Nil
-                        case SendPacket(actions) => actions
+                        case SendPacket => simRes._2.virtualFlowActions.toList
                         case _ => Nil
                     }).exists({
                         case FlowActionOutputToVrnBridge(id, ports) =>
@@ -81,16 +79,16 @@ trait CustomMatchers {
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult(simRes._1 match {
-                    case AddVirtualWildcardFlow(flow) =>
-                        flowMatchesPacket(flow, pkt) &&
+                    case AddVirtualWildcardFlow =>
+                        actionsMatchesPacket(simRes._2.virtualFlowActions.toList, pkt) &&
                         (expectedTags forall simRes._2.flowTags.contains)
                     case _ =>
                         false
                 } , s"a flow matching $pkt containing tags " +
                     s"{${expectedTags.toList}}")
 
-        def flowMatchesPacket(flow: WildcardFlow, pkt: Ethernet): Boolean =
-            flow.actions.count {
+        def actionsMatchesPacket(actions: List[FlowAction], pkt: Ethernet): Boolean =
+            actions.count {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
