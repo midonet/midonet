@@ -34,6 +34,24 @@
       "revId": "c11351d039dd85e2146f06e28273cd14af4fdbee",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_20cb8b54",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2014-12-16T14:23:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_311647f2",
+      "revId": "c11351d039dd85e2146f06e28273cd14af4fdbee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
