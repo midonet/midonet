@@ -584,7 +584,7 @@ public class Converter {
             org.midonet.cluster.data.dhcp.Host host) {
 
         return new BridgeDhcpZkManager.Host(host.getMAC(), host.getIp(),
-                host.getName());
+                host.getName(), null);
 
     }
 

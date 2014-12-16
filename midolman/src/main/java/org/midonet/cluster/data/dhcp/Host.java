@@ -15,7 +15,10 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.List;
+
 import org.midonet.cluster.data.Entity;
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -64,11 +67,20 @@ public class Host extends Entity.Base<MAC, Host.Data, Host> {
         return self();
     }
 
+    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
+        return getData().extraDhcpOpts;
+    }
+
+    public Host setExtraDhcpOpts(List<ExtraDhcpOpt> extraDhcpOpts) {
+        getData().extraDhcpOpts = extraDhcpOpts;
+        return self();
+    }
+
     public static class Data {
 
         public MAC mac;
         public IPv4Addr ip;
         public String name;
-
+        public List<ExtraDhcpOpt> extraDhcpOpts;
     }
 }

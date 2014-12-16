@@ -19,11 +19,14 @@ package org.midonet.api.dhcp;
 import org.midonet.api.RelativeUriResource;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.data.dhcp.Host;
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
+import org.midonet.util.version.Since;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.List;
 
 @XmlRootElement
 public class DhcpHost extends RelativeUriResource {
@@ -31,10 +34,15 @@ public class DhcpHost extends RelativeUriResource {
     protected String ipAddr; // DHCP "your ip address"
     protected String name; // DHCP option 12 - host name
 
-    public DhcpHost(String macAddr, String ipAddr, String name) {
+    @Since("2")
+    protected List<ExtraDhcpOpt> extraDhcpOpts;
+
+    public DhcpHost(String macAddr, String ipAddr, String name,
+                    List<ExtraDhcpOpt> extraDhcpOpts) {
         this.macAddr = macAddr;
         this.ipAddr = ipAddr;
         this.name = name;
+        this.extraDhcpOpts = extraDhcpOpts;
     }
 
     /* Default constructor - for deserialization. */
@@ -45,6 +53,7 @@ public class DhcpHost extends RelativeUriResource {
         this.ipAddr = host.getIp().toString();
         this.macAddr = host.getMAC().toString();
         this.name = host.getName();
+        this.extraDhcpOpts = host.getExtraDhcpOpts();
     }
 
     /**
@@ -83,11 +92,20 @@ public class DhcpHost extends RelativeUriResource {
         this.name = name;
     }
 
+    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
+        return extraDhcpOpts;
+    }
+
+    public void setExtraDhcpOpts(List<ExtraDhcpOpt> extraDhcpOpts) {
+        this.extraDhcpOpts = extraDhcpOpts;
+    }
+
     public Host toData() {
         return new Host()
                 .setIp(IPv4Addr.fromString(this.ipAddr))
                 .setMAC(MAC.fromString(this.macAddr))
-                .setName(this.name);
+                .setName(this.name)
+                .setExtraDhcpOpts(this.extraDhcpOpts);
     }
 
 }
