@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "da01753e_51f874e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DeduplicationActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-16T16:26:14Z",
+      "side": 1,
+      "message": "oki :/",
+      "parentUuid": "da01753e_1179cc93",
+      "revId": "a67f55483857a5eaa151ab6b6e7cd53a91730c78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_319b30cb",
         "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/WakerUpper.scala",
         "patchSetId": 6
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-16T16:05:24Z",
       "side": 1,
       "message": "this new parameter feels \"not very clean and a bit leaky\" on this public interface.",
+      "revId": "a67f55483857a5eaa151ab6b6e7cd53a91730c78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_71f3f80a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/WakerUpper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-16T16:26:14Z",
+      "side": 1,
+      "message": "why? it\u0027s very common to spin before blocking, and it\u0027s not uncommon to have it as a parameter, e.g.\n\nhttp://msdn.microsoft.com/en-us/library/system.threading.manualreseteventslim.spincount%28v\u003dvs.110%29.aspx",
+      "parentUuid": "da01753e_319b30cb",
       "revId": "a67f55483857a5eaa151ab6b6e7cd53a91730c78",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
