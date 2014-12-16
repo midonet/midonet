@@ -34,6 +34,7 @@ import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.ports.VxLanPort;
@@ -585,7 +586,7 @@ public class Converter {
             org.midonet.cluster.data.dhcp.Host host) {
 
         return new BridgeDhcpZkManager.Host(host.getMAC(), host.getIp(),
-                host.getName());
+                host.getName(), new ArrayList<ExtraDhcpOpt>());
 
     }
 

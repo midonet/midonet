@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
 import org.midonet.cluster.data.neutron.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -39,6 +41,8 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
+
+import javax.annotation.Nonnull;
 
 public class BridgeDhcpZkManager extends BaseZkManager {
 
@@ -207,6 +211,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         IPv4Addr ip;
         String name;
 
+        @Since("1.8")
+        @Nonnull
+        List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
+
         /* Default constructor for deserialization. */
         public Host() {
         }
@@ -217,12 +225,23 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.name = name;
         }
 
-        public Host(MAC mac, IPv4Addr ip) {
-            this(mac, ip, null);
+        public Host(MAC mac, IPv4Addr ip, String name,
+                    @Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+            this(mac, ip, name);
+            Preconditions.checkNotNull(extraDhcpOpts,
+                    "Extra DHCP options should not null. Use empty list " +
+                            "instead to express absense of it.");
+            this.extraDhcpOpts = extraDhcpOpts;
         }
 
-        public Host(String mac, String ip) {
-            this(MAC.fromString(mac), IPv4Addr.fromString(ip));
+        public Host(MAC mac, IPv4Addr ip,
+                    @Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+            this(mac, ip, null, extraDhcpOpts);
+        }
+
+        public Host(String mac, String ip,
+                    @Nonnull List<ExtraDhcpOpt> extraDhcpOpts) {
+            this(MAC.fromString(mac), IPv4Addr.fromString(ip), extraDhcpOpts);
         }
 
         public MAC getMac() {
@@ -261,6 +280,10 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             if (mac != null ? !mac.equals(host.mac) : host.mac != null)
                 return false;
             if (name != null ? !name.equals(host.name) : host.name != null)
+                return false;
+            if (extraDhcpOpts != null ?
+                !extraDhcpOpts.equals(host.extraDhcpOpts) :
+                host.extraDhcpOpts != null)
                 return false;
 
             return true;
