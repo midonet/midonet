@@ -15,13 +15,11 @@
  */
 package org.midonet.cluster.services.c3po
 
-import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp, PersistenceOp}
-import org.midonet.cluster.models.Commons
+import com.google.protobuf.Message
 
-/**
- * Defines a set of operations to be performed by C3PO on a single external
- * model object.
- */
+import org.midonet.cluster.data.storage.PersistenceOp
+
+/** Defines a types of operations on a single entity. */
 object OpType extends Enumeration {
     type OpType = Value
 
@@ -33,133 +31,36 @@ object OpType extends Enumeration {
     def valueOf(i: Int) = ops(i - 1)
 }
 
-sealed case class C3POTransaction(txnId: String, tasks: Seq[C3POTask[_]]) {
-    def lastTaskId = tasks.last.taskId
-}
-
-sealed case class C3POTask[T <: Object](taskId: Int, op: C3POOp[T])
-
-sealed trait C3POOp[T <: Object] {
+/** A generic operation on a model */
+trait Operation[T <: Message] {
     def opType: OpType.OpType
     def toPersistenceOp: PersistenceOp
 }
 
-case class C3POCreate[T <: Object](model: T) extends C3POOp[T] {
-    override val opType = OpType.Create
-    override def toPersistenceOp = CreateOp(model)
-}
-
-case class C3POUpdate[T <: Object](model: T) extends C3POOp[T] {
-    override val opType = OpType.Update
-    override def toPersistenceOp = UpdateOp(model)
-}
-
-case class C3PODelete[T <: Object](clazz: Class[T], id: Commons.UUID)
-        extends C3POOp[T] {
-    override val opType = OpType.Delete
-    /* C3PODataManager's deletion semantics is delete-if-exists by default and
-     * no-op if the object doesn't exist. Revisit if we need to make this
-     * configurable.
-     */
-    override def toPersistenceOp = DeleteOp(clazz, id, ignoreIfNotExists = true)
-}
-
-/**
- * Defines an operation on a MidoNet model.
- */
-sealed trait MidoModelOp[T <: Object] {
-    def opType: OpType.OpType
-    def toPersistenceOp: PersistenceOp
-}
-
-case class MidoCreate[T <: Object](model: T) extends MidoModelOp[T] {
-    override val opType = OpType.Create
-    override def toPersistenceOp = CreateOp(model)
-}
-
-case class MidoUpdate[T <: Object](model: T) extends MidoModelOp[T] {
-    override val opType = OpType.Update
-    override def toPersistenceOp = UpdateOp(model)
-}
-
-case class MidoDelete[T <: Object](clazz: Class[T], id: Commons.UUID)
-        extends MidoModelOp[T] {
-    override val opType = OpType.Delete
-    /* C3PODataManager's deletion semantics is delete-if-exists by default and
-     * no-op if the object doesn't exist. Revisit if we need to make this
-     * configurable.
-     */
-    override def toPersistenceOp = DeleteOp(clazz, id, ignoreIfNotExists = true)
-}
-
-/**
- * A common interface for the API translator.
- */
-trait ApiTranslator[T <: Object] {
-
-    /**
-     * Converts an operation on an external model into 1 or more corresponding
-     * operations on internal MidoNet models.
-     */
-    @throws[TranslationException]
-    def toMido(op: C3POOp[T]): List[MidoModelOp[_ <: Object]]
-}
-
-/**
- * Thrown by NeutronAPIService implementations when they fail to perform the
- * requested operation on the Neutron model.
- */
-class TranslationException(val operation: OpType.OpType,
-                           val model: Class[_],
-                           val msg: String,
-                           val cause: Throwable)
-        extends RuntimeException(
-                s"Failed to $operation ${model.getSimpleName}" +
-                s"${if (msg == null) "" else ": " + msg}", cause) {
-
-    def this(operation: OpType.OpType, model: Class[_], msg: String) {
-        this(operation, model, msg, null)
-    }
-
-    def this(operation: OpType.OpType, model: Class[_], cause: Throwable) {
-        this(operation, model, "", cause)
-    }
-}
-
-/**
- * Thrown by C3PO when it fails to interpret or execute a given operation.
- */
-class C3PODataManagerException(val msg: String, val cause: Throwable)
-        extends RuntimeException("Failed to interpret/execute C3POOp" +
+/** A failure occurred when interpreting or executing an operation. */
+class ProcessingFailure(val msg: String = "",
+                                 val cause: Throwable = null)
+        extends RuntimeException("Failed to interpret/execute operation" +
                                  s"${if (msg == null) "" else ": " + msg}",
                                  cause) {
-    def this(msg: String) {
-        this(msg, null)
-    }
-    def this(cause: Throwable) {
-        this(null, cause)
-    }
 }
 
 /**
- * Defines an API for translating and executing operations on external models.
+ * Defines an API for processing operations on an extermal model by translating
+ * then into MidoNet models.
  */
 trait C3PODataManager {
-    /**
-     * Returns the last processed C3PO task ID.
-     */
-    def lastProcessedC3POTaskId: Int
 
-    /**
-     * Flushes the current topology.
-     */
-    @throws[C3PODataManagerException]
+    /** Returns the last processed task ID. */
+    def lastProcessedTaskId: Int
+
+    /** Flushes the current storage preparing for a reimport. */
+    @throws[ProcessingFailure]
     def flushTopology(): Unit
 
-    /**
-     * Interprets a single transaction of external model operations and execute
-     * corresponding internal model operations.
-     */
-    @throws[C3PODataManagerException]
-    def interpretAndExecTxn(txn: C3POTransaction): Unit
+    /** Interprets a single transaction of external model operations,
+      * translating into the corresponding operations in the internal model, and
+      * executing them. */
+    @throws[ProcessingFailure]
+    def interpretAndExecTxn(txn: neutron.Transaction): Unit
 }

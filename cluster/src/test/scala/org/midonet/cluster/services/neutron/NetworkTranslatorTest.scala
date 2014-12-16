@@ -15,51 +15,47 @@
  */
 package org.midonet.cluster.services.neutron
 
-import org.junit.Assert.assertThat
 import org.junit.runner.RunWith
-import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.scalatest.FlatSpec
+import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
-import org.midonet.cluster.models.Topology.Network
-import org.midonet.cluster.services.c3po.{C3POCreate, C3PODelete, C3POUpdate}
-import org.midonet.cluster.services.c3po.{MidoCreate, MidoDelete, MidoUpdate}
+import org.midonet.cluster.models.Topology.{Router, Network}
+import org.midonet.cluster.services.c3po.midonet
+import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.UUIDUtil
 
 /**
  * Tests the Neutron Network model conversion layer.
  */
 @RunWith(classOf[JUnitRunner])
-class NetworkTranslatorTest extends FlatSpec {
+class NetworkTranslatorTest extends FlatSpec with Matchers {
     val storage: ReadOnlyStorage = mock(classOf[ReadOnlyStorage])
-    val network: NetworkTranslator = new NetworkTranslator(storage)
+    val translator: NetworkTranslator = new NetworkTranslator
 
-    val networkId = UUIDUtil.randomUuidProto
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
-    val networkName2 = "neutron test2"
     val adminStateUp = true
-    val neutronNetwork = NeutronNetwork.newBuilder()
-                                       .setId(networkId)
+
+    def genId = UUIDUtil.randomUuidProto
+
+    val sampleNetwork = NeutronNetwork.newBuilder()
+                                       .setId(genId)
                                        .setTenantId(tenantId)
                                        .setName(networkName)
                                        .setAdminStateUp(adminStateUp)
                                        .build
 
     "Network CREATE" should "produce Mido Network CREATE" in {
-        val midoOps = network.toMido(C3POCreate(neutronNetwork))
-
-        assert(midoOps.size == 1)
-        assert(midoOps(0) == MidoCreate(Network.newBuilder()
-                                               .setId(networkId)
-                                               .setTenantId(tenantId)
-                                               .setName(networkName)
-                                               .setAdminStateUp(adminStateUp)
-                                               .build))
+        val midoOps = translator.translate(neutron.Create(sampleNetwork))
+        midoOps should contain only midonet.Create(Network.newBuilder()
+                                                .setId(sampleNetwork.getId)
+                                                .setTenantId(tenantId)
+                                                .setName(networkName)
+                                                .setAdminStateUp(adminStateUp)
+                                                .build)
     }
 
     // TODO Test that NetworkTranslator ensures the provider router if
@@ -71,27 +67,29 @@ class NetworkTranslatorTest extends FlatSpec {
     // TODO Test that NetworkTranslator creates a tunnel key ID
 
     "Network UPDATE" should "produce a corresponding Mido Network UPDATE" in {
-        val midoOps = network.toMido(C3POUpdate(
-                neutronNetwork.toBuilder().setName(networkName2).build))
+        val newName = "name2"
+        val midoOps = translator.translate(
+            neutron.Update(sampleNetwork.toBuilder.setName(newName).build)
+        )
 
-        assert(midoOps.size == 1)
-        assert(midoOps(0) == MidoUpdate(Network.newBuilder()
-                                               .setId(networkId)
-                                               .setTenantId(tenantId)
-                                               .setName(networkName2)
-                                               .setAdminStateUp(adminStateUp)
-                                               .build))
+        midoOps should contain only midonet.Update(Network.newBuilder()
+                                                .setId(sampleNetwork.getId)
+                                                .setTenantId(tenantId)
+                                                .setName(newName)
+                                                .setAdminStateUp(adminStateUp)
+                                                .build)
 
         // TODO Verify external network is updated.
     }
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
+        val id = genId
         val midoOps =
-            network.toMido(C3PODelete(classOf[NeutronNetwork], networkId))
+            translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
 
-        assert(midoOps.size == 1)
-        assert(midoOps(0) == MidoDelete(classOf[Network], networkId))
+        midoOps should contain only midonet.Delete(classOf[Network], id)
 
         // TODO Verify external network is also deleted.
     }
+
 }
