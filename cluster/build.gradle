@@ -46,6 +46,7 @@ dependencies {
             libraries.guava,
             libraries.guice,
             libraries.jackson_mapper,
+            libraries.netty,
             libraries.protobuf,
             libraries.rx,
             libraries.scala,
