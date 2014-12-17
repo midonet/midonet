@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_128d4a32",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_b271de79",
+      "range": {
+        "startLine": 33,
+        "startChar": 21,
+        "endLine": 33,
+        "endChar": 24
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_3237aeb2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-17T13:44:57Z",
       "side": 1,
       "message": "what does Srvc stand for?",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 19
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_52b072f4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "For service, but then I forgot to make it reflect the name change.. I\u0027ll fix this.",
+      "parentUuid": "9a0b7d60_3237aeb2",
       "range": {
         "startLine": 40,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_b2943e45",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "I may have done it to remain under 80 chars, but I\u0027ll double check.",
+      "parentUuid": "9a0b7d60_123c2a93",
+      "range": {
+        "startLine": 41,
+        "startChar": 42,
+        "endLine": 42,
+        "endChar": 72
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_322cce4a",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 5
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-17T13:44:57Z",
       "side": 1,
       "message": "type",
+      "range": {
+        "startLine": 58,
+        "startChar": 18,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_f29ec662",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_322cce4a",
       "range": {
         "startLine": 58,
         "startChar": 18,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_d29bc270",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_1231caa2",
+      "range": {
+        "startLine": 90,
+        "startChar": 31,
+        "endLine": 90,
+        "endChar": 42
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_12bf0ad2",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronTranslator.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2014-12-17T13:44:57Z",
       "side": 1,
       "message": "TO?",
+      "range": {
+        "startLine": 30,
+        "startChar": 61,
+        "endLine": 30,
+        "endChar": 63
+      },
+      "revId": "4b472df41a73e786ed2ff47a5c1cfc62636a24c3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_1230aa55",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NeutronTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T15:28:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_12bf0ad2",
       "range": {
         "startLine": 30,
         "startChar": 61,
