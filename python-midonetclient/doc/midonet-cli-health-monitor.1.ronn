@@ -1,0 +1,56 @@
+midonet-cli-health-monitor(1) -- Health Monitor object in midonet-cli
+=====================================================================
+
+## SYNOPSIS
+
+    midonet> health-monitor list
+    midonet> health-monitor create delay 100 max-retries 50 timeout 500 type TCP
+    hm0
+    midonet> load-balancer lb0 pool pool0 set health-monitor hm0
+    midonet> load-balancer lb0 pool pool0 health-monitor show
+    hm hm0 delay 100 timeout 500 max-retries 50 state up type TCP
+    midonet> health-monitor hm0 pool list
+    pool pool0 load-balancer lb0 health-monitor hm0 lb-method ROUND_ROBIN \
+        state up
+
+## DESCRIPTION
+
+A health monitor watches the liveness of pools and detect anomalies. See the
+following graph to understand their relationships.
+
+                               +---------------+
+                               |      VIP      |
+                               +---------------+
+                                 ^
+                                 | 1..*
+                                 |
+    +----------------+  1..*   +---------------+  1..*   +-------------+
+    | Health Monitor | ------> |     Pool      | ------> | Pool Member |
+    +----------------+         +---------------+         +-------------+
+                                 ^
+                                 | 1..*
+                                 |
+                               +---------------+
+                               | Load Balancer |
+                               +---------------+
+
+## ATTRIBUTES
+
+A health monitor has these attributes:
+
+  * `delay` [!]<INTEGER>
+    Delay for the health check interval in seconds.
+  * `timeout` [!]<INTEGER>
+    Timeout value for the health check in seconds.
+  * `max-retries` [!]<INTEGER>
+    Number of times to retry for health check.
+  * `type` [!] `TCP`
+    A type of the health monitor checking protocol.
+
+## COPYRIGHT
+
+Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-router(1), midonet-cli-load-balancer(1)

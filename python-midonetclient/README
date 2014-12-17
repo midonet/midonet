@@ -1,0 +1,67 @@
+Midonet API client library for Python applications
+==================================================
+Overview and pre-requisites
+
+    This is the client library which can be used by Python applications to interact with MidoNet, network virtualization platform.
+    MidoNet provides scalable distributed network services for OpenStack. In order to use this client you must have MidoNet configured and running.
+
+How to Install
+--------------
+
+Run the following command:
+
+::
+
+    $ sudo python ./setup.py
+
+Package dependencies
+--------------------
+
+    Standard library
+        logging
+        json
+        urllib
+        base64
+        threading
+
+    External packages
+        webob
+        httplib2
+
+Examples
+--------
+
+    # Instantiate a client.  Project ID is required when the API
+    # is integrated with Keystone.
+    client = MidonetClient('http://api_uri'', 'username', 'password',
+                           project_id='project_id')
+
+    # Create a network
+    net_id = "174a9db3-94e8-416e-8e48-0eabadfdf664"
+    input = {"id": net_id,
+             "name": "tenant",
+             "tenant_id": "tenant_id",
+             "admin_state_up": True,
+             "router:external": False}
+    output = client.create_network(input)
+
+    # Create a subnet
+    subnet_id = "dc313de0-86ef-4aac-9781-5ad25232777a"
+    input = {"id": subnet_id,
+             "name": "tenant",
+             "tenant_id": "tenant_id",
+             "ip_version": 4,
+             "network_id": net_id,
+             "cidr": "10.0.0.0/24",
+             "gateway_ip": "10.0.0.1",
+             "enable_dhcp": True,
+             "shared": False}
+    output = client.create_subnet(input)
+
+    # Delete subnet
+    client.delete_subnet(subnet_id)
+
+    # Delete network
+    client.delete_network(net_id)
+
+

@@ -1,0 +1,26 @@
+midonet-cli-write-version(1) -- Midonet topology write version information
+==========================================================================
+
+## SYNOPSIS
+
+    midonet> write-version show version
+    midonet> write-version set version 1.2
+
+## DESCRIPTION
+
+Write-version holds information about the network topology data version.
+Changing the write version will cause Midonet to start writing topology data
+in the target version.
+
+## ATTRIBUTES
+
+  * `version` <STRING>
+    The version of the topology data.
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1)
