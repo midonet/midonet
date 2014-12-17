@@ -1,0 +1,42 @@
+midonet-cli-tunnel-zone(1) -- Host objects in midonet-cli
+=========================================================
+
+## SYNOPSIS
+
+    midonet> tunnel-zone list
+    midonet> tunnel-zone tzone0 list member
+    midonet> tunnel-zone tzone0 add member host host0 address 192.0.2.1
+
+## DESCRIPTION
+
+Tunnel zones define groups of hosts that share the same zone in the underlay,
+enabling them to forward MidoNet traffic among themselves. In other words,
+traffic ingressing MidoNet can only egress through hosts that belong to the
+same tunnel zone as the ingress host, otherwise the traffic is dropped
+because no exit path exists.
+
+## ATTRIBUTES
+
+A tunnel zone has these attributes:
+
+  * `name` <STRING>
+  * `type` `gre`|`capwap`
+
+It contains these subcollections of elements:
+
+  * `member` (see [TUNNEL ZONE MEMBERS][] below)
+
+## TUNNEL ZONE MEMBERS
+
+Attributes:
+
+  * `host` <HOST> (see midonet-cli-host(1))
+  * `address` <IP_ADDRESS>
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-host(1)

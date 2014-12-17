@@ -1,0 +1,49 @@
+midonet-cli-vtep(1) -- VTEP objects in midonet-cli
+======================================================
+
+## SYNOPSIS
+
+    midonet> vtep list
+    midonet> vtep create management-ip 192.168.2.4 management-port 6632 tunnel-zone tzone0
+    midonet> vtep management-ip 192.168.2.4 show name
+    midonet> vtep management-ip 192.168.2.4 delete
+    midonet> vtep management-ip 192.168.2.4 list binding
+    midonet> vtep management-ip 192.168.2.4 add binding physical-port in1 vlan 142 network-id 5806710a-633b-49e8-86ff-203b2cca8089
+    midonet> vtep management-ip 192.168.2.4 delete binding physical-port in1 vlan 142 network-id 5806710a-633b-49e8-86ff-203b2cca8089
+
+
+## DESCRIPTION
+
+VTEP (VXLAN Tunnel End Point) represents a physical switch that exists in an external network.
+
+## ATTRIBUTES
+
+A VTEP has these attributes:
+
+  * `management-ip` <IP_ADDRESS>
+  * `management-port` <INTEGER>
+  * `name` <STRING>
+  * `tunnel-zone` <UUID> | [TUNNEL ZONE]
+  * `description` <STRING>
+
+NOTE: `name` and `description` are read-only attributes that are set by the system, and cannot be specified in a `vtep create` command or otherwise ignored.
+
+It contains the following sub-collection of bindings of VTEPs to Neutron networks / MidoNet Bridges:
+
+  * `binding` (see [VTEP BINDINGS][] below)
+
+## VTEP BINDINGS
+
+Attributes:
+
+  * `physical-port` <STRING>
+  * `vlan` <INTEGER>
+  * `network-id` <UUID>
+
+## COPYRIGHT
+
+Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+
+## SEE ALSO
+
+midonet-cli(1)

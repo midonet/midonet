@@ -1,0 +1,35 @@
+midonet-cli-system-state(1) -- General deployment state information.
+=======================================================================
+
+## SYNOPSIS
+
+    midonet> system-state show state
+    midonet> system-state show availability
+    midonet> system-state set state UPGRADE
+    midonet> system-state set availability READONLY
+
+## DESCRIPTION
+
+The system-state object holds general Midonet deployment state infomation.
+
+## ATTRIBUTES
+
+  * `state` <STRING>
+    The general state of the deployment. `ACTIVE` is the default system state,
+    which denotes normal operation. `UPGRADE` is a state used during the upgrade
+    process, which has the effect of preventing Midolman agents from spawning.
+
+  * `availability` <STRING>
+    The read/writeability of the network topology. `READWRITE` is the default
+    state. In this state topology information can be changed and read. in 
+    `READONLY` state, the topology information can only be read with the
+    exception of system-state and write-version, which can be written to
+    in both `READONLY` and `READWRITE`.
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1)

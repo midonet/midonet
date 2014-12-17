@@ -1,0 +1,16 @@
+*.pyc
+.idea
+debian/files
+debian/changelog
+debian/*.debhelper
+debian/*.log
+debian/*.substvars
+debian/python-midonetclient/
+doc/*.1
+doc/*.html
+build/*
+
+dist/*
+src/*.egg-info
+
+rhel/copyright

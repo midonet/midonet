@@ -1,0 +1,110 @@
+midonet-cli-chain(1) -- Chain objects in midonet-cli
+======================================================
+
+## SYNOPSIS
+
+    midonet> chain list
+    midonet> chain create name "a filter"
+    midonet> chain chain0 add rule type accept flow return-flow
+    midonet> chain chain0 add rule type dnat action accept \ 
+             target 192.0.2.1-192.0.2.99:80
+
+## DESCRIPTION
+
+Chains allow the application of several kinds of rules to packets that traverse
+MidoNet's virtual topology.
+
+## ATTRIBUTES
+
+A chain has these attributes:
+
+  * `name` <STRING>
+
+It contains these subcollections of elements:
+
+  * `rule` (see [RULES] below)
+
+## RULES
+
+Attributes:
+
+  * `pos` <INTEGER>:
+    The rule position in the chain.
+
+  * `type` <TYPE>:
+    The rule <TYPE>; this is mostly used to distinguish between regular
+    filtering rules and different types of NAT rules. The recognized <TYPE>
+    values are: `accept`, `continue`, `drop`, `jump`, `reject`, `return`,
+    `dnat`, `snat`, `rev_dnat`, `rev_snat`.
+
+  * `action` `accept`|`continue`|`return`:
+    The rule action, meaningful for NAT rules only.
+
+  * `jump-to` <CHAIN>:
+    The chain to jump to if this is a jump rule.
+
+  * `target` <IP_ADDRESS[-IP_ADDRESS][:INTEGER[-INTEGER]]>:
+    The NAT target if this is a `dnat` or `snat` rule. At least one IP address
+    must be given, optionally the NAT target may also contain a second address
+    to form an address range and L4 port number or range of ports.
+
+These attributes perform matches on the packet:
+
+  * `hw-src` [!]<MAC_ADDRESS>:
+    The source hardware address.
+    
+  * `hw-dst` [!]<MAC_ADDRESS>:
+    The destination hardware address.
+
+  * `ethertype` [!]<STRING>:
+    The ethertype.
+
+  * `src` [!]<CIDR>:
+    The source IP address or CIDR block.
+
+  * `dst` [!]<CIDR>:
+    The destination IP address or CIDR block.
+
+  * `proto` [!]<INTEGER>:
+    The network protocol number.
+
+  * `tos` [!]<INTEGER>:
+    The IP TOS field value.
+
+  * `src-port` [!]<INTEGER[:INTEGER]>:
+    The TCP or UDP source port or port range.
+
+  * `dst-port` [!]<INTEGER[:INTEGER]>:
+    The TCP or UDP destination port or port range.
+
+  * `flow` `fwd-flow`|`return-flow>:
+    This flag will match the connection tracking status of the packet. If the
+    packet is starting a new connection,`fwd-flow` will match. Alternatively,
+    if the packet belongs to a connection already known to MidoNet,
+    `return-flow` will match.
+
+  * `port-group` [!]<PORT_GROUP>:
+    Match a port group (see midonet-cli-port-group(1)).
+
+  * `ip-address-group-src` [!]<IP_ADDRESS_GROUP>:
+    Match a source IP address group (see midonet-cli-ip-address-group(1)).
+
+  * `ip-address-group-dst` [!]<IP_ADDRESS_GROUP>:
+    Match a destination IP address group (see midonet-cli-ip-address-group(1)).
+
+  * `in-ports` [!]<PORT[,PORT...]>:
+    Matches the virtual port (see midonet-cli-router(1) and
+    midonet-cli-bridge(1)) through which the packet ingressed the virtual device
+    that is currently processing the packet.
+
+  * `out-ports` [!]<PORT[,PORT...]>:
+    Matches the port through which the packet egresses the virtual device
+    that is currently processing the packet.
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-port-group(1)

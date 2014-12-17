@@ -1,0 +1,9 @@
+include README
+include LICENSE
+include LICENSE.mn-ctl
+include NEWS
+include MANIFEST.in
+recursive-include doc *
+recursive-include src *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
