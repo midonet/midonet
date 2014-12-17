@@ -1,0 +1,116 @@
+midonet-cli-load-balancer(1) -- Load Balancer objects in midonet-cli
+====================================================================
+
+## SYNOPSIS
+
+    midonet> load-balancer list
+    midonet> load-balancer create
+    lb0
+    midonet> load-balancer lb0 show
+    midonet> load-balancer lb0 list pool
+    midonet> load-balancer lb0 list vip
+ 
+    midonet> router router0 set load-balancer lb0
+ 
+    midonet> load-balancer lb0 create pool lb-method ROUND_ROBIN
+    lb0:pool0
+    midonet> load-balancer lb0 pool pool0 show
+    pool pool0 load-balancer lb0 lb-method ROUND_ROBIN state down
+    
+    midonet> load-balancer lb0 pool pool0 list member
+    midonet> load-balancer lb0 pool pool0 create member address 192.168.100.1 \
+             protocol-port 80
+    lb0:pool0:pm0
+    midonet> load-balancer lb0 pool pool0 member pm0 show
+    pm pm0 address 192.168.100.1 protocol-port 80 weight 0 state down
+
+    midonet> load-balancer lb0 pool pool0 list vip
+    midonet> load-balancer lb0 pool pool0 create vip address 192.168.0.1 \
+             persistence SOURCE_IP protocol-port 8080
+    lb0:pool0:vip0
+    midonet> load-balancer lb0 pool pool0 vip vip0 show
+    vip vip0 load-balancer lb0 address 192.168.0.1 protocol-port 8080 \
+             persistence SOURCE_IP state down
+
+## DESCRIPTION
+
+Load balancers are MidoNet's load balancing elements compatible with LBaaS of
+OpenStack.
+
+A router is associated with a load balancer which contains pools and VIPs. A
+pool is a group of pool members and the load balancer pick one of pool members
+to balance the access to a specific IP address represented by the VIP. See the
+following graph to understand their relationships.
+
+                               +---------------+
+                               |      VIP      |
+                               +---------------+
+                                 ^
+                                 | 1..*
+                                 |
+    +----------------+  1..*   +---------------+  1..*   +-------------+
+    | Health Monitor | ------> |     Pool      | ------> | Pool Member |
+    +----------------+         +---------------+         +-------------+
+                                 ^
+                                 | 1..*
+                                 |
+                               +---------------+
+                               | Load Balancer |
+                               +---------------+
+
+## ATTRIBUTES
+
+A load balancer has these attributes:
+
+  * `router` <ROUTER>
+    An associated router.
+
+It contains these subcollections of elements:
+
+  * `pool` <POOL>
+  * `vip` <VIP>
+
+## POOL
+
+Attributes:
+
+  * `health-monitor` <HEALTH_MONITOR>
+    An associated health monitor.
+  * `lb-method` [!]`ROUND_ROBIN`
+    Load balancing method of the pool.
+  * `load-balancer` <LOAD_BALANCER>
+    A load balancer this pool belongs to.
+
+## VIP
+
+Attributes:
+
+  * `address` [!]<IP_ADDRESS>
+    IP address the VIP covers.
+  * `load-balancer` [!]<LOAD_BALANCER> (read-only)
+    A load balancer the VIP belongs to.
+  * `persistence` [!]`SOURCE_IP`
+    Ssession persistence type.
+  * `protocol-port` [!]<TCP_PORT>
+    TCP port the VIP covers.
+
+## POOL MEMBER
+
+Attributes:
+
+  * `address` [!]<IP_ADDRESS>
+    IP address of the member.
+  * `load-balancer` <LOAD_BALANCER>
+    A load balancer the pool member belongs to.
+  * `protocol-port` [!]<TCP_PORT>
+    TCP port of the member.
+  * `weight` <INTEGER>
+    Weight among the members.
+
+## COPYRIGHT
+
+Copyright (c) 2014 Midokura Europe SARL, All Rights Reserved.
+
+## SEE ALSO
+
+midonet-cli(1), midonet-cli-router(1), midonet-cli-health-monitor(1)

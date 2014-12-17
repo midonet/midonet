@@ -1,0 +1,35 @@
+midonet-cli-host-version(1) -- host version information midonet-cli
+=======================================================================
+
+## SYNOPSIS
+
+    midonet> list host-versions
+    midonet> list host-versions version 1.2
+    midonet> list host-versions host http://localhost:8081/midonet-api/hosts/d002c98b-4a19-4335-bd33-41f8cd2a9c27
+    midonet> list host-versions host_id d002c98b-4a19-4335-bd33-41f8cd2a9c27
+
+## DESCRIPTION
+
+The host-versions are the version information objects pertaining to each host. 
+It is a list of host-version objects.
+
+## ATTRIBUTES
+
+A host-version has these attributes:
+
+  * `version` <STRING>
+    The version of the host.
+
+  * `host` <URI>
+    The uri of the host resource.
+
+  * `host_id` <UUID>
+    The UUID of the host.
+
+## COPYRIGHT
+
+midonet-cli is Copyright (C) 2013 Midokura PTE LTD.
+
+## SEE ALSO
+
+midonet-cli(1)
