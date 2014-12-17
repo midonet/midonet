@@ -104,6 +104,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_6f35d145",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-17T11:01:29Z",
+      "side": 1,
+      "message": "can we get away with only one thread? can we pass a threadfactory so we can give those threads a christian name?",
+      "parentUuid": "9a0b7d60_8f9f5550",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_4fb56dcc",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -206,6 +224,23 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_8f22b5ff",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-17T11:01:29Z",
+      "side": 1,
+      "message": "the the",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_8fcd9560",
         "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
         "patchSetId": 9
@@ -234,6 +269,23 @@
       "writtenOn": "2014-12-17T10:42:32Z",
       "side": 1,
       "message": "these variable names look hard to grasp in a log message, can we make them more readable?",
+      "revId": "887982c96630da389e06404ebb183167a70f8222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_0f7ec5e4",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/FpmServer.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-17T11:01:29Z",
+      "side": 1,
+      "message": "wouldn\u0027t readByte work? also, toByte will already trim the most significant bits I believe",
       "revId": "887982c96630da389e06404ebb183167a70f8222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
