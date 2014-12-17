@@ -1,0 +1,170 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_af3e9927",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "Or rather, thread unsafe but expected to be used in confinement?",
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_4f3a8d37",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "nit: indentation",
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_cf1cbdc4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "Why store sources as connectable observables? You can just keep the registry as Map[KEY, Observable], which also simplifies the remove() and add() cases (see below)",
+      "range": {
+        "startLine": 54,
+        "startChar": 25,
+        "endLine": 54,
+        "endChar": 46
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_6f8311cd",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "Not sure I get this. Why not just:\n\nval cancelation \u003d PublishSubject.create()\nsources.add(what, cancellation)\ncollector.onNext(o.takeUntil(cancellation)",
+      "range": {
+        "startLine": 65,
+        "startChar": 8,
+        "endLine": 65,
+        "endChar": 11
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_8f3bd537",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "nit, wrap with :79",
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_ef1f01b6",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "if you store the flag in this map, you just need to ctl.remove(what).onComplete()",
+      "range": {
+        "startLine": 90,
+        "startChar": 12,
+        "endLine": 90,
+        "endChar": 15
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_8f691528",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "this is mostly like drop, but repeated",
+      "range": {
+        "startLine": 100,
+        "startChar": 8,
+        "endLine": 100,
+        "endChar": 15
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_4f11edab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/Aggregator.scala",
+        "patchSetId": 48
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T11:20:37Z",
+      "side": 1,
+      "message": "when is this needed?",
+      "range": {
+        "startLine": 109,
+        "startChar": 8,
+        "endLine": 109,
+        "endChar": 14
+      },
+      "revId": "275d0e10bddb23c2b4d7c0bf1c116601e8ab7bad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
