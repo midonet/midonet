@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "ba068154_302688bb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "I\u0027ll rename to ProcessingException",
+      "parentUuid": "da01753e_34379eb2",
+      "range": {
+        "startLine": 77,
+        "startChar": 10,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_143c1a93",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "ba068154_f04a4054",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "Following a rule-of-thumb of abstracting to the interface with \u003e2 usages. Or at least 2.. Doesn\u0027t seem a likely case. But Ok to keep it if it helps testing or something else?",
+      "parentUuid": "da01753e_143c1a93",
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_7441260b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -53,6 +95,30 @@
       "writtenOn": "2014-12-17T05:49:03Z",
       "side": 1,
       "message": "See? IDEA just inserts it.",
+      "range": {
+        "startLine": 91,
+        "startChar": 11,
+        "endLine": 91,
+        "endChar": 43
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba068154_7009302c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "Damn!",
+      "parentUuid": "da01753e_7441260b",
       "range": {
         "startLine": 91,
         "startChar": 11,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "ba068154_900f742e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "I\u0027ll wait for Tomohiko\u0027s review here.",
+      "parentUuid": "da01753e_5446a224",
+      "range": {
+        "startLine": 98,
+        "startChar": 32,
+        "endLine": 98,
+        "endChar": 39
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_b44a6e25",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 3
@@ -99,6 +189,30 @@
       "writtenOn": "2014-12-17T05:49:03Z",
       "side": 1,
       "message": "Did you intend to make a functional change here?\n\nThis will set initialized to true even if create() fails with an exception other than ObjectExistsException.\n\nMaybe that doesn\u0027t matter because the exception will probably stop the show anyway.",
+      "range": {
+        "startLine": 115,
+        "startChar": 6,
+        "endLine": 115,
+        "endChar": 13
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba068154_d019fc7a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "Oh sorry, I need to move this into the main and the exists case, thanks.",
+      "parentUuid": "da01753e_b44a6e25",
       "range": {
         "startLine": 115,
         "startChar": 6,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "ba068154_102b8483",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3Po.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da01753e_b471ce79",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 72
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_14e25ad5",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
         "patchSetId": 3
@@ -145,6 +283,30 @@
       "writtenOn": "2014-12-17T05:49:03Z",
       "side": 1,
       "message": "While you\u0027re in here, could you delete this TODO comment?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 53
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba068154_7020109c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-17T09:38:18Z",
+      "side": 1,
+      "message": "I shall",
+      "parentUuid": "da01753e_14e25ad5",
       "range": {
         "startLine": 87,
         "startChar": 0,
