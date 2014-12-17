@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_af25f90b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T11:09:15Z",
+      "side": 1,
+      "message": "Yes, you are right: the subject was just an artifact in the middle: I\u0027ve changed the code to have the connection directly passed to the protocol.\n\nAnd yes, a miss-behaved protocol could keep sending messages. We could make the subscriber to unsubscribe itself, but that would not prevent a direct call to onXXX() calls. I\u0027ve added a check to verify that that does not occur.",
+      "parentUuid": "da01753e_31d05053",
+      "range": {
+        "startLine": 50,
+        "startChar": 4,
+        "endLine": 52,
+        "endChar": 28
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_11d54c43",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-16T17:08:09Z",
       "side": 1,
       "message": "Then, this wouldn\u0027t be needed since any terminal event (onCompleted, onError) means this subscriber unsubscribes. An:\n\n  assert(isUnusbscribed)\n\nshould be enough",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 64,
+        "endChar": 26
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_2f7909fd",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T11:09:15Z",
+      "side": 1,
+      "message": "Mmmm... I think we still have to unsubscribe from the backend subscription. The backend subscription is handled here to make easier to have immutable protocol states (but, as a counterpart, makes the code a little bit uglier..). The explicit unsubscription is needed to let the backend know that the connection has been cut.\n\nNevertheless, the \u0027this.unsubscribe\u0027 is now redundant (as it it should be the same as \u0027subs.unsubscribe\u0027)",
+      "parentUuid": "da01753e_11d54c43",
       "range": {
         "startLine": 60,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_af6cd937",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/TopologyMappings.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T11:09:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da01753e_f16b6883",
+      "range": {
+        "startLine": 47,
+        "startChar": 35,
+        "endLine": 50,
+        "endChar": 5
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_91c01c7e",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
         "patchSetId": 12
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_ef76e105",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T11:09:15Z",
+      "side": 1,
+      "message": "Yes, the subject was gone, but the comment remained...\nFixed.",
+      "parentUuid": "da01753e_91c01c7e",
+      "range": {
+        "startLine": 30,
+        "startChar": 3,
+        "endLine": 30,
+        "endChar": 23
+      },
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_71cad8a2",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
         "patchSetId": 12
@@ -105,6 +201,24 @@
       "writtenOn": "2014-12-16T17:08:09Z",
       "side": 1,
       "message": "Add ( ) after disconnect",
+      "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_cf731d14",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/server/RequestHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T11:09:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "da01753e_71cad8a2",
       "revId": "70d4c04f8964c1bbb143c6d741ad218c586e8eee",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
