@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_94c00a7e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 0,
+      "message": "You made this patch just because you didn\u0027t like the long import line, din\u0027t you?",
+      "revId": "6f2b49d2aad7944d92ee3764bead775b536da48c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

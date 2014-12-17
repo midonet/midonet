@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "da01753e_34379eb2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "Isn\u0027t there a convention that exception class names should end with \"Exception?\"\n\nThis confused me for a bit. I couldn\u0027t figure out why we were bundling a message and cause together in a non-exception class.",
+      "range": {
+        "startLine": 77,
+        "startChar": 10,
+        "endLine": 77,
+        "endChar": 27
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_143c1a93",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "I have no particular attachment to it, but why remove the interface?",
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_7441260b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "See? IDEA just inserts it.",
+      "range": {
+        "startLine": 91,
+        "startChar": 11,
+        "endLine": 91,
+        "endChar": 43
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_5446a224",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "I would check with Tomohiko to see if there\u0027s some particular reason he chose Object instead of Message as the upper bound.",
+      "range": {
+        "startLine": 98,
+        "startChar": 32,
+        "endLine": 98,
+        "endChar": 39
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_b44a6e25",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "Did you intend to make a functional change here?\n\nThis will set initialized to true even if create() fails with an exception other than ObjectExistsException.\n\nMaybe that doesn\u0027t matter because the exception will probably stop the show anyway.",
+      "range": {
+        "startLine": 115,
+        "startChar": 6,
+        "endLine": 115,
+        "endChar": 13
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_b471ce79",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3Po.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "Alignment.",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 72
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "da01753e_14e25ad5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-17T05:49:03Z",
+      "side": 1,
+      "message": "While you\u0027re in here, could you delete this TODO comment?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 53
+      },
+      "revId": "070c24dd5923e4bca9a800178adc8ea76c45e9dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
