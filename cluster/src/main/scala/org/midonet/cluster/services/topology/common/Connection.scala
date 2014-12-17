@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.services.topology.common
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.util.Success
 
 import com.google.protobuf.Message
@@ -44,24 +46,19 @@ class Connection(private val ctx: ChannelHandlerContext,
     extends Subscriber[Message] {
     private val log = LoggerFactory.getLogger(classOf[Connection])
 
-    // Stream of messages to be sent back through the communication channel;
-    // this object 'subscribes' to this stream to actually send out the
-    // outgoing messages
-    private val outgoing: Subject[Message, Message] =
-        PublishSubject.create()
-    outgoing.subscribe(this)
+    // Connection has already been disconnected
+    private val done = new AtomicBoolean(false)
 
     // Send a message through the low level channel
     // TODO: some backpressure mechanism is probably needed here
-    private def send(rsp: Message) = ctx.writeAndFlush(rsp)
+    private def send(rsp: Message) = if (!done.get()) ctx.writeAndFlush(rsp)
 
     // Terminate this connection
-    private def terminate() = {
+    private def terminate() = if (done.compareAndSet(false, true)) {
         backendSubscription.value match {
             case Some(Success(Some(subs))) => subs.unsubscribe()
             case _ =>
         }
-        this.unsubscribe()
         ctx.close()
         mgr.unregister(ctx)
     }
@@ -74,11 +71,11 @@ class Connection(private val ctx: ChannelHandlerContext,
     // State engine
     // TODO: This is not thread-safe, which is currently fine
     // as each channel is currently handled by a single thread at most.
-    private var (state, backendSubscription) = protocol.start(outgoing)
+    private var (state, backendSubscription) = protocol.start(this)
     def disconnect() = {
         state = state.process(Interruption)
         // in case protocol does not honor the disconnect request:
-        outgoing.onCompleted()
+        terminate()
     }
     def msg(req: Message) = {
         state = state.process(req)
