@@ -149,6 +149,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_b25d5e4b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-17T15:13:32Z",
+      "side": 1,
+      "message": "if no particular scheduler is specified with ObserveOn or SubscribeOn, then onNext, onCompleted, onError is executed on the subscriber\u0027s thread, so things should be fine without any synchronization.",
+      "parentUuid": "9a0b7d60_0f4fe593",
+      "range": {
+        "startLine": 122,
+        "startChar": 17,
+        "endLine": 122,
+        "endChar": 29
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d10d3b92",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 2
