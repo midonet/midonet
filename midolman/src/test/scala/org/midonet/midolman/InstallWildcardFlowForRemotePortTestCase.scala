@@ -70,8 +70,6 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
         portsProbe.expectMsgClass(classOf[LocalPortActive])
 
         val inputPortNo = getPortNumber("port1")
-
-        fishForRequestOfType[AddWildcardFlow](flowProbe())
         drainProbes()
 
         addVirtualWildcardFlow(portOnHost1.getId,
