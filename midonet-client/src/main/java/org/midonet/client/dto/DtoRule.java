@@ -51,6 +51,8 @@ public class DtoRule {
     private boolean invIpAddrGroupSrc;
     private UUID ipAddrGroupDst;
     private boolean invIpAddrGroupDst;
+    private UUID traversedDevice;
+    private boolean invTraversedDevice;
     private Integer dlType = null;
     private boolean invDlType = false;
     private String dlSrc = null;
@@ -80,6 +82,7 @@ public class DtoRule {
     private String flowAction;
     private DtoNatTarget[] natTargets;
     private int position;
+    private String meterName;
     private Map<String, String> properties = new HashMap<String, String>();
 
     public URI getUri() {
@@ -198,16 +201,32 @@ public class DtoRule {
         return ipAddrGroupDst;
     }
 
+    public UUID getTraversedDevice() {
+        return traversedDevice;
+    }
+
     public void setIpAddrGroupDst(UUID ipAddrGroupDst) {
         this.ipAddrGroupDst = ipAddrGroupDst;
+    }
+
+    public void setTraversedDevice(UUID device) {
+        this.traversedDevice = device;
     }
 
     public boolean isInvIpAddrGroupDst() {
         return invIpAddrGroupDst;
     }
 
+    public boolean isInvTraversedDevice() {
+        return invTraversedDevice;
+    }
+
     public void setInvIpAddrGroupDst(boolean invIpAddrGroupDst) {
         this.invIpAddrGroupDst = invIpAddrGroupDst;
+    }
+
+    public void setInvTraversedDevice(boolean inv) {
+        this.invTraversedDevice = inv;
     }
 
     public String getDlDst() {
@@ -447,8 +466,16 @@ public class DtoRule {
         return position;
     }
 
+    public String getMeterName() {
+        return meterName;
+    }
+
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public void setMeterName(String meterName) {
+        this.meterName = meterName;
     }
 
     public Map<String, String> getProperties() {

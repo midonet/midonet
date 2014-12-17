@@ -67,6 +67,9 @@ public abstract class Condition extends UriResource {
     private UUID ipAddrGroupDst;
     private boolean invIpAddrGroupDst;
 
+    private UUID traversedDevice;
+    private boolean invTraversedDevice;
+
     @Min(0x0600)
     @Max(0xFFFF)
     private Integer dlType;
@@ -189,16 +192,32 @@ public abstract class Condition extends UriResource {
         return ipAddrGroupDst;
     }
 
+    public UUID getTraversedDevice() {
+        return traversedDevice;
+    }
+
     public void setIpAddrGroupDst(UUID ipAddrGroupDst) {
         this.ipAddrGroupDst = ipAddrGroupDst;
+    }
+
+    public void setTraversedDevice(UUID traversedDevice) {
+        this.traversedDevice = traversedDevice;
     }
 
     public boolean isInvIpAddrGroupDst() {
         return invIpAddrGroupDst;
     }
 
+    public boolean isInvTraversedDevice() {
+        return invTraversedDevice;
+    }
+
     public void setInvIpAddrGroupDst(boolean invIpAddrGroupDst) {
         this.invIpAddrGroupDst = invIpAddrGroupDst;
+    }
+
+    public void setInvTraversedDevice(boolean invTraversedDevice) {
+        this.invTraversedDevice = invTraversedDevice;
     }
 
     @Since("2")
@@ -633,7 +652,9 @@ public abstract class Condition extends UriResource {
         c.portGroup = this.portGroup;
         c.invPortGroup = this.invPortGroup;
         c.ipAddrGroupIdDst = this.ipAddrGroupDst;
+        c.traversedDevice = this.traversedDevice;
         c.invIpAddrGroupIdDst = this.invIpAddrGroupDst;
+        c.traversedDeviceInv = this.invTraversedDevice;
         c.ipAddrGroupIdSrc = this.ipAddrGroupSrc;
         c.invIpAddrGroupIdSrc = this.invIpAddrGroupSrc;
 
@@ -656,6 +677,8 @@ public abstract class Condition extends UriResource {
         this.setInvNwTos(c.nwTosInv);
         this.setInvTpDst(c.tpDstInv);
         this.setInvTpSrc(c.tpSrcInv);
+        this.setTraversedDevice(c.traversedDevice);
+        this.setInvTraversedDevice(c.traversedDeviceInv);
 
         this.setMatchForwardFlow(c.matchForwardFlow);
         this.setMatchReturnFlow(c.matchReturnFlow);
