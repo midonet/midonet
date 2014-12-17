@@ -25,7 +25,7 @@ sudo apt-get update
 sudo apt-get install curl screen tmux bridge-utils iproute quagga -y
 
 # add midokura apt source
-echo 'deb [arch=amd64] http://repo.midonet.org/midonet/v2015.02 unstable precise main' |sudo tee /etc/apt/sources.list.d/midokura.list
+echo 'deb [arch=amd64] http://repo.midonet.org/midonet/current precise main' |sudo tee /etc/apt/sources.list.d/midokura.list
 curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
 
 # add apt source for cassandra
