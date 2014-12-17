@@ -664,6 +664,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_afcdf988",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T10:17:40Z",
+      "side": 1,
+      "message": "Not easy to do, as the key is passed as a \u0027Message\u0027, but we care about the actual subclass. Nevertheless, I\u0027ve joined the extractClass and extractId into a single method (so, at least, it is executed just once)",
+      "parentUuid": "fafc7978_7389fa25",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_13722e49",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 42
@@ -681,6 +699,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_0fa6c5c1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T10:17:40Z",
+      "side": 1,
+      "message": "Changed into observable maps and composes",
+      "parentUuid": "fafc7978_13722e49",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_73de1a13",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
         "patchSetId": 42
@@ -692,6 +728,24 @@
       "writtenOn": "2014-12-12T17:47:23Z",
       "side": 1,
       "message": "Ditto!",
+      "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_4fb0cdf4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/topology/server/SessionInventory.scala",
+        "patchSetId": 42
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-17T10:17:40Z",
+      "side": 1,
+      "message": "Same as above",
+      "parentUuid": "fafc7978_73de1a13",
       "revId": "41e2bb7a4f017c3f77d27bedab8be5a91dc8dfe7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
