@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "fafc7978_14cfb180",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-17T11:41:55Z",
+      "side": 1,
+      "message": "By default constructor parameters are immutable and private.",
+      "parentUuid": "fafc7978_d1b53bef",
+      "range": {
+        "startLine": 38,
+        "startChar": 16,
+        "endLine": 38,
+        "endChar": 17
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_f1c95f7a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 2
@@ -60,6 +84,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_cf7dddb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-17T11:41:55Z",
+      "side": 1,
+      "message": "done, will try to avoid the need for atomicity all together by choosing the scheduler.",
+      "parentUuid": "fafc7978_717d6fe7",
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_31c4875e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 2
@@ -83,6 +125,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_0f4fe593",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-17T11:41:55Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "fafc7978_31c4875e",
+      "range": {
+        "startLine": 122,
+        "startChar": 17,
+        "endLine": 122,
+        "endChar": 29
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_d10d3b92",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 2
@@ -94,6 +160,30 @@
       "writtenOn": "2014-12-15T15:31:32Z",
       "side": 1,
       "message": "This is a Device not a VirtualDevice. This class should replace:\n\n  case class org.midonet.midolman.topology.rcu.Host\n\nTherefore, I would examine the usage of the original class in order to expose the necessary parameters. For instance, I see that this class contains some fields that in the original are not needed, yet others are absent.\n\nSince the original class is a case class, it might also be used in pattern matching, something that the new Host class will not support in its current form.",
+      "range": {
+        "startLine": 55,
+        "startChar": 6,
+        "endLine": 55,
+        "endChar": 10
+      },
+      "revId": "ee54cb7492e011be40a2874858ad82b0836c9dab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fafc7978_f4aaedd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-17T11:41:55Z",
+      "side": 1,
+      "message": "Fields present in devices.Host not in rcu.Host:\n-name removed\n-addresses removed\n-tunnelZoneIds needs to be here to know which tunnel zones we need to observe with Zoom\n\nFields present in rcu.Host but not in devices.Host:\n-epoch is never set and defaults to 0\n-datapath has been added\n\nMade it a case class, same for tunnel zone.",
+      "parentUuid": "fafc7978_d10d3b92",
       "range": {
         "startLine": 55,
         "startChar": 6,
