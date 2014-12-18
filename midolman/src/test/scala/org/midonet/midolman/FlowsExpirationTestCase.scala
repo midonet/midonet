@@ -34,10 +34,10 @@ import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.util.Dilation
 import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.midolman.util.TestHelpers
 import org.midonet.odp._
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
+import org.midonet.sdn.flows.WildcardMatch.Field
 import scala.concurrent.duration.Duration
 import org.midonet.util.functors.Callback0
 
@@ -114,7 +114,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         dpConn().futures.flowsCreate(datapath, flow)
 
         val newMatch = wflow.getMatch
-        newMatch.unsetInputPortNumber()
+        newMatch.fieldUnused(Field.InputPortNumber)
         val newWildFlow = WildcardFlow(
                 newMatch,
                 hardExpirationMillis = getDilatedTime(timeOutFlow).toInt)
@@ -167,7 +167,7 @@ class FlowsExpirationTestCase extends MidolmanTestCase with Dilation {
         dpConn().futures.flowsCreate(datapath, flow)
 
         val newMatch = wflow.getMatch
-        newMatch.unsetInputPortNumber()
+        newMatch.fieldUnused(Field.InputPortNumber)
         val newWildFlow = WildcardFlow(
             newMatch,
             idleExpirationMillis = getDilatedTime(timeOutFlow).toInt)
