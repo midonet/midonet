@@ -494,7 +494,7 @@ public class Converter {
             ruleConfig = new org.midonet.midolman.rules.JumpRule(
                     typedRule.getCondition(),
                     typedRule.getJumpToChainId(),
-                    typedRule.getMeterName()
+                    typedRule.getJumpToChainName()
             );
         }
 
