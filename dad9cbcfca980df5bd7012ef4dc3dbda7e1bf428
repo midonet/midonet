@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_8341ee0d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:24:22Z",
+      "side": 1,
+      "message": "doesn\u0027t",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 10
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_0355fec5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:24:22Z",
+      "side": 1,
+      "message": "Should make this a volatile var, so we can remove the listener when closing the cache, and set the listener to null:\n\n  curator.getConnectionStateListenable.removeListener(connectionListener)",
+      "range": {
+        "startLine": 72,
+        "startChar": 48,
+        "endLine": 86,
+        "endChar": 5
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_036cde9b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:24:22Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 158,
+        "startChar": 15,
+        "endLine": 158,
+        "endChar": 20
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_2363e2b2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:24:22Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 159,
+        "startChar": 11,
+        "endLine": 159,
+        "endChar": 12
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_e38c3a82",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:24:22Z",
+      "side": 1,
+      "message": "Should we move these to zoom exceptions?",
+      "range": {
+        "startLine": 281,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 57
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
