@@ -190,6 +190,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_63468a25",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NetworkTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T14:13:24Z",
+      "side": 1,
+      "message": "What\u0027s the issue with types? Anyway, you can keep them as is.",
+      "parentUuid": "9a0b7d60_c3dc9677",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 74
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_98503960",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/midonet/package.scala",
         "patchSetId": 7
