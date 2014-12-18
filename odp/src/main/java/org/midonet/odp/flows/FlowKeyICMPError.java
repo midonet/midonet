@@ -24,7 +24,7 @@ import java.util.Arrays;
  * functional and can be used for WildcardFlows.
  */
 public class FlowKeyICMPError extends FlowKeyICMP {
-    private byte[] icmp_data = null;
+    public byte[] icmp_data = null;
 
     FlowKeyICMPError(byte type, byte code, byte[] data) {
         super(type, code);
@@ -52,10 +52,5 @@ public class FlowKeyICMPError extends FlowKeyICMP {
         return "ICMPError{type=0x" + Integer.toHexString(icmp_type)
              + ", code=" + icmp_code
              + ", data=" + Arrays.toString(icmp_data) + "}";
-    }
-
-    public byte[] getIcmpData() {
-        return (icmp_data == null) ? null
-                                   : Arrays.copyOf(icmp_data, icmp_data.length);
     }
 }

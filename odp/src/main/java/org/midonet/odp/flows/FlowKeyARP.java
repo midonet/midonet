@@ -25,25 +25,22 @@ import org.midonet.packets.MAC;
 
 public class FlowKeyARP implements CachedFlowKey {
 
-    /*__be32*/ private int arp_sip;
-    /*__be32*/ private int arp_tip;
-    /*__be16*/ private short arp_op;
-    /*__u8*/ private byte[] arp_sha = new byte[6]; // 6 bytes long
-    /*__u8*/ private byte[] arp_tha = new byte[6]; // 6 bytes long
-
-    private int hashCode = 0;
+    /*__be32*/ public int arp_sip;
+    /*__be32*/ public int arp_tip;
+    /*__be16*/ public short arp_op;
+    /*__u8*/ public byte[] arp_sha = new byte[6]; // 6 bytes long
+    /*__u8*/ public byte[] arp_tha = new byte[6]; // 6 bytes long
 
     // This is used for deserialization purposes only.
     FlowKeyARP() { }
 
-    FlowKeyARP(byte[] sourceAddress, byte[] targetAddress, short opcode,
-               int sourceIp, int targetIp) {
+    public FlowKeyARP(byte[] sourceAddress, byte[] targetAddress, short opcode,
+                      int sourceIp, int targetIp) {
         arp_sha = sourceAddress;
         arp_tha = targetAddress;
         arp_op = opcode;
         arp_sip = sourceIp;
         arp_tip = targetIp;
-        computeHashCode();
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -62,31 +59,19 @@ public class FlowKeyARP implements CachedFlowKey {
         arp_op = BytesUtil.instance.reverseBE(buf.getShort());
         buf.get(arp_sha);
         buf.get(arp_tha);
-        computeHashCode();
+    }
+
+    @Override
+    public void wildcard() {
+        arp_sip = 0;
+        arp_tip = 0;
+        arp_op = 0;
+        Arrays.fill(arp_sha, (byte) 0);
+        Arrays.fill(arp_tha, (byte) 0);
     }
 
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.ARP;
-    }
-
-    public byte[] getTha() {
-        return arp_tha;
-    }
-
-    public byte[] getSha() {
-        return arp_sha;
-    }
-
-    public short getOp() {
-        return arp_op;
-    }
-
-    public int getTip() {
-        return arp_tip;
-    }
-
-    public int getSip() {
-        return arp_sip;
     }
 
     @Override
@@ -106,15 +91,12 @@ public class FlowKeyARP implements CachedFlowKey {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private void computeHashCode() {
-        hashCode = arp_sip;
+        int hashCode = arp_sip;
         hashCode = 31 * hashCode + arp_tip;
         hashCode = 31 * hashCode + arp_op;
         hashCode = 31 * hashCode + Arrays.hashCode(arp_sha);
         hashCode = 31 * hashCode + Arrays.hashCode(arp_tha);
+        return hashCode;
     }
 
     @Override

@@ -414,7 +414,7 @@ class DeduplicationActor(
             dpChannel.executePacket(packet, actions)
             metrics.packetsProcessed.mark()
             packetOut(1)
-        } else if (FlowStatePackets.isStateMessage(packet)) {
+        } else if (FlowStatePackets.isStateMessage(flowMatch)) {
             processPacket(packet)
         } else suspendedPackets.get(flowMatch) match {
             case null =>

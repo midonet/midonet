@@ -304,7 +304,7 @@ public class FlowMatch {
     private int tunnelDst = 0;
     private MAC ethSrc;
     private MAC ethDst;
-    private short etherType = 0;
+    private short etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
     private IPAddr networkSrc;
     private IPAddr networkDst;
     private byte networkProto = 0;
@@ -354,14 +354,6 @@ public class FlowMatch {
         return this;
     }
 
-    public boolean hasKey(int keyId) {
-        for (FlowKey key : keys) {
-            if (key.attrId() == keyId)
-                return true;
-        }
-        return false;
-    }
-
     /**
      * @return the set of Fields that have been read from this instance.
      */
@@ -375,6 +367,17 @@ public class FlowMatch {
      */
     private void fieldSeen(Field field) {
         seenFields |= trackSeenFields << field.ordinal();
+    }
+
+    /**
+     * Informs whether the specified field has been seen. A field is seen
+     * if trackSeenFields was set to 1 when the respective accessor was called
+     * and also if the field is used.
+     * NOTE: We apply the usedFields filter here instead of in the fieldsSeen()
+     *       method because this one is infrequently called.
+     */
+    public boolean isSeen(Field field) {
+        return (seenFields & usedFields & (1L << field.ordinal())) != 0;
     }
 
     public void doTrackSeenFields() {
@@ -408,8 +411,8 @@ public class FlowMatch {
         return (usedFields & icmpFieldsMask) != 0;
     }
 
-    public void propagateUserspaceFieldsOf(FlowMatch that) {
-        seenFields |= that.seenFields & icmpFieldsMask;
+    public void propagateSeenFieldsFrom(FlowMatch that) {
+        seenFields |= that.seenFields;
     }
 
     /**
@@ -439,6 +442,18 @@ public class FlowMatch {
         return (usedFields & (1L << field.ordinal())) != 0;
     }
 
+    public FlowMatch markAsSeen(Field... fields) {
+        for (Field f : fields) {
+            fieldSeen(f);
+        }
+        return this;
+    }
+
+    public FlowMatch markAllAsSeen() {
+        seenFields = usedFields;
+        return this;
+    }
+
     /**
      * Resets the contents of this FlowMatch setting them to the values
      * in <pre>that</pre>. The list of used fields will be cleared and all
@@ -463,10 +478,7 @@ public class FlowMatch {
         dstPort = that.dstPort;
         icmpId = that.icmpId;
         vlanIds = new ArrayList<>(that.vlanIds);
-        if (that.icmpData != null)
-            this.setIcmpData(that.icmpData);
-        else
-            this.icmpData = null;
+        setIcmpData(that.icmpData);
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
@@ -485,6 +497,7 @@ public class FlowMatch {
         this.ethSrc = null;
         this.ethDst = null;
         this.vlanIds = null;
+        this.etherType = (short) FlowKeyEtherType.Type.ETH_P_NONE.value;
         this.usedFields = 0;
         this.trackSeenFields = 1;
         this.seenFields = 0;
@@ -712,6 +725,8 @@ public class FlowMatch {
         fieldUsed(Field.IcmpData);
         if (icmpData != null)
             this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
+        else
+            icmpData = null;
         return this;
     }
 
@@ -753,7 +768,7 @@ public class FlowMatch {
     @Nullable
     public List<Short> getVlanIds() {
         fieldSeen(Field.VlanId);
-        return isUsed(Field.VlanId) ? vlanIds : new ArrayList<Short>();
+        return vlanIds;
     }
 
     public long getSequence() {
@@ -850,7 +865,7 @@ public class FlowMatch {
 
             case OpenVSwitch.FlowKey.Attr.Encap:
                 FlowKeyEncap encap = as(flowKey, FlowKeyEncap.class);
-                for (FlowKey k : encap.getKeys())
+                for (FlowKey k : encap.keys)
                     processMatchKey(k);
                 break;
 
@@ -860,94 +875,95 @@ public class FlowMatch {
 
             case OpenVSwitch.FlowKey.Attr.InPort:
                 FlowKeyInPort inPort = as(flowKey, FlowKeyInPort.class);
-                setInputPortNumber(inPort.getInPort());
+                setInputPortNumber(inPort.portNo);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.Ethernet:
                 FlowKeyEthernet ethernet = as(flowKey,
                                               FlowKeyEthernet.class);
-                setEthSrc(MAC.fromAddress(ethernet.getSrc()));
-                setEthDst(MAC.fromAddress(ethernet.getDst()));
+                setEthSrc(MAC.fromAddress(ethernet.eth_src));
+                setEthDst(MAC.fromAddress(ethernet.eth_dst));
                 break;
 
             case OpenVSwitch.FlowKey.Attr.VLan:
                 FlowKeyVLAN vlan = as(flowKey, FlowKeyVLAN.class);
-                addVlanId(vlan.getVLAN());
+                addVlanId(vlan.vlan);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.Ethertype:
                 FlowKeyEtherType etherType = as(flowKey,
                                                 FlowKeyEtherType.class);
-                setEtherType(etherType.getEtherType());
+                setEtherType(etherType.etherType);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.IPv4:
                 FlowKeyIPv4 ipv4 = as(flowKey, FlowKeyIPv4.class);
                 setNetworkSrc(
-                    IPv4Addr.fromInt(ipv4.getSrc()));
+                    IPv4Addr.fromInt(ipv4.ipv4_src));
                 setNetworkDst(
-                    IPv4Addr.fromInt(ipv4.getDst()));
-                setNetworkProto(ipv4.getProto());
-                setIpFragmentType(IPFragmentType.fromByte(ipv4.getFrag()));
-                setNetworkTTL(ipv4.getTtl());
+                    IPv4Addr.fromInt(ipv4.ipv4_dst));
+                setNetworkProto(ipv4.ipv4_proto);
+                setIpFragmentType(IPFragmentType.fromByte(ipv4.ipv4_frag));
+                setNetworkTTL(ipv4.ipv4_ttl);
+                setNetworkTOS(ipv4.ipv4_tos);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.IPv6:
                 FlowKeyIPv6 ipv6 = as(flowKey, FlowKeyIPv6.class);
-                int[] intSrc = ipv6.getSrc();
-                int[] intDst = ipv6.getDst();
+                int[] intSrc = ipv6.ipv6_src;
+                int[] intDst = ipv6.ipv6_dst;
                 setNetworkSrc(new IPv6Addr(
                     (((long) intSrc[0]) << 32) | (intSrc[1] & 0xFFFFFFFFL),
                     (((long) intSrc[2]) << 32) | (intSrc[3] & 0xFFFFFFFFL)));
                 setNetworkDst(new IPv6Addr(
                     (((long) intDst[0]) << 32) | (intDst[1] & 0xFFFFFFFFL),
                     (((long) intDst[2]) << 32) | (intDst[3] & 0xFFFFFFFFL)));
-                setNetworkProto(ipv6.getProto());
-                setIpFragmentType(ipv6.getFrag());
-                setNetworkTTL(ipv6.getHLimit());
+                setNetworkProto(ipv6.ipv6_proto);
+                setIpFragmentType(IPFragmentType.fromByte(ipv6.ipv6_frag));
+                setNetworkTTL(ipv6.ipv6_hlimit);
+                setNetworkTOS(ipv6.ipv6_tclass);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.TCP:
                 FlowKeyTCP tcp = as(flowKey, FlowKeyTCP.class);
-                setSrcPort(tcp.getSrc());
-                setDstPort(tcp.getDst());
+                setSrcPort(tcp.tcp_src);
+                setDstPort(tcp.tcp_dst);
                 setNetworkProto(TCP.PROTOCOL_NUMBER);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.UDP:
                 FlowKeyUDP udp = as(flowKey, FlowKeyUDP.class);
-                setSrcPort(udp.getUdpSrc());
-                setDstPort(udp.getUdpDst());
+                setSrcPort(udp.udp_src);
+                setDstPort(udp.udp_dst);
                 setNetworkProto(UDP.PROTOCOL_NUMBER);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.ICMP:
                 FlowKeyICMP icmp = as(flowKey, FlowKeyICMP.class);
-                setSrcPort(Unsigned.unsign(icmp.getType()));
-                setDstPort(Unsigned.unsign(icmp.getCode()));
+                setSrcPort(Unsigned.unsign(icmp.icmp_type));
+                setDstPort(Unsigned.unsign(icmp.icmp_code));
                 if (icmp instanceof FlowKeyICMPEcho) {
-                    FlowKeyICMPEcho icmpEcho = ((FlowKeyICMPEcho) icmp);
-                    setIcmpIdentifier(icmpEcho.getIdentifier());
+                    setIcmpIdentifier(((FlowKeyICMPEcho) icmp).icmp_id);
                 } else if (icmp instanceof FlowKeyICMPError) {
-                    setIcmpData(((FlowKeyICMPError) icmp).getIcmpData());
+                    setIcmpData(((FlowKeyICMPError) icmp).icmp_data);
                 }
                 setNetworkProto(ICMP.PROTOCOL_NUMBER);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.ICMPv6:
-                // XXX(jlm, s3wong)
+                // TODO
                 break;
 
             case OpenVSwitch.FlowKey.Attr.ARP:
                 FlowKeyARP arp = as(flowKey, FlowKeyARP.class);
-                setNetworkSrc(IPv4Addr.fromInt(arp.getSip()));
-                setNetworkDst(IPv4Addr.fromInt(arp.getTip()));
+                setNetworkSrc(IPv4Addr.fromInt(arp.arp_sip));
+                setNetworkDst(IPv4Addr.fromInt(arp.arp_tip));
                 setEtherType(ARP.ETHERTYPE);
-                setNetworkProto((byte) (arp.getOp() & 0xff));
+                setNetworkProto((byte) arp.arp_op);
                 break;
 
             case OpenVSwitch.FlowKey.Attr.ND:
-                // XXX(jlm, s3wong): Neighbor Discovery
+                // TODO
                 break;
 
             case OpenVSwitch.FlowKey.Attr.Tunnel_N:
@@ -955,9 +971,9 @@ public class FlowMatch {
                 // matched in "nested" flagged type id:
                 // FlowKeyAttr<FlowKeyTunnel> tun = attrNest(16); ( neq 16 )
                 FlowKeyTunnel tunnel = as(flowKey, FlowKeyTunnel.class);
-                setTunnelKey(tunnel.getTunnelID());
-                setTunnelSrc(tunnel.getIpv4SrcAddr());
-                setTunnelDst(tunnel.getIpv4DstAddr());
+                setTunnelKey(tunnel.tun_id);
+                setTunnelSrc(tunnel.ipv4_src);
+                setTunnelDst(tunnel.ipv4_dst);
                 break;
         }
     }
