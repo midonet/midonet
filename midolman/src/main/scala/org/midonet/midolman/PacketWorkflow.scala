@@ -24,6 +24,8 @@ import scala.reflect.ClassTag
 
 import akka.actor._
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
+
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
@@ -36,8 +38,8 @@ import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
+import org.midonet.sdn.flows.WildcardMatch.Field
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
-import org.slf4j.LoggerFactory
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -310,12 +312,12 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {
-        val inPortNo = context.origMatch.getInputPortNumber
-        if (inPortNo eq null) {
+        if (!context.origMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
             return Error
         }
 
+        val inPortNo = context.origMatch.getInputPortNumber
         context.flowTags.add(tagForDpPort(inPortNo))
 
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {

@@ -57,21 +57,20 @@ public class FlowManagerTest {
     Lock updateFlowLock = new ReentrantLock();
 
     WildcardTablesProvider wildtablesProvider = new WildcardTablesProvider() {
-        Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables =
-                new HashMap<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>>();
+        Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> tables = new HashMap<>();
 
         @Override
-        public Map<WildcardMatch, ManagedWildcardFlow> addTable(Set<WildcardMatch.Field> pattern) {
+        public Map<WildcardMatch, ManagedWildcardFlow> addTable(Long pattern) {
             Map<WildcardMatch, ManagedWildcardFlow> table = tables().get(pattern);
             if (table == null) {
-                table = new HashMap<WildcardMatch, ManagedWildcardFlow>();
+                table = new HashMap<>();
                 tables.put(pattern, table);
             }
             return table;
         }
 
         @Override
-        public Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables() {
+        public Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> tables() {
             return tables;
         }
     };

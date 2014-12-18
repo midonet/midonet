@@ -173,9 +173,7 @@ public class FlowManager {
             }
         }
 
-        // WARNING: this is a ref to the private set itself
-        Set<WildcardMatch.Field> pattern =
-            wildFlow.getMatch().getUsedFields();
+        Long pattern = wildFlow.getMatch().getUsedFields();
 
         // Get the WildcardFlowTable for this wild flow's pattern.
         Map<WildcardMatch, ManagedWildcardFlow> wildTable =
@@ -183,7 +181,7 @@ public class FlowManager {
         if (null == wildTable) {
             // WARNING: use a copy of the field set because pattern is
             // a ref. to the private collection in the match
-            wildTable = wildcardTables.addTable(EnumSet.copyOf(pattern));
+            wildTable = wildcardTables.addTable(pattern);
         }
         if (!wildTable.containsKey(wildFlow.wcmatch())) {
             wildTable.put(wildFlow.wcmatch(), wildFlow);
@@ -458,7 +456,7 @@ public class FlowManager {
         }
     }
 
-    Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> getWildcardTables() {
+    Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> getWildcardTables() {
         return wildcardTables.tables();
     }
 
