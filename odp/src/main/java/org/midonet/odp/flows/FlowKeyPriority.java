@@ -21,7 +21,7 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyPriority implements FlowKey {
 
-    /*__u32*/ private int priority;
+    /*__u32*/ public int priority;
 
     // This is used for deserialization purposes only.
     FlowKeyPriority() { }
@@ -39,12 +39,13 @@ public class FlowKeyPriority implements FlowKey {
         priority = buf.getInt();
     }
 
-    public short attrId() {
-        return OpenVSwitch.FlowKey.Attr.Priority;
+    @Override
+    public void wildcard() {
+        priority = 0;
     }
 
-    public int getPriority() {
-        return priority;
+    public short attrId() {
+        return OpenVSwitch.FlowKey.Attr.Priority;
     }
 
     @Override

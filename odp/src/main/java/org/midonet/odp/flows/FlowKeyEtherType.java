@@ -53,12 +53,12 @@ public class FlowKeyEtherType implements CachedFlowKey {
         Type(int value) { this.value = value; }
     }
 
-    /* be16 */ private short etherType;
+    /* be16 */ public short etherType;
 
     // This is used for deserialization purposes only.
     FlowKeyEtherType() { }
 
-    FlowKeyEtherType(short etherType) {
+    public FlowKeyEtherType(short etherType) {
         this.etherType = etherType;
     }
 
@@ -68,15 +68,17 @@ public class FlowKeyEtherType implements CachedFlowKey {
     }
 
     public void deserializeFrom(ByteBuffer buf) {
-        etherType = BytesUtil.instance.reverseBE(buf.getShort());
+        Short s = buf.getShort();
+        etherType = BytesUtil.instance.reverseBE(s);
+    }
+
+    @Override
+    public void wildcard() {
+       etherType = 0;
     }
 
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.Ethertype;
-    }
-
-    public short getEtherType() {
-        return etherType;
     }
 
     @Override

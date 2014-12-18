@@ -59,13 +59,13 @@ import org.midonet.packets.Unsigned;
  */
 public class FlowKeyTCP implements FlowKey {
 
-    /*__be16*/ private int tcp_src;
-    /*__be16*/ private int tcp_dst;
+    /*__be16*/ public int tcp_src;
+    /*__be16*/ public int tcp_dst;
 
     // This is used for deserialization purposes only.
     FlowKeyTCP() { }
 
-    FlowKeyTCP(int source, int destination) {
+    public FlowKeyTCP(int source, int destination) {
         tcp_src = source;
         tcp_dst = destination;
     }
@@ -81,16 +81,14 @@ public class FlowKeyTCP implements FlowKey {
         tcp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
+    @Override
+    public void wildcard() {
+        tcp_src = 0;
+        tcp_dst = 0;
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.TCP;
-    }
-
-    public int getSrc() {
-        return tcp_src;
-    }
-
-    public int getDst() {
-        return tcp_dst;
     }
 
     @Override

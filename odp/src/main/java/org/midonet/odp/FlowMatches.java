@@ -16,36 +16,17 @@
 package org.midonet.odp;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Random;
 
 import org.midonet.odp.flows.FlowKey;
 import org.midonet.odp.flows.FlowKeyEtherType;
 import org.midonet.odp.flows.FlowKeys;
-import org.midonet.odp.flows.IPFragmentType;
 import org.midonet.odp.flows.IpProtocol;
-import org.midonet.packets.ARP;
 import org.midonet.packets.Ethernet;
-import org.midonet.packets.ICMP;
-import org.midonet.packets.IPacket;
-import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.IPv6;
 import org.midonet.packets.MAC;
-import org.midonet.packets.TCP;
-import org.midonet.packets.UDP;
 
-import static org.midonet.odp.flows.FlowKeys.arp;
-import static org.midonet.odp.flows.FlowKeys.encap;
-import static org.midonet.odp.flows.FlowKeys.etherType;
-import static org.midonet.odp.flows.FlowKeys.ethernet;
-import static org.midonet.odp.flows.FlowKeys.icmp;
-import static org.midonet.odp.flows.FlowKeys.ipv4;
-import static org.midonet.odp.flows.FlowKeys.ipv6;
-import static org.midonet.odp.flows.FlowKeys.tcp;
-import static org.midonet.odp.flows.FlowKeys.tcpFlags;
-import static org.midonet.odp.flows.FlowKeys.udp;
-import static org.midonet.odp.flows.FlowKeys.vlan;
+import static org.midonet.odp.flows.FlowKeys.*;
 
 public class FlowMatches {
 
@@ -73,14 +54,52 @@ public class FlowMatches {
         return new FlowMatch(FlowKeys.fromEthernetPacket(ethPkt));
     }
 
-    public static FlowMatch fromFlowKeys(ArrayList<FlowKey> keys) {
-        FlowMatch flowMatch = new FlowMatch(keys);
+    public static FlowMatch generateFlowMatch(Random rand) {
+        ArrayList<FlowKey> keys = new ArrayList<>();
 
-        if (!flowMatch.isUsed(FlowMatch.Field.EtherType)) {
-            // Match the empty ether type (802.2)
-            flowMatch.setEtherType(
-                FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_NONE).getEtherType());
+        keys.add(inPort(rand.nextInt()));
+
+        if (rand.nextInt(4) == 0) {
+            keys.add(FlowKeys.tunnel(rand.nextLong(),
+                                     rand.nextInt(),
+                                     rand.nextInt()));
         }
-        return flowMatch;
+
+        keys.add(FlowKeys.ethernet(MAC.random().getAddress(),
+                                   MAC.random().getAddress()));
+
+        if (rand.nextInt(2) == 0) {
+            keys.add(vlan((short) rand.nextInt()));
+        }
+
+        if (rand.nextInt(3) == 0) {
+            IpProtocol proto;
+            switch (rand.nextInt(3)) {
+                case 2:
+                    proto = IpProtocol.ICMP;
+                    keys.add(icmp((byte) rand.nextInt(), (byte) rand.nextInt()));
+                    break;
+                case 1:
+                    proto = IpProtocol.UDP;
+                    keys.add(udp(rand.nextInt() & 0xffff, rand.nextInt() & 0xffff));
+                    break;
+                default:
+                    proto = IpProtocol.TCP;
+                    keys.add(tcp(rand.nextInt() & 0xffff, rand.nextInt() & 0xffff));
+            }
+            keys.add(FlowKeys.ipv4(IPv4Addr.fromInt(rand.nextInt()),
+                                   IPv4Addr.fromInt(rand.nextInt()),
+                                   proto));
+            keys.add(etherType(FlowKeyEtherType.Type.ETH_P_IP));
+        } else if (rand.nextInt(3) == 0) {
+            keys.add(arp(MAC.random().getAddress(), MAC.random().getAddress(),
+                         (short) rand.nextInt(), IPv4Addr.random().toInt(),
+                         IPv4Addr.random().toInt()));
+            keys.add(etherType(FlowKeyEtherType.Type.ETH_P_ARP));
+        } else {
+            keys.add(etherType(FlowKeyEtherType.Type.ETH_P_NONE));
+        }
+
+        return new FlowMatch(keys);
     }
 }

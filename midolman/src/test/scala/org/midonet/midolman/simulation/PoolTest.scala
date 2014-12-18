@@ -529,7 +529,7 @@ class PoolTest extends MidolmanSpec {
                     (exteriorClientPort, clientToVipPkt(srcPort)))
                 val wc = flow._1.asInstanceOf[AddVirtualWildcardFlow]
                 val action = wc.flow.actions(1).asInstanceOf[FlowActionSetKey]
-                val ip = action.getFlowKey.asInstanceOf[FlowKeyIPv4].getDst
+                val ip = action.getFlowKey.asInstanceOf[FlowKeyIPv4].ipv4_dst
                 val index = (ip & 0xff00) >> 8
                 dstCounts(index) += 1
             }
@@ -602,7 +602,7 @@ class PoolTest extends MidolmanSpec {
                 flow.actions flatMap {
                     case f: FlowActionSetKey =>
                         f.getFlowKey match {
-                            case k: FlowKeyIPv4 => Some(k.getDst)
+                            case k: FlowKeyIPv4 => Some(k.ipv4_dst)
                             case _ => None
                         }
                     case _ => None

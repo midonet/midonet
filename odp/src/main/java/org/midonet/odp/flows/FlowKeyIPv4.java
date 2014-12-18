@@ -51,27 +51,24 @@ import org.midonet.packets.IPv4Addr;
  */
 public class FlowKeyIPv4 implements FlowKey {
 
-    /*__be32*/ private int ipv4_src;
-    /*__be32*/ private int ipv4_dst;
-    /*__u8*/ private byte ipv4_proto;
-    /*__u8*/ private byte ipv4_tos;
-    /*__u8*/ private byte ipv4_ttl;
-    /*__u8*/ private byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
-
-    private int hashCode = 0;
+    /*__be32*/ public int ipv4_src;
+    /*__be32*/ public int ipv4_dst;
+    /*__u8*/ public byte ipv4_proto;
+    /*__u8*/ public byte ipv4_tos;
+    /*__u8*/ public byte ipv4_ttl;
+    /*__u8*/ public byte ipv4_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     // This is used for deserialization purposes only.
     FlowKeyIPv4() { }
 
-    FlowKeyIPv4(int src, int dst, byte protocol, byte typeOfService,
-                byte ttl, byte fragmentType) {
+    public FlowKeyIPv4(int src, int dst, byte protocol, byte typeOfService,
+                       byte ttl, byte fragmentType) {
         this.ipv4_src = src;
         this.ipv4_dst = dst;
         this.ipv4_proto = protocol;
         this.ipv4_tos = typeOfService;
         this.ipv4_ttl = ttl;
         this.ipv4_frag = fragmentType;
-        computeHashCode();
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -91,7 +88,16 @@ public class FlowKeyIPv4 implements FlowKey {
         ipv4_tos = buf.get();
         ipv4_ttl = buf.get();
         ipv4_frag = buf.get();
-        computeHashCode();
+    }
+
+    @Override
+    public void wildcard() {
+        ipv4_src = 0;
+        ipv4_dst = 0;
+        ipv4_proto = 0;
+        ipv4_tos = 0;
+        ipv4_ttl = 0;
+        ipv4_frag = 0;
     }
 
     public short attrId() {
@@ -116,16 +122,13 @@ public class FlowKeyIPv4 implements FlowKey {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private void computeHashCode() {
-        hashCode = ipv4_src;
+        int hashCode = ipv4_src;
         hashCode = 31 * hashCode + ipv4_dst;
         hashCode = 31 * hashCode + (int) ipv4_proto;
         hashCode = 31 * hashCode + (int) ipv4_tos;
         hashCode = 31 * hashCode + (int) ipv4_ttl;
         hashCode = 31 * hashCode + (int) ipv4_frag;
+        return hashCode;
     }
 
     @Override
@@ -139,29 +142,4 @@ public class FlowKeyIPv4 implements FlowKey {
             ", frag=" + ipv4_frag +
             '}';
     }
-
-    public int getSrc() {
-        return ipv4_src;
-    }
-
-    public int getDst() {
-        return ipv4_dst;
-    }
-
-    public byte getProto() {
-        return ipv4_proto;
-    }
-
-    public byte getTos() {
-        return ipv4_tos;
-    }
-
-    public byte getTtl() {
-        return ipv4_ttl;
-    }
-
-    public byte getFrag() {
-        return ipv4_frag;
-    }
 }
-
