@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_b8253d0c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3PO.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "s/translate and import/translates and imports/",
+      "range": {
+        "startLine": 31,
+        "startChar": 53,
+        "endLine": 31,
+        "endChar": 73
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_f81fc5b5",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "You can delete this TODO.",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 41
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_d81c81c4",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "\"Failed to execute\" to make it consistent with the above 2?",
+      "range": {
+        "startLine": 152,
+        "startChar": 26,
+        "endLine": 152,
+        "endChar": 42
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_d84ac1ab",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/NetworkTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "We should either push the definition for translate(neutron.NeutronOp[NeutronNetwork]) up to NeutronTranslator, or inline create/update/delete() inside translate(neutron.NeutronOp[NeutronNetwork]).",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 74
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_98503960",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/midonet/package.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "A stupid nit, but it is natural if \"Create\" comes first?",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 38,
+        "endChar": 5
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_f876a505",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/services/c3po/C3POStorageManagerTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 212,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T06:20:38Z",
+      "side": 1,
+      "message": "Can this be just \"neutron.Create\"?",
+      "range": {
+        "startLine": 212,
+        "startChar": 45,
+        "endLine": 212,
+        "endChar": 107
+      },
+      "revId": "30116edcfa31bcd1983ad89536ba2022f00d48c5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
