@@ -494,9 +494,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     def tunnelIsLike(srcIp: Int, dstIp: Int, key: Long):
         FlowKeyTunnel => Boolean = { tunnelInfo =>
-            tunnelInfo.getIpv4SrcAddr == srcIp &&
-            tunnelInfo.getIpv4DstAddr == dstIp &&
-            tunnelInfo.getTunnelID == key
+            tunnelInfo.ipv4_src == srcIp &&
+            tunnelInfo.ipv4_dst == dstIp &&
+            tunnelInfo.tun_id == key
         }
 
     def ackWCAdded(until: Duration = timeout) =

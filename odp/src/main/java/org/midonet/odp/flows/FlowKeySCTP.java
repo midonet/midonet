@@ -24,12 +24,12 @@ import org.midonet.packets.Unsigned;
 
 public class FlowKeySCTP implements FlowKey {
 
-    /*__be16*/ private int sctp_src;
-    /*__be16*/ private int sctp_dst;
+    /*__be16*/ public int sctp_src;
+    /*__be16*/ public int sctp_dst;
 
     FlowKeySCTP() { }
 
-    FlowKeySCTP(int source, int destination) {
+    public FlowKeySCTP(int source, int destination) {
         TCP.ensurePortInRange(source);
         TCP.ensurePortInRange(destination);
         sctp_src = source;
@@ -47,16 +47,14 @@ public class FlowKeySCTP implements FlowKey {
         sctp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
+    @Override
+    public void wildcard() {
+        sctp_src = 0;
+        sctp_dst = 0;
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.SCTP;
-    }
-
-    public int getSCTPSrc() {
-        return sctp_src;
-    }
-
-    public int getSCTPDst() {
-        return sctp_dst;
     }
 
     @Override

@@ -18,7 +18,6 @@ package org.midonet.odp.protos;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -330,7 +329,8 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         ByteBuffer buf = getBuffer();
         protocol.prepareFlowEnum(datapathId, buf);
-        sendMultiAnswerNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
+        sendMultiAnswerNetlinkMessage(buf, callback, Flow.deserializer,
+                                      timeoutMillis);
     }
 
     @Override
@@ -348,7 +348,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowCreate(datapathId, flow, buf);
+        protocol.prepareFlowCreate(datapathId, datapath.supportsMegaflow(), flow, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -432,7 +432,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareFlowSet(datapathId, flow, buf);
+        protocol.prepareFlowSet(datapathId, datapath.supportsMegaflow(), flow, buf);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 
@@ -467,7 +467,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
             return;
         }
 
-        if (actions == null || actions.isEmpty()) {
+        if (actions.isEmpty()) {
             NetlinkException ex = new OvsDatapathInvalidParametersException(
                     "The packet should have an action set up.");
             propagateError(callback, ex);

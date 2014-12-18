@@ -303,6 +303,11 @@ public class FlowMatchTest {
     @Test
     public void testHighestLayerUsed() {
         FlowMatch m = new FlowMatch();
+        m.setEthSrc(MAC.random());
+        m.setDstPort(1);
+        m.setNetworkSrc(IPv4Addr.random());
+        m.setNetworkTTL((byte)1);
+
         assertEquals(m.highestLayerSeen(), 0);
         m.getEthSrc();
         assertEquals(m.highestLayerSeen(), 2);
