@@ -422,7 +422,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             flowFamily.contextNew,
             flags,
-            flow.describeOneRequest(getBuffer(), datapathId),
+            flow.describeOneRequest(getBuffer(), datapathId, datapath.supportsMegaflow()),
             callback,
             Flow.deserializer,
             timeoutMillis);
@@ -523,7 +523,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         sendNetlinkMessage(
             flowFamily.contextSet,
             NLFlag.REQUEST | NLFlag.ECHO,
-            flow.describeOneRequest(getBuffer(), datapathId),
+            flow.describeOneRequest(getBuffer(), datapathId, datapath.supportsMegaflow()),
             callback,
             Flow.deserializer,
             timeoutMillis);

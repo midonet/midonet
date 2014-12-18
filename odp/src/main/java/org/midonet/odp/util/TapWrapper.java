@@ -50,17 +50,14 @@ public class TapWrapper {
         this.name = name;
 
         if (create) {
-            // Create Tap
-            newProcess(
-                String.format("sudo -n ip tuntap add dev %s mode tap", name))
+            newProcess(String.format("ip tuntap add dev %s mode tap", name))
                 .logOutput(log, "create_tap")
+                .withSudo()
                 .runAndWait();
 
-            newProcess(
-                String.format(
-                    "sudo -n ip link set dev %s arp off multicast off up",
-                    name))
+            newProcess(String.format("ip link set dev %s arp off multicast off up", name))
                 .logOutput(log, "create_tap")
+                .withSudo()
                 .runAndWait();
         }
 
@@ -256,8 +253,9 @@ public class TapWrapper {
         closeFd();
 
         newProcess(
-            String.format("sudo -n ip tuntap del dev %s mode tap", getName()))
+            String.format("ip tuntap del dev %s mode tap", getName()))
             .logOutput(log, "remove_tap@" + getName())
+            .withSudo()
             .runAndWait();
         up = false;
 

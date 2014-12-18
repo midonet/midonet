@@ -17,18 +17,14 @@ package org.midonet.midolman
 
 import java.util.{UUID, List => JList}
 
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, PipelinePath}
-
 import scala.collection.JavaConversions._
-import scala.reflect.ClassTag
 
 import akka.actor._
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.DeduplicationActor.ActionsCache
+import org.midonet.midolman.PacketWorkflow.{PipelinePath, TemporaryDrop}
 import org.midonet.midolman.io.DatapathConnectionPool
 import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
@@ -40,6 +36,7 @@ import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
+import org.slf4j.LoggerFactory
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -98,10 +95,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 
     private def wildflowForTunnelPacket(context: PacketContext,
                                         forwardTo: DpPort): WildcardFlow = {
-        val wmatch = new FlowMatch()
-        wmatch setTunnelSrc context.origMatch.getTunnelSrc
-        wmatch setTunnelDst context.origMatch.getTunnelDst
-        wmatch setTunnelKey context.origMatch.getTunnelKey
+        val wmatch = context.origMatch
 
         context.addFlowTag(FlowTagger.tagForTunnelKey(wmatch.getTunnelKey))
         context.addFlowTag(FlowTagger.tagForDpPort(forwardTo.getPortNo))
@@ -140,9 +134,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
                     (implicit val system: ActorSystem)
         extends FlowTranslator with PacketHandler with UnderlayTrafficHandler {
 
-    import org.midonet.midolman.DeduplicationActor._
-    import org.midonet.midolman.FlowController.{AddWildcardFlow, FlowAdded}
-    import org.midonet.midolman.PacketWorkflow._
+    import DeduplicationActor._
+    import FlowController.{AddWildcardFlow, FlowAdded}
+    import PacketWorkflow._
 
     val ERROR_CONDITION_HARD_EXPIRATION = 10000
 
@@ -158,19 +152,19 @@ class PacketWorkflow(protected val dpState: DatapathState,
         res
     }
 
-    override def drop(context: PacketContext) {
+    override def drop(context: PacketContext): Unit = {
         context.prepareForDrop(FlowController.lastInvalidationEvent)
         val wildFlow = WildcardFlow(wcmatch = context.origMatch,
             hardExpirationMillis = ERROR_CONDITION_HARD_EXPIRATION)
         addTranslatedFlow(context, wildFlow)
     }
 
-    def logResultNewFlow(msg: String, context: PacketContext, wflow: WildcardFlow) {
-        resultLogger.debug(s"$msg: match ${wflow.getMatch} will create flow with " +
-            s"actions ${wflow.actions}, and tags ${context.flowTags}")
+    def logResultNewFlow(msg: String, context: PacketContext, wflow: WildcardFlow): Unit = {
+        resultLogger.debug(s"$msg: match ${wflow.getMatch}, actions " +
+                           s"${wflow.actions}, and tags ${context.flowTags}")
     }
 
-    def logResultMatchedFlow(msg: String, context: PacketContext, wflow: WildcardFlow) {
+    def logResultMatchedFlow(msg: String, context: PacketContext, wflow: WildcardFlow): Unit = {
         resultLogger.debug(s"$msg: match ${wflow.getMatch} with actions ${wflow.actions}")
     }
 
@@ -179,7 +173,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     private def notifyFlowAdded(context: PacketContext,
                                 flow: Flow,
-                                newWildFlow: Option[WildcardFlow]) {
+                                newWildFlow: Option[WildcardFlow]): Unit = {
         context.log.debug("Successfully created flow")
         newWildFlow match {
             case None =>
@@ -197,29 +191,17 @@ class PacketWorkflow(protected val dpState: DatapathState,
 
     private def createFlow(context: PacketContext,
                            wildFlow: WildcardFlow,
-                           newWildFlow: Option[WildcardFlow] = None) {
-        context.log.debug("Creating flow from {}", wildFlow)
-
-        val flowMatch = context.packet.getMatch
-        val flowMask = new FlowMask()
-        if (flowMatch.hasKey(OpenVSwitch.FlowKey.Attr.TcpFlags)) {
-            // wildcard the TCP flags
-            // TODO: this will change in the future: we'll use the wildcard match
-            //       until then when we are smarter, we must set exact matches
-            //       for everything up to the TCPFlags level... [alvaro]
-            flowMask.addKey(FlowKeys.priority(FlowMask.PRIO_EXACT)).
-                     addKey(FlowKeys.inPort(FlowMask.INPORT_EXACT)).
-                     addKey(FlowKeys.ethernet(FlowMask.ETHER_EXACT,
-                                              FlowMask.ETHER_EXACT)).
-                     addKey(FlowKeys.etherType(FlowMask.ETHERTYPE_EXACT)).
-                     addKey(FlowKeys.ipv4(FlowMask.IP_EXACT, FlowMask.IP_EXACT,
-                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT,
-                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT)).
-                     addKey(FlowKeys.tcp(FlowMask.TCP_EXACT, FlowMask.TCP_EXACT)).
-                     addKey(FlowKeys.tcpFlags(FlowMask.TCPFLAGS_ANY))
-        }
-
-        val dpFlow = new Flow(flowMatch, flowMask, wildFlow.getActions)
+                           newWildFlow: Option[WildcardFlow] = None): Unit = {
+        // We need to create the flow using the packet's original flow match and
+        // contemplate two cases: when we are creating a flow from a flow table
+        // hit, in which case we need to propagate the stored flow match's seen
+        // fields; or when we are creating a new wildcard flow and we have
+        // to propagate the seen fields from the packet context's modifiable
+        // flow match.
+        wildFlow.wcmatch.propagateSeenFieldsFrom(context.wcmatch)
+        context.origMatch.propagateSeenFieldsFrom(wildFlow.wcmatch)
+        val dpFlow = new Flow(context.origMatch, wildFlow.getActions)
+        context.log.debug(s"Creating flow $dpFlow from $wildFlow")
         try {
             datapathConn(context).flowsCreate(datapath, dpFlow)
             notifyFlowAdded(context, dpFlow, newWildFlow)
@@ -437,6 +419,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 runSimulation(context)
             }
         } else {
+            context.wcmatch.markAllAsSeen()
             TemporaryDrop
         }
 
@@ -456,36 +439,23 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     private def handleDHCP(context: PacketContext): Boolean = {
-        def isUdpDhcpFlowKey(k: FlowKey): Boolean = k match {
-            case udp: FlowKeyUDP => (udp.getUdpSrc == 68) && (udp.getUdpDst == 67)
-            case _ => false
-        }
+        val fmatch = context.origMatch
+        val isDhcp = fmatch.getEtherType == IPv4.ETHERTYPE &&
+                     fmatch.getNetworkProto == UDP.PROTOCOL_NUMBER &&
+                     fmatch.getSrcPort == 68 && fmatch.getDstPort == 67
 
-        def payloadAs[T](pkt: IPacket)(implicit tag: ClassTag[T]): Option[T] = {
-            val payload = pkt.getPayload
-            if (tag.runtimeClass == payload.getClass)
-                Some(payload.asInstanceOf[T])
-            else
-                None
-        }
-
-        if (context.packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
+        if (!isDhcp)
             return false
 
-        (for {
-            ip4 <- payloadAs[IPv4](context.packet.getEthernet)
-            udp <- payloadAs[UDP](ip4)
-            dhcp <- payloadAs[DHCP](udp)
-            if dhcp.getOpCode == DHCP.OPCODE_REQUEST
-        } yield {
-            val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
+        val port = VirtualTopologyActor.tryAsk[Port](context.inputPort)
+        val dhcp = context.packet.getEthernet.getPayload.getPayload.getPayload.asInstanceOf[DHCP]
+        dhcp.getOpCode == DHCP.OPCODE_REQUEST &&
             processDhcp(context, port, dhcp, DatapathController.minMtu)
-        }) getOrElse false
     }
 
     private def processDhcp(context: PacketContext, inPort: Port,
                             dhcp: DHCP, mtu: Short): Boolean = {
-        val srcMac = context.packet.getEthernet.getSourceMACAddress
+        val srcMac = context.origMatch.getEthSrc
         val optMtu = Option(mtu)
         DhcpImpl(dataClient, inPort, dhcp, srcMac, optMtu, context.log) match {
             case Some(dhcpReply) =>
