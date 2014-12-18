@@ -35,7 +35,7 @@ import org.midonet.packets.*;
 public class WildcardMatch implements Cloneable {
 
     private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
-    private EnumSet<Field> seenFields = EnumSet.noneOf(Field.class);
+    private long seenFields = 0;
 
     public enum Field {
         InputPortNumber,
@@ -45,6 +45,7 @@ public class WildcardMatch implements Cloneable {
         EthSrc,
         EthDst,
         EtherType,
+        VlanId,         // MM-custom field
         NetworkSrc,
         NetworkDst,
         NetworkProto,
@@ -53,41 +54,25 @@ public class WildcardMatch implements Cloneable {
         FragmentType,
         SrcPort,
         DstPort,
-        // MM-custom fields below this point
-        IcmpId,
-        IcmpData,
-        VlanId
+        IcmpId,         // MM-custom field
+        IcmpData,       // MM-custom field
+        COUNT
     }
 
-    public static final Field[] IcmpFields = { Field.IcmpData, Field.IcmpId };
-
-    private short getLayer(Field f) {
-        switch(f) {
-            case EthSrc:
-            case EthDst:
-            case EtherType:
-            case VlanId:
-                return 2;
-            case NetworkDst:
-            case NetworkProto:
-            case NetworkSrc:
-            case NetworkTOS:
-            case NetworkTTL:
-            case FragmentType:
-                return 3;
-            case DstPort:
-            case SrcPort:
-            case IcmpData:
-            case IcmpId:
-                return 4;
-            case InputPortNumber:
-            case TunnelKey:
-            case TunnelSrc:
-            case TunnelDst:
-            default:
-                return 1;
+    private static final short[] fieldLayer = new short[Field.COUNT.ordinal()];
+    static {
+        Field[] fields = Field.values();
+        for (int i = 0; i < fieldLayer.length; ++i) {
+            int ordinal = fields[i].ordinal();
+            fieldLayer[i] = ordinal >= Field.SrcPort.ordinal() ? 4
+                          : ordinal >= Field.NetworkSrc.ordinal() ? 3
+                          : ordinal >= Field.EthSrc.ordinal() ? 2
+                          : (short) 1;
         }
     }
+
+    public static final long icmpFieldsMask = (1L << Field.IcmpData.ordinal()) |
+                                              (1L << Field.IcmpId.ordinal());
 
     /**
      * WARNING: this is giving you a reference to the private Set itself. Be
@@ -112,11 +97,9 @@ public class WildcardMatch implements Cloneable {
     }
 
     /**
-     * WARNING: the same restrictions of getUsedFields() apply here too.
      * @return the set of Fields that have been read from this instance.
      */
-    @Nonnull
-    public Set<Field> getSeenFields() {
+    public long getSeenFields() {
         return seenFields;
     }
 
@@ -141,62 +124,50 @@ public class WildcardMatch implements Cloneable {
     private byte[] icmpData;
     private List<Short> vlanIds = new ArrayList<>();
 
-    private boolean trackSeenFields = true;
+    private int trackSeenFields = 1;
 
     /**
      * Log the fact that <pre>field</pre> has been seen in this match. Will
      * NOT log it if <pre>doNotTrackSeenFields</pre> has last been called.
      */
     private void fieldSeen(Field field) {
-        if (this.trackSeenFields) {
-            this.seenFields.add(field);
-        }
+        seenFields |= trackSeenFields << field.ordinal();
     }
 
     /**
      * Track seen fields from now on.
      */
     public void doTrackSeenFields() {
-        this.trackSeenFields = true;
+        trackSeenFields = 1;
     }
 
     /**
      * Do not track seen fields from now on.
      */
     public void doNotTrackSeenFields() {
-        this.trackSeenFields = false;
+        trackSeenFields = 0;
     }
 
     /**
      * Reports the highest layer seen among the fields accessed on this match.
      * E.g.: if only ethSrc was seen, it'll return 2, if also
-     * srcPort was seen, it'll return 4.
+     * srcPort was seen, it'll return 4. Returns 0 if no field was seen.
      *
      * @return
      */
     public short highestLayerSeen() {
-        short layer = 0;
-        short fLayer;
-        for (Field f : this.seenFields) {
-            fLayer = getLayer(f);
-            layer = (fLayer > layer) ? fLayer : layer;
-        }
-        return layer;
+        // Calculate the ordinal of the highest field seen from the expression
+        // seenFields |= 1 << {field ordinal}
+        int ordinalOfHighest = 63 - Long.numberOfLeadingZeros(seenFields);
+        return ordinalOfHighest >= 0 ? fieldLayer[ordinalOfHighest] : 0;
     }
 
     public boolean userspaceFieldsSeen() {
-        for (Field f : IcmpFields) {
-            if (seenFields.contains(f))
-                return true;
-        }
-        return false;
+        return (seenFields & icmpFieldsMask) != 0;
     }
 
     public void propagateUserspaceFieldsOf(WildcardMatch that) {
-        for (Field f : IcmpFields) {
-            if (that.seenFields.contains(f))
-                this.seenFields.add(f);
-        }
+        seenFields |= that.seenFields & icmpFieldsMask;
     }
 
     /**
@@ -232,8 +203,7 @@ public class WildcardMatch implements Cloneable {
         usedFields.clear();
         usedFields.addAll(that.usedFields);
         trackSeenFields = that.trackSeenFields;
-        seenFields.clear();
-        seenFields.addAll(that.seenFields);
+        seenFields = that.seenFields;
     }
 
     /**
@@ -250,8 +220,8 @@ public class WildcardMatch implements Cloneable {
         this.ethSrc = null;
         this.ethDst = null;
         this.vlanIds = null;
-        this.trackSeenFields = true;
-        this.seenFields.clear();
+        this.trackSeenFields = 1;
+        this.seenFields = 0;
     }
 
     @Nonnull
