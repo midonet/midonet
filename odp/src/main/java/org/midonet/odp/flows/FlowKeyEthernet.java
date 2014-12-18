@@ -22,16 +22,17 @@ import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.MAC;
 
 public class FlowKeyEthernet implements CachedFlowKey {
+    public static int ETH_ALEN = 6;
 
-    /*__u8*/ private byte[] eth_src = new byte[6]; // always 6 bytes long
-    /*__u8*/ private byte[] eth_dst = new byte[6]; // always 6 bytes long
+    /*__u8*/ public byte[] eth_src = new byte[ETH_ALEN];
+    /*__u8*/ public byte[] eth_dst = new byte[ETH_ALEN];
 
     private int hashCode = 0;
 
     // This is used for deserialization purposes only.
     FlowKeyEthernet() { }
 
-    FlowKeyEthernet(byte[] src, byte[] dst) {
+    public FlowKeyEthernet(byte[] src, byte[] dst) {
         eth_src = src;
         eth_dst = dst;
         computeHashCode();
@@ -49,16 +50,14 @@ public class FlowKeyEthernet implements CachedFlowKey {
         computeHashCode();
     }
 
+    @Override
+    public void wildcard() {
+        Arrays.fill(eth_src, (byte) 0);
+        Arrays.fill(eth_dst, (byte) 0);
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.Ethernet;
-    }
-
-    public byte[] getSrc() {
-        return eth_src;
-    }
-
-    public byte[] getDst() {
-        return eth_dst;
     }
 
     @Override
@@ -90,4 +89,3 @@ public class FlowKeyEthernet implements CachedFlowKey {
             '}';
     }
 }
-

@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -36,15 +37,22 @@ public class Datapath {
     private final int index;
     private final String name;
     private final Stats stats;
+    private final MegaflowStats megaflowStats;
+
+    public Datapath(int index, String name) {
+        this(index, name, new Stats(0L,0L,0L,0L), null);
+    }
 
     public Datapath(int index, String name, Stats stats) {
+        this(index, name, stats, null);
+    }
+
+    public Datapath(int index, String name, Stats stats,
+                    MegaflowStats megaflowStats) {
         this.name = name;
         this.index = index;
         this.stats = stats;
-    }
-
-    public Datapath(int index, String name) {
-        this(index, name, new Stats(0L,0L,0L,0L));
+        this.megaflowStats = megaflowStats;
     }
 
     public int getIndex() {
@@ -59,12 +67,20 @@ public class Datapath {
         return stats;
     }
 
+    public MegaflowStats getMegaflowStats() {
+        return megaflowStats;
+    }
+
+    public boolean supportsMegaflow() {
+        return megaflowStats != null;
+    }
+
     public static Datapath buildFrom(ByteBuffer buf) {
         int index = buf.getInt();
         String name = NetlinkMessage.readStringAttr(buf, Attr.Name);
-        short id = Stats.trans.attrIdOf(null);
-        Stats stats = NetlinkMessage.readAttr(buf, id, Stats.trans);
-        return new Datapath(index, name, stats);
+        Stats stats = NetlinkMessage.readAttr(buf, Attr.Stat, Stats.trans);
+        MegaflowStats megaflowStats = NetlinkMessage.readAttr(buf, Attr.MegaflowStat, MegaflowStats.trans);
+        return new Datapath(index, name, stats, megaflowStats);
     }
 
     /** This function is only used in test, as all dp commands directly
@@ -179,44 +195,34 @@ public class Datapath {
         };
 
         public static Stats random() {
+            Random r = ThreadLocalRandom.current();
             return new Stats(r.nextLong(), r.nextLong(),
                              r.nextLong(), r.nextLong());
         }
     }
 
     /**
-     * Megaflows-specific datapath statistics
+     * Statistics about mega flow masks usage for the datapath.
      */
     public static class MegaflowStats {
 
-        private final long maskHits;
-        private final int numMasks;
+        public final long maskHits;
+        public final int numMasks;
 
         public MegaflowStats(long hits, int num) {
             this.maskHits = hits;
             this.numMasks = num;
         }
 
-        /** Get the number of masks used for flow lookups. */
-        public long getMaskHits() {
-            return maskHits;
-        }
-
-        /** Get the number of masks for the datapath. */
-        public int getNumMasks() {
-            return numMasks;
-        }
-
         @Override
+        @SuppressWarnings("unchecked")
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            @SuppressWarnings("unchecked") // safe cast
             MegaflowStats that = (MegaflowStats) o;
-
-            return (this.maskHits == that.maskHits)
-                   && (this.numMasks == that.numMasks);
+            return this.maskHits == that.maskHits
+                && this.numMasks == that.numMasks;
         }
 
         @Override
@@ -227,7 +233,7 @@ public class Datapath {
 
         @Override
         public String toString() {
-            return "Stats{" +
+            return "MegaflowStats{" +
                    "maskHits=" + maskHits +
                    ", num=" + numMasks +
                    '}';
@@ -237,11 +243,11 @@ public class Datapath {
             public short attrIdOf(MegaflowStats any) {
                 return Attr.MegaflowStat;
             }
+
             public int serializeInto(ByteBuffer receiver, MegaflowStats value) {
-                receiver.putLong(value.maskHits)
-                    .putInt(value.numMasks);
-                return 4 * 8;
+               return 0;
             }
+
             public MegaflowStats deserializeFrom(ByteBuffer source) {
                 long hits = source.getLong();
                 int num = source.getInt();
@@ -250,6 +256,7 @@ public class Datapath {
         };
 
         public static MegaflowStats random() {
+            Random r = ThreadLocalRandom.current();
             return new MegaflowStats(r.nextLong(), r.nextInt());
         }
     }
@@ -309,10 +316,9 @@ public class Datapath {
     }
 
     public static Datapath random() {
+        Random r = ThreadLocalRandom.current();
         return new Datapath(1 + r.nextInt(100),
                             new BigInteger(100, r).toString(32),
                             Stats.random());
     }
-
-    private static final Random r = new Random();
 }
