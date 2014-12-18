@@ -16,8 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.text.SimpleDateFormat
-import java.util.{Arrays, ArrayList, Date, Set => JSet, UUID}
+import java.util.{ArrayList, Arrays, UUID, Set => JSet}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -25,16 +24,15 @@ import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
-
 import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.odp.flows.{FlowActions, FlowKeys, FlowAction}
-import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.Packet
+import org.midonet.odp.flows.FlowActions._
+import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
+import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
+import org.slf4j.LoggerFactory
 
 object PacketContext {
     val defaultLog =
@@ -172,12 +170,10 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
         }
 
     private def diffIp(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!matchObjectsSame(origMatch.getNetworkSrcIP,
-                              wcmatch.getNetworkSrcIP) ||
-            !matchObjectsSame(origMatch.getNetworkDstIP,
-                              wcmatch.getNetworkDstIP) ||
-            !matchObjectsSame(origMatch.getNetworkTTL,
-                              wcmatch.getNetworkTTL)) {
+        if (origMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
+            origMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
+            origMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
+
             actions.append(setKey(
                 wcmatch.getNetworkSrcIP match {
                     case srcIP: IPv4Addr =>
@@ -237,12 +233,10 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
     }
 
     private def diffL4(actions: ArrayBuffer[FlowAction]): Unit =
-        if (!matchObjectsSame(origMatch.getSrcPort,
-            wcmatch.getSrcPort) ||
-                !matchObjectsSame(origMatch.getDstPort,
-                    wcmatch.getDstPort)) {
+        if (origMatch.getSrcPort != wcmatch.getSrcPort ||
+            origMatch.getDstPort != wcmatch.getDstPort) {
 
-            wcmatch.getNetworkProto.byteValue() match {
+            wcmatch.getNetworkProto match {
                 case TCP.PROTOCOL_NUMBER =>
                     actions.append(setKey(FlowKeys.tcp(
                         wcmatch.getSrcPort,

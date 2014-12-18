@@ -15,37 +15,30 @@
  */
 package org.midonet.midolman
 
-import scala.collection.mutable
-import scala.collection.immutable.HashMap
-import scala.concurrent.duration._
 import java.util.UUID
+
+import scala.collection.immutable.HashMap
+import scala.collection.mutable
+import scala.concurrent.duration._
 
 import akka.testkit.TestProbe
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-import org.midonet.cluster.data.{TunnelZone, Router}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.FlowController.InvalidateFlowsByTag
-import org.midonet.midolman.FlowController.WildcardFlowAdded
-import org.midonet.midolman.FlowController.WildcardFlowRemoved
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
+import org.midonet.cluster.data.{Router, TunnelZone}
+import org.midonet.midolman.FlowController.{InvalidateFlowsByTag, WildcardFlowAdded, WildcardFlowRemoved}
 import org.midonet.midolman.topology.LocalPortActive
-import org.midonet.midolman.util.MidolmanTestCase
-import org.midonet.midolman.util.{TestHelpers, RouterHelper}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
+import org.midonet.midolman.util.{MidolmanTestCase, RouterHelper, TestHelpers}
 import org.midonet.odp.Datapath
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.packets.IPv4Addr
-import org.midonet.packets.MAC
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
+import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
+import org.scalatest.junit.JUnitRunner
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -121,7 +114,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
         mapPortNameShortNumber += outPortName -> 2
         requestOfType[LocalPortActive](portsProbe)
     }
-
+/*
     def testDpInPortDeleted() {
 
         val ipToReach = "11.11.0.2"
@@ -148,8 +141,8 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
 
         // We expect the flow to be invalidated
         wflowRemovedProbe.expectMsgClass(classOf[WildcardFlowRemoved])
-    }
-
+    }*/
+/*
     def testDpOutPortDeleted() {
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
@@ -179,7 +172,7 @@ class DatapathFlowInvalidationTestCase extends MidolmanTestCase
             "WildcardFlowRemoved")(matchActionsFlowAddedOrRemoved(mutable.Buffer[FlowAction]
             (output(mapPortNameShortNumber(outPortName)))))*/
     }
-
+*/
     def testTunnelPortAddedAndRemoved() {
 
         drainProbes()
