@@ -32,7 +32,7 @@ public class FlowKeyTCPFlagsTest {
 
     @Test
     public void testGetSetFlag() {
-        List<TCP.Flag> flagsList = new ArrayList<TCP.Flag>();
+        List<TCP.Flag> flagsList = new ArrayList<>();
         flagsList.add(TCP.Flag.Ack);
 
         FlowKeyTCPFlags flags1 = tcpFlags(flagsList);
@@ -41,9 +41,9 @@ public class FlowKeyTCPFlagsTest {
         Assert.assertFalse(flags1.getFlag(TCP.Flag.Syn));
         Assert.assertFalse(flags1.getFlag(TCP.Flag.Fin));
 
-        flags1.setFlag(TCP.Flag.Ack, false);
-        flags1.setFlag(TCP.Flag.Syn, true);
-        flags1.setFlag(TCP.Flag.Fin, true);
+        flags1.clearFlag(TCP.Flag.Ack);
+        flags1.setFlag(TCP.Flag.Syn);
+        flags1.setFlag(TCP.Flag.Fin);
 
         Assert.assertFalse(flags1.getFlag(TCP.Flag.Ack));
         Assert.assertTrue(flags1.getFlag(TCP.Flag.Syn));
@@ -52,7 +52,7 @@ public class FlowKeyTCPFlagsTest {
 
     @Test
     public void testSerialization() {
-        List<TCP.Flag> flagsList = new ArrayList<TCP.Flag>();
+        List<TCP.Flag> flagsList = new ArrayList<>();
         flagsList.add(TCP.Flag.Ack);
         flagsList.add(TCP.Flag.Rst);
 
@@ -69,4 +69,3 @@ public class FlowKeyTCPFlagsTest {
         Assert.assertTrue(flags2.getFlag(TCP.Flag.Rst));
     }
 }
-

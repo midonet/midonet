@@ -315,6 +315,9 @@ public interface OpenVSwitch {
             short TcpFlags  = (short) 18;
             short IPv4Tunnel= (short) 19;
             short MPLS      = (short) 62;
+            short MAX       = TcpFlags + 1;   // Small hack predicated on the
+            short MASK      = (short) 64 - 1; // assumption we ignore IPv4Tunnel
+                                              // and MPLS.
         }
 
         //enum ovs_tunnel_key_attr {

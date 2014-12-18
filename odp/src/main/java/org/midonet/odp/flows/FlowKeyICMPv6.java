@@ -23,8 +23,8 @@ import static org.midonet.packets.Unsigned.unsign;
 
 public class FlowKeyICMPv6 implements FlowKey {
 
-    /*__u8*/ private byte icmpv6_type;
-    /*__u8*/ private byte icmpv6_code;
+    /*__u8*/ public byte icmpv6_type;
+    /*__u8*/ public byte icmpv6_code;
 
     // This is used for deserialization purposes only.
     FlowKeyICMPv6() { }
@@ -45,16 +45,14 @@ public class FlowKeyICMPv6 implements FlowKey {
         icmpv6_code = buf.get();
     }
 
+    @Override
+    public void wildcard() {
+        icmpv6_type = 0;
+        icmpv6_code = 0;
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.ICMPv6;
-    }
-
-    public byte getType() {
-        return icmpv6_type;
-    }
-
-    public byte getCode() {
-        return icmpv6_code;
     }
 
     @Override

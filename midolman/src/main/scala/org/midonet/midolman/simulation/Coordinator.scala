@@ -438,7 +438,7 @@ class Coordinator(context: PacketContext)
 
     /** Generates a final AddVirtualWildcardFlow simulation result */
     private def virtualWildcardFlowResult(wcFlow: WildcardFlow) = {
-        wcFlow.wcmatch.propagateUserspaceFieldsOf(context.wcmatch)
+        wcFlow.wcmatch.propagateSeenFieldsFrom(context.wcmatch)
         AddVirtualWildcardFlow(wcFlow)
     }
 }
