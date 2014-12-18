@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_b8889dc7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "Is an exclusive ownership the common case and that\u0027s why it\u0027s the default here?",
+      "range": {
+        "startLine": 402,
+        "startChar": 37,
+        "endLine": 402,
+        "endChar": 60
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_18c1e9e4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "Is this the agent that wants to modify the object? If yes, owner is kind of misleading because maybe it doesn\u0027t have ownership at the moment. Why not using agent instead?",
+      "range": {
+        "startLine": 330,
+        "startChar": 29,
+        "endLine": 330,
+        "endChar": 34
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_58bb7172",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "This seems to be a sentence like:\n\"I never lie\" ;-)",
+      "range": {
+        "startLine": 348,
+        "startChar": 52,
+        "endLine": 348,
+        "endChar": 77
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_b8affd2a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "Does this mean that you plan on using this method to either update the object or the ownership?",
+      "range": {
+        "startLine": 350,
+        "startChar": 16,
+        "endLine": 351,
+        "endChar": 69
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_98acb937",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "same thing as above",
+      "range": {
+        "startLine": 451,
+        "startChar": 28,
+        "endLine": 451,
+        "endChar": 53
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_38630d1c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "It should probably be explained in the scala doc that deleting an object that has more than one owner removes our ownership.",
+      "range": {
+        "startLine": 465,
+        "startChar": 16,
+        "endLine": 465,
+        "endChar": 76
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_1868c9f4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1089,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T09:10:09Z",
+      "side": 1,
+      "message": "Shouldn\u0027t versions be equal too?",
+      "range": {
+        "startLine": 1089,
+        "startChar": 38,
+        "endLine": 1089,
+        "endChar": 54
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
