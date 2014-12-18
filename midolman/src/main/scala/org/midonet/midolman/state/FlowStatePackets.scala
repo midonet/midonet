@@ -16,16 +16,14 @@
 
 package org.midonet.midolman.state
 
-import java.util.UUID
-
 import java.io.ByteArrayInputStream
+import java.util.UUID
 
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.{Data, Ethernet, IPAddr, IPv4, IPv4Addr, IPv6Addr, MAC, UDP}
 import org.midonet.rpc.{FlowStateProto => Proto}
-import org.midonet.odp.Packet
-import org.midonet.odp.flows.FlowKeyTunnel
 
 object FlowStatePackets {
     /**
@@ -60,18 +58,8 @@ object FlowStatePackets {
     // 20(IP) + 8(GRE+Key) + 14(Ethernet w/o preamble and CRC) + 20(IP) + 8(UDP)
     val OVERHEAD = 70
 
-    def isStateMessage(packet: Packet): Boolean = {
-        var i = 0
-        val flowKeys = packet.getMatch.getKeys
-        while (i < flowKeys.size) {
-            val key = flowKeys.get(i)
-            key match {
-                case tunnel: FlowKeyTunnel =>
-                    return tunnel.getTunnelID == TUNNEL_KEY
-                case _ => i += 1
-            }
-        }
-        false
+    def isStateMessage(fmatch: FlowMatch): Boolean = {
+        fmatch.getTunnelKey == TUNNEL_KEY
     }
 
     def makeUdpShell(data: Array[Byte]): Ethernet = {

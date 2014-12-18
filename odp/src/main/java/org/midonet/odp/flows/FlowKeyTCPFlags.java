@@ -23,7 +23,6 @@ import org.midonet.odp.OpenVSwitch;
 import org.midonet.packets.TCP;
 import org.midonet.packets.Unsigned;
 
-
 /**
  * Flow key/mask for TCP flags
  *
@@ -36,12 +35,12 @@ import org.midonet.packets.Unsigned;
  */
 public class FlowKeyTCPFlags implements FlowKey {
 
-    /*__be16*/ private short flags;
+    /*__be16*/ public short flags;
 
     // This is used for deserialization purposes only.
     FlowKeyTCPFlags() { }
 
-    FlowKeyTCPFlags(short f) {
+    public FlowKeyTCPFlags(short f) {
         flags = f;
     }
 
@@ -49,17 +48,14 @@ public class FlowKeyTCPFlags implements FlowKey {
         flags = TCP.Flag.allOf(flst);
     }
 
-    public short getFlags() { return flags; }
-
-    // TODO: probably we do not need these two functions... [alvaro]
-
     public boolean getFlag(TCP.Flag f) { return (flags & f.bit) != 0; }
 
-    public void setFlag(TCP.Flag f, boolean v) {
-        if (v)
-            flags |= f.bit;
-        else
-            flags &= ~f.bit;
+    public void setFlag(TCP.Flag f) {
+        flags |= f.bit;
+    }
+
+    public void clearFlag(TCP.Flag f) {
+        flags &= ~f.bit;
     }
 
     public int serializeInto(ByteBuffer buffer) {
@@ -69,6 +65,11 @@ public class FlowKeyTCPFlags implements FlowKey {
 
     public void deserializeFrom(ByteBuffer buf) {
         flags = (short) Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
+    }
+
+    @Override
+    public void wildcard() {
+        flags = 0;
     }
 
     public short attrId() {
@@ -97,4 +98,3 @@ public class FlowKeyTCPFlags implements FlowKey {
                TCP.Flag.allOfToString(flags) + "'}";
     }
 }
-
