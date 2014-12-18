@@ -16,19 +16,15 @@
 
 package org.midonet.midolman
 
-import java.util.{Random, ArrayList}
 import java.util.concurrent.{ThreadLocalRandom, TimeUnit}
-
-import org.openjdk.jmh.annotations._
-import org.openjdk.jmh.annotations.{Setup => JmhSetup}
+import java.util.{ArrayList, Random}
 
 import org.midonet.midolman.FlowController.AddWildcardFlow
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.flows.{FlowKey, FlowKeys, IpProtocol}
-import org.midonet.odp.{Flow, FlowMatch}
-import org.midonet.packets.IPv4Addr
+import org.midonet.odp.{Flow, FlowMatch, FlowMatches}
 import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.functors.Callback0
+import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 
 object FlowTableQueryBenchmark {
     val numFlows = 10000
@@ -60,42 +56,11 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
 
     val wcMatches = new Array[FlowMatch](numFlows)
 
-    def generateFlowMatch(rand: Random): FlowMatch = {
-        val keys = new ArrayList[FlowKey]()
-        if (rand.nextInt(4) == 0) {
-            keys.add(FlowKeys.tunnel(rand.nextLong(), generateIp(rand).toInt,
-                                     generateIp(rand).toInt, 0))
-        }
-        keys.add(FlowKeys.ethernet(generateMac(rand), generateMac(rand)))
-        if (rand.nextInt(3) == 0) {
-            val proto = if (rand.nextBoolean()) IpProtocol.TCP else IpProtocol.UDP
-            keys.add(FlowKeys.ipv4(generateIp(rand), generateIp(rand), proto))
-            val src = rand.nextInt() & 0xFFFF
-            val dst = rand.nextInt() & 0xFFFF
-            keys.add(if (proto == IpProtocol.TCP) {
-                        FlowKeys.tcp(src, dst)
-                    } else {
-                        FlowKeys.udp(src, dst)
-                    })
-        }
-        new FlowMatch(keys)
-    }
-
-    def generateIp(rand: Random) = IPv4Addr.fromInt(rand.nextInt())
-
-    def generateMac(rand: Random) = {
-        val bytes = new Array[Byte](6)
-        rand.nextBytes(bytes)
-        bytes
-    }
-
-    def generatePort(rand: Random): Short = rand.nextInt().asInstanceOf[Short]
-
     @JmhSetup
     def setup() {
         val rand = new Random()
         for (i <- 0 until numFlows) {
-            val flowMatch = generateFlowMatch(rand)
+            val flowMatch = FlowMatches.generateFlowMatch(rand)
             wcMatches(i) = flowMatch
             FlowController ! AddWildcardFlow(
                 WildcardFlow(wcMatches(i)),

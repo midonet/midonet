@@ -17,37 +17,39 @@ package org.midonet.midolman.routingprotocols
 
 import java.io.File
 import java.util.{ArrayList, UUID}
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.util.{Failure, Success}
 
-import akka.actor.{Stash, Actor, ActorRef}
+import akka.actor.{Actor, ActorRef, Stash}
 import akka.pattern.pipe
 
 import org.midonet.cluster.client.BGPListBuilder
-import org.midonet.cluster.data.{Route, AdRoute, BGP}
+import org.midonet.cluster.data.{AdRoute, BGP, Route}
 import org.midonet.cluster.{Client, DataClient}
+import org.midonet.midolman.FlowController.{AddWildcardFlow, InvalidateFlowsByTag}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.FlowController.AddWildcardFlow
+import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.io.{VirtualMachine, UpcallDatapathConnectionManager}
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessException}
+import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.netlink.AfUnix
-import org.midonet.odp.{FlowMatch, DpPort, Datapath}
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.odp.ports.NetDevPort
+import org.midonet.odp.{Datapath, DpPort, FlowMatch}
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback0
 import org.midonet.util.process.ProcessHelper
@@ -379,8 +381,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     val Some(bgp) = bgps.remove(bgpID)
                     bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                     // Remove all the flows for this BGP link
-                    FlowController !
-                        FlowController.InvalidateFlowsByTag(FlowTagger.tagForBgp(bgpID))
+                    FlowController ! InvalidateFlowsByTag(FlowTagger.tagForBgp(bgpID))
 
                     // If this is the last BGP for ths port, tear everything down.
                     if (bgps.size == 0) {
@@ -645,8 +646,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 log.info("({}) Disabling BGP link: {}", phase, bgps.head._1)
                 phase = Disabling
 
-                FlowController !
-                    FlowController.InvalidateFlowsByTag(FlowTagger.tagForBgp(bgps.head._1))
+                FlowController ! InvalidateFlowsByTag(FlowTagger.tagForBgp(bgps.head._1))
                 stopBGP()
 
                 // NOTE(guillermo) the dataClient's write operations (such as
@@ -912,6 +912,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkSrc(bgpPort.portAddr.getAddress)
             .setNetworkDst(bgp.getPeerAddr)
             .setDstPort(BGP_TCP_PORT)
+            .markAsSeen(Field.InputPortNumber, Field.EtherType, Field.NetworkProto,
+                        Field.NetworkSrc, Field.NetworkDst, Field.DstPort)
         addVirtualWildcardFlow(wildcardMatch, List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         // TCP4:179-> bgpd->link
@@ -922,6 +924,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkSrc(bgpPort.portAddr.getAddress)
             .setNetworkDst(bgp.getPeerAddr)
             .setSrcPort(BGP_TCP_PORT)
+            .markAsSeen(Field.InputPortNumber, Field.EtherType, Field.NetworkProto,
+                        Field.NetworkSrc, Field.NetworkDst, Field.SrcPort)
         addVirtualWildcardFlow(wildcardMatch, List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         // TCP4:->179 link->bgpd
@@ -931,6 +935,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkSrc(bgp.getPeerAddr)
             .setNetworkDst(bgpPort.portAddr.getAddress)
             .setDstPort(BGP_TCP_PORT)
+            .markAsSeen(Field.EtherType, Field.NetworkProto, Field.NetworkSrc,
+                        Field.NetworkDst, Field.DstPort)
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
 
         // TCP4:179-> link->bgpd
@@ -940,12 +946,15 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkSrc(bgp.getPeerAddr)
             .setNetworkDst(bgpPort.portAddr.getAddress)
             .setSrcPort(BGP_TCP_PORT)
+            .markAsSeen(Field.EtherType, Field.NetworkProto, Field.NetworkSrc,
+                        Field.NetworkDst, Field.SrcPort)
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
 
         // ARP bgpd->link
         wildcardMatch = new FlowMatch()
             .setInputPortNumber(localPortNum)
             .setEtherType(ARP.ETHERTYPE)
+            .markAsSeen(Field.InputPortNumber, Field.EtherType)
         addVirtualWildcardFlow(wildcardMatch, List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         // ARP link->bgpd, link->midolman
@@ -959,6 +968,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             // nwSrc/nwDst are overloaded to store the arp sip and tip.
             .setNetworkSrc(bgp.getPeerAddr)
             .setNetworkDst(bgpPort.portAddr.getAddress)
+            .markAsSeen(Field.EtherType, Field.EthDst, Field.NetworkProto,
+                        Field.NetworkSrc, Field.NetworkDst)
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum),
                                                    userspace(uplinkPid)), bgpPort.id)
 
@@ -969,6 +980,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkProto(ICMP.PROTOCOL_NUMBER)
             .setNetworkSrc(bgpPort.portAddr.getAddress)
             .setNetworkDst(bgp.getPeerAddr)
+            .markAsSeen(Field.InputPortNumber, Field.EtherType, Field.NetworkProto,
+                        Field.NetworkSrc, Field.NetworkDst)
         addVirtualWildcardFlow(wildcardMatch, List(FlowActionOutputToVrnPort(bgpPort.id)))
 
         // ICMP4 link->bgpd
@@ -977,6 +990,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             .setNetworkProto(ICMP.PROTOCOL_NUMBER)
             .setNetworkSrc(bgp.getPeerAddr)
             .setNetworkDst(bgpPort.portAddr.getAddress)
+            .markAsSeen(Field.EtherType, Field.NetworkProto,  Field.NetworkSrc,
+                        Field.NetworkDst)
         addVirtualWildcardFlow(wildcardMatch, List(output(localPortNum)), bgpPort.id)
     }
 
@@ -1048,7 +1063,7 @@ object IP { /* wrapper to ip commands => TODO: implement with RTNETLINK */
 
     def interfaceExistsInNs(ns: String, interface: String): Boolean =
         if (!namespaceExist(ns)) false
-        else (netns("exec " + ns + " ip link show " + interface) == 0)
+        else netns("exec " + ns + " ip link show " + interface) == 0
 
     /** creates an interface anad put a mirror in given network namespace */
     def preparePair(itf: String, mirror: String, ns: String) =

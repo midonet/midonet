@@ -249,10 +249,10 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         flow.actions.size should equal(3)
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.actions(0))
-        ethKey.getDst should be (gwMac.getAddress)
-        ethKey.getSrc should be (uplinkMacAddr.getAddress)
+        ethKey.eth_dst should be (gwMac.getAddress)
+        ethKey.eth_src should be (uplinkMacAddr.getAddress)
         val ipKey = expectFlowActionSetKey[FlowKeyIPv4](flow.actions(1))
-        ipKey.getTtl should be (ttl-1)
+        ipKey.ipv4_ttl should be (ttl-1)
         flow.actions(2).getClass should equal(classOf[FlowActionOutput])
     }
 
@@ -331,8 +331,8 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         flow.actions.size should be (3)
         val ethKey =
             expectFlowActionSetKey[FlowKeyEthernet](flow.actions(0))
-        ethKey.getDst should be (outToMac.getAddress)
-        ethKey.getSrc should be (outFromMac.getAddress)
+        ethKey.eth_dst should be (outToMac.getAddress)
+        ethKey.eth_src should be (outFromMac.getAddress)
         flow.actions(2).getClass should equal(classOf[FlowActionOutput])
     }
 

@@ -32,43 +32,33 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     // maintaining the names of field to be the same as ovs_key_ipv4_tunnel
     // see datapath/flow.h from OVS source
-    /* be64 */  private long tun_id;
-    /* be32 */  private int ipv4_src;
-    /* be32 */  private int ipv4_dst;
-    /* u16 */   private short tun_flags;
-    /* u8 */    private byte ipv4_tos;
-    /* u8 */    private byte ipv4_ttl;
-
-    private int hashCode = 0;
+    /* be64 */  public long tun_id;
+    /* be32 */  public int ipv4_src;
+    /* be32 */  public int ipv4_dst;
+    /* u16 */   public short tun_flags;
+    /* u8 */    public byte ipv4_tos;
+    /* u8 */    public byte ipv4_ttl;
 
     // same size as the tun_flags
     public static final short OVS_TNL_F_DONT_FRAGMENT = 1 << 0;
     public static final short OVS_TNL_F_CSUM = 1 << 1;
     public static final short OVS_TNL_F_KEY = 1 << 2;
 
-    private static final byte TUN_ID_MASK   = 1 << 0;
-    private static final byte IPV4_SRC_MASK = 1 << 1;
-    private static final byte IPV4_DST_MASK = 1 << 2;
-    private static final byte IPV4_TOS_MASK = 1 << 3;
-    private static final byte IPV4_TTL_MASK = 1 << 4;
-
     // This is used for deserialization purposes only.
     FlowKeyTunnel() { }
 
     // OVS kernel module requires the TTL field to be set. Here we set it to
-    // the maximum possible value. We leave TOS and flags not set. We may
-    // set the tunnel key flag, but it's not a required field. DONT FRAGMENT
-    // and CHECKSUM are for the outer header. We leave those alone for now
-    // as well. CHECKSUM defaults to zero in OVS kernel module. GRE header
-    // checksum is not checked in gre_rcv, and it is also not required for
-    // GRE packets.
+    // the maximum possible value. DONT FRAGMENT and CHECKSUM are for the outer
+    // header. We leave those alone for now as well. CHECKSUM defaults to zero
+    // in OVS kernel module. GRE header checksum is not checked in gre_rcv, and
+    // it is also not required for GRE packets.
 
-    FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr, byte tos) {
+    public FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr, byte tos) {
         this(tunnelId, ipv4SrcAddr, ipv4DstAddr, tos, (byte)-1);
     }
 
-    FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr,
-                  byte tos, byte ttl) {
+    public FlowKeyTunnel(long tunnelId, int ipv4SrcAddr, int ipv4DstAddr,
+                         byte tos, byte ttl) {
         if (ttl == 0)
             throw new IllegalArgumentException("The TTL of a FlowKeyTunnel must not be zero");
 
@@ -77,7 +67,6 @@ public class FlowKeyTunnel implements CachedFlowKey,
         ipv4_dst = ipv4DstAddr;
         ipv4_ttl = ttl;
         ipv4_tos = tos;
-        computeHashCode();
     }
 
     public short attrId() {
@@ -110,7 +99,16 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     public void deserializeFrom(ByteBuffer buf) {
         NetlinkMessage.scanAttributes(buf, this);
-        computeHashCode();
+    }
+
+    @Override
+    public void wildcard() {
+        tun_id = 0;
+        ipv4_src = 0;
+        ipv4_dst = 0;
+        tun_flags = 0;
+        ipv4_ttl = 0;
+        ipv4_tos = 0;
     }
 
     public void use(ByteBuffer buf, short id) {
@@ -150,31 +148,6 @@ public class FlowKeyTunnel implements CachedFlowKey,
         ipv4_src = ThreadLocalRandom.current().nextInt();
         ipv4_dst = ThreadLocalRandom.current().nextInt();
         ipv4_ttl = (byte)-1;
-        computeHashCode();
-    }
-
-    public long getTunnelID() {
-        return tun_id;
-    }
-
-    public int getIpv4SrcAddr() {
-        return ipv4_src;
-    }
-
-    public int getIpv4DstAddr() {
-        return ipv4_dst;
-    }
-
-    public short getTunnelFlags() {
-        return tun_flags;
-    }
-
-    public byte getTos() {
-        return ipv4_tos;
-    }
-
-    public byte getTtl() {
-        return ipv4_ttl;
     }
 
     @Override
@@ -195,16 +168,13 @@ public class FlowKeyTunnel implements CachedFlowKey,
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    private void computeHashCode() {
-        hashCode = Longs.hashCode(tun_id);
+        int hashCode = Longs.hashCode(tun_id);
         hashCode = 31 * hashCode + ipv4_src;
         hashCode = 31 * hashCode + ipv4_dst;
         hashCode = 31 * hashCode + tun_flags;
         hashCode = 31 * hashCode + ipv4_tos;
         hashCode = 31 * hashCode + ipv4_ttl;
+        return hashCode;
     }
 
     @Override

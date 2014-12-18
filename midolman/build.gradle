@@ -212,8 +212,6 @@ debian.doFirst {
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0)',
         '--conflicts', 'openvswitch-switch',
-        '--conflicts', 'openvswitch-datapath-source (>= 1.11)',
-        '--conflicts', 'openvswitch-datapath-dkms (>= 1.11)',
         '--deb-recommends', 'java7-runtime-headless | java7-runtime',
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
