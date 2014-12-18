@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_43ba66e2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 402,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "I changed to None (Exclusive was a left-over from when there were only two possible ownership modes).",
+      "parentUuid": "9a0b7d60_b8889dc7",
+      "range": {
+        "startLine": 402,
+        "startChar": 37,
+        "endLine": 402,
+        "endChar": 60
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_18c1e9e4",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-18T09:10:09Z",
       "side": 1,
       "message": "Is this the agent that wants to modify the object? If yes, owner is kind of misleading because maybe it doesn\u0027t have ownership at the moment. Why not using agent instead?",
+      "range": {
+        "startLine": 330,
+        "startChar": 29,
+        "endLine": 330,
+        "endChar": 34
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_c3cdb688",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "I\u0027m not sure I understand the comment. Do you mean to use \"agent\" rather than \"owner\"?\n\nFor the storage, owner is an identifier (usually a UUID) that claims ownership of a stored object. Any client can be claim ownership by passing submitting a unique identifier as the owner argument.",
+      "parentUuid": "9a0b7d60_18c1e9e4",
       "range": {
         "startLine": 330,
         "startChar": 29,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_e3c43a61",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "Owner -\u003e caller",
+      "parentUuid": "9a0b7d60_58bb7172",
+      "range": {
+        "startLine": 348,
+        "startChar": 52,
+        "endLine": 348,
+        "endChar": 77
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_b8affd2a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-18T09:10:09Z",
       "side": 1,
       "message": "Does this mean that you plan on using this method to either update the object or the ownership?",
+      "range": {
+        "startLine": 350,
+        "startChar": 16,
+        "endLine": 351,
+        "endChar": 69
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_43a1c6a8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "9a0b7d60_b8affd2a",
       "range": {
         "startLine": 350,
         "startChar": 16,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_23a642c2",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_98acb937",
+      "range": {
+        "startLine": 451,
+        "startChar": 28,
+        "endLine": 451,
+        "endChar": 53
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_38630d1c",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_83abae88",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 465,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "Yes, I agree. I will add the documentation as soon as the patch approaches a final form.",
+      "parentUuid": "9a0b7d60_38630d1c",
+      "range": {
+        "startLine": 465,
+        "startChar": 16,
+        "endLine": 465,
+        "endChar": 76
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_1868c9f4",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -151,6 +295,30 @@
       "writtenOn": "2014-12-18T09:10:09Z",
       "side": 1,
       "message": "Shouldn\u0027t versions be equal too?",
+      "range": {
+        "startLine": 1089,
+        "startChar": 38,
+        "endLine": 1089,
+        "endChar": 54
+      },
+      "revId": "242a0c2e1f1aa60f7985ec711bb2e33024c6aaa6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_63b04af5",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1089,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T14:58:20Z",
+      "side": 1,
+      "message": "In this case, I overwrote equals/hashCode simply to be able to use the contains() in a set, disregarding the version. The alternative of using find has O(n) performance, like this is O(1) in a hash set.",
+      "parentUuid": "9a0b7d60_1868c9f4",
       "range": {
         "startLine": 1089,
         "startChar": 38,
