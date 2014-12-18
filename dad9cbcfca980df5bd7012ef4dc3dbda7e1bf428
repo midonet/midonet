@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_63edea8b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T17:13:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_8341ee0d",
+      "range": {
+        "startLine": 34,
+        "startChar": 4,
+        "endLine": 34,
+        "endChar": 10
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_0355fec5",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 8
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-18T14:24:22Z",
       "side": 1,
       "message": "Should make this a volatile var, so we can remove the listener when closing the cache, and set the listener to null:\n\n  curator.getConnectionStateListenable.removeListener(connectionListener)",
+      "range": {
+        "startLine": 72,
+        "startChar": 48,
+        "endLine": 86,
+        "endChar": 5
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_439546e3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T17:13:55Z",
+      "side": 1,
+      "message": "Very good point.\n\nI\u0027m assuming that the Observable will get GCd\u0027d, but this is actually not so true, we have no guarantee that someone will keep a reference, so better to be on the safe side. Will do the same thing here and in the path cache, and for all listeners.",
+      "parentUuid": "9a0b7d60_0355fec5",
       "range": {
         "startLine": 72,
         "startChar": 48,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_e38f1acb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T17:13:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_036cde9b",
+      "range": {
+        "startLine": 158,
+        "startChar": 15,
+        "endLine": 158,
+        "endChar": 20
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_2363e2b2",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
         "patchSetId": 8
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-18T14:24:22Z",
       "side": 1,
       "message": "Indent",
+      "range": {
+        "startLine": 159,
+        "startChar": 11,
+        "endLine": 159,
+        "endChar": 12
+      },
+      "revId": "dad9cbcfca980df5bd7012ef4dc3dbda7e1bf428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_43bc266d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T17:13:55Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_2363e2b2",
       "range": {
         "startLine": 159,
         "startChar": 11,
