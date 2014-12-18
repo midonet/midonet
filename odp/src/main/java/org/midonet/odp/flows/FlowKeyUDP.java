@@ -24,13 +24,13 @@ import org.midonet.packets.Unsigned;
 
 public class FlowKeyUDP implements FlowKey {
 
-    /*__be16*/ private int udp_src;
-    /*__be16*/ private int udp_dst;
+    /*__be16*/ public int udp_src;
+    /*__be16*/ public int udp_dst;
 
     // This is used for deserialization purposes only.
     FlowKeyUDP() { }
 
-    FlowKeyUDP(int source, int destination) {
+    public FlowKeyUDP(int source, int destination) {
         TCP.ensurePortInRange(source);
         TCP.ensurePortInRange(destination);
         udp_src = source;
@@ -48,16 +48,14 @@ public class FlowKeyUDP implements FlowKey {
         udp_dst = Unsigned.unsign(BytesUtil.instance.reverseBE(buf.getShort()));
     }
 
+    @Override
+    public void wildcard() {
+        udp_src = 0;
+        udp_dst = 0;
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.UDP;
-    }
-
-    public int getUdpSrc() {
-        return udp_src;
-    }
-
-    public int getUdpDst() {
-        return udp_dst;
     }
 
     @Override

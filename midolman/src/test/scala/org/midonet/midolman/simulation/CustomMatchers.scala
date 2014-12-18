@@ -94,15 +94,15 @@ trait CustomMatchers {
                 case f: FlowActionSetKey => f.getFlowKey match {
                     case k: FlowKeyEthernet =>
                         util.Arrays.equals(
-                            k.getDst,
+                            k.eth_dst,
                             pkt.getDestinationMACAddress.getAddress) &&
                         util.Arrays.equals(
-                            k.getSrc,
+                            k.eth_src,
                             pkt.getSourceMACAddress.getAddress)
                     case k: FlowKeyIPv4 if pkt.getPayload.isInstanceOf[IPv4] =>
                         val ipPkt = pkt.getPayload.asInstanceOf[IPv4]
-                        k.getDst == ipPkt.getDestinationAddress &&
-                        k.getSrc == ipPkt.getSourceAddress
+                        k.ipv4_dst == ipPkt.getDestinationAddress &&
+                        k.ipv4_src == ipPkt.getSourceAddress
                     case _ => false
                 }
                 case _ => false

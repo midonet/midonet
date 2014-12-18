@@ -28,9 +28,9 @@ import org.midonet.packets.Net;
 */
 public class FlowKeyND implements CachedFlowKey {
 
-    /*__u32*/ private int[] nd_target = new int[4]; // always 4 int long
-    /*__u8*/ private byte[] nd_sll = new byte[6];   // always 6 bytes long
-    /*__u8*/ private byte[] nd_tll = new byte[6];   // always 6 bytes long
+    /*__u32*/ public int[] nd_target = new int[4]; // always 4 int long
+    /*__u8*/ public byte[] nd_sll = new byte[6];   // always 6 bytes long
+    /*__u8*/ public byte[] nd_tll = new byte[6];   // always 6 bytes long
 
     // This is used for deserialization purposes only.
     FlowKeyND() { }
@@ -52,19 +52,15 @@ public class FlowKeyND implements CachedFlowKey {
         buf.get(nd_tll);
     }
 
+    @Override
+    public void wildcard() {
+        Arrays.fill(nd_target, 0);
+        Arrays.fill(nd_sll, (byte) 0);
+        Arrays.fill(nd_tll, (byte) 0);
+    }
+
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.ND;
-    }
-
-    public int[] getTarget() {
-        return nd_target;
-    }
-    public byte[] getSourceLinkLayer() {
-        return nd_sll;
-    }
-
-    public byte[] getTargetLinkLayer() {
-        return nd_tll;
     }
 
     @Override

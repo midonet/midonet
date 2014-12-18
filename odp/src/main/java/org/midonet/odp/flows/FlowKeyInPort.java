@@ -21,12 +21,12 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyInPort implements CachedFlowKey {
 
-    /*__u32*/ private int portNo;
+    /*__u32*/ public int portNo;
 
     // This is used for deserialization purposes only.
-    FlowKeyInPort() { }
+    public FlowKeyInPort() { }
 
-    FlowKeyInPort(int portNo) {
+    public FlowKeyInPort(int portNo) {
         this.portNo = portNo;
     }
 
@@ -39,12 +39,13 @@ public class FlowKeyInPort implements CachedFlowKey {
         portNo = buf.getInt();
     }
 
-    public short attrId() {
-        return OpenVSwitch.FlowKey.Attr.InPort;
+    @Override
+    public void wildcard() {
+        portNo = 0;
     }
 
-    public int getInPort() {
-        return this.portNo;
+    public short attrId() {
+        return OpenVSwitch.FlowKey.Attr.InPort;
     }
 
     @Override

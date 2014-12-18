@@ -72,26 +72,26 @@ trait SimulationHelper { this: MidolmanTestCase =>
         actionsSet foreach { action =>
             action.getFlowKey match {
                 case key: FlowKeyEthernet =>
-                    if (key.getDst != null) eth.setDestinationMACAddress(key.getDst)
-                    if (key.getSrc != null) eth.setSourceMACAddress(key.getSrc)
+                    if (key.eth_dst != null) eth.setDestinationMACAddress(key.eth_dst)
+                    if (key.eth_src != null) eth.setSourceMACAddress(key.eth_src)
                 case key: FlowKeyIPv4 =>
                     ip should not be null
-                    if (key.getDst != 0) ip.setDestinationAddress(key.getDst)
-                    if (key.getSrc != 0) ip.setSourceAddress(key.getSrc)
-                    if (key.getTtl != 0) ip.setTtl(key.getTtl)
+                    if (key.ipv4_dst != 0) ip.setDestinationAddress(key.ipv4_dst)
+                    if (key.ipv4_src != 0) ip.setSourceAddress(key.ipv4_src)
+                    if (key.ipv4_ttl != 0) ip.setTtl(key.ipv4_ttl)
                 case key: FlowKeyTCP =>
                     tcp should not be null
-                    if (key.getDst != 0) tcp.setDestinationPort(key.getDst)
-                    if (key.getSrc != 0) tcp.setSourcePort(key.getSrc)
+                    if (key.tcp_dst != 0) tcp.setDestinationPort(key.tcp_dst)
+                    if (key.tcp_src != 0) tcp.setSourcePort(key.tcp_src)
                 case key: FlowKeyUDP =>
                     udp should not be null
-                    if (key.getUdpDst != 0) udp.setDestinationPort(key.getUdpDst)
-                    if (key.getUdpSrc != 0) udp.setSourcePort(key.getUdpSrc)
+                    if (key.udp_dst != 0) udp.setDestinationPort(key.udp_dst)
+                    if (key.udp_src != 0) udp.setSourcePort(key.udp_src)
                 case key: FlowKeyICMPError =>
                     log.debug("FlowKeyIcmpError related actions are userspace" +
                         "only so they should have been applied already in" +
                         "FlowController.applyActionsAfterUserspaceMatch")
-                    icmp.getData should be (key.getIcmpData)
+                    icmp.getData should be (key.icmp_data)
                 case unmatched =>
                     log.warn("Won't translate {}", unmatched)
             }

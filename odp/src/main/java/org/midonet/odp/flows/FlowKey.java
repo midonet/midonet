@@ -29,4 +29,9 @@ public interface FlowKey {
      *  the given ByteBuffer. Used in conjunction with the scanAttributes
      *  iterator of NetlinkMessage when reconstructing a flow match. */
     void deserializeFrom(ByteBuffer buf);
+
+    /**
+     * Set all fields to 0, specifying a wildcard.
+     */
+    void wildcard();
 }
