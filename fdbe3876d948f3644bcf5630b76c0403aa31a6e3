@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_438f0624",
+        "filename": "cluster/src/main/proto/topology.proto",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T15:05:29Z",
+      "side": 1,
+      "message": "Why change this?",
+      "range": {
+        "startLine": 267,
+        "startChar": 0,
+        "endLine": 277,
+        "endChar": 1
+      },
+      "revId": "fdbe3876d948f3644bcf5630b76c0403aa31a6e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_03769e3e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-18T15:05:29Z",
+      "side": 1,
+      "message": "Is this needed?",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 5
+      },
+      "revId": "fdbe3876d948f3644bcf5630b76c0403aa31a6e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
