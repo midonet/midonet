@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_4f03ad73",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T13:49:23Z",
+      "side": 1,
+      "message": "I\u0027ll add it.",
+      "parentUuid": "da01753e_94cdaa60",
+      "revId": "b25473463598f32c860b0c51626c5041b209a67b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "da01753e_f4da3616",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-17T05:51:47Z",
       "side": 1,
       "message": "Are these used for anything?",
+      "revId": "b25473463598f32c860b0c51626c5041b209a67b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_6ffe716d",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-18T13:49:23Z",
+      "side": 1,
+      "message": "They will be when I integrate the vxgw service (see next patch)\n\nPlus, any service that runs inside the cluster node and needs to have a node uuid, should use the uuid generated and injected here. This again becomes more obvious in the next patch.",
+      "parentUuid": "da01753e_f4da3616",
       "revId": "b25473463598f32c860b0c51626c5041b209a67b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
