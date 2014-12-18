@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_23048214",
+        "filename": "brain/midonet-brain/conf/cluster.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T11:18:48Z",
+      "side": 1,
+      "message": "see Brandon\u0027s comment in version 3",
+      "revId": "b3e9a5948de9f143e8a3b2a69131e59f0c80a909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_8309ee2e",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T11:18:48Z",
+      "side": 1,
+      "message": "Brandon\u0027s comment in version 3.",
+      "range": {
+        "startLine": 121,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 46
+      },
+      "revId": "b3e9a5948de9f143e8a3b2a69131e59f0c80a909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
