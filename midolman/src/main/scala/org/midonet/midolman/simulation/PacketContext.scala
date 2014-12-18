@@ -99,7 +99,7 @@ class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
 
     def isGenerated = cookieOrEgressPort.isRight
     def ingressed = cookieOrEgressPort.isLeft
-    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
+    def isStateMessage = FlowStatePackets.isStateMessage(origMatch)
 
     def flowCookie = cookieOrEgressPort.left.toOption
 

@@ -25,15 +25,13 @@ import org.midonet.packets.Net;
 
 public class FlowKeyIPv6 implements FlowKey {
 
-    /*__be32*/ private int[] ipv6_src = new int[4];
-    /*__be32*/ private int[] ipv6_dst = new int[4];
-    /*__be32*/ private int ipv6_label;    /* 20-bits in least-significant bits. */
-    /*__u8*/ private byte ipv6_proto;
-    /*__u8*/ private byte ipv6_tclass;
-    /*__u8*/ private byte ipv6_hlimit;
-    /*__u8*/ private byte ipv6_frag;    /* One of OVS_FRAG_TYPE_*. */
-
-    private int hashCode = 0;
+    /*__be32*/ public int[] ipv6_src = new int[4];
+    /*__be32*/ public int[] ipv6_dst = new int[4];
+    /*__be32*/ public int ipv6_label;    /* 20-bits in least-significant bits. */
+    /*__u8*/ public byte ipv6_proto;
+    /*__u8*/ public byte ipv6_tclass;
+    /*__u8*/ public byte ipv6_hlimit;
+    /*__u8*/ public byte ipv6_frag;    /* One of OVS_FRAG_TYPE_*. */
 
     // This is used for deserialization purposes only.
     FlowKeyIPv6() { }
@@ -45,7 +43,6 @@ public class FlowKeyIPv6 implements FlowKey {
         ipv6_proto = protocol;
         ipv6_hlimit = hlimit;
         ipv6_frag = fragmentType;
-        computeHashCode();
     }
 
     public FlowKeyIPv6(int[] source, int[] destination, byte protocol,
@@ -85,38 +82,21 @@ public class FlowKeyIPv6 implements FlowKey {
         ipv6_tclass = buf.get();
         ipv6_hlimit = buf.get();
         ipv6_frag = buf.get();
-        computeHashCode();
+    }
+
+    @Override
+    public void wildcard() {
+        Arrays.fill(ipv6_src, 0);
+        Arrays.fill(ipv6_dst, 0);
+        ipv6_label = 0;
+        ipv6_proto = 0;
+        ipv6_tclass = 0;
+        ipv6_hlimit = 0;
+        ipv6_frag = 0;
     }
 
     public short attrId() {
         return OpenVSwitch.FlowKey.Attr.IPv6;
-    }
-
-    public int[] getSrc() {
-        return ipv6_src;
-    }
-
-    public int[] getDst() {
-        return ipv6_dst;
-    }
-
-    public int getLabel() {
-        return ipv6_label;
-    }
-    public byte getProto() {
-        return ipv6_proto;
-    }
-
-    public byte getTClass() {
-        return ipv6_tclass;
-    }
-
-    public byte getHLimit() {
-        return ipv6_hlimit;
-    }
-
-    public IPFragmentType getFrag() {
-        return IPFragmentType.fromByte(ipv6_frag);
     }
 
     @Override
@@ -138,17 +118,14 @@ public class FlowKeyIPv6 implements FlowKey {
 
     @Override
     public int hashCode() {
-        return hashCode;
-    }
-
-    public void computeHashCode() {
-        hashCode = Arrays.hashCode(ipv6_src);
+        int hashCode = Arrays.hashCode(ipv6_src);
         hashCode = 31 * hashCode + Arrays.hashCode(ipv6_dst);
         hashCode = 31 * hashCode + ipv6_label;
         hashCode = 31 * hashCode + (int) ipv6_proto;
         hashCode = 31 * hashCode + (int) ipv6_tclass;
         hashCode = 31 * hashCode + (int) ipv6_hlimit;
         hashCode = 31 * hashCode + (int) ipv6_frag;
+        return hashCode;
     }
 
     @Override

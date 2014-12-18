@@ -21,13 +21,13 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyICMP implements FlowKey {
 
-    /*__u8*/ protected byte icmp_type;
-    /*__u8*/ protected byte icmp_code;
+    /*__u8*/ public byte icmp_type;
+    /*__u8*/ public byte icmp_code;
 
     // This is used for deserialization purposes only.
     FlowKeyICMP() { }
 
-    FlowKeyICMP(byte type, byte code) {
+    public FlowKeyICMP(byte type, byte code) {
         icmp_type = type;
         icmp_code = code;
     }
@@ -41,6 +41,12 @@ public class FlowKeyICMP implements FlowKey {
     public void deserializeFrom(ByteBuffer buf) {
         icmp_type = buf.get();
         icmp_code = buf.get();
+    }
+
+    @Override
+    public void wildcard() {
+        icmp_type = 0;
+        icmp_code = 0;
     }
 
     public short attrId() {
@@ -67,13 +73,5 @@ public class FlowKeyICMP implements FlowKey {
     public String toString() {
         return "ICMP{type=0x"+Integer.toHexString(icmp_type) +
                          ", code=" + icmp_code + "}";
-    }
-
-    public byte getType() {
-        return icmp_type;
-    }
-
-    public byte getCode() {
-        return icmp_code;
     }
 }

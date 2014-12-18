@@ -65,7 +65,7 @@ trait FlowTranslator {
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
                         case k: FlowKeyICMPError =>
-                            mangleIcmp(context.ethernet, k.getIcmpData)
+                            mangleIcmp(context.ethernet, k.icmp_data)
                             Nil
                         case k: FlowKeyICMPEcho =>
                             Nil

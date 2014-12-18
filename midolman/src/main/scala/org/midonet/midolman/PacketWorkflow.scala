@@ -200,26 +200,8 @@ class PacketWorkflow(protected val dpState: DatapathState,
                            newWildFlow: Option[WildcardFlow] = None) {
         context.log.debug("Creating flow from {}", wildFlow)
 
-        val flowMatch = context.packet.getMatch
-        val flowMask = new FlowMask()
-        if (flowMatch.hasKey(OpenVSwitch.FlowKey.Attr.TcpFlags)) {
-            // wildcard the TCP flags
-            // TODO: this will change in the future: we'll use the wildcard match
-            //       until then when we are smarter, we must set exact matches
-            //       for everything up to the TCPFlags level... [alvaro]
-            flowMask.addKey(FlowKeys.priority(FlowMask.PRIO_EXACT)).
-                     addKey(FlowKeys.inPort(FlowMask.INPORT_EXACT)).
-                     addKey(FlowKeys.ethernet(FlowMask.ETHER_EXACT,
-                                              FlowMask.ETHER_EXACT)).
-                     addKey(FlowKeys.etherType(FlowMask.ETHERTYPE_EXACT)).
-                     addKey(FlowKeys.ipv4(FlowMask.IP_EXACT, FlowMask.IP_EXACT,
-                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT,
-                            FlowMask.BYTE_EXACT, FlowMask.BYTE_EXACT)).
-                     addKey(FlowKeys.tcp(FlowMask.TCP_EXACT, FlowMask.TCP_EXACT)).
-                     addKey(FlowKeys.tcpFlags(FlowMask.TCPFLAGS_ANY))
-        }
-
-        val dpFlow = new Flow(flowMatch, flowMask, wildFlow.getActions)
+        val flowMatch = context.origMatch
+        val dpFlow = new Flow(flowMatch, wildFlow.getActions)
         try {
             datapathConn(context).flowsCreate(datapath, dpFlow)
             notifyFlowAdded(context, dpFlow, newWildFlow)
@@ -456,11 +438,6 @@ class PacketWorkflow(protected val dpState: DatapathState,
     }
 
     private def handleDHCP(context: PacketContext): Boolean = {
-        def isUdpDhcpFlowKey(k: FlowKey): Boolean = k match {
-            case udp: FlowKeyUDP => (udp.getUdpSrc == 68) && (udp.getUdpDst == 67)
-            case _ => false
-        }
-
         def payloadAs[T](pkt: IPacket)(implicit tag: ClassTag[T]): Option[T] = {
             val payload = pkt.getPayload
             if (tag.runtimeClass == payload.getClass)
@@ -469,7 +446,13 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 None
         }
 
-        if (context.packet.getMatch.getKeys.filter(isUdpDhcpFlowKey).isEmpty)
+        val fmatch = context.origMatch
+        fmatch.doNotTrackSeenFields()
+        val isUdpDhcp = fmatch.getEtherType == IPv4.ETHERTYPE &&
+                        fmatch.getNetworkProto == UDP.PROTOCOL_NUMBER &&
+                        fmatch.getSrcPort == 68 && fmatch.getDstPort == 67
+        fmatch.doTrackSeenFields()
+        if (!isUdpDhcp)
             return false
 
         (for {
