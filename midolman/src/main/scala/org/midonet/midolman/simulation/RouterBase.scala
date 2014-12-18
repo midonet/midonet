@@ -28,6 +28,7 @@ import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{RoutingTableWrapper, TagManager, RouterConfig}
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
+import org.midonet.sdn.flows.WildcardMatch.Field
 import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 import org.midonet.odp.flows.IPFragmentType
 
@@ -46,8 +47,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
     import Coordinator._
 
+    def isValidEthertype(ether: Short): Boolean
 
-    val validEthertypes: Set[Short]
     val routeBalancer = new RouteBalancer(rTable)
     val deviceTag = FlowTagger.tagForDevice(id)
 
@@ -73,9 +74,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             return DropAction
         }
 
-        if (!validEthertypes.contains(context.wcmatch.getEtherType)) {
-            context.log.debug("Dropping unsupported EtherType {}",
-                              context.wcmatch.getEtherType)
+        if (!isValidEthertype(context.wcmatch.getEtherType)) {
+            context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
             return unsupportedPacketAction
         }
 
@@ -191,7 +191,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         def applyTimeToLive: Option[Action] = {
             /* TODO(guillermo, pino): Have WildcardMatch take a DecTTLBy instead,
              * so that there need only be one sim. run for different TTLs.  */
-            if (wcmatch.getNetworkTTL != null) {
+            if (wcmatch.isUsed(Field.NetworkTTL)) {
                 val ttl = Unsigned.unsign(wcmatch.getNetworkTTL)
                 if (ttl <= 1) {
                     sendAnswer(inPort.id, icmpErrors.timeExceededIcmp(

@@ -16,6 +16,7 @@
 
 package org.midonet.midolman
 
+import java.lang.{Long => JLong}
 import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
 import java.util.{ArrayList, Map => JMap, Set => JSet}
 
@@ -149,10 +150,7 @@ object FlowController extends Referenceable {
     private val WILD_FLOW_TABLE_INITIAL_CAPACITY = 65536
     private val WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY = 256
 
-    private val wildcardTables: JMap[JSet[WildcardMatch.Field],
-                                        JMap[WildcardMatch, ManagedWildcardFlow]] =
-        new ConcHashMap[JSet[WildcardMatch.Field],
-                        JMap[WildcardMatch, ManagedWildcardFlow]](
+    private val wildcardTables = new ConcHashMap[JLong, JMap[WildcardMatch, ManagedWildcardFlow]](
             WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY,
             WILD_FLOW_TABLE_LOAD_FACTOR,
             WILD_FLOW_TABLE_CONCURRENCY_LEVEL)
@@ -161,7 +159,7 @@ object FlowController extends Referenceable {
         new WildcardTablesProvider {
             override def tables = wildcardTables
 
-            override def addTable(pattern: JSet[WildcardMatch.Field]) = {
+            override def addTable(pattern: JLong) = {
                 var table = wildcardTables.get(pattern)
                 if (table == null) {
                     table = new ConcHashMap[WildcardMatch, ManagedWildcardFlow](
