@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_d8eda1f1",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/ClusterNode.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T02:31:04Z",
+      "side": 1,
+      "message": "I want to run the MidoNet Importer (soon-to-be renamed C3PO) from actually as a Minion running inside Daemon. So I need to swap the injector from the test.",
+      "parentUuid": "fafc7978_e05983ff",
+      "range": {
+        "startLine": 92,
+        "startChar": 21,
+        "endLine": 92,
+        "endChar": 24
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_20738b81",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_38baede1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T02:31:04Z",
+      "side": 1,
+      "message": "Thank you for the pointer. I switched to programatic configurations.",
+      "parentUuid": "fafc7978_20738b81",
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_606d9398",
         "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
         "patchSetId": 1
@@ -53,6 +95,30 @@
       "writtenOn": "2014-12-16T11:33:52Z",
       "side": 1,
       "message": "Randomize \u0026 use a non standard one?",
+      "range": {
+        "startLine": 82,
+        "startChar": 56,
+        "endLine": 82,
+        "endChar": 60
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_18bf29d2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T02:31:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fafc7978_606d9398",
       "range": {
         "startLine": 82,
         "startChar": 56,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_78b475f2",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/NeutronImporterDaemonTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T02:31:04Z",
+      "side": 1,
+      "message": "Removed HeartBeat. As I commented elsewhere, I wanted to run NeutronImporter as a Minion as it would actually be run in practice, therefore, I\u0027m setting up the ClusterNode here.",
+      "parentUuid": "fafc7978_006e4796",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 33
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fafc7978_806237ab",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
         "patchSetId": 1
@@ -99,6 +189,30 @@
       "writtenOn": "2014-12-16T11:33:52Z",
       "side": 1,
       "message": "I guess it\u0027s enough with moving this to a config file?",
+      "range": {
+        "startLine": 140,
+        "startChar": 46,
+        "endLine": 140,
+        "endChar": 66
+      },
+      "revId": "e338691726d148895f583f4213f1b038986b2e75",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_58b9b1e8",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-18T02:31:04Z",
+      "side": 1,
+      "message": "As it turned out, SQLite doesn\u0027t seem to provide JDBC2.0 API, which includes the DataSource interface. I ended up writing a decorator for SQLite to the interface.",
+      "parentUuid": "fafc7978_806237ab",
       "range": {
         "startLine": 140,
         "startChar": 46,
