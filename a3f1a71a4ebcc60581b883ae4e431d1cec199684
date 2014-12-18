@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_c3ae56e7",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T13:00:17Z",
+      "side": 1,
+      "message": "Does this mean that no reads/writes to the cluster storage can happen simultaneously?",
+      "range": {
+        "startLine": 60,
+        "startChar": 56,
+        "endLine": 61,
+        "endChar": 4
+      },
+      "revId": "a3f1a71a4ebcc60581b883ae4e431d1cec199684",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_a3ab52d5",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T13:00:17Z",
+      "side": 1,
+      "message": "Which approach are you referring to?",
+      "range": {
+        "startLine": 89,
+        "startChar": 27,
+        "endLine": 89,
+        "endChar": 40
+      },
+      "revId": "a3f1a71a4ebcc60581b883ae4e431d1cec199684",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_23876263",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T13:00:17Z",
+      "side": 1,
+      "message": "\"... contained in context data, which is a dictionary object.\"?",
+      "range": {
+        "startLine": 128,
+        "startChar": 53,
+        "endLine": 129,
+        "endChar": 17
+      },
+      "revId": "a3f1a71a4ebcc60581b883ae4e431d1cec199684",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_c395b689",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T13:00:17Z",
+      "side": 1,
+      "message": "superfluous",
+      "range": {
+        "startLine": 168,
+        "startChar": 0,
+        "endLine": 168,
+        "endChar": 39
+      },
+      "revId": "a3f1a71a4ebcc60581b883ae4e431d1cec199684",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_a392329d",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 6
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-18T13:00:17Z",
+      "side": 1,
+      "message": "task?",
+      "range": {
+        "startLine": 194,
+        "startChar": 20,
+        "endLine": 194,
+        "endChar": 23
+      },
+      "revId": "a3f1a71a4ebcc60581b883ae4e431d1cec199684",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
