@@ -26,6 +26,7 @@ import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
 import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.WildcardMatch.Field
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
 
@@ -294,11 +295,11 @@ trait NatState extends FlowState {
             if (nwProto == ICMP.PROTOCOL_NUMBER) {
                 val supported = pktCtx.wcmatch.getSrcPort.byteValue() match {
                     case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
-                        pktCtx.wcmatch.getIcmpIdentifier ne null
+                        pktCtx.wcmatch.isUsed(Field.IcmpId)
                     case ICMP.TYPE_PARAMETER_PROBLEM |
                          ICMP.TYPE_TIME_EXCEEDED |
                          ICMP.TYPE_UNREACH =>
-                        pktCtx.wcmatch.getIcmpData ne null
+                        pktCtx.wcmatch.isUsed(Field.IcmpData)
                     case _ =>
                         false
                 }

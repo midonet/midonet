@@ -23,7 +23,7 @@ import org.midonet.sdn.flows.ManagedWildcardFlow;
 import org.midonet.sdn.flows.WildcardMatch;
 
 public interface WildcardTablesProvider {
-    Map<WildcardMatch, ManagedWildcardFlow> addTable(Set<WildcardMatch.Field> pattern);
+    Map<WildcardMatch, ManagedWildcardFlow> addTable(Long pattern);
 
-    Map<Set<WildcardMatch.Field>, Map<WildcardMatch, ManagedWildcardFlow>> tables();
+    Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> tables();
 }

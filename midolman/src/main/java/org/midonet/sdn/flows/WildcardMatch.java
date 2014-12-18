@@ -18,13 +18,13 @@ package org.midonet.sdn.flows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import com.google.common.primitives.Longs;
 
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.FlowMatch;
@@ -34,31 +34,256 @@ import org.midonet.packets.*;
 
 public class WildcardMatch implements Cloneable {
 
-    private EnumSet<Field> usedFields = EnumSet.noneOf(Field.class);
-    private long seenFields = 0;
+    protected long usedFields = 0;
+    protected long seenFields = 0;
 
     public enum Field {
-        InputPortNumber,
-        TunnelSrc,
-        TunnelDst,
-        TunnelKey,
-        EthSrc,
-        EthDst,
-        EtherType,
-        VlanId,         // MM-custom field
-        NetworkSrc,
-        NetworkDst,
-        NetworkProto,
-        NetworkTTL,
-        NetworkTOS,
-        FragmentType,
-        SrcPort,
-        DstPort,
-        IcmpId,         // MM-custom field
-        IcmpData,       // MM-custom field
-        COUNT
+        InputPortNumber {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.inputPortNumber;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.inputPortNumber;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.inputPortNumber == wcmatch2.inputPortNumber;
+            }
+        },
+        TunnelKey {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.tunnelKey;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Longs.hashCode(wcmatch.tunnelKey);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.tunnelKey == wcmatch2.tunnelKey;
+            }
+        },
+        TunnelSrc {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.tunnelSrc;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.tunnelSrc;
+            }
+            public boolean equals(WildcardMatch wcmatch1,
+                                  WildcardMatch wcmatch2) {
+                return wcmatch1.tunnelSrc == wcmatch2.tunnelSrc;
+            }
+        },
+        TunnelDst {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.tunnelDst;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.tunnelDst;
+            }
+            public boolean equals(WildcardMatch wcmatch1,
+                                  WildcardMatch wcmatch2) {
+                return wcmatch1.tunnelDst == wcmatch2.tunnelDst;
+            }
+        },
+        EthSrc {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.ethSrc;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Objects.hash(wcmatch.ethSrc);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Objects.equals(wcmatch1.ethSrc, wcmatch2.ethSrc);
+            }
+        },
+        EthDst {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.ethDst;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Objects.hashCode(wcmatch.ethDst);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Objects.equals(wcmatch1.ethDst, wcmatch2.ethDst);
+            }
+        },
+        EtherType {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.etherType;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.etherType;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.etherType == wcmatch2.etherType;
+            }
+        },
+        VlanId { // MM-custom field
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.vlanIds;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Objects.hashCode(wcmatch.vlanIds);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Objects.equals(wcmatch1.vlanIds, wcmatch2.vlanIds);
+            }
+        },
+        NetworkSrc {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.networkSrc;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Objects.hashCode(wcmatch.networkSrc);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Objects.equals(wcmatch1.networkSrc, wcmatch2.networkSrc);
+            }
+        },
+        NetworkDst {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.networkDst;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Objects.hashCode(wcmatch.networkDst);
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Objects.equals(wcmatch1.networkDst, wcmatch2.networkDst);
+            }
+        },
+        NetworkProto {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + getNetworkProtocolAsString(wcmatch.networkProto);
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.networkProto;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.networkProto == wcmatch2.networkProto;
+            }
+
+            private String getNetworkProtocolAsString(byte networkProto) {
+                switch (networkProto) {
+                    case 1: return "icmp";
+                    case 2: return "igmp";
+                    case 4: return "ipv4-encap";
+                    case 6: return "tcp";
+                    case 8: return "egp";
+                    case 9: return "igp";
+                    case 17: return "udp";
+                    case 33: return "dccp";
+                    case 41: return "ipv6-encap";
+                    case 43: return "ipv6-route";
+                    case 44: return "ipv6-frag";
+                    case 47: return "gre";
+                    case 50: return "esp";
+                    case 51: return "ah";
+                    case 58: return "ipv6-icmp";
+                    case 59: return "ipv6-nonxt";
+                    case 60: return "ipv6-opts";
+                    case 94: return "ipip";
+                    case 97: return "etherip";
+                    case 112: return "vrrp";
+                    case 115: return "l2tp";
+                    case (byte)0x84: return "sctp";
+                    default: return Byte.toString(networkProto);
+                }
+            }
+        },
+        NetworkTTL {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.networkTTL;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.networkTTL;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.networkTTL == wcmatch2.networkTTL;
+            }
+        },
+        NetworkTOS {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.networkTOS;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.networkTOS;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.networkTOS == wcmatch2.networkTOS;
+            }
+        },
+        FragmentType {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.ipFragmentType;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.ipFragmentType.hashCode();
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.ipFragmentType.equals(wcmatch2.ipFragmentType);
+            }
+        },
+        SrcPort {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.srcPort;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.srcPort;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.srcPort == wcmatch2.srcPort;
+            }
+        },
+        DstPort {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.dstPort;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.dstPort;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.dstPort == wcmatch2.dstPort;
+            }
+        },
+        IcmpId { // MM-custom field
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.icmpId;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return wcmatch.icmpId;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return wcmatch1.icmpId == wcmatch2.icmpId;
+            }
+        },
+        IcmpData { // MM-custom field
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.getIcmpData();
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return Arrays.hashCode(wcmatch.getIcmpData());
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return Arrays.equals(wcmatch1.getIcmpData(), wcmatch2.getIcmpData());
+            }
+        },
+        COUNT {
+            public String toString(WildcardMatch wcmatch) {
+                return toString() + "=" + wcmatch.inputPortNumber;
+            }
+            public int hashCode(WildcardMatch wcmatch) {
+                return 0;
+            }
+            public boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2) {
+                return false;
+            }
+        };
+
+        public abstract String toString(WildcardMatch wcmatch);
+        public abstract int hashCode(WildcardMatch wcmatch);
+        public abstract boolean equals(WildcardMatch wcmatch1, WildcardMatch wcmatch2);
     }
 
+    private static final Field[] fields = Field.values();
     private static final short[] fieldLayer = new short[Field.COUNT.ordinal()];
     static {
         Field[] fields = Field.values();
@@ -73,35 +298,6 @@ public class WildcardMatch implements Cloneable {
 
     public static final long icmpFieldsMask = (1L << Field.IcmpData.ordinal()) |
                                               (1L << Field.IcmpId.ordinal());
-
-    /**
-     * WARNING: this is giving you a reference to the private Set itself. Be
-     * aware that the Match is free to wipe the contents of the set off at
-     * any point (e.g.: when a match is returned to a pool and its contents
-     * cleared), so you should consider making a copy if you need to keep the
-     * set around (e.g.: if it's used as a key to the WildcardMatch table
-     * like in FlowController). This is unless you are holding a reference to
-     * the enclosing ManagedWildcardFlow for as long as you're going to keep
-     * the Set in use. (Even so, you should probably make a copy since the
-     * match modify it).
-     *
-     * The reason for not returning a defensive copy is mainly efficiency, we
-     * prefer not to incurr in the copy overhead always, and rather rely on
-     * clients doing the copy if it's really needed.
-     *
-     * @return the set of Fields that have been set in this instance.
-     */
-    @Nonnull
-    public Set<Field> getUsedFields() {
-        return usedFields;
-    }
-
-    /**
-     * @return the set of Fields that have been read from this instance.
-     */
-    public long getSeenFields() {
-        return seenFields;
-    }
 
     private int inputPortNumber = 0;
     private long tunnelKey = 0L;
@@ -124,7 +320,14 @@ public class WildcardMatch implements Cloneable {
     private byte[] icmpData;
     private List<Short> vlanIds = new ArrayList<>();
 
-    private int trackSeenFields = 1;
+    private long trackSeenFields = 1L;
+
+    /**
+     * @return the set of Fields that have been read from this instance.
+     */
+    public long getSeenFields() {
+        return seenFields;
+    }
 
     /**
      * Log the fact that <pre>field</pre> has been seen in this match. Will
@@ -134,21 +337,15 @@ public class WildcardMatch implements Cloneable {
         seenFields |= trackSeenFields << field.ordinal();
     }
 
-    /**
-     * Track seen fields from now on.
-     */
     public void doTrackSeenFields() {
         trackSeenFields = 1;
     }
 
-    /**
-     * Do not track seen fields from now on.
-     */
     public void doNotTrackSeenFields() {
         trackSeenFields = 0;
     }
 
-    /**
+     /**
      * Reports the highest layer seen among the fields accessed on this match.
      * E.g.: if only ethSrc was seen, it'll return 2, if also
      * srcPort was seen, it'll return 4. Returns 0 if no field was seen.
@@ -168,6 +365,31 @@ public class WildcardMatch implements Cloneable {
 
     public void propagateUserspaceFieldsOf(WildcardMatch that) {
         seenFields |= that.seenFields & icmpFieldsMask;
+    }
+
+    /**
+     * @return the set of Fields that have been set in this instance.
+     */
+    public long getUsedFields() {
+        return usedFields;
+    }
+
+    /**
+     * Log the fact that a <pre>field</pre> has been set in this match.
+     */
+    private void fieldUsed(Field field) {
+        usedFields |= 1L << field.ordinal();
+    }
+
+   /**
+     * Clear a field previously logged as used. Used in testing.
+     */
+    public void fieldUnused(Field field) {
+        usedFields &= ~(1L << field.ordinal());
+    }
+
+    public boolean isUsed(Field field) {
+        return (usedFields & (1L << field.ordinal())) != 0;
     }
 
     /**
@@ -200,8 +422,7 @@ public class WildcardMatch implements Cloneable {
             this.setIcmpData(that.icmpData);
         else
             this.icmpData = null;
-        usedFields.clear();
-        usedFields.addAll(that.usedFields);
+        usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
     }
@@ -211,94 +432,67 @@ public class WildcardMatch implements Cloneable {
      * used fields.
      */
     public void clear() {
-        this.usedFields.clear();
-        this.tunnelSrc = 0;
-        this.tunnelDst = 0;
         this.icmpData = null;
         this.networkSrc = null;
         this.networkDst = null;
         this.ethSrc = null;
         this.ethDst = null;
         this.vlanIds = null;
+        this.usedFields = 0;
         this.trackSeenFields = 1;
         this.seenFields = 0;
     }
 
     @Nonnull
     public WildcardMatch setInputPortNumber(int inputPortNumber) {
-        usedFields.add(Field.InputPortNumber);
+        fieldUsed(Field.InputPortNumber);
         this.inputPortNumber = inputPortNumber;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetInputPortNumber() {
-        usedFields.remove(Field.InputPortNumber);
-        this.inputPortNumber = 0;
-        return this;
-    }
-
-    @Nullable
-    public Integer getInputPortNumber() {
-        return usedFields.contains(Field.InputPortNumber) ? inputPortNumber : null;
+    public int getInputPortNumber() {
+        fieldSeen(Field.InputPortNumber);
+        return inputPortNumber;
     }
 
     @Nonnull
     public WildcardMatch setTunnelKey(long tunnelKey) {
         this.tunnelKey = tunnelKey;
-        usedFields.add(Field.TunnelKey);
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetTunnelKey() {
-        usedFields.remove(Field.TunnelKey);
-        this.tunnelKey = 0L;
+        fieldUsed(Field.TunnelKey);
         return this;
     }
 
     public long getTunnelKey() {
+        fieldSeen(Field.TunnelKey);
         return tunnelKey;
     }
 
     @Nonnull
-    public WildcardMatch setTunnelSrc(int src) {
-        this.tunnelSrc = src;
-        usedFields.add(Field.TunnelSrc);
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetTunnelSrc() {
-        usedFields.remove(Field.TunnelSrc);
-        this.tunnelSrc = 0;
+    public WildcardMatch setTunnelSrc(int tunnelSrc) {
+        fieldUsed(Field.TunnelSrc);
+        this.tunnelSrc = tunnelSrc;
         return this;
     }
 
     public int getTunnelSrc() {
+        fieldSeen(Field.TunnelSrc);
         return tunnelSrc;
     }
 
     @Nonnull
-    public WildcardMatch setTunnelDst(int dst) {
-        this.tunnelDst = dst;
-        usedFields.add(Field.TunnelDst);
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetTunnelDst() {
-        usedFields.remove(Field.TunnelDst);
-        this.tunnelDst = 0;
+    public WildcardMatch setTunnelDst(int tunnelDst) {
+        fieldUsed(Field.TunnelDst);
+        this.tunnelDst = tunnelDst;
         return this;
     }
 
     public int getTunnelDst() {
+        fieldSeen(Field.TunnelDst);
         return tunnelDst;
     }
 
     public boolean isFromTunnel() {
-        return usedFields.contains(Field.TunnelKey);
+        return isUsed(Field.TunnelKey);
     }
 
     @Nonnull
@@ -308,15 +502,8 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setEthSrc(@Nonnull MAC addr) {
-        usedFields.add(Field.EthSrc);
+        fieldUsed(Field.EthSrc);
         this.ethSrc = addr;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetEthSrc() {
-        usedFields.remove(Field.EthSrc);
-        this.ethSrc = null;
         return this;
     }
 
@@ -333,15 +520,8 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setEthDst(@Nonnull MAC addr) {
-        usedFields.add(Field.EthDst);
+        fieldUsed(Field.EthDst);
         this.ethDst = addr;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetEthDest() {
-        usedFields.remove(Field.EthDst);
-        this.ethDst = null;
         return this;
     }
 
@@ -353,35 +533,20 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setEtherType(short etherType) {
-        usedFields.add(Field.EtherType);
+        fieldUsed(Field.EtherType);
         this.etherType = etherType;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetEtherType() {
-        usedFields.remove(Field.EtherType);
-        this.etherType = 0;
-        return this;
-    }
-
-    @Nullable
-    public Short getEtherType() {
+    public short getEtherType() {
         fieldSeen(Field.EtherType);
-        return usedFields.contains(Field.EtherType) ? etherType : null;
+        return etherType;
     }
 
     @Nonnull
     public WildcardMatch setNetworkSrc(@Nonnull IPAddr addr) {
-        usedFields.add(Field.NetworkSrc);
+        fieldUsed(Field.NetworkSrc);
         this.networkSrc = addr;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetNetworkSrc() {
-        usedFields.remove(Field.NetworkSrc);
-        this.networkSrc = null;
         return this;
     }
 
@@ -397,15 +562,8 @@ public class WildcardMatch implements Cloneable {
      */
     @Nonnull
     public WildcardMatch setNetworkDst(@Nonnull IPAddr addr) {
-        usedFields.add(Field.NetworkDst);
+        fieldUsed(Field.NetworkDst);
         this.networkDst = addr;
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetNetworkDst() {
-        usedFields.remove(Field.NetworkDst);
-        this.networkDst = null;
         return this;
     }
 
@@ -417,142 +575,95 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch setNetworkProto(byte networkProto) {
-        usedFields.add(Field.NetworkProto);
+        fieldUsed(Field.NetworkProto);
         this.networkProto = networkProto;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetNetworkProto() {
-        usedFields.remove(Field.NetworkProto);
-        this.networkProto = 0;
-        return this;
-    }
-
-    @Nullable
-    public Byte getNetworkProto() {
+    public byte getNetworkProto() {
         fieldSeen(Field.NetworkProto);
-        return usedFields.contains(Field.NetworkProto) ? networkProto : null;
-    }
-
-    @Nullable
-    public Byte getNetworkTOS() {
-        fieldSeen(Field.NetworkTOS);
-        return usedFields.contains(Field.NetworkTOS) ? networkTOS : null;
+        return networkProto;
     }
 
     @Nonnull
     public WildcardMatch setNetworkTOS(byte tos) {
-        usedFields.add(Field.NetworkTOS);
+        fieldUsed(Field.NetworkTOS);
         this.networkTOS = tos;
         return this;
     }
 
+    public byte getNetworkTOS() {
+        fieldSeen(Field.NetworkTOS);
+        return networkTOS;
+    }
+
     @Nonnull
     public WildcardMatch setNetworkTTL(byte networkTTL) {
-        usedFields.add(Field.NetworkTTL);
+        fieldUsed(Field.NetworkTTL);
         this.networkTTL = networkTTL;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetNetworkTTL() {
-        usedFields.remove(Field.NetworkTTL);
-        this.networkTTL = 0;
-        return this;
-    }
-
-    @Nullable
-    public Byte getNetworkTTL() {
+    public byte getNetworkTTL() {
         fieldSeen(Field.NetworkTTL);
-        return usedFields.contains(Field.NetworkTTL) ? networkTTL : null;
+        return networkTTL;
     }
 
     @Nonnull
     public WildcardMatch setIpFragmentType(IPFragmentType fragmentType) {
-        usedFields.add(Field.FragmentType);
+        fieldUsed(Field.FragmentType);
         this.ipFragmentType = fragmentType;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetIpFragmentType() {
-        usedFields.remove(Field.FragmentType);
-        this.ipFragmentType = null;
-        return this;
-    }
-
-    @Nullable
     public IPFragmentType getIpFragmentType() {
         fieldSeen(Field.FragmentType);
         return ipFragmentType;
     }
 
-    public boolean isFragmented() {
-        IPFragmentType type = getIpFragmentType();
-        return type == IPFragmentType.First || type == IPFragmentType.Later;
-    }
-
     @Nonnull
     public WildcardMatch setSrcPort(int srcPort) {
         TCP.ensurePortInRange(srcPort);
-        usedFields.add(Field.SrcPort);
+        fieldUsed(Field.SrcPort);
         this.srcPort = srcPort;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetSrcPort() {
-        usedFields.remove(Field.SrcPort);
-        this.srcPort = 0;
-        return this;
-    }
-
-    @Nullable
-    public Integer getSrcPort() {
+    public int getSrcPort() {
         fieldSeen(Field.SrcPort);
-        return usedFields.contains(Field.SrcPort) ? srcPort : null;
+        return srcPort;
     }
 
     @Nonnull
     public WildcardMatch setDstPort(int dstPort) {
         TCP.ensurePortInRange(dstPort);
-        usedFields.add(Field.DstPort);
+        fieldUsed(Field.DstPort);
         this.dstPort = dstPort;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetDstPort() {
-        usedFields.remove(Field.DstPort);
-        this.dstPort = 0;
-        return this;
-    }
-
-    @Nullable
-    public Integer getDstPort() {
+    public int getDstPort() {
         fieldSeen(Field.DstPort);
-        return usedFields.contains(Field.DstPort) ?
-                dstPort : null;
+        return dstPort;
     }
 
     public WildcardMatch setIcmpIdentifier(Short identifier) {
-        usedFields.add(Field.IcmpId);
+        fieldUsed(Field.IcmpId);
         this.icmpId = identifier;
         return this;
     }
 
-    @Nonnull
-    public WildcardMatch unsetIcmpIdentifier() {
-        usedFields.remove(Field.IcmpId);
-        this.icmpId = 0;
-        return this;
+    public short getIcmpIdentifier() {
+        fieldSeen(Field.IcmpId);
+        return icmpId;
     }
 
-    @Nullable
-    public Short getIcmpIdentifier() {
-        fieldSeen(Field.IcmpId);
-        return usedFields.contains(Field.IcmpId) ? icmpId : null;
+    @Nonnull
+    public WildcardMatch setIcmpData(byte[] icmpData) {
+        fieldUsed(Field.IcmpData);
+        if (icmpData != null)
+            this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
+        return this;
     }
 
     @Nullable
@@ -563,29 +674,9 @@ public class WildcardMatch implements Cloneable {
     }
 
     @Nonnull
-    public WildcardMatch setIcmpData(byte[] icmpData) {
-        usedFields.add(Field.IcmpData);
-        if (icmpData != null)
-            this.icmpData = Arrays.copyOf(icmpData, icmpData.length);
-        return this;
-    }
-
-    @Nonnull
-    public WildcardMatch unsetIcmpData() {
-        usedFields.remove(Field.IcmpData);
-        this.icmpData = null;
-        return this;
-    }
-    @Nonnull
-    public WildcardMatch unsetVlanIds() {
-        usedFields.remove(Field.VlanId);
-        this.vlanIds.clear();
-        return this;
-    }
-    @Nonnull
     public WildcardMatch addVlanId(short vlanId) {
-        if (!usedFields.contains(Field.VlanId)) {
-            usedFields.add(Field.VlanId);
+        if (!isUsed(Field.VlanId)) {
+            fieldUsed(Field.VlanId);
         }
         this.vlanIds.add(vlanId);
         return this;
@@ -593,8 +684,8 @@ public class WildcardMatch implements Cloneable {
 
     @Nonnull
     public WildcardMatch addVlanIds(List<Short> vlanIds) {
-        if (!usedFields.contains(Field.VlanId)) {
-            usedFields.add(Field.VlanId);
+        if (!isUsed(Field.VlanId)) {
+            fieldUsed(Field.VlanId);
         }
         this.vlanIds.addAll(vlanIds);
         return this;
@@ -606,15 +697,14 @@ public class WildcardMatch implements Cloneable {
         if (index != -1)
             vlanIds.remove(index);
         if (vlanIds.isEmpty())
-            usedFields.remove(Field.VlanId);
+            fieldUnused(Field.VlanId);
         return this;
     }
 
     @Nullable
     public List<Short> getVlanIds() {
         fieldSeen(Field.VlanId);
-        return (usedFields.contains(Field.VlanId)) ? vlanIds
-                                                   : new ArrayList<Short>();
+        return isUsed(Field.VlanId) ? vlanIds : new ArrayList<Short>();
     }
 
     @Override
@@ -623,298 +713,33 @@ public class WildcardMatch implements Cloneable {
         if (o == null || !(o instanceof WildcardMatch)) return false;
 
         WildcardMatch that = (WildcardMatch) o;
-
-        for (Field field : getUsedFields()) {
-            switch (field) {
-                case EtherType:
-                    if (!isEqual(field, that, etherType, that.etherType))
-                        return false;
-                    break;
-
-                case FragmentType:
-                    if (!isEqual(field, that, ipFragmentType, that.ipFragmentType))
-                        return false;
-                    break;
-
-                case EthDst:
-                    if (!isEqual(field, that, ethDst, that.ethDst))
-                        return false;
-                    break;
-
-                case EthSrc:
-                    if (!isEqual(field, that, ethSrc, that.ethSrc))
-                        return false;
-                    break;
-
-                case DstPort:
-                    if (!isEqual(field, that, dstPort, that.dstPort))
-                        return false;
-                    break;
-
-                case SrcPort:
-                    if (!isEqual(field, that, srcPort, that.srcPort))
-                        return false;
-                    break;
-
-                case InputPortNumber:
-                    if (!isEqual(field, that, inputPortNumber, that.inputPortNumber))
-                        return false;
-                    break;
-
-                case NetworkDst:
-                    if (!isEqual(field, that, networkDst, that.networkDst))
-                        return false;
-                    break;
-
-                case NetworkSrc:
-                    if (!isEqual(field, that, networkSrc, that.networkSrc))
-                        return false;
-                    break;
-
-                case NetworkProto:
-                    if (!isEqual(field, that, networkProto, that.networkProto))
-                        return false;
-                    break;
-
-                case NetworkTTL:
-                    if (!isEqual(field, that, networkTTL, that.networkTTL))
-                        return false;
-                    break;
-
-                case TunnelKey:
-                    if (!isEqual(field, that, tunnelKey, that.tunnelKey))
-                        return false;
-                    break;
-
-                case TunnelSrc:
-                    if (!isEqual(field, that, tunnelSrc, that.tunnelSrc))
-                        return false;
-                    break;
-
-                case TunnelDst:
-                    if (!isEqual(field, that, tunnelDst, that.tunnelDst))
-                        return false;
-                    break;
-
-                case IcmpId:
-                    if (!isEqual(field, that, icmpId, that.icmpId))
-                        return false;
-                    break;
-
-                case IcmpData:
-                    if (!isEqual(field, that, Objects.hashCode(this.icmpData),
-                                              Objects.hashCode(that.icmpData)))
-                        return false;
-                    break;
-
-                case VlanId:
-                    if (!isEqual(field, that, vlanIds, that.vlanIds))
-                        return false;
-                    break;
-
-            }
-        }
-
-        return true;
-    }
-
-    private <T> boolean isEqual(Field field, WildcardMatch that, T a, T b) {
-        if (usedFields.contains(field)) {
-            if (that.usedFields.contains(field))
-                return a != null ? a.equals(b) : b == null;
-            else
+        for (Field f : fields) {
+            if (isUsed(f) && (!that.isUsed(f) || !f.equals(this, that)))
                 return false;
-        } else {
-            return !that.usedFields.contains(field);
         }
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = getUsedFields().hashCode();
-        for (Field field : getUsedFields()) {
-            switch (field) {
-                case EtherType:
-                    result = 31 * result + etherType;
-                    break;
-                case FragmentType:
-                    result = 31 * result + ipFragmentType.hashCode();
-                    break;
-                case EthDst:
-                    result = 31 * result + ethDst.hashCode();
-                    break;
-                case EthSrc:
-                    result = 31 * result + ethSrc.hashCode();
-                    break;
-                case DstPort:
-                    result = 31 * result + dstPort;
-                    break;
-                case SrcPort:
-                    result = 31 * result + srcPort;
-                    break;
-                case InputPortNumber:
-                    result = 31 * result + inputPortNumber;
-                    break;
-                case NetworkDst:
-                    result = 31 * result + networkDst.hashCode();
-                    break;
-                case NetworkSrc:
-                    result = 31 * result + networkSrc.hashCode();
-                    break;
-                case NetworkProto:
-                    result = 31 * result + networkProto;
-                    break;
-                case NetworkTTL:
-                    result = 31 * result + networkTTL;
-                    break;
-                case TunnelKey:
-                    result = 31 * result + (int)(tunnelKey ^ tunnelKey >>> 32);
-                    break;
-                case TunnelSrc:
-                    result = 31 * result + tunnelSrc;
-                    break;
-                case TunnelDst:
-                    result = 31 * result + tunnelDst;
-                    break;
-                case IcmpId:
-                    result = 31 * result + icmpId;
-                    break;
-                case IcmpData:
-                    result = 31 * result + Arrays.hashCode(icmpData);
-                    break;
-                case VlanId:
-                    result = 31 * result + vlanIds.hashCode();
-                    break;
-            }
+        int result = Longs.hashCode(usedFields);
+        for (Field f : fields) {
+            if (isUsed(f))
+                result = 31 * result + f.hashCode(this);
         }
-
         return result;
-    }
-
-    private String getNetworkProtocolAsString() {
-        switch (networkProto) {
-            case 1: return "icmp";
-            case 2: return "igmp";
-            case 4: return "ipv4-encap";
-            case 6: return "tcp";
-            case 8: return "egp";
-            case 9: return "igp";
-            case 17: return "udp";
-            case 33: return "dccp";
-            case 41: return "ipv6-encap";
-            case 43: return "ipv6-route";
-            case 44: return "ipv6-frag";
-            case 47: return "gre";
-            case 50: return "esp";
-            case 51: return "ah";
-            case 58: return "ipv6-icmp";
-            case 59: return "ipv6-nonxt";
-            case 60: return "ipv6-opts";
-            case 94: return "ipip";
-            case 97: return "etherip";
-            case 112: return "vrrp";
-            case 115: return "l2tp";
-            case (byte)0x84: return "sctp";
-            default: return Byte.toString(networkProto);
-        }
     }
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder("WildcardMatch[");
-        Set<Field> usedFields = getUsedFields();
-        for (Field f: usedFields) {
-            switch (f) {
-                case EtherType:
-                    str.append("ethertype=");
-                    str.append(etherType);
-                    break;
-
-                case FragmentType:
-                    str.append("ipfrag=");
-                    str.append(ipFragmentType.toString());
-                    break;
-
-                case EthDst:
-                    str.append("eth_dst=");
-                    str.append(ethDst.toString());
-                    break;
-
-                case EthSrc:
-                    str.append("eth_src=");
-                    str.append(ethSrc.toString());
-                    break;
-
-                case DstPort:
-                    str.append("transport_dst=");
-                    str.append(dstPort);
-                    break;
-
-                case SrcPort:
-                    str.append("transport_src=");
-                    str.append(srcPort);
-                    break;
-
-                case InputPortNumber:
-                    str.append("inport=");
-                    str.append(inputPortNumber);
-                    break;
-
-                case NetworkDst:
-                    str.append("nw_dst=");
-                    str.append(networkDst.toString());
-                    break;
-
-                case NetworkSrc:
-                    str.append("nw_src=");
-                    str.append(networkSrc.toString());
-                    break;
-
-                case NetworkProto:
-                    str.append("nw_proto=");
-                    str.append(getNetworkProtocolAsString());
-                    break;
-
-                case NetworkTTL:
-                    str.append("nw_ttl=");
-                    str.append(networkTTL);
-                    break;
-
-                case TunnelKey:
-                    str.append("tunnel_id=");
-                    str.append(tunnelKey);
-                    break;
-
-                case TunnelSrc:
-                    str.append("tunnel_src=");
-                    str.append(IPv4Addr.intToString(tunnelSrc));
-                    break;
-
-                case TunnelDst:
-                    str.append("tunnel_dst=");
-                    str.append(IPv4Addr.intToString(tunnelDst));
-                    break;
-
-                case IcmpId:
-                    str.append("icmp_id=");
-                    str.append(icmpId);
-                    break;
-
-                case IcmpData:
-                    str.append("icmp_data=");
-                    str.append(Arrays.toString(icmpData));
-                    break;
-
-                case VlanId:
-                    str.append("vlan=");
-                    str.append(vlanIds);
-                    break;
+        for (Field f : fields) {
+            if (isUsed(f)) {
+                str.append(f.toString(this));
+                str.append(", ");
             }
-            str.append(", ");
         }
-
-        // Trim trailing ", "
-        if (!usedFields.isEmpty())
+        if (usedFields != 0)
             str.setLength(str.length() - 2);
 
         str.append("]");
@@ -927,103 +752,16 @@ public class WildcardMatch implements Cloneable {
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
     public WildcardMatch clone() {
-        // XXX TODO(pino): validate implementation of clone !
         WildcardMatch newClone = new WildcardMatch();
-
-        newClone.usedFields.addAll(usedFields);
-        for (Field field : Field.values()) {
-            if (usedFields.contains(field)) {
-                switch (field) {
-                    case EtherType:
-                        newClone.etherType = etherType;
-                        break;
-
-                    case FragmentType:
-                        newClone.ipFragmentType = ipFragmentType;
-                        break;
-
-                    case EthDst:
-                        newClone.ethDst = ethDst;
-                        break;
-
-                    case EthSrc:
-                        newClone.ethSrc = ethSrc;
-                        break;
-
-                    case DstPort:
-                        newClone.dstPort = dstPort;
-                        break;
-
-                    case SrcPort:
-                        newClone.srcPort = srcPort;
-                        break;
-
-                    case InputPortNumber:
-                        newClone.inputPortNumber = inputPortNumber;
-                        break;
-
-                    case NetworkDst:
-                        newClone.networkDst = networkDst;
-                        break;
-
-                    case NetworkSrc:
-                        newClone.networkSrc = networkSrc;
-                        break;
-
-                    case NetworkProto:
-                        newClone.networkProto = networkProto;
-                        break;
-
-                    case NetworkTOS:
-                        newClone.networkTOS = networkTOS;
-                        break;
-
-                    case NetworkTTL:
-                        newClone.networkTTL = networkTTL;
-                        break;
-
-                    case TunnelKey:
-                        newClone.tunnelKey = tunnelKey;
-                        break;
-
-                    case TunnelSrc:
-                        newClone.tunnelSrc = tunnelSrc;
-                        break;
-
-                    case TunnelDst:
-                        newClone.tunnelDst = tunnelDst;
-                        break;
-
-                    case IcmpId:
-                        newClone.icmpId = icmpId;
-                        break;
-
-                    case IcmpData:
-                        newClone.icmpData =
-                            Arrays.copyOf(icmpData, icmpData.length);
-                        break;
-
-                    case VlanId:
-                        newClone.vlanIds.addAll(vlanIds);
-                        break;
-
-                    default:
-                        throw new RuntimeException("Cannot clone a " +
-                            "WildcardMatch with an unrecognized field: " +
-                            field);
-                }
-            }
-        }
-
+        newClone.reset(this);
         return newClone;
     }
 
     @Nullable
-    public ProjectedWildcardMatch project(Set<WildcardMatch.Field> fields) {
-        if (!getUsedFields().containsAll(fields))
-            return null;
-
-        return new ProjectedWildcardMatch(fields, this);
+    public ProjectedWildcardMatch project(long fields) {
+        return (usedFields & fields) == fields
+               ? new ProjectedWildcardMatch(fields, this)
+               : null;
     }
 
     public static WildcardMatch fromFlowMatch(FlowMatch match) {
@@ -1034,7 +772,7 @@ public class WildcardMatch implements Cloneable {
         WildcardMatch wildcardMatch = new WildcardMatch();
         wildcardMatch.processMatchKeys(keys);
 
-        if(wildcardMatch.getEtherType() == null){
+        if (!wildcardMatch.isUsed(Field.EtherType)) {
             // Match the empty ether type (802.2)
             wildcardMatch.setEtherType(
                 FlowKeys.etherType(FlowKeyEtherType.Type.ETH_P_NONE).getEtherType());

@@ -193,8 +193,7 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(etherType, pktMatch.getEtherType() != null ?
-                Unsigned.unsign(pktMatch.getEtherType()) : null, invDlType))
+        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()), invDlType))
             return conjunctionInv;
         if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
             return conjunctionInv;

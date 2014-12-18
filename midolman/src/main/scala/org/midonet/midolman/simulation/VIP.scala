@@ -28,7 +28,7 @@ class VIP (val id: UUID, val adminStateUp: Boolean, val poolId: UUID,
         val pktMatch = pktContext.wcmatch
 
         adminStateUp && pktMatch.getNetworkDstIP == address &&
-            pktMatch.getDstPort.toInt == protocolPort &&
+            pktMatch.getDstPort == protocolPort &&
             pktMatch.getNetworkProto == TCP.PROTOCOL_NUMBER
     }
 
