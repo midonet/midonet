@@ -16,146 +16,349 @@
 package org.midonet.odp;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nonnull;
+import java.util.Arrays;
 
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
+import org.midonet.netlink.NetlinkSerializable;
 import org.midonet.netlink.Reader;
-import org.midonet.odp.flows.FlowKey;
-import org.midonet.odp.flows.FlowKeys;
+import org.midonet.odp.flows.*;
+
+import static org.midonet.odp.OpenVSwitch.FlowKey.Attr.*;
 
 /**
- * An OVS flow mask object, used in megaflows.
+ * An OVS flow mask. A flow mask is a list of FlowKeys whose values are
+ * interpreted as a mask to apply on the FlowKeys of received packets when
+ * querying the kernel flow table. The values can either be all 0s or all 1s.
+ * The former is a don't care value, effectively wildcarding the corresponding
+ * FlowKey field, whereas the latter requires the exact value of the FlowKey
+ * field to be used in querying the flow table.
  *
- * A flow mask is a list of keys where values are interpreted as masks
- * where each 1-bit requires that the corresponding bit in the key must
- * match. Each 0-bit in mask causes the corresponding bit to be ignored.
+ * Some FlowKeys in the mask require FlowKeys of a lower network layer to also
+ * be present and to contain exact match values. Namely, an exact match in a
+ * transport layer FlowKey requires an IPv4 or IPv6 FlowKey with an exact match
+ * for the protocol field. Similarly, specifying a FlowKey for a network
+ * protocol requires the EtherType FlowKey to be present with an exact match.
  *
- * There is a dependency relation between masks, as some of them can not be
- * matched unless lower level matches are **exact**. For example, TCP ports or
- * flags cannot be matched unless we require a exact match for IP
- * protocol == TCP. In the same way, IP matches cannot be done unless we require
- * an exact match for Ethernet protocol == IP.
+ * The absence of a flow mask when serializing a Flow translates into an
+ * exact match for all of the Flow's FlowKeys. The absence of a FlowKey in a
+ * mask means the fields of that FlowKey are considered wildcarded. This allows
+ * us to only serialize the FlowKeys that contain an exact match value.
  *
- * From OVS 2.0 docs:
- * The behavior when using overlapping wildcarded flows is undefined. It is the
- * responsibility of the user space program to ensure that any incoming packet
- * can match at most one flow, wildcarded or not. The current implementation
- * performs best-effort detection of overlapping wildcarded flows and may reject
- * some but not all of them. However, this behavior may change in future versions.
+ * (From OVS 2.0 docs:) The behavior when using overlapping wildcarded flows is
+ * undefined. It is the responsibility of the user space program to ensure that
+ * any incoming packet can match at most one flow, wildcarded or not. The current
+ * implementation performs best-effort detection of overlapping wildcarded flows
+ * and may reject some but not all of them. However, this behavior may change in
+ * future versions.
  *
  * @see FlowKey
- * @see org.midonet.odp.flows.FlowKeys
+ * @see Flow
  */
-public class FlowMask implements AttributeHandler {
-
-    private final List<FlowKey> keys = new ArrayList<>();
-    private int keysHashCode = 0;
-
-    // Note: not all keys are maskeable. This is the list of keys that current
-    // openVSwitch supports:
-    //
-    // OVS_KEY_ATTR_TUNNEL
-    // OVS_KEY_ATTR_IN_PORT
-    // OVS_KEY_ATTR_ETHERTYPE
-    // OVS_KEY_ATTR_IPV4
-    // OVS_KEY_ATTR_IPV6
-    // OVS_KEY_ATTR_TCP
-    // OVS_KEY_ATTR_TCP_FLAGS
-    // OVS_KEY_ATTR_UDP
-    // OVS_KEY_ATTR_SCTP
-    // OVS_KEY_ATTR_ICMP
-    // OVS_KEY_ATTR_ICMPV6
-    // OVS_KEY_ATTR_ARP
-    // OVS_KEY_ATTR_ND
-    //
-
-    final public static byte   BYTE_ANY        = (byte) 0x00;
-    final public static byte   BYTE_EXACT      = (byte) 0xFF;
-    final public static int    PRIO_ANY        = 0x00000000;
-    final public static int    PRIO_EXACT      = 0xFFFFFFFF;
-    final public static int    INPORT_ANY      = 0x00000000;
-    final public static int    INPORT_EXACT    = 0xFFFFFFFF;
-    final public static byte[] ETHER_ANY       = new byte[] { BYTE_ANY, BYTE_ANY,
-                                                              BYTE_ANY, BYTE_ANY,
-                                                              BYTE_ANY, BYTE_ANY };
-    final public static byte[] ETHER_EXACT     = new byte[] { BYTE_EXACT, BYTE_EXACT,
-                                                              BYTE_EXACT, BYTE_EXACT,
-                                                              BYTE_EXACT, BYTE_EXACT };
-    final public static short  ETHERTYPE_ANY   = (short) 0x0000;
-    final public static short  ETHERTYPE_EXACT = (short) 0xFFFF;
-    final public static int    IP_ANY          = 0x00000000;
-    final public static int    IP_EXACT        = 0xFFFFFFFF;
-    final public static int    TCP_ANY         = 0x0000;
-    final public static int    TCP_EXACT       = 0xFFFF;
-    final public static short  TCPFLAGS_ANY    = (short) 0x0000;
-    final public static short  TCPFLAGS_EXACT  = (short) 0xFFFF;
-
-    public FlowMask() { }
-
-    public FlowMask(@Nonnull Iterable<FlowKey> keys) {
-        this.addKeys(keys);
+public class FlowMask extends NetlinkSerializable
+                      implements AttributeHandler {
+    private final static long EXACT_64 = ~0L;
+    private final static int EXACT_32 = ~0;
+    private final static short EXACT_16 = (short) ~0;
+    private final static byte EXACT_8 = (byte) ~0;
+    private final static byte[] EXACT_ETH = new byte[FlowKeyEthernet.ETH_ALEN];
+    private final static int[] EXACT_IPV6 = new int[4];
+    static {
+        Arrays.fill(EXACT_ETH, EXACT_8);
+        Arrays.fill(EXACT_IPV6, EXACT_32);
     }
 
-    public FlowMask addKey(FlowKey key) {
-        keys.add(FlowKeys.intern(key));
-        invalidateHashCode();
-        return this;
+    private static class MaskableFlowKeyVlan extends FlowKeyVLAN {
+
+        public MaskableFlowKeyVlan() {
+            super((short) 0);
+        }
+
+        @Override
+        public int serializeInto(ByteBuffer buffer) {
+            buffer.putShort(vlan);
+            return 2;
+        }
+
+        @Override
+        public void deserializeFrom(ByteBuffer buf) {
+            vlan = buf.getShort();
+        }
     }
 
-    @Nonnull
-    public List<FlowKey> getKeys() {
+    private static class MaskableFlowKeyInPort extends FlowKeyInPort {
+
+        @Override
+        public void deserializeFrom(ByteBuffer buf) {
+            super.deserializeFrom(buf);
+            // The kernel gives us back the port number in the lower 16
+            // bits and the mask in the upper 16 bits. The input port is
+            // always an exact match.
+            portNo = EXACT_32;
+        }
+    }
+
+    private FlowKey[] keys = new FlowKey[OpenVSwitch.FlowKey.Attr.MAX];
+    {
+        for (short i = 0; i < keys.length; ++i) {
+            keys[i] = FlowKeys.newBlankInstance(i);
+        }
+        keys[OpenVSwitch.FlowKey.Attr.InPort] = new MaskableFlowKeyInPort();
+        keys[OpenVSwitch.FlowKey.Attr.VLan] = new MaskableFlowKeyVlan();
+    }
+
+    private long keysWithExactMatch = 0;
+
+    public FlowKey[] getKeys() {
         return keys;
     }
 
-    public FlowMask addKeys(@Nonnull Iterable<FlowKey> keys) {
-        for (FlowKey key : keys) {
-            addKey(key);
+    public void clear() {
+        for (FlowKey k : keys) {
+            if (k != null)
+                k.wildcard();
         }
-        return this;
+        keysWithExactMatch = 0;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        @SuppressWarnings("unchecked")
-        FlowMask that = (FlowMask) o;
-
-        return this.keys.equals(that.keys);
+    @SuppressWarnings("unchecked")
+    private <T extends FlowKey> T key(short id) {
+        return (T)(keys[id]);
     }
 
-    @Override
-    public int hashCode() {
-        if (keysHashCode == 0) {
-            keysHashCode = keys.hashCode();
+    private void exactMatchInKey(short id) {
+        keysWithExactMatch |= 1L << id;
+    }
+
+    public FlowKey getMaskFor(short keyId) {
+        return keys[keyId];
+    }
+
+    public void swap(FlowMask other) {
+        FlowKey[] tmpKeys = other.keys;
+        other.keys = keys;
+        keys = tmpKeys;
+        long tmpKeysWithMatch = other.keysWithExactMatch;
+        other.keysWithExactMatch = keysWithExactMatch;
+        keysWithExactMatch = tmpKeysWithMatch;
+    }
+
+    /**
+     * Calculate the flow mask from the specified FlowMatch.
+     * The input port is always an exact match.
+     */
+    public void calculateFor(FlowMatch fmatch) {
+        FlowKeyInPort inPort = key(InPort);
+        inPort.portNo = EXACT_32;
+        exactMatchInKey(InPort);
+
+        FlowKeyTunnel tunnel = key(Tunnel);
+        if (fmatch.isSeen(FlowMatch.Field.TunnelKey)) {
+            tunnel.tun_id = EXACT_64;
+            tunnel.usedFields |= FlowKeyTunnel.TUN_ID_MASK;
+            exactMatchInKey(Tunnel);
         }
-        return keysHashCode;
+        if (fmatch.isSeen(FlowMatch.Field.TunnelSrc)) {
+            tunnel.ipv4_src = EXACT_32;
+            tunnel.usedFields |= FlowKeyTunnel.IPV4_SRC_MASK;
+            exactMatchInKey(Tunnel);
+        }
+        if (fmatch.isSeen(FlowMatch.Field.TunnelDst)) {
+            tunnel.ipv4_dst = EXACT_32;
+            tunnel.usedFields |= FlowKeyTunnel.IPV4_DST_MASK;
+            exactMatchInKey(Tunnel);
+        }
+        short highestLayer = fmatch.highestLayerSeen();
+        if (highestLayer >= 2) {
+            maskLayer2(fmatch, highestLayer);
+        }
     }
 
-    private void invalidateHashCode() {
-        keysHashCode = 0;
+    private void maskLayer2(FlowMatch fmatch, short highestLayer) {
+        FlowKeyEthernet ethernet = key(Ethernet);
+        FlowKeyEtherType ethertype = key(Ethertype);
+        if (fmatch.isSeen(FlowMatch.Field.EthSrc)) {
+            ethernet.eth_src = EXACT_ETH;
+            exactMatchInKey(Ethernet);
+        }
+        if (fmatch.isSeen(FlowMatch.Field.EthDst)) {
+            ethernet.eth_dst = EXACT_ETH;
+            exactMatchInKey(Ethernet);
+        }
+        if (fmatch.isSeen(FlowMatch.Field.VlanId)) {
+            FlowKeyVLAN vlan = key(VLan);
+            vlan.vlan = EXACT_16;
+            exactMatchInKey(VLan);
+        }
+        if (highestLayer >= 3) {
+            ethertype.etherType = EXACT_16;
+            exactMatchInKey(Ethertype);
+            maskLayer3(fmatch, highestLayer);
+        } else if (fmatch.isSeen(FlowMatch.Field.EtherType)) {
+            ethertype.etherType = EXACT_16;
+            exactMatchInKey(Ethertype);
+        }
+    }
+
+    private void maskLayer3(FlowMatch fmatch, short highestLayer) {
+        short ethertype = fmatch.getEtherType();
+        if (ethertype == org.midonet.packets.IPv4.ETHERTYPE) {
+            maskIPv4(fmatch, highestLayer);
+            exactMatchInKey(IPv4);
+        } else if (ethertype == org.midonet.packets.ARP.ETHERTYPE){
+            FlowKeyARP arp = key(ARP);
+            if (fmatch.isSeen(FlowMatch.Field.NetworkSrc)) {
+                arp.arp_sip = EXACT_32;
+            }
+            if (fmatch.isSeen(FlowMatch.Field.NetworkDst)) {
+                arp.arp_tip = EXACT_32;
+            }
+            if (fmatch.isSeen(FlowMatch.Field.NetworkProto)) {
+                arp.arp_op = EXACT_8;
+            }
+            exactMatchInKey(ARP);
+        } else if (ethertype == org.midonet.packets.IPv6.ETHERTYPE) {
+            maskIPv6(fmatch, highestLayer);
+            exactMatchInKey(IPv6);
+        }
+    }
+
+    private void maskIPv6(FlowMatch fmatch, short highestLayer) {
+        FlowKeyIPv6 ipv6 = key(IPv6);
+        if (fmatch.isSeen(FlowMatch.Field.NetworkSrc)) {
+            ipv6.ipv6_src = EXACT_IPV6;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkDst)) {
+            ipv6.ipv6_dst = EXACT_IPV6;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.FragmentType)) {
+            ipv6.ipv6_frag = EXACT_8;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkTOS)) {
+            ipv6.ipv6_tclass = EXACT_8;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkTTL)) {
+            ipv6.ipv6_hlimit = EXACT_8;
+        }
+        if (highestLayer >= 4) {
+            ipv6.ipv6_proto = EXACT_8;
+            maskLayer4(fmatch);
+        } else if (fmatch.isSeen(FlowMatch.Field.NetworkProto)) {
+            ipv6.ipv6_proto = EXACT_8;
+        }
+    }
+
+    private void maskIPv4(FlowMatch fmatch, short highestLayer) {
+        FlowKeyIPv4 ipv4 = key(IPv4);
+        if (fmatch.isSeen(FlowMatch.Field.NetworkSrc)) {
+            ipv4.ipv4_src = EXACT_32;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkDst)) {
+            ipv4.ipv4_dst = EXACT_32;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.FragmentType)) {
+            ipv4.ipv4_frag = EXACT_8;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkTOS)) {
+            ipv4.ipv4_tos = EXACT_8;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.NetworkTTL)) {
+            ipv4.ipv4_ttl = EXACT_8;
+        }
+        if (highestLayer >= 4) {
+            ipv4.ipv4_proto = EXACT_8;
+            maskLayer4(fmatch);
+        } else if (fmatch.isSeen(FlowMatch.Field.NetworkProto)) {
+            ipv4.ipv4_proto = EXACT_8;
+        }
+    }
+
+    private void maskLayer4(FlowMatch fmatch) {
+        byte proto = fmatch.getNetworkProto();
+        if (proto == org.midonet.packets.UDP.PROTOCOL_NUMBER) {
+            maskUdp(fmatch);
+            exactMatchInKey(UDP);
+        } else if (proto == org.midonet.packets.TCP.PROTOCOL_NUMBER) {
+            maskTcp(fmatch);
+            exactMatchInKey(TCP);
+        } else if (proto == org.midonet.packets.ICMP.PROTOCOL_NUMBER) {
+            maskIcmp(fmatch);
+            exactMatchInKey(ICMP);
+        }
+    }
+
+    private void maskIcmp(FlowMatch fmatch) {
+        FlowKeyICMP icmp = key(ICMP);
+        if (fmatch.isSeen(FlowMatch.Field.SrcPort)) {
+            icmp.icmp_type = EXACT_8;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.DstPort)) {
+            icmp.icmp_code = EXACT_8;
+        }
+    }
+
+    private void maskTcp(FlowMatch fmatch) {
+        FlowKeyTCP tcp = key(TCP);
+        if (fmatch.isSeen(FlowMatch.Field.SrcPort)) {
+            tcp.tcp_src = EXACT_16;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.DstPort)) {
+            tcp.tcp_dst = EXACT_16;
+        }
+    }
+
+    private void maskUdp(FlowMatch fmatch) {
+        FlowKeyUDP udp = key(UDP);
+        if (fmatch.isSeen(FlowMatch.Field.SrcPort)) {
+            udp.udp_src = EXACT_16;
+        }
+        if (fmatch.isSeen(FlowMatch.Field.DstPort)) {
+            udp.udp_dst = EXACT_16;
+        }
     }
 
     @Override
     public String toString() {
-        return "FlowMask{ keys=" + keys + "}";
+        StringBuilder builder = new StringBuilder("FlowMask[");
+        for (int i = 0; i < keys.length; ++i) {
+            if (((1L << i) & keysWithExactMatch) != 0) {
+                builder.append(keys[i].toString());
+                builder.append(", ");
+            }
+        }
+        if (keysWithExactMatch != 0) {
+            builder.setLength(builder.length() - 2);
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
-    public void replaceKey(int index, FlowKey flowKey) {
-        keys.set(index, flowKey);
-        invalidateHashCode();
+    /**
+     * Serializes the current flow mask to the specified buffer, taking
+     * advantage of the fact that any omitted FlowKeys are understood
+     * as being totally wildcarded.
+     */
+    public int serializeInto(ByteBuffer buffer) {
+        int bytes = 0;
+        for (int i = 0; i < keys.length; ++i) {
+            if (((1L << i) & keysWithExactMatch) != 0) {
+                bytes += NetlinkMessage.writeAttr(buffer, keys[i], FlowKeys.writer);
+            }
+        }
+        return bytes;
     }
 
     public void use(ByteBuffer buf, short id) {
-        FlowKey key = FlowKeys.newBlankInstance(id);
-        if (key == null)
+        id &= MASK;
+        if (id >= keys.length)
             return;
-        key.deserializeFrom(buf);
-        addKey(key);
+
+        FlowKey flowKey = keys[id];
+        if (flowKey == null)
+            return;
+
+        flowKey.deserializeFrom(buf);
+        keysWithExactMatch |= 1L << id;
     }
 
     public static Reader<FlowMask> reader = new Reader<FlowMask>() {

@@ -26,7 +26,7 @@ import org.midonet.odp.OpenVSwitch;
 
 public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
 
-    private List<FlowKey> keys;
+    public List<FlowKey> keys;
 
     // This is used for deserialization purposes only.
     FlowKeyEncap() {
@@ -51,6 +51,13 @@ public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
 
     public void deserializeFrom(ByteBuffer buf) {
         NetlinkMessage.scanAttributes(buf, this);
+    }
+
+    @Override
+    public void wildcard() {
+        for (FlowKey key : keys) {
+            key.wildcard();
+        }
     }
 
     public void use(ByteBuffer buf, short id) {
@@ -83,9 +90,5 @@ public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
     @Override
     public String toString() {
         return "Encap{keys=" + keys + '}';
-    }
-
-    public Iterable<FlowKey> getKeys() {
-        return keys;
     }
 }

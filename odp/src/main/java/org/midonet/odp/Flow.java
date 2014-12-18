@@ -53,11 +53,7 @@ public class Flow implements AttributeHandler {
 
     public Flow(FlowMatch match) {
         this.match = match;
-    }
-
-    public Flow(FlowMatch match, FlowMask mask) {
-        this(match);
-        this.mask = mask;
+        mask.calculateFor(match);
     }
 
     public Flow(FlowMatch match, List<FlowAction> actions) {
@@ -65,18 +61,8 @@ public class Flow implements AttributeHandler {
         this.actions = actions;
     }
 
-    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions) {
-        this(match, mask);
-        this.actions = actions;
-    }
-
     public Flow(FlowMatch match, List<FlowAction> actions, FlowStats stats) {
         this(match, actions);
-        this.stats = stats;
-    }
-
-    public Flow(FlowMatch match, FlowMask mask, List<FlowAction> actions, FlowStats stats) {
-        this(match, mask, actions);
         this.stats = stats;
     }
 
@@ -89,13 +75,8 @@ public class Flow implements AttributeHandler {
         return (match == null || match.getKeys().isEmpty());
     }
 
-    @Nullable
     public FlowMask getMask() {
         return mask;
-    }
-
-    public boolean hasEmptyMask() {
-        return (mask == null || mask.getKeys().isEmpty());
     }
 
     @Nonnull
@@ -210,13 +191,17 @@ public class Flow implements AttributeHandler {
             desc.add("match keys: empty");
         else {
             desc.add("match keys:");
-            for (FlowKey key: matchKeys) desc.add("  " + key.toString());
+            for (FlowKey key : matchKeys) {
+                desc.add("  " + key.toString());
+                if (mask != null)
+                    desc.add("    mask: " + mask.getMaskFor(key.attrId()).toString());
+            }
         }
         if (actions.isEmpty())
             desc.add("actions: empty");
         else {
             desc.add("actions: ");
-            for (FlowAction act: actions) desc.add("  " + act.toString());
+            for (FlowAction act : actions) desc.add("  " + act.toString());
         }
         if (stats != null)
             desc.add("stats: " + stats);
@@ -252,7 +237,8 @@ public class Flow implements AttributeHandler {
      * actions). Used with flow set and flow create generic netlink commands
      * of the flow family.
      */
-    public ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId) {
+    public ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
+                                         boolean supportsFlowMask) {
         buf.putInt(datapathId);
 
         // add the keys
@@ -264,8 +250,9 @@ public class Flow implements AttributeHandler {
         // datapath will answer back with EINVAL
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, getActions(), FlowActions.writer);
 
-        if (!hasEmptyMask())
-            NetlinkMessage.writeAttrSeq(buf, Attr.Mask, mask.getKeys(), FlowKeys.writer);
+        if (supportsFlowMask) {
+            NetlinkMessage.writeAttrNested(buf, Attr.Mask, mask);
+        }
 
         buf.flip();
         return buf;
@@ -282,24 +269,6 @@ public class Flow implements AttributeHandler {
         buf.putInt(datapathId);
         NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
         NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
-        buf.flip();
-        return buf;
-    }
-
-    /**
-     * Prepares an ovs request to describe a single flow with a mask
-     */
-    public static ByteBuffer describeOneRequest(ByteBuffer buf, int datapathId,
-                                                Iterable<FlowKey> keys,
-                                                Iterable<FlowKey> maskKeys,
-                                                Iterable<FlowAction> actions) {
-        buf.putInt(datapathId);
-
-        // add the keys, the actions and the mask
-        NetlinkMessage.writeAttrSeq(buf, Attr.Key, keys, FlowKeys.writer);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Actions, actions, FlowActions.writer);
-        NetlinkMessage.writeAttrSeq(buf, Attr.Mask, maskKeys, FlowKeys.writer);
-
         buf.flip();
         return buf;
     }

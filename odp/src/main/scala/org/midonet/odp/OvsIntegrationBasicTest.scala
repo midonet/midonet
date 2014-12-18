@@ -33,12 +33,12 @@ trait FlowTest {
         val ethK = FlowKeys.ethernet(mac, mac)
 
         def flow(fm: FlowMatch) = new Flow(fm, new JArrayList[FlowAction]())
-        def flowmatch(k: FlowKey) = (new FlowMatch) addKey (k) addKey (ethK)
+        def flowmatch(k: FlowKey) = new FlowMatch addKey k addKey ethK
 
         def createFlow(f: Flow) = dpF flatMap { con createFlow(f, _) }
         def delFlow(f: Flow) = dpF flatMap { con delFlow(f, _) }
 
-        val flows = (1 to 4) map (FlowKeys.inPort) map (flowmatch) map (flow)
+        val flows = (1 to 4) map FlowKeys.inPort map flowmatch map flow
 
         val makeF = createFlow(flows.head)
 

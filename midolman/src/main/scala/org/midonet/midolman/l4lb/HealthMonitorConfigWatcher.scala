@@ -15,24 +15,21 @@
  */
 package org.midonet.midolman.l4lb
 
-import akka.actor.{ActorRef, Props, Actor}
 import java.util.UUID
+
+import scala.collection.JavaConverters._
+import scala.collection.immutable.{Map => IMap, Set => ISet}
+import scala.collection.mutable.{HashMap, HashSet => MSet, Map => MMap}
+
+import akka.actor.{Actor, ActorRef, Props}
+import org.midonet.midolman.Referenceable
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager.PoolHealthMonitorMap
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.Referenceable
 import org.midonet.midolman.simulation.LoadBalancer
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig
 import org.midonet.midolman.state.zkManagers.PoolHealthMonitorZkManager.PoolHealthMonitorConfig.{PoolMemberConfigWithId => ZkMemberConf, VipConfigWithId => ZkVipConf}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{LoadBalancerRequest, PoolHealthMonitorMapRequest}
-import scala.collection.immutable.{Map => IMap}
-import scala.collection.immutable.{Set => ISet}
-import scala.collection.JavaConverters._
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.{HashSet => MSet}
-import scala.collection.mutable.{Map => MMap}
-import scala.Predef._
-import scala.Some
 
 
 /**
@@ -106,9 +103,9 @@ object HealthMonitorConfigWatcher {
 class HealthMonitorConfigWatcher(val fileLocs: String, val suffix: String,
                                  val manager: ActorRef)
         extends Referenceable with Actor with ActorLogWithoutPath {
+    import context._
     import HealthMonitor._
     import HealthMonitorConfigWatcher._
-    import context._
 
     var poolIdtoConfigMap: IMap[UUID, PoolConfig] = IMap.empty
 
