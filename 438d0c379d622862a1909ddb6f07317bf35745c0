@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ab3e8927",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "It\u0027s used in HostMapperTest to ensure the path to the host exists in ZK (so that the alive status can be stored).",
+      "parentUuid": "1af78d9a_6b20219c",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4b2565aa",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
         "patchSetId": 8
@@ -30,6 +48,24 @@
       "writtenOn": "2014-12-19T10:19:58Z",
       "side": 1,
       "message": "Why a multi for a single op?",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4b5f2573",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "That\u0027s the simplest way I found to create the host path without storing host information.",
+      "parentUuid": "1af78d9a_4b2565aa",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ab53296b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_ab3969da",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_cb47954a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -64,6 +118,24 @@
       "writtenOn": "2014-12-19T10:19:58Z",
       "side": 1,
       "message": "simHost.tunnelZones +\u003d tunnel.id -\u003e tunnel.hosts(id) ?",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ebe411ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_cb47954a",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_2bc73914",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "When retrieved form Zoom, the host only contains tunnelIds but not the IPs of the host in the tunnels it\u0027s a member of. That\u0027s why we need to obtain this information from the tunnel zones. See the comments above tunnels in the host class.",
+      "parentUuid": "1af78d9a_eb4a5154",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -98,6 +188,24 @@
       "writtenOn": "2014-12-19T10:19:58Z",
       "side": 1,
       "message": "I\u0027m not sure why this is needed. Isn\u0027t this handled by the base class?",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_eb4d31c6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "1af78d9a_2b4d7973",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8b50ed5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "I like it too :-)",
+      "parentUuid": "1af78d9a_2b74599b",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_8b362de6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
         "patchSetId": 8
@@ -132,6 +258,24 @@
       "writtenOn": "2014-12-19T10:19:58Z",
       "side": 1,
       "message": "Why is this needed?",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2bee198c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "In the host mapper, after updating the host. I was thinking it would be problematic to modify the host in place. Perhaps it is not. This is just to be safe.",
+      "parentUuid": "1af78d9a_8b362de6",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -172,6 +316,30 @@
       "writtenOn": "2014-12-19T10:19:58Z",
       "side": 1,
       "message": "Remove?",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_0bf35d74",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:11:48Z",
+      "side": 1,
+      "message": "TunnelZone will need to be a case class for later. The same goes for the Host.",
+      "parentUuid": "1af78d9a_cb3035eb",
       "range": {
         "startLine": 56,
         "startChar": 21,
