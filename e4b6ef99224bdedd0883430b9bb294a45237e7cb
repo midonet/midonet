@@ -93,6 +93,30 @@
       "revId": "e4b6ef99224bdedd0883430b9bb294a45237e7cb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8e0f5b2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T17:20:29Z",
+      "side": 1,
+      "message": "I will make sure the alive status has been received too, at least once.",
+      "parentUuid": "1af78d9a_4e0e1336",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 38
+      },
+      "revId": "e4b6ef99224bdedd0883430b9bb294a45237e7cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
