@@ -45,6 +45,52 @@
       "revId": "06de95ee39511317392039864dbc58afe9749d28",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aed85c8_4d2579aa",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T09:40:16Z",
+      "side": 1,
+      "message": "nit-pick: \"..handled by a single thread.\"",
+      "range": {
+        "startLine": 73,
+        "startChar": 63,
+        "endLine": 73,
+        "endChar": 70
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aed85c8_cd47a94a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T09:40:16Z",
+      "side": 1,
+      "message": "Is this message called to receive messages? Could you add comments to clarify this?",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 25
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
