@@ -16,21 +16,19 @@
 package org.midonet.midolman
 
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.Duration
 
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
+import org.midonet.cluster.data.TunnelZone
 import org.midonet.midolman.FlowController.{AddWildcardFlow, WildcardFlowAdded}
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.topology.LocalPortActive
 import org.midonet.midolman.util.MidolmanTestCase
+import org.midonet.odp.flows.FlowActions.output
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.flows.{WildcardMatch, WildcardFlow}
-import org.midonet.odp.flows.FlowActions.output
-import org.midonet.cluster.data.TunnelZone
+import org.scalatest.junit.JUnitRunner
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -96,5 +94,4 @@ class InstallWildcardFlowForRemotePortTestCase extends MidolmanTestCase {
         tunnelKeys.find(tunnelIsLike(srcIp.toInt, dstIp.toInt, portOnHost2.getTunnelKey)) should not be None
 
     }
-
 }

@@ -61,7 +61,7 @@ types of packets needs to be handled.
 "virtual" actions defined at the virtual topology level after a simulation
 successfully returned.
 
-- the WildcardMatch class, which can be instantiated from a list of FlowKeys
+- the FlowMatch class, which can be instantiated from a list of FlowKeys
 that represent information that the datapath module collected after inspecting
 packets headers at different L layers.
 

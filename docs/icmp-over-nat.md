@@ -83,7 +83,7 @@ FlowKey.UserSpaceOnly key.
 
 As a consequence of this change several ICMP ERROR and all ICMP ECHO
 messages will be processed in userspace. The overhead is not excessive
-since in most cases we'll have a WildcardMatch immediately as the packet
+since in most cases we'll have a FlowMatch immediately as the packet
 is received in the FlowController and it won't really be simulated.
 
 ## Further Improvements

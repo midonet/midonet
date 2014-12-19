@@ -110,11 +110,6 @@ public class FlowKeyTCP implements FlowKey {
     }
 
     @Override
-    public int connectionHash() {
-        return hashCode();
-    }
-
-    @Override
     public String toString() {
         return "TCP{src=" + tcp_src + ", dst=" + tcp_dst + '}';
     }

@@ -30,9 +30,9 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Coordinator._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology._
-import org.midonet.odp.Packet
+import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.concurrent._
 
 /** The IPv4 specific implementation of a Router. */
@@ -175,13 +175,13 @@ class Router(override val id: UUID,
         arpTable.set(spa, sha)
     }
 
-    override protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean = {
+    override protected def isIcmpEchoRequest(mmatch: FlowMatch): Boolean = {
         mmatch.getNetworkProto == ICMP.PROTOCOL_NUMBER &&
             (mmatch.getSrcPort & 0xff) == ICMP.TYPE_ECHO_REQUEST &&
             (mmatch.getDstPort & 0xff) == ICMP.CODE_NONE
     }
 
-    override protected def sendIcmpEchoReply(ingressMatch: WildcardMatch,
+    override protected def sendIcmpEchoReply(ingressMatch: FlowMatch,
                                              packet: Ethernet)
                                    (implicit context: PacketContext): Boolean = {
 
@@ -275,7 +275,7 @@ class Router(override val id: UUID,
      *          - emit new packet
      *      + drop actions in process() are an empty return here (we just don't
      *        emit the packet)
-     *      + no wildcard match cloning or updating.
+     *      + no flow match cloning or updating.
      *      + it does not return an action but, instead sends it emits the
      *        packet for simulation if successful.
      */
@@ -330,9 +330,9 @@ class Router(override val id: UUID,
                     eth.setSourceMACAddress(outPort.portMac)
                     eth.setDestinationMACAddress(mac)
                     // Apply post-routing (egress) chain.
-                    val egrMatch = WildcardMatch.fromEthernetPacket(eth)
+                    val egrMatch = new FlowMatch(FlowKeys.fromEthernetPacket(eth))
                     val egrPktContext = new PacketContext(
-                        Right(outPort.id), Packet.fromEthernet(eth), None, egrMatch)
+                        Right(outPort.id), new Packet(eth, egrMatch), None, egrMatch)
                     egrPktContext.outPortId = outPort.id
 
                     // Try to apply the outFilter
@@ -359,7 +359,7 @@ class Router(override val id: UUID,
             }
         }
 
-        val ipMatch = new WildcardMatch()
+        val ipMatch = new FlowMatch()
                       .setNetworkDst(packet.getDestinationIPAddress)
                       .setNetworkSrc(packet.getSourceIPAddress)
         val rt: Route = routeBalancer.lookup(ipMatch, context.log)

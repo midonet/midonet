@@ -17,7 +17,6 @@ package org.midonet.odp;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.List;
 import java.util.Objects;
 
 import org.slf4j.Logger;
@@ -38,10 +37,8 @@ import org.midonet.packets.Ethernet;
  * via a kernel notification.
  *
  * @see FlowMatch
- * @see OvsDatapathConnection#packetsExecute(Datapath, Packet)
- * @see OvsDatapathConnection#datapathsSetNotificationHandler(Datapath, Callback)
  */
-public class Packet implements AttributeHandler {
+public class Packet {
     private static final Logger log = LoggerFactory
             .getLogger("org.midonet.netlink.netlink-proto");
 
@@ -58,12 +55,6 @@ public class Packet implements AttributeHandler {
     // user field used by midolman packet pipeline to track time statistics,
     // ignored in equals() and hashCode()
     public long startTimeNanos = 0;
-
-    private Packet() { } // for deserialisation only
-
-    public Packet(Ethernet eth) {
-        this.eth = eth;
-    }
 
     public Packet(Ethernet eth, FlowMatch match) {
         this.eth = eth;
@@ -82,9 +73,8 @@ public class Packet implements AttributeHandler {
         return match;
     }
 
-    public Packet addKey(FlowKey key) {
-        match.addKey(key);
-        return this;
+    public void setUserData(Long userData) {
+        this.userData = userData;
     }
 
     public Long getUserData() {
@@ -98,14 +88,6 @@ public class Packet implements AttributeHandler {
     public Packet setReason(Reason reason) {
         this.reason = reason;
         return this;
-    }
-
-    public void processUserspaceKeys() {
-        FlowMatches.addUserspaceKeys(eth, match);
-    }
-
-    public void generateFlowKeysFromPayload() {
-        match = FlowMatches.fromEthernetPacket(eth);
     }
 
     @Override
@@ -131,7 +113,6 @@ public class Packet implements AttributeHandler {
         return result;
     }
 
-
     @Override
     public String toString() {
         return "Packet{" +
@@ -140,45 +121,6 @@ public class Packet implements AttributeHandler {
             ", userData=" + userData +
             ", reason=" + reason +
             '}';
-    }
-
-    public static Packet fromEthernet(Ethernet eth) {
-        return new Packet(eth);
-    }
-
-    public static Packet buildFrom(ByteBuffer buf) {
-        int datapathIndex = buf.getInt(); // ignored
-        Packet packet = new Packet();
-        NetlinkMessage.scanAttributes(buf, packet);
-        if (packet.eth == null)
-            return null;
-        return packet;
-    }
-
-    public void use(ByteBuffer buf, short id) {
-        switch(NetlinkMessage.unnest(id)) {
-
-            case Attr.Packet:
-                ByteOrder originalOrder = buf.order();
-                try {
-                    this.eth = new Ethernet();
-                    this.eth.deserialize(buf);
-                } catch (Exception e) {
-                    log.warn("Dropping malformed packet", e);
-                    this.eth = null;
-                } finally {
-                    buf.order(originalOrder);
-                }
-                break;
-
-            case Attr.Key:
-                this.match = FlowMatch.reader.deserializeFrom(buf);
-                break;
-
-            case Attr.Userdata:
-                this.userData = buf.getLong();
-                break;
-        }
     }
 
     /** Prepares an ovs request for executing and a packet with the given list

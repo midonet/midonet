@@ -29,19 +29,4 @@ public interface FlowKey {
      *  the given ByteBuffer. Used in conjunction with the scanAttributes
      *  iterator of NetlinkMessage when reconstructing a flow match. */
     void deserializeFrom(ByteBuffer buf);
-
-    /** Returns a hash code which only uses for its calculation fields that are
-     *  part of a stateful L4 connection. This allows for  a consistent result
-     *  across multiple matches that belong to the same connection.
-     */
-    int connectionHash();
-
-    /**
-     * Should be used by those keys that are only supported in user space.
-     *
-     * Note that Matches containing any UserSpaceOnly key will NOT be sent
-     * to the datapath, and will also need to have all UserSpace-related actions
-     * applied before being sent to the DP.
-     */
-    interface UserSpaceOnly { }
 }

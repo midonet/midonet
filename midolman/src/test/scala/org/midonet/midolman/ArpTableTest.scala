@@ -23,6 +23,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 import org.junit.runner.RunWith
+import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.client.RouterPort
@@ -38,7 +39,6 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder
 import org.midonet.util.UnixClock
-import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
 class ArpTableTest extends MidolmanSpec {
@@ -105,7 +105,7 @@ class ArpTableTest extends MidolmanSpec {
         }
 
     implicit private def dummyPacketContext =
-        new PacketContext(Left(0), null, None, new WildcardMatch())
+        new PacketContext(Left(0), null, None, new FlowMatch())
 
     private def expectEmittedPacket(port: UUID): Ethernet = {
         val msgs = PacketsEntryPoint.getAndClear()
