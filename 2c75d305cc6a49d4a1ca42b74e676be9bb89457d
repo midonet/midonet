@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_2b4a9983",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 10
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "bug",
+      "range": {
+        "startLine": 16,
+        "startChar": 10,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cb7dd5b3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "Based on the comments in version 9, shouldn\u0027t this method be renamed? If flush only bumps the version number of the current data and start storing data somewhere else, this sounds more like \"newIncarnation()\" or \"newVersion()\".",
+      "range": {
+        "startLine": 781,
+        "startChar": 17,
+        "endLine": 781,
+        "endChar": 22
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_eb57f124",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 120,
+        "startChar": 57,
+        "endLine": 120,
+        "endChar": 61
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8b5aad4e",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "ZK_ROOT?",
+      "range": {
+        "startLine": 120,
+        "startChar": 47,
+        "endLine": 120,
+        "endChar": 51
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2b31f90b",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 124,
+        "startChar": 61,
+        "endLine": 124,
+        "endChar": 65
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cb54b523",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T16:54:59Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 124,
+        "startChar": 47,
+        "endLine": 124,
+        "endChar": 51
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
