@@ -20,16 +20,16 @@ import java.util.{List => JList}
 import java.util.UUID
 import scala.collection.JavaConversions._
 
+import org.midonet.odp.FlowMatch
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.FlowController.WildcardFlowAdded
 import org.midonet.midolman.PacketWorkflow.PacketIn
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
-import org.midonet.odp.Packet
 import org.midonet.odp.flows._
 import org.midonet.odp.flows.FlowActions.output
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.WildcardFlow
 
 trait SimulationHelper { this: MidolmanTestCase =>
 
@@ -214,7 +214,7 @@ trait SimulationHelper { this: MidolmanTestCase =>
         addFlowMsg.f
     }
 
-    def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: WildcardMatch) {
+    def expectMatchForIPv4Packet(pkt: Ethernet, wmatch: FlowMatch) {
         wmatch.getEthDst should be (pkt.getDestinationMACAddress)
         wmatch.getEthSrc should be (pkt.getSourceMACAddress)
         wmatch.getEtherType should be (pkt.getEtherType)

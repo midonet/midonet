@@ -89,9 +89,6 @@ public class FlowKeyND implements CachedFlowKey {
     }
 
     @Override
-    public int connectionHash() { return 0; }
-
-    @Override
     public String toString() {
         return "ND{" +
                   "target=" + Net.convertIPv6BytesToString(nd_target) +

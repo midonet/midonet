@@ -69,9 +69,6 @@ public class FlowKeyVLAN implements CachedFlowKey {
     }
 
     @Override
-    public int connectionHash() { return 0; }
-
-    @Override
     public String toString() {
         return "VLAN{" + vlan + '}';
     }

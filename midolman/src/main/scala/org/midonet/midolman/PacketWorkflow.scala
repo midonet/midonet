@@ -34,12 +34,12 @@ import org.midonet.midolman.simulation.{Coordinator, DhcpImpl, PacketContext}
 import org.midonet.midolman.state.FlowStateReplicator
 import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForDpPort
-import org.midonet.sdn.flows.WildcardMatch.Field
-import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 
 trait PacketHandler {
     def start(context: PacketContext): PacketWorkflow.PipelinePath
@@ -47,7 +47,7 @@ trait PacketHandler {
 }
 
 object PacketWorkflow {
-    case class PacketIn(wMatch: WildcardMatch,
+    case class PacketIn(wMatch: FlowMatch,
                         inputPort: UUID,
                         eth: Ethernet,
                         dpMatch: FlowMatch,
@@ -98,7 +98,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 
     private def wildflowForTunnelPacket(context: PacketContext,
                                         forwardTo: DpPort): WildcardFlow = {
-        val wmatch = new WildcardMatch()
+        val wmatch = new FlowMatch()
         wmatch setTunnelSrc context.origMatch.getTunnelSrc
         wmatch setTunnelDst context.origMatch.getTunnelDst
         wmatch setTunnelKey context.origMatch.getTunnelKey

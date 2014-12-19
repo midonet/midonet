@@ -17,8 +17,8 @@ package org.midonet.midolman.simulation
 
 import org.midonet.midolman.rules._
 import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.IPAddr
-import org.midonet.sdn.flows.WildcardMatch
 
 import java.util.UUID
 import org.junit.runner.RunWith
@@ -45,11 +45,11 @@ class ChainTest extends Suite
     private implicit val actorSystem = ActorSystem("ChainTest")
 
     private var pktCtx: PacketContext = _
-    private var pktMatch: WildcardMatch = _
+    private var pktMatch: FlowMatch = _
     private val ownerId: UUID = UUID.randomUUID
 
     before {
-        pktMatch = new WildcardMatch()
+        pktMatch = new FlowMatch()
         pktMatch.setEthDst("01:02:03:04:05:06")
         pktMatch.setNetworkDst(IPAddr.fromString("1.2.3.4"))
 

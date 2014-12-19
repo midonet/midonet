@@ -16,12 +16,13 @@
 
 package org.midonet.sdn.flows;
 
-public class ProjectedWildcardMatch extends WildcardMatch {
+import org.midonet.odp.FlowMatch;
 
-    private final WildcardMatch source;
+public class ProjectedFlowMatch extends FlowMatch {
 
-    @SuppressWarnings("ConstantConditions")
-    public ProjectedWildcardMatch(long usedFields, WildcardMatch source) {
+    private final FlowMatch source;
+
+    public ProjectedFlowMatch(long usedFields, FlowMatch source) {
         reset(source);
         this.usedFields = usedFields;
         this.seenFields = 0;
@@ -29,13 +30,19 @@ public class ProjectedWildcardMatch extends WildcardMatch {
         this.source = source;
     }
 
-    public WildcardMatch getSource() {
+    public FlowMatch getSource() {
         return source;
     }
 
     @Override
     @SuppressWarnings("CloneDoesntCallSuperClone")
-    public ProjectedWildcardMatch clone() {
-        return new ProjectedWildcardMatch(getUsedFields(), getSource().clone());
+    public ProjectedFlowMatch clone() {
+        return new ProjectedFlowMatch(getUsedFields(), getSource().clone());
+    }
+
+    public static ProjectedFlowMatch project(FlowMatch source, long fields) {
+        return (source.getUsedFields() & fields) == fields
+             ? new ProjectedFlowMatch(fields, source)
+             : null;
     }
 }

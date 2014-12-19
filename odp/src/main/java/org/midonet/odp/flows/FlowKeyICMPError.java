@@ -22,12 +22,8 @@ import java.util.Arrays;
  * will report that the match is not Netlink-compatible so that the
  * FlowController never installs a kernel flow with this key. Otherwise it's
  * functional and can be used for WildcardFlows.
- *
- * By making this class implement FlowKey.UserSpaceOnly we ensure that flows
- * that require matching on this key will never be installed in the kernel.
  */
-public class FlowKeyICMPError extends FlowKeyICMP
-                              implements FlowKey.UserSpaceOnly {
+public class FlowKeyICMPError extends FlowKeyICMP {
     private byte[] icmp_data = null;
 
     FlowKeyICMPError(byte type, byte code, byte[] data) {

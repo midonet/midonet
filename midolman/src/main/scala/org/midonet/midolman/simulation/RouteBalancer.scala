@@ -22,7 +22,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.RoutingTableWrapper
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.IPAddr
 
 /**
@@ -32,7 +32,7 @@ import org.midonet.packets.IPAddr
 class RouteBalancer[IP <: IPAddr](val rTable: RoutingTableWrapper[IP]) {
     val lookups: AtomicLong = new AtomicLong()
 
-    def lookup(mmatch: WildcardMatch, logger: Logger): Route = {
+    def lookup(mmatch: FlowMatch, logger: Logger): Route = {
         val routes = rTable.lookup(mmatch)
         routes.size match {
             case 0 => null

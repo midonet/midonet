@@ -31,9 +31,8 @@ import org.midonet.cluster.client.{BridgePort, IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.cluster.VlanPortMapImpl
-import org.midonet.odp.Packet
+import org.midonet.odp.{FlowMatch, Packet}
 
 
 @RunWith(classOf[JUnitRunner])
@@ -121,12 +120,12 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
 
     def testUnlearnedMac() {
         log.info("Starting testUnlearnedMac()")
-        val ingressMatch = new WildcardMatch()
+        val ingressMatch = new FlowMatch()
                 .setEthSrc(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthDst(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
-                                        Packet.fromEthernet(Ethernet.random()),
+                                        new Packet(Ethernet.random(), ingressMatch),
                                         None, ingressMatch)
         context.prepareForSimulation(0)
         context.inPortId = brPort.id
@@ -149,12 +148,12 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val frame = new Ethernet()
             .setSourceMACAddress(srcMac)
             .setDestinationMACAddress(learnedMac)
-        val ingressMatch = new WildcardMatch()
+        val ingressMatch = new FlowMatch()
                                .setEthSrc(srcMac)
                                .setEthDst(learnedMac)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(rtr2port),
-                                        Packet.fromEthernet(frame),
+                                        new Packet(frame, ingressMatch),
                                         None, ingressMatch)
         context.inputPort = rtr2port
         context.prepareForSimulation(0)
@@ -173,12 +172,12 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     }
 
     def testBroadcast() {
-        val ingressMatch = new WildcardMatch()
+        val ingressMatch = new FlowMatch()
                 .setEthSrc(MAC.fromString("0a:54:ce:50:44:ce"))
                 .setEthDst(MAC.fromString("ff:ff:ff:ff:ff:ff"))
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
-                                        Packet.fromEthernet(Ethernet.random()),
+                                        new Packet(Ethernet.random(), ingressMatch),
                                         None, ingressMatch)
         context.prepareForSimulation(0)
         val result = bridge.process(context)
@@ -202,14 +201,14 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val frame = new Ethernet()
                         .setSourceMACAddress(srcMac)
                         .setDestinationMACAddress(dstMac)
-        val ingressMatch = new WildcardMatch()
+        val ingressMatch = new FlowMatch()
                                .setEthSrc(srcMac)
                                .setEthDst(dstMac)
                                .setNetworkDst(rtr1ipaddr)
                                .setEtherType(ARP.ETHERTYPE)
         val origMatch = ingressMatch.clone
         val context = new PacketContext(Right(UUID.randomUUID()),
-                                        Packet.fromEthernet(frame),
+                                        new Packet(frame, ingressMatch),
                                         None, ingressMatch)
         context.prepareForSimulation(0)
         val result = bridge.process(context)
@@ -224,7 +223,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     }
 
     def testMcastSrc() {
-        val ingressMatch = new WildcardMatch()
+        val ingressMatch = new FlowMatch()
                 .setEthSrc(MAC.fromString("ff:54:ce:50:44:ce"))
                 .setEthDst(MAC.fromString("0a:de:57:16:a3:06"))
         val origMatch = ingressMatch.clone

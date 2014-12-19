@@ -16,21 +16,20 @@
 
 package org.midonet.midolman
 
-import java.util.{ArrayList, List => JList}
+import java.util.ArrayList
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
-
-import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.odp.flows.{FlowKeys, FlowAction}
-import org.midonet.odp.{FlowMatch, Flow}
+import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{Flow, FlowMatch}
+import org.midonet.sdn.flows.FlowTagger.{FlowTag, TunnelKeyTag}
 import org.midonet.sdn.flows._
 import org.midonet.util.functors.Callback0
-import org.midonet.sdn.flows.FlowTagger.{TunnelKeyTag, FlowTag}
+import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class FlowControllerTestCase extends MidolmanSpec {
@@ -151,7 +150,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             val mwcFlow = testFlowAdded(flow, state)
 
             When("The flow is removed from the flow controller.")
-            FlowController ! FlowController.RemoveWildcardFlow(flow.wcMatch)
+            FlowController ! FlowController.RemoveWildcardFlow(flow.flowMatch)
 
             testFlowRemoved(flow, mwcFlow, state)
         }
@@ -180,7 +179,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             val mwcFlow = testFlowAdded(flow, state)
 
             When("The flow was remove from the flow controller.")
-            FlowController ! FlowController.RemoveWildcardFlow(flow.wcMatch)
+            FlowController ! FlowController.RemoveWildcardFlow(flow.flowMatch)
 
             testFlowRemoved(flow, mwcFlow, state)
         }
@@ -324,7 +323,7 @@ class FlowControllerTestCase extends MidolmanSpec {
             flowController.flowManagerHelper.removeFlow(flow.flowMatch)
 
             Then("The flow should not appear in the wildcard flow table.")
-            FlowController.queryWildcardFlowTable(flow.wcMatch) should not be
+            FlowController.queryWildcardFlowTable(flow.flowMatch) should not be
                     (None)
 
             And("The datapath flow metric should be set at the original value.")
@@ -378,9 +377,9 @@ class FlowControllerTestCase extends MidolmanSpec {
     private def testFlowAdded(flow: TestableFlow,
                               state: MetricsSnapshot): ManagedWildcardFlow = {
         Then("The flow should appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.wcMatch) should not be (None)
+        FlowController.queryWildcardFlowTable(flow.flowMatch) should not be (None)
 
-        val mwcFlow = FlowController.queryWildcardFlowTable(flow.wcMatch) get
+        val mwcFlow = FlowController.queryWildcardFlowTable(flow.flowMatch) get
 
         And("The datapath flow metric should be incremented by one.")
         flowController.metrics.dpFlowsMetric.getCount should be (
@@ -413,7 +412,7 @@ class FlowControllerTestCase extends MidolmanSpec {
                                 mwcFlow: ManagedWildcardFlow,
                                 state: MetricsSnapshot) {
         Then("The flow should not appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.wcMatch) should be(None)
+        FlowController.queryWildcardFlowTable(flow.flowMatch) should be(None)
 
         And("The datapath flow metric should be set at the original value.")
         flowController.metrics.currentDpFlowsMetric.getValue should be (
@@ -445,7 +444,7 @@ class FlowControllerTestCase extends MidolmanSpec {
                                mwcFlow: ManagedWildcardFlow,
                                state: MetricsSnapshot) {
         Then("The flow should appear in the wildcard flow table.")
-        FlowController.queryWildcardFlowTable(flow.wcMatch).get should be (
+        FlowController.queryWildcardFlowTable(flow.flowMatch).get should be (
             mwcFlow)
 
         And("The datapath flow metric should be incremented by one.")
@@ -498,15 +497,13 @@ class FlowControllerTestCase extends MidolmanSpec {
         val flowMatch = new FlowMatch().addKey(
             FlowKeys.tunnel(tunnelId, srcIpv4Address, dstIpv4Address))
 
-        val wcMatch = WildcardMatch.fromFlowMatch(flowMatch)
-
         val wcFlow = flowType match {
             case TestableFlowNoExpiration() =>
-                WildcardFlowFactory.create(wcMatch)
+                WildcardFlowFactory.create(flowMatch)
             case TestableFlowIdleExpiration() =>
-                WildcardFlowFactory.createIdleExpiration(wcMatch, expirationMillis)
+                WildcardFlowFactory.createIdleExpiration(flowMatch, expirationMillis)
             case TestableFlowHardExpiration() =>
-                WildcardFlowFactory.createHardExpiration(wcMatch, expirationMillis)
+                WildcardFlowFactory.createHardExpiration(flowMatch, expirationMillis)
         }
 
         val dpFlow = new Flow(flowMatch, wcFlow.actions)

@@ -157,7 +157,9 @@ public class Flow implements AttributeHandler {
             break;
 
           case Attr.Key:
-            match = FlowMatch.reader.deserializeFrom(buf);
+            ArrayList<FlowKey> keys = new ArrayList<>();
+            FlowKeys.buildFrom(buf, keys);
+            match = new FlowMatch(keys);
             break;
 
           case Attr.Mask:

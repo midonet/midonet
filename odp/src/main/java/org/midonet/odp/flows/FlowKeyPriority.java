@@ -64,9 +64,6 @@ public class FlowKeyPriority implements FlowKey {
     }
 
     @Override
-    public int connectionHash() { return 0; }
-
-    @Override
     public String toString() {
         return "Priority{" + priority + '}';
     }
