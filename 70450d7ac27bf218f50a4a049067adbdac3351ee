@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_0b523d13",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T10:15:53Z",
+      "side": 1,
+      "message": "\u003e  the flush is a privileged operation that the C3PO node would execute\n\nIs it safe for ZOOM to assume so? It\u0027s true that the current implementation is motivated because of the C3PO use case, but that\u0027s a slightly different matter.\n\n\u003e What we need to do is have ZOOM instances sync on the ROOT path, and have all clients detect the bump, and switch\n\nThat what I meant by \"to watch for data version update\". That\u0027s what we need to implement.\n\n\u003e the flush doesn\u0027t mean that subscriptions need to be closed immediately.\n\nThat\u0027s not correct. The semantics of flush is clearly to remove all that are in Storage. Therefore any subscribers to the deleted should be notified of deletion.\n\n\u003e the flush is actually a C3PO operation, not so in ZOOM (so we should probably not put it in zoom and instead trigger the bump from C3PO itself via curator).\n\nEven in that case, I think that ZOOM will need to provide data version support.",
+      "parentUuid": "9a0b7d60_be76c5d6",
+      "range": {
+        "startLine": 784,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 31
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_7e9f3d04",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 9
@@ -84,6 +108,30 @@
       "side": 1,
       "message": "Yes, but that\u0027s a SUSPEND event, followed by RECONNECTED. LOST indicates that it gave up for good.",
       "parentUuid": "9a0b7d60_7e9f3d04",
+      "range": {
+        "startLine": 79,
+        "startChar": 21,
+        "endLine": 85,
+        "endChar": 21
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4b5c4526",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T10:15:53Z",
+      "side": 1,
+      "message": "Ok, this will be understood by the client as connection lost and there\u0027s some reconnection attempt or some other handling is implemented elsewhere, I guess that\u0027s fine.",
+      "parentUuid": "9a0b7d60_beafe52a",
       "range": {
         "startLine": 79,
         "startChar": 21,
