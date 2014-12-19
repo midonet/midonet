@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_be76c5d6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T08:57:23Z",
+      "side": 1,
+      "message": "The clients on a different VM will be talking to another instance of zoom so we can\u0027t do anything with those.\n\nThis whole method needs a deeper review because I\u0027m not sure what we\u0027re trying to do. In practise, the flush is a privileged operation that the C3PO node would execute, and involves bumping the root path but not deleting any older path, which is still available for anyone subscribed to it.\n\nWhat we need to do is have ZOOM instances sync on the ROOT path, and have all clients detect the bump, and switch. So this code here is in fact incorrect, the flush doesn\u0027t mean that subscriptions need to be closed immediately. And, the flush is actually a C3PO operation, not so in ZOOM (so we should probably not put it in zoom and instead trigger the bump from C3PO itself via curator).\n\nI\u0027ll revert this to what it was and address all this in a separate patch.",
+      "parentUuid": "9a0b7d60_1ec1d1e4",
+      "range": {
+        "startLine": 784,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 31
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_7e9f3d04",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 9
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9a0b7d60_beafe52a",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T08:57:23Z",
+      "side": 1,
+      "message": "Yes, but that\u0027s a SUSPEND event, followed by RECONNECTED. LOST indicates that it gave up for good.",
+      "parentUuid": "9a0b7d60_7e9f3d04",
+      "range": {
+        "startLine": 79,
+        "startChar": 21,
+        "endLine": 85,
+        "endChar": 21
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_3e95b5e4",
         "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
         "patchSetId": 9
@@ -59,6 +107,30 @@
       "writtenOn": "2014-12-19T08:03:43Z",
       "side": 1,
       "message": "This produces, start, start+1, start+2, ...., end-1. You need to fix the comments to say that \"end\" is exclusive.",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_5ebb5972",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T08:57:23Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_3e95b5e4",
       "range": {
         "startLine": 127,
         "startChar": 8,
