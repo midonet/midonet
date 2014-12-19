@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "5aed85c8_6d20359c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T09:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_03be9eff",
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_e3ba7a09",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 8
@@ -30,6 +48,30 @@
       "writtenOn": "2014-12-18T14:14:43Z",
       "side": 1,
       "message": "You don\u0027t need these here anymore.",
+      "range": {
+        "startLine": 122,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 5
+      },
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aed85c8_ad397dda",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T09:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_e3ba7a09",
       "range": {
         "startLine": 122,
         "startChar": 0,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "5aed85c8_cd3049eb",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/midonet/package.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T09:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_c34ad626",
+      "range": {
+        "startLine": 43,
+        "startChar": 11,
+        "endLine": 43,
+        "endChar": 26
+      },
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_a347d21c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/neutron/package.scala",
         "patchSetId": 8
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "5aed85c8_2d4d8d73",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/neutron/package.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T09:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_a347d21c",
+      "range": {
+        "startLine": 42,
+        "startChar": 11,
+        "endLine": 42,
+        "endChar": 26
+      },
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_e351dad9",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
         "patchSetId": 8
@@ -99,6 +189,30 @@
       "writtenOn": "2014-12-18T14:14:43Z",
       "side": 1,
       "message": "s/NeutronService/NeutronImporter/",
+      "range": {
+        "startLine": 84,
+        "startChar": 22,
+        "endLine": 84,
+        "endChar": 36
+      },
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aed85c8_0d525113",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/neutron/NeutronImporter.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T09:33:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9a0b7d60_e351dad9",
       "range": {
         "startLine": 84,
         "startChar": 22,
