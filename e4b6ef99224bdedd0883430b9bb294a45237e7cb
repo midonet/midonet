@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1af78d9a_2b9579e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T16:52:57Z",
+      "side": 1,
+      "message": "Import after scala.",
+      "range": {
+        "startLine": 36,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 29
+      },
+      "revId": "e4b6ef99224bdedd0883430b9bb294a45237e7cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6bb6618c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T16:52:57Z",
+      "side": 1,
+      "message": "Is this necessary? Shouldn\u0027t you add updates only to a host received from storage?\n\nI\u0027m not 100% sure, but it looks like it\u0027s possible that you emit an empty host, when the following happens:\n- the hostAliveStream emits a notification before the hostObservable\n- then the alive information is added to the empty host\n- allTunnelsReceived filter returns true, since Set.empty.forall is true\n\n\u003d\u003e the observable emits an empty host only with the alive field set\n\nIf you are using the Host as the intermediate building state, that the output filter should also check that you received the host from storage. Or simpler, store all intermediate results as separate variables:\n\nvar host: Option[SimHost] \u003d None\nvar isAlive: Option[Boolean] \u003d None\nvar tunnelZones \u003d Map[...]\n\nin the output filter you just check that you received all components before emitting the device.",
+      "range": {
+        "startLine": 44,
+        "startChar": 4,
+        "endLine": 44,
+        "endChar": 38
+      },
+      "revId": "e4b6ef99224bdedd0883430b9bb294a45237e7cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
