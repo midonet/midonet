@@ -16,6 +16,8 @@
 package org.midonet.odp.protos;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -25,10 +27,12 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
 import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
+import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.odp.OpenVSwitch;
 import org.midonet.odp.Datapath;
@@ -42,6 +46,8 @@ import org.midonet.odp.family.PacketFamily;
 import org.midonet.odp.family.PortFamily;
 import org.midonet.odp.flows.FlowAction;
 import org.midonet.odp.flows.FlowKey;
+import org.midonet.odp.flows.FlowKeys;
+import org.midonet.packets.Ethernet;
 import org.midonet.util.BatchCollector;
 
 /**
@@ -56,16 +62,65 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         super(channel, sendPool);
     }
 
+    static class PacketBuilder implements AttributeHandler {
+        private ArrayList<FlowKey> keys = new ArrayList<>(16);
+        private Ethernet eth;
+        private Long userData;
+
+        public Packet buildFrom(ByteBuffer buf) {
+            int datapathIndex = buf.getInt(); // ignored
+            NetlinkMessage.scanAttributes(buf, this);
+            if (eth == null) {
+                keys.clear();
+                return null;
+            }
+            FlowKeys.addUserspaceKeys(eth, keys);
+            Packet p = new Packet(eth, new FlowMatch(keys));
+            p.setUserData(userData);
+            eth = null;
+            keys.clear();
+            userData = null;
+            return p;
+        }
+
+        @Override
+        public void use(ByteBuffer buffer, short id) {
+            switch(NetlinkMessage.unnest(id)) {
+                case OpenVSwitch.Packet.Attr.Packet:
+                    ByteOrder originalOrder = buffer.order();
+                    try {
+                        eth = new Ethernet();
+                        eth.deserialize(buffer);
+                    } catch (Exception e) {
+                        log.warn("Dropping malformed packet", e);
+                        this.eth = null;
+                    } finally {
+                        buffer.order(originalOrder);
+                    }
+                    break;
+
+                case OpenVSwitch.Packet.Attr.Key:
+                    FlowKeys.buildFrom(buffer, keys);
+                    break;
+
+                case OpenVSwitch.Packet.Attr.Userdata:
+                    userData = buffer.getLong();
+                    break;
+            }
+        }
+    }
+
+    private PacketBuilder builder = new PacketBuilder();
+
     @Override
     protected void handleNotification(short type, byte cmd, int seq, int pid,
                                       ByteBuffer buffer) {
-
         if (pid == 0 &&
             packetFamily.familyId == type &&
             (packetFamily.contextMiss.command() == cmd ||
                 packetFamily.contextAction.command() == cmd)) {
             if (notificationHandler != null) {
-                Packet packet = Packet.buildFrom(buffer);
+                Packet packet = builder.buildFrom(buffer);
                 if (packet == null)
                     return;
 

@@ -18,14 +18,15 @@ package org.midonet.odp.protos;
 import org.junit.Before;
 import org.junit.Test;
 import org.midonet.odp.Datapath;
+import org.midonet.odp.FlowMatch;
 import org.midonet.odp.Packet;
+import org.midonet.odp.flows.FlowKey;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -34,9 +35,6 @@ import static org.midonet.odp.flows.FlowKeyEtherType.Type;
 import static org.midonet.odp.flows.FlowKeys.*;
 
 public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
-
-    private static final Logger log = LoggerFactory
-        .getLogger(OvsPacketInTest.class);
 
     @Before
     public void setUp() throws Exception {
@@ -81,17 +79,18 @@ public class OvsPacketInTest extends AbstractNetlinkProtocolTest {
                 127, 69, 0, 0, 0, 0, 0, 0, -64, -88, 100, 10
         });
 
-        Packet packet = new Packet(payload);
-        packet.addKey(inPort(0))
-              .addKey(ethernet(macFromString("3e:05:d4:73:2d:4c"),
-                      macFromString("ff:ff:ff:ff:ff:ff")))
-              .addKey(etherType(Type.ETH_P_ARP))
-              .addKey(arp(macFromString("3e:05:d4:73:2d:4c"),
-                          macFromString("00:00:00:00:00:00"),
-                          (byte) 1,
-                          IPv4Addr.stringToInt("176.28.127.69"),
-                          IPv4Addr.stringToInt("192.168.100.10")))
-              .setReason(Packet.Reason.FlowTableMiss);
+        ArrayList<FlowKey> keys = new ArrayList<>();
+        keys.add(inPort(0));
+        keys.add(ethernet(macFromString("3e:05:d4:73:2d:4c"),
+                          macFromString("ff:ff:ff:ff:ff:ff")));
+        keys.add(etherType(Type.ETH_P_ARP));
+        keys.add(arp(macFromString("3e:05:d4:73:2d:4c"),
+                     macFromString("00:00:00:00:00:00"),
+                     (byte) 1,
+                      IPv4Addr.stringToInt("176.28.127.69"),
+                      IPv4Addr.stringToInt("192.168.100.10")));
+        Packet packet = new Packet(payload, new FlowMatch(keys));
+        packet.setReason(Packet.Reason.FlowTableMiss);
 
         return packet;
     }

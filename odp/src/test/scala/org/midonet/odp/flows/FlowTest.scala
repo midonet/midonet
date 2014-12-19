@@ -16,18 +16,16 @@
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer
+import java.util
 import java.util.{List => JList}
+
 import scala.collection.JavaConversions.asScalaBuffer
 
 import org.junit.runner.RunWith
+import org.midonet.netlink.{AttributeHandler, BytesUtil, NetlinkMessage, Writer}
+import org.midonet.odp.{Flow, FlowMatch}
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
-import org.midonet.netlink.BytesUtil
-import org.midonet.netlink.NetlinkMessage
-import org.midonet.netlink.Writer
-import org.midonet.odp.OpenVSwitch
-import org.midonet.odp.{Flow, FlowMatch}
 
 @RunWith(classOf[JUnitRunner])
 class FlowTest extends FunSpec with Matchers {
@@ -40,8 +38,13 @@ class FlowTest extends FunSpec with Matchers {
     describe("a List of FlowKeys") {
         it("can be serialized in a ByteBuffer and deserialized back from it") {
             keyLists foreach {
-                writeReadList(_, FlowKeys.writer) { case (buf,id) =>
-                    NetlinkMessage.readAttr(buf, id, FlowMatch.reader).getKeys
+                writeReadList(_, FlowKeys.writer) { case (buf, id) =>
+                    val keys = new util.ArrayList[FlowKey]()
+                    NetlinkMessage scanAttributes (buf, new AttributeHandler {
+                        override def use(buffer: ByteBuffer, id: Short): Unit =
+                            FlowKeys.buildFrom(buf, keys)
+                        })
+                    keys
                 }
             }
         }
@@ -74,7 +77,7 @@ class FlowTest extends FunSpec with Matchers {
         val id: Short = NetlinkMessage nested 42.toShort
         NetlinkMessage writeAttrSeq (buf, id, ls, writer)
         buf.flip
-        val read = builder(buf,id)
+        val read = builder(buf, id)
         read should have size(ls.size)
         (ls zip read) foreach { case (a,b) => a shouldBe b }
     }

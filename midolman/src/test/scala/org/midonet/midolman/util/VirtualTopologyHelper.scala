@@ -16,38 +16,29 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
-import scala.concurrent.{ExecutionContext, Future, Await}
+
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.util.Timeout
 import akka.util.Timeout.durationToTimeout
-
-import org.scalatest.Assertions
-
-import org.midonet.cluster.client.{Port => SimPort}
 import org.midonet.cluster.data._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.simulation.Coordinator.{Device, Action}
+import org.midonet.midolman.simulation.Coordinator.{Action, Device}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.state.NatState.NatKey
-import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.odp.Packet
-import org.midonet.sdn.state.FlowStateTransaction
-import org.midonet.midolman.topology.VirtualTopologyActor.RouterRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
-import org.midonet.midolman.state.NatState.NatBinding
-import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
-import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
-import scala.util.{Failure, Success, Try}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
-import scala.reflect.ClassTag
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
+import org.midonet.odp.flows.FlowKeys
+import org.midonet.odp.{FlowMatch, Packet}
+import org.midonet.packets.Ethernet
+import org.midonet.sdn.state.FlowStateTransaction
 
 trait VirtualTopologyHelper {
 
@@ -84,8 +75,9 @@ trait VirtualTopologyHelper {
                         (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                   natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : PacketContext = {
-        val context = new PacketContext(Left(1), Packet.fromEthernet(frame),
-                                        None, WildcardMatch.fromEthernetPacket(frame))
+        val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
+        val context = new PacketContext(Left(1), new Packet(frame, fmatch),
+                                        None, fmatch)
         context.state.initialize(conntrackTx, natTx, HappyGoLuckyLeaser)
         context.prepareForSimulation(0)
         context.inputPort = inPort

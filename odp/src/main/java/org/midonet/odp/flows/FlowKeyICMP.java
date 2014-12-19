@@ -64,11 +64,6 @@ public class FlowKeyICMP implements FlowKey {
     }
 
     @Override
-    public int connectionHash() {
-        return hashCode();
-    }
-
-    @Override
     public String toString() {
         return "ICMP{type=0x"+Integer.toHexString(icmp_type) +
                          ", code=" + icmp_code + "}";

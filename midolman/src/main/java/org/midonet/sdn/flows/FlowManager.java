@@ -17,14 +17,12 @@
 package org.midonet.sdn.flows;
 
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import akka.event.LoggingBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +107,7 @@ public class FlowManager {
      * insertion-order, useful tofind flows that are candidates for eviction.
      * This table reflect the flows installed in the kernel.
      */
-    public LinkedHashMap<FlowMatch, ManagedWildcardFlow> dpFlowTable =
+    public LinkedHashMap<org.midonet.odp.FlowMatch, ManagedWildcardFlow> dpFlowTable =
         new LinkedHashMap<>((int)maxDpFlows);
 
     //TODO(ross) size for the priority queue?
@@ -176,7 +174,7 @@ public class FlowManager {
         Long pattern = wildFlow.getMatch().getUsedFields();
 
         // Get the WildcardFlowTable for this wild flow's pattern.
-        Map<WildcardMatch, ManagedWildcardFlow> wildTable =
+        Map<FlowMatch, ManagedWildcardFlow> wildTable =
             wildcardTables.tables().get(pattern);
         if (null == wildTable) {
             // WARNING: use a copy of the field set because pattern is
@@ -218,7 +216,7 @@ public class FlowManager {
      *         match.
      */
     public boolean add(Flow flow, ManagedWildcardFlow wildFlow) {
-        FlowMatch match = flow.getMatch();
+        org.midonet.odp.FlowMatch match = flow.getMatch();
         if (log.isDebugEnabled() && dpFlowTable.containsKey(match)) {
             log.debug("Tried to add a duplicate DP flow");
         }
@@ -250,9 +248,9 @@ public class FlowManager {
     public boolean remove(ManagedWildcardFlow wildFlow) {
         log.debug("Removing wildcard flow {}", wildFlow.getMatch());
 
-        Set<FlowMatch> dpFlowsToRemove = wildFlow.dpFlows();
+        Set<org.midonet.odp.FlowMatch> dpFlowsToRemove = wildFlow.dpFlows();
         int removed = 0;
-        for (FlowMatch flowMatch : dpFlowsToRemove) {
+        for (org.midonet.odp.FlowMatch flowMatch : dpFlowsToRemove) {
             /* the flow may have been evicted already, leaving for lazy
              * clean up of the wildcard flow reference */
             if (dpFlowTable.remove(flowMatch) != null) {
@@ -266,7 +264,7 @@ public class FlowManager {
 
         // Get the WildcardFlowTable for this wildflow's pattern and remove
         // the wild flow.
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
             wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
         if (wcMap != null) {
             if (wcMap.get(wildFlow.wcmatch()) == wildFlow) {
@@ -290,7 +288,7 @@ public class FlowManager {
     }
 
     private boolean isAlive(ManagedWildcardFlow wildFlow) {
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
                 wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
         if (wcMap != null)
             return wildFlow == wcMap.get(wildFlow.wcmatch());
@@ -328,11 +326,11 @@ public class FlowManager {
         // check from the kernel the last time the flows of this wildcard flows
         // were used. This is totally asynchronous, a callback will update
         // the flows
-        Set<FlowMatch> flowMatches = flowToExpire.dpFlows();
+        Set<org.midonet.odp.FlowMatch> flowMatches = flowToExpire.dpFlows();
         UpdateLastUsedTimeCallback callback =
             new UpdateLastUsedTimeCallback(flowToExpire, flowMatches.size());
         boolean dead = true;
-        for (FlowMatch match: flowMatches) {
+        for (org.midonet.odp.FlowMatch match: flowMatches) {
             if (dpFlowTable.containsKey(match)) {
                 // getFlow callback ref
                 flowToExpire.ref();
@@ -391,7 +389,7 @@ public class FlowManager {
         if (nFlowsToRemove <= 0)
             return;
 
-        Iterator<Map.Entry<FlowMatch, ManagedWildcardFlow>> it = dpFlowTable.entrySet().iterator();
+        Iterator<Map.Entry<org.midonet.odp.FlowMatch, ManagedWildcardFlow>> it = dpFlowTable.entrySet().iterator();
         while (it.hasNext() && nFlowsToRemove-- > 0) {
             Map.Entry<FlowMatch, ManagedWildcardFlow> entry = it.next();
             FlowMatch match = entry.getKey();
@@ -419,7 +417,7 @@ public class FlowManager {
         return idleTimeOutQueue.peek();
     }
 
-    public void flowMissing(FlowMatch flowMatch) {
+    public void flowMissing(org.midonet.odp.FlowMatch flowMatch) {
         ManagedWildcardFlow wildcardFlow = dpFlowTable.remove(flowMatch);
         if (wildcardFlow != null) {
             wildcardFlow.dpFlows().remove(flowMatch);
@@ -456,12 +454,12 @@ public class FlowManager {
         }
     }
 
-    Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> getWildcardTables() {
+    Map<Long, Map<FlowMatch, ManagedWildcardFlow>> getWildcardTables() {
         return wildcardTables.tables();
     }
 
-    ManagedWildcardFlow getWildcardFlow(WildcardMatch wMatch) {
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+    ManagedWildcardFlow getWildcardFlow(FlowMatch wMatch) {
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
                 wildcardTables.tables().get(wMatch.getUsedFields());
         return (wcMap != null) ? wcMap.get(wMatch) : null;
     }

@@ -23,6 +23,7 @@ import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
+import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
@@ -46,7 +47,6 @@ import org.midonet.odp.flows.FlowActionSetKey
 import org.midonet.odp.flows.FlowKeyEthernet
 import org.midonet.odp.flows.FlowKeyIPv4
 import org.midonet.packets._
-import org.midonet.sdn.flows.WildcardMatch
 
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
@@ -173,7 +173,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         new IPv4Addr(portNumToSegmentAddr(portNum) + 1)
 
     implicit private def dummyPacketContext =
-        new PacketContext(Left(0), null, None, new WildcardMatch())(actors)
+        new PacketContext(Left(0), null, None, new FlowMatch())(actors)
 
     def testBalancesRoutes() {
         val routeDst = "21.31.41.51"
@@ -185,7 +185,7 @@ class RouterSimulationTestCase extends MidolmanTestCase with RouterHelper
         val (router, _) = fetchRouterAndPort("uplinkPort", uplinkPort.getId)
         val rb = new RouteBalancer(router.rTable)
 
-        val wmatch = new WildcardMatch().
+        val wmatch = new FlowMatch().
             setNetworkSrc(IPv4Addr.fromString(uplinkPortAddr)).
             setNetworkDst(IPv4Addr.fromString(routeDst))
 

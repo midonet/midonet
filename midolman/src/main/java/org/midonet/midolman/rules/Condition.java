@@ -23,12 +23,12 @@ import org.midonet.cluster.data.neutron.SecurityGroupRule;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
+import org.midonet.odp.FlowMatch;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.MAC;
 import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.FlowTagger;
-import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 
 public class Condition extends BaseConfig {
@@ -159,7 +159,7 @@ public class Condition extends BaseConfig {
     }
 
     public boolean matches(PacketContext pktCtx, boolean isPortFilter) {
-        WildcardMatch pktMatch = pktCtx.wcmatch();
+        FlowMatch pktMatch = pktCtx.wcmatch();
         // Matching on fragmentPolicy is unaffected by conjunctionInv,
         // so that gets tested separately.
         if (!fragmentPolicy.accepts(pktMatch.getIpFragmentType()))

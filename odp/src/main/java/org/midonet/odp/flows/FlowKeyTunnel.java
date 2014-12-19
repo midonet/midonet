@@ -16,6 +16,7 @@
 package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.primitives.Longs;
 
@@ -175,9 +176,9 @@ public class FlowKeyTunnel implements CachedFlowKey,
     }
 
     public void randomize() {
-        tun_id = FlowKeys.rand.nextLong();
-        ipv4_src = FlowKeys.rand.nextInt();
-        ipv4_dst = FlowKeys.rand.nextInt();
+        tun_id = ThreadLocalRandom.current().nextLong();
+        ipv4_src = ThreadLocalRandom.current().nextInt();
+        ipv4_dst = ThreadLocalRandom.current().nextInt();
         ipv4_ttl = (byte)-1;
         usedFields = TUN_ID_MASK | IPV4_SRC_MASK | IPV4_DST_MASK | IPV4_TTL_MASK;
         computeHashCode();
@@ -236,9 +237,6 @@ public class FlowKeyTunnel implements CachedFlowKey,
         hashCode = 31 * hashCode + ipv4_tos;
         hashCode = 31 * hashCode + ipv4_ttl;
     }
-
-    @Override
-    public int connectionHash() { return 0; }
 
     @Override
     public String toString() {

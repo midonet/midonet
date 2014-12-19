@@ -24,9 +24,9 @@ import scala.concurrent.duration._
 
 import org.midonet.midolman.rules.NatTarget
 import org.midonet.midolman.state.FlowState.FlowStateKey
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
-import org.midonet.sdn.flows.WildcardMatch
-import org.midonet.sdn.flows.WildcardMatch.Field
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
 
@@ -59,7 +59,7 @@ object NatState {
     object NatKey {
         final val USHORT = 0xffff // Constant used to prevent sign extension
 
-        def apply(wcMatch: WildcardMatch, deviceId: UUID, keyType: KeyType): NatKey = {
+        def apply(wcMatch: FlowMatch, deviceId: UUID, keyType: KeyType): NatKey = {
             val key = NatKey(keyType,
                              wcMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
                              if (keyType eq FWD_STICKY_DNAT) WILDCARD_PORT
@@ -76,7 +76,7 @@ object NatState {
             key
         }
 
-        private def processIcmp(natKey: NatKey, wcMatch: WildcardMatch): Unit =
+        private def processIcmp(natKey: NatKey, wcMatch: FlowMatch): Unit =
             wcMatch.getSrcPort.byteValue() match {
                 case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                     val port = wcMatch.getIcmpIdentifier.intValue() & USHORT
