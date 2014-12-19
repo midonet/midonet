@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_2b9bb9ca",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T10:43:45Z",
+      "side": 1,
+      "message": "Pending to be removed...",
+      "parentUuid": "5aed85c8_8d3641e6",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aed85c8_8d3da1be",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2014-12-19T09:37:31Z",
       "side": 1,
       "message": "A question rather than comment: is it possible that this method is called before the completion of the future? In that case, is there any side-effect if we don\u0027t unsubscribe (e.g. leaking connections, etc)?",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 33
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cb5e7512",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T10:43:45Z",
+      "side": 1,
+      "message": "Yes, it is possible that this is called before completion... The future can be completed by a state processing a msg from the connection, but we configure netty so that all processing related to a connection is done by the same thread, meaning that there cannot be a \u0027terminate\u0027 and a \u0027state.process\u0027 going on at the same time. (Summarizing: if the future is not completed on terminate, it will never be completed - and the corresponding subscription will never exist, so there should be no consequences)",
+      "parentUuid": "5aed85c8_8d3da1be",
       "range": {
         "startLine": 58,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_6ba5c103",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T10:43:45Z",
+      "side": 1,
+      "message": "Pending to be fixed",
+      "parentUuid": "5aed85c8_4d2579aa",
+      "range": {
+        "startLine": 73,
+        "startChar": 63,
+        "endLine": 73,
+        "endChar": 70
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aed85c8_cd47a94a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2014-12-19T09:40:16Z",
       "side": 1,
       "message": "Is this message called to receive messages? Could you add comments to clarify this?",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 25
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_0ba07df3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T10:43:45Z",
+      "side": 1,
+      "message": "This is called for each protobuf received by netty (I\u0027ll put some comments to document this)",
+      "parentUuid": "5aed85c8_cd47a94a",
       "range": {
         "startLine": 80,
         "startChar": 8,
