@@ -120,8 +120,10 @@ message ID {
 message Request {
     message Handshake {
         required UUID req_id = 1;         // Request id
-        required UUID cnxn_id = 2;        // Connection identifier
-        optional string last_tx_id = 3;   // Last heard from the cluster,
+        required UUID cnxn_id = 2;        // Connection identifier (session)
+        optional int64 seqno = 3;         // Last seen session sequence number
+                                          // (for session recovery)
+        optional string last_tx_id = 4;   // Last heard from the cluster,
                                           // if set, the cluster will
                                           // try to resend missed
                                           // updates
@@ -171,24 +173,26 @@ message Response {
         required UUID req_id = 1; // Id of the request we're ack'ing
     }
     message Deletion { // entity with the given id/type is no more
-        required ID id = 1; // MUST match the id format for the Topology.Type
-        required Type type = 2;
+        required int64 seqno = 1 [default = 0]; // Session sequence number
+        required ID id = 2; // MUST match the id format for the Topology.Type
+        required Type type = 3;
     }
     message Update {          // the latest known state of an entity
+        required int64 seqno = 1 [default = 0]; // Session sequence number
         oneof update {
-            string name = 1;
-            Chain chain = 2;
-            Host host = 3;
-            IpAddrGroup ip_addr_group = 4;
-            Network network = 5;
-            Port port = 6;
-            PortGroup port_group = 7;
-            Route route = 8;
-            Router router = 9;
-            Rule rule = 10;
-            TunnelZone tunnel_zone = 11;
-            Vtep vtep = 12;
-            VtepBinding vtep_binding = 13;
+            string name = 2;
+            Chain chain = 3;
+            Host host = 4;
+            IpAddrGroup ip_addr_group = 5;
+            Network network = 6;
+            Port port = 7;
+            PortGroup port_group = 8;
+            Route route = 9;
+            Router router = 10;
+            Rule rule = 11;
+            TunnelZone tunnel_zone = 12;
+            Vtep vtep = 13;
+            VtepBinding vtep_binding = 14;
         }
     }
     oneof response {
