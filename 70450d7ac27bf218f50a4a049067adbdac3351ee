@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_4b81e549",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2014-12-19T11:00:16Z",
+      "side": 1,
+      "message": "\u003e The semantics of flush is clearly to remove all that are in Storage. Therefore any subscribers to the deleted should be notified of deletion.\n\nNot quite. The flush has to bump the root path so that writes happen on a new path, it shouldn\u0027t delete the old one. This is important for the upgrades: the cluster node acting as C3PO may decide to bump the version and reimport the NeutronDB, while the agents are still reading from the old path.\n\nAs you note, we need to implement the mechanism to notify the other ZOOM clients to change the root path. At this point yes, all the existing subscriptions in the client are invalid and need to be closed.\n\nBut that\u0027s two separate operations: one is the regeneration of the db (which is the FLUSH command from Neutron). Another is the bump from the clients (which is unimplemented).",
+      "parentUuid": "1af78d9a_0b523d13",
+      "range": {
+        "startLine": 784,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 31
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_7e9f3d04",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 9
