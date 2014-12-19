@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5aed85c8_8d3641e6",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T09:37:31Z",
+      "side": 1,
+      "message": "Unused",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5aed85c8_8d3da1be",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T09:37:31Z",
+      "side": 1,
+      "message": "A question rather than comment: is it possible that this method is called before the completion of the future? In that case, is there any side-effect if we don\u0027t unsubscribe (e.g. leaking connections, etc)?",
+      "range": {
+        "startLine": 58,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 33
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
