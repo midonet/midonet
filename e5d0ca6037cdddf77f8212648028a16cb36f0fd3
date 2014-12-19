@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_de7d89b3",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T09:52:41Z",
+      "side": 1,
+      "message": "What is this going to be like?",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 41,
+        "endChar": 60
+      },
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_fe804d8d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T09:52:41Z",
+      "side": 1,
+      "message": "I don\u0027t think this method should belong to the trait because the client doesn\u0027t need to use this method. I know that Storage has \"registerClass\", but I don\u0027t think it should, either.",
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_3e4ad583",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T09:52:41Z",
+      "side": 1,
+      "message": "\"owner\" below has ObjId type. Should this also be ObjId?",
+      "range": {
+        "startLine": 170,
+        "startChar": 58,
+        "endLine": 170,
+        "endChar": 64
+      },
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_0b04fd13",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T09:52:41Z",
+      "side": 1,
+      "message": "Does Storage need to extends StorageWithOwnership? if ever at all, shouldn\u0027t StorageWithOwnership extend Storage? (In that case, we might factor out WritableStorage that has create / update / delete / deleteIfExits / multi / flush).",
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
