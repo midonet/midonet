@@ -92,11 +92,6 @@ public class FlowKeyTCPFlags implements FlowKey {
     }
 
     @Override
-    public int connectionHash() {
-        return 0;
-    }
-
-    @Override
     public String toString() {
         return "TCPFlags{'" +
                TCP.Flag.allOfToString(flags) + "'}";

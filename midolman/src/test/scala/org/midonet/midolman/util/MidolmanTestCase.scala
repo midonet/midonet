@@ -75,7 +75,7 @@ import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActionSetKey, Fl
 import org.midonet.odp.protos.MockOvsDatapathConnection
 import org.midonet.odp.protos.MockOvsDatapathConnection.FlowListener
 import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.concurrent.MockClock
 import org.midonet.util.functors.{Callback0, Callback2}
 
@@ -517,9 +517,9 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
 
     def addVirtualWildcardFlow(inputPort: UUID,
                                action: FlowAction): Unit =
-        addVirtualWildcardFlow(new WildcardMatch(), inputPort, action)
+        addVirtualWildcardFlow(new FlowMatch(), inputPort, action)
 
-    def addVirtualWildcardFlow(wcMatch: WildcardMatch,
+    def addVirtualWildcardFlow(wcMatch: FlowMatch,
                                inputPort: UUID,
                                action: FlowAction): Unit = {
         val flowTranslator = new FlowTranslator {

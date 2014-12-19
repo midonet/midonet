@@ -18,14 +18,12 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
-import compat.Platform
 import org.junit.runner.RunWith
+import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.l4lb
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.packets.{TCP, UDP, IPv4Addr}
-import org.midonet.sdn.flows.WildcardMatch
 
 @RunWith(classOf[JUnitRunner])
 class VIPTest extends MidolmanTestCase {
@@ -38,7 +36,7 @@ class VIPTest extends MidolmanTestCase {
         val addr2 = IPv4Addr.fromString("10.0.0.2")
         val port2 = 44
 
-        val tcpIngressMatch = new WildcardMatch()
+        val tcpIngressMatch = new FlowMatch()
                 .setNetworkDst(addr1)
                 .setDstPort(port1)
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)

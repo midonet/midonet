@@ -166,7 +166,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
             Then("the bridge send the packet to the target vm")
             action should be (ToPortAction(rightPort.getId))
 
-            And("The wildcardMatch's icmp id field is not tagged")
+            And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
         }
 
@@ -182,7 +182,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
             Then("the bridge send the packet back to the first VM")
             action should be (ToPortAction(leftPort.getId))
 
-            And("The wildcardMatch's icmp id field is not tagged")
+            And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
         }
     }
@@ -200,7 +200,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
             Then("the router sends the packet to the target port")
             action should be (ToPortAction(rtRightPort.getId))
 
-            And("The wildcardMatch's icmp id field is tagged as seen")
+            And("The FlowMatch's icmp id field is tagged as seen")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe true
         }
     }

@@ -55,10 +55,10 @@ import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.zkManagers.FiltersZkManager;
 import org.midonet.midolman.version.DataWriteVersion;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.odp.FlowMatch;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.sdn.state.FlowStateTable;
 import org.midonet.sdn.state.FlowStateTransaction;
 import org.midonet.sdn.state.ShardedFlowStateTable;
@@ -68,8 +68,8 @@ import org.midonet.util.eventloop.Reactor;
 
 public class TestRules {
 
-    static WildcardMatch pktMatch;
-    static WildcardMatch pktResponseMatch;
+    static FlowMatch pktMatch;
+    static FlowMatch pktResponseMatch;
     static Random rand;
     static UUID inPort;
     static UUID ownerId;
@@ -83,7 +83,7 @@ public class TestRules {
 
     @BeforeClass
     public static void setupOnce() {
-        pktMatch = new WildcardMatch();
+        pktMatch = new FlowMatch();
         pktMatch.setInputPortNumber((short) 5);
         pktMatch.setEthSrc("02:11:33:00:11:01");
         pktMatch.setEthDst("02:11:aa:ee:22:05");
@@ -94,7 +94,7 @@ public class TestRules {
         pktMatch.setNetworkTOS((byte) 34);
         pktMatch.setSrcPort(4321);
         pktMatch.setDstPort(1234);
-        pktResponseMatch = new WildcardMatch();
+        pktResponseMatch = new FlowMatch();
         pktResponseMatch.setInputPortNumber((short) 5);
         pktResponseMatch.setEthDst("02:11:33:00:11:01");
         pktResponseMatch.setEthSrc("02:11:aa:ee:22:05");
@@ -193,14 +193,16 @@ public class TestRules {
         pktCtx = new PacketContext(new Left<Object, UUID>(1),
                 null, Option.empty(), pktMatch, ActorSystem$.MODULE$.create());
         FlowStateTable<ConnTrackState.ConnTrackKey, Boolean> conntrackTable =
-                shardedConntrack.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
+                shardedConntrack.addShard(
+                    Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         ShardedFlowStateTable<NatState.NatKey, NatState.NatBinding> shardedNat =
                 ShardedFlowStateTable.create();
         FlowStateTable<NatState.NatKey, NatState.NatBinding> natTable =
                 shardedNat.addShard(Logger$.MODULE$.apply(NOPLogger.NOP_LOGGER));
         conntrackTx = new FlowStateTransaction<>(conntrackTable);
         natTx = new FlowStateTransaction<>(natTable);
-        pktCtx.state().initialize(conntrackTx, natTx, HappyGoLuckyLeaser$.MODULE$);
+        pktCtx.state().initialize(conntrackTx, natTx,
+                                  HappyGoLuckyLeaser$.MODULE$);
     }
 
     @Test
@@ -316,7 +318,7 @@ public class TestRules {
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         // Now verify that the rest of the packet hasn't changed.
-        WildcardMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.origMatch().clone();
         expected.setNetworkSrc(newNwSrc);
         expected.setSrcPort(newTpSrc);
         Assert.assertEquals(expected, pktCtx.wcmatch());
@@ -366,7 +368,7 @@ public class TestRules {
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         // Now verify that the rest of the packet hasn't changed.
-        WildcardMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.origMatch().clone();
         expected.setNetworkDst(IPv4Addr.fromInt(newNwDst));
         expected.setDstPort(newTpDst);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
@@ -414,7 +416,7 @@ public class TestRules {
         Assert.assertTrue(firstTpDst <= 1050);
 
         // Now verify that the rest of the packet hasn't changed.
-        WildcardMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.origMatch().clone();
         expected.setNetworkDst(IPv4Addr.fromInt(firstNwDst));
         expected.setDstPort(firstTpDst);
         Assert.assertEquals(pktCtx.wcmatch(), expected);

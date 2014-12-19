@@ -47,7 +47,7 @@ import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Flow, Datapath}
 import org.midonet.packets._
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch, WildcardFlow}
+import org.midonet.sdn.flows.{FlowTagger, WildcardFlow}
 import org.midonet.util.functors.Callback0
 
 @Category(Array(classOf[SimulationTests]))
@@ -138,10 +138,10 @@ class RouterFlowInvalidationTestCase extends MidolmanTestCase
         actors.eventStream.subscribe(dpFlowProbe.ref, classOf[FlowAdded])
         actors.eventStream.subscribe(dpFlowProbe.ref, classOf[FlowRemoved])
 
-        val wflow = WildcardFlow(wcmatch = new WildcardMatch().setTunnelKey(7001))
+        val wflow = WildcardFlow(wcmatch = new FlowMatch().setTunnelKey(7001))
         val dpflow = new Flow(
             new FlowMatch().addKey(FlowKeys.tunnel(7001, 100, 200)))
-        val tag = FlowTagger.tagForTunnelKey(7001)
+        val tag = FlowTagger.tagForTunnelKey(7001L)
         val tags = ROSet(tag)
 
         val dpconn = flowController().underlyingActor.datapathConnection(dpflow.getMatch)

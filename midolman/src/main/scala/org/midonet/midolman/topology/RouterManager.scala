@@ -28,15 +28,16 @@ import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.{ArpTable, ArpTableImpl, Router}
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.Callback0
 
 class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
 
     import collection.JavaConversions._
 
-    def lookup(wmatch: WildcardMatch): Iterable[Route] =
+    def lookup(wmatch: FlowMatch): Iterable[Route] =
     // TODO (ipv6) de facto implementation for ipv4, that explains
     // the casts at this point.
         rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],

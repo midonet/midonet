@@ -17,14 +17,12 @@
 package org.midonet.sdn.flows;
 
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import akka.event.LoggingBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +95,7 @@ public class FlowManager {
         this.dpFlowRemoveBatchSize = dpFlowRemoveBatchSize;
     }
 
-    /* Each wildcard flow table is a map of wildcard match to wildcard flow.
+    /* Each wildcard flow table is a map of flow match to wildcard flow.
     * The FlowManager needs one wildcard flow table for every wildcard pattern,
     * where a pattern is a set of fields used by the match.
     * The wildcardTables structure maps wildcard pattern to wildcard flow
@@ -176,7 +174,7 @@ public class FlowManager {
         Long pattern = wildFlow.getMatch().getUsedFields();
 
         // Get the WildcardFlowTable for this wild flow's pattern.
-        Map<WildcardMatch, ManagedWildcardFlow> wildTable =
+        Map<FlowMatch, ManagedWildcardFlow> wildTable =
             wildcardTables.tables().get(pattern);
         if (null == wildTable) {
             // WARNING: use a copy of the field set because pattern is
@@ -266,7 +264,7 @@ public class FlowManager {
 
         // Get the WildcardFlowTable for this wildflow's pattern and remove
         // the wild flow.
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
             wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
         if (wcMap != null) {
             if (wcMap.get(wildFlow.wcmatch()) == wildFlow) {
@@ -290,7 +288,7 @@ public class FlowManager {
     }
 
     private boolean isAlive(ManagedWildcardFlow wildFlow) {
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
                 wildcardTables.tables().get(wildFlow.getMatch().getUsedFields());
         if (wcMap != null)
             return wildFlow == wcMap.get(wildFlow.wcmatch());
@@ -456,12 +454,12 @@ public class FlowManager {
         }
     }
 
-    Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> getWildcardTables() {
+    Map<Long, Map<FlowMatch, ManagedWildcardFlow>> getWildcardTables() {
         return wildcardTables.tables();
     }
 
-    ManagedWildcardFlow getWildcardFlow(WildcardMatch wMatch) {
-        Map<WildcardMatch, ManagedWildcardFlow> wcMap =
+    ManagedWildcardFlow getWildcardFlow(FlowMatch wMatch) {
+        Map<FlowMatch, ManagedWildcardFlow> wcMap =
                 wildcardTables.tables().get(wMatch.getUsedFields());
         return (wcMap != null) ? wcMap.get(wMatch) : null;
     }

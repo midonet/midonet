@@ -17,23 +17,23 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
-import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.state.FlowState
 import org.midonet.midolman.topology.VirtualTopologyActor._
+import org.midonet.midolman.{PacketWorkflow, PacketsEntryPoint}
+import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
+import org.midonet.sdn.flows.WildcardFlow
 
 object Coordinator {
 
@@ -100,7 +100,7 @@ object Coordinator {
 class Coordinator(context: PacketContext)
                  (implicit val actorSystem: ActorSystem) {
 
-    import Coordinator._
+    import org.midonet.midolman.simulation.Coordinator._
 
     implicit val logPktCtx: PacketContext = context
     implicit val log = context.log
@@ -252,7 +252,7 @@ class Coordinator(context: PacketContext)
                         NoOp
                     } else {
                         val notIPv4Match =
-                            new WildcardMatch()
+                            new FlowMatch()
                                 .setEthSrc(
                                         context.origMatch.getEthSrc)
                                 .setEthDst(
