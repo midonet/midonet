@@ -27,10 +27,11 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{RoutingTableWrapper, TagManager, RouterConfig}
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets.{MAC, Unsigned, Ethernet, IPAddr}
-import org.midonet.sdn.flows.WildcardMatch.Field
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
 import org.midonet.odp.flows.IPFragmentType
+import org.midonet.sdn.flows.FlowTagger
 
 /**
  * Defines the base Router device that is meant to be extended with specific
@@ -399,7 +400,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
      * was finally sent or not, or a NotYet if some required data was not
      * locally cached.
      */
-    protected def sendIcmpEchoReply(ingressMatch: WildcardMatch, packet: Ethernet)
+    protected def sendIcmpEchoReply(ingressMatch: FlowMatch, packet: Ethernet)
                                    (implicit pktCtx: PacketContext): Boolean
 
     /**
@@ -417,5 +418,5 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     protected def handleNeighbouring(inPort: RouterPort)
                                     (implicit pktCtx: PacketContext): Option[Action]
 
-    protected def isIcmpEchoRequest(mmatch: WildcardMatch): Boolean
+    protected def isIcmpEchoRequest(mmatch: FlowMatch): Boolean
 }

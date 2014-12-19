@@ -22,8 +22,8 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client.Port
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPv4, ICMP, UDP, TCP, IPAddr}
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.midolman.state.FlowState.FlowStateKey
 
@@ -34,7 +34,7 @@ object ConnTrackState {
     val RETURN_FLOW: ConnTrackValue = java.lang.Boolean.FALSE
 
     object ConnTrackKey {
-        def apply(wcMatch: WildcardMatch, deviceId: UUID): ConnTrackKey =
+        def apply(wcMatch: FlowMatch, deviceId: UUID): ConnTrackKey =
             ConnTrackKey(wcMatch.getNetworkSrcIP,
                          icmpIdOr(wcMatch, wcMatch.getSrcPort),
                          wcMatch.getNetworkDstIP,
@@ -54,7 +54,7 @@ object ConnTrackState {
                                 s"$networkProtocol:$deviceId"
     }
 
-    def EgressConnTrackKey(wcMatch: WildcardMatch, egressDeviceId: UUID): ConnTrackKey =
+    def EgressConnTrackKey(wcMatch: FlowMatch, egressDeviceId: UUID): ConnTrackKey =
         ConnTrackKey(wcMatch.getNetworkDstIP,
                      icmpIdOr(wcMatch, wcMatch.getDstPort),
                      wcMatch.getNetworkSrcIP,
@@ -62,7 +62,7 @@ object ConnTrackState {
                      wcMatch.getNetworkProto.byteValue(),
                      egressDeviceId)
 
-    def supportsConnectionTracking(wcMatch: WildcardMatch): Boolean = {
+    def supportsConnectionTracking(wcMatch: FlowMatch): Boolean = {
         val proto = wcMatch.getNetworkProto
         IPv4.ETHERTYPE == wcMatch.getEtherType &&
                 (TCP.PROTOCOL_NUMBER == proto ||
@@ -70,7 +70,7 @@ object ConnTrackState {
                  ICMP.PROTOCOL_NUMBER == proto)
     }
 
-    private def icmpIdOr(wcMatch: WildcardMatch, or: Integer): Int = {
+    private def icmpIdOr(wcMatch: FlowMatch, or: Integer): Int = {
         if (ICMP.PROTOCOL_NUMBER == wcMatch.getNetworkProto) {
             val icmpId: java.lang.Short = wcMatch.getIcmpIdentifier
             if (icmpId ne null)
@@ -86,10 +86,10 @@ object ConnTrackState {
  * support underlay asymmetric routing as well as bridge flooding). For return
  * packets, the ingress device is used to lookup the connection tracking key
  * that would have been written by the forward packet. The forward flow takes
- * into account the original wildcard match, that is, the state of the packet
+ * into account the original flow match, that is, the state of the packet
  * when it ingressed. The return flow key, however, is built using the modified
- * wildcard match, which, the source fields swapped with the destination fields,
- * translates to the original wildcard match when the return flow ingresses.
+ * flow match, which, the source fields swapped with the destination fields,
+ * translates to the original flow match when the return flow ingresses.
  */
 trait ConnTrackState extends FlowState {
     import ConnTrackState._

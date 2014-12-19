@@ -18,8 +18,7 @@ package org.midonet.midolman
 
 import java.lang.{Long => JLong}
 import java.util.concurrent.{TimeUnit, ConcurrentHashMap => ConcHashMap}
-import java.util.{ArrayList, Map => JMap, Set => JSet}
-
+import java.util.{ArrayList, Map => JMap}
 import javax.inject.Inject
 
 import org.midonet.midolman.management.Metering
@@ -34,10 +33,8 @@ import scala.concurrent.duration._
 
 import akka.actor._
 import akka.event.LoggingReceive
-
 import com.codahale.metrics.MetricRegistry.name
 import com.codahale.metrics.{Gauge, MetricRegistry}
-
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.WildcardTablesProvider
 import org.midonet.midolman.io.DatapathConnectionPool
@@ -48,8 +45,7 @@ import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.{Datapath, Flow, FlowMatch}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.{FlowManager, FlowManagerHelper, ManagedWildcardFlow,
-                              WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows._
 import org.midonet.util.collection.{ArrayObjectPool, ObjectPool}
 import org.midonet.util.functors.{Callback0, Callback1}
 
@@ -114,7 +110,7 @@ object FlowController extends Referenceable {
                                processed: Array[FlowMatch] = null,
                                index: Int = 0)
 
-    case class RemoveWildcardFlow(wMatch: WildcardMatch)
+    case class RemoveWildcardFlow(wMatch: FlowMatch)
 
     case class WildcardFlowAdded(f: WildcardFlow)
 
@@ -122,7 +118,7 @@ object FlowController extends Referenceable {
 
     case class InvalidateFlowsByTag(tag: FlowTag)
 
-    case class FlowAdded(flow: Flow, wcMatch: WildcardMatch)
+    case class FlowAdded(flow: Flow, wcMatch: FlowMatch)
 
     case class FlowUpdateCompleted(flow: Flow) // used in test only
 
@@ -150,7 +146,7 @@ object FlowController extends Referenceable {
     private val WILD_FLOW_TABLE_INITIAL_CAPACITY = 65536
     private val WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY = 256
 
-    private val wildcardTables = new ConcHashMap[JLong, JMap[WildcardMatch, ManagedWildcardFlow]](
+    private val wildcardTables = new ConcHashMap[JLong, JMap[FlowMatch, ManagedWildcardFlow]](
             WILD_FLOW_PARENT_TABLE_INITIAL_CAPACITY,
             WILD_FLOW_TABLE_LOAD_FACTOR,
             WILD_FLOW_TABLE_CONCURRENCY_LEVEL)
@@ -162,7 +158,7 @@ object FlowController extends Referenceable {
             override def addTable(pattern: JLong) = {
                 var table = wildcardTables.get(pattern)
                 if (table == null) {
-                    table = new ConcHashMap[WildcardMatch, ManagedWildcardFlow](
+                    table = new ConcHashMap[FlowMatch, ManagedWildcardFlow](
                                     WILD_FLOW_TABLE_INITIAL_CAPACITY,
                                     WILD_FLOW_TABLE_LOAD_FACTOR,
                                     WILD_FLOW_TABLE_CONCURRENCY_LEVEL)
@@ -173,14 +169,14 @@ object FlowController extends Referenceable {
             }
         }
 
-    def queryWildcardFlowTable(wildMatch: WildcardMatch)
+    def queryWildcardFlowTable(wildMatch: FlowMatch)
     : Option[ManagedWildcardFlow] = {
         var wildFlow: ManagedWildcardFlow = null
         wildMatch.doNotTrackSeenFields()
         for (entry <- wildcardTables.entrySet()) {
             val table = entry.getValue
             val pattern = entry.getKey
-            val projectedFlowMatch = wildMatch.project(pattern)
+            val projectedFlowMatch = ProjectedFlowMatch.project(wildMatch, pattern)
             if (projectedFlowMatch != null) {
                 val candidate = table.get(projectedFlowMatch)
                 if (null != candidate) {
@@ -216,8 +212,8 @@ object FlowController extends Referenceable {
 
 class FlowController extends Actor with ActorLogWithoutPath
         with DatapathReadySubscriberActor {
-    import DatapathController.DatapathReady
-    import FlowController._
+    import org.midonet.midolman.DatapathController.DatapathReady
+    import org.midonet.midolman.FlowController._
 
     override def logSource = "org.midonet.flow-management"
 
@@ -411,7 +407,7 @@ class FlowController extends Actor with ActorLogWithoutPath
     }
 
     private def handleFlowAddedForExistingWildcard(dpFlow: Flow,
-                                                   wcMatch: WildcardMatch) {
+                                                   wcMatch: FlowMatch) {
         FlowController.queryWildcardFlowTable(wcMatch) match {
             case Some(wildFlow) =>
                 // the query doesn't miss, we don't care whether the returned

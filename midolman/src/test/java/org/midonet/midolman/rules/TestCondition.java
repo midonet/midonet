@@ -41,8 +41,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.midonet.midolman.simulation.IPAddrGroup;
 import org.midonet.midolman.simulation.PacketContext;
+import org.midonet.odp.FlowMatch;
 import org.midonet.packets.*;
-import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.util.Range;
 import scala.Option;
 import scala.util.Left;
@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue;
 
 public class TestCondition {
 
-    private WildcardMatch pktMatch;
+    private FlowMatch pktMatch;
     static Random rand;
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static JsonFactory jsonFactory = new JsonFactory(objectMapper);
@@ -70,7 +70,7 @@ public class TestCondition {
 
     @Before
     public void setUp() {
-        pktMatch = new WildcardMatch();
+        pktMatch = new FlowMatch();
         pktMatch.setInputPortNumber((short) 5);
         pktMatch.setEthSrc("02:11:33:00:11:01");
         pktMatch.setEthDst("02:11:aa:ee:22:05");

@@ -17,13 +17,12 @@
 package org.midonet.midolman.flows;
 
 import java.util.Map;
-import java.util.Set;
 
+import org.midonet.odp.FlowMatch;
 import org.midonet.sdn.flows.ManagedWildcardFlow;
-import org.midonet.sdn.flows.WildcardMatch;
 
 public interface WildcardTablesProvider {
-    Map<WildcardMatch, ManagedWildcardFlow> addTable(Long pattern);
+    Map<FlowMatch, ManagedWildcardFlow> addTable(Long pattern);
 
-    Map<Long, Map<WildcardMatch, ManagedWildcardFlow>> tables();
+    Map<Long, Map<FlowMatch, ManagedWildcardFlow>> tables();
 }

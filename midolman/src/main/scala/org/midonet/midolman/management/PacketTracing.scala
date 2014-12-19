@@ -20,9 +20,9 @@ import javax.management._
 import scala.collection.immutable.List
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.odp.FlowMatch
 import org.slf4j.LoggerFactory
 
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.midolman.simulation.PacketContext
 
 object PacketTracing extends PacketTracingMXBean {
@@ -56,7 +56,7 @@ object PacketTracing extends PacketTracingMXBean {
         oldSize - tracers.size
     }
 
-    def loggerFor(wcmatch: WildcardMatch): Logger = {
+    def loggerFor(wcmatch: FlowMatch): Logger = {
         val it = tracers.iterator
         while (it.hasNext) {
             val tracer = it.next()

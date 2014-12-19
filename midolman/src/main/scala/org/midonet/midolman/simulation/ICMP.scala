@@ -16,9 +16,9 @@
 package org.midonet.midolman.simulation
 
 import org.midonet.cluster.client.RouterPort
+import org.midonet.odp.FlowMatch
 import org.midonet.packets._
 import org.midonet.packets.ICMP.{EXCEEDED_CODE, UNREACH_CODE}
-import org.midonet.sdn.flows.WildcardMatch
 
 object Icmp {
 
@@ -27,12 +27,12 @@ object Icmp {
          * Send an ICMP error message.
          *
          * @param ingressMatch
-         *            The wildcard match that caused the message to be generated
+         *            The flow match that caused the message to be generated
          * @param packet
          *            The original packet that started the simulation
          */
         protected def icmpAnswer(inPort: RouterPort,
-                                 ingressMatch: WildcardMatch,
+                                 ingressMatch: FlowMatch,
                                  packet: Ethernet,
                                  icmpType: Byte,
                                  icmpCode: Any)
@@ -43,7 +43,7 @@ object Icmp {
          * IP version.
          */
         def unreachableProhibitedIcmp(inPort: RouterPort,
-                                      wMatch: WildcardMatch,
+                                      wMatch: FlowMatch,
                                       frame: Ethernet)
                                      (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
@@ -54,7 +54,7 @@ object Icmp {
          * given IP version.
          */
         def unreachableNetIcmp(inPort: RouterPort,
-                               wMatch: WildcardMatch,
+                               wMatch: FlowMatch,
                                frame: Ethernet)
                               (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
@@ -65,14 +65,14 @@ object Icmp {
          * given IP version.
          */
         def unreachableHostIcmp(inPort: RouterPort,
-                                wMatch: WildcardMatch,
+                                wMatch: FlowMatch,
                                 frame: Ethernet)
                                (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
                  UNREACH_CODE.UNREACH_HOST)
 
         def unreachableFragNeededIcmp(inPort: RouterPort,
-                                  wMatch: WildcardMatch,
+                                  wMatch: FlowMatch,
                                   frame: Ethernet)
                                  (implicit originalPktContext: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_UNREACH,
@@ -83,7 +83,7 @@ object Icmp {
          * IP version.
          */
         def timeExceededIcmp(inPort: RouterPort,
-                             wMatch: WildcardMatch,
+                             wMatch: FlowMatch,
                              frame: Ethernet)
                             (implicit originalPktContex: PacketContext) =
             icmpAnswer(inPort, wMatch, frame, ICMP.TYPE_TIME_EXCEEDED,
@@ -93,7 +93,7 @@ object Icmp {
     implicit object IPv4Icmp extends IcmpErrorSender[IPv4Addr] {
 
         override def icmpAnswer(inPort: RouterPort,
-                                ingressMatch: WildcardMatch,
+                                ingressMatch: FlowMatch,
                                 packet: Ethernet,
                                 icmpType: Byte,
                                 icmpCode: Any)
@@ -135,7 +135,7 @@ object Icmp {
         }
 
         private def buildError(icmpType: Byte, icmpCode: Any,
-                               forMatch: WildcardMatch, forPacket: Ethernet)
+                               forMatch: FlowMatch, forPacket: Ethernet)
         : ICMP = {
             // TODO(pino, guillermo, jlm): original or modified trigger pkt?
             val pktHere = forPacket //forMatch.apply(forPacket)

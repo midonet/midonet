@@ -41,11 +41,11 @@ import org.midonet.midolman.topology.{LocalPortActive,
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
-import org.midonet.odp.{DpPort, Packet}
+import org.midonet.odp.{FlowMatch, DpPort, Packet}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort,
                                              FlowActionOutputToVrnBridge}
 import org.midonet.util.concurrent.ExecutionContextOps
@@ -543,11 +543,11 @@ class FlowTranslatorTest extends MidolmanSpec {
     def packetContext(ethernet: Ethernet, inputPortId: Option[UUID],
                       tags: mutable.Set[FlowTag] = mutable.Set[FlowTag]()) = {
         val wcmatch = if (ethernet eq null)
-                        new WildcardMatch()
+                        new FlowMatch()
                       else
-                        WildcardMatch.fromEthernetPacket(ethernet)
-
-        val pktCtx = new PacketContext(Left(0), new Packet(ethernet), None, wcmatch)
+                        new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
+        val packet = new Packet(ethernet, wcmatch)
+        val pktCtx = new PacketContext(Left(0), packet, None, wcmatch)
 
         if (inputPortId.isDefined)
             pktCtx.inputPort = inputPortId.get

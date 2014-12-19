@@ -16,7 +16,6 @@
 
 package org.midonet.midolman
 
-import java.util.concurrent.TimeoutException
 import java.util.{UUID, HashMap => JHashMap, List => JList}
 
 import scala.collection.mutable
@@ -44,10 +43,9 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.odp.flows.FlowAction
+import org.midonet.odp.flows.{FlowKeys, FlowAction}
 import org.midonet.odp.{Datapath, FlowMatch, Packet}
 import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.Util
 import org.midonet.util.concurrent._
@@ -248,7 +246,8 @@ class DeduplicationActor(
         // This creates a new PacketWorkflow and
         // executes the simulation method directly.
         case EmitGeneratedPacket(egressPort, ethernet, parentCookie) =>
-            startWorkflow(Packet.fromEthernet(ethernet), Right(egressPort))
+            val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
+            startWorkflow(new Packet(ethernet, fmatch), Right(egressPort))
     }
 
     // We return collection.Set so we can return an empty immutable set
@@ -269,14 +268,10 @@ class DeduplicationActor(
     : PacketContext = {
         log.debug("Creating new PacketContext for {}", cookieOrEgressPort)
 
-        if (cookieOrEgressPort.isRight)
-            packet.generateFlowKeysFromPayload()
-        val wcMatch = WildcardMatch.fromFlowMatch(packet.getMatch)
-
         val pktCtx = new PacketContext(cookieOrEgressPort, packet,
-                                       parentCookie, wcMatch)
+                                       parentCookie, packet.getMatch)
         pktCtx.state.initialize(connTrackTx, natTx, natLeaser)
-        pktCtx.log = PacketTracing.loggerFor(wcMatch)
+        pktCtx.log = PacketTracing.loggerFor(packet.getMatch)
         pktCtx
     }
 

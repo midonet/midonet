@@ -35,9 +35,9 @@ import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.util.Dilation
 import org.midonet.midolman.util.MidolmanTestCase
 import org.midonet.odp._
+import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets.{IPv4Addr, MAC, Packets}
 import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.WildcardMatch.Field
 import scala.concurrent.duration.Duration
 import org.midonet.util.functors.Callback0
 

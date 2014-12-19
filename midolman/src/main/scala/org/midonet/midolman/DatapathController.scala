@@ -18,11 +18,10 @@ package org.midonet.midolman
 import java.lang.{Boolean => JBoolean, Integer => JInteger}
 import java.net.InetAddress
 import java.nio.ByteBuffer
-import java.util.{ArrayList, Set => JSet, UUID}
+import java.util.{UUID, Set => JSet}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-
 import scala.concurrent.duration._
 import scala.reflect._
 
@@ -30,39 +29,33 @@ import akka.actor._
 import akka.pattern.{after, pipe}
 
 import com.google.inject.Inject
+
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 import org.midonet.Subscription
-import org.midonet.cluster.client
-import org.midonet.cluster.client.Port
-import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig}
-import org.midonet.cluster.data.TunnelZone.{Type => TunnelType}
+import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
-import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged,
-    ZoneMembers, TunnelZoneRequest}
+import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
+import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.sdn.flows.FlowTagger
-import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.Callback0
-import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.odp.{DpPort, Datapath, OvsConnectionOps}
+import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
 import org.midonet.packets.IPv4Addr
-import org.midonet.sdn.flows.WildcardFlow
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -71,7 +64,7 @@ object UnderlayResolver {
 
 trait UnderlayResolver {
 
-    import UnderlayResolver.Route
+    import org.midonet.midolman.UnderlayResolver.Route
 
     /** object representing the current host */
     def host: ResolvedHost
@@ -189,10 +182,10 @@ class DatapathController extends Actor
                          with ActorLogWithoutPath
                          with SingleThreadExecutionContextProvider {
 
-    import DatapathController._
-    import FlowController.AddWildcardFlow
-    import VirtualToPhysicalMapper.TunnelZoneUnsubscribe
     import context.system
+    import org.midonet.midolman.DatapathController._
+    import org.midonet.midolman.FlowController.AddWildcardFlow
+    import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
 
     override def logSource = "org.midonet.datapath-control"
 
@@ -611,7 +604,7 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
                                     val log: Logger)
                           extends DatapathState with DatapathPortEntangler {
 
-    import UnderlayResolver.Route
+    import org.midonet.midolman.UnderlayResolver.Route
 
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
