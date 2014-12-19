@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8b210db7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T17:09:56Z",
+      "side": 1,
+      "message": "oh! It just informative.",
+      "parentUuid": "1af78d9a_8b858daf",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4b2565aa",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
         "patchSetId": 8
@@ -102,6 +120,24 @@
       "side": 1,
       "message": "Ah! You have the add method: zk.ad(path, null, CreateMode.Persistent) (but this is just a nitpick)",
       "parentUuid": "1af78d9a_4b5f2573",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cb2b1593",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T17:09:56Z",
+      "side": 1,
+      "message": "Since this will go away in a little while, I\u0027ll leave this as is.",
+      "parentUuid": "1af78d9a_2bbc596c",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -225,6 +261,24 @@
       "side": 1,
       "message": "What I mean is: doesn\u0027t storage provide just a simple get? When you get a host, you get the ids, and you just request the values, which having to keep track of what streams you are subscribed to.",
       "parentUuid": "1af78d9a_2bc73914",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_4b172552",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T17:09:56Z",
+      "side": 1,
+      "message": "It could be that the set of tunnels the host is a member of does not change but one of its IPs does change, isn\u0027it?\nIn that case we need to be notified of tunnel changes and get is not sufficient.",
+      "parentUuid": "1af78d9a_ab8849c7",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -436,6 +490,30 @@
       "side": 1,
       "message": "Oh, why? It has an identity, so should it become a value?",
       "parentUuid": "1af78d9a_0bf35d74",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cb02f50a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2014-12-19T17:09:56Z",
+      "side": 1,
+      "message": "It allows to do matching on objects that are subclasses of Device (such as TunnelZone and Host).\n\nYou mean the id should be part of the constructor? I\u0027m not sure we can do that though because we\u0027re using ZoomConvert to build the object from the corresponding proto.",
+      "parentUuid": "1af78d9a_cbf8354c",
       "range": {
         "startLine": 56,
         "startChar": 21,
