@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8bcaad6c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T12:41:56Z",
+      "side": 1,
+      "message": "I would move to have the owner a random string, rather than ObjId. The reason is that when setting the owner, we can do an ObjId.toString to determine the ZK node name.\n\nHowever, when calling getOwners there is no reverse of toString to get the equivalent ObjId whatever that may be (e.g. an UUID).",
+      "parentUuid": "9a0b7d60_de7d89b3",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 41,
+        "endChar": 60
+      },
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_fe804d8d",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2014-12-19T09:52:41Z",
       "side": 1,
       "message": "I don\u0027t think this method should belong to the trait because the client doesn\u0027t need to use this method. I know that Storage has \"registerClass\", but I don\u0027t think it should, either.",
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_ebc7f162",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T12:41:56Z",
+      "side": 1,
+      "message": "I know there has been a discussion about this before, but yet I\u0027m confused about the scope of this method then. On one hand, registerClass is used to create the class paths in ZK, and I agree that this should be accessible only to the server (cluster node).\n\nHowever, on the other hand, the method is also used:\n- to initialize the client-side data structures (such as instance caches)\n- which in turn, indicate where a particular class has been registered in zoom, a check that is made before any CRUD op.\n\nTherefore, as currently implemented any call to a CRUD method is unusable unless we give the client the ability to initialize those data structures.",
+      "parentUuid": "9a0b7d60_fe804d8d",
       "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_cbc4b561",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T12:41:56Z",
+      "side": 1,
+      "message": "As mentioned above, maybe it\u0027s better to make this a string.",
+      "parentUuid": "9a0b7d60_3e4ad583",
+      "range": {
+        "startLine": 170,
+        "startChar": 58,
+        "endLine": 170,
+        "endChar": 64
+      },
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_0b04fd13",
         "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
         "patchSetId": 3
@@ -76,6 +142,24 @@
       "writtenOn": "2014-12-19T09:52:41Z",
       "side": 1,
       "message": "Does Storage need to extends StorageWithOwnership? if ever at all, shouldn\u0027t StorageWithOwnership extend Storage? (In that case, we might factor out WritableStorage that has create / update / delete / deleteIfExits / multi / flush).",
+      "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2ba1f9a9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2014-12-19T12:41:56Z",
+      "side": 1,
+      "message": "Maybe not, I put this here for convenience, buy maybe StorageWithOwnership should be an independent trait, perhaps extending Storage.",
+      "parentUuid": "1af78d9a_0b04fd13",
       "revId": "e5d0ca6037cdddf77f8212648028a16cb36f0fd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
