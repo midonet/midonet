@@ -23,16 +23,17 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 import akka.actor.ActorSystem
+
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
+
 import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.odp.Packet
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
-import org.midonet.sdn.flows.WildcardMatch
 import org.midonet.util.functors.Callback0
-import org.slf4j.LoggerFactory
 
 object PacketContext {
     val defaultLog =
@@ -53,7 +54,7 @@ object PacketContext {
 class PacketContext(val cookieOrEgressPort: Either[Int, UUID],
                     val packet: Packet,
                     val parentCookie: Option[Int],
-                    val origMatch: WildcardMatch)
+                    val origMatch: FlowMatch)
                    (implicit actorSystem: ActorSystem) {
     var log = PacketContext.defaultLog
 

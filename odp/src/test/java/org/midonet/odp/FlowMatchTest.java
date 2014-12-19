@@ -67,13 +67,13 @@ public class FlowMatchTest {
     @Test
     public void testAddKey() {
         FlowMatch m = new FlowMatch();
-        assertFalse(m.isUserSpaceOnly());
+        assertFalse(m.hasUserspaceOnlyFields());
         for (FlowKey key : supported) {
             m.addKey(key);
         }
-        assertFalse(m.isUserSpaceOnly());
+        assertFalse(m.hasUserspaceOnlyFields());
         m.addKey(unsupported.get(0));
-        assertTrue(m.isUserSpaceOnly());
+        assertTrue(m.hasUserspaceOnlyFields());
         assertEquals(supported.size() + 1, m.getKeys().size());
     }
 
@@ -81,17 +81,17 @@ public class FlowMatchTest {
     public void testConstructWithKeys() {
         tmp.addAll(supported);
         FlowMatch m = new FlowMatch(tmp);
-        assertFalse(m.isUserSpaceOnly());
+        assertFalse(m.hasUserspaceOnlyFields());
         assertEquals(supported.size(), m.getKeys().size());
         m.addKey(unsupported.get(0));
-        assertTrue(m.isUserSpaceOnly());
+        assertTrue(m.hasUserspaceOnlyFields());
         assertEquals(supported.size() + 1, m.getKeys().size());
 
         tmp = new ArrayList<>();
         tmp.addAll(supported);
         tmp.addAll(unsupported);
         m = new FlowMatch(tmp);
-        assertTrue(m.isUserSpaceOnly());
+        assertTrue(m.hasUserspaceOnlyFields());
         assertEquals(supported.size() + unsupported.size(), m.getKeys().size());
     }
 
@@ -117,28 +117,23 @@ public class FlowMatchTest {
         FlowMatch m2 = new FlowMatch();
         FlowMatch m3 = new FlowMatch();
         FlowMatch m4 = new FlowMatch();
-        m1.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
-        m2.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
-        m3.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
-        m4.addKey(icmp(ICMP.TYPE_ECHO_REQUEST, ICMP.CODE_NONE));
+        m1.addKey(FlowKeys.makeIcmpFlowKey(icmp1));
+        m2.addKey(FlowKeys.makeIcmpFlowKey(icmp1));
+        m3.addKey(FlowKeys.makeIcmpFlowKey(icmp1));
+        m4.addKey(FlowKeys.makeIcmpFlowKey(icmp1));
 
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
         assertNotSame(m1, m4);
         assertNotSame(m3, m4);
 
-        FlowMatches.addUserspaceKeys(eth1, m1);
-        FlowMatches.addUserspaceKeys(eth2, m2);
-        FlowMatches.addUserspaceKeys(eth3, m3);
-        FlowMatches.addUserspaceKeys(eth4, m4);
-
         assertEquals(m1, m2);
         assertNotSame(m1, m3);
         assertNotSame(m1, m4);
-        assertTrue(m1.isUserSpaceOnly());
-        assertTrue(m2.isUserSpaceOnly());
-        assertTrue(m3.isUserSpaceOnly());
-        assertTrue(m4.isUserSpaceOnly());
+        assertTrue(m1.hasUserspaceOnlyFields());
+        assertTrue(m2.hasUserspaceOnlyFields());
+        assertTrue(m3.hasUserspaceOnlyFields());
+        assertTrue(m4.hasUserspaceOnlyFields());
     }
 
     private Ethernet makeFrame(MAC srcMac, MAC dstMac,

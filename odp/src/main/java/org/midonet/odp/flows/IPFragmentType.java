@@ -33,14 +33,12 @@ public enum IPFragmentType {
 
     public static IPFragmentType fromByte(byte value) {
         switch (value) {
-            case 0:
-                return None;
             case 1:
                 return First;
             case 2:
                 return Later;
             default:
-                return null;
+                return None;
         }
     }
 

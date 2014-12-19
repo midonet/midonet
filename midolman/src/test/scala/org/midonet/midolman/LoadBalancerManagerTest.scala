@@ -20,6 +20,7 @@ import java.util.UUID
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
+import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.FlowController.InvalidateFlowsByTag
@@ -28,7 +29,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, TCP}
-import org.midonet.sdn.flows.{FlowTagger, WildcardMatch}
+import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTest"))
@@ -195,7 +196,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             And("traffic is sent through the loadbalancer")
             // Ingress match for packet destined to VIP
-            val ingressMatch = new WildcardMatch()
+            val ingressMatch = new FlowMatch()
                 .setNetworkDst(IPv4Addr.fromString(firstVip.getAddress))
                 .setDstPort(firstVip.getProtocolPort)
                 .setNetworkSrc(IPv4Addr.fromString("1.1.1.1"))

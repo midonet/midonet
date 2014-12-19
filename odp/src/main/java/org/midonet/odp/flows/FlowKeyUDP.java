@@ -77,11 +77,6 @@ public class FlowKeyUDP implements FlowKey {
     }
 
     @Override
-    public int connectionHash() {
-        return hashCode();
-    }
-
-    @Override
     public String toString() {
         return "UDP{src=" + udp_src + ", dst=" + udp_dst + "}";
     }

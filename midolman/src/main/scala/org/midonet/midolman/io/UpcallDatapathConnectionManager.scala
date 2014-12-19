@@ -195,7 +195,6 @@ abstract class UpcallDatapathConnectionManagerBase(
             override def submit(data: Packet) {
                 log.trace("accumulating packet: {}", data.getMatch)
 
-                data.processUserspaceKeys()
                 data.startTimeNanos = NanoClock.DEFAULT.tick
 
                 val worker = Math.abs(data.getMatch.connectionHash) % NUM_WORKERS

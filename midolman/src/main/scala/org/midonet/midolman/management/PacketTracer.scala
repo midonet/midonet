@@ -20,7 +20,7 @@ import java.beans.ConstructorProperties
 import java.util.concurrent.atomic.AtomicInteger
 import scala.beans.BeanProperty
 
-import org.midonet.sdn.flows.WildcardMatch
+import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, MAC}
 
 object FieldMatch {
@@ -68,7 +68,7 @@ case class PacketTracer @ConstructorProperties(
 
     def isAlive: Boolean = matches.get() > 0
 
-    def matches(wmatch: WildcardMatch): Boolean = {
+    def matches(wmatch: FlowMatch): Boolean = {
         (matches.get() < limit) &&
         etherTypeMatch(wmatch.getEtherType) &&
         srcMacMatch(wmatch.getEthSrc) &&

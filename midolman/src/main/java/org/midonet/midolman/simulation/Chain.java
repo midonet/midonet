@@ -25,7 +25,6 @@ import java.util.UUID;
 import scala.Option;
 import scala.collection.Map;
 
-import org.midonet.sdn.flows.WildcardMatch;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleResult;
@@ -140,7 +139,6 @@ public class Chain {
             Chain chain, PacketContext context,
             UUID ownerId, boolean isPortFilter) {
 
-        WildcardMatch pktMatch = context.wcmatch();
         if (null == chain) {
             return new RuleResult(Action.ACCEPT, null);
         }

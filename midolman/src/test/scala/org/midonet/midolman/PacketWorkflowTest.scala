@@ -37,7 +37,7 @@ import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 import org.midonet.packets.Ethernet
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.WildcardFlow
 
 object PacketWorkflowTest {
     case object ExecPacket
@@ -64,7 +64,7 @@ object PacketWorkflowTest {
         }
         dpCon.flowsSubscribe(flowListener)
         val dpState = new DatapathStateManager(null)(null, null)
-        val wcMatch = WildcardMatch.fromFlowMatch(pkt.getMatch)
+        val wcMatch = pkt.getMatch
         val pktCtx = new PacketContext(Left(cookie), pkt, None, wcMatch)
         val wf = new PacketWorkflow(dpState, null, null, dpConPool,
                                     CallbackExecutor.Immediate,
@@ -269,7 +269,9 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     def flMatch(userspace: Boolean = false) = {
         val flm = new FlowMatch()
-        flm setUserSpaceOnly userspace
+        if (userspace) {
+            flm addKey FlowKeys.icmpEcho(0, 1, 3)
+        }
         flm
     }
 
@@ -277,7 +279,7 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
         new Packet(Ethernet.random, flMatch(userspace))
 
     def wcMatch(userspace: Boolean = false) = {
-        val wcMatch = WildcardMatch.fromFlowMatch(flMatch(userspace))
+        val wcMatch = flMatch(userspace)
         if (userspace)
           wcMatch.getIcmpIdentifier
         wcMatch

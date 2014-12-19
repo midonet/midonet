@@ -27,7 +27,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.{FlowKey, FlowKeys, IpProtocol}
 import org.midonet.odp.{Flow, FlowMatch}
 import org.midonet.packets.IPv4Addr
-import org.midonet.sdn.flows.{WildcardFlow, WildcardMatch}
+import org.midonet.sdn.flows.WildcardFlow
 import org.midonet.util.functors.Callback0
 
 object FlowTableQueryBenchmark {
@@ -58,7 +58,7 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
     registerActors(FlowController -> (() => new FlowController
                                             with MessageAccumulator))
 
-    val wcMatches = new Array[WildcardMatch](numFlows)
+    val wcMatches = new Array[FlowMatch](numFlows)
 
     def generateFlowMatch(rand: Random): FlowMatch = {
         val keys = new ArrayList[FlowKey]()
@@ -96,7 +96,7 @@ class FlowTableQueryBenchmark extends MidolmanBenchmark {
         val rand = new Random()
         for (i <- 0 until numFlows) {
             val flowMatch = generateFlowMatch(rand)
-            wcMatches(i) = WildcardMatch.fromFlowMatch(flowMatch)
+            wcMatches(i) = flowMatch
             FlowController ! AddWildcardFlow(
                 WildcardFlow(wcMatches(i)),
                 new Flow(flowMatch),

@@ -17,15 +17,24 @@ package org.midonet.odp.flows;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
+import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.Writer;
 import org.midonet.odp.OpenVSwitch.FlowKey.Attr;
+import org.midonet.packets.ARP;
+import org.midonet.packets.Ethernet;
+import org.midonet.packets.ICMP;
+import org.midonet.packets.IPacket;
+import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv6;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.TCP;
+import org.midonet.packets.UDP;
 import org.midonet.util.collection.WeakObjectPool;
 
 /**
@@ -235,7 +244,7 @@ public class FlowKeys {
 
     public static List<FlowKey> randomKeys() {
         List<FlowKey> keys = new ArrayList<>();
-        while (rand.nextInt(100) >= 30 && keys.size() <= 10) {
+        while (ThreadLocalRandom.current().nextInt(100) >= 30 && keys.size() <= 10) {
             keys.add(randomKey());
         }
         return keys;
@@ -244,17 +253,195 @@ public class FlowKeys {
     public static FlowKey randomKey() {
         FlowKey k = null;
         while (k == null) {
-            k = FlowKeys.newBlankInstance((short)(1 + rand.nextInt(18)));
+            k = FlowKeys.newBlankInstance((short)(1 + ThreadLocalRandom.current().nextInt(18)));
         }
         if (k instanceof Randomize) {
             ((Randomize)k).randomize();
         } else {
             byte[] bytes = new byte[1024];
-            rand.nextBytes(bytes);
+            ThreadLocalRandom.current().nextBytes(bytes);
             k.deserializeFrom(ByteBuffer.wrap(bytes));
         }
         return k;
     }
 
-    public static Random rand = new Random();
+    public static ArrayList<FlowKey> fromEthernetPacket(Ethernet ethPkt) {
+        ArrayList<FlowKey> keys = new ArrayList<>();
+        keys.add(
+                ethernet(
+                    ethPkt.getSourceMACAddress().getAddress(),
+                    ethPkt.getDestinationMACAddress().getAddress()));
+        keys.add(etherType(ethPkt.getEtherType()));
+
+        ArrayList<FlowKey> payloadKeys = new ArrayList<>();
+
+        switch (ethPkt.getEtherType()) {
+            case ARP.ETHERTYPE:
+                if (ethPkt.getPayload() instanceof ARP) {
+                    ARP arpPkt = ARP.class.cast(ethPkt.getPayload());
+                    payloadKeys.add(
+                        arp(arpPkt.getSenderHardwareAddress().getAddress(),
+                            arpPkt.getTargetHardwareAddress().getAddress(),
+                            arpPkt.getOpCode(),
+                            IPv4Addr.bytesToInt(
+                                arpPkt.getSenderProtocolAddress()),
+                            IPv4Addr.bytesToInt(
+                                arpPkt.getTargetProtocolAddress())));
+                }
+                break;
+            case IPv4.ETHERTYPE:
+                if (ethPkt.getPayload() instanceof IPv4) {
+                    IPv4 ipPkt = IPv4.class.cast(ethPkt.getPayload());
+                    parseFlowKeysFromIPv4(ipPkt, payloadKeys);
+                }
+                break;
+            case IPv6.ETHERTYPE:
+                if (ethPkt.getPayload() instanceof IPv6) {
+                    IPv6 v6Pkt = IPv6.class.cast(ethPkt.getPayload());
+                    parseFlowKeysFromIPv6(v6Pkt, keys);
+                }
+                break;
+        }
+
+        if (!ethPkt.getVlanIDs().isEmpty()) {
+            // process VLANS
+            Iterator<Short> it = ethPkt.getVlanIDs().iterator();
+            while (it.hasNext()) {
+                short vlanID = it.next();
+                keys.add(
+                    etherType(it.hasNext() ? Ethernet.PROVIDER_BRIDGING_TAG :
+                              Ethernet.VLAN_TAGGED_FRAME));
+                keys.add(vlan(vlanID));
+            }
+            keys.add(encap(payloadKeys));
+        } else {
+            keys.addAll(payloadKeys);
+        }
+
+        addUserspaceKeys(ethPkt, keys);
+        return keys;
+    }
+
+    public static void addUserspaceKeys(Ethernet ethPkt, ArrayList<FlowKey> keys) {
+        for (int i = 0; i < keys.size(); ++i) {
+            if (keys.get(i) instanceof FlowKeyICMP) {
+                ICMP icmpPkt = (ICMP) ethPkt.getPayload().getPayload();
+                FlowKey icmpUserSpace = makeIcmpFlowKey(icmpPkt);
+                if (icmpUserSpace != null) {
+                    keys.set(i, icmpUserSpace);
+                }
+                return;
+            }
+        }
+    }
+
+    public static void buildFrom(ByteBuffer buf, final ArrayList<FlowKey> flowKeys) {
+        NetlinkMessage.scanAttributes(buf, new AttributeHandler() {
+            @Override
+            public void use(ByteBuffer buffer, short id) {
+                FlowKey key = FlowKeys.newBlankInstance(id);
+                if (key == null)
+                    return;
+                key.deserializeFrom(buffer);
+                flowKeys.add(key);
+            }
+        });
+    }
+
+    private static void parseFlowKeysFromIPv4(IPv4 pkt, List<FlowKey> keys) {
+        IPFragmentType fragmentType =
+            IPFragmentType.fromIPv4Flags(pkt.getFlags(),
+                                         pkt.getFragmentOffset());
+
+        byte protocol = pkt.getProtocol();
+        IPacket payload = pkt.getPayload();
+
+        keys.add(
+            ipv4(pkt.getSourceIPAddress(),
+                 pkt.getDestinationIPAddress(),
+                 protocol,
+                 (byte) 0, /* type of service */
+                 pkt.getTtl(),
+                 fragmentType)
+        );
+
+        switch (protocol) {
+            case TCP.PROTOCOL_NUMBER:
+                if (payload instanceof TCP) {
+                    TCP tcpPkt = TCP.class.cast(payload);
+                    keys.add(tcp(tcpPkt.getSourcePort(),
+                                 tcpPkt.getDestinationPort()));
+
+                    // add the keys for the TCP flags
+                    keys.add(tcpFlags(tcpPkt.getFlags()));
+                }
+                break;
+            case UDP.PROTOCOL_NUMBER:
+                if (payload instanceof UDP) {
+                    UDP udpPkt = UDP.class.cast(payload);
+                    keys.add(udp(udpPkt.getSourcePort(),
+                                 udpPkt.getDestinationPort()));
+                }
+                break;
+            case ICMP.PROTOCOL_NUMBER:
+                if (payload instanceof ICMP) {
+                    ICMP icmpPkt = ICMP.class.cast(payload);
+                    FlowKey icmpUserspace = FlowKeys.makeIcmpFlowKey(icmpPkt);
+                    if (icmpUserspace == null)
+                        keys.add(icmp(icmpPkt.getType(),
+                                      icmpPkt.getCode()));
+                    else
+                        keys.add(icmpUserspace);
+                }
+                break;
+        }
+    }
+
+    private static void parseFlowKeysFromIPv6(IPv6 pkt, ArrayList<FlowKey> keys) {
+        keys.add(
+            ipv6(pkt.getSourceAddress(),
+                 pkt.getDestinationAddress(),
+                 pkt.getNextHeader()));
+
+        IPacket payload = pkt.getPayload();
+        switch (pkt.getNextHeader()) {
+            case TCP.PROTOCOL_NUMBER:
+                if (payload instanceof TCP) {
+                    TCP tcpPkt = TCP.class.cast(payload);
+                    keys.add(tcp(tcpPkt.getSourcePort(),
+                                  tcpPkt.getDestinationPort()));
+
+                    // add some matches for some important flags
+                    keys.add(tcpFlags(tcpPkt.getFlags()));
+                }
+                break;
+            case UDP.PROTOCOL_NUMBER:
+                if (payload instanceof UDP) {
+                    UDP udpPkt = UDP.class.cast(payload);
+                    keys.add(udp(udpPkt.getSourcePort(),
+                                 udpPkt.getDestinationPort()));
+                }
+                break;
+        }
+    }
+
+    public static FlowKey makeIcmpFlowKey(ICMP icmp) {
+        switch (icmp.getType()) {
+            case ICMP.TYPE_ECHO_REPLY:
+            case ICMP.TYPE_ECHO_REQUEST:
+                return icmpEcho(icmp.getType(),
+                                icmp.getCode(),
+                                icmp.getIdentifier());
+            case ICMP.TYPE_PARAMETER_PROBLEM:
+            case ICMP.TYPE_REDIRECT:
+            case ICMP.TYPE_SOURCE_QUENCH:
+            case ICMP.TYPE_TIME_EXCEEDED:
+            case ICMP.TYPE_UNREACH:
+                return icmpError(icmp.getType(),
+                                 icmp.getCode(),
+                                 icmp.getData());
+            default:
+                return null;
+        }
+    }
 }

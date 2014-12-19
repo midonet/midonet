@@ -81,9 +81,6 @@ public class FlowKeyEncap implements FlowKey, Randomize, AttributeHandler {
     }
 
     @Override
-    public int connectionHash() { return 0; }
-
-    @Override
     public String toString() {
         return "Encap{keys=" + keys + '}';
     }
