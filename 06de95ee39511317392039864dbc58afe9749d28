@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_cb8f95cb",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T16:45:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_2b9bb9ca",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 19
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aed85c8_8d3da1be",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 2
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_4bbba572",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T16:45:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_6ba5c103",
+      "range": {
+        "startLine": 73,
+        "startChar": 63,
+        "endLine": 73,
+        "endChar": 70
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "5aed85c8_cd47a94a",
         "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
         "patchSetId": 2
@@ -178,6 +226,30 @@
       "side": 1,
       "message": "This is called for each protobuf received by netty (I\u0027ll put some comments to document this)",
       "parentUuid": "5aed85c8_cd47a94a",
+      "range": {
+        "startLine": 80,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 25
+      },
+      "revId": "06de95ee39511317392039864dbc58afe9749d28",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2b63b91b",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/services/topology/common/Connection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2014-12-19T16:45:05Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1af78d9a_0ba07df3",
       "range": {
         "startLine": 80,
         "startChar": 8,
