@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a0b7d60_1ec1d1e4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T08:03:43Z",
+      "side": 1,
+      "message": "I guess this doesn\u0027t really work. The client that subscribes to instance / class via ZOOM is more likely to be on a different thread, and probably on a different VM. Therefore I think we need to make a synchronized access to caches, as well as to watch for data version update.",
+      "range": {
+        "startLine": 784,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 31
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_7e9f3d04",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T08:03:43Z",
+      "side": 1,
+      "message": "Is this correct? Doesn\u0027t Curator try to reconnect after the connection state transition to LOST?",
+      "range": {
+        "startLine": 79,
+        "startChar": 21,
+        "endLine": 85,
+        "endChar": 21
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a0b7d60_3e95b5e4",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-19T08:03:43Z",
+      "side": 1,
+      "message": "This produces, start, start+1, start+2, ...., end-1. You need to fix the comments to say that \"end\" is exclusive.",
+      "range": {
+        "startLine": 127,
+        "startChar": 8,
+        "endLine": 127,
+        "endChar": 24
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
