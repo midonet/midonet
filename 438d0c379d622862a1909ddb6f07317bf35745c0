@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ce3043eb",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T17:43:28Z",
+      "side": 1,
+      "message": "Ah, I see. Cool!",
+      "parentUuid": "1af78d9a_8b210db7",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4b2565aa",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
         "patchSetId": 8
@@ -279,6 +297,24 @@
       "side": 1,
       "message": "It could be that the set of tunnels the host is a member of does not change but one of its IPs does change, isn\u0027it?\nIn that case we need to be notified of tunnel changes and get is not sufficient.",
       "parentUuid": "1af78d9a_ab8849c7",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6e094f2c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T17:43:28Z",
+      "side": 1,
+      "message": "If the host \u003c-\u003e tunnel zone membership changes, with the current structure, zookeeper should fire a watcher (you have to delete a node under the host node, and re-add it to change the tunnel zone membership). I also think we\u0027re missing an explicit tunnel zone membership idea.",
+      "parentUuid": "1af78d9a_4b172552",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -514,6 +550,30 @@
       "side": 1,
       "message": "It allows to do matching on objects that are subclasses of Device (such as TunnelZone and Host).\n\nYou mean the id should be part of the constructor? I\u0027m not sure we can do that though because we\u0027re using ZoomConvert to build the object from the corresponding proto.",
       "parentUuid": "1af78d9a_cbf8354c",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_6e6e6fcb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T17:43:28Z",
+      "side": 1,
+      "message": "Like pattern matching? It doesn\u0027t need to be a case class, it needs to define an unapply method. \n\nIf these objects will live in a map and have an id, you probably want to define your own equals method instead of relying on what case classes generate.",
+      "parentUuid": "1af78d9a_cb02f50a",
       "range": {
         "startLine": 56,
         "startChar": 21,
