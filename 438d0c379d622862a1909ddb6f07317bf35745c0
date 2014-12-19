@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_8b858daf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 444,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T16:36:52Z",
+      "side": 1,
+      "message": "oh, I meant the annotation :)",
+      "parentUuid": "1af78d9a_ab3e8927",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_4b2565aa",
         "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
         "patchSetId": 8
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "That\u0027s the simplest way I found to create the host path without storing host information.",
       "parentUuid": "1af78d9a_4b2565aa",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2bbc596c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/state/HostZkManager.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 452,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T16:36:52Z",
+      "side": 1,
+      "message": "Ah! You have the add method: zk.ad(path, null, CreateMode.Persistent) (but this is just a nitpick)",
+      "parentUuid": "1af78d9a_4b5f2573",
       "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -177,6 +213,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ab8849c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T16:36:52Z",
+      "side": 1,
+      "message": "What I mean is: doesn\u0027t storage provide just a simple get? When you get a host, you get the ids, and you just request the values, which having to keep track of what streams you are subscribed to.",
+      "parentUuid": "1af78d9a_2bc73914",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_2b4d7973",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 8
@@ -282,6 +336,24 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_abafa92a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Host.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T16:36:52Z",
+      "side": 1,
+      "message": "Got it!",
+      "parentUuid": "1af78d9a_2bee198c",
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_eb3371f4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
         "patchSetId": 8
@@ -340,6 +412,30 @@
       "side": 1,
       "message": "TunnelZone will need to be a case class for later. The same goes for the Host.",
       "parentUuid": "1af78d9a_cb3035eb",
+      "range": {
+        "startLine": 56,
+        "startChar": 21,
+        "endLine": 56,
+        "endChar": 23
+      },
+      "revId": "438d0c379d622862a1909ddb6f07317bf35745c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_cbf8354c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/TunnelZone.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2014-12-19T16:36:52Z",
+      "side": 1,
+      "message": "Oh, why? It has an identity, so should it become a value?",
+      "parentUuid": "1af78d9a_0bf35d74",
       "range": {
         "startLine": 56,
         "startChar": 21,
