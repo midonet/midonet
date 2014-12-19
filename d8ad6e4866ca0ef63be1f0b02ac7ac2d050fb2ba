@@ -37,6 +37,29 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_ab67a9e9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-19T10:30:52Z",
+      "side": 1,
+      "message": "Last processed task ID could be anything. E.g. if the former leader processed up to task 215 before the coup, that\u0027s what should be in Zookeeper, and that\u0027s what we should log. Or not log it, if we don\u0027t want to make another trip to Zookeeper. But we definitely shouldn\u0027t log this.",
+      "range": {
+        "startLine": 111,
+        "startChar": 25,
+        "endLine": 111,
+        "endChar": 48
+      },
+      "revId": "d8ad6e4866ca0ef63be1f0b02ac7ac2d050fb2ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_e3ba7a09",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
         "patchSetId": 8
