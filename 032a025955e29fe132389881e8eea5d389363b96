@@ -22,6 +22,30 @@
       "revId": "032a025955e29fe132389881e8eea5d389363b96",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_110a6cd2",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-22T06:40:56Z",
+      "side": 1,
+      "message": "If only it were possible to enforce this via the type system, by having all of our storage classes implement a specific interface!",
+      "parentUuid": "1af78d9a_4e40d356",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 80,
+        "endChar": 5
+      },
+      "revId": "032a025955e29fe132389881e8eea5d389363b96",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
