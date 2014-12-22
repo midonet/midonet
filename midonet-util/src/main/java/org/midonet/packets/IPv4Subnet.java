@@ -136,4 +136,32 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
         int mask = ~0 << maskSize;
         return (ip1 & mask) == (ip2 & mask);
     }
+
+    /**
+     * Calculate the reversed bits. In case of `mask=23`, the original bit
+     * array is like the following:
+     *
+     *   0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+     *
+     * And `Math.pow(2, 32 - mask) - 1` will be the array below:
+     *
+     *   0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1
+     *
+     * Then inverse it and get the bits of `~(Math.pow(2, 32 - mask) - 1)`
+     * which is reversed from the original bits  as follow:
+     *
+     *   1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0
+     *
+     * @param prefixLen Subnet prefix length in integer
+     * @return An array of four bytes represents the subnet mask
+     */
+    public static byte[] prefixLenToBytes(int prefixLen) {
+        int intMask = ~((int) Math.pow(2, 32 - prefixLen) - 1);
+        return new byte[]{
+                (byte) ((intMask & 0xff000000) >>> 24),
+                (byte) ((intMask & 0x00ff0000) >>> 16),
+                (byte) ((intMask & 0x0000ff00) >>> 8),
+                (byte) (intMask & 0x000000ff)
+        };
+    }
 }

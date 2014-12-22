@@ -20,14 +20,12 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import static junitparams.JUnitParamsRunner.*;
 
-@RunWith(Enclosed.class)
+@RunWith(JUnitParamsRunner.class)
 public class TestIPv4Subnet {
-
     @Test
     @Parameters(source = TestIPv4Subnet.class, method="validCidrs")
     public void testValidCidrs(String input) {
@@ -38,7 +36,7 @@ public class TestIPv4Subnet {
         Assert.assertEquals(input, testObject.toString());
         Assert.assertEquals(expected[0], testObject.getAddress().toString());
         Assert.assertEquals(expected[1],
-                            Integer.toString(testObject.getPrefixLen()));
+                Integer.toString(testObject.getPrefixLen()));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -63,6 +61,13 @@ public class TestIPv4Subnet {
     @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
     public void testGetAddressAndPrefixLenNegative(String input) {
         IPv4Subnet.fromCidr(input);
+    }
+
+    @Test
+    @Parameters(source = TestIPv4Subnet.class, method="prefixLenToBytes")
+    public void testPrefixLenToBytes(int prefixLen, byte[] expected) {
+        Assert.assertArrayEquals(
+                expected, IPv4Subnet.prefixLenToBytes(prefixLen));
     }
 
     public static Object[] validCidrs() {
@@ -110,4 +115,21 @@ public class TestIPv4Subnet {
         );
     }
 
+    @SuppressWarnings("uncheck")
+    public static Object[] prefixLenToBytes() {
+        return $($(32, new byte[] {
+                        (byte) 255, (byte) 255, (byte) 255, (byte) 255 }),
+                $(24, new byte[] {
+                        (byte) 255, (byte) 255, (byte) 255, (byte) 0 }),
+                $(16, new byte[] {
+                        (byte) 255, (byte) 255, (byte) 0, (byte) 0 }),
+                $(8, new byte[] {
+                        (byte) 255, (byte) 0, (byte) 0, (byte) 0 }),
+                $(23, new byte[] {
+                        (byte) 255, (byte) 255, (byte) 254, (byte) 0 }),
+                $(17, new byte[] {
+                        (byte) 255, (byte) 255, (byte) 128, (byte) 0}),
+                $(3, new byte[] {
+                        (byte) 224, (byte) 0, (byte) 0, (byte) 0 }));
+    }
 }
