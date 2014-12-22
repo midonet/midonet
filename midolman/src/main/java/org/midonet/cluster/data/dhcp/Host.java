@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.data.dhcp;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.midonet.cluster.data.Entity;
@@ -81,6 +82,6 @@ public class Host extends Entity.Base<MAC, Host.Data, Host> {
         public MAC mac;
         public IPv4Addr ip;
         public String name;
-        public List<ExtraDhcpOpt> extraDhcpOpts;
+        public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
     }
 }
