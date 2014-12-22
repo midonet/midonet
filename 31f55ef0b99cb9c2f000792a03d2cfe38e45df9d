@@ -610,6 +610,30 @@
       "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_11d8ac52",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3PODaemonTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2014-12-22T07:22:39Z",
+      "side": 1,
+      "message": "Oh. I didn\u0027t realize the IDs weren\u0027t accessible. In the case of NeutronResourceType, you can just change \"id: Int\" to \"val id: Int\" in the constructor.\n\nTaskType doesn\u0027t use the same pattern, but I think it could easily be modified to do so. That is, add a case class TaskType(val id: Int), get rid of \"type TaskType \u003d Value,\" and then replace all the Value(n) initializers with TaskType(n).",
+      "parentUuid": "1af78d9a_f16b6083",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 28
+      },
+      "revId": "31f55ef0b99cb9c2f000792a03d2cfe38e45df9d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
