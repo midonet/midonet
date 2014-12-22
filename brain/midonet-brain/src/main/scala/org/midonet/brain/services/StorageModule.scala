@@ -23,7 +23,13 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 import org.midonet.brain.services.c3po.C3POStorageManager
 import org.midonet.cluster.data.storage.{Storage, ZookeeperObjectMapper}
 import org.midonet.cluster.models.C3PO.C3POState
+import org.midonet.cluster.models.Neutron.FloatingIp
+import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Neutron.NeutronNetwork
+import org.midonet.cluster.models.Neutron.VIP
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.config.{ConfigGroup, ConfigInt, ConfigProvider, ConfigString}
 
@@ -49,9 +55,16 @@ class StorageModule(cfgProvider: ConfigProvider) extends AbstractModule {
 
     def initStorage(curator: CuratorFramework, basePath: String): Storage = {
         val storage = new ZookeeperObjectMapper(basePath, curator)
-        List(classOf[Network],
+        List(classOf[FloatingIp],
+             classOf[Network],
+             classOf[NeutronHealthMonitor],
+             classOf[NeutronLoadBalancerPool],
+             classOf[NeutronLoadBalancerPoolHealthMonitor],
+             classOf[NeutronLoadBalancerPoolMember],
              classOf[NeutronNetwork],
-             classOf[C3POState]).foreach(storage.registerClass)
+             classOf[C3POState],
+             classOf[VIP]
+             ).foreach(storage.registerClass)
         storage.build()
         storage
     }
