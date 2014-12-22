@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_f13360f4",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 781,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T03:18:34Z",
+      "side": 1,
+      "message": "\"newVersion()\" is more like it, but we can keep it as is as that\u0027s outside the scope of this change and the current implementation doesn\u0027t support all the needed functionality for \"newVersion()\".",
+      "parentUuid": "1af78d9a_cb7dd5b3",
+      "range": {
+        "startLine": 781,
+        "startChar": 17,
+        "endLine": 781,
+        "endChar": 22
+      },
+      "revId": "2c75d305cc6a49d4a1ca42b74e676be9bb89457d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1af78d9a_eb57f124",
         "filename": "cluster/src/test/scala/org/midonet/cluster/util/CuratorTestFramework.scala",
         "patchSetId": 10
