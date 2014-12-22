@@ -26,6 +26,7 @@ import org.midonet.util.version.Since;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @XmlRootElement
@@ -35,7 +36,7 @@ public class DhcpHost extends RelativeUriResource {
     protected String name; // DHCP option 12 - host name
 
     @Since("2")
-    protected List<ExtraDhcpOpt> extraDhcpOpts;
+    protected List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
     public DhcpHost(String macAddr, String ipAddr, String name,
                     List<ExtraDhcpOpt> extraDhcpOpts) {

@@ -75,30 +75,36 @@ class DhcpImpl(val dataClient: DataClient,
         }
     }
 
-    private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
+    private type HostAndSubnetOptPair = (Option[Host], Option[Subnet])
+
+    private
+    def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
         // TODO(pino): use an async API
         val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceID)
-
         // Look for the DHCP's source MAC in the list of hosts in each subnet
-        var host: Host = null
-
+        var host: Option[Host] = None
         val assignment = subnets.find { sub =>
             log.debug("Looking up assignment for MAC {} on subnet {} ",
                       sourceMac, sub.getId)
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
-                host = dataClient.dhcpHostsGet(port.deviceID,
-                                               sub.getSubnetAddr,
-                                               sourceMac.toString)
-                (host != null) && (host.getIp != null)
+                host = Option(dataClient.dhcpHostsGet(port.deviceID,
+                                                    sub.getSubnetAddr,
+                                                    sourceMac.toString))
+                host.isDefined && (host.get.getIp != null)
             } else {
                 log.warn("Can not create DHCP reply because the subnet" +
-                         s" ${sub.getId} does not have all necessary information.")
+                         s" ${sub.getId} does not have all necessary " +
+                         "nformation.")
                 false
             }
         }
-        assignment match {
-            case Some(sub: Subnet) =>
+        (host, assignment)
+    }
+
+    private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
+        getHostAndAssignedSubnet(port) match {
+            case (Some(host: Host), Some(sub: Subnet)) =>
                 log.debug(s"Found DHCP static assignment for MAC $sourceMac => "+
                           s"${host.getName} @ ${host.getIp}")
 
@@ -318,6 +324,8 @@ class DhcpImpl(val dataClient: DataClient,
                 bytes.length.toByte,
                 bytes.toArray))
         }
+        // Add extra DHCP options
+        setExtraOptions(port, options)
         // And finally add the END option.
         options.add(new DHCPOption(DHCPOption.Code.END.value,
                                    DHCPOption.Code.END.length, null))
@@ -342,5 +350,31 @@ class DhcpImpl(val dataClient: DataClient,
         eth.setDestinationMACAddress(sourceMac)
 
         return Some(eth)
+    }
+
+    private
+    def setExtraOptions(port: BridgePort,
+                        options: mutable.ListBuffer[DHCPOption]): Unit = {
+        getHostAndAssignedSubnet(port) match {
+            case (Some(host: Host), _) =>
+                val allDhcpOptions: Array[DHCPOption.Code] =
+                    DHCPOption.Code.values
+                for (opt <- host.getExtraDhcpOpts if host != null) {
+                    val codeOption: Option[DHCPOption.Code] =
+                        allDhcpOptions.find(_.name == opt.optName)
+                    if (codeOption.isDefined) {
+                        val code = codeOption.get
+                        val option = new DHCPOption(
+                            code.value, code.length, opt.optValue.getBytes)
+                        log.debug(s"Added extra DHCP Option ${opt.optName}")
+                        options.add(option)
+                    } else {
+                        log.info(s"Unknown DHCP Option: ${opt.optName}")
+                        log.info("This unknown option will be treated as " +
+                            "UNKNOWN")
+                    }
+                }
+            case _ =>
+        }
     }
 }
