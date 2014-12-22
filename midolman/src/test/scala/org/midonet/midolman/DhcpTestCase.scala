@@ -44,10 +44,36 @@ import org.midonet.midolman.util.RouterHelper
 import org.midonet.midolman.util.SimulationHelper
 import org.midonet.packets._
 
+object DhcpTestCase {
+    private[midolman] def getIp: String = {
+        val cmd = ( "/sbin/ifconfig"
+            + "| grep -w inet | grep -vw 127.0.0.1"
+            + "| egrep -o '((1?[0-9]{1,2}|2([0-5]){2})\\.?){4}'"
+            + "| sed -n 1p" )
+        val sIp = Seq("sh", "-c", cmd).!!.trim
+        log.debug(s"looking for ip address with command $cmd yields $sIp")
+        sIp
+    }
+
+    private[midolman] def getMtu(ip: String): String = {
+        // try to catch the mtu var around the ip captured by cmdline_ip
+        // it should be 3 lines above on OSX and 2 lines below on linux
+        val cmd = ( "/sbin/ifconfig | grep -A 2 -B 3 " + ip
+            + "| egrep -o -i 'mtu(:| )[0-9]+'"
+            + "| cut -c 5-" )
+
+        val sMtu = Seq("sh", "-c", cmd).!!.trim
+        log.debug(s"Looking for MTU with command $cmd yields $sMtu")
+        sMtu
+    }
+}
+
 @Category(Array(classOf[SimulationTests]))
 @RunWith(classOf[JUnitRunner])
 class DhcpTestCase extends MidolmanTestCase
         with SimulationHelper with RouterHelper {
+    import DhcpTestCase._
+
     private final val log = LoggerFactory.getLogger(classOf[DhcpTestCase])
 
     var router: Router = null
@@ -83,28 +109,6 @@ class DhcpTestCase extends MidolmanTestCase
     var host2: Host = null
 
     var intfMtu = 0
-
-    private def getIp: String = {
-        val cmd = ( "/sbin/ifconfig"
-                    + "| grep -w inet | grep -vw 127.0.0.1"
-                    + "| egrep -o '((1?[0-9]{1,2}|2([0-5]){2})\\.?){4}'"
-                    + "| sed -n 1p" )
-        val sIp = Seq("sh", "-c", cmd).!!.trim
-        log.debug(s"looking for ip address with command $cmd yields $sIp")
-        sIp
-    }
-
-    private def getMtu(ip: String): String = {
-        // try to catch the mtu var around the ip captured by cmdline_ip
-        // it should be 3 lines above on OSX and 2 lines below on linux
-        val cmd = ( "/sbin/ifconfig | grep -A 2 -B 3 " + ip
-                            + "| egrep -o -i 'mtu(:| )[0-9]+'"
-                            + "| cut -c 5-" )
-
-        val sMtu = Seq("sh", "-c", cmd).!!.trim
-        log.debug(s"Looking for MTU with command $cmd yields $sMtu")
-        sMtu
-    }
 
     private def routerExtPort(router: Router, mac: MAC, ip: IPv4Addr) = {
         val port = newRouterPort(router, mac,
