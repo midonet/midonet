@@ -15,24 +15,190 @@
  */
 package org.midonet.midolman.simulation
 
-import java.nio.ByteBuffer
+import java.nio.{BufferOverflowException, ByteBuffer}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
+import org.apache.commons.net.util.SubnetUtils
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.client._
 import org.midonet.cluster.data.dhcp.{Subnet, Host, Opt121}
 import org.midonet.packets._
 
-object DhcpImpl {
+object DhcpValueParser {
+    import DHCPOption._
 
+    val DHCP_CODES = DHCPOption.Code.values
+
+    private implicit class DhcpValueString(val s: String) {
+        def splitWithComma(): Array[String] =
+            s.replaceAll("\\s", "").split(",")
+    }
+
+    private def parseIpAddresses(dhcpValue: String): Option[Array[Byte]] = try {
+        Some((for (ipString <- dhcpValue.splitWithComma())
+        yield IPv4Addr.stringToBytes(dhcpValue)).flatten)
+    } catch {
+        case _: IllegalArgumentException => None
+    }
+
+    private def parseNumbers(dhcpValue: String): Option[Array[Byte]] = try {
+        val buff = ByteBuffer.allocate(4)
+        for (number <- dhcpValue.splitWithComma().map(_.toInt))
+            buff.putInt(number)
+        Some(buff.array())
+    } catch {
+        case _: NumberFormatException | _: BufferOverflowException => None
+    }
+
+    private def parseBoolean(dhcpValue: String): Option[Array[Byte]] = try {
+        Some(if (dhcpValue.toBoolean) Array(1.toByte) else Array(0.toByte))
+    } catch {
+        case _: IllegalArgumentException => None
+    }
+
+    private def parseCidr(dhcpValue: String): Option[Array[Byte]] = try {
+        Some((for {
+            cidrString <- dhcpValue.splitWithComma()
+            cidr = new SubnetUtils(cidrString).getInfo
+            networkAddress = IPv4Addr.fromString(cidr.getNetworkAddress)
+            netmask = IPv4Addr.fromString(cidr.getNetmask)
+        } yield networkAddress.toBytes ++ netmask.toBytes).flatten)
+    } catch {
+        case _: IllegalArgumentException => None
+    }
+
+    /*
+     * 8.7. NetBIOS over TCP/IP Node Type Option in RFC:2132
+     *
+     * Value         Node Type
+     * -----         ---------
+     * 0x1           B-node
+     * 0x2           P-node
+     * 0x4           M-node
+     * 0x8           H-node
+     */
+    private
+    def parseNetBiosTcpIpNodeType(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.trim match {
+            case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
+            case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
+            case "4" | "0x4" | "0x04" => Some(Array(0x04.toByte))
+            case "8" | "0x8" | "0x08" => Some(Array(0x08.toByte))
+            case _                    => None
+        }
+
+    /*
+     * 9.3. Option Overload in RFC:2132
+     *
+     * Value   Meaning
+     * -----   --------
+     *   1     the 'file' field is used to hold options
+     *   2     the 'sname' field is used to hold options
+     *   3     both fields are used to hold options
+     */
+    private def parseOptionOverload(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.trim match {
+            case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
+            case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
+            case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
+            case                    _ => None
+        }
+
+    /*
+     * 9.6. DHCP Message Type in RFC:2132
+     *
+     * Value   Message Type
+     * -----   ------------
+     *   1     DHCPDISCOVER
+     *   2     DHCPOFFER
+     *   3     DHCPREQUEST
+     *   4     DHCPDECLINE
+     *   5     DHCPACK
+     *   6     DHCPNAK
+     *   7     DHCPRELEASE
+     *   8     DHCPINFORM
+     */
+    private def parseDhcpMessageType(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.trim match {
+            case "1" | "0x1" | "0x01" => Some(Array(0x01.toByte))
+            case "2" | "0x2" | "0x02" => Some(Array(0x02.toByte))
+            case "3" | "0x3" | "0x03" => Some(Array(0x03.toByte))
+            case "4" | "0x4" | "0x04" => Some(Array(0x04.toByte))
+            case "5" | "0x5" | "0x05" => Some(Array(0x05.toByte))
+            case "6" | "0x6" | "0x06" => Some(Array(0x06.toByte))
+            case "7" | "0x7" | "0x07" => Some(Array(0x07.toByte))
+            case "8" | "0x8" | "0x08" => Some(Array(0x08.toByte))
+            case _                    => None
+        }
+
+    /*
+     * 9.14. Client-identifier in RFC:2132x
+     *
+     *   Code   Len   Type  Client-Identifier
+     * +-----+-----+-----+-----+-----+---
+     * |  61 |  n  |  t1 |  i1 |  i2 | ...
+     * +-----+-----+-----+-----+-----+---
+     */
+    private def parseClientIdentifier(dhcpValue: String): Option[Array[Byte]] =
+        dhcpValue.splitWithComma() match {
+            case a: Array[String] if a.length >= 2 =>
+                val typeOption: Option[Byte] =  try {
+                    Some(a.head.toByte)
+                } catch {
+                    case _: NumberFormatException => None
+                }
+                val clientIdentifierOption: Option[Array[Byte]] = a.tail match {
+                    case Array(s: String) => Some(s.getBytes)
+                    case _                => None
+                }
+                for {
+                    t <- typeOption
+                    clientIdentifier <- clientIdentifierOption
+                } yield t +: clientIdentifier
+            case _ => None
+        }
+
+    private[midolman]
+    def parseDhcpOptionValue(code: Byte, value: String): Option[Array[Byte]] = {
+        DHCP_CODES.find(_.value == code) match {
+            case Some(ipRequiredCode)
+                if IP_REQUIRED_DHCP_OPTION_CODES.contains(ipRequiredCode) =>
+                parseIpAddresses(value)
+            case Some(numberRequiredCode)
+                if NUMBER_REQUIRED_DHCP_OPTION_CODES.contains(
+                    numberRequiredCode) =>
+                parseNumbers(value)
+            case Some(booleanRequiredCode)
+                if BOOLEAN_REQUIRED_DHCP_OPTION_CODES.contains(
+                    booleanRequiredCode) =>
+                parseBoolean(value)
+            case Some(cidrRequiredCode)
+                if CIDR_REQUIRED_DHCP_OPTION_CODES.contains(cidrRequiredCode) =>
+                parseCidr(value)
+            case Some(c) if c == Code.NETBIOS_OVER_TCP_IP_NODE_TYPE =>
+                parseNetBiosTcpIpNodeType(value)
+            case Some(c) if c == Code.OPTION_OVERLOAD =>
+                parseOptionOverload(value)
+            case Some(c) if c == Code.MESSAGE =>
+                parseDhcpMessageType(value)
+            case Some(c) if c == Code.CLIENT_IDENTIFIER =>
+                parseClientIdentifier(value)
+            case Some(_) =>
+                Some(value.getBytes)
+            case _ =>
+                None
+        }
+    }
+}
+
+object DhcpImpl {
     def apply(dataClient: DataClient, inPort: Port, request: DHCP,
               sourceMac: MAC, mtu: Option[Short], log: Logger) =
         new DhcpImpl(dataClient, request, sourceMac, mtu, log).handleDHCP(inPort)
-
 }
 
 class DhcpException extends Exception {
@@ -45,6 +211,7 @@ object MalformedDhcpRequestException extends DhcpException {}
 class DhcpImpl(val dataClient: DataClient,
                val request: DHCP, val sourceMac: MAC,
                val mtu: Option[Short], val log: Logger) {
+    import DhcpValueParser._
 
     private var serverAddr: IPv4Addr = null
     private var serverMac: MAC = null
@@ -53,7 +220,6 @@ class DhcpImpl(val dataClient: DataClient,
     private var yiAddrMaskLen: Int = 0
     private var opt121Routes: mutable.Seq[Opt121] = null
     private var dnsServerAddrsBytes: List[Array[Byte]] = Nil
-
 
     private var interfaceMTU : Short = 0
 
@@ -75,30 +241,36 @@ class DhcpImpl(val dataClient: DataClient,
         }
     }
 
-    private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
+    private type HostAndSubnetOptPair = (Option[Host], Option[Subnet])
+
+    private
+    def getHostAndAssignedSubnet(port: BridgePort): HostAndSubnetOptPair = {
         // TODO(pino): use an async API
         val subnets = dataClient.dhcpSubnetsGetByBridgeEnabled(port.deviceID)
-
         // Look for the DHCP's source MAC in the list of hosts in each subnet
-        var host: Host = null
-
+        var host: Option[Host] = None
         val assignment = subnets.find { sub =>
             log.debug("Looking up assignment for MAC {} on subnet {} ",
                       sourceMac, sub.getId)
             if (sub.isReplyReady) {
                 // TODO(pino): make this asynchronous?
-                host = dataClient.dhcpHostsGet(port.deviceID,
-                                               sub.getSubnetAddr,
-                                               sourceMac.toString)
-                (host != null) && (host.getIp != null)
+                host = Option(dataClient.dhcpHostsGet(port.deviceID,
+                                                    sub.getSubnetAddr,
+                                                    sourceMac.toString))
+                host.isDefined && (host.get.getIp != null)
             } else {
                 log.warn("Can not create DHCP reply because the subnet" +
-                         s" ${sub.getId} does not have all necessary information.")
+                         s" ${sub.getId} does not have all necessary " +
+                         "nformation.")
                 false
             }
         }
-        assignment match {
-            case Some(sub: Subnet) =>
+        (host, assignment)
+    }
+
+    private def dhcpFromBridgePort(port: BridgePort): Option[Ethernet] = {
+        getHostAndAssignedSubnet(port) match {
+            case (Some(host: Host), Some(sub: Subnet)) =>
                 log.debug(s"Found DHCP static assignment for MAC $sourceMac => "+
                           s"${host.getName} @ ${host.getIp}")
 
@@ -318,6 +490,8 @@ class DhcpImpl(val dataClient: DataClient,
                 bytes.length.toByte,
                 bytes.toArray))
         }
+        // Add extra DHCP options
+        setExtraOptions(port, options)
         // And finally add the END option.
         options.add(new DHCPOption(DHCPOption.Code.END.value,
                                    DHCPOption.Code.END.length, null))
@@ -343,4 +517,34 @@ class DhcpImpl(val dataClient: DataClient,
 
         return Some(eth)
     }
+
+    private[midolman]
+    def setExtraOptions(port: BridgePort,
+                        options: mutable.ListBuffer[DHCPOption]): Unit =
+        getHostAndAssignedSubnet(port) match {
+            case (Some(host: Host), _) =>
+                val allDhcpOptions: Array[DHCPOption.Code] =
+                    DHCPOption.Code.values
+                for (opt <- host.getExtraDhcpOpts if host != null) {
+                    val code = opt.optName.toByte
+                    val dhcpOptOption: Option[DHCPOption] = for {
+                        option <- allDhcpOptions.find(_.value == code)
+                        value <- parseDhcpOptionValue(code, opt.optValue)
+                        if value.length % option.length == 0
+                    } yield new DHCPOption(
+                        code, value.length.toByte, value)
+                    if (dhcpOptOption.isDefined) {
+                        log.debug(s"Add extra DHCP Option ${opt.optName} " +
+                                  s"with value ${opt.optValue}")
+                        options.add(dhcpOptOption.get)
+                    } else {
+                        log.info(s"Invalid DHCP Option: ${opt.optName} " +
+                                 s"with value ${opt.optValue}")
+                        log.info("This invalid option will be treated as " +
+                                 "UNKNOWN")
+                    }
+                }
+            case _ =>
+                log.debug("There is no DHCP options.")
+        }
 }
