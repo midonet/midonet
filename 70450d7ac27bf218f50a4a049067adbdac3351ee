@@ -97,6 +97,30 @@
     },
     {
       "key": {
+        "uuid": "1af78d9a_7120109c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 788,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2014-12-22T03:15:58Z",
+      "side": 1,
+      "message": "\u003e The flush has to bump the root path so that writes happen on a new path,\n\u003e it shouldn\u0027t delete the old one. This is important for the upgrades: the cluster\n\u003e node acting as C3PO may decide to bump the version and reimport the\n\u003e NeutronDB, while the agents are still reading from the old path.\n\nThat sounds like just one particular use case of C3PO/Storage that may be partially supported by the current flush implementation. With the current implementation, subscriptions will survive flush, but get requests won\u0027t see devices after flush. I think what we need to do first is to list up all the use cases we\u0027re required support, and design which part of it is to be implemented by Storage as data versioning capability and which part by C3PO as extra operations on top of Storage\u0027s data versioning feature.",
+      "parentUuid": "1af78d9a_4b81e549",
+      "range": {
+        "startLine": 784,
+        "startChar": 0,
+        "endLine": 788,
+        "endChar": 31
+      },
+      "revId": "70450d7ac27bf218f50a4a049067adbdac3351ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9a0b7d60_7e9f3d04",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 9
