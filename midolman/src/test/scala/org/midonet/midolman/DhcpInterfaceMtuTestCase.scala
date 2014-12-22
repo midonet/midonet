@@ -72,28 +72,10 @@ class DhcpInterfaceMtuTestCase extends MidolmanTestCase
         val bridge = newBridge("bridge")
         bridge should not be null
 
-        val cmdline_ip = ( "/sbin/ifconfig"
-                            + "| grep -w inet | grep -vw 127.0.0.1"
-                            + "| egrep -o '((1?[0-9]{1,2}|2([0-5]){2})\\.?){4}'"
-                            + "| sed -n 1p" )
-
-        log.debug("looking for ip address with command {}", cmdline_ip)
-
-        val ipString: String = Seq("sh", "-c", cmdline_ip).!!.trim
-
+        val ipString: String = DhcpTestCase.getIp
         log.debug("ipString is {}", ipString)
 
-        // try to catch the mtu var around the ip captured by cmdline_ip
-        // it should be 3 lines above on OSX and 2 lines below on linux
-        val cmdline_mtu = ( "/sbin/ifconfig"
-                            + "| grep -A 2 -B 3 " + ipString
-                            + "| egrep -o -i 'mtu(:| )[0-9]+'"
-                            + "| cut -c 5-" )
-
-        log.debug("looking for MTU with command {}", cmdline_mtu)
-
-        val intfMtu_string: String = Seq("sh", "-c", cmdline_mtu).!!.trim
-
+        val intfMtu_string: String = DhcpTestCase.getMtu(ipString)
         log.debug("MTU is {}", intfMtu_string)
 
         // store original interface MTU
